@@ -347,10 +347,6 @@ The plugin supports multiple languages:
 - 繁體中文 (Traditional Chinese)
 - 日本語 (Japanese)
 - English
-- Русский (Russian)
-- Tiếng Việt (Vietnamese)
-- Lietuvių (Lithuanian)
-- Español (Spanish)
 
 ## ❓ FAQ
 
@@ -474,5 +470,6 @@ For issues, questions, or feature requests:
 ---
 
 **Made with ❤ for the WordPress community**
+
 
 
