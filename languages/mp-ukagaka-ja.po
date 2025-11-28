@@ -1,0 +1,484 @@
+# MP Ukagaka 日本語翻訳ファイル
+# Copyright (C) 2025 Ariagle (patched by Horlicks)
+# This file is distributed under the same license as the MP Ukagaka plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: MP Ukagaka 2.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-27 00:00+0800\n"
+"PO-Revision-Date: 2025-11-27 00:00+0800\n"
+"Last-Translator: Horlicks <https://www.moelog.com>\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: MP Ukagaka\n"
+
+# ========================================
+# コア機能
+# ========================================
+
+msgid "初音"
+msgstr "初音ミク"
+
+msgid "歡迎光臨～"
+msgstr "ようこそ！"
+
+msgid "更換春菜"
+msgstr "ゴースト変更"
+
+msgid "春菜们"
+msgstr "ゴースト一覧"
+
+msgid "沒有可供選擇的春菜"
+msgstr "他のゴーストはありません"
+
+msgid "隱藏春菜 ▼"
+msgstr "ゴーストを隠す ▼"
+
+msgid "隱藏會話 ▼"
+msgstr "メッセージを隠す ▼"
+
+msgid "顯示春菜 ▲"
+msgstr "ゴーストを表示 ▲"
+
+msgid "顯示會話 ▲"
+msgstr "メッセージを表示 ▲"
+
+msgid "擴展"
+msgstr "拡張"
+
+msgid "(思考中...)"
+msgstr "(考え中...)"
+
+msgid "回到頂部 ▼"
+msgstr "トップへ ▼"
+
+# ========================================
+# 管理画面 - ナビゲーション
+# ========================================
+
+msgid "MP Ukagaka 選項"
+msgstr "MP Ukagaka 設定"
+
+msgid "通用設定"
+msgstr "一般設定"
+
+msgid "AI 設定"
+msgstr "AI 設定"
+
+msgid "會話"
+msgstr "メッセージ"
+
+msgid "春菜們"
+msgstr "ゴースト"
+
+msgid "創建新春菜"
+msgstr "ゴースト作成"
+
+# ========================================
+# 管理画面 - メッセージ
+# ========================================
+
+msgid "春菜"
+msgstr "伺か"
+
+msgid "已離你而去…"
+msgstr "を削除しました"
+
+msgid "不存在此春菜喲"
+msgstr "ゴーストが存在しません"
+
+msgid "不允許趕走預設春菜喲"
+msgstr "デフォルトゴーストは削除できません"
+
+msgid "安全性檢查失敗。"
+msgstr "セキュリティチェックに失敗しました。"
+
+msgid "設定已儲存"
+msgstr "設定を保存しました"
+
+msgid "春菜們已經煥然一新啦"
+msgstr "ゴーストの設定を更新しました"
+
+msgid "，對話檔案已生成"
+msgstr "、ダイアログファイルを生成しました"
+
+msgid "春菜創建成功～"
+msgstr "ゴーストを作成しました"
+
+msgid "AI 設定已儲存"
+msgstr "AI設定を保存しました"
+
+msgid "設定已重置"
+msgstr "設定を初期化しました"
+
+msgid "設定未被重置"
+msgstr "設定は初期化されませんでした"
+
+# ========================================
+# 一般設定ページ
+# ========================================
+
+msgid "預設春菜："
+msgstr "デフォルトゴースト："
+
+msgid "預設顯示春菜"
+msgstr "ゴーストをデフォルトで表示"
+
+msgid "預設顯示對話框"
+msgstr "ダイアログをデフォルトで表示"
+
+msgid "預設會話："
+msgstr "デフォルトメッセージ："
+
+msgid "隨機吐槽"
+msgstr "ランダム表示"
+
+msgid "第一條吐槽"
+msgstr "最初のメッセージ"
+
+msgid "會話順序："
+msgstr "メッセージの順序："
+
+msgid "順序吐槽"
+msgstr "順番に表示"
+
+msgid "點擊春菜："
+msgstr "ゴーストをクリック："
+
+msgid "下一條吐槽"
+msgstr "次のメッセージ"
+
+msgid "無操作"
+msgstr "何もしない"
+
+msgid "自動對話："
+msgstr "自動会話："
+
+msgid "啟用自動對話功能"
+msgstr "自動会話を有効にする"
+
+msgid "自動對話間隔時間（秒）："
+msgstr "自動会話の間隔（秒）："
+
+msgid "打字效果速度（毫秒/字）："
+msgstr "タイプライター速度（ミリ秒/文字）："
+
+msgid "數值越小打字越快，建議範圍 20-80，預設 40"
+msgstr "数値が小さいほど速くなります。推奨範囲 20-80、デフォルト 40"
+
+msgid "外部對話文件格式："
+msgstr "外部ダイアログファイル形式："
+
+msgid "純文字格式 (TXT)"
+msgstr "テキスト形式 (TXT)"
+
+msgid "JSON 格式"
+msgstr "JSON 形式"
+
+msgid "使用外部對話文件"
+msgstr "外部ダイアログファイルを使用"
+
+msgid "使用自訂樣式"
+msgstr "カスタムスタイルを使用"
+
+msgid "HTML 生成位置："
+msgstr "HTML生成位置："
+
+msgid "一般情況下請勿更改"
+msgstr "通常は変更しないでください"
+
+msgid "在</body>前"
+msgstr "</body>タグ直前"
+
+msgid "當春菜無法顯示（主題尾部無 wp_footer() 函數）或 wp_footer() 位置導致樣式異常時，請勾選此項"
+msgstr "ゴーストが表示されない場合や、スタイルに問題がある場合はこれを選択してください"
+
+msgid "在 wp_footer() 處"
+msgstr "wp_footer()内"
+
+msgid "這是 WordPress 常用方式，但若主題尾部無 wp_footer() 函數，春菜將無法顯示"
+msgstr "WordPress標準の方法ですが、テーマにwp_footer()がない場合は表示されません"
+
+msgid "不在以下頁面顯示春菜"
+msgstr "以下のページでゴーストを非表示"
+
+msgid "輸入不顯示春菜的頁面 URL，每行一條。"
+msgstr "非表示にするページのURLを1行ずつ入力してください。"
+
+msgid "在地址尾部加入 (*) 可進行模糊匹配。"
+msgstr "URLの末尾に(*)を追加するとワイルドカード検索ができます。"
+
+msgid " 儲 存 "
+msgstr " 保存 "
+
+msgid "插件資訊"
+msgstr "プラグイン情報"
+
+msgid "版本："
+msgstr "バージョン："
+
+msgid "春菜數量："
+msgstr "ゴースト数："
+
+msgid "平均會話數："
+msgstr "平均メッセージ数："
+
+msgid "維護者網站："
+msgstr "メンテナーサイト："
+
+msgid "前往維護者網站"
+msgstr "メンテナーサイトへ"
+
+msgid "重置設定"
+msgstr "設定の初期化"
+
+msgid "確認重置"
+msgstr "初期化を確認"
+
+msgid "重置設定將還原插件的所有配置為預設值，所有設定及春菜將被刪除。此操作無法撤銷，請謹慎操作。"
+msgstr "設定を初期化すると、すべてのゴーストと設定が削除されます。この操作は取り消せません。"
+
+msgid " 重 置 "
+msgstr " 初期化 "
+
+# ========================================
+# AI設定ページ
+# ========================================
+
+msgid "AI 設定 (Context Awareness)"
+msgstr "AI 設定（コンテキスト認識）"
+
+msgid "啟用頁面感知功能（需要 AI API Key）"
+msgstr "ページ認識機能を有効にする（AI API Keyが必要）"
+
+msgid "AI 提供商："
+msgstr "AIプロバイダー："
+
+msgid "Google Gemini"
+msgstr "Google Gemini"
+
+msgid "OpenAI"
+msgstr "OpenAI"
+
+msgid "Claude (Anthropic)"
+msgstr "Claude (Anthropic)"
+
+msgid "Gemini API Key："
+msgstr "Gemini API Key："
+
+msgid "請輸入 Google Gemini API Key"
+msgstr "Google Gemini API Keyを入力"
+
+msgid "請前往 <a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a> 取得 API Key"
+msgstr "<a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a>でAPI Keyを取得"
+
+msgid "已設定"
+msgstr "設定済み"
+
+msgid "OpenAI API Key："
+msgstr "OpenAI API Key："
+
+msgid "請輸入 OpenAI API Key"
+msgstr "OpenAI API Keyを入力"
+
+msgid "請前往 <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a> 取得 API Key"
+msgstr "<a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a>でAPI Keyを取得"
+
+msgid "OpenAI 模型："
+msgstr "OpenAI モデル："
+
+msgid "Claude API Key："
+msgstr "Claude API Key："
+
+msgid "請輸入 Claude API Key"
+msgstr "Claude API Keyを入力"
+
+msgid "請前往 <a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a> 取得 API Key"
+msgstr "<a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a>でAPI Keyを取得"
+
+msgid "Claude 模型："
+msgstr "Claude モデル："
+
+msgid "語言設定："
+msgstr "言語設定："
+
+msgid "繁體中文"
+msgstr "繁體中文"
+
+msgid "日本語"
+msgstr "日本語"
+
+msgid "English"
+msgstr "English"
+
+msgid "人格設定 (System Prompt)："
+msgstr "キャラクター設定（System Prompt）："
+
+msgid "AI 回應機率 (%)："
+msgstr "AI応答確率（%）："
+
+msgid "設定使用 AI 的機率（1-100%）。建議 10% 以控制成本。"
+msgstr "AIを使用する確率（1-100%）。コスト管理のため10%推奨。"
+
+msgid "觸發頁面："
+msgstr "トリガーページ："
+
+msgid "WordPress 條件標籤，逗號分隔（如：is_single,is_page）"
+msgstr "WordPress条件タグをカンマ区切り（例：is_single,is_page）"
+
+msgid "AI 對話文字顏色："
+msgstr "AI会話の文字色："
+
+msgid "設定 AI 對話載入訊息（…ふむ。この記事か。どれ…）的文字顏色"
+msgstr "AI会話の読み込みメッセージの文字色を設定"
+
+msgid "AI 對話顯示時間（秒）："
+msgstr "AI会話の表示時間（秒）："
+
+msgid "設定 AI 對話顯示的時間長度。在此期間，自動對話會暫停，避免 AI 對話被覆蓋（建議 5-10 秒）"
+msgstr "AI会話の表示時間。この間、自動会話は一時停止します（5-10秒推奨）"
+
+msgid "啟用首次訪客打招呼"
+msgstr "初回訪問者への挨拶を有効化"
+
+msgid "當訪客第一次訪問網站時，根據訪客來源（使用 Slimstat API）用 AI 生成個性化打招呼訊息。每個訪客只會看到一次。"
+msgstr "初回訪問者にAIが参照元に基づいてパーソナライズされた挨拶を生成します。各訪問者に1回のみ表示。"
+
+msgid "首次訪客打招呼提示詞："
+msgstr "初回訪問者挨拶プロンプト："
+
+msgid "定義春菜對首次訪客的打招呼風格和語氣"
+msgstr "初回訪問者への挨拶のスタイルとトーンを定義"
+
+# ========================================
+# ゴースト管理ページ
+# ========================================
+
+msgid "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。"
+msgstr "画像URLはhttp://から入力してください。"
+
+msgid "吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "メッセージは1行ずつ入力してください。HTMLは使用できません。"
+
+msgid "刪除"
+msgstr "削除"
+
+msgid "可顯示"
+msgstr "表示"
+
+msgid "名稱："
+msgstr "名前："
+
+msgid "圖片："
+msgstr "画像："
+
+msgid "吐槽："
+msgstr "メッセージ："
+
+msgid "對話檔案名稱："
+msgstr "ダイアログファイル名："
+
+msgid "此名稱將用於外部對話檔案，例如：asuna.txt 或 asuna.json"
+msgstr "この名前は外部ダイアログファイル名として使用されます（例：asuna.txt、asuna.json）"
+
+msgid "生成對話檔案"
+msgstr "ダイアログファイルを生成"
+
+msgid "勾選此項將使用上方吐槽內容生成對應的對話檔案"
+msgstr "チェックすると上記メッセージからダイアログファイルを生成します"
+
+msgid "每行一條吐槽，不可使用 HTML 代碼。"
+msgstr "1行に1メッセージ。HTMLは使用できません。"
+
+msgid " 創 建 "
+msgstr " 作成 "
+
+# ========================================
+# 拡張ページ
+# ========================================
+
+msgid "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
+msgstr "よく分からない場合はこのページを変更しないでください。"
+
+msgid "JS 區"
+msgstr "JavaScript"
+
+msgid "可在此填寫 JavaScript 代碼，為春菜自訂更多的回應事件。"
+msgstr "ゴーストのカスタムイベントをJavaScriptで定義できます。"
+
+msgid "無需使用 &lt;script&gt; 標籤，代碼將寫入到 &lt;head&gt; 部分。"
+msgstr "&lt;script&gt;タグは不要です。コードは&lt;head&gt;に出力されます。"
+
+msgid "代碼擴展"
+msgstr "拡張コード"
+
+msgid "您可以在春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"
+msgstr "メッセージに拡張コードを追加して、記事一覧などを表示できます。"
+
+msgid "更多擴展代碼資訊請參閱："
+msgstr "拡張コードの詳細はこちら："
+
+# ========================================
+# メッセージページ
+# ========================================
+
+msgid "固定資訊："
+msgstr "固定メッセージ："
+
+msgid "此資訊將顯示在每條會話的後面，不可使用 HTML 代碼。"
+msgstr "各メッセージの後に表示されます。HTMLは使用できません。"
+
+msgid "通用會話："
+msgstr "共通メッセージ："
+
+msgid "所有春菜共用的會話內容。"
+msgstr "すべてのゴーストで共通のメッセージ。"
+
+msgid "一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
+msgstr "入力すると、各ゴーストのカスタムメッセージの代わりに使用されます。空にすると各ゴーストのデフォルトメッセージを使用。"
+
+# ========================================
+# セキュリティとファイル操作
+# ========================================
+
+msgid "找不到指定的文件"
+msgstr "ファイルが見つかりません"
+
+msgid "不允許讀取該路徑"
+msgstr "このパスの読み取りは許可されていません"
+
+msgid "文件過大，無法讀取"
+msgstr "ファイルが大きすぎて読み取れません"
+
+msgid "無法讀取文件"
+msgstr "ファイルを読み取れません"
+
+msgid "無法創建目錄"
+msgstr "ディレクトリを作成できません"
+
+msgid "不允許寫入該路徑"
+msgstr "このパスへの書き込みは許可されていません"
+
+msgid "不合法的文件名"
+msgstr "無効なファイル名です"
+
+msgid "無法寫入文件"
+msgstr "ファイルを書き込めません"
+
+msgid "不合法的對話文件名"
+msgstr "無効なダイアログファイル名です"
+
+msgid "找不到對話文件"
+msgstr "ダイアログファイルが見つかりません"
+
+msgid "對話文件過大，載入失敗"
+msgstr "ダイアログファイルが大きすぎます"
+
+msgid "無法讀取對話文件"
+msgstr "ダイアログファイルを読み取れません"
+
+msgid "JSON 檔案格式錯誤"
+msgstr "JSONファイル形式エラー"
