@@ -8,11 +8,15 @@
 
 🌍 **其他語言**: [English](README.md) | [日本語](README_ja.md)
 
+## 📸 預覽截圖
+
+![MP Ukagaka 展示](screenshot.PNG)
+
+*芙莉蓮角色根據文章內容顯示 AI 生成的對話*
+
 ## 📖 簡介
 
-MP Ukagaka 讓你能夠為 WordPress 網站創建自訂的互動式桌面寵物角色。  
-這個版本基於經典的 MP Ukagaka 外掛進行了全面現代化，具備增強的安全性、效能改進、模組化架構和先進的 AI 功能。  
-演示網站: [https://www.moelog.com/](https://www.moelog.com/)
+MP Ukagaka 讓你能夠為 WordPress 網站創建自訂的互動式桌面寵物角色。這個版本基於經典的 MP Ukagaka 外掛進行了全面現代化，具備增強的安全性、效能改進、模組化架構和先進的 AI 功能。
 
 ### 經典功能
 
@@ -318,5 +322,4 @@ mp-ukagaka/
 ---
 
 **Made with ❤ for WordPress 社群**
-
 

@@ -8,11 +8,15 @@ A WordPress plugin for creating and displaying interactive ukagaka (伺か) char
 
 🌍 **Other Languages**: [繁體中文](README_zh-TW.md) | [日本語](README_ja.md)
 
+## 📸 Screenshot
+
+![MP Ukagaka Demo](screenshot.PNG)
+
+*Frieren character displaying AI-generated dialogue based on article content*
+
 ## 📖 Description
 
-MP Ukagaka allows you to create custom interactive desktop mascot characters for your WordPress site.  
-Based on the classic MP Ukagaka plugin, this version has been completely modernized with enhanced security, performance improvements, modular architecture, and cutting-edge AI features.  
-Actived site:[https://www.moelog.com/](https://www.moelog.com/)  
+MP Ukagaka allows you to create custom interactive desktop mascot characters for your WordPress site. Based on the classic MP Ukagaka plugin, this version has been completely modernized with enhanced security, performance improvements, modular architecture, and cutting-edge AI features.
 
 ### Classic Features
 
@@ -22,7 +26,7 @@ Actived site:[https://www.moelog.com/](https://www.moelog.com/)
 - **Auto-Talk**: Automatic message rotation with configurable intervals
 - **Common Messages**: Apply messages to all characters simultaneously
 - **Page Exclusion**: Control where ukagakas appear on your site
-- **Multi-Language**: Supports multiple languages (Chinese, Japanese, English)  
+- **Multi-Language**: Supports multiple languages (Chinese, Japanese, English, Russian, Vietnamese, Lithuanian, Spanish)
 
 ### 🚀 AI Context Awareness (NEW in v2.0.0)
 
@@ -347,6 +351,10 @@ The plugin supports multiple languages:
 - 繁體中文 (Traditional Chinese)
 - 日本語 (Japanese)
 - English
+- Русский (Russian)
+- Tiếng Việt (Vietnamese)
+- Lietuvių (Lithuanian)
+- Español (Spanish)
 
 ## ❓ FAQ
 
@@ -470,6 +478,3 @@ For issues, questions, or feature requests:
 ---
 
 **Made with ❤ for the WordPress community**
-
-
-
