@@ -14,7 +14,7 @@
     font-size: 13px;
     position: fixed;    /* 固定在頁面右下角 */
     right: 0;
-    bottom: 0;
+    bottom: 20px;       /* 往上移動 30px */
     float: right;
     display: block;
     z-index: 10000;     /* 高層級，確保顯示在其他元素上方 */
@@ -24,7 +24,7 @@
 
 /* 春菜圖片的樣式 */
 #ukagaka_img {
-    margin-bottom: -10px; /* 向上偏移 10px，與其他元素對齊 */
+    margin-bottom: 0px; /* 向上偏移 10px，與其他元素對齊 */
 }
 
 /* 春菜圖片的懸停效果 */
@@ -104,92 +104,108 @@
     color: #6d6d6d; /* 懸停時變為灰色 */
 }
 
-/* 春菜控制面板的樣式 */
-#ukagaka-dock {
-    width: 250px;
-    height: 45px;
-    color: transparent; /* 文字透明，通常用於隱藏文字 */
-    float: right;
-    padding-bottom: 30px; /* 底部內邊距 30px */
-    text-align: center;
-    background: url(images/menu.png) no-repeat center; /* 控制面板背景圖 */
+/* 春菜控制面板的樣式 - 強制重置主題設定 */
+#mp_ukagaka #ukagaka-dock {
+    width: 250px !important;
+    height: 45px !important;
+    color: transparent !important; /* 文字透明，通常用於隱藏文字 */
+    float: right !important;
+    padding: 0 0 30px 0 !important; /* 底部內邊距 30px */
+    margin: 0  !important;  /* 往上移動 10px */
+    text-align: center !important;
+    background: url(images/menu.png) no-repeat center !important; /* 控制面板背景圖 */
+    border: none !important;
+    box-sizing: border-box !important;
 }
 
-/* 控制面板列表的樣式 */
-#ukagaka-dock ul {
-    list-style: none; /* 移除列表符號 */
+/* 控制面板列表的樣式 - 使用 flexbox 置中對齊 */
+#mp_ukagaka #ukagaka-dock ul {
+    list-style: none !important; /* 移除列表符號 */
+    margin: 0 !important;
+    padding: 0 0 0 64px !important; /* 往右移 64px */
+    border: none !important;
+    background: none !important;
+    display: flex !important;
+    justify-content: center !important; /* 水平置中 */
+    align-items: center !important;
+    height: 45px !important;
+    gap: 19px !important; /* 按鈕之間的間距，匹配背景圖 */
 }
 
-/* 控制面板列表項的樣式 */
-#ukagaka-dock ul li {
-    list-style-type: none;
-    float: left;
-    font-size: 0px; /* 文字大小設為 0，避免顯示 */
-    display: block;
-    /* text-indent: -9999px; */ /* 註釋掉的文字偏移，保留原始意圖 */
+/* 控制面板列表項的樣式 - 強制重置主題設定 */
+#mp_ukagaka #ukagaka-dock ul li {
+    list-style-type: none !important;
+    list-style: none !important;
+    float: none !important; /* 取消 float，改用 flexbox */
+    font-size: 0px !important; /* 文字大小設為 0，避免顯示 */
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: none !important;
+    vertical-align: baseline !important;
 }
 
-/* "回到頂部" 按鈕的樣式 */
-.gotop a {
-    margin-top: 3px;
-    margin-left: -2px;
-    display: block;
-    width: 45px;
-    height: 45px;
-    color: #FFF; /* 白色文字 */
+/* 控制面板按鈕共用樣式 - 使用 !important 確保不被主題覆蓋 */
+#mp_ukagaka #ukagaka-dock ul li a,
+#mp_ukagaka #ukagaka-dock ul li a:link,
+#mp_ukagaka #ukagaka-dock ul li a:visited {
+    display: block !important;
+    width: 45px !important;
+    height: 45px !important;
+    color: transparent !important;
+    background: none !important;
+    background-image: none !important;
+    border: none !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transition: none !important;
+}
+
+/* "回到頂部" 按鈕位置 */
+#mp_ukagaka #ukagaka-dock ul li.gotop a {
+    /* flexbox 自動對齊，不需要額外 margin */
 }
 
 /* "回到頂部" 按鈕的懸停效果 */
-.gotop a:hover {
-    width: 45px;
-    height: 45px;
-    display: block;
-    margin-top: 3px;
-    margin-left: -2px;
-    background: url(images/top.png) no-repeat; /* 懸停時顯示背景圖 */
+#mp_ukagaka #ukagaka-dock ul li.gotop a:hover,
+#mp_ukagaka #ukagaka-dock ul li.gotop a:focus,
+#mp_ukagaka #ukagaka-dock ul li.gotop a:active {
+    background: url(images/top.png) no-repeat center center !important;
+    background-image: url(images/top.png) !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
 }
 
-/* "隱藏春菜" 按鈕的樣式 */
-.hide a {
-    margin-top: 3px;
-    margin-left: 19px;
-    display: block;
-    width: 45px;
-    height: 45px;
-    color: #FFF; /* 白色文字 */
+/* "隱藏春菜" 按鈕位置 */
+#mp_ukagaka #ukagaka-dock ul li.hide a {
+    /* flexbox 自動對齊，不需要額外 margin */
 }
 
 /* "隱藏春菜" 按鈕的懸停效果 */
-.hide a:hover {
-    width: 45px;
-    height: 45px;
-    display: block;
-    margin-top: 3px;
-    margin-left: 19px;
-    background: url(images/hide.png) no-repeat; /* 懸停時顯示背景圖 */
+#mp_ukagaka #ukagaka-dock ul li.hide a:hover,
+#mp_ukagaka #ukagaka-dock ul li.hide a:focus,
+#mp_ukagaka #ukagaka-dock ul li.hide a:active {
+    background: url(images/hide.png) no-repeat center center !important;
+    background-image: url(images/hide.png) !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
 }
 
-/* "更換春菜" 按鈕的樣式 */
-.change a {
-    margin-top: 3px;
-    margin-left: 19px;
-    display: block;
-    width: 45px;
-    height: 45px;
-    color: #FFF; /* 白色文字 */
+/* "更換春菜" 按鈕位置 */
+#mp_ukagaka #ukagaka-dock ul li.change a {
+    /* flexbox 自動對齊，不需要額外 margin */
 }
 
 /* "更換春菜" 按鈕的懸停效果 */
-.change a:hover {
-    width: 45px;
-    height: 45px;
-    display: block;
-    margin-top: 3px;
-    margin-left: 19px;
-    background: url(images/change.png) no-repeat; /* 懸停時顯示背景圖 */
-}
-
-/* 控制面板內超連結的樣式（可能為筆誤） */
-.ukagaka-dock a {
-    color: #000 /* 無效值，應為 #000 或 transparent，建議修正 */
+#mp_ukagaka #ukagaka-dock ul li.change a:hover,
+#mp_ukagaka #ukagaka-dock ul li.change a:focus,
+#mp_ukagaka #ukagaka-dock ul li.change a:active {
+    background: url(images/change.png) no-repeat center center !important;
+    background-image: url(images/change.png) !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
 }
