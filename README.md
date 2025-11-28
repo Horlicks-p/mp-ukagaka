@@ -10,7 +10,9 @@ A WordPress plugin for creating and displaying interactive ukagaka (伺か) char
 
 ## 📖 Description
 
-MP Ukagaka allows you to create custom interactive desktop mascot characters for your WordPress site. Based on the classic MP Ukagaka plugin, this version has been completely modernized with enhanced security, performance improvements, modular architecture, and cutting-edge AI features.
+MP Ukagaka allows you to create custom interactive desktop mascot characters for your WordPress site.  
+Based on the classic MP Ukagaka plugin, this version has been completely modernized with enhanced security, performance improvements, modular architecture, and cutting-edge AI features.  
+Actived site:[https://www.moelog.com/](https://www.moelog.com/)  
 
 ### Classic Features
 
@@ -472,3 +474,4 @@ For issues, questions, or feature requests:
 ---
 
 **Made with ❤ for the WordPress community**
+
