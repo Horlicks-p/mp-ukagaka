@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建和顯示互動式桌面寵物（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![外掛版本](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com)
+[![外掛版本](https://img.shields.io/badge/version-2.1.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -264,6 +264,18 @@ mp-ukagaka/
 - 檢查檔案權限
 
 ## 📜 版本歷史
+
+### 版本 2.1.1（2025-11-28）
+
+**錯誤修正：**
+- 🐛 改善 CSS 穩定性，提升主題相容性（Twenty Ten 等）
+- 🐛 導航按鈕 hover 效果現在在所有主題中正常運作
+- 🐛 移除對話框按鈕（OK/Cancel）的 focus 虛線框
+
+**改進：**
+- 🔧 使用 Flexbox 佈局改善按鈕對齊
+- 🔧 添加 `!important` 規則防止主題 CSS 覆蓋
+- 🔧 控制面板元素完整 CSS 重置
 
 ### 版本 2.1.0（2025-11-26）
 

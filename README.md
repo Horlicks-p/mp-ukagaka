@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating and displaying interactive ukagaka (伺か) characters on your blog, with AI-powered context awareness features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.1.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -26,7 +26,7 @@ MP Ukagaka allows you to create custom interactive desktop mascot characters for
 - **Auto-Talk**: Automatic message rotation with configurable intervals
 - **Common Messages**: Apply messages to all characters simultaneously
 - **Page Exclusion**: Control where ukagakas appear on your site
-- **Multi-Language**: Supports multiple languages (Chinese, Japanese, English)
+- **Multi-Language**: Supports multiple languages (Chinese, Japanese, English, Russian, Vietnamese, Lithuanian, Spanish)
 
 ### 🚀 AI Context Awareness (NEW in v2.0.0)
 
@@ -350,7 +350,11 @@ The modular architecture makes it easy to add new features:
 The plugin supports multiple languages:
 - 繁體中文 (Traditional Chinese)
 - 日本語 (Japanese)
-- English  
+- English
+- Русский (Russian)
+- Tiếng Việt (Vietnamese)
+- Lietuvių (Lithuanian)
+- Español (Spanish)
 
 ## ❓ FAQ
 
@@ -417,6 +421,18 @@ The plugin uses cookies to detect first-time visitors. If Slimstat plugin is ins
 
 ## 📜 Changelog
 
+### Version 2.1.1 (2025-11-28)
+
+**Bug Fixes:**
+- 🐛 **FIXED**: CSS stability improvements for theme compatibility (Twenty Ten, etc.)
+- 🐛 **FIXED**: Navigation button hover effects now work correctly across all themes
+- 🐛 **FIXED**: Removed focus outline on dialog buttons (OK/Cancel)
+
+**Enhancements:**
+- 🔧 **IMPROVED**: Use Flexbox layout for better button alignment
+- 🔧 **IMPROVED**: Added `!important` rules to prevent theme CSS overrides
+- 🔧 **IMPROVED**: Complete CSS reset for dock elements
+
 ### Version 2.1.0 (2025-11-26)
 
 **New Features:**
@@ -474,4 +490,3 @@ For issues, questions, or feature requests:
 ---
 
 **Made with ❤ for the WordPress community**
-

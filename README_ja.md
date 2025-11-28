@@ -2,7 +2,7 @@
 
 WordPressサイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成・表示するプラグイン。AIコンテキスト認識機能搭載。
 
-[![プラグインバージョン](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com)
+[![プラグインバージョン](https://img.shields.io/badge/version-2.1.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -264,6 +264,18 @@ mp-ukagaka/
 - ファイル権限を確認
 
 ## 📜 変更履歴
+
+### バージョン 2.1.1（2025-11-28）
+
+**バグ修正：**
+- 🐛 CSSの安定性改善、テーマ互換性向上（Twenty Tenなど）
+- 🐛 ナビゲーションボタンのホバー効果がすべてのテーマで正常に動作
+- 🐛 ダイアログボタン（OK/Cancel）のフォーカス枠線を削除
+
+**改善：**
+- 🔧 Flexboxレイアウトによるボタン配置の改善
+- 🔧 テーマCSSの上書きを防ぐ `!important` ルールを追加
+- 🔧 ドック要素の完全なCSSリセット
 
 ### バージョン 2.1.0（2025-11-26）
 
