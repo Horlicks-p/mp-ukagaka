@@ -22,7 +22,7 @@ Actived site:[https://www.moelog.com/](https://www.moelog.com/)
 - **Auto-Talk**: Automatic message rotation with configurable intervals
 - **Common Messages**: Apply messages to all characters simultaneously
 - **Page Exclusion**: Control where ukagakas appear on your site
-- **Multi-Language**: Supports multiple languages (Chinese, Japanese, English, Russian, Vietnamese, Lithuanian, Spanish)
+- **Multi-Language**: Supports multiple languages (Chinese, Japanese, English)  
 
 ### 🚀 AI Context Awareness (NEW in v2.0.0)
 
@@ -474,4 +474,5 @@ For issues, questions, or feature requests:
 ---
 
 **Made with ❤ for the WordPress community**
+
 
