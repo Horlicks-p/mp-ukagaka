@@ -68,6 +68,24 @@
     margin: 0;
 }
 
+/* 對話框底部按鈕（OK/Cancel）- 移除 focus outline */
+#mp_ukagaka .ukagaka-msgbox-border a,
+#mp_ukagaka .ukagaka-msgbox-border a:link,
+#mp_ukagaka .ukagaka-msgbox-border a:visited,
+#mp_ukagaka .ukagaka-msgbox-border a:hover,
+#mp_ukagaka .ukagaka-msgbox-border a:focus,
+#mp_ukagaka .ukagaka-msgbox-border a:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+    -moz-outline-style: none !important;
+}
+
+#mp_ukagaka .ukagaka-msgbox-border a img {
+    outline: none !important;
+    border: none !important;
+}
 
 /* 下一條訊息按鈕（未使用，保留註釋） */
 .nextmsg {
