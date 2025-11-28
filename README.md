@@ -26,7 +26,7 @@ MP Ukagaka allows you to create custom interactive desktop mascot characters for
 - **Auto-Talk**: Automatic message rotation with configurable intervals
 - **Common Messages**: Apply messages to all characters simultaneously
 - **Page Exclusion**: Control where ukagakas appear on your site
-- **Multi-Language**: Supports Traditional Chinese and Japanese
+- **Multi-Language**: Supports English, Traditional Chinese, and Japanese
 
 ### 🚀 AI Context Awareness (NEW in v2.0.0)
 
@@ -348,6 +348,7 @@ The modular architecture makes it easy to add new features:
 ## 🌍 Language Support
 
 The plugin admin interface supports:
+- English
 - 繁體中文 (Traditional Chinese)
 - 日本語 (Japanese)
 
