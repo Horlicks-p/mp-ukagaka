@@ -330,6 +330,20 @@ function mpu_handle_options_save()
     if ($text) {
         // 使用 transients 將訊息傳遞給 options.php
         set_transient('mpu_admin_message', $text, 30);
+
+        // ★★★ 修正：保存後重定向，確保頁面顯示最新值 ★★★
+        // 獲取當前頁面編號，用於重定向
+        $cur_page = isset($_GET['cur_page']) ? intval($_GET['cur_page']) : 0;
+        if ($cur_page < 0 || $cur_page > 6) {
+            $cur_page = 0;
+        }
+
+        // 構建重定向 URL
+        $redirect_url = admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=' . $cur_page . '&settings-updated=true');
+
+        // 執行重定向
+        wp_redirect($redirect_url);
+        exit;
     }
 }
 add_action('admin_init', 'mpu_handle_options_save');
