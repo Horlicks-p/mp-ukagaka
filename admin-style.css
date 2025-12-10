@@ -1,0 +1,493 @@
+/**
+ * MP Ukagaka 後台管理介面樣式
+ * Claude 風格設計，配色參考 sample_style.css
+ */
+
+/* ========== 基本變數定義 ========== */
+:root {
+    --claude-bg-primary: #f5f5f0;
+    --claude-bg-secondary: #EEECDE;
+    --claude-bg-card: #F0EEE0;
+    --claude-bg-white: #ffffff;
+    --claude-text-primary: #666;
+    --claude-text-secondary: #69644e;
+    --claude-text-heading: #1d8ac3;
+    --claude-link: #94B800;
+    --claude-link-hover: #69644e;
+    --claude-border: #d0d0d0;
+    --claude-border-light: #E0DECE;
+    --claude-shadow: rgba(0, 0, 0, 0.08);
+    --claude-shadow-hover: rgba(0, 0, 0, 0.12);
+    --claude-accent: #1d8ac3;
+    --claude-success: #94B800;
+    --claude-error: #d32f2f;
+}
+
+/* ========== 整體容器 ========== */
+.mp-ukagaka-wrap {
+    background: #f0f0f1; /* WordPress 預設背景色 */
+    min-height: 100vh;
+    padding: 0 !important;
+    margin: 0 -20px 0 -2px;
+    font-family: "Noto Sans TC", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 覆蓋 WordPress 默認的 .wrap 樣式 */
+.wrap.mp-ukagaka-wrap {
+    padding: 0 !important;
+}
+
+.mp-ukagaka-wrap h2 {
+    color: var(--claude-text-heading);
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 30px 0;
+    padding: 30px 0 0 30px;
+    width: 75%;
+    max-width: 1200px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* ========== 標籤頁導航 ========== */
+.mp-ukagaka-tabs {
+    margin: 0 0 0 0;
+    padding: 0 0 0 30px;
+    width: 75%;
+    max-width: 1200px;
+    border-bottom: 2px solid var(--claude-border-light);
+    background: transparent;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mp-ukagaka-tabs a {
+    display: inline-block;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--claude-text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 0; /* 改為直角 */
+    background: transparent;
+    transition: all 0.3s ease;
+    position: relative;
+    margin-bottom: -2px;
+}
+
+.mp-ukagaka-tabs a:hover {
+    color: var(--claude-text-heading);
+    background: rgba(29, 138, 195, 0.08);
+}
+
+.mp-ukagaka-tabs a.active {
+    color: var(--claude-text-heading);
+    background: var(--claude-bg-white);
+    border-bottom: 3px solid var(--claude-text-heading);
+    font-weight: 600;
+    box-shadow: none; /* 移除陰影 */
+}
+
+/* ========== 內容區域 ========== */
+.mp-ukagaka-section {
+    background: var(--claude-bg-white);
+    padding: 35px 40px;
+    margin: 0 0 30px 0;
+    width: 75%;
+    max-width: 1200px;
+    border-radius: 0 0 12px 12px; /* 只有下方圓角，上方直角 */
+    box-shadow: none; /* 移除陰影 */
+    border: 1px solid var(--claude-border-light);
+}
+
+.mp-ukagaka-section h3 {
+    color: var(--claude-text-heading);
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 25px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--claude-border-light);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.mp-ukagaka-section h4 {
+    color: var(--claude-text-secondary);
+    font-size: 16px;
+    font-weight: 600;
+    margin: 25px 0 15px 0;
+}
+
+/* ========== 表單元素 ========== */
+.mp-ukagaka-section p {
+    margin: 18px 0;
+    color: var(--claude-text-primary);
+    line-height: 1.8;
+}
+
+.mp-ukagaka-section label {
+    color: var(--claude-text-primary);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.mp-ukagaka-section input[type="text"],
+.mp-ukagaka-section input[type="password"],
+.mp-ukagaka-section input[type="number"],
+.mp-ukagaka-section input[type="url"],
+.mp-ukagaka-section input[type="color"],
+.mp-ukagaka-section textarea,
+.mp-ukagaka-section select {
+    background: var(--claude-bg-white);
+    border: 2px solid var(--claude-border-light);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--claude-text-primary);
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.mp-ukagaka-section input[type="text"]:focus,
+.mp-ukagaka-section input[type="password"]:focus,
+.mp-ukagaka-section input[type="number"]:focus,
+.mp-ukagaka-section input[type="url"]:focus,
+.mp-ukagaka-section textarea:focus,
+.mp-ukagaka-section select:focus {
+    outline: none;
+    border-color: var(--claude-text-heading);
+    box-shadow: 0 0 0 3px rgba(29, 138, 195, 0.1);
+}
+
+.mp-ukagaka-section textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.mp-ukagaka-section select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 35px;
+}
+
+/* ========== 單選框和複選框 ========== */
+.mp-ukagaka-section input[type="radio"],
+.mp-ukagaka-section input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    cursor: pointer;
+    accent-color: var(--claude-text-heading);
+    vertical-align: middle;
+}
+
+.mp-ukagaka-section label {
+    cursor: pointer;
+}
+
+/* 單選框組的 label */
+.mp-ukagaka-section p > label {
+    display: inline-block;
+    margin-right: 20px;
+    font-weight: 400;
+    vertical-align: middle;
+}
+
+/* 包含輸入框的 label 保持塊級顯示 */
+.mp-ukagaka-section label:has(input[type="text"]),
+.mp-ukagaka-section label:has(textarea),
+.mp-ukagaka-section label:has(select) {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+/* ========== 按鈕 ========== */
+.mp-ukagaka-section .button,
+.mp-ukagaka-section input[type="submit"].button {
+    background: var(--claude-text-heading);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px var(--claude-shadow);
+    text-transform: none;
+    letter-spacing: 0.5px;
+}
+
+.mp-ukagaka-section .button:hover,
+.mp-ukagaka-section input[type="submit"].button:hover {
+    background: #1674a0;
+    box-shadow: 0 4px 12px var(--claude-shadow-hover);
+    transform: translateY(-1px);
+}
+
+.mp-ukagaka-section .button:active,
+.mp-ukagaka-section input[type="submit"].button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px var(--claude-shadow);
+}
+
+/* ========== 連結 ========== */
+.mp-ukagaka-section a {
+    color: var(--claude-link);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-weight: 500;
+}
+
+.mp-ukagaka-section a:hover {
+    color: var(--claude-link-hover);
+    text-decoration: underline;
+}
+
+/* ========== 分隔線 ========== */
+.mp-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--claude-border-light), transparent);
+    margin: 30px 0;
+    width: 100%;
+    border: none;
+}
+
+.mp-ukagaka-section div[style*="height:1px"] {
+    height: 1px !important;
+    background: linear-gradient(to right, transparent, var(--claude-border-light), transparent) !important;
+    margin: 30px 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* ========== 小字說明 ========== */
+.mp-ukagaka-section small {
+    color: var(--claude-text-primary);
+    font-size: 13px;
+    line-height: 1.6;
+    display: block;
+    margin-top: 6px;
+    opacity: 0.8;
+}
+
+.mp-ukagaka-section code {
+    background: var(--claude-bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--claude-text-secondary);
+}
+
+/* ========== 訊息提示 ========== */
+.mp-ukagaka-wrap .updated,
+.mp-ukagaka-wrap .error,
+.mp-ukagaka-wrap .notice {
+    margin: 20px 30px 20px 30px !important;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    box-shadow: 0 2px 8px var(--claude-shadow);
+    clear: both;
+    display: block;
+    box-sizing: border-box;
+    width: auto;
+}
+
+/* 確保訊息框與主內容區對齊（覆蓋 WordPress 默認樣式） */
+.mp-ukagaka-wrap > .updated,
+.mp-ukagaka-wrap > .error,
+.mp-ukagaka-wrap > .notice {
+    margin: 20px 0 20px 0 !important;
+    width: 75%;
+    max-width: 1200px;
+    padding-left: 30px;
+    box-sizing: border-box;
+}
+
+.mp-ukagaka-wrap .updated {
+    background: #f0f9f4;
+    border-left-color: var(--claude-success);
+    color: #2d5016;
+}
+
+.mp-ukagaka-wrap .error {
+    background: #fff5f5;
+    border-left-color: var(--claude-error);
+    color: #8b2635;
+}
+
+.mp-ukagaka-wrap .notice {
+    background: #fff9e6;
+    border-left-color: #ffaa00;
+    color: #664400;
+}
+
+/* ========== 表單表格 ========== */
+.mp-ukagaka-section .form-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.mp-ukagaka-section .form-table th {
+    padding: 15px 10px 15px 0;
+    font-weight: 600;
+    color: var(--claude-text-secondary);
+    width: 200px;
+    vertical-align: top;
+}
+
+.mp-ukagaka-section .form-table td {
+    padding: 15px 10px;
+    vertical-align: top;
+}
+
+.mp-ukagaka-section .form-table tr {
+    border-bottom: 1px solid var(--claude-border-light);
+}
+
+.mp-ukagaka-section .form-table tr:last-child {
+    border-bottom: none;
+}
+
+/* ========== 卡片式區塊 ========== */
+.mp-card {
+    background: var(--claude-bg-card);
+    border: 1px solid var(--claude-border-light);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 1px 4px var(--claude-shadow);
+    transition: all 0.3s ease;
+}
+
+.mp-card:hover {
+    box-shadow: 0 4px 12px var(--claude-shadow-hover);
+    transform: translateY(-2px);
+}
+
+/* ========== 響應式設計 ========== */
+@media screen and (max-width: 782px) {
+    .mp-ukagaka-wrap {
+        margin: 0;
+    }
+
+    .mp-ukagaka-wrap h2 {
+        padding: 20px 20px 0;
+        font-size: 24px;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .mp-ukagaka-tabs {
+        margin: 0 20px;
+        width: calc(100% - 40px) !important;
+        max-width: 100% !important;
+        flex-direction: column;
+    }
+
+    .mp-ukagaka-tabs a {
+        border-radius: 8px;
+        margin-bottom: 4px;
+    }
+
+    .mp-ukagaka-tabs a.active {
+        border-bottom: 3px solid var(--claude-text-heading);
+    }
+
+    .mp-ukagaka-section {
+        margin: 0 20px 20px;
+        padding: 25px 20px;
+        width: calc(100% - 40px) !important;
+        max-width: 100% !important;
+    }
+
+    .mp-ukagaka-wrap > .updated,
+    .mp-ukagaka-wrap > .error,
+    .mp-ukagaka-wrap > .notice {
+        width: calc(100% - 40px) !important;
+        max-width: 100% !important;
+        margin: 20px 20px !important;
+    }
+
+    .mp-ukagaka-section input[type="text"],
+    .mp-ukagaka-section input[type="password"],
+    .mp-ukagaka-section textarea {
+        width: 100% !important;
+        max-width: 100%;
+    }
+}
+
+/* ========== 特殊元素 ========== */
+.mp-ukagaka-section .resizable-textarea {
+    position: relative;
+}
+
+.mp-ukagaka-section .grippie {
+    background-color: var(--claude-bg-secondary);
+    border: 1px solid var(--claude-border-light);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    cursor: s-resize;
+    height: 12px;
+    margin-top: -1px;
+    background-repeat: no-repeat;
+    background-position: center 2px;
+}
+
+/* ========== 成功/錯誤標記 ========== */
+.mp-ukagaka-section span[style*="color: green"],
+.mp-ukagaka-section .success {
+    color: var(--claude-success) !important;
+    font-weight: 600;
+}
+
+.mp-ukagaka-section span[style*="color: red"],
+.mp-ukagaka-section .error-text {
+    color: var(--claude-error) !important;
+    font-weight: 600;
+}
+
+/* ========== 動畫效果 ========== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mp-ukagaka-section {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* ========== 滾動條樣式 ========== */
+.mp-ukagaka-section textarea::-webkit-scrollbar {
+    width: 10px;
+}
+
+.mp-ukagaka-section textarea::-webkit-scrollbar-track {
+    background: var(--claude-bg-secondary);
+    border-radius: 5px;
+}
+
+.mp-ukagaka-section textarea::-webkit-scrollbar-thumb {
+    background: var(--claude-border);
+    border-radius: 5px;
+}
+
+.mp-ukagaka-section textarea::-webkit-scrollbar-thumb:hover {
+    background: var(--claude-text-secondary);
+}
+

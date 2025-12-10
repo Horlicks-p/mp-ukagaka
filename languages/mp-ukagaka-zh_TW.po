@@ -1,0 +1,484 @@
+# MP Ukagaka 繁體中文語系檔
+# Copyright (C) 2025 Ariagle (patched by Horlicks)
+# This file is distributed under the same license as the MP Ukagaka plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: MP Ukagaka 2.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-27 00:00+0800\n"
+"PO-Revision-Date: 2025-11-27 00:00+0800\n"
+"Last-Translator: Horlicks <https://www.moelog.com>\n"
+"Language-Team: Traditional Chinese\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: MP Ukagaka\n"
+
+# ========================================
+# 核心功能
+# ========================================
+
+msgid "初音"
+msgstr "初音"
+
+msgid "歡迎光臨～"
+msgstr "歡迎光臨～"
+
+msgid "更換春菜"
+msgstr "更換春菜"
+
+msgid "春菜们"
+msgstr "春菜們"
+
+msgid "沒有可供選擇的春菜"
+msgstr "沒有可供選擇的春菜"
+
+msgid "隱藏春菜 ▼"
+msgstr "隱藏春菜 ▼"
+
+msgid "隱藏會話 ▼"
+msgstr "隱藏會話 ▼"
+
+msgid "顯示春菜 ▲"
+msgstr "顯示春菜 ▲"
+
+msgid "顯示會話 ▲"
+msgstr "顯示會話 ▲"
+
+msgid "擴展"
+msgstr "擴展"
+
+msgid "(思考中...)"
+msgstr "(思考中...)"
+
+msgid "回到頂部 ▼"
+msgstr "回到頂部 ▼"
+
+# ========================================
+# 管理頁面 - 導覽
+# ========================================
+
+msgid "MP Ukagaka 選項"
+msgstr "MP Ukagaka 選項"
+
+msgid "通用設定"
+msgstr "通用設定"
+
+msgid "AI 設定"
+msgstr "AI 設定"
+
+msgid "會話"
+msgstr "會話"
+
+msgid "春菜們"
+msgstr "春菜們"
+
+msgid "創建新春菜"
+msgstr "創建新春菜"
+
+# ========================================
+# 管理頁面 - 訊息
+# ========================================
+
+msgid "春菜"
+msgstr "春菜"
+
+msgid "已離你而去…"
+msgstr "已離你而去…"
+
+msgid "不存在此春菜喲"
+msgstr "不存在此春菜喲"
+
+msgid "不允許趕走預設春菜喲"
+msgstr "不允許趕走預設春菜喲"
+
+msgid "安全性檢查失敗。"
+msgstr "安全性檢查失敗。"
+
+msgid "設定已儲存"
+msgstr "設定已儲存"
+
+msgid "春菜們已經煥然一新啦"
+msgstr "春菜們已經煥然一新啦"
+
+msgid "，對話檔案已生成"
+msgstr "，對話檔案已生成"
+
+msgid "春菜創建成功～"
+msgstr "春菜創建成功～"
+
+msgid "AI 設定已儲存"
+msgstr "AI 設定已儲存"
+
+msgid "設定已重置"
+msgstr "設定已重置"
+
+msgid "設定未被重置"
+msgstr "設定未被重置"
+
+# ========================================
+# 通用設定頁面
+# ========================================
+
+msgid "預設春菜："
+msgstr "預設春菜："
+
+msgid "預設顯示春菜"
+msgstr "預設顯示春菜"
+
+msgid "預設顯示對話框"
+msgstr "預設顯示對話框"
+
+msgid "預設會話："
+msgstr "預設會話："
+
+msgid "隨機吐槽"
+msgstr "隨機吐槽"
+
+msgid "第一條吐槽"
+msgstr "第一條吐槽"
+
+msgid "會話順序："
+msgstr "會話順序："
+
+msgid "順序吐槽"
+msgstr "順序吐槽"
+
+msgid "點擊春菜："
+msgstr "點擊春菜："
+
+msgid "下一條吐槽"
+msgstr "下一條吐槽"
+
+msgid "無操作"
+msgstr "無操作"
+
+msgid "自動對話："
+msgstr "自動對話："
+
+msgid "啟用自動對話功能"
+msgstr "啟用自動對話功能"
+
+msgid "自動對話間隔時間（秒）："
+msgstr "自動對話間隔時間（秒）："
+
+msgid "打字效果速度（毫秒/字）："
+msgstr "打字效果速度（毫秒/字）："
+
+msgid "數值越小打字越快，建議範圍 20-80，預設 40"
+msgstr "數值越小打字越快，建議範圍 20-80，預設 40"
+
+msgid "外部對話文件格式："
+msgstr "外部對話文件格式："
+
+msgid "純文字格式 (TXT)"
+msgstr "純文字格式 (TXT)"
+
+msgid "JSON 格式"
+msgstr "JSON 格式"
+
+msgid "使用外部對話文件"
+msgstr "使用外部對話文件"
+
+msgid "使用自訂樣式"
+msgstr "使用自訂樣式"
+
+msgid "HTML 生成位置："
+msgstr "HTML 生成位置："
+
+msgid "一般情況下請勿更改"
+msgstr "一般情況下請勿更改"
+
+msgid "在</body>前"
+msgstr "在</body>前"
+
+msgid "當春菜無法顯示（主題尾部無 wp_footer() 函數）或 wp_footer() 位置導致樣式異常時，請勾選此項"
+msgstr "當春菜無法顯示（主題尾部無 wp_footer() 函數）或 wp_footer() 位置導致樣式異常時，請勾選此項"
+
+msgid "在 wp_footer() 處"
+msgstr "在 wp_footer() 處"
+
+msgid "這是 WordPress 常用方式，但若主題尾部無 wp_footer() 函數，春菜將無法顯示"
+msgstr "這是 WordPress 常用方式，但若主題尾部無 wp_footer() 函數，春菜將無法顯示"
+
+msgid "不在以下頁面顯示春菜"
+msgstr "不在以下頁面顯示春菜"
+
+msgid "輸入不顯示春菜的頁面 URL，每行一條。"
+msgstr "輸入不顯示春菜的頁面 URL，每行一條。"
+
+msgid "在地址尾部加入 (*) 可進行模糊匹配。"
+msgstr "在地址尾部加入 (*) 可進行模糊匹配。"
+
+msgid " 儲 存 "
+msgstr " 儲 存 "
+
+msgid "插件資訊"
+msgstr "插件資訊"
+
+msgid "版本："
+msgstr "版本："
+
+msgid "春菜數量："
+msgstr "春菜數量："
+
+msgid "平均會話數："
+msgstr "平均會話數："
+
+msgid "維護者網站："
+msgstr "維護者網站："
+
+msgid "前往維護者網站"
+msgstr "前往維護者網站"
+
+msgid "重置設定"
+msgstr "重置設定"
+
+msgid "確認重置"
+msgstr "確認重置"
+
+msgid "重置設定將還原插件的所有配置為預設值，所有設定及春菜將被刪除。此操作無法撤銷，請謹慎操作。"
+msgstr "重置設定將還原插件的所有配置為預設值，所有設定及春菜將被刪除。此操作無法撤銷，請謹慎操作。"
+
+msgid " 重 置 "
+msgstr " 重 置 "
+
+# ========================================
+# AI 設定頁面
+# ========================================
+
+msgid "AI 設定 (Context Awareness)"
+msgstr "AI 設定（頁面感知）"
+
+msgid "啟用頁面感知功能（需要 AI API Key）"
+msgstr "啟用頁面感知功能（需要 AI API Key）"
+
+msgid "AI 提供商："
+msgstr "AI 提供商："
+
+msgid "Google Gemini"
+msgstr "Google Gemini"
+
+msgid "OpenAI"
+msgstr "OpenAI"
+
+msgid "Claude (Anthropic)"
+msgstr "Claude (Anthropic)"
+
+msgid "Gemini API Key："
+msgstr "Gemini API Key："
+
+msgid "請輸入 Google Gemini API Key"
+msgstr "請輸入 Google Gemini API Key"
+
+msgid "請前往 <a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a> 取得 API Key"
+msgstr "請前往 <a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a> 取得 API Key"
+
+msgid "已設定"
+msgstr "已設定"
+
+msgid "OpenAI API Key："
+msgstr "OpenAI API Key："
+
+msgid "請輸入 OpenAI API Key"
+msgstr "請輸入 OpenAI API Key"
+
+msgid "請前往 <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a> 取得 API Key"
+msgstr "請前往 <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a> 取得 API Key"
+
+msgid "OpenAI 模型："
+msgstr "OpenAI 模型："
+
+msgid "Claude API Key："
+msgstr "Claude API Key："
+
+msgid "請輸入 Claude API Key"
+msgstr "請輸入 Claude API Key"
+
+msgid "請前往 <a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a> 取得 API Key"
+msgstr "請前往 <a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a> 取得 API Key"
+
+msgid "Claude 模型："
+msgstr "Claude 模型："
+
+msgid "語言設定："
+msgstr "語言設定："
+
+msgid "繁體中文"
+msgstr "繁體中文"
+
+msgid "日本語"
+msgstr "日本語"
+
+msgid "English"
+msgstr "English"
+
+msgid "人格設定 (System Prompt)："
+msgstr "人格設定（System Prompt）："
+
+msgid "AI 回應機率 (%)："
+msgstr "AI 回應機率（%）："
+
+msgid "設定使用 AI 的機率（1-100%）。建議 10% 以控制成本。"
+msgstr "設定使用 AI 的機率（1-100%）。建議 10% 以控制成本。"
+
+msgid "觸發頁面："
+msgstr "觸發頁面："
+
+msgid "WordPress 條件標籤，逗號分隔（如：is_single,is_page）"
+msgstr "WordPress 條件標籤，逗號分隔（如：is_single,is_page）"
+
+msgid "AI 對話文字顏色："
+msgstr "AI 對話文字顏色："
+
+msgid "設定 AI 對話載入訊息（…ふむ。この記事か。どれ…）的文字顏色"
+msgstr "設定 AI 對話載入訊息的文字顏色"
+
+msgid "AI 對話顯示時間（秒）："
+msgstr "AI 對話顯示時間（秒）："
+
+msgid "設定 AI 對話顯示的時間長度。在此期間，自動對話會暫停，避免 AI 對話被覆蓋（建議 5-10 秒）"
+msgstr "設定 AI 對話顯示的時間長度。在此期間，自動對話會暫停，避免 AI 對話被覆蓋（建議 5-10 秒）"
+
+msgid "啟用首次訪客打招呼"
+msgstr "啟用首次訪客打招呼"
+
+msgid "當訪客第一次訪問網站時，根據訪客來源（使用 Slimstat API）用 AI 生成個性化打招呼訊息。每個訪客只會看到一次。"
+msgstr "當訪客第一次訪問網站時，根據訪客來源用 AI 生成個性化打招呼訊息。每個訪客只會看到一次。"
+
+msgid "首次訪客打招呼提示詞："
+msgstr "首次訪客打招呼提示詞："
+
+msgid "定義春菜對首次訪客的打招呼風格和語氣"
+msgstr "定義春菜對首次訪客的打招呼風格和語氣"
+
+# ========================================
+# 春菜管理頁面
+# ========================================
+
+msgid "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。"
+msgstr "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。"
+
+msgid "吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
+
+msgid "刪除"
+msgstr "刪除"
+
+msgid "可顯示"
+msgstr "可顯示"
+
+msgid "名稱："
+msgstr "名稱："
+
+msgid "圖片："
+msgstr "圖片："
+
+msgid "吐槽："
+msgstr "吐槽："
+
+msgid "對話檔案名稱："
+msgstr "對話檔案名稱："
+
+msgid "此名稱將用於外部對話檔案，例如：asuna.txt 或 asuna.json"
+msgstr "此名稱將用於外部對話檔案，例如：asuna.txt 或 asuna.json"
+
+msgid "生成對話檔案"
+msgstr "生成對話檔案"
+
+msgid "勾選此項將使用上方吐槽內容生成對應的對話檔案"
+msgstr "勾選此項將使用上方吐槽內容生成對應的對話檔案"
+
+msgid "每行一條吐槽，不可使用 HTML 代碼。"
+msgstr "每行一條吐槽，不可使用 HTML 代碼。"
+
+msgid " 創 建 "
+msgstr " 創 建 "
+
+# ========================================
+# 擴展頁面
+# ========================================
+
+msgid "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
+msgstr "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
+
+msgid "JS 區"
+msgstr "JS 區"
+
+msgid "可在此填寫 JavaScript 代碼，為春菜自訂更多的回應事件。"
+msgstr "可在此填寫 JavaScript 代碼，為春菜自訂更多的回應事件。"
+
+msgid "無需使用 &lt;script&gt; 標籤，代碼將寫入到 &lt;head&gt; 部分。"
+msgstr "無需使用 &lt;script&gt; 標籤，代碼將寫入到 &lt;head&gt; 部分。"
+
+msgid "代碼擴展"
+msgstr "代碼擴展"
+
+msgid "您可以在春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"
+msgstr "您可以在春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"
+
+msgid "更多擴展代碼資訊請參閱："
+msgstr "更多擴展代碼資訊請參閱："
+
+# ========================================
+# 會話頁面
+# ========================================
+
+msgid "固定資訊："
+msgstr "固定資訊："
+
+msgid "此資訊將顯示在每條會話的後面，不可使用 HTML 代碼。"
+msgstr "此資訊將顯示在每條會話的後面，不可使用 HTML 代碼。"
+
+msgid "通用會話："
+msgstr "通用會話："
+
+msgid "所有春菜共用的會話內容。"
+msgstr "所有春菜共用的會話內容。"
+
+msgid "一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
+msgstr "一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
+
+# ========================================
+# 安全性與文件操作
+# ========================================
+
+msgid "找不到指定的文件"
+msgstr "找不到指定的文件"
+
+msgid "不允許讀取該路徑"
+msgstr "不允許讀取該路徑"
+
+msgid "文件過大，無法讀取"
+msgstr "文件過大，無法讀取"
+
+msgid "無法讀取文件"
+msgstr "無法讀取文件"
+
+msgid "無法創建目錄"
+msgstr "無法創建目錄"
+
+msgid "不允許寫入該路徑"
+msgstr "不允許寫入該路徑"
+
+msgid "不合法的文件名"
+msgstr "不合法的文件名"
+
+msgid "無法寫入文件"
+msgstr "無法寫入文件"
+
+msgid "不合法的對話文件名"
+msgstr "不合法的對話文件名"
+
+msgid "找不到對話文件"
+msgstr "找不到對話文件"
+
+msgid "對話文件過大，載入失敗"
+msgstr "對話文件過大，載入失敗"
+
+msgid "無法讀取對話文件"
+msgstr "無法讀取對話文件"
+
+msgid "JSON 檔案格式錯誤"
+msgstr "JSON 檔案格式錯誤"

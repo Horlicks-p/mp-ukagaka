@@ -1,0 +1,1424 @@
+/*
+Theme Name: 萌えログ 20周年紀念版
+Version: 1.0
+Description: 2 column for personal use.初心者の書いたCSSです。年を取って老眼になってしまったので、全体的に大きくにした。滅茶苦茶なのであまり期待しないで下さいね。
+Author: 和製ホーリックス
+Author URI: http://www.moelog.com/
+*/
+
+/* ========== 字型定義 (@font-face) ========== */
+@font-face {
+  font-family: 'DotGothic16';
+  src: url('fonts/DotGothic16-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans JP';
+  src: url('fonts/NotoSansJP-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans TC';
+  src: url('fonts/NotoSansTC-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('fonts/PressStart2P-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ========== 基本設置 ========== */
+
+html {
+  font-size: 100%;
+  overflow-y: scroll;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  font-family: "Noto Sans TC","Noto Sans JP", serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  color: #666;
+  background: #f5f5f0 url(images/bg.gif) top center repeat-x;
+  margin: 0;
+  line-height: 1.8;
+  padding: 0;
+  font-size: 16px;
+}
+
+.press-start-2p-regular {
+  font-family: "Press Start 2P", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+.dotgothic16-regular {
+  font-family: "DotGothic16", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* ========== 連結樣式 ========== */
+a {
+  color: #94B800;
+  text-decoration: none;
+  outline: none;
+}
+
+a:visited {
+  color: #94B800;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #69644e;
+  text-decoration: none;
+}
+
+.keywordlink a, .keywordlink a:hover {
+  color: #666;
+  text-decoration: none;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+/* ========== 圖片和表單元素 ========== */
+a img, :link img, :visited img, fieldset {
+  border: none;
+}
+
+input, textarea {
+  margin: 0;
+  padding: 0;
+}
+
+/* ========== 標題樣式 ========== */
+h1 {
+  margin: 10px;
+  height: 60px;
+  font: bold 240%/100% "DotGothic16", sans-serif;
+  display: none;
+}
+
+h1 a, h1 a:visited {
+  color: #39C;
+  text-decoration: none;
+}
+
+h1 a:hover {
+  color: #CCC;
+  text-decoration: none;
+}
+
+h2 {
+  color: #1d8ac3;
+  margin: 0 0 2px;
+  padding-bottom: 3px;
+  padding-top: 0;
+  padding-left: 0;
+  font: 220%/100% "DotGothic16", sans-serif;
+  text-shadow: 0 2px 0 #d1d1d1;
+}
+
+h2 a, h2 a:visited {
+  color: #1d8ac3;
+  text-decoration: none;
+}
+
+h2 a:hover {
+  color: #6D6D6D;
+  text-decoration: none;
+}
+
+h3 {
+  color: #69644e;
+  font-size: 20px;
+  font-family: "DotGothic16", sans-serif;
+}
+
+h4 {
+  font: normal "Meiryo", Tahoma, Arial, Verdana;
+  color: #555;
+  margin: 10px 0 5px;
+}
+
+h5 {
+  margin: 0 0 2px;
+  letter-spacing: -1px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+/* ========== 其他基本元素 ========== */
+small {
+  font-weight: normal;
+  font-size: 12px;
+}
+
+form {
+  margin: 0;
+  padding: 0;
+}
+
+iframe {
+  margin-bottom: 5px;
+}
+
+table {
+  margin-bottom: 5px;
+}
+
+embed {
+  margin-bottom: 5px;
+}
+
+em {
+  font-style: normal;
+}
+
+blockquote {
+  display: block;
+  border-left: 3px solid #CCC;
+  padding-left: 6px;
+  margin: 7px 10px;
+  color: #999;
+}
+
+blockquote .keywordlink a, blockquote .keywordlink a:hover {
+  color: #999;
+  border-bottom: 1px #ccc solid;
+}
+
+/* 1. 修正 WordPress 外層容器 (Gutenberg 區塊) */
+figure.wp-block-embed-twitter,
+figure.wp-block-embed.is-provider-twitter,
+.wp-block-embed__wrapper {
+    margin-top: 10px !important;    /* 縮減上方空白 */
+    margin-bottom: 0px !important; /* 縮減下方空白 */
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* 2. 針對 Twitter JS 渲染後的狀態 (關鍵!) */
+/* 當 Twitter 載入完成，會自動加上 .twitter-tweet-rendered 這個 class */
+.twitter-tweet-rendered {
+    margin-top: 0 !important;       /* 這裡設0，由外層容器控制距離 */
+    margin-bottom: 0 !important;    /* 這裡設0，由外層容器控制距離 */
+
+}
+
+/* 3. 強制修正 iframe 本身 */
+/* 有時候 iframe 預設會有 inline style 的 margin */
+iframe.twitter-tweet {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+/* 4. 避免 Twitter 區塊被預設的 p 標籤撐開 (針對傳統編輯器或特定佈景) */
+.entry-content p > .twitter-tweet-rendered {
+    margin: 0 !important;
+}
+
+blockquote.twitter-tweet p {
+  margin: 12px 18px !important;
+  color: #333;
+  font-size: 16px;
+}
+
+/* ========== 對齊與清除浮動 ========== */
+.aligncenter {
+  margin: 0 auto;
+  margin-bottom: 0;
+}
+
+img.aligncenter, img[align="center"] {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.alignleft {
+  float: left;
+}
+
+img.alignleft, img[align="left"] {
+  float: left;
+  margin: 2px 10px 5px 0;
+}
+
+.alignright {
+  float: right;
+}
+
+img.alignright, img[align="right"] {
+  float: right;
+  margin: 2px 0 5px 10px;
+}
+
+.clear {
+  clear: both;
+}
+
+/* ========== 網站結構 ========== */
+#meta {
+  float: right;
+  color: #fff;
+  margin-top: -55px;
+  margin-right: 5px;
+  text-shadow: none;
+  clear: both;
+}
+
+#meta a, #admin a:hover {
+  color: #fff;
+}
+
+#meta ul {
+  list-style-type: none;
+  display: inline;
+  padding-left: 10px;
+}
+
+#meta ul li {
+  list-style-type: none;
+  display: inline;
+  padding-left: 10px;
+}
+
+#wrapper {
+  background: url(images/mainbg.gif);
+  width: 1410px;
+  margin: 0 auto;
+}
+
+.banner {
+  text-align: left;
+  height: 380px;
+  width: 1320px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: url(images/alicetop6.jpg);
+}
+
+.site-branding {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  background: rgba(255,255,255,0.7);
+  display: inline-block;
+}
+
+.site-title {
+  margin: 0;
+  font: bold 240%/100% "DotGothic16", sans-serif;
+  color: #1d8ac3;
+}
+
+.site-description {
+  margin: 0;
+  font-size: 16px;
+  padding: 0;
+  color: #666;
+  display: none;
+}
+
+/* ========== 導航選單 ========== */
+#menu {
+  width: 1410px;
+  height: 120px;
+  margin: 0 auto;
+  margin-top: 60px;
+  margin-bottom: 0;
+  background: #EEECDE url(images/menubg.gif);
+  text-shadow: none;
+}
+
+#access {
+  width: 100%;
+  width: 1410px;
+  height: 120px;
+  margin: 0 auto;
+  margin-top: 60px;
+  margin-bottom: 0;
+  background: #EEECDE url(images/menubg.gif);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  width: 450px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+.logo img {
+  height: auto;
+}
+
+.menu-wrapper {
+  width: 660px;
+  height: 120px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+#access ul {
+  list-style: none;
+  margin: 0;
+  padding-right: 60px;
+  padding-left: 0;
+}
+
+#access .left {
+  float: right;
+}
+
+#access ul li {
+  list-style-type: none;
+  display: inline;
+  float: left;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  text-indent: -9999px;
+}
+
+.home a {
+  display: block;
+  width: 120px;
+  height: 120px;
+  color: #F0EEE2;
+}
+
+.home a:hover {
+  display: block;
+  background: url('images/home-hb.gif') no-repeat;
+  width: 120px;
+  height: 120px;
+}
+
+.page_item a {
+  display: block;
+  width: 120px;
+  height: 120px;
+  color: #F0EEE2;
+}
+
+.page_item a:hover {
+  display: block;
+  background: url('images/home-hb.gif') no-repeat;
+  width: 120px;
+  height: 120px;
+}
+
+.current_page_item {
+  display: block;
+  background: url('images/home-ab.gif') no-repeat;
+  width: 120px;
+  height: 120px;
+  color: #F0EEE2;
+}
+
+.rss a {
+  display: block;
+  width: 120px;
+  height: 120px;
+  color: #F0EEE2;
+}
+
+.rss a:hover {
+  display: block;
+  background: url('images/home-hb.gif') no-repeat;
+  width: 120px;
+  height: 120px;
+}
+
+/* ========== 主要內容區 ========== */
+#main {
+  margin: 0 auto;
+  width: 1320px;
+  background: #F0EEE0 url(images/wrap.gif);
+}
+
+#main-sidebar {
+  padding: 0 0 10px 15px;
+  float: left;
+  width: 880px;
+  margin-bottom: 0;
+}
+
+/* [!] (新) 首頁 AJAX 載入中樣式 */
+#main-sidebar.loading-content {
+    opacity: 0.4;
+    transition: opacity 0.2s ease-in-out;
+    background-color: #f0f0f0;
+}
+
+/* ========== 文章樣式 ========== */
+article {
+  clear: both;
+  padding-top: 15px;
+  text-align: left;
+}
+.post-divider {
+  padding-bottom: 25px;
+  background: url(images/bg-post-bottom.png) repeat-x bottom;
+}
+
+
+header.entry-header {
+  float: right;
+  background: url() no-repeat;
+  width: 880px;
+  padding-top: 8px;
+}
+
+.entry-date {
+  background: url(images/wall.gif) 0 8px no-repeat;
+  padding-left: 20px;
+  float: left;
+  color: #888;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.trace {
+  background: url(images/trace.gif) 2px 8px no-repeat;
+  float: right;
+  padding-left: 20px;
+  margin-right: 0;
+  color: #888;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+section.post-content {
+  clear: both;
+  padding-top: 10px;
+  font-size: 120%;
+  letter-spacing: 0.5px;
+}
+
+/* [!] 修正: 將 Flexbox 規則限定在 .single-post (文章頁) */
+.single-post section.post-content {
+  clear: both;
+  padding-top: 10px;
+  font-size: 120%;
+  letter-spacing: 0.5px;
+  /* [!] 修改 (3): 將文章內容區塊改為 Flexbox 佈局 */
+  display: flex;
+  flex-direction: column;
+}
+
+section.post-content p {
+  margin: 0 0 22px 0;
+  font-family: "Noto Sans TC","Noto Sans JP", serif;
+}
+
+section.post-content img {
+  background: #fff;
+  border: 1px solid #E0DECE;
+  padding: 5px;
+}
+
+section.post-content img a:hover {
+  border: 1px solid #E0DECE;
+  padding: 5px;
+  background: #ffffff;
+}
+
+.reply {
+  background: url(images/doing.gif) 2px 8px no-repeat;
+  padding-left: 22px;
+  float: right;
+  color: #888;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.tag {
+  background: url(images/tag.gif) 2px 8px no-repeat;
+  float: left;
+  padding-left: 22px;
+  color: #888;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.tag, .reply {
+  margin-top: -8px;
+}
+
+.tag a, .reply a {
+  color: #888;
+}
+
+.tag a:hover, .reply a:hover {
+  color: #666;
+}
+
+.read_more {
+  padding-top: 20px;
+}
+
+.more-link {
+  margin-left: 20px;
+}
+
+.more-link a {
+  color: #1d8ac3;
+}
+
+.more-link a:hover {
+  color: #69644e;
+}
+
+/* ========== 詢問AI & Flexbox 排序 ========== */
+
+/* [!] 修正: 將 .post-pagination 的 order 規則限定在 .single-post */
+.single-post .post-pagination {
+	order: 1; /* 1. 文章分頁 */
+}
+
+/* [!] 修正: 將 .ask_chatgpt 的 order 規則限定在 .single-post */
+.single-post p.ask_chatgpt {
+  order: 2; /* 2. AI 標題 */
+}
+
+/* [!] 修正: 將 .moe-aiqna-block 的 order 規則限定在 .single-post */
+.single-post .moe-aiqna-block {
+	order: 3; /* 3. AI 內容 */
+}
+
+/* AI 標題的通用樣式 (所有頁面都生效) */
+p.ask_chatgpt {
+  display: block;
+  height: 25px;
+  margin: 0 0 6px; 
+  background-image: url("images/ask_chatgpt.gif");
+  background-repeat: no-repeat;
+}
+
+/* AI 內容的通用樣式 (所有頁面都生效) */
+.moe-aiqna-block .moe-aiqna-link {
+  display: inline-block;             
+  text-decoration: none;
+  color: #1d8ac3;
+  background: url(images/sba.gif) no-repeat 0 9px; 
+  padding-left: 16px;                
+  line-height: 1.6em;
+                
+}
+.moe-aiqna-block .moe-aiqna-link:hover {
+  color: #6D6D6D;
+  background: url(images/sbb.gif) no-repeat 0 9px;
+}
+
+/*=========相關文章=============*/
+.related-post {
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+.related-post h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.related-posts-grid {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.related-item {
+  width: 22%;
+  text-align: center;
+}
+
+.related-thumb {
+  width: 185px;
+  height: 185px;
+  background: #fff;
+  border: 1px solid #E0DECE;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.related-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 1/1;
+}
+
+.related-title {
+  margin-top: 8px;
+  font-size: 18px;
+}
+
+/* ========== 友情連結 ========== */
+.friend-link-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.friend-link {
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+}
+
+.friend-link ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.friend-link li {
+  margin-bottom: 5px;
+  white-space: nowrap;
+}
+
+/* ========== 評論相關 ========== */
+#related {
+  font-size: 18px;
+}
+
+
+p.sub_related {
+  height: 25px;
+  background-image: url(images/related_post.gif);
+  background-repeat: no-repeat;
+}
+
+#comments {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  height: 25px;
+  background-image: url(images/mini-comments.gif);
+  background-repeat: no-repeat;
+}
+
+p.sub_commemt2 {
+  height: 25px;
+  background-image: url(images/mini-comments2.gif);
+  background-repeat: no-repeat;
+}
+
+/* ========== 導航和分頁 ========== */
+#navigation {
+  clear: both;
+  padding-top: 10px;
+  font-size: 20px;
+  text-align: center;
+  display: block;
+  font-family: "Noto Sans TC","Noto Sans TC", serif;
+}
+
+#navigation a, #navigation a:visited img {
+  vertical-align: middle;
+  opacity: 0.9;
+  padding: 0 5px 2px;
+}
+
+#navigation a:hover img {
+  opacity: 1.0;
+}
+
+#navigation .page-numbers {
+  display: inline-block;
+  margin: 0 10px;
+  
+}
+
+/* [!] 新增: 留言板 (Guestbook) 分頁樣式 */
+.navigation2 {
+  float: right;
+  font-size: 16px;
+  padding-right: 15px;
+  clear: both; /* 確保它在 .commentlist 下方 */
+  font-family: "Noto Sans TC","Noto Sans TC", serif;
+  
+}
+
+/* 讓留言板分頁按鈕看起來和首頁一樣 */
+.navigation2 .page-numbers {
+  display: inline-block;
+  padding: 4px 5px;
+  margin:0; /* 稍微小一點的間距 */
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+.navigation2 .page-numbers.current {
+  background-color: #888;
+  color: #fff;
+  font-weight: bold;
+}
+
+.navigation2 a.page-numbers:hover {
+  color: #69644e;
+}
+
+
+.post-related ul {
+  list-style: none;
+}
+
+#navigation .page-numbers a, #navigation .page-numbers span {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 10px 0;
+    text-decoration: none;
+    border-radius: 4px;
+    vertical-align: middle;
+}
+
+#navigation .page-numbers .current {
+  background-color: #888;
+  color: #fff;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.previous-entries a {
+  float: right;
+  padding-left: 0;
+  margin-top: 12px;
+}
+
+.next-entries a {
+  float: left;
+  padding-right: 0;
+  margin-top: 14px;
+}
+
+/* ========== 計數器 ========== */
+.counter {
+  float: right;
+  position: relative;
+  top: -40px;
+  right: 50px;
+}
+
+/* ========== 評論表單 ========== */
+#commentform {
+  margin-top: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background: #e1e1e1;
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  border-radius: 6px;
+   position: relative;
+}
+
+#commentform a {
+  color: #39c;
+}
+
+#commentform a:hover {
+  color: #69644e;
+}
+
+#commentform p {
+  padding: 5px 0;
+  margin: 0;
+}
+
+#commentform label {
+  color: #787878;
+  font-size: 100%;
+}
+
+#commentform input {
+  width: 225px;
+  background: #FFF;
+  border: 1px solid #ccc;
+  padding: 2px;
+  margin-left: 10px;
+  font-size: 18px;
+}
+
+#commentform textarea {
+  width: 95%;
+  background: #FFF;
+  border: 1px solid #ccc;
+  padding: 2px;
+  margin-left: 10px;
+  font-size: 18px;
+}
+
+#commentform input.submit {
+  background: url(images/submit.png) no-repeat;
+  border: 0;
+  height: 29px;
+  width: 100px;
+  font-weight: bold;
+  float: right;
+  margin-right: 15px;
+  clear: both;
+  text-indent: -9999px;
+}
+
+
+
+#commentform .cf-turnstile {
+  position: absolute;
+  top: 7px;
+  right: 15px;
+  transform: scale(0.7);
+  transform-origin: top right;
+  z-index: 10;
+  
+}
+
+
+
+/* ========== 側邊欄 ========== */
+#special {
+  float: right;
+  margin-right: 0;
+  width: 450px;
+  color: #8d8d8d;
+  font-size: 18px;
+  margin-top: 0;
+}
+
+#special ul {
+  margin: 0;
+  padding-left: 58px;
+  padding-top: 8px;
+}
+
+#sidebar {
+  overflow: hidden;
+  float: right;
+  margin-right: 0;
+  width: 420px;
+  color: #8d8d8d;
+  font-size: 18px;
+  margin-top: 0;
+}
+
+#sidebar h5 {
+  height: 28px;
+  font-family: 'Meiryo';
+  font-size: 0;
+  color: #DAD7BF;
+  font-weight: bold;
+  margin: 8px 10px 5px;
+  padding: 8px 0 0 50px;
+}
+
+.normal {
+  background: url(images/h5.gif) no-repeat;
+}
+
+.about-widget-title {
+  background: url(images/h5-a.gif) no-repeat;
+}
+
+.categories-widget-title {
+  background: url(images/h5-c.gif) no-repeat;
+}
+
+.recent-widget-title {
+  background: url(images/h5-r.gif) no-repeat;
+}
+
+.twitter-widget-title {
+  background: url(images/h5-t.gif) no-repeat;
+}
+
+.sub-comments-widget-title {
+  background: url(images/h5-rc.gif) no-repeat;
+}
+
+.blogpet-widget-title {
+  background: url(images/h5-b.gif) no-repeat;
+}
+.site-stats-widget-title {
+  background: url(images/h5-s.gif) no-repeat;
+}
+
+#sidebar a, #sidebar a:visited {
+  color: #1d8ac3;
+  text-decoration: none;
+}
+
+#sidebar .gravatar {
+  float: left;
+  margin: 5px 10px 5px 0;
+  padding: 5px;
+  border: 1px solid #CCC;
+  background: #FFF;
+  max-width: 100px;
+  height: auto !important;
+}
+
+#sidebar a:hover {
+  color: #69644e;
+  text-decoration: none;
+}
+
+aside {
+  line-height: 160%;
+  padding: 0;
+  
+}
+
+aside address {
+  padding-left: 36px;
+  padding-right: 15px;
+  font-style: normal;
+}
+
+aside ul {
+  margin-top: 0;
+}
+
+aside ul li {
+  list-style: none;
+  padding-right: 10px;
+  margin-bottom: 1px;
+}
+
+/* ========== 側邊欄列表樣式 ========== */
+ul.list-blogroll li a, li.widget_links li a {
+  background: url(images/sba.gif) no-repeat 5px center !important;
+  padding-left: 20px !important;
+  display: block;
+}
+
+ul.list-blogroll li a:hover, li.widget_links li a:hover {
+  background: url(images/sbb.gif) no-repeat 5px center !important;
+  padding-left: 20px !important;
+}
+
+ul.list-cat li a, li.widget_categories li a {
+  background: url(images/sba.gif) no-repeat 2px 9px !important;
+  padding-left: 18px !important;
+}
+
+ul.list-cat li a:hover, li.widget_categories li a:hover {
+  background: url(images/sbb.gif) no-repeat 2px 9px !important;
+  padding-left: 18px !important;
+}
+
+ul.list-archives li a, li.widget_archives li a {
+  background: url(images/sba.gif) no-repeat 5px -1px !important;
+  padding-left: 20px !important;
+}
+
+ul.list-archives li a:hover, li.widget_archives li a:hover {
+  background: url(images/sbb.gif) no-repeat 5px -1px !important;
+  padding-left: 20px !important;
+}
+
+ul.pet {
+  padding-left: 40px !important;
+}
+
+#counterCanvas {
+    background: url("images/counter-bg.png") no-repeat left;
+    z-index: 2;
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'Press Start 2P', cursive;
+    color: yellow;
+    text-shadow: 12px 12px black;
+}
+
+#counterContainer {
+    position: relative;
+    width: 375px;
+    height: 210px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+ul.list-page li a {
+  background: url(images/sba.gif) no-repeat 3px !important;
+  padding-left: 18px !important;
+  margin-bottom: -2px !important;
+  line-height: 1.8;
+  display: block;
+}
+
+ul.list-page li a:hover {
+  background: url(images/sbb.gif) no-repeat 3px !important;
+  padding-left: 18px !important;
+  line-height: 1.8;
+}
+
+ul.twitterlog {
+  background: url() no-repeat 26px 3px !important;
+  padding-left: 38px !important;
+  list-style: none;
+  color: #8D8D8D;
+}
+
+ul.recent-comments li {
+  background: url(images/sba.gif) no-repeat 3px 9px !important;
+  padding-left: 18px !important;
+  list-style: none;
+  color: #8D8D8D;
+}
+
+ul.recent-comments li:hover {
+  background: url(images/sbb.gif) no-repeat 3px 9px !important;
+  padding-left: 18px !important;
+  list-style: none;
+  color: #8D8D8D;
+}
+
+/* ========== 搜尋功能 ========== */
+.clearafter:after {
+  clear: both;
+  content: "";
+  display: block;
+  height: 0;
+  visibility: hidden;
+}
+
+#formcase {
+  margin-left: 14px;
+}
+
+#cse-search-box {
+  margin-top: 10px;
+}
+
+input.searchinput1 {
+  background-color: #fff;
+  border: 0 solid #CFCFB2;
+  width: 225px;
+  height: 25px;
+  vertical-align: middle;
+  padding-top: 5px;
+  padding-left: 5px;
+  font-size: 18px;
+  color: #444334;
+  margin: 5px;
+}
+
+input.searchsubmit {
+  background: url(images/search-button.png) no-repeat;
+  border: 0;
+  height: 29px;
+  margin-left: 5px;
+  width: 50px;
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+#blogsearch {
+  width: 330px;
+  background: url(images/search-bg.gif) repeat-y;
+  margin: 15px 0 10px 27px;
+  padding: 0;
+}
+
+.searchtop {
+  background: url(images/search-top.gif) no-repeat;
+  width: 330px;
+  height: 30px;
+}
+
+.search-bottom {
+  background: url(images/search-bottom-bg.gif) no-repeat;
+  height: 25px;
+}
+
+/* ========== 頁腳 ========== */
+#copyright {
+  width: 1410px;
+  height: 45px;
+  margin: 0 auto;
+  margin-bottom: 0;
+  background: #EEECDE url(images/menubg2.gif) no-repeat;
+}
+
+footer p {
+  font-family: "DotGothic16", serif, sans-serif;
+  font-size: 18px;
+  display: none;
+}
+
+#bottom {
+  margin: 0 auto;
+  clear: both;
+  height: 50px;
+  background: #f5f5f0 url(images/footer.gif) no-repeat;
+  color: #666;
+  padding: 8px 0 0 0 !important;
+  
+}
+
+/* ========== 評論樣式 ========== */
+.thread {
+  margin-top: 0;
+}
+
+.thread a {
+  color: #1d8ac3;
+}
+
+.thread a:hover {
+  color: #69644e;
+}
+
+.thread-even {
+  border: 1px solid #ddd;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  background-color: #efefef;
+}
+
+.comment-author-admin {
+  border: 1px solid #ddd;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  background: #F8FAE8 url(images/admin.png) no-repeat right bottom;
+}
+
+#commentlist {
+  list-style: none;
+  margin: 12px 0;
+  padding-left: 0;
+  padding-right: 1px;
+  line-height: 150%;
+}
+
+#respond {
+  list-style: none;
+  margin: 12px 0;
+  padding-left: 0;
+  padding-right: 1px;
+  line-height: 150%;
+}
+
+.commentlist li {
+  margin: 5px 0 10px 0;
+  padding: 10px 5px 5px 10px;
+  list-style: none;
+}
+
+.children {
+  padding-left: 25px;
+}
+
+.commenttext {
+  padding-left: 8px;
+  letter-spacing: 0.5px;
+  font-family: "Noto Sans TC","Noto Sans JP", serif;
+}
+
+.commenttext p {
+  margin: 0 0 16px 0;
+}
+
+.commenttext .moderation-note {
+  margin-left: 100px;
+  font-weight: bold;
+}
+
+#commentform p {
+  margin: 5px 0;
+}
+
+.nocomments {
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+.commentlist li, #commentform input {
+  font-size: 18px;
+}
+
+#commentform textarea {
+  font-size: 18px;
+  width: calc(96.5%);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.commentmetadata {
+  font-weight: normal;
+  display: block;
+  font-size: 85%;
+  color: #CCC;
+  text-align: right;
+}
+
+.commentlist li ul li {
+  font-size: 1em;
+}
+
+.commentlist li {
+  font-weight: bold;
+}
+
+.commentlist li .avatar {
+  float: left;
+  border: 1px solid #ccc;
+  padding: 5px;
+  background: #fff;
+  clear: both;
+}
+a#cancel-comment-reply-link  {
+  font-weight: normal;
+  float:right;
+  padding-right:15px;
+  font-family: "Noto Sans TC","Noto Sans JP", serif;
+
+}
+
+.commentlist cite {
+  font-style: normal;
+  font-size: 18px;
+  color: #69644e;
+}
+
+.commentlist cite a, .commentlist cite a:visited {
+  font-style: normal;
+  font-size: 18px;
+}
+
+.commentlist p {
+  font-weight: normal;
+  line-height: 1.5em;
+  text-transform: none;
+  margin: 0 5px 15px 100px;
+  font-size: 18px;
+}
+
+#commentform p {
+  font-size: 18px;
+}
+
+#commentform input[type="submit"] {
+  display: block;
+  margin-left: 0;
+}
+
+/* ========== 其他樣式 ========== */
+::selection {
+  background: #ffaa00;
+  color: #fff;
+  text-shadow: 0 0 0 #FFFFFF;
+}
+
+::-moz-selection {
+  background: #ffaa00;
+  color: #fff;
+  text-shadow: 0 0 0 #FFFFFF;
+}
+
+/* ========== 字體引入 ========== */
+/* 字型已改為使用本地 @font-face 定義，請參見檔案開頭 */
+
+/*========== 對平板 ========== */
+
+@media only screen and (max-width: 768px) {
+    #mp_ukagaka {
+        display: none !important;
+    }
+}
+@media screen and (max-width: 768px) {
+    #meta {
+        display: none !important;
+    }
+}
+
+/* ========== (新) AJAX 文章分頁樣式 ========== */
+.post-pagination {
+    margin-top: 0px;
+    margin-bottom: 30px;
+    font-size: 20px;
+    clear: both;
+    text-align: center;
+    font-family: "Noto Sans TC","Noto Sans TC", serif;
+    /* [!] 修正: 拿掉 order: 1; 統一管理 */
+}
+
+.post-pagination strong {
+    display: inline-block;
+    margin-right: 10px;
+    font-weight: normal; 
+    padding: 0px 0;
+    vertical-align: middle;
+}
+
+.post-pagination a,
+.post-pagination span {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 0;
+    text-decoration: none;
+    border-radius: 4px;
+    vertical-align: middle;
+}
+
+/* 連結的滑鼠懸停效果 (只針對 a) */
+.post-pagination a:hover {
+    color: #69644e; 
+}
+
+.post-pagination span {
+  background-color: #888;
+  color: #fff;
+  font-weight: bold;
+}
+.post-pagination .current {
+    background-color: #888;
+    color: #fff;
+    font-weight: bold;
+    padding: 4px 8px; /* 比其他頁碼更大 */
+    border-radius: 4px;
+    min-width: 10px;
+    text-align: center;
+    margin: 0;
+}
+
+#post-content-wrapper.loading-content {
+    opacity: 0.4;
+    transition: opacity 0.2s ease-in-out;
+    background-color: #f0f0f0;
+}
+
+.loading-comments {
+    opacity: 0.4;
+    transition: opacity 0.2s ease-in-out;
+    background-color: #f0f0f0;
+}
+
