@@ -286,18 +286,24 @@ function mpu_handle_options_save()
         $mpu_opt['ai_greet_first_visit'] = isset($_POST['ai_greet_first_visit']) && $_POST['ai_greet_first_visit'] ? true : false;
         $mpu_opt['ai_greet_prompt'] = isset($_POST['ai_greet_prompt']) ? sanitize_textarea_field($_POST['ai_greet_prompt']) : '你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。';
 
-        // 保存 Ollama 設定
+        // 保存 Ollama 設定（僅在表單有此欄位時才更新）
+        // 注意：這些設定主要在 LLM 設定頁面，AI 設定頁面沒有這些欄位
+        // 如果未提交，保留現有值，避免覆蓋 LLM 設定頁面的設定
         if (isset($_POST['ollama_endpoint'])) {
             $mpu_opt['ollama_endpoint'] = sanitize_text_field($_POST['ollama_endpoint']);
         }
         if (isset($_POST['ollama_model'])) {
             $mpu_opt['ollama_model'] = sanitize_text_field($_POST['ollama_model']);
         }
-        // 保存「使用 LLM 取代內建對話」設定
-        $mpu_opt['ollama_replace_dialogue'] = isset($_POST['ollama_replace_dialogue']) && $_POST['ollama_replace_dialogue'] ? true : false;
+        // 保存「使用 LLM 取代內建對話」設定（僅在表單有此欄位時才更新）
+        if (isset($_POST['ollama_replace_dialogue'])) {
+            $mpu_opt['ollama_replace_dialogue'] = $_POST['ollama_replace_dialogue'] ? true : false;
+        }
 
-        // 保存「關閉思考模式」設定
-        $mpu_opt['ollama_disable_thinking'] = isset($_POST['ollama_disable_thinking']) && $_POST['ollama_disable_thinking'] ? true : false;
+        // 保存「關閉思考模式」設定（僅在表單有此欄位時才更新）
+        if (isset($_POST['ollama_disable_thinking'])) {
+            $mpu_opt['ollama_disable_thinking'] = $_POST['ollama_disable_thinking'] ? true : false;
+        }
 
         // 如果啟用「使用 LLM 取代內建對話」，自動關閉頁面感知功能
         if (!empty($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ai_provider'] === 'ollama') {
