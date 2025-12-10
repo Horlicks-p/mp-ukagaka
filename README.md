@@ -480,7 +480,7 @@ The plugin uses cookies to detect first-time visitors. If Slimstat plugin is ins
 
 ## 📜 Changelog
 
-### Version 2.1.3 (2025-01-15)
+### Version 2.1.3 (2025-12-10)
 
 **Major Changes:**
 - 🔄 **BREAKING**: System now exclusively uses external dialog files (TXT/JSON format)
