@@ -487,7 +487,7 @@ The plugin uses cookies to detect first-time visitors. If Slimstat plugin is ins
   - Internal dialog storage has been removed
   - All dialogues must be stored in `dialogs/` folder as external files
   - Dialog files are automatically generated when saving character settings
-- 🎨 **NEW**: Complete admin UI redesign with Claude-style interface
+- 🎨 **NEW**: Complete admin UI redesign  
   - Modern, clean design with warm color palette
   - Improved tab navigation and content layout
   - Better message alignment and formatting
