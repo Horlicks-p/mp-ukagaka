@@ -1,6 +1,6 @@
 # MP Ukagaka 文檔中心
 
-> 🎭 WordPress 桌面寵物外掛完整文檔
+> 🎭 WordPress 偽春菜外掛完整文檔
 
 ---
 
