@@ -64,7 +64,7 @@ MP Ukagaka は、WordPress サイトにカスタムのインタラクティブ�
 - ローカルまたはリモートサーバーに[Ollama](https://ollama.ai/)をインストール・実行
 - 希望するモデルをダウンロード（例：`ollama pull qwen3:8b`）
 - プラグイン設定でエンドポイント URL を設定（ローカル：`http://localhost:11434`またはリモート：`https://your-domain.com`）
-- 詳細なセットアップ手順については、[USER_GUIDE.md](USER_GUIDE.md)を参照してください
+- 詳細なセットアップ手順については、[USER_GUIDE.md](/docs/USER_GUIDE.md)を参照してください
 
 **現在の制限事項：**
 

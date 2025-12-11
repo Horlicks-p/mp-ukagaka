@@ -64,7 +64,7 @@ The plugin now supports local LLM integration via Ollama, allowing you to genera
 - Install and run [Ollama](https://ollama.ai/) locally or on a remote server
 - Download desired models (e.g., `ollama pull qwen3:8b`)
 - Configure endpoint URL in plugin settings (local: `http://localhost:11434` or remote: `https://your-domain.com`)
-- For detailed setup instructions, please refer to [USER_GUIDE.md](USER_GUIDE.md)
+- For detailed setup instructions, please refer to [USER_GUIDE.md](/docs/USER_GUIDE.md)
 
 **Current Limitations:**
 
