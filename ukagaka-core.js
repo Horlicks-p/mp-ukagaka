@@ -20,6 +20,7 @@ let mpuTypewriterTimer = null;          // 打字效果計時器
 let mpuTypewriterSpeed = 40;            // 打字速度（毫秒/字元）
 let mpuOllamaReplaceDialogue = false;   // 是否使用 LLM 取代內建對話
 let mpuAiContextInProgress = false;     // 頁面感知 AI 是否正在進行中（防止自動對話打斷）
+let mpuMessageBlocking = false;         // ★★★ 強制阻擋訊息切換（用於顯示錯誤或重要訊息時防止被打斷）★★★
 
 // 以記憶體保存已解析的對話資料
 window.mpuMsgList = null;
@@ -960,26 +961,35 @@ function mpuChange(num) {
 
 
 // ====== 下一句 ======
+// ====== 下一句 ======
 function mpu_nextmsg(trigger) {
     const isAuto = (trigger === 'auto');
-    mpuLogger.log('mpu_nextmsg 被調用, trigger =', trigger, ', isAuto =', isAuto, ', mpuOllamaReplaceDialogue =', mpuOllamaReplaceDialogue);
+    const isStartup = (trigger === 'startup');
+    mpuLogger.log('mpu_nextmsg 被調用, trigger =', trigger, ', isAuto =', isAuto, ', isStartup =', isStartup, ', mpuOllamaReplaceDialogue =', mpuOllamaReplaceDialogue);
 
     // ★★★ 重要：如果關閉了自動對話，且這是自動觸發，則不執行 ★★★
+    // 注意：isStartup 不受 mpuAutoTalk 影響，因為它是初始對話
     if (isAuto && !mpuAutoTalk) {
         mpuLogger.log('mpu_nextmsg: 自動對話已關閉，退出');
         return; // 自動對話已關閉，不執行
     }
 
-    // ★★★ 重要：如果頁面感知 AI 正在進行中，且這是自動觸發，則跳過 ★★★
-    if (isAuto && mpuAiContextInProgress) {
-        mpuLogger.log('mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動對話');
+    // ★★★ 重要：如果頁面感知 AI 正在進行中，且這是自動觸發或啟動觸發，則跳過 ★★★
+    if ((isAuto || isStartup) && mpuAiContextInProgress) {
+        mpuLogger.log('mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話');
         return; // 避免打斷頁面感知 AI
     }
 
-    // ★★★ 重要：如果首次訪客打招呼正在進行中，且這是自動觸發，則跳過 ★★★
-    if (isAuto && mpuGreetInProgress) {
-        mpuLogger.log('mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動對話');
+    // ★★★ 重要：如果首次訪客打招呼正在進行中，且這是自動觸發或啟動觸發，則跳過 ★★★
+    if ((isAuto || isStartup) && mpuGreetInProgress) {
+        mpuLogger.log('mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動/啟動對話');
         return; // 避免打斷首次訪客打招呼
+    }
+
+    // ★★★ 重要：如果正如顯示重要訊息（如 API 錯誤），則完全阻擋切換 ★★★
+    if (mpuMessageBlocking) {
+        mpuLogger.log('mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過');
+        return;
     }
 
     if (!isAuto && mpuAutoTalk) {
