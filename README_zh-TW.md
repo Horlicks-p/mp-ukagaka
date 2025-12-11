@@ -64,7 +64,7 @@ MP Ukagaka 讓你能夠為 WordPress 網站創建自訂的互動式桌面寵物�
 - 安裝並運行 [Ollama](https://ollama.ai/)（本地或遠程伺服器）
 - 下載所需模型（例如：`ollama pull qwen3:8b`）
 - 在外掛設定中配置端點 URL（本地：`http://localhost:11434` 或遠程：`https://your-domain.com`）
-- 詳細的設定說明請參見 [USER_GUIDE.md](USER_GUIDE.md)
+- 詳細的設定說明請參見 [USER_GUIDE.md](/docs/USER_GUIDE.md)
 
 **目前限制：**
 
