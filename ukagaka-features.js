@@ -90,6 +90,11 @@ function mpu_chat_context() {
     return;
   }
 
+  // ★★★ 如果首次訪客打招呼正在進行中，跳過頁面感知 AI ★★★
+  if (mpuGreetInProgress) {
+    return;
+  }
+
   // 檢查文章內容長度：小於 500 字時不觸發 AI
   if (contentLength < 500) {
     // 使用正常對話系統
@@ -176,6 +181,7 @@ function mpu_chat_context() {
         const isRateLimit =
           res && res.error && res.error.includes("請求過於頻繁");
 
+
         if (isRateLimit) {
           // 顯示速率限制訊息
           const rateLimitMessage = "…ちょっと待って。API魔力が足りない";
@@ -184,8 +190,16 @@ function mpu_chat_context() {
             "#ukagaka_msg"
           );
 
-          // 顯示 8 秒後恢復正常對話
+          // ★★★ 設置阻擋標誌，防止被其他對話打斷 ★★★
+          mpuMessageBlocking = true;
+          // 使用設定的顯示時間 (或者預設 8 秒)
+          const waitTime = (mpuAiDisplayDuration || 8) * 1000;
+
+          // 顯示指定時間後恢復正常對話
           setTimeout(function () {
+            // ★★★ 解除阻擋 ★★★
+            mpuMessageBlocking = false;
+
             // ★★★ 清除頁面感知 AI 正在進行中的標誌 ★★★
             mpuAiContextInProgress = false;
             if (
@@ -205,7 +219,7 @@ function mpu_chat_context() {
             if (wasAutoTalkRunning && mpuAutoTalk) {
               startAutoTalk();
             }
-          }, 8000);
+          }, waitTime);
         } else {
           // 其他錯誤，直接恢復正常對話
           if (
@@ -400,8 +414,15 @@ function mpu_greet_first_visitor(settings) {
               "#ukagaka_msg"
             );
 
-            // 顯示 8 秒後恢復正常對話
+            // ★★★ 設置阻擋標誌 ★★★
+            mpuMessageBlocking = true;
+            const waitTime = (mpuAiDisplayDuration || 8) * 1000;
+
+            // 顯示指定時間後恢復正常對話
             setTimeout(function () {
+              // ★★★ 解除阻擋 ★★★
+              mpuMessageBlocking = false;
+
               if (
                 window.mpuMsgList &&
                 Array.isArray(window.mpuMsgList.msg) &&
@@ -425,7 +446,7 @@ function mpu_greet_first_visitor(settings) {
               }
               // 標記已訪問，避免重複嘗試
               resolve();
-            }, 8000);
+            }, waitTime);
           } else {
             // 其他錯誤，直接恢復正常對話
             if (
@@ -657,8 +678,8 @@ jQuery(document).ready(function () {
       // 如果啟用了 LLM 取代對話，延遲後觸發 LLM 對話
       if (mpuOllamaReplaceDialogue) {
         mpuLogger.log("LLM 取代對話已啟用，延遲後觸發 LLM 對話");
-        setTimeout(function() {
-          mpu_nextmsg();
+        setTimeout(function () {
+          mpu_nextmsg('startup'); // ★★★ 使用 'startup' 觸發，以便檢查衝突 ★★★
         }, 1500);
       }
 
