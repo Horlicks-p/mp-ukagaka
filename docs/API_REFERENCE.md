@@ -18,7 +18,7 @@
 
 ### 核心函數 (core-functions.php)
 
-#### mpu_get_default_options()
+#### mpu_default_opt()
 
 取得預設設定值。
 
@@ -26,12 +26,12 @@
 /**
  * @return array 預設設定陣列
  */
-function mpu_get_default_options(): array
+function mpu_default_opt(): array
 ```
 
 **範例：**
 ```php
-$defaults = mpu_get_default_options();
+$defaults = mpu_default_opt();
 echo $defaults['auto_talk_interval']; // 8
 ```
 
