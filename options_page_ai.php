@@ -43,6 +43,18 @@
         </p>
 
         <p>
+            <label for="gemini_model"><?php _e('Gemini 模型：', 'mp-ukagaka'); ?></label>
+            <select id="gemini_model" name="gemini_model">
+                <option value="gemini-2.5-flash" <?php if (!isset($mpu_opt['gemini_model']) || $mpu_opt['gemini_model'] == 'gemini-2.5-flash') {
+                                                        echo ' selected="selected"';
+                                                    } ?>>gemini-2.5-flash (推薦，速度快成本低)</option>
+                <option value="gemini-2.5-pro" <?php if (isset($mpu_opt['gemini_model']) && $mpu_opt['gemini_model'] == 'gemini-2.5-pro') {
+                                                    echo ' selected="selected"';
+                                                } ?>>gemini-2.5-pro (更聰明，適合複雜推理)</option>
+            </select>
+        </p>
+
+        <p>
             <label for="openai_api_key"><?php _e('OpenAI API Key：', 'mp-ukagaka'); ?></label><br />
             <input type="password" id="openai_api_key" name="openai_api_key" value="" placeholder="<?php echo $openai_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 OpenAI API Key', 'mp-ukagaka'); ?>" style="width: 400px;" autocomplete="off" /><br />
             <small><?php _e('請前往 <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a> 取得 API Key', 'mp-ukagaka'); ?> <?php if ($openai_key_exists) {
@@ -180,19 +192,19 @@
                  */
                 function initAISettings() {
                     // 首次訪客打招呼切換
-            $('#ai_greet_first_visit').on('change', function() {
+                    $('#ai_greet_first_visit').on('change', function() {
                         var $container = $('#ai_greet_prompt_container');
-                if ($(this).is(':checked')) {
+                        if ($(this).is(':checked')) {
                             $container.slideDown();
-                } else {
+                        } else {
                             $container.slideUp();
-                }
-            });
+                        }
+                    });
 
                     // AI 文字顏色即時預覽
-            $('#ai_text_color').on('change', function() {
-                $('#ai_text_color_display').text($(this).val());
-            });
+                    $('#ai_text_color').on('change', function() {
+                        $('#ai_text_color_display').text($(this).val());
+                    });
 
                     // 提供商切換（Ollama 設定已移至獨立頁面，此處保留以備未來擴展）
                     $('input[name="ai_provider"]').on('change', function() {
@@ -204,7 +216,7 @@
                 // DOM 就緒後初始化
                 $(document).ready(function() {
                     initAISettings();
-        });
+                });
             })(jQuery);
         </script>
 

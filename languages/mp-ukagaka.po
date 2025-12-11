@@ -1,0 +1,343 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: MP-Ukagaka\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-09-12 16:06+0700\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Ariagle <lariagle@gmail.com>\n"
+"Language-Team: Galden <lariagle@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Chinese\n"
+"X-Poedit-Country: CHINA\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-Basepath: ../.\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: mp-ukagaka.php:49
+msgid "初音"
+msgstr ""
+
+#: mp-ukagaka.php:51
+msgid "欢迎光临～"
+msgstr ""
+
+#: mp-ukagaka.php:79
+msgid "更换春菜"
+msgstr ""
+
+#: mp-ukagaka.php:196
+#: options.php:162
+#: options_page1.php:3
+msgid "春菜们"
+msgstr ""
+
+#: mp-ukagaka.php:198
+msgid "没有可供选择的春菜"
+msgstr ""
+
+#: mp-ukagaka.php:514
+#: mp-ukagaka.php:664
+msgid "隐藏春菜 ▼"
+msgstr ""
+
+#: mp-ukagaka.php:515
+#: mp-ukagaka.php:665
+msgid "隐藏会话 ▼"
+msgstr ""
+
+#: mp-ukagaka.php:516
+#: options.php:164
+#: options_page3.php:3
+msgid "扩展"
+msgstr ""
+
+#: mp-ukagaka.php:664
+msgid "显示春菜 ▲"
+msgstr ""
+
+#: mp-ukagaka.php:665
+msgid "显示会话 ▲"
+msgstr ""
+
+#: mp-ukagaka.php:687
+#: options.php:154
+msgid "MP Ukagaka 选项"
+msgstr ""
+
+#: options.php:24
+msgid "春菜"
+msgstr ""
+
+#: options.php:24
+msgid "已离你而去…"
+msgstr ""
+
+#: options.php:26
+msgid "不存在此春菜哟"
+msgstr ""
+
+#: options.php:30
+msgid "不允许赶走默认春菜哟"
+msgstr ""
+
+#: options.php:61
+#: options.php:100
+#: options.php:110
+msgid "设定已保存"
+msgstr ""
+
+#: options.php:75
+msgid "春菜们已经焕然一新啦"
+msgstr ""
+
+#: options.php:91
+msgid "春菜创建成功～"
+msgstr ""
+
+#: options.php:119
+msgid "设定已重置"
+msgstr ""
+
+#: options.php:121
+msgid "设定没有被重置"
+msgstr ""
+
+#: options.php:160
+#: options_page0.php:3
+msgid "通用设置"
+msgstr ""
+
+#: options.php:161
+#: options_page4.php:3
+msgid "会话"
+msgstr ""
+
+#: options.php:163
+#: options_page2.php:3
+msgid "创建新春菜"
+msgstr ""
+
+#: options_page0.php:8
+msgid "默认春菜："
+msgstr ""
+
+#: options_page0.php:16
+msgid "默认显示春菜"
+msgstr ""
+
+#: options_page0.php:18
+msgid "默认显示对话框"
+msgstr ""
+
+#: options_page0.php:21
+msgid "默认会话："
+msgstr ""
+
+#: options_page0.php:22
+#: options_page0.php:29
+msgid "随机吐槽"
+msgstr ""
+
+#: options_page0.php:23
+msgid "第一条吐槽"
+msgstr ""
+
+#: options_page0.php:27
+msgid "会话顺序："
+msgstr ""
+
+#: options_page0.php:28
+msgid "顺序吐槽"
+msgstr ""
+
+#: options_page0.php:33
+msgid "点击春菜："
+msgstr ""
+
+#: options_page0.php:34
+msgid "下一条吐槽"
+msgstr ""
+
+#: options_page0.php:35
+msgid "无操作"
+msgstr ""
+
+#: options_page0.php:38
+msgid "使用自定义样式"
+msgstr ""
+
+#: options_page0.php:45
+msgid "HTML生成位置："
+msgstr ""
+
+#: options_page0.php:45
+msgid "一般情况下请不要更改它们"
+msgstr ""
+
+#: options_page0.php:47
+msgid "在< / body>前。"
+msgstr ""
+
+#: options_page0.php:47
+msgid "当春菜无法显示（主题尾部无wp_footer()函数）或wp_footer()所在之处使得春菜样式无法正常表示，请勾选此项"
+msgstr ""
+
+#: options_page0.php:49
+msgid "在wp_footer()处。"
+msgstr ""
+
+#: options_page0.php:49
+msgid "这是WP常用的方式，但如果你的主题尾部没有wp_footer()函数那春菜将无法显示"
+msgstr ""
+
+#: options_page0.php:56
+msgid "不在以下页面显示春菜"
+msgstr ""
+
+#: options_page0.php:58
+msgid "输入不显示春菜的页面的URL，每行一条。"
+msgstr ""
+
+#: options_page0.php:59
+msgid "在地址尾部加入(*)可进行模糊匹配。"
+msgstr ""
+
+#: options_page0.php:64
+#: options_page1.php:38
+#: options_page3.php:21
+#: options_page4.php:24
+msgid " 保 存 "
+msgstr ""
+
+#: options_page0.php:70
+msgid "插件信息"
+msgstr ""
+
+#: options_page0.php:72
+msgid "版本："
+msgstr ""
+
+#: options_page0.php:74
+msgid "春菜数："
+msgstr ""
+
+#: options_page0.php:76
+msgid "平均会话："
+msgstr ""
+
+#: options_page0.php:78
+msgid "插件首页："
+msgstr ""
+
+#: options_page0.php:78
+#: options_page3.php:31
+msgid "访问插件首页"
+msgstr ""
+
+#: options_page0.php:84
+msgid "重置设定"
+msgstr ""
+
+#: options_page0.php:86
+msgid "确认重置"
+msgstr ""
+
+#: options_page0.php:88
+msgid "重置设定将还原插件的所有配置为默认设定，插件内的所有设定及春菜将被删除。该操作无法撤销，请慎重操作。"
+msgstr ""
+
+#: options_page0.php:90
+msgid " 重 置 "
+msgstr ""
+
+#: options_page1.php:6
+msgid "图片栏中，请图片填写完整的URL，不要忘记http://开头。"
+msgstr ""
+
+#: options_page1.php:8
+msgid "吐槽栏中，每行代表一条吐槽。可使用HTML代码。"
+msgstr ""
+
+#: options_page1.php:22
+msgid "删除"
+msgstr ""
+
+#: options_page1.php:26
+#: options_page2.php:7
+msgid "可显示"
+msgstr ""
+
+#: options_page1.php:28
+#: options_page2.php:9
+msgid "名字："
+msgstr ""
+
+#: options_page1.php:30
+#: options_page2.php:11
+msgid "图片："
+msgstr ""
+
+#: options_page1.php:32
+#: options_page2.php:13
+msgid "吐槽："
+msgstr ""
+
+#: options_page2.php:13
+msgid "每行一条吐槽，可使用HTML代码。"
+msgstr ""
+
+#: options_page2.php:15
+msgid " 创 建 "
+msgstr ""
+
+#: options_page3.php:5
+msgid "如果您不懂如何操作或编写代码，请不要更改此页。"
+msgstr ""
+
+#: options_page3.php:11
+msgid "JS区"
+msgstr ""
+
+#: options_page3.php:14
+msgid "可在此填写JavaScript代码，为春菜自定义更多的响应事件。"
+msgstr ""
+
+#: options_page3.php:16
+msgid "无需使用&lt;script&gt;标签，代码将写入到&lt;head&gt;部分。"
+msgstr ""
+
+#: options_page3.php:25
+msgid "代码扩展"
+msgstr ""
+
+#: options_page3.php:28
+msgid "你可以在春菜的信息框中使用特殊代码来显示特定的信息，例如日志列表。"
+msgstr ""
+
+#: options_page3.php:30
+msgid "访问插件首页便可获得所有代码的信息："
+msgstr ""
+
+#: options_page4.php:9
+msgid "固定信息："
+msgstr ""
+
+#: options_page4.php:12
+msgid "此信息将显示在每条会话的后面，支持HTML代码。"
+msgstr ""
+
+#: options_page4.php:17
+msgid "通用会话："
+msgstr ""
+
+#: options_page4.php:20
+msgid "所有春菜共用的会话内容。"
+msgstr ""
+
+#: options_page4.php:21
+msgid "一旦填写此栏，通用会话将取代每个春菜的自定义会话。清空此栏则使用各春菜的默认自定义会话。"
+msgstr ""
+

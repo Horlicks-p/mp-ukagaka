@@ -121,6 +121,7 @@ function mpu_handle_options_save()
         $mpu_opt['ai_enabled'] = $current_opt['ai_enabled'] ?? false;
         $mpu_opt['ai_provider'] = $current_opt['ai_provider'] ?? 'gemini';
         $mpu_opt['ai_api_key'] = $current_opt['ai_api_key'] ?? '';
+        $mpu_opt['gemini_model'] = $current_opt['gemini_model'] ?? 'gemini-2.5-flash';
         $mpu_opt['openai_api_key'] = $current_opt['openai_api_key'] ?? '';
         $mpu_opt['openai_model'] = $current_opt['openai_model'] ?? 'gpt-4o-mini';
         $mpu_opt['claude_api_key'] = $current_opt['claude_api_key'] ?? '';
@@ -275,6 +276,7 @@ function mpu_handle_options_save()
             }
         }
 
+        $mpu_opt['gemini_model'] = isset($_POST['gemini_model']) ? sanitize_text_field($_POST['gemini_model']) : 'gemini-2.5-flash';
         $mpu_opt['openai_model'] = isset($_POST['openai_model']) ? sanitize_text_field($_POST['openai_model']) : 'gpt-4o-mini';
         $mpu_opt['claude_model'] = isset($_POST['claude_model']) ? sanitize_text_field($_POST['claude_model']) : 'claude-sonnet-4-5-20250929';
         $mpu_opt['ai_language'] = isset($_POST['ai_language']) ? sanitize_text_field($_POST['ai_language']) : 'zh-TW';
@@ -305,10 +307,8 @@ function mpu_handle_options_save()
             $mpu_opt['ollama_disable_thinking'] = $_POST['ollama_disable_thinking'] ? true : false;
         }
 
-        // 如果啟用「使用 LLM 取代內建對話」，自動關閉頁面感知功能
-        if (!empty($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ai_provider'] === 'ollama') {
-            $mpu_opt['ai_enabled'] = false;
-        }
+        // 注意：「LLM 取代內建對話」和「頁面感知 AI (ai_enabled)」是兩個獨立的功能
+        // 用戶可以同時啟用或單獨啟用任一功能
 
         $text = '<div class="updated"><p><strong>' . __('AI 設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
     } elseif (isset($_POST['submit_reset'])) {

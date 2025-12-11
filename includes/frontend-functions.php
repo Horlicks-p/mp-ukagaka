@@ -138,7 +138,7 @@ function mpu_html($num = false)
             <div id="ukagaka_msgbox">
                 <div class="ukagaka-msgbox-top"></div>
                 <div id="ukagaka_msg">' .
-        __("(思考中...)", "mp-ukagaka") .
+        __("（えっと…何話せばいいかな…）", "mp-ukagaka") .
         '</div>
                 <div id="ukagaka_msgnum" style="display:none;">0</div>
                 <div id="ukagaka_msglist" style="display:none;" data-file="' .
@@ -263,18 +263,22 @@ function mpu_head()
     $msg_hide = mpu_js_filter(__("隱藏會話 ▼", "mp-ukagaka"));
 
     echo "<script type=\"text/javascript\">\n";
-    // 【★ 修正 1/2】 AJAX URL を admin-ajax.php に修正
     echo "var mpuurl = '" . esc_url(admin_url('admin-ajax.php')) . "';\n";
-    // ★★★ 安全性：生成並傳遞 Nonce ★★★
     echo "var mpuNonce = '" . wp_create_nonce('mpu_ajax_nonce') . "';\n";
     echo "var mpuInfo = {
         robot: ['{$robot_show}', '{$robot_hide}'],
         msg: ['{$msg_show}', '{$msg_hide}']
     };\n";
 
-    // 【★ 修正 2/2】
-    // mpu_getCookie (ukagaka.js で定義) はフッターで読み込まれるため、
-    // DOM ready (全 JS 読み込み完了後) に実行するよう jQuery() でラップする。
+    // 預先輸出 LLM 設定，供前端判斷是否跳過內建對話載入
+    $ollama_replace = function_exists('mpu_is_llm_replace_dialogue_enabled') 
+        ? mpu_is_llm_replace_dialogue_enabled() 
+        : false;
+    echo "var mpuPreSettings = {\n";
+    echo "    ollama_replace: " . ($ollama_replace ? 'true' : 'false') . "\n";
+    echo "};\n";
+
+    // mpu_getCookie 在 footer 載入，需在 DOM ready 後執行
     echo '
     jQuery(document).ready(function($) {
         var showRobot = mpu_getCookie("mpuRobot");

@@ -2,7 +2,7 @@
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Context Awareness），支援 Gemini、OpenAI、Claude 多提供商。API Key 加密存儲、安全文件操作。
-Version: 2.1.0
+Version: 2.1.4
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Reviser: Horlicks
@@ -123,6 +123,17 @@ This plugin uses a modular architecture for better maintainability:
 * `ukagaka_cookie.js` - Cookie utilities
 
 == Changelog ==
+
+= 2025-12-11 =
+* v2.1.4
+* [IMPROVED] Increased Gemini maxOutputTokens to 500 for better context awareness responses
+* [FIXED] Fixed "AI Dialog Text Color" input display issue in admin settings
+
+= 2025-12-10 =
+* v2.1.3
+* [CHANGE] System now exclusively uses external dialog files (TXT/JSON format)
+* [NEW] Complete admin UI redesign with Claude-style interface
+* [IMPROVED] Better message display consistency and layout
 
 = 2025-11-26 =
 * v2.1.0

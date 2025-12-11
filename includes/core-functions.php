@@ -49,6 +49,7 @@ function mpu_default_opt()
         "ai_enabled" => false,
         "ai_provider" => "gemini",
         "ai_api_key" => "", // Gemini API Key
+        "gemini_model" => "gemini-2.5-flash", // Gemini 模型
         "openai_api_key" => "", // OpenAI API Key
         "openai_model" => "gpt-4o-mini", // OpenAI 模型
         "claude_api_key" => "", // Claude API Key

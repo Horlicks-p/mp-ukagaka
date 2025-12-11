@@ -69,10 +69,8 @@ if (!$skip_form_processing && isset($_GET['del']) && $_GET['del'] != '') {
         // 保存「關閉思考模式」設定
         $mpu_opt['ollama_disable_thinking'] = isset($_POST['ollama_disable_thinking']) && $_POST['ollama_disable_thinking'] ? true : false;
 
-        // 如果啟用「使用 LLM 取代內建對話」，自動關閉頁面感知功能
-        if (!empty($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ai_provider'] === 'ollama') {
-            $mpu_opt['ai_enabled'] = false;
-        }
+        // ★★★ 移除：不再強制關閉頁面感知 ★★★
+        // Ollama 現在也支援頁面感知功能，與雲端 AI 相同
 
         update_option('mp_ukagaka', $mpu_opt);
         $text = '<div class="updated"><p><strong>' . __('LLM 設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
@@ -155,10 +153,8 @@ if (!$skip_form_processing && isset($_GET['del']) && $_GET['del'] != '') {
             $mpu_opt['ollama_disable_thinking'] = $_POST['ollama_disable_thinking'] ? true : false;
         }
 
-        // 如果啟用「使用 LLM 取代內建對話」，自動關閉頁面感知功能
-        if (!empty($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ai_provider'] === 'ollama') {
-            $mpu_opt['ai_enabled'] = false;
-        }
+        // ★★★ 移除：不再強制關閉頁面感知 ★★★
+        // Ollama 現在也支援頁面感知功能，與雲端 AI 相同
 
         $mpu_opt['ai_language'] = isset($_POST['ai_language']) ? sanitize_text_field($_POST['ai_language']) : 'zh-TW';
         $mpu_opt['ai_system_prompt'] = isset($_POST['ai_system_prompt']) ? sanitize_textarea_field($_POST['ai_system_prompt']) : '你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。';

@@ -267,12 +267,26 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
 /**
  * 檢查是否啟用了 LLM 取代內建對話
  * 
+ * 注意：此功能獨立於「頁面感知 AI」(ai_enabled)
+ * LLM 取代對話只需要：
+ * 1. ollama_replace_dialogue 為 true
+ * 2. ai_provider 為 'ollama'
+ * 
  * @return bool
  */
 function mpu_is_llm_replace_dialogue_enabled()
 {
     $mpu_opt = mpu_get_option();
-    return !empty($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ai_provider'] === 'ollama';
+    $is_enabled = !empty($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ai_provider'] === 'ollama';
+    
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('MP Ukagaka - mpu_is_llm_replace_dialogue_enabled:');
+        error_log('  - ollama_replace_dialogue = ' . (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue'] ? 'true' : 'false'));
+        error_log('  - ai_provider = ' . ($mpu_opt['ai_provider'] ?? 'not set'));
+        error_log('  - 結果 = ' . ($is_enabled ? 'true' : 'false'));
+    }
+    
+    return $is_enabled;
 }
 
 /**

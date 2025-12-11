@@ -19,7 +19,8 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
     // 根據提供商調用對應的 API
     switch ($provider) {
         case "gemini":
-            return mpu_call_gemini_api($api_key, $system_prompt, $user_prompt, $language);
+            $model = $mpu_opt["gemini_model"] ?? "gemini-2.5-flash";
+            return mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language);
         case "openai":
             $model = $mpu_opt["openai_model"] ?? "gpt-4o-mini";
             return mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $language);
@@ -36,9 +37,16 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
 }
 
 /**
- * 調用 Gemini API (已更新為 2025 年 Gemini 2.5 標準)
+ * 調用 Gemini API (支持用戶選擇模型)
+ * 
+ * @param string $api_key API 金鑰
+ * @param string $model 模型名稱（如 gemini-2.5-flash, gemini-2.5-pro）
+ * @param string $system_prompt 系統提示詞
+ * @param string $user_prompt 用戶提示詞
+ * @param string $language 語言
+ * @return string|WP_Error 生成的文本或錯誤
  */
-function mpu_call_gemini_api($api_key, $system_prompt, $user_prompt, $language)
+function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language)
 {
     // 構建語言指令
     $language_instruction = mpu_get_language_instruction($language);
@@ -61,96 +69,59 @@ function mpu_call_gemini_api($api_key, $system_prompt, $user_prompt, $language)
             "temperature" => 0.7,
             "topK" => 40,
             "topP" => 0.95,
-            "maxOutputTokens" => 100,
+            "maxOutputTokens" => 500,
         ]
     ];
 
-    // ★★★ 重大更新：切換至 Gemini 2.5 系列 (2025年主流模型) ★★★
-    // 根據 Google 官方文檔，這些是目前的穩定版模型 ID
-    $api_configs = [
-        // 1. 首選：Gemini 2.5 Flash (速度快、成本低、最新穩定版)
-        ["version" => "v1", "model" => "gemini-2.5-flash"],
+    // 構建 API URL（使用用戶選擇的模型）
+    $api_url = "https://generativelanguage.googleapis.com/v1/models/{$model}:generateContent?key=" . urlencode($api_key);
 
-        // 2. 次選：Gemini 2.5 Pro (更聰明，適合複雜推理)
-        ["version" => "v1", "model" => "gemini-2.5-pro"],
+    // 發送請求
+    $response = wp_remote_post($api_url, [
+        "headers" => [
+            "Content-Type" => "application/json",
+        ],
+        "body" => wp_json_encode($request_body),
+        "timeout" => 60, // Gemini Pro 可能需要較長時間
+    ]);
 
-        // 3. 備用：Gemini 2.5 Flash-Lite (超輕量版，如果 Flash 失敗時嘗試)
-        ["version" => "v1", "model" => "gemini-2.5-flash-lite"],
-
-        // 4. 相容性備援：Gemini 2.0 系列 (上一代穩定版)
-        ["version" => "v1", "model" => "gemini-2.0-flash-001"],
-
-        // 5. 最後手段：Gemini 1.5 (如果你的專案尚未遷移)
-        ["version" => "v1beta", "model" => "gemini-1.5-flash"],
-    ];
-
-    $errors = []; // 收集所有錯誤以便調試
-
-    foreach ($api_configs as $config) {
-        $version = $config["version"];
-        $model = $config["model"];
-
-        // 構建 API URL (注意：新版通常使用 v1)
-        $api_url = "https://generativelanguage.googleapis.com/{$version}/models/{$model}:generateContent?key=" . urlencode($api_key);
-
-        // 發送請求
-        $response = wp_remote_post($api_url, [
-            "headers" => [
-                "Content-Type" => "application/json",
-            ],
-            "body" => wp_json_encode($request_body),
-            "timeout" => 30,
-        ]);
-
-        // 處理錯誤
-        if (is_wp_error($response)) {
-            $error_msg = "API 請求失敗（{$version}/{$model}）：" . $response->get_error_message();
-            $errors[] = $error_msg;
-            continue; // 嘗試下一個模型
-        }
-
-        $response_code = wp_remote_retrieve_response_code($response);
-        $response_body = wp_remote_retrieve_body($response);
-
-        if ($response_code === 200) {
-            // 解析回應
-            $data = json_decode($response_body, true);
-
-            if (!empty($data["candidates"][0]["content"]["parts"][0]["text"])) {
-                $generated_text = trim($data["candidates"][0]["content"]["parts"][0]["text"]);
-                return $generated_text;
-            } else {
-                $errors[] = "API 回應格式空（{$version}/{$model}）";
-                continue;
-            }
-        } else {
-            // 解析錯誤訊息
-            $error_data = json_decode($response_body, true);
-            $error_message = isset($error_data["error"]["message"])
-                ? $error_data["error"]["message"]
-                : "未知錯誤";
-
-            $error_msg = "API 錯誤 {$response_code}（{$model}）：{$error_message}";
-            $errors[] = $error_msg;
-
-            // 如果是認證錯誤（401/403），立即返回，不需要嘗試其他模型
-            if ($response_code === 401 || $response_code === 403) {
-                return new WP_Error("api_auth_error", "API 認證失敗（HTTP {$response_code}）：{$error_message}。請檢查 API Key 是否正確。");
-            }
-
-            // 如果是 404 (模型不存在) 或 400 (參數錯誤)，嘗試下一個模型
-            if ($response_code === 404 || $response_code === 400) {
-                continue;
-            }
-
-            // 其他錯誤（如 500 伺服器錯誤），也嘗試下一個模型
-            continue;
-        }
+    // 處理錯誤
+    if (is_wp_error($response)) {
+        return new WP_Error("api_request_failed", "Gemini API 請求失敗：" . $response->get_error_message());
     }
 
-    // 所有模型都失敗了
-    $all_errors = implode("; ", $errors);
-    return new WP_Error("api_error", "所有模型配置都失敗。詳情：" . $all_errors);
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body = wp_remote_retrieve_body($response);
+
+    if ($response_code === 200) {
+        // 解析回應
+        $data = json_decode($response_body, true);
+
+        if (!empty($data["candidates"][0]["content"]["parts"][0]["text"])) {
+            $generated_text = trim($data["candidates"][0]["content"]["parts"][0]["text"]);
+            return $generated_text;
+        } else {
+            return new WP_Error("empty_response", "Gemini API 回應為空，請檢查模型是否正確");
+        }
+    } else {
+        // 解析錯誤訊息
+        $error_data = json_decode($response_body, true);
+        $error_message = isset($error_data["error"]["message"])
+            ? $error_data["error"]["message"]
+            : "未知錯誤";
+
+        // 如果是認證錯誤（401/403）
+        if ($response_code === 401 || $response_code === 403) {
+            return new WP_Error("api_auth_error", "API 認證失敗（HTTP {$response_code}）：{$error_message}。請檢查 API Key 是否正確。");
+        }
+
+        // 如果是 404（模型不存在）
+        if ($response_code === 404) {
+            return new WP_Error("model_not_found", "Gemini 模型「{$model}」不存在。請在設定中選擇正確的模型。");
+        }
+
+        return new WP_Error("api_error", "Gemini API 錯誤（HTTP {$response_code}）：{$error_message}");
+    }
 }
 
 /**

@@ -120,7 +120,7 @@ function mpu_ajax_change()
         "msg" => [],
     ];
     $temp["shell"] = $mpu_opt["ukagakas"][$mpu_num]["shell"];
-    $temp["msg"] = __("(思考中...)", "mp-ukagaka");
+    $temp["msg"] = ""; // 前端會透過 loadExternalDialog 載入實際對話
     $temp["name"] = $mpu_opt["ukagakas"][$mpu_num]["name"];
     $temp["num"] = $mpu_num;
     $temp["dialog_filename"] = $dialog_filename;
@@ -165,7 +165,7 @@ function mpu_ajax_get_settings()
         "ai_text_color" => sanitize_hex_color($mpu_opt["ai_text_color"] ?? "#000000"),
         "ai_display_duration" => intval($mpu_opt["ai_display_duration"] ?? 8),
         "ai_greet_first_visit" => !empty($mpu_opt["ai_greet_first_visit"]),
-        "ollama_replace_dialogue" => !empty($mpu_opt["ollama_replace_dialogue"]) && $mpu_opt["ai_provider"] === "ollama",
+        "ollama_replace_dialogue" => mpu_is_llm_replace_dialogue_enabled(),
         // 注意：頁面條件檢查改為在前端進行，因為 AJAX 請求中 WordPress 條件標籤可能無法正確工作
     ];
     wp_send_json($settings);

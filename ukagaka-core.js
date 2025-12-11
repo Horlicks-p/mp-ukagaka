@@ -19,6 +19,7 @@ let mpuGreetInProgress = false;         // 首次訪客打招呼是否正在進�
 let mpuTypewriterTimer = null;          // 打字效果計時器
 let mpuTypewriterSpeed = 40;            // 打字速度（毫秒/字元）
 let mpuOllamaReplaceDialogue = false;   // 是否使用 LLM 取代內建對話
+let mpuAiContextInProgress = false;     // 頁面感知 AI 是否正在進行中（防止自動對話打斷）
 
 // 以記憶體保存已解析的對話資料
 window.mpuMsgList = null;
@@ -34,36 +35,36 @@ const mpuLogger = {
      * 記錄調試訊息（只在調試模式下顯示）
      * @param {...any} args - 要記錄的參數
      */
-    log: function(...args) {
+    log: function (...args) {
         if (debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true)) {
             console.log('[MP Ukagaka]', ...args);
         }
     },
-    
+
     /**
      * 記錄警告訊息（只在調試模式下顯示）
      * @param {...any} args - 要記錄的參數
      */
-    warn: function(...args) {
+    warn: function (...args) {
         if (debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true)) {
             console.warn('[MP Ukagaka]', ...args);
         }
     },
-    
+
     /**
      * 記錄錯誤訊息（始終記錄，但格式統一）
      * @param {...any} args - 要記錄的參數
      */
-    error: function(...args) {
+    error: function (...args) {
         // 錯誤始終記錄，但使用統一格式
         console.error('[MP Ukagaka ERROR]', ...args);
     },
-    
+
     /**
      * 記錄資訊訊息（只在調試模式下顯示）
      * @param {...any} args - 要記錄的參數
      */
-    info: function(...args) {
+    info: function (...args) {
         if (debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true)) {
             console.info('[MP Ukagaka]', ...args);
         }
@@ -71,8 +72,8 @@ const mpuLogger = {
 };
 
 // 向後兼容：保留 debugLog 函數
-function debugLog() { 
-    mpuLogger.log.apply(mpuLogger, arguments); 
+function debugLog() {
+    mpuLogger.log.apply(mpuLogger, arguments);
 }
 
 /**
@@ -90,11 +91,11 @@ function mpu_handle_error(error, context, options = {}) {
         userMessage = null,
         silent = false
     } = options;
-    
+
     // 提取錯誤訊息
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : null;
-    
+
     // 記錄錯誤（除非靜默模式）
     if (!silent) {
         mpuLogger.error(`[${context}]`, errorMessage);
@@ -102,10 +103,10 @@ function mpu_handle_error(error, context, options = {}) {
             mpuLogger.error('Stack trace:', errorStack);
         }
     }
-    
+
     // 如果需要向用戶顯示錯誤
     if (showToUser) {
-        const displayMessage = userMessage || 
+        const displayMessage = userMessage ||
             (debugMode || window.mpuDebugMode ? errorMessage : '發生錯誤，請稍後再試');
         const $msgBox = jQuery("#ukagaka_msg");
         if ($msgBox.length) {
@@ -115,7 +116,7 @@ function mpu_handle_error(error, context, options = {}) {
             }
         }
     }
-    
+
     // 返回錯誤對象以便進一步處理
     return {
         message: errorMessage,
@@ -136,32 +137,32 @@ function mpu_typewriter(text, target, speed) {
         clearTimeout(mpuTypewriterTimer);
         mpuTypewriterTimer = null;
     }
-    
+
     if (!text) {
         const $target = typeof target === 'string' ? jQuery(target) : target;
         $target.html('');
         return;
     }
-    
+
     const $target = typeof target === 'string' ? jQuery(target) : target;
     const typeSpeed = speed || mpuTypewriterSpeed;
-    
+
     // 獲取原生 DOM 元素（性能更好，避免 jQuery 開銷）
     const targetElement = $target[0] || $target;
-    
+
     // 先清空內容
     targetElement.innerHTML = '';
-    
+
     // 解析 HTML，提取標籤和文字
     const parts = [];
     let currentIndex = 0;
     let textBuffer = '';
     const textLength = text.length;
-    
+
     // 優化：使用單次遍歷解析
     while (currentIndex < textLength) {
         const char = text[currentIndex];
-        
+
         if (char === '<') {
             // 遇到標籤開始，先保存之前的文字
             if (textBuffer) {
@@ -188,7 +189,7 @@ function mpu_typewriter(text, target, speed) {
     if (textBuffer) {
         parts.push({ type: 'text', content: textBuffer });
     }
-    
+
     // 計算總文字長度，決定是否使用批量更新
     let totalTextLength = 0;
     for (const part of parts) {
@@ -196,19 +197,19 @@ function mpu_typewriter(text, target, speed) {
             totalTextLength += part.content.length;
         }
     }
-    
+
     // 對於長文字（超過 50 字元），使用批量更新以提高性能
     // 批量大小根據文字長度動態調整
     const useBatchUpdate = totalTextLength > 50;
     const batchSize = useBatchUpdate ? Math.max(2, Math.min(5, Math.floor(totalTextLength / 20))) : 1;
-    
+
     // 開始打字效果
     let partIndex = 0;
     let charIndex = 0;
     let currentHTML = '';
     let pendingUpdate = false;
     let rafId = null;
-    
+
     /**
      * 批量更新 DOM（使用 requestAnimationFrame 優化渲染時機）
      * 減少 DOM 操作頻率，提高性能
@@ -220,7 +221,7 @@ function mpu_typewriter(text, target, speed) {
             pendingUpdate = false;
         }
     }
-    
+
     /**
      * 處理下一個字元或批次
      */
@@ -237,14 +238,14 @@ function mpu_typewriter(text, target, speed) {
             mpuTypewriterTimer = null;
             return;
         }
-        
+
         const part = parts[partIndex];
-        
+
         if (part.type === 'tag') {
             // 標籤立即顯示（不需要打字效果）
             currentHTML += part.content;
             pendingUpdate = true;
-            
+
             // 使用 requestAnimationFrame 來批量更新，減少重繪次數
             if (!rafId) {
                 rafId = requestAnimationFrame(() => {
@@ -252,7 +253,7 @@ function mpu_typewriter(text, target, speed) {
                     rafId = null;
                 });
             }
-            
+
             partIndex++;
             // 立即處理下一個部分（不延遲）
             processNextChar();
@@ -266,7 +267,7 @@ function mpu_typewriter(text, target, speed) {
                     currentHTML += batch;
                     pendingUpdate = true;
                     charIndex = endIndex;
-                    
+
                     // 使用 requestAnimationFrame 來批量更新
                     if (!rafId) {
                         rafId = requestAnimationFrame(() => {
@@ -274,7 +275,7 @@ function mpu_typewriter(text, target, speed) {
                             rafId = null;
                         });
                     }
-                    
+
                     // 批量更新時，延遲時間也相應調整（但保持流暢感）
                     const batchDelay = Math.max(typeSpeed, typeSpeed * batchSize * 0.7);
                     mpuTypewriterTimer = setTimeout(processNextChar, batchDelay);
@@ -283,7 +284,7 @@ function mpu_typewriter(text, target, speed) {
                     currentHTML += part.content[charIndex];
                     pendingUpdate = true;
                     charIndex++;
-                    
+
                     // 使用 requestAnimationFrame 來批量更新
                     if (!rafId) {
                         rafId = requestAnimationFrame(() => {
@@ -291,7 +292,7 @@ function mpu_typewriter(text, target, speed) {
                             rafId = null;
                         });
                     }
-                    
+
                     mpuTypewriterTimer = setTimeout(processNextChar, typeSpeed);
                 }
             } else {
@@ -302,7 +303,7 @@ function mpu_typewriter(text, target, speed) {
             }
         }
     }
-    
+
     // 開始處理
     processNextChar();
 }
@@ -316,8 +317,8 @@ function mpu_typewriter(text, target, speed) {
  * 嘗試 localStorage -> sessionStorage -> window 變數
  */
 function mpu_setLocal(name, value) {
-    const data = { 
-        value, 
+    const data = {
+        value,
         expiry: Date.now() + 86400000 // 1 天過期
     };
     let dataStr;
@@ -332,7 +333,7 @@ function mpu_setLocal(name, value) {
     try {
         localStorage.setItem(name, dataStr);
         return; // 成功
-    } catch (e) { 
+    } catch (e) {
         debugLog("localStorage set failed:", name, e);
     }
 
@@ -340,7 +341,7 @@ function mpu_setLocal(name, value) {
     try {
         sessionStorage.setItem(name, dataStr);
         return; // 成功
-    } catch (e) { 
+    } catch (e) {
         debugLog("sessionStorage set failed:", name, e);
     }
 
@@ -384,7 +385,7 @@ function mpu_getLocal(name) {
                 itemStr = JSON.stringify(window.__mpuStorage[name]);
             }
         } catch (e) {
-             debugLog("window storage get failed:", name, e);
+            debugLog("window storage get failed:", name, e);
         }
     }
 
@@ -417,14 +418,14 @@ function mpu_delLocal(name) {
     // 1. 嘗試 localStorage
     try {
         localStorage.removeItem(name);
-    } catch (e) { 
+    } catch (e) {
         debugLog("localStorage delete failed:", name, e);
     }
-    
+
     // 2. 嘗試 sessionStorage
     try {
         sessionStorage.removeItem(name);
-    } catch (e) { 
+    } catch (e) {
         debugLog("sessionStorage delete failed:", name, e);
     }
 
@@ -446,7 +447,7 @@ function mpu_delLocal(name) {
 function mpu_getCookie(name) {
     var nameEQ = name + "=";
     var ca = document.cookie.split(';');
-    for(var i = 0; i < ca.length; i++) {
+    for (var i = 0; i < ca.length; i++) {
         var c = ca[i];
         while (c.charAt(0) === ' ') c = c.substring(1, c.length);
         if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
@@ -472,14 +473,14 @@ function mpu_init_jquery_cookie() {
         mpuLogger.warn('jQuery 尚未載入，無法初始化 jQuery.cookie');
         return false;
     }
-    
+
     if (typeof jQuery.cookie !== 'undefined') {
         // 如果已經存在，就不需要初始化
         return true;
     }
-    
+
     // 創建 jQuery.cookie 包裝器
-    jQuery.cookie = function(name, value, options) {
+    jQuery.cookie = function (name, value, options) {
         if (arguments.length > 1 && value !== null && value !== undefined) {
             // 設置 cookie
             var opts = options || {};
@@ -495,7 +496,7 @@ function mpu_init_jquery_cookie() {
             return mpu_getCookie(name);
         }
     };
-    
+
     return true;
 }
 
@@ -503,7 +504,7 @@ function mpu_init_jquery_cookie() {
 if (typeof jQuery !== 'undefined') {
     mpu_init_jquery_cookie();
 }
-function mpu_delCookie(name){
+function mpu_delCookie(name) {
     return mpu_delLocal(name);
 }
 
@@ -512,15 +513,15 @@ function mpu_delCookie(name){
 // ========================================
 
 // HTML 解碼
-function mpu_unescapeHTML(str){
-  if(!str) return "";
-  return String(str)
-    .replace(/&amp;/g,"&")
-    .replace(/&lt;/g,"<")
-    .replace(/&gt;/g,">")
-    .replace(/&nbsp;/g," ")
-    .replace(/&#39;/g,"'")
-    .replace(/&quot;/g,'"');
+function mpu_unescapeHTML(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"');
 }
 
 // ========================================
@@ -533,7 +534,7 @@ function mpu_unescapeHTML(str){
 const mpuRequestManager = {
     // 存儲活躍請求：key 為請求 ID，value 為 AbortController
     activeRequests: new Map(),
-    
+
     // 請求配置預設值
     defaults: {
         timeout: 30000,        // 30 秒超時
@@ -542,24 +543,24 @@ const mpuRequestManager = {
         dedupe: false,         // 是否去重（相同請求只發送一次）
         cancelPrevious: false  // 是否取消之前的相同請求
     },
-    
+
     /**
      * 生成請求 ID（用於去重和取消）
      * @param {string} url - 請求 URL
      * @param {Object} options - 請求選項
      * @returns {string} 請求 ID
      */
-    generateRequestId: function(url, options = {}) {
+    generateRequestId: function (url, options = {}) {
         const method = (options.method || 'GET').toUpperCase();
         const body = options.body ? (options.body instanceof FormData ? 'form' : JSON.stringify(options.body)) : '';
         return `${method}:${url}:${body}`;
     },
-    
+
     /**
      * 取消請求
      * @param {string} requestId - 請求 ID
      */
-    cancel: function(requestId) {
+    cancel: function (requestId) {
         if (this.activeRequests.has(requestId)) {
             const controller = this.activeRequests.get(requestId);
             controller.abort();
@@ -567,23 +568,23 @@ const mpuRequestManager = {
             mpuLogger.log(`請求已取消: ${requestId}`);
         }
     },
-    
+
     /**
      * 取消所有請求
      */
-    cancelAll: function() {
+    cancelAll: function () {
         this.activeRequests.forEach((controller, requestId) => {
             controller.abort();
             mpuLogger.log(`請求已取消: ${requestId}`);
         });
         this.activeRequests.clear();
     },
-    
+
     /**
      * 清理已完成的請求
      * @param {string} requestId - 請求 ID
      */
-    cleanup: function(requestId) {
+    cleanup: function (requestId) {
         this.activeRequests.delete(requestId);
     }
 };
@@ -605,26 +606,26 @@ async function mpuFetch(url, options = {}) {
         ...mpuRequestManager.defaults,
         ...options
     };
-    
+
     // 生成請求 ID
     const requestId = config.requestId || mpuRequestManager.generateRequestId(url, options);
-    
+
     // 檢查是否需要取消之前的請求
     if (config.cancelPrevious) {
         mpuRequestManager.cancel(requestId);
     }
-    
+
     // 檢查是否需要去重
     if (config.dedupe && mpuRequestManager.activeRequests.has(requestId)) {
         mpuLogger.log(`請求去重，跳過: ${requestId}`);
         // 返回一個被拒絕的 Promise，調用者應該處理這個情況
         return Promise.reject(new Error('重複請求已存在，請稍後再試'));
     }
-    
+
     // 創建 AbortController
     const controller = new AbortController();
     mpuRequestManager.activeRequests.set(requestId, controller);
-    
+
     // 設置超時
     let timeoutId = null;
     if (config.timeout > 0) {
@@ -634,13 +635,13 @@ async function mpuFetch(url, options = {}) {
             mpuLogger.warn(`請求超時: ${requestId}`);
         }, config.timeout);
     }
-    
+
     // 合併 AbortSignal
     const fetchOptions = {
         ...options,
         signal: controller.signal
     };
-    
+
     // 重試邏輯
     let lastError = null;
     for (let attempt = 0; attempt <= config.retries; attempt++) {
@@ -650,19 +651,19 @@ async function mpuFetch(url, options = {}) {
                 // 等待重試延遲
                 await new Promise(resolve => setTimeout(resolve, config.retryDelay * attempt));
             }
-            
+
             const response = await fetch(url, fetchOptions);
-            
+
             // 清除超時
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
-            
+
             // 檢查是否被取消
             if (controller.signal.aborted) {
                 throw new Error('請求已被取消');
             }
-            
+
             if (!response.ok) {
                 // 對於 HTTP 錯誤，只在最後一次嘗試時拋出
                 if (attempt === config.retries) {
@@ -672,7 +673,7 @@ async function mpuFetch(url, options = {}) {
                 lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
                 continue;
             }
-            
+
             // 解析響應
             const contentType = response.headers.get("content-type");
             let result;
@@ -681,15 +682,15 @@ async function mpuFetch(url, options = {}) {
             } else {
                 result = await response.text();
             }
-            
+
             // 清理請求
             mpuRequestManager.cleanup(requestId);
-            
+
             return result;
-            
+
         } catch (error) {
             lastError = error;
-            
+
             // 如果是取消錯誤，直接拋出
             if (error.name === 'AbortError' || controller.signal.aborted) {
                 mpuRequestManager.cleanup(requestId);
@@ -698,7 +699,7 @@ async function mpuFetch(url, options = {}) {
                 }
                 throw new Error('請求已被取消');
             }
-            
+
             // 如果是網絡錯誤且還有重試機會，繼續重試
             if (attempt < config.retries && (
                 error.message.includes('Failed to fetch') ||
@@ -708,22 +709,22 @@ async function mpuFetch(url, options = {}) {
                 mpuLogger.warn(`網絡錯誤，將重試: ${error.message}`);
                 continue;
             }
-            
+
             // 最後一次嘗試或非網絡錯誤，拋出錯誤
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
             mpuRequestManager.cleanup(requestId);
-            
+
             // 記錄錯誤（但不顯示給用戶，由調用者決定）
-            mpu_handle_error(error, 'mpuFetch', { 
+            mpu_handle_error(error, 'mpuFetch', {
                 silent: true // 靜默記錄，由調用者決定是否顯示
             });
-            
+
             throw error;
         }
     }
-    
+
     // 如果所有重試都失敗
     if (timeoutId) {
         clearTimeout(timeoutId);
@@ -751,71 +752,77 @@ function mpuCancelAllRequests() {
 
 // 顯示/隱藏春菜 & 訊息
 // 【★ 修正】更新按鈕文字從 #show_ukagaka 改為 #remove
-function mpu_showrobot(speed = 400){ 
+function mpu_showrobot(speed = 400) {
     jQuery("#remove").html(mpuInfo.robot[1]); // "隱藏春菜 ▼"
     jQuery("#ukagaka").fadeIn(speed);
 }
 // 【★ 修正】更新按鈕文字從 #show_ukagaka 改為 #remove
-function mpu_hiderobot(speed = 400){ 
+function mpu_hiderobot(speed = 400) {
     jQuery("#remove").html(mpuInfo.robot[0]); // "顯示春菜 ▲"
     jQuery("#ukagaka").fadeOut(speed);
 }
-function mpu_showmsg(speed = 400){ 
-    jQuery("#show_msg").html(mpuInfo.msg[1]); 
+function mpu_showmsg(speed = 400) {
+    jQuery("#show_msg").html(mpuInfo.msg[1]);
     jQuery("#ukagaka_msgbox").fadeIn(speed);
 }
-function mpu_hidemsg(speed = 400){ 
-    jQuery("#show_msg").html(mpuInfo.msg[0]); 
+function mpu_hidemsg(speed = 400) {
+    jQuery("#show_msg").html(mpuInfo.msg[0]);
     jQuery("#ukagaka_msgbox").fadeOut(speed);
 }
 
-function mpu_beforemsg(speed = 400){
+function mpu_beforemsg(speed = 400) {
     if (jQuery("#ukagaka").is(":hidden")) {
         mpu_showrobot(speed);
-    } 
+    }
     else if (!jQuery("#ukagaka_msgbox").is(":hidden")) {
         mpu_hidemsg(speed);
     }
 }
 
 // ====== 自動對話 ======
-function startAutoTalk(){
+function startAutoTalk() {
+    mpuLogger.log('startAutoTalk 被調用, mpuAutoTalk =', mpuAutoTalk, ', mpuAutoTalkInterval =', mpuAutoTalkInterval);
     stopAutoTalk();
-    if (!mpuAutoTalk) return;
+    if (!mpuAutoTalk) {
+        mpuLogger.log('startAutoTalk: mpuAutoTalk 為 false，退出');
+        return;
+    }
 
     if (jQuery('#ukagaka_msgbox').is(':hidden')) mpu_showmsg(400);
 
-    mpuAutoTalkTimer = setInterval(function(){
+    mpuLogger.log('startAutoTalk: 設置計時器，間隔 =', mpuAutoTalkInterval, 'ms');
+    mpuAutoTalkTimer = setInterval(function () {
+        mpuLogger.log('自動對話計時器觸發, mpuAutoTalk =', mpuAutoTalk, ', mpuOllamaReplaceDialogue =', mpuOllamaReplaceDialogue);
         if (mpuAutoTalk) mpu_nextmsg('auto');
         else stopAutoTalk();
     }, mpuAutoTalkInterval);
 }
 
-function stopAutoTalk(){
-    if (mpuAutoTalkTimer !== null){
+function stopAutoTalk() {
+    if (mpuAutoTalkTimer !== null) {
         clearInterval(mpuAutoTalkTimer);
         mpuAutoTalkTimer = null;
     }
 }
 
-function setAutoTalkUI(){
+function setAutoTalkUI() {
     const $btn = jQuery('#toggleAutoTalk');
     if ($btn.length) $btn.text(mpuAutoTalk ? '停止自動對話' : '開始自動對話');
 }
 
 // ====== 指令處理 ======
-function mpuMoe(command){
-    if(!command) return false;
+function mpuMoe(command) {
+    if (!command) return false;
 
     const commands = {
-        "(:next)":      () => mpu_nextmsg(),
-        "(:showmsg)":   () => mpu_showmsg(400),
-        "(:hidemsg)":   () => mpu_hidemsg(400),
+        "(:next)": () => mpu_nextmsg(),
+        "(:showmsg)": () => mpu_showmsg(400),
+        "(:hidemsg)": () => mpu_hidemsg(400),
         "(:showrobot)": () => mpu_showrobot(400),
         "(:hiderobot)": () => mpu_hiderobot(400),
-        "(:previous)":  () => debugLog("(:previous) is not implemented.")
+        "(:previous)": () => debugLog("(:previous) is not implemented.")
     };
-    
+
     if (commands[command]) {
         commands[command]();
         return;
@@ -823,17 +830,17 @@ function mpuMoe(command){
 
     // (:msg[n])
     const m = command.match(/^\(:msg\[(\d+)\]\)$/);
-    if (m){
+    if (m) {
         const idx = parseInt(m[1], 10) - 1;
-        if (window.mpuMsgList && Array.isArray(window.mpuMsgList.msg)){
+        if (window.mpuMsgList && Array.isArray(window.mpuMsgList.msg)) {
             const msgArr = window.mpuMsgList.msg;
-            const auto   = window.mpuMsgList.auto_msg || "";
+            const auto = window.mpuMsgList.auto_msg || "";
             const safeIdx = idx >= 0 && idx < msgArr.length ? idx : 0;
             const safeMsg = msgArr[safeIdx] + auto;
-            
+
             mpu_beforemsg(400);
             mpu_showmsg(400);
-            setTimeout(() => { 
+            setTimeout(() => {
                 mpu_typewriter(mpu_unescapeHTML(safeMsg), "#ukagaka_msg");
             }, 510);
         }
@@ -841,20 +848,20 @@ function mpuMoe(command){
     }
 
     // 直接發話（會附 auto_msg）
-    if (window.mpuMsgList){
+    if (window.mpuMsgList) {
         const auto = window.mpuMsgList.auto_msg || "";
         mpu_beforemsg(400);
         mpu_showmsg(400);
-        setTimeout(() => { 
+        setTimeout(() => {
             mpu_typewriter(mpu_unescapeHTML(command + auto), "#ukagaka_msg");
         }, 510);
     }
 }
 
 // ====== 切換春菜 ======
-function mpuChange(num){
+function mpuChange(num) {
     const hasNum = (typeof num !== 'undefined' && num !== null && num !== '');
-    
+
     const params = new URLSearchParams({ action: 'mpu_change' });
     if (hasNum) {
         params.append('mpu_num', num);
@@ -873,11 +880,11 @@ function mpuChange(num){
     })
         .then(res => { // success:
             // === 分支 A: 顯示「選單 HTML」（沒帶 mpu_num） ===
-            if (!hasNum){
+            if (!hasNum) {
                 if (typeof res !== 'string') throw new Error("Expected HTML, got JSON.");
                 jQuery("#ukagaka_msg").html(res || "No content.");
                 mpu_showmsg(300);
-                jQuery("#ukagaka").stop(true,true).fadeIn(200);
+                jQuery("#ukagaka").stop(true, true).fadeIn(200);
                 document.body.style.cursor = "auto";
                 return;
             }
@@ -890,8 +897,8 @@ function mpuChange(num){
 
             if (payload.shell) {
                 const pre = new Image();
-                pre.onload = function(){
-                    $img.fadeOut(120, function(){
+                pre.onload = function () {
+                    $img.fadeOut(120, function () {
                         $img.attr({
                             "src": payload.shell,
                             "alt": payload.name || $img.attr("alt") || "",
@@ -899,7 +906,7 @@ function mpuChange(num){
                         }).fadeIn(180);
                     });
                 };
-                pre.onerror = function(){
+                pre.onerror = function () {
                     mpu_handle_error(
                         `圖片載入失敗: ${payload.shell}`,
                         'mpuChange:image_load',
@@ -912,28 +919,28 @@ function mpuChange(num){
                 pre.src = payload.shell;
             }
 
-            if (payload.num)        jQuery("#ukagaka_num").html(payload.num);
-            if (payload.msg)        mpu_typewriter(mpu_unescapeHTML(payload.msg), "#ukagaka_msg");
-            if (payload.name)       $img.attr({"alt": payload.name, "title": payload.name});
+            if (payload.num) jQuery("#ukagaka_num").html(payload.num);
+            if (payload.msg) mpu_typewriter(mpu_unescapeHTML(payload.msg), "#ukagaka_msg");
+            if (payload.name) $img.attr({ "alt": payload.name, "title": payload.name });
 
             const msgListElem = document.getElementById("ukagaka_msglist");
-            if (payload.dialog_filename && msgListElem && msgListElem.getAttribute("data-load-external") === "true"){
+            if (payload.dialog_filename && msgListElem && msgListElem.getAttribute("data-load-external") === "true") {
                 const currentFile = msgListElem.getAttribute("data-file") || "";
                 const ext = currentFile.split('.').pop() || "json";
                 const pure = `${payload.dialog_filename}.${ext}`;
-                
+
                 msgListElem.setAttribute("data-file", `dialogs/${pure}`);
                 loadExternalDialog(pure);
-            } else if (payload.msglist){
-                try{
+            } else if (payload.msglist) {
+                try {
                     window.mpuMsgList = (typeof payload.msglist === 'string') ? JSON.parse(payload.msglist) : payload.msglist;
-                }catch(e){ 
+                } catch (e) {
                     mpu_handle_error(e, 'mpuChange:parse_msglist');
-                    window.mpuMsgList = null; 
+                    window.mpuMsgList = null;
                 }
             }
 
-            $wrap.stop(true,true).fadeIn(200);
+            $wrap.stop(true, true).fadeIn(200);
             mpu_showmsg(300);
             if (mpuAutoTalk) startAutoTalk();
             document.body.style.cursor = "auto";
@@ -941,11 +948,11 @@ function mpuChange(num){
         .catch(error => { // error:
             mpu_handle_error(error, 'mpuChange', {
                 showToUser: true,
-                userMessage: debugMode || window.mpuDebugMode 
-                    ? `載入失敗: ${error.message}` 
+                userMessage: debugMode || window.mpuDebugMode
+                    ? `載入失敗: ${error.message}`
                     : "載入失敗，請稍後再試。"
             });
-            jQuery("#ukagaka").stop(true,true).fadeIn(200);
+            jQuery("#ukagaka").stop(true, true).fadeIn(200);
             mpu_showmsg(200);
             document.body.style.cursor = "auto";
         });
@@ -953,12 +960,26 @@ function mpuChange(num){
 
 
 // ====== 下一句 ======
-function mpu_nextmsg(trigger){
+function mpu_nextmsg(trigger) {
     const isAuto = (trigger === 'auto');
+    mpuLogger.log('mpu_nextmsg 被調用, trigger =', trigger, ', isAuto =', isAuto, ', mpuOllamaReplaceDialogue =', mpuOllamaReplaceDialogue);
 
     // ★★★ 重要：如果關閉了自動對話，且這是自動觸發，則不執行 ★★★
     if (isAuto && !mpuAutoTalk) {
+        mpuLogger.log('mpu_nextmsg: 自動對話已關閉，退出');
         return; // 自動對話已關閉，不執行
+    }
+
+    // ★★★ 重要：如果頁面感知 AI 正在進行中，且這是自動觸發，則跳過 ★★★
+    if (isAuto && mpuAiContextInProgress) {
+        mpuLogger.log('mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動對話');
+        return; // 避免打斷頁面感知 AI
+    }
+
+    // ★★★ 重要：如果首次訪客打招呼正在進行中，且這是自動觸發，則跳過 ★★★
+    if (isAuto && mpuGreetInProgress) {
+        mpuLogger.log('mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動對話');
+        return; // 避免打斷首次訪客打招呼
     }
 
     if (!isAuto && mpuAutoTalk) {
@@ -966,50 +987,54 @@ function mpu_nextmsg(trigger){
     }
 
     mpu_hidemsg(400);
-    
+
     // ★★★ 檢查是否啟用了 LLM 取代內建對話 ★★★
     if (mpuOllamaReplaceDialogue) {
+        mpuLogger.log('mpu_nextmsg: 使用 LLM 生成對話');
         // 使用 LLM 生成對話
         const curNum = window.mpuInfo?.num || 'default_1';
         const curMsgnum = parseInt(document.getElementById("ukagaka_msgnum")?.innerHTML || '0', 10) || 0;
-        
+
         const params = new URLSearchParams({
             action: 'mpu_nextmsg',
             cur_num: curNum,
             cur_msgnum: curMsgnum
         });
         const url = `${mpuurl}?${params.toString()}`;
-        
+        mpuLogger.log('mpu_nextmsg: 發送 LLM 請求到', url);
+
         mpuFetch(url, {
             timeout: 60000,  // LLM 可能需要較長時間（60秒）
             retries: 1,
             requestId: 'mpu_nextmsg_llm'
         })
-        .then(res => {
-            if (res && res.msg) {
-                const auto = window.mpuMsgList?.auto_msg || "";
-                const out = res.msg + auto;
-                mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-                if (res.msgnum !== undefined) {
-                    jQuery("#ukagaka_msgnum").html(res.msgnum);
+            .then(res => {
+                mpuLogger.log('mpu_nextmsg: LLM 回應 =', res);
+                if (res && res.msg) {
+                    const auto = window.mpuMsgList?.auto_msg || "";
+                    const out = res.msg + auto;
+                    mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+                    if (res.msgnum !== undefined) {
+                        jQuery("#ukagaka_msgnum").html(res.msgnum);
+                    }
+                    mpu_showmsg(400);
+                } else {
+                    mpuLogger.warn('mpu_nextmsg: LLM 回應沒有 msg，使用後備對話');
+                    // LLM 生成失敗，使用後備對話
+                    mpu_nextmsg_fallback();
                 }
-                mpu_showmsg(400);
-            } else {
-                // LLM 生成失敗，使用後備對話
+            })
+            .catch(error => {
+                mpuLogger.warn("LLM dialogue generation failed, using fallback:", error);
                 mpu_nextmsg_fallback();
-            }
-        })
-        .catch(error => {
-            mpuLogger.warn("LLM dialogue generation failed, using fallback:", error);
-            mpu_nextmsg_fallback();
-        });
+            });
         return;
     }
-    
+
     // 正常模式：使用內建對話
-    setTimeout(function(){
+    setTimeout(function () {
         const store = window.mpuMsgList;
-        if (!store || !Array.isArray(store.msg) || store.msg.length === 0){
+        if (!store || !Array.isArray(store.msg) || store.msg.length === 0) {
             mpu_typewriter("訊息列表為空", "#ukagaka_msg");
             mpu_showmsg(400);
             return;
@@ -1018,7 +1043,7 @@ function mpu_nextmsg(trigger){
         let msgNum = parseInt(document.getElementById("ukagaka_msgnum").innerHTML, 10) || 0;
         const msgCount = store.msg.length;
 
-        if (mpuNextMode === "random"){
+        if (mpuNextMode === "random") {
             let newIdx;
             do { newIdx = Math.floor(Math.random() * msgCount); } while (newIdx === msgNum && msgCount > 1);
             msgNum = newIdx;
@@ -1035,10 +1060,10 @@ function mpu_nextmsg(trigger){
 }
 
 // 後備函數：當 LLM 生成失敗時使用內建對話
-function mpu_nextmsg_fallback(){
-    setTimeout(function(){
+function mpu_nextmsg_fallback() {
+    setTimeout(function () {
         const store = window.mpuMsgList;
-        if (!store || !Array.isArray(store.msg) || store.msg.length === 0){
+        if (!store || !Array.isArray(store.msg) || store.msg.length === 0) {
             mpu_typewriter("訊息列表為空", "#ukagaka_msg");
             mpu_showmsg(400);
             return;
@@ -1047,7 +1072,7 @@ function mpu_nextmsg_fallback(){
         let msgNum = parseInt(document.getElementById("ukagaka_msgnum").innerHTML, 10) || 0;
         const msgCount = store.msg.length;
 
-        if (mpuNextMode === "random"){
+        if (mpuNextMode === "random") {
             let newIdx;
             do { newIdx = Math.floor(Math.random() * msgCount); } while (newIdx === msgNum && msgCount > 1);
             msgNum = newIdx;

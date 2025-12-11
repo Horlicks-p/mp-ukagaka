@@ -53,6 +53,9 @@ msgstr "Extensions"
 msgid "(思考中...)"
 msgstr "(Thinking...)"
 
+msgid "（えっと…何話せばいいかな…）"
+msgstr "(Hmm... what should I talk about...)"
+
 msgid "回到頂部 ▼"
 msgstr "Back to Top ▼"
 
@@ -111,6 +114,9 @@ msgstr "Character created successfully~"
 
 msgid "AI 設定已儲存"
 msgstr "AI settings saved"
+
+msgid "LLM 設定已儲存"
+msgstr "LLM settings saved"
 
 msgid "設定已重置"
 msgstr "Settings have been reset"
@@ -353,6 +359,82 @@ msgstr "First-time Visitor Greeting Prompt:"
 
 msgid "定義春菜對首次訪客的打招呼風格和語氣"
 msgstr "Define the greeting style and tone for first-time visitors"
+
+msgid "Ollama (本機 LLM，無需 API Key)"
+msgstr "Ollama (Local LLM, No API Key Required)"
+
+msgid "(已隱藏以確保安全)"
+msgstr "(Hidden for security)"
+
+msgid "注意：本機 LLM (Ollama) 設定已移至「LLM 設定」頁面。"
+msgstr "Note: Local LLM (Ollama) settings have been moved to the \"LLM Settings\" page."
+
+# ========================================
+# LLM Settings Page
+# ========================================
+
+msgid "LLM 設定 (Ollama)"
+msgstr "LLM Settings (Ollama)"
+
+msgid "啟用 LLM (Ollama)"
+msgstr "Enable LLM (Ollama)"
+
+msgid "啟用後將使用 Ollama LLM 生成對話，支援本地或遠程連接，無需 API Key，完全免費。"
+msgstr "When enabled, Ollama LLM will be used to generate dialogues. Supports local or remote connections, no API Key required, completely free."
+
+msgid "🔌 連接設定"
+msgstr "🔌 Connection Settings"
+
+msgid "Ollama 端點："
+msgstr "Ollama Endpoint:"
+
+msgid "本地："
+msgstr "Local:"
+
+msgid "｜ 遠程："
+msgstr "｜ Remote:"
+
+msgid "模型名稱："
+msgstr "Model Name:"
+
+msgid "例如：gemma3:12b, qwen3:8b"
+msgstr "e.g., gemma3:12b, qwen3:8b"
+
+msgid "使用"
+msgstr "Use"
+
+msgid "查看已下載的模型"
+msgstr "to view downloaded models"
+
+msgid "測試連接"
+msgstr "Test Connection"
+
+msgid "💬 對話設定"
+msgstr "💬 Dialogue Settings"
+
+msgid "使用 LLM 取代內建對話"
+msgstr "Use LLM to replace built-in dialogues"
+
+msgid "啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。"
+msgstr "When enabled, character dialogues will be generated in real-time by LLM, not using static dialogue lists."
+
+msgid "關閉思考模式（Qwen3、DeepSeek 等模型）"
+msgstr "Disable thinking mode (for Qwen3, DeepSeek, etc.)"
+
+msgid "部分模型會輸出「思考過程」而非實際對話。啟用此選項可避免此問題。建議啟用。"
+msgstr "Some models output \"thinking process\" instead of actual dialogue. Enable this option to avoid this issue. Recommended to enable."
+
+msgid "測試中..."
+msgstr "Testing..."
+
+msgid "測試失敗，請檢查網絡連接"
+msgstr "Test failed, please check network connection"
+
+msgid "本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。"
+msgstr "Local Ollama program is not running. Please check if the Ollama service is running."
+
+msgid "無對話內容"
+msgstr "No dialogue content"
 
 # ========================================
 # Ukagaka Management Page

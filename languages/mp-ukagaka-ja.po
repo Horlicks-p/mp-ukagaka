@@ -52,6 +52,9 @@ msgstr "拡張"
 msgid "(思考中...)"
 msgstr "(考え中...)"
 
+msgid "（えっと…何話せばいいかな…）"
+msgstr "（えっと…何話せばいいかな…）"
+
 msgid "回到頂部 ▼"
 msgstr "トップへ ▼"
 
@@ -110,6 +113,9 @@ msgstr "ゴーストを作成しました"
 
 msgid "AI 設定已儲存"
 msgstr "AI設定を保存しました"
+
+msgid "LLM 設定已儲存"
+msgstr "LLM設定を保存しました"
 
 msgid "設定已重置"
 msgstr "設定を初期化しました"
@@ -352,6 +358,82 @@ msgstr "初回訪問者挨拶プロンプト："
 
 msgid "定義春菜對首次訪客的打招呼風格和語氣"
 msgstr "初回訪問者への挨拶のスタイルとトーンを定義"
+
+msgid "Ollama (本機 LLM，無需 API Key)"
+msgstr "Ollama (ローカルLLM、APIキー不要)"
+
+msgid "(已隱藏以確保安全)"
+msgstr "(セキュリティのため非表示)"
+
+msgid "注意：本機 LLM (Ollama) 設定已移至「LLM 設定」頁面。"
+msgstr "注意：ローカルLLM (Ollama) の設定は「LLM設定」ページに移動しました。"
+
+# ========================================
+# LLM設定ページ
+# ========================================
+
+msgid "LLM 設定 (Ollama)"
+msgstr "LLM設定 (Ollama)"
+
+msgid "啟用 LLM (Ollama)"
+msgstr "LLM (Ollama) を有効にする"
+
+msgid "啟用後將使用 Ollama LLM 生成對話，支援本地或遠程連接，無需 API Key，完全免費。"
+msgstr "有効にすると、Ollama LLMを使用してダイアログを生成します。ローカルまたはリモート接続をサポートし、APIキー不要で完全無料です。"
+
+msgid "🔌 連接設定"
+msgstr "🔌 接続設定"
+
+msgid "Ollama 端點："
+msgstr "Ollama エンドポイント："
+
+msgid "本地："
+msgstr "ローカル："
+
+msgid "｜ 遠程："
+msgstr "｜ リモート："
+
+msgid "模型名稱："
+msgstr "モデル名："
+
+msgid "例如：gemma3:12b, qwen3:8b"
+msgstr "例：gemma3:12b, qwen3:8b"
+
+msgid "使用"
+msgstr "使用"
+
+msgid "查看已下載的模型"
+msgstr "でダウンロード済みモデルを確認"
+
+msgid "測試連接"
+msgstr "接続テスト"
+
+msgid "💬 對話設定"
+msgstr "💬 ダイアログ設定"
+
+msgid "使用 LLM 取代內建對話"
+msgstr "LLMを使用して組み込みダイアログを置き換える"
+
+msgid "啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。"
+msgstr "有効にすると、ゴーストのダイアログはLLMによってリアルタイムで生成され、静的ダイアログリストは使用されません。"
+
+msgid "關閉思考模式（Qwen3、DeepSeek 等模型）"
+msgstr "思考モードを無効にする（Qwen3、DeepSeekなどのモデル）"
+
+msgid "部分模型會輸出「思考過程」而非實際對話。啟用此選項可避免此問題。建議啟用。"
+msgstr "一部のモデルは実際のダイアログではなく「思考プロセス」を出力します。このオプションを有効にすると、この問題を回避できます。有効にすることをお勧めします。"
+
+msgid "測試中..."
+msgstr "テスト中..."
+
+msgid "測試失敗，請檢查網絡連接"
+msgstr "テスト失敗、ネットワーク接続を確認してください"
+
+msgid "本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。"
+msgstr "ローカルのOllamaプログラムが起動していません。Ollamaサービスが実行中か確認してください。"
+
+msgid "無對話內容"
+msgstr "ダイアログコンテンツなし"
 
 # ========================================
 # ゴースト管理ページ
