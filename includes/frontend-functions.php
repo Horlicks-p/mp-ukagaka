@@ -137,9 +137,11 @@ function mpu_html($num = false)
         <div id="ukagaka">
             <div id="ukagaka_msgbox">
                 <div class="ukagaka-msgbox-top"></div>
-                <div id="ukagaka_msg">' .
-        __("（えっと…何話せばいいかな…）", "mp-ukagaka") .
-        '</div>
+                <div id="ukagaka_msg" data-initial-msg="' .
+        esc_attr(function_exists('mpu_is_llm_replace_dialogue_enabled') && mpu_is_llm_replace_dialogue_enabled()
+            ? __("（えっと…何話せばいいかな…）", "mp-ukagaka")
+            : __("（思考中…）", "mp-ukagaka")) .
+        '"></div>
                 <div id="ukagaka_msgnum" style="display:none;">0</div>
                 <div id="ukagaka_msglist" style="display:none;" data-file="' .
         esc_attr($data_file) .
@@ -271,8 +273,8 @@ function mpu_head()
     };\n";
 
     // 預先輸出 LLM 設定，供前端判斷是否跳過內建對話載入
-    $ollama_replace = function_exists('mpu_is_llm_replace_dialogue_enabled') 
-        ? mpu_is_llm_replace_dialogue_enabled() 
+    $ollama_replace = function_exists('mpu_is_llm_replace_dialogue_enabled')
+        ? mpu_is_llm_replace_dialogue_enabled()
         : false;
     echo "var mpuPreSettings = {\n";
     echo "    ollama_replace: " . ($ollama_replace ? 'true' : 'false') . "\n";
