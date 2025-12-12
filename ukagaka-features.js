@@ -115,16 +115,21 @@ function mpu_chat_context() {
     return;
   }
 
-  // ★★★ 停止自動對話，避免被覆蓋 ★★★
+  // ★★★ 立即停止自動對話並設置標誌，防止自發對話在載入訊息顯示時打斷 ★★★
   const wasAutoTalkRunning = mpuAutoTalkTimer !== null;
   if (wasAutoTalkRunning) {
     stopAutoTalk();
   }
-
-  // ★★★ 設置頁面感知 AI 正在進行中的標誌，防止 LLM 自發性對話打岔 ★★★
+  
+  // ★★★ 立即設置頁面感知 AI 正在進行中的標誌，防止 LLM 自發性對話打岔 ★★★
+  // 必須在顯示載入訊息之前設置，確保 mpu_nextmsg('auto') 會被阻止
   mpuAiContextInProgress = true;
+  
+  // ★★★ 設置阻擋標誌，完全阻止自發對話（參考速率限制錯誤的處理方式）★★★
+  mpuMessageBlocking = true;
 
-  // 顯示載入訊息，應用設定的文字顏色
+  // ★★★ 顯示載入訊息，應用設定的文字顏色 ★★★
+  // mpu_typewriter 會自動清除之前的打字效果，所以不需要等待
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
   const loadingMessage = "（…ああ、記事か。どれどれ…）";
   mpu_typewriter(
@@ -168,6 +173,8 @@ function mpu_chat_context() {
         const displayDurationMs = mpuAiDisplayDuration * 1000;
         mpuAiDisplayTimer = setTimeout(function () {
           mpuAiDisplayTimer = null;
+          // ★★★ 解除阻擋標誌 ★★★
+          mpuMessageBlocking = false;
           // ★★★ 清除頁面感知 AI 正在進行中的標誌 ★★★
           mpuAiContextInProgress = false;
           if (wasAutoTalkRunning && mpuAutoTalk) {
@@ -197,7 +204,7 @@ function mpu_chat_context() {
 
           // 顯示指定時間後恢復正常對話
           setTimeout(function () {
-            // ★★★ 解除阻擋 ★★★
+            // ★★★ 解除阻擋標誌（已在上面設置，這裡保持不變）★★★
             mpuMessageBlocking = false;
 
             // ★★★ 清除頁面感知 AI 正在進行中的標誌 ★★★
@@ -222,6 +229,8 @@ function mpu_chat_context() {
           }, waitTime);
         } else {
           // 其他錯誤，直接恢復正常對話
+          // ★★★ 解除阻擋標誌 ★★★
+          mpuMessageBlocking = false;
           if (
             window.mpuMsgList &&
             Array.isArray(window.mpuMsgList.msg) &&
@@ -249,6 +258,8 @@ function mpu_chat_context() {
         showToUser: false, // 已經有 fallback 處理，不需要顯示錯誤
       });
 
+      // ★★★ 解除阻擋標誌 ★★★
+      mpuMessageBlocking = false;
       // 顯示錯誤訊息並恢復正常對話
       if (
         window.mpuMsgList &&

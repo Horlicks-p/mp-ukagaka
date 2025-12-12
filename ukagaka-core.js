@@ -967,6 +967,13 @@ function mpu_nextmsg(trigger) {
     const isStartup = (trigger === 'startup');
     mpuLogger.log('mpu_nextmsg 被調用, trigger =', trigger, ', isAuto =', isAuto, ', isStartup =', isStartup, ', mpuOllamaReplaceDialogue =', mpuOllamaReplaceDialogue);
 
+    // ★★★ 重要：如果正如顯示重要訊息（如 API 錯誤或頁面感知 AI 載入中），則完全阻擋切換 ★★★
+    // 必須在最前面檢查，確保所有觸發方式都被阻止
+    if (mpuMessageBlocking) {
+        mpuLogger.log('mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過');
+        return;
+    }
+
     // ★★★ 重要：如果關閉了自動對話，且這是自動觸發，則不執行 ★★★
     // 注意：isStartup 不受 mpuAutoTalk 影響，因為它是初始對話
     if (isAuto && !mpuAutoTalk) {
@@ -984,12 +991,6 @@ function mpu_nextmsg(trigger) {
     if ((isAuto || isStartup) && mpuGreetInProgress) {
         mpuLogger.log('mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動/啟動對話');
         return; // 避免打斷首次訪客打招呼
-    }
-
-    // ★★★ 重要：如果正如顯示重要訊息（如 API 錯誤），則完全阻擋切換 ★★★
-    if (mpuMessageBlocking) {
-        mpuLogger.log('mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過');
-        return;
     }
 
     if (!isAuto && mpuAutoTalk) {
@@ -1020,6 +1021,13 @@ function mpu_nextmsg(trigger) {
         })
             .then(res => {
                 mpuLogger.log('mpu_nextmsg: LLM 回應 =', res);
+                
+                // ★★★ 檢查是否被頁面感知 AI 或其他重要訊息阻擋 ★★★
+                if (mpuMessageBlocking || mpuAiContextInProgress) {
+                    mpuLogger.log('mpu_nextmsg: LLM 回應被阻擋（頁面感知 AI 正在進行中），跳過顯示');
+                    return; // 不顯示結果，避免打斷頁面感知 AI
+                }
+                
                 if (res && res.msg) {
                     const auto = window.mpuMsgList?.auto_msg || "";
                     const out = res.msg + auto;
@@ -1035,6 +1043,11 @@ function mpu_nextmsg(trigger) {
                 }
             })
             .catch(error => {
+                // ★★★ 檢查是否被頁面感知 AI 或其他重要訊息阻擋 ★★★
+                if (mpuMessageBlocking || mpuAiContextInProgress) {
+                    mpuLogger.log('mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過');
+                    return; // 不顯示錯誤，避免打斷頁面感知 AI
+                }
                 mpuLogger.warn("LLM dialogue generation failed, using fallback:", error);
                 mpu_nextmsg_fallback();
             });
@@ -1072,6 +1085,12 @@ function mpu_nextmsg(trigger) {
 // 後備函數：當 LLM 生成失敗時使用內建對話
 function mpu_nextmsg_fallback() {
     setTimeout(function () {
+        // ★★★ 檢查是否被頁面感知 AI 或其他重要訊息阻擋 ★★★
+        if (mpuMessageBlocking || mpuAiContextInProgress) {
+            mpuLogger.log('mpu_nextmsg_fallback: 被阻擋（頁面感知 AI 正在進行中），跳過顯示');
+            return; // 不顯示後備對話，避免打斷頁面感知 AI
+        }
+        
         const store = window.mpuMsgList;
         if (!store || !Array.isArray(store.msg) || store.msg.length === 0) {
             mpu_typewriter("訊息列表為空", "#ukagaka_msg");
