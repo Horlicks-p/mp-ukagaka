@@ -518,7 +518,13 @@ function loadExternalDialog(file) {
   // beforeSend:
   document.body.style.cursor = "wait";
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
-  mpu_typewriter("（えっと…何話せばいいかな…）", "#ukagaka_msg");
+  
+  // ★★★ 顯示載入訊息並計算打字效果需要的時間 ★★★
+  const loadingMessage = "（えっと…何話せばいいかな…）";
+  mpu_typewriter(loadingMessage, "#ukagaka_msg");
+  
+  // 計算打字效果完成時間（文字長度 × 打字速度，加上一些緩衝時間）
+  const typewriterDuration = loadingMessage.length * mpuTypewriterSpeed + 200; // 200ms 緩衝
 
   mpuFetch(url, {
     cancelPrevious: true, // 取消之前的載入請求
@@ -538,17 +544,74 @@ function loadExternalDialog(file) {
           mpuNextMode = resp.next_msg == 1 ? "random" : "sequential";
           mpuDefaultMsg = resp.default_msg == 1 ? 1 : 0;
 
-          let first = 0;
-          if (mpuDefaultMsg === 0 && resp.msg.length) {
-            first = Math.floor(Math.random() * resp.msg.length);
-          }
-          mpu_typewriter(
-            mpu_unescapeHTML(resp.msg[first] + (resp.auto_msg || "")),
-            "#ukagaka_msg"
-          );
-          jQuery("#ukagaka_msgnum").html(first);
+          // ★★★ 等待打字效果完成後，再延遲1秒顯示內建對話 ★★★
+          const waitForTypewriter = () => {
+            if (mpuTypewriterTimer !== null) {
+              // 打字效果還在進行中，繼續等待
+              setTimeout(waitForTypewriter, 50);
+            } else {
+              // 打字效果已完成，延遲1秒後顯示內建對話
+              setTimeout(() => {
+                let first = 0;
+                if (mpuDefaultMsg === 0 && resp.msg.length) {
+                  first = Math.floor(Math.random() * resp.msg.length);
+                }
+                mpu_typewriter(
+                  mpu_unescapeHTML(resp.msg[first] + (resp.auto_msg || "")),
+                  "#ukagaka_msg"
+                );
+                jQuery("#ukagaka_msgnum").html(first);
 
-          if (mpuAutoTalk) startAutoTalk();
+                // ★★★ 等待第一句台詞的打字效果完成後，再啟動自動對話計時器 ★★★
+                const waitForFirstMessageTypewriter = () => {
+                  if (mpuTypewriterTimer !== null) {
+                    // 打字效果還在進行中，繼續等待
+                    setTimeout(waitForFirstMessageTypewriter, 50);
+                  } else {
+                    // 打字效果已完成，現在啟動自動對話計時器
+                    if (mpuAutoTalk) startAutoTalk();
+                  }
+                };
+
+                if (mpuAutoTalk) {
+                  waitForFirstMessageTypewriter();
+                }
+              }, 1000); // 延遲1秒
+            }
+          };
+
+          // 如果打字效果還在進行，等待完成；否則延遲1秒後顯示
+          if (mpuTypewriterTimer !== null) {
+            waitForTypewriter();
+          } else {
+            // 打字效果已完成（可能很快），延遲1秒後顯示
+            setTimeout(() => {
+              let first = 0;
+              if (mpuDefaultMsg === 0 && resp.msg.length) {
+                first = Math.floor(Math.random() * resp.msg.length);
+              }
+              mpu_typewriter(
+                mpu_unescapeHTML(resp.msg[first] + (resp.auto_msg || "")),
+                "#ukagaka_msg"
+              );
+              jQuery("#ukagaka_msgnum").html(first);
+
+              // ★★★ 等待第一句台詞的打字效果完成後，再啟動自動對話計時器 ★★★
+              const waitForFirstMessageTypewriter = () => {
+                if (mpuTypewriterTimer !== null) {
+                  // 打字效果還在進行中，繼續等待
+                  setTimeout(waitForFirstMessageTypewriter, 50);
+                } else {
+                  // 打字效果已完成，現在啟動自動對話計時器
+                  if (mpuAutoTalk) startAutoTalk();
+                }
+              };
+
+              if (mpuAutoTalk) {
+                waitForFirstMessageTypewriter();
+              }
+            }, 1000); // 延遲1秒
+          }
         } catch (e) {
           mpu_handle_error(e, "loadExternalDialog:process_data", {
             showToUser: true,
@@ -594,12 +657,23 @@ jQuery(document).ready(function () {
 
   // 1. 【★ 修正】 刪除 #show_ukagaka 的 handler
 
+  // 1.5. ★★★ 顯示初始訊息的打字效果 ★★★
+  const msgElement = jQuery("#ukagaka_msg");
+  if (msgElement.length) {
+    const initialMsg = msgElement.attr("data-initial-msg");
+    if (initialMsg) {
+      // 清空內容，然後用打字效果顯示
+      msgElement.html("");
+      mpu_typewriter(initialMsg, "#ukagaka_msg");
+    }
+  }
+
   // 2. 載入外部對話
   function initExternalDialog() {
-    // 如果 LLM 取代對話已啟用，跳過內建對話載入
+    // ★★★ 如果 LLM 取代對話已啟用，跳過內建對話載入，直接使用 LLM ★★★
     if (typeof mpuPreSettings !== 'undefined' && mpuPreSettings.ollama_replace === true) {
-      mpuLogger.log("LLM 取代對話已啟用，跳過內建對話載入");
-      mpu_typewriter("（えっと…何話せばいいかな…）", "#ukagaka_msg");
+      mpuLogger.log("LLM 取代對話已啟用，跳過內建對話載入，將直接使用 LLM");
+      // 不載入內建對話，等待 LLM 觸發
       return;
     }
 
@@ -675,12 +749,22 @@ jQuery(document).ready(function () {
         "LLM 取代對話設定: " + (mpuOllamaReplaceDialogue ? "啟用" : "停用")
       );
 
-      // 如果啟用了 LLM 取代對話，延遲後觸發 LLM 對話
+      // ★★★ 如果啟用了 LLM 取代對話，等待初始訊息打字效果完成後，再延遲1.8秒觸發 LLM 對話 ★★★
       if (mpuOllamaReplaceDialogue) {
-        mpuLogger.log("LLM 取代對話已啟用，延遲後觸發 LLM 對話");
-        setTimeout(function () {
-          mpu_nextmsg('startup'); // ★★★ 使用 'startup' 觸發，以便檢查衝突 ★★★
-        }, 1500);
+        mpuLogger.log("LLM 取代對話已啟用，等待初始訊息完成後觸發 LLM 對話");
+        // 等待初始訊息的打字效果完成
+        const waitForInitialMessageTypewriter = () => {
+          if (mpuTypewriterTimer !== null) {
+            // 打字效果還在進行中，繼續等待
+            setTimeout(waitForInitialMessageTypewriter, 60);
+          } else {
+            // 打字效果已完成，延遲1.5秒後觸發 LLM 對話
+            setTimeout(function () {
+              mpu_nextmsg('startup'); // ★★★ 使用 'startup' 觸發，以便檢查衝突 ★★★
+            }, 1500); // 延遲1.5秒
+          }
+        };
+        waitForInitialMessageTypewriter();
       }
 
       mpuLogger.log("mpu_get_settings: 準備調用 startAutoTalk/stopAutoTalk, mpuAutoTalk =", mpuAutoTalk);
