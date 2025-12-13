@@ -58,8 +58,7 @@ The plugin now supports local LLM integration via Ollama, allowing you to genera
 - **Smart Connection Detection**: Automatically adjusts timeout settings for local vs remote connections
 - **Model Support**: Compatible with various Ollama models (Qwen3, Llama, Mistral, etc.)
 - **Thinking Mode Control**: Option to disable thinking mode for Qwen3 and similar models
-- **WordPress Information Integration**: LLM dialogues can include site information (WordPress version, theme info, statistics)
-- **RPG-Style Statistics**: Site statistics presented in RPG terminology (attack count, damage, items, skills, adventure days)
+- **WordPress Information Integration**: LLM dialogues can include site information (WordPress version, theme info, statistics)  
 - **Anti-Repetition Mechanism**: Prevents repetitive idle chatter by tracking previous responses
 - **Idle Detection**: Automatically pauses auto-talk when users are idle (60 seconds), saving GPU and network resources
 
