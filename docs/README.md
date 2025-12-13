@@ -52,7 +52,7 @@
 
 ## 🔗 相關連結
 
-- [維護者部落格](https://www.moelog.com/)
+- [萌えログ.COM](https://www.moelog.com/)
 - [GitHub 儲存庫](#)
 - [問題回報](#)
 
