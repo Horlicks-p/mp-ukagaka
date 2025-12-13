@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating and displaying interactive ukagaka (伺か) characters on your blog, with AI-powered context awareness features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.1.5-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.1.6-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -58,6 +58,10 @@ The plugin now supports local LLM integration via Ollama, allowing you to genera
 - **Smart Connection Detection**: Automatically adjusts timeout settings for local vs remote connections
 - **Model Support**: Compatible with various Ollama models (Qwen3, Llama, Mistral, etc.)
 - **Thinking Mode Control**: Option to disable thinking mode for Qwen3 and similar models
+- **WordPress Information Integration**: LLM dialogues can include site information (WordPress version, theme info, statistics)
+- **RPG-Style Statistics**: Site statistics presented in RPG terminology (attack count, damage, items, skills, adventure days)
+- **Anti-Repetition Mechanism**: Prevents repetitive idle chatter by tracking previous responses
+- **Idle Detection**: Automatically pauses auto-talk when users are idle (60 seconds), saving GPU and network resources
 
 **Setup Requirements:**
 
@@ -516,6 +520,27 @@ The plugin uses cookies to detect first-time visitors. If Slimstat plugin is ins
 
 ## 📜 Changelog
 
+### Version 2.1.6 (2025-12-13)
+
+**New Features:**
+
+- ✨ **LLM**: WordPress information integration - LLM can now access and comment on site information
+  - WordPress version, theme name/version/author, PHP version, site name
+  - Site statistics: post count, comment count, category count, tag count, days of operation
+  - Cached information for performance (5-minute cache)
+  - Customizable statistics prompts with RPG-style terminology support (see [USER_GUIDE.md](docs/USER_GUIDE.md) for details)
+- ✨ **LLM**: Anti-repetition mechanism - prevents "廢話迴圈" (repetitive idle chatter) by tracking previous responses
+- ✨ **Performance**: Idle detection - automatically pauses auto-talk when users are idle (60 seconds)
+  - Saves GPU resources when users leave the page
+  - Tracks user activity (mouse movement, keyboard, scroll, clicks)
+  - Resumes automatically when user returns
+
+**Enhancements:**
+
+- 🔧 **LLM**: Added new prompt categories: `wordpress_info` and `statistics` for WordPress-related dialogues
+- 🔧 **LLM**: Enhanced system prompt with WordPress context information
+- 🔧 **Performance**: Reduced unnecessary LLM requests during user inactivity
+
 ### Version 2.1.5 (2025-12-13)
 
 **Structure Changes:**
@@ -656,7 +681,7 @@ This plugin is based on the original MP Ukagaka plugin. Please refer to the orig
 
 ## 🔗 Links
 
-- [Maintainer's Blog](https://www.moelog.com/) - 維護者部落格
+- [MOELOG.COM](https://www.moelog.com/) - MOELOG.COM
 - [Ukagaka on Wikipedia](http://en.wikipedia.org/wiki/Ukagaka)
 - [Google AI Studio](https://makersuite.google.com/app/apikey) (Gemini API Keys)
 - [OpenAI Platform](https://platform.openai.com/api-keys) (OpenAI API Keys)
@@ -666,7 +691,7 @@ This plugin is based on the original MP Ukagaka plugin. Please refer to the orig
 
 For issues, questions, or feature requests:
 
-- Visit the [Maintainer's Blog](https://www.moelog.com/)
+- Visit the [MOELOG.OM](https://www.moelog.com/)
 - Check the FAQ section in WordPress admin
 - Review troubleshooting section above
 - Open an issue on GitHub

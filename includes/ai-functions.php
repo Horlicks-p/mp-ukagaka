@@ -325,7 +325,6 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
     if (!empty($system_prompt)) {
         $language_instruction = mpu_get_language_instruction($language);
         $full_system_prompt = $system_prompt . "\n\n" . $language_instruction;
-
         $messages[] = [
             'role' => 'system',
             'content' => $full_system_prompt

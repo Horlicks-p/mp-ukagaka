@@ -35,8 +35,13 @@ function mpu_ajax_nextmsg()
     }
 
     if ($is_llm_enabled) {
+        // 獲取上一次回應（從 GET 參數或 Cookie 中獲取，用於避免重複對話）
+        $last_response = isset($_GET['last_response']) 
+            ? sanitize_text_field($_GET['last_response']) 
+            : '';
+        
         // 使用 LLM 生成對話
-        $llm_msg = mpu_generate_llm_dialogue($cur_num);
+        $llm_msg = mpu_generate_llm_dialogue($cur_num, $last_response);
 
         if ($llm_msg !== false && $llm_msg !== 'MPU_OLLAMA_NOT_AVAILABLE') {
             // LLM 生成成功，使用生成的對話

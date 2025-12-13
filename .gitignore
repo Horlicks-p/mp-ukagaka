@@ -46,3 +46,10 @@ wp-config.php
 *.tmp
 *.temp
 
+# Ollama model files (personal configuration)
+frieren_modelfile.txt
+*_modelfile.txt
+
+# User-generated content
+images/
+dialogs/

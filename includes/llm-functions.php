@@ -203,9 +203,10 @@ function mpu_check_ollama_available($endpoint, $model)
  * 此函數用於當啟用「使用 LLM 取代內建對話」時，生成不依賴頁面內容的隨機對話
  * 
  * @param string $ukagaka_name 春菜名稱
+ * @param string $last_response 上一次 AI 的回應（用於避免重複對話）
  * @return string|false 生成的對話內容，失敗時返回 false
  */
-function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
+function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response = '')
 {
     $mpu_opt = mpu_get_option();
 
@@ -233,7 +234,33 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
 
     // 獲取春菜名稱和人格設定
     $ukagaka_name_display = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '春菜';
-    $system_prompt = $mpu_opt['ai_system_prompt'] ?? "你是一個傲嬌的桌面助手「{$ukagaka_name_display}」。你會用簡短、帶點傲嬌的語氣說話。回應請保持在 40 字以內。";
+    $base_system_prompt = $mpu_opt['ai_system_prompt'] ?? "你是一個傲嬌的桌面助手「{$ukagaka_name_display}」。你會用簡短、帶點傲嬌的語氣說話。回應請保持在 40 字以內。";
+
+    // 獲取 WordPress 網站資訊
+    $wp_info = mpu_get_wordpress_info();
+
+    // 將 WordPress 資訊格式化為背景知識，加入到 system_prompt
+    $wp_context = "\n\n【網站資訊】\n";
+    $wp_context .= "WordPress 版本: {$wp_info['wp_version']}\n";
+    $wp_context .= "當前主題: {$wp_info['theme_name']} (版本 {$wp_info['theme_version']})\n";
+    if (!empty($wp_info['theme_author'])) {
+        $wp_context .= "主題作者: {$wp_info['theme_author']}\n";
+    }
+    $wp_context .= "PHP 版本: {$wp_info['php_version']}\n";
+    $wp_context .= "網站名稱: {$wp_info['site_name']}\n";
+
+    // 統計資訊
+    $wp_context .= "\n統計資訊：\n";
+    $wp_context .= "- 文章篇數: {$wp_info['post_count']}\n";
+    $wp_context .= "- 留言數量: {$wp_info['comment_count']}\n";
+    $wp_context .= "- 分類數量: {$wp_info['category_count']}\n";
+    $wp_context .= "- TAG數量: {$wp_info['tag_count']}\n";
+    if ($wp_info['days_operating'] > 0) {
+        $wp_context .= "- 運營日數: {$wp_info['days_operating']}\n";
+    }
+
+    // 組合完整的 system_prompt
+    $system_prompt = $base_system_prompt . $wp_context;
 
     // 生成隨機對話提示詞（不依賴頁面內容）
     // 根據時間獲取情境提示（使用台灣時區）
@@ -252,57 +279,96 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
         $time_context = '深夜';
     }
 
-    // 分類提示詞，增加多樣性與自然度
+    // 使用分類提示詞，增加多樣性與自然度
     // 注意：此提示詞系統以芙莉蓮風格為基準，強調安靜、自然、不張揚的對話風格
     // 使用者可以根據自己的角色個性修改這些提示詞（詳見 docs/USER_GUIDE.md）
+
+    // 準備 WordPress 資訊變數（用於提示詞模板）
+    $wp_version = $wp_info['wp_version'];
+    $theme_name = $wp_info['theme_name'];
+    $theme_version = $wp_info['theme_version'];
+    $theme_author = $wp_info['theme_author'];
+    $php_version = $wp_info['php_version'];
+    $post_count = $wp_info['post_count'];
+    $comment_count = $wp_info['comment_count'];
+    $category_count = $wp_info['category_count'];
+    $tag_count = $wp_info['tag_count'];
+    $days_operating = $wp_info['days_operating'];
+
     $prompt_categories = [
         // 問候類
         'greeting' => [
-            "輕聲打個招呼",
-            "簡單地向使用者問好",
-            "說一句不太張揚的問候",
-            "像平常一樣打個招呼",
-            "像是久違地遇見某個人時，輕輕說一句話",
+            "軽く挨拶する",
+            "簡単に挨拶する",
+            "控えめに挨拶する",
+            "いつも通り挨拶する",
+            "久しぶりに会った人に軽く声をかける",
+            "管理人に代わり挨拶する",
         ],
         // 閒聊類
         'casual' => [
-            "隨口說一句想到的事",
-            "說一句平淡的日常話",
-            "聊一點不重要的小事",
-            "想起什麼，就說什麼",
-            "說一句沒有特別目的的話",
-            "想起旅途中曾經和同伴聊過的事",
+            "ふと思いついた有名人の名言を言う",
+            "淡々とした日常の言葉を言う",
+            "どうでもいい小さなことを話す",
+            "思い出したことをそのまま言う",
+            "特に目的のない言葉を言う",
+            "ふと思いついた魔族への恨みを言う",
+            "ふと思いついた会話例をそのまま言う",
         ],
         // 觀察思考類
         'observation' => [
-            "說一句剛剛注意到的事",
-            "分享一個安靜的觀察",
-            "說說此刻浮現的想法",
-            "輕輕表達一個感覺",
-            "說一句讓人稍微停下來想的話",
-            "像是在研究魔法時，順口說出的一個想法",
+            "さっき気づいたことを言う",
+            "静かな観察を共有する",
+            "今浮かんだ考えを話す",
+            "軽く感じたことを表現する",
+            "ふと思いついたこと重要な人物へ記憶を言う",
+            "管理人についてを揶揄う",
+            "魔法を研究している時のように、ふと思いついたことを言う",
         ],
         // 情境類（結合時間）
         'contextual' => [
-            "現在是{$time_context}，說一句適合這個時候的話",
-            "在{$time_context}這個時段，輕聲說點什麼",
-            "配合{$time_context}的氛圍，說一句話",
-            "像是在長途旅行的這個時刻，說一句話",
+            "今は{$time_context}だ、この時間に合った言葉を言う",
+            "{$time_context}の時間帯に、軽く何か言う",
+            "{$time_context}の雰囲気に合わせて、一言言う",
+            "長い旅を経たことを思い出し、今の時間に合わせて、一言言う",
         ],
-        // 互動類
-        'interactive' => [
-            "主動但不刻意地說一句話",
-            "用一種很自然的方式開口",
-            "順著現在的氣氛說一句",
-            "不特別設計地說點什麼",
-            "像對曾經並肩旅行過的朋友那樣說一句話",
+        // WordPress 資訊類
+        'wordpress_info' => [
+            "WordPress {$wp_version} で動いているこのサイトについて一言",
+            "テーマは「{$theme_name}」バージョン {$theme_version} だね",
+            "PHP {$php_version} で動作しているサーバーについて軽く言う",
+            "テーマの作者「{$theme_author}」について感想を言う",
+        ],
+        // 統計資訊類（遊戲化風格 - 魔族戰鬥風格）
+        'statistics' => [
+            "このサイトが魔族に遭遇した回数は{$post_count}回について軽く言う",
+            "管理人が魔族に与えたダメージは{$comment_count}について一言",
+            "管理人がアイテムを使用した回数{$tag_count}について感想を言う",
+            "習得したスキルは{$category_count}個ある、これについて軽く言う",
         ],
     ];
+
+    // 如果運營日數大於 0，加入相關提示詞
+    if ($days_operating > 0) {
+        $prompt_categories['statistics'][] = "このサイトの冒険日数は{$days_operating}日...長い旅だね、これについて一言";
+        $prompt_categories['statistics'][] = "管理人、{$days_operating}日も続けているんだね、これについて感想を言う";
+    }
+
+    // 組合多個統計資訊的提示詞
+    $prompt_categories['statistics'][] = "このサイトが魔族に遭遇した回数は{$post_count}回、管理人が与えたダメージは{$comment_count}について一言";
+    $prompt_categories['statistics'][] = "管理人がアイテムを使用した回数{$tag_count}回、習得したスキルは{$category_count}個について軽く言う";
 
     // 隨機選擇一個類別
     $selected_category = array_rand($prompt_categories);
     // 從選中的類別中隨機選擇一個提示詞
     $user_prompt = $prompt_categories[$selected_category][array_rand($prompt_categories[$selected_category])];
+
+    // 如果提供了上一次回應，加入避免重複的指令（防止廢話迴圈）
+    if (!empty($last_response)) {
+        $last_response_escaped = esc_attr($last_response);
+        // 使用日語指令，符合角色風格
+        $user_prompt .= "\n\n注意：さっき「{$last_response_escaped}」と言った。新しいことがなければ、違う短い一言を言うか、何も言わないで（何も出力しない）。同じことを繰り返さないこと。";
+    }
 
     // 調用 Ollama API
     $result = mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language);

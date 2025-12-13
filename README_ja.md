@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成・表示するプラグイン。AI コンテキスト認識機能搭載。
 
-[![プラグインバージョン](https://img.shields.io/badge/version-2.1.5-blue.svg)](https://github.com)
+[![プラグインバージョン](https://img.shields.io/badge/version-2.1.6-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -58,6 +58,10 @@ MP Ukagaka は、WordPress サイトにカスタムのインタラクティブ�
 - **スマート接続検出**：ローカルとリモート接続のタイムアウト設定を自動調整
 - **モデルサポート**：様々な Ollama モデル（Qwen3、Llama、Mistral など）と互換性
 - **思考モード制御**：Qwen3 などのモデルの思考動作を無効化するオプション
+- **WordPress 情報統合**：LLM ダイアログにサイト情報を含めることが可能（WordPress バージョン、テーマ情報、統計情報）
+- **カスタマイズ可能な統計プロンプト**：RPG スタイルの用語をサポートする統計プロンプト（詳細は [USER_GUIDE.md](docs/USER_GUIDE.md) を参照）
+- **反復防止メカニズム**：以前の応答を追跡し、繰り返しのアイドル会話を防止
+- **アイドル検出機能**：ユーザーがアイドル状態（60 秒）のとき、自動会話を自動的に一時停止し、GPU とネットワークリソースを節約
 
 **セットアップ要件：**
 
@@ -360,6 +364,27 @@ mp-ukagaka/
 
 ## 📜 変更履歴
 
+### バージョン 2.1.6（2025-12-13）
+
+**新機能：**
+
+- ✨ **LLM**: WordPress 情報統合 - LLM がサイト情報にアクセスし、コメントできるようになりました
+  - WordPress バージョン、テーマ情報（名前、バージョン、作成者）、PHP バージョン、サイト名
+  - 統計情報：投稿数、コメント数、カテゴリ数、タグ数、運営日数
+  - パフォーマンスのためのキャッシュメカニズム（5 分間）
+  - 自スタイルの用語をカスタマイズ可能な統計プロンプト（詳細は [USER_GUIDE.md](docs/USER_GUIDE.md) を参照）
+- ✨ **LLM**: 反復防止メカニズム - 以前の応答を追跡して「無駄話ループ」を防止
+- ✨ **パフォーマンス**: アイドル検出 - ユーザーがアイドル状態（60 秒）のとき、自動会話を自動的に一時停止
+  - ユーザーがページを離れたときの GPU リソースを節約
+  - ユーザー活動を追跡（マウス移動、キーボード、スクロール、クリック）
+  - ユーザーが戻ったときに自動的に再開
+
+**改善：**
+
+- 🔧 **LLM**: WordPress 関連のダイアログのための新しいプロンプトカテゴリ `wordpress_info` と `statistics` を追加
+- 🔧 **LLM**: WordPress コンテキスト情報でシステムプロンプトを強化
+- 🔧 **パフォーマンス**: ユーザーの非活動中に不要な LLM リクエストを削減
+
 ### バージョン 2.1.5（2025-12-13）
 
 **構造変更：**
@@ -500,7 +525,7 @@ mp-ukagaka/
 
 ## 🔗 リンク
 
-- [メンテナーのブログ](https://www.moelog.com/)
+- [萌えログ.COM](https://www.moelog.com/)
 - [Wikipedia - 伺か](http://en.wikipedia.org/wiki/Ukagaka)
 - [Google AI Studio](https://makersuite.google.com/app/apikey)（Gemini API Key）
 - [OpenAI Platform](https://platform.openai.com/api-keys)（OpenAI API Key）
@@ -510,7 +535,7 @@ mp-ukagaka/
 
 問題や提案がありましたら：
 
-- [メンテナーのブログ](https://www.moelog.com/)を訪問
+- [萌えログ.COM](https://www.moelog.com/)を訪問
 - WordPress 管理画面の FAQ セクションを確認
 - 上記のトラブルシューティングセクションを参照
 - GitHub で Issue を開く

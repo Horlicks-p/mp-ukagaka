@@ -377,3 +377,130 @@ function mpu_is_api_key_encrypted($api_key)
 {
     return strpos($api_key, 'mpu_enc:') === 0 || strpos($api_key, 'mpu_obf:') === 0;
 }
+
+// ========================================
+// WordPress 資訊收集函數
+// ========================================
+
+/**
+ * 獲取 WordPress 網站資訊（包含基本資訊和統計資訊）
+ * 使用 transient 緩存，減少資料庫查詢
+ * 
+ * @return array WordPress 網站資訊陣列
+ */
+function mpu_get_wordpress_info()
+{
+    // 使用 transient 緩存，5 分鐘過期（統計資訊不會頻繁變動）
+    $cache_key = 'mpu_wordpress_info';
+    $cached_info = get_transient($cache_key);
+    
+    if ($cached_info !== false) {
+        return $cached_info;
+    }
+
+    global $wpdb;
+    
+    $info = [];
+
+    // ========================================
+    // 基本系統資訊
+    // ========================================
+    
+    // WordPress 版本
+    $info['wp_version'] = get_bloginfo('version');
+    
+    // 主題資訊
+    $theme = wp_get_theme();
+    $info['theme_name'] = $theme->get('Name');
+    $info['theme_version'] = $theme->get('Version');
+    $info['theme_author'] = $theme->get('Author');
+    $info['is_child_theme'] = is_child_theme();
+    if ($info['is_child_theme']) {
+        $info['parent_theme'] = get_template();
+    }
+    $info['is_block_theme'] = function_exists('wp_is_block_theme') ? wp_is_block_theme() : false;
+    
+    // 網站資訊
+    $info['site_name'] = get_bloginfo('name');
+    $info['site_description'] = get_bloginfo('description');
+    
+    // PHP 版本
+    $info['php_version'] = phpversion();
+    
+    // 啟用外掛數量
+    $active_plugins = get_option('active_plugins', []);
+    $info['active_plugins_count'] = count($active_plugins);
+    
+    // 是否為多站點
+    $info['is_multisite'] = is_multisite();
+
+    // ========================================
+    // 統計資訊（遊戲化用語）
+    // ========================================
+    
+    // 攻擊回數（文章篇數）
+    $post_counts = wp_count_posts('post');
+    $info['post_count'] = isset($post_counts->publish) ? (int) $post_counts->publish : 0;
+    
+    // 最大傷害（留言數量）
+    $comment_counts = wp_count_comments();
+    $info['comment_count'] = isset($comment_counts->approved) ? (int) $comment_counts->approved : 0;
+    
+    // 習得スキル總數（分類數量）
+    $category_count = wp_count_terms([
+        'taxonomy' => 'category',
+        'hide_empty' => false,
+    ]);
+    if (is_wp_error($category_count)) {
+        // 如果 wp_count_terms 失敗，使用備用方法
+        $categories = get_categories(['hide_empty' => false]);
+        $info['category_count'] = count($categories);
+    } else {
+        $info['category_count'] = (int) $category_count;
+    }
+    
+    // アイテム使用回數（TAG數量）
+    $tag_count = wp_count_terms([
+        'taxonomy' => 'post_tag',
+        'hide_empty' => false,
+    ]);
+    if (is_wp_error($tag_count)) {
+        // 如果 wp_count_terms 失敗，使用備用方法
+        $tags = get_tags(['hide_empty' => false]);
+        $info['tag_count'] = count($tags);
+    } else {
+        $info['tag_count'] = (int) $tag_count;
+    }
+    
+    // 冒險日數（運營日數）
+    // 方法1：查詢最早文章的發布日期（使用直接查詢，因為沒有用戶輸入）
+    $first_post = $wpdb->get_row(
+        "SELECT post_date FROM {$wpdb->posts} 
+        WHERE post_status != 'auto-draft' 
+        AND post_type = 'post' 
+        ORDER BY post_date ASC 
+        LIMIT 1"
+    );
+    
+    if ($first_post && !empty($first_post->post_date)) {
+        $first_post_date = strtotime($first_post->post_date);
+        $now = time();
+        $info['days_operating'] = (int) floor(($now - $first_post_date) / DAY_IN_SECONDS);
+    } else {
+        // 如果沒有文章，使用 WordPress 安裝日期（如果可用）
+        $install_date = get_option('first_install_date');
+        if ($install_date) {
+            $install_timestamp = strtotime($install_date);
+            $now = time();
+            $info['days_operating'] = (int) floor(($now - $install_timestamp) / DAY_IN_SECONDS);
+        } else {
+            // 最後的備用方案：使用現在日期（設為 0 表示未知）
+            $info['days_operating'] = 0;
+        }
+    }
+
+    // 緩存結果（5 分鐘）
+    set_transient($cache_key, $info, 5 * MINUTE_IN_SECONDS);
+    
+    return $info;
+}

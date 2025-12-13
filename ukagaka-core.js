@@ -17,6 +17,9 @@ let mpuTypewriterSpeed = 40;            // 打字速度（毫秒/字元）
 let mpuOllamaReplaceDialogue = false;   // 是否使用 LLM 取代內建對話
 let mpuAiContextInProgress = false;     // 頁面感知 AI 是否正在進行中（防止自動對話打斷）
 let mpuMessageBlocking = false;         // 強制阻擋訊息切換（用於顯示錯誤或重要訊息時防止被打斷）
+let mpuLastLLMResponse = '';            // 上一次 LLM 生成的回應（用於避免重複對話）
+let mpuLastUserActionTime = Date.now(); // 記錄最後動作時間（用於閒置偵測）
+const mpuIdleThreshold = 60000;         // 閒置閾值：60 秒（1 分鐘），超過此時間則暫停自動對話（可根據需求調整：30秒=30000, 90秒=90000, 180秒=180000）
 
 // 以記憶體保存已解析的對話資料
 window.mpuMsgList = null;
@@ -500,9 +503,34 @@ function mpu_init_jquery_cookie() {
     return true;
 }
 
+/**
+ * 初始化閒置偵測：追蹤用戶活動
+ * 當用戶進行 mousemove、keydown、scroll、click 操作時更新最後活動時間
+ */
+function mpu_init_idle_detection() {
+    if (typeof jQuery === 'undefined') {
+        mpuLogger.warn('jQuery 尚未載入，無法初始化閒置偵測');
+        return false;
+    }
+
+    // 初始化最後活動時間
+    mpuLastUserActionTime = Date.now();
+
+    // 監聽用戶活動事件
+    jQuery(document).on('mousemove keydown scroll click', function() {
+        mpuLastUserActionTime = Date.now();
+        mpuLogger.log('用戶活動偵測：更新最後活動時間');
+    });
+
+    mpuLogger.log('閒置偵測已初始化，閾值：', mpuIdleThreshold / 1000, '秒');
+    return true;
+}
+
 // 立即嘗試初始化（如果 jQuery 已經載入）
 if (typeof jQuery !== 'undefined') {
     mpu_init_jquery_cookie();
+    // 初始化閒置偵測：追蹤用戶活動
+    mpu_init_idle_detection();
 }
 function mpu_delCookie(name) {
     return mpu_delLocal(name);
@@ -817,6 +845,15 @@ function startAutoTalk() {
     mpuLogger.log('startAutoTalk: 設置計時器，間隔 =', mpuAutoTalkInterval, 'ms');
     mpuAutoTalkTimer = setInterval(function () {
         mpuLogger.log('自動對話計時器觸發, mpuAutoTalk =', mpuAutoTalk, ', mpuOllamaReplaceDialogue =', mpuOllamaReplaceDialogue);
+        
+        // 閒置檢查：如果用戶閒置超過閾值，跳過本次自動對話
+        const now = Date.now();
+        const idleTime = now - mpuLastUserActionTime;
+        if (idleTime > mpuIdleThreshold) {
+            mpuLogger.log('使用者閒置中（', Math.floor(idleTime / 1000), '秒），跳過本次自動對話');
+            return; // 直接跳過，不發送請求
+        }
+        
         if (mpuAutoTalk) mpu_nextmsg('auto');
         else stopAutoTalk();
     }, mpuAutoTalkInterval);
@@ -1052,6 +1089,12 @@ function mpu_nextmsg(trigger) {
             cur_num: curNum,
             cur_msgnum: curMsgnum
         });
+        
+        // 傳遞上一次 LLM 回應，用於避免重複對話
+        if (mpuLastLLMResponse) {
+            params.set('last_response', mpuLastLLMResponse);
+        }
+        
         const url = `${mpuurl}?${params.toString()}`;
         mpuLogger.log('mpu_nextmsg: 發送 LLM 請求到', url);
 
@@ -1073,12 +1116,18 @@ function mpu_nextmsg(trigger) {
                     const auto = window.mpuMsgList?.auto_msg || "";
                     const out = res.msg + auto;
                     mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+                    
+                    // 記錄這一次的 LLM 回應，用於下次避免重複對話
+                    mpuLastLLMResponse = res.msg;
+                    
                     if (res.msgnum !== undefined) {
                         jQuery("#ukagaka_msgnum").html(res.msgnum);
                     }
                     mpu_showmsg(400);
                 } else {
                     mpuLogger.warn('mpu_nextmsg: LLM 回應沒有 msg，使用後備對話');
+                    // LLM 生成失敗，清除記錄（因為使用的是後備對話）
+                    mpuLastLLMResponse = '';
                     // LLM 生成失敗，使用後備對話
                     mpu_nextmsg_fallback();
                 }
@@ -1090,6 +1139,8 @@ function mpu_nextmsg(trigger) {
                     return;
                 }
                 mpuLogger.warn("LLM dialogue generation failed, using fallback:", error);
+                // LLM 生成失敗，清除記錄（因為使用的是後備對話）
+                mpuLastLLMResponse = '';
                 mpu_nextmsg_fallback();
             });
         return;

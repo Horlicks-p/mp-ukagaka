@@ -2,7 +2,7 @@
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Context Awareness），支援 Gemini、OpenAI、Claude 多提供商。API Key 加密存儲、安全文件操作。
-Version: 2.1.5
+Version: 2.1.6
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Reviser: Horlicks
@@ -123,6 +123,22 @@ This plugin uses a modular architecture for better maintainability:
 * `ukagaka_cookie.js` - Cookie utilities
 
 == Changelog ==
+
+= 2025-12-13 =
+* v2.1.6
+* [NEW] WordPress information integration for LLM dialogues
+  * LLM can now access WordPress version, theme info, PHP version, site statistics
+  * New prompt categories: wordpress_info and statistics
+  * Customizable statistics prompts with RPG-style terminology support (see USER_GUIDE.md for details)
+* [NEW] Anti-repetition mechanism to prevent repetitive idle chatter
+  * Tracks previous LLM responses to avoid saying the same thing repeatedly
+  * Generates unique idle comments or stays silent when no new content
+* [NEW] Idle detection for auto-talk
+  * Automatically pauses auto-talk when users are idle (60 seconds)
+  * Tracks user activity (mouse, keyboard, scroll, clicks)
+  * Saves GPU and network resources when users leave the page
+* [IMPROVED] Enhanced LLM dialogue system with WordPress context awareness
+* [IMPROVED] Better resource management and performance optimization
 
 = 2025-12-13 =
 * v2.1.5

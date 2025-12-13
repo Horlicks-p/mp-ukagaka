@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建和顯示互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![外掛版本](https://img.shields.io/badge/version-2.1.5-blue.svg)](https://github.com)
+[![外掛版本](https://img.shields.io/badge/version-2.1.6-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -58,6 +58,10 @@ MP Ukagaka 讓你能夠為 WordPress 網站創建自訂的互動式偽春菜。�
 - **智慧連接檢測**：自動調整本地與遠程連接的超時設定
 - **模型支援**：相容多種 Ollama 模型（Qwen3、Llama、Mistral 等）
 - **思考模式控制**：可選擇關閉 Qwen3 等模型的思考行為
+- **WordPress 資訊整合**：LLM 對話可以包含網站資訊（WordPress 版本、主題資訊、統計資料）
+- **可自訂統計提示詞**：支援 RPG 風格術語的統計提示詞（詳見 [USER_GUIDE.md](docs/USER_GUIDE.md)）
+- **防止重複對話機制**：追蹤之前的回應，避免重複的閒聊
+- **閒置偵測功能**：使用者閒置時（60 秒）自動暫停自動對話，節省 GPU 和網路資源
 
 **設定需求：**
 
@@ -360,6 +364,27 @@ mp-ukagaka/
 
 ## 📜 版本歷史
 
+### 版本 2.1.6（2025-12-13）
+
+**新功能：**
+
+- ✨ **LLM**: WordPress 資訊整合 - LLM 現在可以獲取並評論網站資訊
+  - WordPress 版本、主題資訊（名稱、版本、作者）、PHP 版本、網站名稱
+  - 統計資訊：文章數、留言數、分類數、標籤數、運營日數
+  - 使用快取機制（5 分鐘）提升效能
+  - 可自訂統計提示詞，詳見 [USER_GUIDE.md](docs/USER_GUIDE.md)）
+- ✨ **LLM**: 防止重複對話機制 - 透過追蹤之前回應，避免「廢話迴圈」問題
+- ✨ **效能**: 閒置偵測功能 - 使用者閒置時（60 秒）自動暫停自動對話
+  - 節省 GPU 資源，避免在背景分頁或使用者離開時浪費資源
+  - 追蹤使用者活動（滑鼠、鍵盤、滾動、點擊）
+  - 使用者返回時自動恢復
+
+**改進：**
+
+- 🔧 **LLM**: 新增提示詞分類：`wordpress_info` 和 `statistics`，用於 WordPress 相關對話
+- 🔧 **LLM**: 增強系統提示詞，加入 WordPress 背景資訊
+- 🔧 **效能**: 減少使用者閒置時不必要的 LLM 請求
+
 ### 版本 2.1.5（2025-12-13）
 
 **結構變更：**
@@ -500,7 +525,7 @@ mp-ukagaka/
 
 ## 🔗 連結
 
-- [維護者部落格](https://www.moelog.com/)
+- [萌えログ.COM](https://www.moelog.com/)
 - [維基百科 - 伺か](http://en.wikipedia.org/wiki/Ukagaka)
 - [Google AI Studio](https://makersuite.google.com/app/apikey)（Gemini API Key）
 - [OpenAI Platform](https://platform.openai.com/api-keys)（OpenAI API Key）
@@ -510,7 +535,7 @@ mp-ukagaka/
 
 如有問題或建議：
 
-- 訪問[維護者部落格](https://www.moelog.com/)
+- 訪問[萌えログ.COM](https://www.moelog.com/)
 - 查看 WordPress 後台的常見問題
 - 參閱上方疑難排解章節
 - 在 GitHub 開立 Issue

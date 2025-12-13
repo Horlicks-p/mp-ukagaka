@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: MP-Ukagaka\n"
+"Project-Id-Version: MP Ukagaka 2.1.6\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-09-12 16:06+0700\n"
 "PO-Revision-Date: \n"

@@ -173,6 +173,7 @@ if (!defined('ABSPATH')) {
                     <br />
                     <small><?php _e('部分模型會輸出「思考過程」而非實際對話。啟用此選項可避免此問題。建議啟用。', 'mp-ukagaka'); ?></small>
                 </div>
+
             </div>
 
         </div>

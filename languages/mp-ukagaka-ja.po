@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the MP Ukagaka plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MP Ukagaka 2.1.5\n"
+"Project-Id-Version: MP Ukagaka 2.1.6\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-27 00:00+0800\n"
 "PO-Revision-Date: 2025-11-27 00:00+0800\n"
@@ -425,6 +425,12 @@ msgstr "思考モードを無効にする（Qwen3、DeepSeekなどのモデル�
 
 msgid "部分模型會輸出「思考過程」而非實際對話。啟用此選項可避免此問題。建議啟用。"
 msgstr "一部のモデルは実際のダイアログではなく「思考プロセス」を出力します。このオプションを有効にすると、この問題を回避できます。有効にすることをお勧めします。"
+
+msgid "使用 Modelfile 角色設定"
+msgstr "Modelfile キャラクター設定を使用"
+
+msgid "如果您的 Ollama 模型是透過 Modelfile 建立的自定義角色（例如：Frieren），請啟用此選項。啟用後，插件將完全不傳送任何 System Message，讓 Modelfile 中的 SYSTEM 提示詞完全生效。這確保角色設定（包括語言、語氣、人格等）完全由 Modelfile 控制。"
+msgstr "Ollama モデルが Modelfile を使用して作成されたカスタムキャラクター（例：Frieren）の場合、このオプションを有効にしてください。有効にすると、プラグインは System Message を一切送信せず、Modelfile の SYSTEM プロンプトを完全に有効にします。これにより、キャラクター設定（言語、トーン、人格など）が Modelfile によって完全に制御されます。"
 
 msgid "測試中..."
 msgstr "テスト中..."
