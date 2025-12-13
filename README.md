@@ -234,7 +234,9 @@ Modules are loaded in dependency order:
 6. **Configure AI Settings**
 
    - **Language**: Choose response language (zh-TW, ja, en)
-   - **System Prompt**: Define your character's personality (e.g., "你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。")
+   - **System Prompt**: Define your character's personality
+     - For cloud AI services: Keep concise (200-300 chars) to manage costs
+     - For local LLM: Can use longer prompts (1000+ chars) for better character consistency
    - **Probability**: Set AI trigger rate (1-100%, recommended: 10-30% for cost control)
    - **Trigger Pages**: Specify which pages trigger AI (e.g., "is_single" for single posts only)
    - **Text Color**: Customize AI conversation text color
@@ -475,7 +477,11 @@ Currently, you can only use one provider at a time. You can switch providers in 
 
 ### How do I customize the AI response style?
 
-Edit the **System Prompt** field. This defines your character's personality and response style. Keep prompts concise (under 200 characters recommended).
+Edit the **System Prompt** field. This defines your character's personality and response style.
+
+**For cloud AI services** (Gemini, OpenAI, Claude): Keep prompts concise (under 200-300 characters recommended) to manage API costs and response speed.
+
+**For local LLM** (Ollama): You can use longer, more detailed prompts (even 1000+ characters) as there are no API costs. Longer prompts often result in better character consistency and personality definition.
 
 ### What if AI conversations get replaced by auto-talk?
 
