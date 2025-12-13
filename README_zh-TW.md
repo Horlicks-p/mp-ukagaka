@@ -1,6 +1,6 @@
 # MP Ukagaka
 
-一個用於在 WordPress 網站上創建和顯示互動式桌面寵物（伺か）角色的外掛，具備 AI 頁面感知功能。
+一個用於在 WordPress 網站上創建和顯示互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
 [![外掛版本](https://img.shields.io/badge/version-2.1.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
@@ -16,7 +16,7 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 
 ## 📖 簡介
 
-MP Ukagaka 讓你能夠為 WordPress 網站創建自訂的互動式桌面寵物角色。這個版本基於經典的 MP Ukagaka 外掛進行了全面現代化，具備增強的安全性、效能改進、模組化架構和先進的 AI 功能。
+MP Ukagaka 讓你能夠為 WordPress 網站創建自訂的互動式偽春菜。這個版本基於經典的 MP Ukagaka 外掛進行了全面現代化，具備增強的安全性、效能改進、模組化架構和先進的 AI 功能。
 
 ### 經典功能
 
