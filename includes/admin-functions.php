@@ -12,19 +12,20 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * 管理画面の JS/CSS 読み込み
+ * 載入後台管理頁面的 JS/CSS 資源
+ * @param {string} $hook_suffix - 當前頁面的 hook 名稱
  */
 function mpu_admin_enqueue_scripts($hook_suffix)
 {
-    // options.php ページでのみ読み込む
+    // 只在 options.php 頁面載入
     if (strpos($hook_suffix, 'mp-ukagaka/options.php') === false) {
         return;
     }
 
-    // 1. WordPress 付属の jQuery を読み込む
+    // 載入 WordPress 內建的 jQuery
     wp_enqueue_script('jquery');
 
-    // 2. resizer スクリプトを読み込む (jQuery 依存)
+    // 載入文字區域調整大小腳本（依賴 jQuery）
     // 使用已定義的常量獲取主文件路徑
     $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
     wp_enqueue_script(
@@ -35,7 +36,7 @@ function mpu_admin_enqueue_scripts($hook_suffix)
         true
     );
 
-    // 3. resizer を実行するインラインスクリプト
+    // 執行文字區域調整大小的內聯腳本
     wp_add_inline_script('mpu-textarearesizer', "
         jQuery(document).ready(function($) {
             $('textarea.resizable:not(.processed)').TextAreaResizer();
@@ -48,28 +49,23 @@ add_action('admin_enqueue_scripts', 'mpu_admin_enqueue_scripts');
 
 
 /**
- * オプション保存処理 (admin_init)
- * 【★ 修正 2025-10-23】
- * 修正 admin_init 會攔截所有後台 POST 請求的 bug。
- * 增加 $_GET['page'] 和 $_POST['submit*'] 檢查，
- * 確保只在儲存本外掛的選項時才執行 Nonce 驗證。
- * (感謝用戶回報此問題！)
+ * 處理選項保存（在 admin_init 中執行）
+ * 增加頁面和表單檢查，確保只在儲存本外掛的選項時才執行驗證
+ * @return void
  */
 function mpu_handle_options_save()
 {
-    // 1. 權限檢查 (Capability check)
+    // 權限檢查
     if (! current_user_can('manage_options')) {
         return;
     }
 
-    // 2. 檢查是否為我們的外掛頁面 (Check if it's our plugin page)
-    // (由用戶提供的關鍵修正)
+    // 檢查是否為本外掛的設定頁面
     if (! isset($_GET['page']) || $_GET['page'] !== 'mp-ukagaka/options.php') {
         return;
     }
 
-    // 3. 檢查是否為我們的表單提交 (Check if it's our form submission)
-    // (由用戶提供的關鍵修正，並使用 1.6.1 的所有按鈕名稱)
+    // 檢查是否為本外掛的表單提交
     $is_our_submit = isset($_POST['submit1'])     // 通用設定
         || isset($_POST['submit2'])     // 春菜們
         || isset($_POST['submit3'])     // 創建新春菜
@@ -83,20 +79,20 @@ function mpu_handle_options_save()
         return;
     }
 
-    // 4. 驗證 Nonce (Verify Nonce) - 現在是安全的
+    // 驗證 Nonce
     if (! isset($_POST['_wpnonce']) || ! wp_verify_nonce($_POST['_wpnonce'], 'mp_ukagaka_settings')) {
         add_settings_error('mpu_options', 'nonce_fail', __('安全性檢查失敗。', 'mp-ukagaka'));
         return;
     }
 
-    // --- Nonce 驗證通過，開始處理儲存邏輯 ---
+    // Nonce 驗證通過，開始處理儲存邏輯
 
-    // 現在的選項を取得
+    // 取得當前選項
     $mpu_opt = mpu_get_option();
-    $text = ''; // メッセージ用
+    $text = ''; // 用於顯示訊息
 
     if (isset($_POST['submit1'])) {
-        // 【処理】通用設定
+        // 處理通用設定
         $mpu_opt['show_ukagaka'] = isset($_POST['show_ukagaka']);
         $mpu_opt['show_msg'] = isset($_POST['show_msg']);
         $mpu_opt['default_msg'] = isset($_POST['default_msg'][0]) ? intval($_POST['default_msg'][0]) : 0;
@@ -105,8 +101,8 @@ function mpu_handle_options_save()
         $mpu_opt['cur_ukagaka'] = isset($_POST['cur_ukagaka']) ? sanitize_text_field($_POST['cur_ukagaka']) : 'default_1';
         $mpu_opt['no_style'] = isset($_POST['no_style']);
         $mpu_opt['no_page'] = isset($_POST['no_page']) ? sanitize_textarea_field($_POST['no_page']) : '';
-        // ★★★ 修改：系統已固定使用外部對話文件，無需從表單讀取此選項 ★★★
-        $mpu_opt['use_external_file'] = true; // 固定為 true
+        // 系統已固定使用外部對話文件
+        $mpu_opt['use_external_file'] = true;
         $mpu_opt['external_file_format'] = isset($_POST['external_file_format'][0]) ? sanitize_text_field($_POST['external_file_format'][0]) : 'txt';
         $mpu_opt['auto_talk'] = isset($_POST['auto_talk']);
         $mpu_opt['auto_talk_interval'] = isset($_POST['auto_talk_interval']) ? max(3, min(30, intval($_POST['auto_talk_interval']))) : 8;
@@ -138,13 +134,13 @@ function mpu_handle_options_save()
         $message = __('設定已儲存', 'mp-ukagaka');
         $text = '<div class="updated"><p><strong>' . $message . '</strong></p></div>';
     } elseif (isset($_POST['submit2'])) {
-        // 【処理】春菜の更改
+        // 處理春菜設定更新
         $ukagakas_raw = $_POST['ukagakas'] ?? [];
         $ukagakas_sanitized = [];
 
         foreach ($ukagakas_raw as $key => $value) {
             $key = sanitize_text_field($key);
-            // 【★ 修正 2025-10-23】使用 sanitize_textarea_field 處理傳入的字串，而非 mpu_str2array 之後
+            // 使用 sanitize_textarea_field 處理傳入的字串，再轉換為陣列
             $ukagakas_sanitized[$key]['msg'] = mpu_str2array(sanitize_textarea_field($value['msg']));
             $ukagakas_sanitized[$key]['name'] = sanitize_text_field($value['name']);
             $ukagakas_sanitized[$key]['shell'] = esc_url_raw($value['shell']);
@@ -167,7 +163,7 @@ function mpu_handle_options_save()
         }
         $text = '<div class="updated"><p><strong>' . $message . '</strong></p></div>';
     } elseif (isset($_POST['submit3'])) {
-        // 【処理】新春菜の創建
+        // 處理新春菜創建
         $ukagaka_raw = $_POST['ukagaka'] ?? [];
         $ukagaka = [];
 
@@ -187,7 +183,7 @@ function mpu_handle_options_save()
 
         $mpu_opt['ukagakas'][] = $ukagaka;
 
-        // 鍵名 0 の処理
+        // 處理鍵名為 0 的情況
         if (isset($mpu_opt['ukagakas'][0]) && is_array($mpu_opt['ukagakas'][0])) {
             $mpu_opt['ukagakas'][] = $mpu_opt['ukagakas'][0];
             unset($mpu_opt['ukagakas'][0]);
@@ -199,22 +195,22 @@ function mpu_handle_options_save()
         }
         $text = '<div class="updated"><p><strong>' . $message . '</strong></p></div>';
     } elseif (isset($_POST['submit4'])) {
-        // 【処理】擴展設定
+        // 處理擴展設定
         $extend = $_POST['extend'] ?? [];
-        // js_area は特殊。そのまま保存する (管理者のため)
-        // stripslashes をかけて保存 (元の mpu_input_filter と互換性)
+        // js_area 為特殊欄位，直接保存（供管理員使用）
+        // 使用 stripslashes 處理，與原 mpu_input_filter 保持兼容
         $mpu_opt['extend']['js_area'] = isset($extend['js_area']) ? stripslashes_deep($extend['js_area']) : '';
         $text = '<div class="updated"><p><strong>' . __('設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
     } elseif (isset($_POST['submit5'])) {
-        // 【処理】會話設定
+        // 處理會話設定
         $mpu_opt['auto_msg'] = isset($_POST['auto_msg']) ? sanitize_textarea_field($_POST['auto_msg']) : '';
         $mpu_opt['common_msg'] = isset($_POST['common_msg']) ? sanitize_textarea_field($_POST['common_msg']) : '';
         $text = '<div class="updated"><p><strong>' . __('設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
     } elseif (isset($_POST['submit_ai'])) {
-        // 【処理】AI 設定
+        // 處理 AI 設定
         $current_opt = mpu_get_option();
 
-        // 保留通用設定（不在此處處理）
+        // 保留通用設定（不在 AI 設定頁面處理）
         $mpu_opt['show_ukagaka'] = $current_opt['show_ukagaka'] ?? true;
         $mpu_opt['show_msg'] = $current_opt['show_msg'] ?? true;
         $mpu_opt['default_msg'] = $current_opt['default_msg'] ?? 0;
@@ -223,8 +219,8 @@ function mpu_handle_options_save()
         $mpu_opt['cur_ukagaka'] = $current_opt['cur_ukagaka'] ?? 'default_1';
         $mpu_opt['no_style'] = $current_opt['no_style'] ?? false;
         $mpu_opt['no_page'] = $current_opt['no_page'] ?? '';
-        // ★★★ 修改：系統已固定使用外部對話文件 ★★★
-        $mpu_opt['use_external_file'] = true; // 固定為 true
+        // 系統已固定使用外部對話文件
+        $mpu_opt['use_external_file'] = true;
         $mpu_opt['external_file_format'] = $current_opt['external_file_format'] ?? 'txt';
         $mpu_opt['auto_talk'] = $current_opt['auto_talk'] ?? true;
         $mpu_opt['auto_talk_interval'] = $current_opt['auto_talk_interval'] ?? 8;
@@ -239,13 +235,13 @@ function mpu_handle_options_save()
         $mpu_opt['ai_enabled'] = !empty($_POST['ai_enabled']);
         $mpu_opt['ai_provider'] = isset($_POST['ai_provider']) ? sanitize_text_field($_POST['ai_provider']) : 'gemini';
 
-        // 【安全性強化】API Key 加密存儲
+        // API Key 加密存儲（安全性強化）
         $gemini_key = isset($_POST['ai_api_key']) ? sanitize_text_field($_POST['ai_api_key']) : '';
         $openai_key = isset($_POST['openai_api_key']) ? sanitize_text_field($_POST['openai_api_key']) : '';
         $claude_key = isset($_POST['claude_api_key']) ? sanitize_text_field($_POST['claude_api_key']) : '';
 
         // 只有當 Key 有變更時才重新加密（避免重複加密）
-        // ★★★ 安全性改進：檢查是否為已加密的密鑰 ★★★
+        // 檢查是否為已加密的密鑰（安全性改進）
         if (!empty($gemini_key)) {
             if (mpu_is_api_key_encrypted($gemini_key)) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -312,26 +308,26 @@ function mpu_handle_options_save()
 
         $text = '<div class="updated"><p><strong>' . __('AI 設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
     } elseif (isset($_POST['submit_reset'])) {
-        // 【処理】重置設定
+        // 處理重置設定
         if (isset($_POST['reset_mpu'])) {
             unset($mpu_opt);
-            update_option('mp_ukagaka', []); // 空にする
-            mpu_default_opt(); // デフォルトを再設定
+            update_option('mp_ukagaka', []); // 清空選項
+            mpu_default_opt(); // 重新設定預設值
             $text = '<div class="updated"><p><strong>' . __('設定已重置', 'mp-ukagaka') . '</strong></p></div>';
         } else {
             $text = '<div class="error"><p><strong>' . __('設定未被重置', 'mp-ukagaka') . '</strong></p></div>';
         }
     }
 
-    // オプションをデータベースに保存
+    // 將選項保存到資料庫
     update_option('mp_ukagaka', $mpu_opt);
 
-    // メッセージを管理画面に表示（已包含 HTML 格式，直接輸出）
+    // 在管理畫面顯示訊息（已包含 HTML 格式）
     if ($text) {
         // 使用 transients 將訊息傳遞給 options.php
         set_transient('mpu_admin_message', $text, 30);
 
-        // ★★★ 修正：保存後重定向，確保頁面顯示最新值 ★★★
+        // 保存後重定向，確保頁面顯示最新值
         // 獲取當前頁面編號，用於重定向
         $cur_page = isset($_GET['cur_page']) ? intval($_GET['cur_page']) : 0;
         if ($cur_page < 0 || $cur_page > 6) {
@@ -349,8 +345,12 @@ function mpu_handle_options_save()
 add_action('admin_init', 'mpu_handle_options_save');
 
 /**
- * ダイアログファイル生成ヘルパー
- * 【安全性強化】使用 mpu_secure_file_write 替代 file_put_contents
+ * 生成對話檔案
+ * 使用安全文件寫入函數（安全性強化）
+ * @param {string} $filename - 檔案名稱（不含副檔名）
+ * @param {array} $msg_array - 對話訊息陣列
+ * @param {string} $ext - 檔案副檔名（'txt' 或 'json'）
+ * @return {bool} 是否成功生成
  */
 function mpu_generate_dialog_file($filename, $msg_array, $ext)
 {
@@ -358,11 +358,11 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
         return false;
     }
 
-    // ファイル名をサニタイズ
+    // 清理檔案名稱
     $filename = sanitize_file_name($filename);
     $ext = ($ext === 'json') ? 'json' : 'txt';
 
-    // 確保目錄存在
+    // 確保對話目錄存在
     if (!mpu_ensure_dialogs_dir()) {
         error_log('MP Ukagaka: 無法創建對話目錄');
         return false;
@@ -370,6 +370,7 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
 
     $file_path = mpu_get_dialogs_dir() . '/' . $filename . '.' . $ext;
 
+    // 根據副檔名生成內容
     if ($ext == 'json') {
         $json_data = array(
             'messages' => $msg_array
@@ -379,7 +380,7 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
         $content = mpu_array2str($msg_array);
     }
 
-    // 【安全性強化】使用安全文件寫入函數
+    // 使用安全文件寫入函數（安全性強化）
     $result = mpu_secure_file_write($file_path, $content);
 
     if (is_wp_error($result)) {
@@ -392,30 +393,30 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
 
 
 /**
- * オプションページの HTML を表示するコールバック
+ * 顯示選項頁面的 HTML（回調函數）
  */
 function mpu_options_page_html()
 {
-    // 権限チェック
+    // 權限檢查
     if (! current_user_can('manage_options')) {
         wp_die(__('You do not have sufficient permissions to access this page.'));
     }
 
-    // グローバル変数を読み込み (options.php が依存)
+    // 載入全域變數（options.php 依賴此變數）
     global $mpu_opt;
     $mpu_opt = mpu_get_option();
 
-    // admin_init で追加された通知メッセージを表示 (旧 $text の代わり)
+    // 顯示 admin_init 中新增的通知訊息
     settings_errors('mpu_options');
 
-    // options.php (HTML フレーム) を読み込む
+    // 載入 options.php（HTML 框架）
     // 使用已定義的常量獲取主文件路徑
     $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
-    require_once(plugin_dir_path($main_file) . 'options.php');
+    require_once(plugin_dir_path($main_file) . 'options/options.php');
 }
 
 /**
- * オプションページの登録
+ * 註冊選項頁面
  */
 function mpu_options()
 {
@@ -425,7 +426,7 @@ function mpu_options()
             "MP-Ukagaka",
             "manage_options",
             "mp-ukagaka/options.php", // slug
-            "mpu_options_page_html"   // 表示用コールバック関数
+            "mpu_options_page_html"   // 顯示用回調函數
         );
     }
 }

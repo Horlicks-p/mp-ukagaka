@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating and displaying interactive ukagaka (伺か) characters on your blog, with AI-powered context awareness features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.1.4-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.1.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -320,10 +320,20 @@ mp-ukagaka/
 │   ├── core-functions.php        # Core functionality (settings, options)
 │   ├── utility-functions.php     # Utility functions (string/array, filtering, security)
 │   ├── ai-functions.php          # AI functionality (Gemini, OpenAI, Claude API calls)
+│   ├── llm-functions.php         # LLM functionality (Ollama integration)
 │   ├── ukagaka-functions.php     # Ukagaka management (CRUD, message processing)
 │   ├── ajax-handlers.php         # AJAX handlers (all AJAX endpoints)
 │   ├── frontend-functions.php    # Frontend functionality (HTML, assets, display logic)
 │   └── admin-functions.php       # Admin functionality (settings save, admin pages)
+├── options/                       # Admin option pages
+│   ├── options.php               # Admin page framework
+│   ├── options_page0.php         # General settings
+│   ├── options_page1.php         # Character management
+│   ├── options_page2.php         # Create new character
+│   ├── options_page3.php         # Extensions
+│   ├── options_page4.php         # Dialog management
+│   ├── options_page_ai.php      # AI settings (Context Awareness)
+│   └── options_page_llm.php      # LLM settings (Ollama) - BETA
 ├── dialogs/                      # Dialog files (TXT/JSON)
 ├── images/                       # Character images
 │   └── shell/                    # Character shell images
@@ -333,14 +343,6 @@ mp-ukagaka/
 ├── ukagaka-features.js          # Frontend JavaScript (features & AI)
 ├── ukagaka_cookie.js            # Cookie handling utilities
 ├── mpu_style.css                # Stylesheet
-├── options.php                  # Admin page framework
-├── options_page0.php            # General settings
-├── options_page_ai.php          # AI settings (Context Awareness)
-├── options_page_llm.php         # LLM settings (Ollama) - BETA
-├── options_page1.php            # Character management
-├── options_page2.php            # Create new character
-├── options_page3.php            # Extensions
-├── options_page4.php            # Dialog management
 ├── readme.txt                   # WordPress.org readme
 └── README.md                    # This file
 ```
@@ -513,6 +515,30 @@ The plugin uses cookies to detect first-time visitors. If Slimstat plugin is ins
 - Ensure PHP version is 7.4 or higher
 
 ## 📜 Changelog
+
+### Version 2.1.5 (2025-12-13)
+
+**Structure Changes:**
+
+- 📁 **REFACTOR**: Reorganized admin option pages into dedicated `options/` folder
+  - All option page files (options.php, options_page*.php) now centralized in `options/` directory
+  - Improved code organization and maintainability
+  - Better separation of concerns between includes and options
+
+**Enhancements:**
+
+- ✨ **LLM**: Improved random dialogue prompt system with categorized prompts (greeting, casual, observation, contextual, interactive)
+- ✨ **LLM**: Added time-aware contextual prompts (morning, afternoon, evening, late night)
+- 🌍 **i18n**: Complete translation file audit and updates
+- 🌍 **i18n**: Added missing translations for all error messages and success messages
+- 🌍 **i18n**: All API error messages now properly internationalized
+- 🔧 **i18n**: Updated translation compilation script for better .po to .mo conversion
+
+**Improvements:**
+
+- 🔧 **LLM**: Enhanced prompt diversity from 7 to 20+ prompts across 5 categories
+- 🔧 **LLM**: More natural and contextual prompt expressions
+- 🔧 **i18n**: All hardcoded strings in llm-functions.php, ai-functions.php, and ajax-handlers.php now use translation functions
 
 ### Version 2.1.4 (2025-12-11)
 

@@ -1,6 +1,8 @@
 <?php
 // 定義插件的基本路徑和頁面
-$base_name = plugin_basename(__FILE__);
+// 使用固定的 slug，而不是 plugin_basename(__FILE__)，因為檔案已移動到子資料夾
+// WordPress 註冊的頁面 slug 是 'mp-ukagaka/options.php'
+$base_name = 'mp-ukagaka/options.php';
 $base_page = 'options-general.php?page=' . $base_name;
 $text = '';
 
@@ -307,13 +309,13 @@ if (!$skip_form_processing && isset($_GET['del']) && $_GET['del'] != '') {
 
     <!-- 改進的導覽列：頁面切換連結 -->
     <div class="mp-ukagaka-tabs">
-        <a class="<?php echo $cur_page == 0 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . plugin_basename(__FILE__) . '&cur_page=0'); ?>"><?php _e('通用設定', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 5 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . plugin_basename(__FILE__) . '&cur_page=5'); ?>"><?php _e('AI 設定', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 6 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . plugin_basename(__FILE__) . '&cur_page=6'); ?>"><?php _e('LLM 設定', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 4 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . plugin_basename(__FILE__) . '&cur_page=4'); ?>"><?php _e('會話', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 1 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . plugin_basename(__FILE__) . '&cur_page=1'); ?>"><?php _e('春菜們', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 2 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . plugin_basename(__FILE__) . '&cur_page=2'); ?>"><?php _e('創建新春菜', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 3 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . plugin_basename(__FILE__) . '&cur_page=3'); ?>"><?php _e('擴展', 'mp-ukagaka'); ?></a>
+        <a class="<?php echo $cur_page == 0 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=0'); ?>"><?php _e('通用設定', 'mp-ukagaka'); ?></a>
+        <a class="<?php echo $cur_page == 5 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=5'); ?>"><?php _e('AI 設定', 'mp-ukagaka'); ?></a>
+        <a class="<?php echo $cur_page == 6 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=6'); ?>"><?php _e('LLM 設定', 'mp-ukagaka'); ?></a>
+        <a class="<?php echo $cur_page == 4 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=4'); ?>"><?php _e('會話', 'mp-ukagaka'); ?></a>
+        <a class="<?php echo $cur_page == 1 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=1'); ?>"><?php _e('春菜們', 'mp-ukagaka'); ?></a>
+        <a class="<?php echo $cur_page == 2 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=2'); ?>"><?php _e('創建新春菜', 'mp-ukagaka'); ?></a>
+        <a class="<?php echo $cur_page == 3 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=3'); ?>"><?php _e('擴展', 'mp-ukagaka'); ?></a>
     </div>
 
     <div class="mp-ukagaka-section">

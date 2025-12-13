@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the MP Ukagaka plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MP Ukagaka 2.1.0\n"
+"Project-Id-Version: MP Ukagaka 2.1.5\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-27 00:00+0800\n"
 "PO-Revision-Date: 2025-11-27 00:00+0800\n"
@@ -70,6 +70,9 @@ msgstr "一般設定"
 
 msgid "AI 設定"
 msgstr "AI 設定"
+
+msgid "LLM 設定"
+msgstr "LLM 設定"
 
 msgid "會話"
 msgstr "メッセージ"

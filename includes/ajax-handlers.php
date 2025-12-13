@@ -12,7 +12,8 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * AJAX ハンドラ: mpu_nextmsg
+ * AJAX 處理器：獲取下一句對話
+ * 支援 LLM 生成對話或從外部文件讀取
  */
 function mpu_ajax_nextmsg()
 {
@@ -42,7 +43,7 @@ function mpu_ajax_nextmsg()
             $msg = $llm_msg;
             $msgnum = 0; // LLM 生成的對話不需要 msgnum
         } else {
-            // ★★★ 修改：當 Ollama 未啟動時，顯示錯誤提示而非回退 ★★★
+            // 當 Ollama 未啟動時，顯示錯誤提示而非回退
             $msg = __("本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。", "mp-ukagaka");
             $msgnum = 0;
 
@@ -81,7 +82,7 @@ add_action('wp_ajax_nopriv_mpu_nextmsg', 'mpu_ajax_nextmsg');
 
 
 /**
- * AJAX ハンドラ: mpu_extend
+ * AJAX 處理器：擴展功能選單
  */
 function mpu_ajax_extend()
 {
@@ -94,7 +95,7 @@ add_action('wp_ajax_mpu_extend', 'mpu_ajax_extend');
 add_action('wp_ajax_nopriv_mpu_extend', 'mpu_ajax_extend');
 
 /**
- * AJAX ハンドラ: mpu_change
+ * AJAX 處理器：切換春菜人物或顯示選單
  */
 function mpu_ajax_change()
 {
@@ -111,7 +112,7 @@ function mpu_ajax_change()
     }
 
     $temp = [];
-    // ★★★ 修改：一律從外部文件讀取，不再使用內部對話 ★★★
+    // 一律從外部文件讀取，不再使用內部對話
     $ext = $mpu_opt["external_file_format"] ?? "txt";
     $dialog_filename = $mpu_opt["ukagakas"][$mpu_num]["dialog_filename"] ?? $mpu_num;
     $temp["msglist"] = [
@@ -126,10 +127,9 @@ function mpu_ajax_change()
     $temp["dialog_filename"] = $dialog_filename;
     $temp["data_file"] = "dialogs/" . $dialog_filename . "." . $ext;
 
-    // 【★ 修正 1/2】
-    // 使用 SITECOOKIEPATH (通常是 '/') 來設定 Cookie，
-    // 而不是 COOKIEPATH (可能是 /wp-admin/)，
-    // 這樣前台頁面 (mpu_html) 才能讀取到。
+    // 使用 SITECOOKIEPATH（通常是 '/'）來設定 Cookie
+    // 而不是 COOKIEPATH（可能是 /wp-admin/）
+    // 這樣前台頁面才能讀取到 Cookie
     $cookie_path = defined('SITECOOKIEPATH') ? SITECOOKIEPATH : '/';
     $cookie_domain = defined('COOKIE_DOMAIN') ? COOKIE_DOMAIN : '';
 
@@ -137,8 +137,8 @@ function mpu_ajax_change()
         "mpu_ukagaka_" . COOKIEHASH,
         $mpu_num,
         time() + DAY_IN_SECONDS,
-        $cookie_path,     // ★ 修正點
-        $cookie_domain,   // ★ 修正點
+        $cookie_path,
+        $cookie_domain,
         is_ssl(),
         true
     );
@@ -150,7 +150,7 @@ add_action('wp_ajax_nopriv_mpu_change', 'mpu_ajax_change');
 
 
 /**
- * AJAX ハンドラ: mpu_get_settings
+ * AJAX 處理器：獲取前端設定
  */
 function mpu_ajax_get_settings()
 {
@@ -174,8 +174,8 @@ add_action('wp_ajax_mpu_get_settings', 'mpu_ajax_get_settings');
 add_action('wp_ajax_nopriv_mpu_get_settings', 'mpu_ajax_get_settings');
 
 /**
- * AJAX ハンドラ: mpu_load_dialog
- * 【安全性強化】使用 mpu_secure_file_read 替代 file_get_contents
+ * AJAX 處理器：載入外部對話檔案
+ * 使用安全文件讀取函數（安全性強化）
  */
 function mpu_ajax_load_dialog()
 {
@@ -193,7 +193,7 @@ function mpu_ajax_load_dialog()
 
     $file_path = mpu_get_dialogs_dir() . "/" . $file;
 
-    // 【安全性強化】使用安全文件讀取函數
+    // 使用安全文件讀取函數（安全性強化）
     $content = mpu_secure_file_read($file_path);
 
     if (is_wp_error($content)) {
@@ -235,11 +235,12 @@ add_action('wp_ajax_mpu_load_dialog', 'mpu_ajax_load_dialog');
 add_action('wp_ajax_nopriv_mpu_load_dialog', 'mpu_ajax_load_dialog');
 
 /**
- * AJAX ハンドラ: mpu_chat_context (AI 上下文對話)
+ * AJAX 處理器：AI 上下文對話
+ * 根據頁面內容生成 AI 回應
  */
 function mpu_ajax_chat_context()
 {
-    // ★★★ 安全性：驗證 Nonce（如果提供）★★★
+    // 驗證 Nonce（如果提供）
     // 注意：Nonce 驗證是可選的，主要依賴速率限制來防止濫用
     if (isset($_POST['mpu_nonce'])) {
         if (!wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
@@ -248,7 +249,7 @@ function mpu_ajax_chat_context()
         }
     }
 
-    // ★★★ 安全性：速率限制（防止濫用）★★★
+    // 速率限制（防止濫用）
     $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '';
     $transient_key = 'mpu_ai_rate_limit_' . md5($ip);
     $rate_limit = get_transient($transient_key);
@@ -286,7 +287,7 @@ function mpu_ajax_chat_context()
                 break;
         }
 
-        // 【安全性強化】解密 API Key
+        // 解密 API Key（安全性強化）
         $api_key = mpu_decrypt_api_key($api_key_encrypted);
 
         if (empty($api_key)) {
@@ -299,7 +300,7 @@ function mpu_ajax_chat_context()
     $page_title = isset($_POST["page_title"]) ? sanitize_text_field($_POST["page_title"]) : "";
     $page_content = isset($_POST["page_content"]) ? sanitize_textarea_field($_POST["page_content"]) : "";
 
-    // ★★★ 安全性：限制內容長度，防止過大請求 ★★★
+    // 限制內容長度，防止過大請求
     if (strlen($page_title) > 500) {
         $page_title = substr($page_title, 0, 500);
     }
@@ -333,7 +334,7 @@ function mpu_ajax_chat_context()
         return;
     }
 
-    // ★★★ 安全性：更新速率限制計數器 ★★★
+    // 更新速率限制計數器
     $current_count = ($rate_limit !== false) ? intval($rate_limit) : 0;
     set_transient($transient_key, $current_count + 1, 60); // 60 秒內最多 10 次
 
@@ -343,13 +344,14 @@ add_action('wp_ajax_mpu_chat_context', 'mpu_ajax_chat_context');
 add_action('wp_ajax_nopriv_mpu_chat_context', 'mpu_ajax_chat_context');
 
 /**
- * AJAX ハンドラ: mpu_get_visitor_info (獲取訪客資訊，使用 Slimstat API)
+ * AJAX 處理器：獲取訪客資訊
+ * 使用 Slimstat API 獲取更詳細的訪客資訊
  */
 function mpu_ajax_get_visitor_info()
 {
     global $wpdb;
 
-    // 獲取基本資訊（從 $_SERVER）
+    // 從 $_SERVER 獲取基本資訊
     $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw($_SERVER['HTTP_REFERER']) : "";
     $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : "";
     $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : "";
@@ -363,7 +365,7 @@ function mpu_ajax_get_visitor_info()
         "slimstat_enabled" => false,
     ];
 
-    // ★★★ 使用 Slimstat 獲取更詳細的訪客資訊 ★★★
+    // 使用 Slimstat 獲取更詳細的訪客資訊
     if (class_exists('wp_slimstat')) {
         $visitor_info["slimstat_enabled"] = true;
 
@@ -371,7 +373,7 @@ function mpu_ajax_get_visitor_info()
         global $wpdb;
         $slimstat_table = $wpdb->prefix . 'slim_stats';
 
-        // ★★★ 安全性：使用 prepare 防止 SQL 注入 ★★★
+        // 使用 prepare 防止 SQL 注入（安全性）
         $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $slimstat_table));
         if ($table_exists == $slimstat_table) {
             // 查詢當前 IP 最近的完整記錄
@@ -424,11 +426,12 @@ add_action('wp_ajax_mpu_get_visitor_info', 'mpu_ajax_get_visitor_info');
 add_action('wp_ajax_nopriv_mpu_get_visitor_info', 'mpu_ajax_get_visitor_info');
 
 /**
- * AJAX ハンドラ: mpu_chat_greet (首次訪客 AI 打招呼)
+ * AJAX 處理器：首次訪客 AI 打招呼
+ * 根據訪客資訊生成個性化問候語
  */
 function mpu_ajax_chat_greet()
 {
-    // ★★★ 安全性：驗證 Nonce（如果提供）★★★
+    // 驗證 Nonce（如果提供）
     // 注意：Nonce 驗證是可選的，主要依賴速率限制來防止濫用
     if (isset($_POST['mpu_nonce'])) {
         if (!wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
@@ -437,7 +440,7 @@ function mpu_ajax_chat_greet()
         }
     }
 
-    // ★★★ 安全性：速率限制（防止濫用）★★★
+    // 速率限制（防止濫用）
     $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '';
     $transient_key = 'mpu_ai_greet_rate_limit_' . md5($ip);
     $rate_limit = get_transient($transient_key);
@@ -481,7 +484,7 @@ function mpu_ajax_chat_greet()
                 break;
         }
 
-        // 【安全性強化】解密 API Key
+        // 解密 API Key（安全性強化）
         $api_key = mpu_decrypt_api_key($api_key_encrypted);
 
         if (empty($api_key)) {
@@ -498,7 +501,7 @@ function mpu_ajax_chat_greet()
     $country = isset($_POST["country"]) ? sanitize_text_field($_POST["country"]) : "";
     $city = isset($_POST["city"]) ? sanitize_text_field($_POST["city"]) : "";
 
-    // ★★★ 安全性：驗證輸入長度 ★★★
+    // 驗證輸入長度（安全性）
     if (strlen($referrer) > 500) {
         $referrer = substr($referrer, 0, 500);
     }
@@ -543,7 +546,7 @@ function mpu_ajax_chat_greet()
 
     $user_prompt .= "請用親切友善的語氣打招呼。";
 
-    // ★★★ 調試模式：記錄傳遞給 AI 的資訊 ★★★
+    // 調試模式：記錄傳遞給 AI 的資訊
     if (defined('WP_DEBUG') && WP_DEBUG) {
         error_log("MP Ukagaka - AI 打招呼提示詞:");
         error_log("  - Referrer: " . ($referrer ?: "無"));
@@ -570,7 +573,7 @@ function mpu_ajax_chat_greet()
         return;
     }
 
-    // ★★★ 安全性：更新速率限制計數器 ★★★
+    // 更新速率限制計數器
     $current_count = ($rate_limit !== false) ? intval($rate_limit) : 0;
     set_transient($transient_key, $current_count + 1, 300); // 5 分鐘內最多 5 次
 
@@ -580,7 +583,8 @@ add_action('wp_ajax_mpu_chat_greet', 'mpu_ajax_chat_greet');
 add_action('wp_ajax_nopriv_mpu_chat_greet', 'mpu_ajax_chat_greet');
 
 /**
- * AJAX ハンドラ: mpu_test_ollama_connection (測試 Ollama 連接)
+ * AJAX 處理器：測試 Ollama 連接
+ * 驗證 Ollama 端點和模型是否可用
  */
 function mpu_ajax_test_ollama_connection()
 {
@@ -589,13 +593,13 @@ function mpu_ajax_test_ollama_connection()
     $endpoint = sanitize_text_field($_POST['endpoint'] ?? 'http://localhost:11434');
     $model = sanitize_text_field($_POST['model'] ?? 'qwen3:8b');
 
-    // ★★★ 改進：驗證端點 URL ★★★
+    // 驗證端點 URL
     // 檢查輔助函數是否存在（確保 llm-functions.php 已載入）
     if (!function_exists('mpu_validate_ollama_endpoint')) {
         // 如果函數不存在，使用基本驗證
         $endpoint = rtrim($endpoint, '/');
         if (!preg_match('/^https?:\/\/.+/', $endpoint)) {
-            wp_send_json_error('端點 URL 格式錯誤：必須是有效的 HTTP 或 HTTPS URL');
+            wp_send_json_error(__('端點 URL 格式錯誤：必須是有效的 HTTP 或 HTTPS URL', 'mp-ukagaka'));
             return;
         }
         $timeout = 30; // 默認超時
@@ -606,12 +610,12 @@ function mpu_ajax_test_ollama_connection()
     } else {
         $validated_endpoint = mpu_validate_ollama_endpoint($endpoint);
         if (is_wp_error($validated_endpoint)) {
-            wp_send_json_error('端點 URL 格式錯誤：' . $validated_endpoint->get_error_message());
+            wp_send_json_error(sprintf(__('端點 URL 格式錯誤：%s', 'mp-ukagaka'), $validated_endpoint->get_error_message()));
             return;
         }
         $endpoint = $validated_endpoint;
 
-        // ★★★ 改進：根據端點類型使用動態超時時間 ★★★
+        // 根據端點類型使用動態超時時間
         $timeout = mpu_get_ollama_timeout($endpoint, 'test');
         $is_remote = mpu_is_remote_endpoint($endpoint);
     }
@@ -640,26 +644,27 @@ function mpu_ajax_test_ollama_connection()
         $error_message = $response->get_error_message();
         $connection_type = $is_remote ? '遠程' : '本地';
 
-        // ★★★ 改進：根據連接類型提供更詳細的錯誤訊息 ★★★
+        // 根據連接類型提供更詳細的錯誤訊息
         if (strpos($error_message, 'timeout') !== false || strpos($error_message, 'timed out') !== false) {
             if ($is_remote) {
-                wp_send_json_error("連接超時（已等待 {$timeout} 秒）。遠程連接可能需要更長時間，請檢查 Cloudflare Tunnel 或網絡狀況。");
+                wp_send_json_error(sprintf(__('連接超時（已等待 %s 秒）。遠程連接可能需要更長時間，請檢查 Cloudflare Tunnel 或網絡狀況。', 'mp-ukagaka'), $timeout));
             } else {
-                wp_send_json_error("連接超時（已等待 {$timeout} 秒）。請確認 Ollama 服務是否正常運行。");
+                wp_send_json_error(sprintf(__('連接超時（已等待 %s 秒）。請確認 Ollama 服務是否正常運行。', 'mp-ukagaka'), $timeout));
             }
             return;
         }
 
         if (strpos($error_message, 'Connection refused') !== false || strpos($error_message, 'couldn\'t connect') !== false) {
             if ($is_remote) {
-                wp_send_json_error("無法連接到遠程 Ollama 服務。請確認 Cloudflare Tunnel 是否正在運行，端點 URL 是否正確。錯誤：" . $error_message);
+                wp_send_json_error(sprintf(__('無法連接到遠程 Ollama 服務。請確認 Cloudflare Tunnel 是否正在運行，端點 URL 是否正確。錯誤：%s', 'mp-ukagaka'), $error_message));
             } else {
-                wp_send_json_error("無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。錯誤：" . $error_message);
+                wp_send_json_error(sprintf(__('無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。錯誤：%s', 'mp-ukagaka'), $error_message));
             }
             return;
         }
 
-        wp_send_json_error("連接失敗（{$connection_type}連接）：" . $error_message);
+        $connection_type_text = $is_remote ? __('遠程', 'mp-ukagaka') : __('本地', 'mp-ukagaka');
+        wp_send_json_error(sprintf(__('連接失敗（%s連接）：%s', 'mp-ukagaka'), $connection_type_text, $error_message));
         return;
     }
 
@@ -699,20 +704,20 @@ function mpu_ajax_test_ollama_connection()
 
         if (!empty($content)) {
             if ($has_content) {
-                // ★★★ 成功：清除之前的失敗緩存，確保下次檢查時使用最新狀態 ★★★
+                // 清除之前的失敗緩存，確保下次檢查時使用最新狀態
                 $cache_key = 'mpu_ollama_available_' . md5($endpoint . $model);
                 delete_transient($cache_key);
-                // 設置成功緩存（5分鐘）
+                // 設置成功緩存（5 分鐘）
                 set_transient($cache_key, 1, 5 * MINUTE_IN_SECONDS);
 
                 // 成功：返回簡短的確認訊息
                 $preview = mb_substr($content, 0, 50);
-                $connection_type = $is_remote ? '遠程' : '本地';
-                wp_send_json_success("連接成功（{$connection_type}連接），模型響應正常（預覽：{$preview}...）");
+                $connection_type_text = $is_remote ? __('遠程', 'mp-ukagaka') : __('本地', 'mp-ukagaka');
+                wp_send_json_success(sprintf(__('連接成功（%s連接），模型響應正常（預覽：%s...）', 'mp-ukagaka'), $connection_type_text, $preview));
             } else {
                 // 只有 thinking 沒有 content，提示用戶可能需要調整參數
                 $preview = mb_substr($content, 0, 50);
-                wp_send_json_success('連接成功，但模型只返回思考過程（預覽：' . $preview . '...）。實際使用時應會生成內容。');
+                wp_send_json_success(sprintf(__('連接成功，但模型只返回思考過程（預覽：%s...）。實際使用時應會生成內容。', 'mp-ukagaka'), $preview));
             }
         } else {
             // 提供更詳細的錯誤信息和實際響應內容（用於調試）

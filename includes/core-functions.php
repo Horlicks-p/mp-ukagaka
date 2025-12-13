@@ -12,7 +12,8 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * 預設設定內容
+ * 取得預設設定內容
+ * @return {array} 預設設定陣列
  */
 function mpu_default_opt()
 {
@@ -28,7 +29,7 @@ function mpu_default_opt()
         "auto_msg" => "",
         "common_msg" => "",
         "no_page" => "",
-        "use_external_file" => true,  // ★★★ 修改：系統已固定使用外部對話文件 ★★★
+        "use_external_file" => true,  // 系統已固定使用外部對話文件
         "external_file_format" => "txt",
         "auto_talk" => true,
         "auto_talk_interval" => 8,
@@ -66,7 +67,9 @@ function mpu_default_opt()
 }
 
 /**
- * 預設設定：統一快取選項。
+ * 取得選項（統一快取）
+ * 使用靜態變數快取，避免重複讀取資料庫
+ * @return {array} 選項陣列
  */
 function mpu_get_option()
 {

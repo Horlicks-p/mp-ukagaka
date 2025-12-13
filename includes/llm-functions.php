@@ -89,7 +89,7 @@ function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
 function mpu_validate_ollama_endpoint($endpoint)
 {
     if (empty($endpoint)) {
-        return new WP_Error('empty_endpoint', 'Ollama 端點不能為空');
+        return new WP_Error('empty_endpoint', __('Ollama 端點不能為空', 'mp-ukagaka'));
     }
 
     // 移除尾部斜線
@@ -97,18 +97,18 @@ function mpu_validate_ollama_endpoint($endpoint)
 
     // 驗證 URL 格式
     if (!preg_match('/^https?:\/\/.+/', $endpoint)) {
-        return new WP_Error('invalid_url_format', 'Ollama 端點必須是有效的 HTTP 或 HTTPS URL');
+        return new WP_Error('invalid_url_format', __('Ollama 端點必須是有效的 HTTP 或 HTTPS URL', 'mp-ukagaka'));
     }
 
     // 驗證 URL 是否可解析
     $parsed = wp_parse_url($endpoint);
     if ($parsed === false || empty($parsed['scheme']) || empty($parsed['host'])) {
-        return new WP_Error('invalid_url', '無法解析 Ollama 端點 URL');
+        return new WP_Error('invalid_url', __('無法解析 Ollama 端點 URL', 'mp-ukagaka'));
     }
 
     // 確保 scheme 是 http 或 https
     if (!in_array($parsed['scheme'], ['http', 'https'], true)) {
-        return new WP_Error('invalid_scheme', 'Ollama 端點必須使用 HTTP 或 HTTPS 協議');
+        return new WP_Error('invalid_scheme', __('Ollama 端點必須使用 HTTP 或 HTTPS 協議', 'mp-ukagaka'));
     }
 
     return $endpoint;
@@ -123,7 +123,7 @@ function mpu_validate_ollama_endpoint($endpoint)
  */
 function mpu_check_ollama_available($endpoint, $model)
 {
-    // ★★★ 改進：驗證端點 URL ★★★
+    // 驗證端點 URL
     $validated_endpoint = mpu_validate_ollama_endpoint($endpoint);
     if (is_wp_error($validated_endpoint)) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -141,7 +141,7 @@ function mpu_check_ollama_available($endpoint, $model)
         return (bool) $cached_result;
     }
 
-    // ★★★ 改進：根據端點類型使用動態超時時間 ★★★
+    // 根據端點類型使用動態超時時間
     $timeout = mpu_get_ollama_timeout($endpoint, 'check');
     $is_remote = mpu_is_remote_endpoint($endpoint);
 
@@ -219,9 +219,9 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
     $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
     $language = $mpu_opt['ai_language'] ?? 'zh-TW';
 
-    // ★★★ 修改：在調用前先檢查 Ollama 服務是否可用 ★★★
+    // 在調用前先檢查 Ollama 服務是否可用
     if (!mpu_check_ollama_available($endpoint, $model)) {
-        // ★★★ 服務不可用，返回特定錯誤標記，不再回退到內建台詞 ★★★
+        // 服務不可用，返回特定錯誤標記，不再回退到內建台詞
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('MP Ukagaka - Ollama 服務不可用，返回錯誤提示');
             error_log('MP Ukagaka - 端點: ' . $endpoint . ', 模型: ' . $model);
@@ -236,16 +236,63 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
     $system_prompt = $mpu_opt['ai_system_prompt'] ?? "你是一個傲嬌的桌面助手「{$ukagaka_name_display}」。你會用簡短、帶點傲嬌的語氣說話。回應請保持在 40 字以內。";
 
     // 生成隨機對話提示詞（不依賴頁面內容）
-    $random_prompts = [
-        "說一句隨機的話",
-        "隨便說點什麼",
-        "說一句話",
-        "打個招呼",
-        "說點有趣的話",
-        "隨便聊聊",
-        "說一句日常對話",
+    // 根據時間獲取情境提示
+    $hour = (int) date('G');
+    $time_context = '';
+    if ($hour >= 5 && $hour < 12) {
+        $time_context = '早上';
+    } elseif ($hour >= 12 && $hour < 18) {
+        $time_context = '下午';
+    } elseif ($hour >= 18 && $hour < 22) {
+        $time_context = '晚上';
+    } else {
+        $time_context = '深夜';
+    }
+
+    // 分類提示詞，增加多樣性和自然度
+    $prompt_categories = [
+        // 問候類
+        'greeting' => [
+            "打個招呼",
+            "向使用者問好",
+            "說一句問候的話",
+            "用你的方式打招呼",
+        ],
+        // 閒聊類
+        'casual' => [
+            "隨便說點什麼",
+            "說一句日常對話",
+            "聊聊日常",
+            "分享一個想法",
+            "說點輕鬆的話",
+        ],
+        // 觀察思考類
+        'observation' => [
+            "說一句隨機的話",
+            "分享一個觀察",
+            "說說你的想法",
+            "表達一個觀點",
+            "說點有趣的話",
+        ],
+        // 情境類（結合時間）
+        'contextual' => [
+            "現在是{$time_context}，說點什麼",
+            "在這個{$time_context}時段，你想說什麼",
+            "針對{$time_context}這個時間，說句話",
+        ],
+        // 互動類
+        'interactive' => [
+            "主動說點什麼",
+            "用你的風格說句話",
+            "展現你的個性",
+            "說一句有特色的話",
+        ],
     ];
-    $user_prompt = $random_prompts[array_rand($random_prompts)];
+
+    // 隨機選擇一個類別
+    $selected_category = array_rand($prompt_categories);
+    // 從選中的類別中隨機選擇一個提示詞
+    $user_prompt = $prompt_categories[$selected_category][array_rand($prompt_categories[$selected_category])];
 
     // 調用 Ollama API
     $result = mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language);
@@ -278,14 +325,14 @@ function mpu_is_llm_replace_dialogue_enabled()
 {
     $mpu_opt = mpu_get_option();
     $is_enabled = !empty($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ai_provider'] === 'ollama';
-    
+
     if (defined('WP_DEBUG') && WP_DEBUG) {
         error_log('MP Ukagaka - mpu_is_llm_replace_dialogue_enabled:');
         error_log('  - ollama_replace_dialogue = ' . (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue'] ? 'true' : 'false'));
         error_log('  - ai_provider = ' . ($mpu_opt['ai_provider'] ?? 'not set'));
         error_log('  - 結果 = ' . ($is_enabled ? 'true' : 'false'));
     }
-    
+
     return $is_enabled;
 }
 

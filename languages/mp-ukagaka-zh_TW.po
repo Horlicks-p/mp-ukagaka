@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the MP Ukagaka plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MP Ukagaka 2.1.0\n"
+"Project-Id-Version: MP Ukagaka 2.1.5\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-11-27 00:00+0800\n"
 "PO-Revision-Date: 2025-11-27 00:00+0800\n"
@@ -70,6 +70,9 @@ msgstr "通用設定"
 
 msgid "AI 設定"
 msgstr "AI 設定"
+
+msgid "LLM 設定"
+msgstr "LLM 設定"
 
 msgid "會話"
 msgstr "會話"
@@ -564,3 +567,138 @@ msgstr "無法讀取對話文件"
 
 msgid "JSON 檔案格式錯誤"
 msgstr "JSON 檔案格式錯誤"
+
+# ========================================
+# 外部對話文件提示
+# ========================================
+
+msgid "注意：系統已固定使用外部對話文件，對話將從 dialogs/ 資料夾讀取。"
+msgstr "注意：系統已固定使用外部對話文件，對話將從 dialogs/ 資料夾讀取。"
+
+# ========================================
+# LLM/Ollama 錯誤訊息
+# ========================================
+
+msgid "Ollama 端點不能為空"
+msgstr "Ollama 端點不能為空"
+
+msgid "Ollama 端點必須是有效的 HTTP 或 HTTPS URL"
+msgstr "Ollama 端點必須是有效的 HTTP 或 HTTPS URL"
+
+msgid "無法解析 Ollama 端點 URL"
+msgstr "無法解析 Ollama 端點 URL"
+
+msgid "Ollama 端點必須使用 HTTP 或 HTTPS 協議"
+msgstr "Ollama 端點必須使用 HTTP 或 HTTPS 協議"
+
+msgid "端點 URL 格式錯誤：必須是有效的 HTTP 或 HTTPS URL"
+msgstr "端點 URL 格式錯誤：必須是有效的 HTTP 或 HTTPS URL"
+
+msgid "端點 URL 格式錯誤："
+msgstr "端點 URL 格式錯誤："
+
+msgid "連接超時（已等待 %s 秒）。遠程連接可能需要更長時間，請檢查 Cloudflare Tunnel 或網絡狀況。"
+msgstr "連接超時（已等待 %s 秒）。遠程連接可能需要更長時間，請檢查 Cloudflare Tunnel 或網絡狀況。"
+
+msgid "連接超時（已等待 %s 秒）。請確認 Ollama 服務是否正常運行。"
+msgstr "連接超時（已等待 %s 秒）。請確認 Ollama 服務是否正常運行。"
+
+msgid "無法連接到遠程 Ollama 服務。請確認 Cloudflare Tunnel 是否正在運行，端點 URL 是否正確。錯誤："
+msgstr "無法連接到遠程 Ollama 服務。請確認 Cloudflare Tunnel 是否正在運行，端點 URL 是否正確。錯誤："
+
+msgid "無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。錯誤："
+msgstr "無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。錯誤："
+
+msgid "連接失敗（%s連接）："
+msgstr "連接失敗（%s連接）："
+
+msgid "本地"
+msgstr "本地"
+
+msgid "遠程"
+msgstr "遠程"
+
+# ========================================
+# AI API 錯誤訊息
+# ========================================
+
+msgid "不支援的 AI 提供商：%s"
+msgstr "不支援的 AI 提供商：%s"
+
+msgid "Gemini API 請求失敗：%s"
+msgstr "Gemini API 請求失敗：%s"
+
+msgid "OpenAI API 請求失敗：%s"
+msgstr "OpenAI API 請求失敗：%s"
+
+msgid "Claude API 請求失敗：%s"
+msgstr "Claude API 請求失敗：%s"
+
+msgid "Ollama API 請求失敗：%s"
+msgstr "Ollama API 請求失敗：%s"
+
+msgid "API 請求失敗 (HTTP %s)"
+msgstr "API 請求失敗 (HTTP %s)"
+
+msgid "Gemini API 回應為空，請檢查模型是否正確"
+msgstr "Gemini API 回應為空，請檢查模型是否正確"
+
+msgid "API 認證失敗（HTTP %s）：%s。請檢查 API Key 是否正確。"
+msgstr "API 認證失敗（HTTP %s）：%s。請檢查 API Key 是否正確。"
+
+msgid "Gemini 模型「%s」不存在。請在設定中選擇正確的模型。"
+msgstr "Gemini 模型「%s」不存在。請在設定中選擇正確的模型。"
+
+msgid "Gemini API 錯誤（HTTP %s）：%s"
+msgstr "Gemini API 錯誤（HTTP %s）：%s"
+
+msgid "未知錯誤"
+msgstr "未知錯誤"
+
+msgid "連接成功（%s連接），模型響應正常（預覽：%s...）"
+msgstr "連接成功（%s連接），模型響應正常（預覽：%s...）"
+
+msgid "連接成功，但模型只返回思考過程（預覽：%s...）。實際使用時應會生成內容。"
+msgstr "連接成功，但模型只返回思考過程（預覽：%s...）。實際使用時應會生成內容。"
+
+msgid "OpenAI API 錯誤：%s"
+msgstr "OpenAI API 錯誤：%s"
+
+msgid "OpenAI API 回應格式錯誤"
+msgstr "OpenAI API 回應格式錯誤"
+
+msgid "Claude API 錯誤：%s"
+msgstr "Claude API 錯誤：%s"
+
+msgid "Claude API 回應格式錯誤"
+msgstr "Claude API 回應格式錯誤"
+
+msgid "Ollama 端點格式錯誤：%s"
+msgstr "Ollama 端點格式錯誤：%s"
+
+msgid "無法連接到遠程 Ollama 服務。請確認：\n1. Cloudflare Tunnel 或遠程服務是否正在運行\n2. 端點 URL 是否正確（例如：https://your-domain.com）\n3. 網絡連接是否正常\n錯誤詳情：%s"
+msgstr "無法連接到遠程 Ollama 服務。請確認：\n1. Cloudflare Tunnel 或遠程服務是否正在運行\n2. 端點 URL 是否正確（例如：https://your-domain.com）\n3. 網絡連接是否正常\n錯誤詳情：%s"
+
+msgid "無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。\n錯誤詳情：%s"
+msgstr "無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。\n錯誤詳情：%s"
+
+msgid "連接 Ollama 服務超時（已等待 %s 秒）。\n遠程連接可能需要更長時間，請檢查網絡狀況或 Cloudflare Tunnel 狀態。\n錯誤詳情：%s"
+msgstr "連接 Ollama 服務超時（已等待 %s 秒）。\n遠程連接可能需要更長時間，請檢查網絡狀況或 Cloudflare Tunnel 狀態。\n錯誤詳情：%s"
+
+msgid "連接 Ollama 服務超時（已等待 %s 秒）。\n請確認 Ollama 服務是否正常運行。\n錯誤詳情：%s"
+msgstr "連接 Ollama 服務超時（已等待 %s 秒）。\n請確認 Ollama 服務是否正常運行。\n錯誤詳情：%s"
+
+msgid "Ollama 模型「%s」未找到。請確認模型名稱是否正確，或使用 <code>ollama list</code> 查看已下載的模型。"
+msgstr "Ollama 模型「%s」未找到。請確認模型名稱是否正確，或使用 <code>ollama list</code> 查看已下載的模型。"
+
+msgid "Ollama API 錯誤：%s"
+msgstr "Ollama API 錯誤：%s"
+
+msgid "Ollama API 回應 JSON 解析失敗: %s"
+msgstr "Ollama API 回應 JSON 解析失敗: %s"
+
+msgid "Ollama API 回應格式錯誤：期望數組格式"
+msgstr "Ollama API 回應格式錯誤：期望數組格式"
+
+msgid "Ollama API 回應格式錯誤，無法提取有效內容。%s。請檢查模型響應格式。"
+msgstr "Ollama API 回應格式錯誤，無法提取有效內容。%s。請檢查模型響應格式。"

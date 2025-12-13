@@ -125,7 +125,7 @@ function mpu_html($num = false)
 
     $html = "";
 
-    // ★★★ 修改：一律使用外部文件模式，不再從內部對話讀取 ★★★
+    // 一律使用外部文件模式，不再從內部對話讀取
     $ext = $mpu_opt["external_file_format"] ?? "txt";
     $dialog_filename = $ukagaka["dialog_filename"] ?? $ukagaka_num;
     $data_file = "dialogs/" . $dialog_filename . "." . $ext;
@@ -187,7 +187,7 @@ function mpu_html($num = false)
     </div>
 </div>';
 
-    // 移除舊的 JS 設置邏輯，改在 mpu_head 統一處理。
+    // 移除舊的 JS 設置邏輯，改在 mpu_head 統一處理
     $html .= "\n";
 
     return $html;
@@ -209,7 +209,7 @@ function mpu_enqueue_frontend_assets()
 
     $mpu_opt = mpu_get_option();
 
-    // 1. CSS 読み込み
+    // 載入 CSS
     if (empty($mpu_opt["no_style"])) {
         // 使用已定義的常量獲取主文件路徑
         $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
@@ -221,16 +221,16 @@ function mpu_enqueue_frontend_assets()
         );
     }
 
-    // 2. JS 読み込み
+    // 載入 JavaScript
     // 使用已定義的常量獲取主文件路徑
     $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
     // 先載入核心文件
     wp_enqueue_script(
         'mpu-ukagaka-core',
         plugins_url('ukagaka-core.js', $main_file),
-        array('jquery'), // jQuery に依存
+        array('jquery'), // 依賴 jQuery
         MPU_VERSION,
-        true // フッターで読み込み
+        true // 在頁尾載入
     );
     // 再載入功能模組（依賴核心文件）
     wp_enqueue_script(
@@ -238,15 +238,15 @@ function mpu_enqueue_frontend_assets()
         plugins_url('ukagaka-features.js', $main_file),
         array('jquery', 'mpu-ukagaka-core'), // 依賴 jQuery 和核心文件
         MPU_VERSION,
-        true // フッターで読み込み
+        true // 在頁尾載入
     );
 }
 add_action('wp_enqueue_scripts', 'mpu_enqueue_frontend_assets');
 
 
 /**
- * <head> 内の処理
- * JS/CSS ファイルの echo を削除し、JS 変数とインラインロジックのみ残す
+ * 在 <head> 標籤中的處理
+ * 移除 JS/CSS 檔案的直接輸出，僅保留 JS 變數和內聯邏輯
  */
 function mpu_head()
 {
@@ -256,9 +256,9 @@ function mpu_head()
 
     $mpu_opt = mpu_get_option();
 
-    // CSS と JS ファイルの <link> <script> echo を削除 (mpu_enqueue_frontend_assets が処理)
+    // CSS 和 JS 檔案的 <link> <script> 輸出已移除（由 mpu_enqueue_frontend_assets 處理）
 
-    // JS グローバル変数の定義 (ukagaka.js が依存)
+    // 定義 JS 全域變數（ukagaka.js 依賴這些變數）
     $robot_show = mpu_js_filter(__("顯示春菜 ▲", "mp-ukagaka"));
     $robot_hide = mpu_js_filter(__("隱藏春菜 ▼", "mp-ukagaka"));
     $msg_show = mpu_js_filter(__("顯示會話 ▲", "mp-ukagaka"));
@@ -293,7 +293,7 @@ function mpu_head()
             $("#ukagaka").fadeOut(400);';
     }
     echo '
-        } else if (showRobot=="hidden") { // Cookie 記住隱藏
+        } else if (showRobot=="hidden") { // Cookie 記住隱藏狀態
             $("#show_ukagaka").html(mpuInfo.robot[0]); 
             $("#ukagaka").fadeOut(400);
         }
@@ -305,13 +305,13 @@ function mpu_head()
             $("#ukagaka_msgbox").fadeOut(400);';
     }
     echo '
-        } else if (showMsg=="hidden") { // Cookie 記住隱藏
+        } else if (showMsg=="hidden") { // Cookie 記住隱藏狀態
             $("#show_msg").html(mpuInfo.msg[0]); 
             $("#ukagaka_msgbox").fadeOut(400);
         }
-    });'; // ★ 修正點
+    });';
 
-    // 拡張 JS
+    // 擴展 JavaScript
     if (!empty($mpu_opt["extend"]["js_area"])) {
         echo stripslashes($mpu_opt["extend"]["js_area"]) . "\n";
     }

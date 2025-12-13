@@ -12,7 +12,14 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * 輔助函數：調用 AI API (支持多提供商：Gemini, OpenAI, Claude, Ollama)
+ * 調用 AI API（支援多提供商：Gemini, OpenAI, Claude, Ollama）
+ * @param {string} $provider - AI 提供商名稱
+ * @param {string} $api_key - API 金鑰（Ollama 不需要）
+ * @param {string} $system_prompt - 系統提示詞
+ * @param {string} $user_prompt - 用戶提示詞
+ * @param {string} $language - 語言代碼
+ * @param {array|null} $mpu_opt - 選項陣列（包含模型名稱等）
+ * @return {string|WP_Error} 生成的文本或錯誤
  */
 function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt = null)
 {
@@ -32,19 +39,18 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
             $model = $mpu_opt["ollama_model"] ?? "qwen3:8b";
             return mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language);
         default:
-            return new WP_Error("unsupported_provider", "不支援的 AI 提供商：{$provider}");
+            return new WP_Error("unsupported_provider", sprintf(__('不支援的 AI 提供商：%s', 'mp-ukagaka'), $provider));
     }
 }
 
 /**
- * 調用 Gemini API (支持用戶選擇模型)
- * 
- * @param string $api_key API 金鑰
- * @param string $model 模型名稱（如 gemini-2.5-flash, gemini-2.5-pro）
- * @param string $system_prompt 系統提示詞
- * @param string $user_prompt 用戶提示詞
- * @param string $language 語言
- * @return string|WP_Error 生成的文本或錯誤
+ * 調用 Gemini API（支援用戶選擇模型）
+ * @param {string} $api_key - API 金鑰
+ * @param {string} $model - 模型名稱（如 gemini-2.5-flash, gemini-2.5-pro）
+ * @param {string} $system_prompt - 系統提示詞
+ * @param {string} $user_prompt - 用戶提示詞
+ * @param {string} $language - 語言代碼
+ * @return {string|WP_Error} 生成的文本或錯誤
  */
 function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language)
 {
@@ -82,12 +88,12 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
             "Content-Type" => "application/json",
         ],
         "body" => wp_json_encode($request_body),
-        "timeout" => 60, // Gemini Pro 可能需要較長時間
+        "timeout" => 60, // Gemini 可能需要較長時間
     ]);
 
     // 處理錯誤
     if (is_wp_error($response)) {
-        return new WP_Error("api_request_failed", "Gemini API 請求失敗：" . $response->get_error_message());
+        return new WP_Error("api_request_failed", sprintf(__('Gemini API 請求失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
     }
 
     $response_code = wp_remote_retrieve_response_code($response);
@@ -101,31 +107,37 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
             $generated_text = trim($data["candidates"][0]["content"]["parts"][0]["text"]);
             return $generated_text;
         } else {
-            return new WP_Error("empty_response", "Gemini API 回應為空，請檢查模型是否正確");
+            return new WP_Error("empty_response", __('Gemini API 回應為空，請檢查模型是否正確', 'mp-ukagaka'));
         }
     } else {
         // 解析錯誤訊息
         $error_data = json_decode($response_body, true);
         $error_message = isset($error_data["error"]["message"])
             ? $error_data["error"]["message"]
-            : "未知錯誤";
+            : __('未知錯誤', 'mp-ukagaka');
 
         // 如果是認證錯誤（401/403）
         if ($response_code === 401 || $response_code === 403) {
-            return new WP_Error("api_auth_error", "API 認證失敗（HTTP {$response_code}）：{$error_message}。請檢查 API Key 是否正確。");
+            return new WP_Error("api_auth_error", sprintf(__('API 認證失敗（HTTP %s）：%s。請檢查 API Key 是否正確。', 'mp-ukagaka'), $response_code, $error_message));
         }
 
         // 如果是 404（模型不存在）
         if ($response_code === 404) {
-            return new WP_Error("model_not_found", "Gemini 模型「{$model}」不存在。請在設定中選擇正確的模型。");
+            return new WP_Error("model_not_found", sprintf(__('Gemini 模型「%s」不存在。請在設定中選擇正確的模型。', 'mp-ukagaka'), $model));
         }
 
-        return new WP_Error("api_error", "Gemini API 錯誤（HTTP {$response_code}）：{$error_message}");
+        return new WP_Error("api_error", sprintf(__('Gemini API 錯誤（HTTP %s）：%s', 'mp-ukagaka'), $response_code, $error_message));
     }
 }
 
 /**
  * 調用 OpenAI API
+ * @param {string} $api_key - API 金鑰
+ * @param {string} $model - 模型名稱（如 gpt-4o-mini）
+ * @param {string} $system_prompt - 系統提示詞
+ * @param {string} $user_prompt - 用戶提示詞
+ * @param {string} $language - 語言代碼
+ * @return {string|WP_Error} 生成的文本或錯誤
  */
 function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $language)
 {
@@ -163,7 +175,7 @@ function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $la
 
     // 處理錯誤
     if (is_wp_error($response)) {
-        return new WP_Error("api_request_failed", "OpenAI API 請求失敗：" . $response->get_error_message());
+        return new WP_Error("api_request_failed", sprintf(__('OpenAI API 請求失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
     }
 
     $response_code = wp_remote_retrieve_response_code($response);
@@ -173,15 +185,15 @@ function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $la
         $error_data = json_decode($response_body, true);
         $error_message = isset($error_data["error"]["message"])
             ? $error_data["error"]["message"]
-            : "API 請求失敗 (HTTP {$response_code})";
-        return new WP_Error("api_error", "OpenAI API 錯誤：{$error_message}");
+            : sprintf(__('API 請求失敗 (HTTP %s)', 'mp-ukagaka'), $response_code);
+        return new WP_Error("api_error", sprintf(__('OpenAI API 錯誤：%s', 'mp-ukagaka'), $error_message));
     }
 
     // 解析回應
     $data = json_decode($response_body, true);
 
     if (empty($data["choices"][0]["message"]["content"])) {
-        return new WP_Error("invalid_response", "OpenAI API 回應格式錯誤");
+        return new WP_Error("invalid_response", __('OpenAI API 回應格式錯誤', 'mp-ukagaka'));
     }
 
     $generated_text = trim($data["choices"][0]["message"]["content"]);
@@ -191,6 +203,12 @@ function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $la
 
 /**
  * 調用 Claude API (Anthropic)
+ * @param {string} $api_key - API 金鑰
+ * @param {string} $model - 模型名稱（如 claude-sonnet-4-5-20250929）
+ * @param {string} $system_prompt - 系統提示詞
+ * @param {string} $user_prompt - 用戶提示詞
+ * @param {string} $language - 語言代碼
+ * @return {string|WP_Error} 生成的文本或錯誤
  */
 function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $language)
 {
@@ -228,7 +246,7 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
 
     // 處理錯誤
     if (is_wp_error($response)) {
-        return new WP_Error("api_request_failed", "Claude API 請求失敗：" . $response->get_error_message());
+        return new WP_Error("api_request_failed", sprintf(__('Claude API 請求失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
     }
 
     $response_code = wp_remote_retrieve_response_code($response);
@@ -238,15 +256,15 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
         $error_data = json_decode($response_body, true);
         $error_message = isset($error_data["error"]["message"])
             ? $error_data["error"]["message"]
-            : "API 請求失敗 (HTTP {$response_code})";
-        return new WP_Error("api_error", "Claude API 錯誤：{$error_message}");
+            : sprintf(__('API 請求失敗 (HTTP %s)', 'mp-ukagaka'), $response_code);
+        return new WP_Error("api_error", sprintf(__('Claude API 錯誤：%s', 'mp-ukagaka'), $error_message));
     }
 
     // 解析回應
     $data = json_decode($response_body, true);
 
     if (empty($data["content"][0]["text"])) {
-        return new WP_Error("invalid_response", "Claude API 回應格式錯誤");
+        return new WP_Error("invalid_response", __('Claude API 回應格式錯誤', 'mp-ukagaka'));
     }
 
     $generated_text = trim($data["content"][0]["text"]);
@@ -255,14 +273,13 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
 }
 
 /**
- * 調用 Ollama API (本機 LLM)
- * 
- * @param string $endpoint Ollama 端點
- * @param string $model 模型名稱
- * @param string $system_prompt 系統提示詞
- * @param string $user_prompt 用戶提示詞
- * @param string $language 語言
- * @return string|WP_Error 生成的文本或錯誤
+ * 調用 Ollama API（本機 LLM）
+ * @param {string} $endpoint - Ollama 端點 URL
+ * @param {string} $model - 模型名稱
+ * @param {string} $system_prompt - 系統提示詞
+ * @param {string} $user_prompt - 用戶提示詞
+ * @param {string} $language - 語言代碼
+ * @return {string|WP_Error} 生成的文本或錯誤
  */
 function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language)
 {
@@ -273,13 +290,13 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
     // 如果設定了關閉思考模式，或者未設定但使用 Qwen3（預設關閉）
     $disable_thinking = $is_qwen3 && (isset($mpu_opt['ollama_disable_thinking']) ? $mpu_opt['ollama_disable_thinking'] : true);
 
-    // ★★★ 改進：驗證端點 URL ★★★
+    // 驗證端點 URL
     // 檢查輔助函數是否存在（確保 llm-functions.php 已載入）
     if (!function_exists('mpu_validate_ollama_endpoint')) {
         // 如果函數不存在，使用基本驗證
         $endpoint = rtrim($endpoint, '/');
         if (!preg_match('/^https?:\/\/.+/', $endpoint)) {
-            return new WP_Error("invalid_endpoint", "Ollama 端點必須是有效的 HTTP 或 HTTPS URL");
+            return new WP_Error("invalid_endpoint", __('Ollama 端點必須是有效的 HTTP 或 HTTPS URL', 'mp-ukagaka'));
         }
         $timeout = 60; // 默認超時
         $is_remote = !preg_match('/localhost|127\.0\.0\.1|::1/', $endpoint);
@@ -289,11 +306,11 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
     } else {
         $validated_endpoint = mpu_validate_ollama_endpoint($endpoint);
         if (is_wp_error($validated_endpoint)) {
-            return new WP_Error("invalid_endpoint", "Ollama 端點格式錯誤：" . $validated_endpoint->get_error_message());
+            return new WP_Error("invalid_endpoint", sprintf(__('Ollama 端點格式錯誤：%s', 'mp-ukagaka'), $validated_endpoint->get_error_message()));
         }
         $endpoint = $validated_endpoint;
 
-        // ★★★ 改進：根據端點類型使用動態超時時間 ★★★
+        // 根據端點類型使用動態超時時間
         $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
         $is_remote = mpu_is_remote_endpoint($endpoint);
     }
@@ -355,22 +372,21 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
     if (is_wp_error($response)) {
         $error_message = $response->get_error_message();
 
-        // ★★★ 改進：根據連接類型提供不同的錯誤訊息 ★★★
+        // 根據連接類型提供不同的錯誤訊息
         if (strpos($error_message, 'Connection refused') !== false || strpos($error_message, 'couldn\'t connect') !== false) {
             if ($is_remote) {
                 return new WP_Error(
                     "ollama_connection_failed",
-                    "無法連接到遠程 Ollama 服務。請確認：\n" .
-                        "1. Cloudflare Tunnel 或遠程服務是否正在運行\n" .
-                        "2. 端點 URL 是否正確（例如：https://your-domain.com）\n" .
-                        "3. 網絡連接是否正常\n" .
-                        "錯誤詳情：" . $error_message
+                    sprintf(
+                        __('無法連接到遠程 Ollama 服務。請確認：%1$s1. Cloudflare Tunnel 或遠程服務是否正在運行%1$s2. 端點 URL 是否正確（例如：https://your-domain.com）%1$s3. 網絡連接是否正常%1$s錯誤詳情：%2$s', 'mp-ukagaka'),
+                        "\n",
+                        $error_message
+                    )
                 );
             } else {
                 return new WP_Error(
                     "ollama_connection_failed",
-                    "無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。\n" .
-                        "錯誤詳情：" . $error_message
+                    sprintf(__('無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。%1$s錯誤詳情：%2$s', 'mp-ukagaka'), "\n", $error_message)
                 );
             }
         }
@@ -380,21 +396,27 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
             if ($is_remote) {
                 return new WP_Error(
                     "ollama_timeout",
-                    "連接 Ollama 服務超時（已等待 {$timeout} 秒）。\n" .
-                        "遠程連接可能需要更長時間，請檢查網絡狀況或 Cloudflare Tunnel 狀態。\n" .
-                        "錯誤詳情：" . $error_message
+                    sprintf(
+                        __('連接 Ollama 服務超時（已等待 %1$s 秒）。%2$s遠程連接可能需要更長時間，請檢查網絡狀況或 Cloudflare Tunnel 狀態。%2$s錯誤詳情：%3$s', 'mp-ukagaka'),
+                        $timeout,
+                        "\n",
+                        $error_message
+                    )
                 );
             } else {
                 return new WP_Error(
                     "ollama_timeout",
-                    "連接 Ollama 服務超時（已等待 {$timeout} 秒）。\n" .
-                        "請確認 Ollama 服務是否正常運行。\n" .
-                        "錯誤詳情：" . $error_message
+                    sprintf(
+                        __('連接 Ollama 服務超時（已等待 %1$s 秒）。%2$s請確認 Ollama 服務是否正常運行。%2$s錯誤詳情：%3$s', 'mp-ukagaka'),
+                        $timeout,
+                        "\n",
+                        $error_message
+                    )
                 );
             }
         }
 
-        return new WP_Error("api_request_failed", "Ollama API 請求失敗：" . $error_message);
+        return new WP_Error("api_request_failed", sprintf(__('Ollama API 請求失敗：%s', 'mp-ukagaka'), $error_message));
     }
 
     $response_code = wp_remote_retrieve_response_code($response);
@@ -404,14 +426,14 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         $error_data = json_decode($response_body, true);
         $error_message = isset($error_data["error"])
             ? $error_data["error"]
-            : "API 請求失敗 (HTTP {$response_code})";
+            : sprintf(__('API 請求失敗 (HTTP %s)', 'mp-ukagaka'), $response_code);
 
         // 提供更友好的錯誤提示
         if ($response_code === 404) {
-            return new WP_Error("ollama_model_not_found", "Ollama 模型「{$model}」未找到。請確認模型名稱是否正確，或使用 <code>ollama list</code> 查看已下載的模型。");
+            return new WP_Error("ollama_model_not_found", sprintf(__('Ollama 模型「%s」未找到。請確認模型名稱是否正確，或使用 <code>ollama list</code> 查看已下載的模型。', 'mp-ukagaka'), $model));
         }
 
-        return new WP_Error("api_error", "Ollama API 錯誤：{$error_message}");
+        return new WP_Error("api_error", sprintf(__('Ollama API 錯誤：%s', 'mp-ukagaka'), $error_message));
     }
 
     // 解析回應
@@ -424,7 +446,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
             error_log('Ollama API JSON 解析失敗: ' . $error_msg);
             error_log('Ollama API 原始響應: ' . substr($response_body, 0, 500));
         }
-        return new WP_Error("json_decode_error", "Ollama API 回應 JSON 解析失敗: {$error_msg}");
+        return new WP_Error("json_decode_error", sprintf(__('Ollama API 回應 JSON 解析失敗: %s', 'mp-ukagaka'), $error_msg));
     }
 
     // 驗證響應數據是否為數組
@@ -432,7 +454,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('Ollama API 響應格式錯誤: 期望數組，得到 ' . gettype($data));
         }
-        return new WP_Error("invalid_response_type", "Ollama API 回應格式錯誤：期望數組格式");
+        return new WP_Error("invalid_response_type", __('Ollama API 回應格式錯誤：期望數組格式', 'mp-ukagaka'));
     }
 
     // 調試：記錄響應結構（僅在 WP_DEBUG 模式下）
@@ -440,17 +462,17 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         error_log('Ollama API Response: ' . print_r($data, true));
     }
 
-    // ★★★ 改進的響應解析邏輯 ★★★
-    // Thinking models (如 Qwen, DeepSeek) 會同時返回兩個字段：
+    // 改進的響應解析邏輯
+    // Thinking models（如 Qwen, DeepSeek）會同時返回兩個字段：
     // - thinking: 模型的思考過程（內部推理）
     // - content: 實際的回應內容（這才是我們想要的）
     //
-    // 支持的響應格式：
+    // 支援的響應格式：
     // 1. {"message": {"role": "assistant", "content": "...", "thinking": "..."}}
     // 2. {"message": {"content": "..."}}
     // 3. {"content": "..."}
     // 4. {"response": "..."}
-    // 5. {"message": "..."} (字符串格式)
+    // 5. {"message": "..."} (字串格式)
 
     $content = null;
     $thinking = null;
@@ -492,7 +514,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         error_log('Ollama Extracted Thinking: ' . ($thinking !== null ? ('"' . substr($thinking, 0, 100) . '"') : '(null)'));
     }
 
-    // ★★★ 優先使用 content，只有在 content 完全不存在時才使用 thinking ★★★
+    // 優先使用 content，只有在 content 完全不存在時才使用 thinking
     $final_response = null;
 
     if ($content !== null) {
@@ -536,7 +558,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
 
         return new WP_Error(
             "invalid_response",
-            "Ollama API 回應格式錯誤，無法提取有效內容。{$debug_info}。請檢查模型響應格式。"
+            sprintf(__('Ollama API 回應格式錯誤，無法提取有效內容。%s。請檢查模型響應格式。', 'mp-ukagaka'), $debug_info)
         );
     }
 
@@ -545,6 +567,8 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
 
 /**
  * 獲取語言指令（共用函數）
+ * @param {string} $language - 語言代碼（zh-TW, ja, en）
+ * @return {string} 語言指令字串
  */
 function mpu_get_language_instruction($language)
 {
@@ -567,7 +591,7 @@ function mpu_get_language_instruction($language)
  */
 function mpu_get_allowed_conditional_tags()
 {
-    // ★★★ 安全性：白名單限制，防止 RCE 漏洞 ★★★
+    // 白名單限制，防止 RCE 漏洞（安全性）
     // 只允許安全的 WordPress 條件標籤函數
     return [
         // 主要頁面類型
@@ -615,11 +639,9 @@ function mpu_get_allowed_conditional_tags()
 }
 
 /**
- * 輔助函數：檢查是否應該觸發 AI
- * 
- * ★★★ 安全性修復：使用白名單限制，防止遠程代碼執行 (RCE) 漏洞 ★★★
- * 
- * @return bool 是否應該觸發 AI
+ * 檢查是否應該觸發 AI
+ * 使用白名單限制，防止遠程代碼執行 (RCE) 漏洞（安全性修復）
+ * @return {bool} 是否應該觸發 AI
  */
 function mpu_should_trigger_ai()
 {
@@ -641,7 +663,7 @@ function mpu_should_trigger_ai()
             continue;
         }
 
-        // ★★★ 安全性檢查：只允許白名單中的函數 ★★★
+        // 安全性檢查：只允許白名單中的函數
         if (!in_array($condition, $allowed_tags, true)) {
             // 記錄安全警告
             if (defined('WP_DEBUG') && WP_DEBUG) {

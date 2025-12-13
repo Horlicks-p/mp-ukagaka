@@ -139,7 +139,7 @@
       <div style="height:1px;background:#DFDFDF;width:550px;"></div>
 
       <!-- 表單：重置設定的表單 -->
-      <form method="post" name="setting" id="setting" action="<?php echo $_SERVER['PHP_SELF']; ?>?page=<?php echo plugin_basename(__FILE__); ?>&cur_page=0">
+      <form method="post" name="setting" id="setting" action="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=0'); ?>">
           <!-- 標題：重置設定 -->
           <h3><?php _e('重置設定', 'mp-ukagaka'); ?></h3>
 

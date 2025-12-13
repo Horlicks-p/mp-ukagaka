@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成・表示するプラグイン。AI コンテキスト認識機能搭載。
 
-[![プラグインバージョン](https://img.shields.io/badge/version-2.1.4-blue.svg)](https://github.com)
+[![プラグインバージョン](https://img.shields.io/badge/version-2.1.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -359,6 +359,30 @@ mp-ukagaka/
 - ファイル権限を確認
 
 ## 📜 変更履歴
+
+### バージョン 2.1.5（2025-12-13）
+
+**構造変更：**
+
+- 📁 **リファクタリング**：管理オプションページを専用の `options/` フォルダに再編成
+  - すべてのオプションページファイル（options.php、options_page*.php）が `options/` ディレクトリに集約
+  - コード組織と保守性の向上
+  - includes と options の関心の分離の改善
+
+**改善：**
+
+- ✨ **LLM**: ランダム対話プロンプトシステムの改善（カテゴリ別プロンプト：挨拶、カジュアル、観察、コンテキスト、インタラクティブ）
+- ✨ **LLM**: 時間認識コンテキストプロンプトの追加（朝、午後、夜、深夜）
+- 🌍 **i18n**: 翻訳ファイルの完全な監査と更新
+- 🌍 **i18n**: すべてのエラーメッセージと成功メッセージの翻訳を追加
+- 🌍 **i18n**: すべての API エラーメッセージが適切に国際化されました
+- 🔧 **i18n**: .po から .mo への変換を改善する翻訳コンパイルスクリプトを更新
+
+**強化：**
+
+- 🔧 **LLM**: プロンプトの多様性を 7 個から 20+ 個に拡大（5 カテゴリ）
+- 🔧 **LLM**: より自然でコンテキストに応じたプロンプト表現
+- 🔧 **i18n**: llm-functions.php、ai-functions.php、ajax-handlers.php のすべてのハードコード文字列が翻訳関数を使用
 
 ### バージョン 2.1.4（2025-12-11）
 

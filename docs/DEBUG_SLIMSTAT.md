@@ -2,16 +2,6 @@
 
 本文件說明如何確認 Slimstat API 是否正確整合，以及 AI 是否能夠獲取訪客來源資訊。
 
-## 快速測試（最簡單的方法）
-
-**在瀏覽器控制台（F12）直接輸入**：
-
-```javascript
-mpu_test_visitor_info()
-```
-
-這會立即顯示完整的訪客資訊，包括 Slimstat 的調試資訊，**無需清除 Cookie 或重新整理頁面**。
-
 ## 啟用調試模式
 
 ### 方法 1：瀏覽器控制台（推薦）
@@ -19,25 +9,13 @@ mpu_test_visitor_info()
 1. 打開您的網站
 2. 按 `F12` 打開開發者工具
 3. 切換到「Console」（控制台）標籤
-4. **在首次訪客打招呼觸發之前**，輸入以下命令啟用調試模式：
+4. 輸入以下命令啟用調試模式：
 
 ```javascript
 window.mpuDebugMode = true
 ```
 
-5. **重要**：如果已經訪問過網站，需要先清除首次訪客 Cookie：
-
-```javascript
-// 清除首次訪客 Cookie
-document.cookie.split(";").forEach(c => { 
-    if(c.includes("mpu_first_visit")) 
-        document.cookie = c.split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/"; 
-});
-```
-
-6. 重新整理頁面，調試資訊會自動顯示在控制台
-
-**注意**：調試模式現在支援動態啟用，即使腳本已經載入，設置 `window.mpuDebugMode = true` 後，下次觸發首次訪客打招呼時就會顯示調試資訊。
+5. 重新整理頁面（或清除首次訪客 Cookie 後重新訪問）
 
 ### 方法 2：WordPress 調試模式
 

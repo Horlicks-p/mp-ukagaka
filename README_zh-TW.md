@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建和顯示互動式桌面寵物（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![外掛版本](https://img.shields.io/badge/version-2.1.4-blue.svg)](https://github.com)
+[![外掛版本](https://img.shields.io/badge/version-2.1.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -359,6 +359,30 @@ mp-ukagaka/
 - 檢查檔案權限
 
 ## 📜 版本歷史
+
+### 版本 2.1.5（2025-12-13）
+
+**結構變更：**
+
+- 📁 **重構**：將後台選項頁面重新組織到專用的 `options/` 資料夾
+  - 所有選項頁面檔案（options.php、options_page*.php）現已集中到 `options/` 目錄
+  - 改善程式碼組織和可維護性
+  - 更好的關注點分離（includes 和 options 分離）
+
+**改進：**
+
+- ✨ **LLM**: 改進隨機對話提示詞系統，新增分類提示詞（問候、閒聊、觀察、情境、互動）
+- ✨ **LLM**: 新增時間感知情境提示詞（早上、下午、晚上、深夜）
+- 🌍 **i18n**: 完整翻譯檔審查與更新
+- 🌍 **i18n**: 新增所有錯誤訊息和成功訊息的翻譯
+- 🌍 **i18n**: 所有 API 錯誤訊息現已正確國際化
+- 🔧 **i18n**: 更新翻譯編譯腳本，改善 .po 到 .mo 的轉換
+
+**增強：**
+
+- 🔧 **LLM**: 提示詞多樣性從 7 個提升到 20+ 個，涵蓋 5 個類別
+- 🔧 **LLM**: 更自然和情境化的提示詞表達
+- 🔧 **i18n**: llm-functions.php、ai-functions.php 和 ajax-handlers.php 中的所有硬編碼字串現已使用翻譯函數
 
 ### 版本 2.1.4（2025-12-11）
 

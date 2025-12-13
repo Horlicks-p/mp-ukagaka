@@ -3,7 +3,7 @@
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Gemini、OpenAI、Claude）。本機 LLM 支援（Ollama，測試階段）。API Key 加密存儲、安全文件操作、可配置打字速度。Claude 風格後台管理介面。
-Version: 2.1.4
+Version: 2.1.5
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 */
@@ -13,7 +13,7 @@ if (!defined("ABSPATH")) {
 }
 
 // 定義常量
-define("MPU_VERSION", "2.1.4");
+define("MPU_VERSION", "2.1.5");
 define("MPU_MAIN_FILE", __FILE__);
 
 /**
@@ -27,8 +27,7 @@ add_action(
             false,
             dirname(plugin_basename(__FILE__)) . "/languages"
         );
-    },
-    5
+    }
 );
 
 /**
