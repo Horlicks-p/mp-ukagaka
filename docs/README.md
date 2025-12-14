@@ -21,6 +21,7 @@
 | [API 參考](./API_REFERENCE.md) | 函數、Hooks、AJAX 端點詳細參考 | 開發者 |
 | [Canvas 動畫與 CSS 自訂](./CANVAS_CUSTOMIZATION.md) | Canvas 動畫功能說明與 CSS 位置調整指南 | 開發者、進階使用者 |
 | [Slimstat 調試指南](./DEBUG_SLIMSTAT.md) | Slimstat API 整合調試方法 | 開發者 |
+| [品質檢查與建議清單](./QUALITY_CHECKLIST.md) | 發佈前必測項目與 AI/LLM 設定建議 | 測試人員、維運 |
 
 ---
 
