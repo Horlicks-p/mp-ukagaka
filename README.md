@@ -179,8 +179,8 @@ Modules are loaded in dependency order:
 
 1. **Enable AI Features**
    - Navigate to Settings → MP Ukagaka → General Settings
-   - Find the "AI 設定 (Context Awareness)" section
-   - Check "啟用 AI 頁面感知"
+   - Find the "AI Setting (Context Awareness)" section
+   - Check "Enable context awareness (requires AI API Key)"
 
 ### Local LLM (Ollama) Setup (BETA)
 
@@ -194,8 +194,8 @@ Modules are loaded in dependency order:
 
 2. **Configure Plugin Settings**
 
-   - Navigate to Settings → MP Ukagaka → LLM 設定
-   - Check "啟用 LLM (Ollama)"
+   - Navigate to Settings → MP Ukagaka → LLM Setting
+   - Check "Enable LLM (Ollama)"
    - Enter Ollama endpoint:
      - **Local**: `http://localhost:11434` (default)
      - **Remote**: `https://your-domain.com` (Cloudflare Tunnel, ngrok, etc.)
@@ -205,7 +205,7 @@ Modules are loaded in dependency order:
 
    - **Replace Built-in Dialogues**: Enable to use LLM-generated dialogues instead of static ones
    - **Disable Thinking Mode**: Recommended for Qwen3 models to improve response speed
-   - **Test Connection**: Use the "測試 Ollama 連接" button to verify setup
+   - **Test Connection**: Use the "Test Connection" button to verify setup
 
 4. **Remote Connection (Cloudflare Tunnel)**
 
@@ -254,7 +254,7 @@ Modules are loaded in dependency order:
    - Requires Slimstat plugin for enhanced visitor tracking
 
 8. **Save Settings**
-   - Click "儲存" (Save) button
+   - Click "Save" (Save) button
    - Test on a single post page to verify AI responses
 
 ## 🔧 Advanced Features
@@ -282,6 +282,28 @@ You can load dialogues from external files (TXT or JSON format):
   "messages": ["對話1", "對話2", "對話3"]
 }
 ```
+
+### Special Codes
+
+You can use special codes in your dialog files to display dynamic content:
+
+| Code | Description |
+|------|-------------|
+| `:recentpost[n]:` | Display a list of the n most recent posts (as clickable links) |
+| `:randompost[n]:` | Display a list of n random posts (as clickable links) |
+| `:commenters[n]:` | Display the n most recent commenters (as clickable links if they have websites) |
+
+**Usage Examples:**
+
+```
+Recent post：:recentpost[3]:
+
+Random post：:randompost[5]:
+
+Recent commenters：:commenters[5]:
+```
+
+> 📌 **Note**: Special codes are processed on the server side and converted to HTML links before being sent to the frontend. These codes work in both TXT and JSON format dialog files. The old format `(:recentpost[5]:)` with parentheses is also supported for backward compatibility.
 
 ### Page Triggers
 
@@ -551,9 +573,10 @@ For detailed information, see [Canvas Customization Guide](docs/CANVAS_CUSTOMIZA
   - Automatic folder detection for animation sequences
   - Animation plays only when character is speaking (saves resources)
   - Backward compatible with single static images
-  - Frame rate: 100ms per frame
+  - Frame rate: 180ms per frame
   - Supported formats: PNG, JPG, JPEG, GIF, WebP
   - See [Canvas Customization Guide](docs/CANVAS_CUSTOMIZATION.md) for details
+  - Visit the author's website at [www.moelog.com](https://www.moelog.com/) to see how it works in action
 - ✨ **LLM**: WordPress information integration - LLM can now access and comment on site information
   - WordPress version, theme name/version/author, PHP version, site name
   - Site statistics: post count, comment count, category count, tag count, days of operation

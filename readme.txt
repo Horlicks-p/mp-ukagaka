@@ -1,7 +1,7 @@
 === MP-Ukagaka ===
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
-Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Context Awareness），支援 Gemini、OpenAI、Claude 多提供商。API Key 加密存儲、安全文件操作。
+Description: Create your own ukagakas. Supports reading dialogues from dialogs/*.txt or *.json. Added AI-powered context awareness, supporting multiple providers including Gemini, OpenAI, and Claude. API keys are stored encrypted and files are operated securely.
 Version: 2.1.6
 Requires at least: 5.0
 Tested up to: 6.4
@@ -66,12 +66,12 @@ Visit the [Maintainer's Blog](https://www.moelog.com/) for more information.
 = How do I enable AI Context Awareness? =
 
 1. Go to 'Settings → MP Ukagaka → General Settings'
-2. Find the "AI 設定 (Context Awareness)" section
-3. Check "啟用 AI 頁面感知"
+2. Find the "AI Setting (Context Awareness)" section
+3. Check "Enable context awareness (requires AI API Key)"
 4. Select an AI provider (Gemini, OpenAI, or Claude)
 5. Enter your API key for the selected provider
 6. Configure other AI settings (language, system prompt, probability, etc.)
-7. Click "儲存" to save your settings
+7. Click "Save" to save your settings
 
 = What AI providers are supported? =
 
@@ -94,7 +94,7 @@ This helps control API costs while still providing occasional AI responses.
 
 = Why does my AI conversation get replaced by auto-talk? =
 
-Use the "AI 對話顯示時間（秒）" setting to prevent this. When an AI conversation is displayed, auto-talk is automatically paused for the specified duration. After the duration ends, auto-talk resumes. Recommended value: 5-10 seconds.
+Use the "AI Dialog Display Time (seconds)" setting to prevent this. When an AI conversation is displayed, auto-talk is automatically paused for the specified duration. After the duration ends, auto-talk resumes. Recommended value: 5-10 seconds.
 
 = Can I use external dialog files? =
 
@@ -102,6 +102,24 @@ Yes! The plugin supports loading dialog messages from external files:
 * Format: TXT or JSON
 * Location: `dialogs/` folder in the plugin directory
 * File naming: Match your ukagaka's `dialog_filename` setting
+
+= What special codes can I use in dialog files? =
+
+You can use special codes to display dynamic content in your dialogs:
+
+* `:recentpost[n]:` - Display a list of the n most recent posts (as clickable links)
+* `:randompost[n]:` - Display a list of n random posts (as clickable links)
+* `:commenters[n]:` - Display the n most recent commenters (as clickable links if they have websites)
+
+Example:
+```
+Recent post：:recentpost[3]:
+Random post：:randompost[5]:
+Recent commenters：:commenters[5]:
+
+```
+
+Special codes are processed on the server side and converted to HTML links. Both formats `:recentpost[5]:` and `(:recentpost[5]:)` are supported.
 
 Visit the [Maintainer's Blog](https://www.moelog.com/) for more information.
 
@@ -136,9 +154,10 @@ This plugin uses a modular architecture for better maintainability:
   * Automatic folder detection for animation sequences
   * Animation plays only when character is speaking (saves resources)
   * Backward compatible with single static images
-  * Frame rate: 100ms per frame
+  * Frame rate: 180ms per frame
   * Supported formats: PNG, JPG, JPEG, GIF, WebP
   * See docs/CANVAS_CUSTOMIZATION.md for detailed documentation
+  * Visit the author's website at www.moelog.com to see how it works in action
 * [NEW] WordPress information integration for LLM dialogues
   * LLM can now access WordPress version, theme info, PHP version, site statistics
   * New prompt categories: wordpress_info and statistics
