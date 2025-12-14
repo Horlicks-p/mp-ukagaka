@@ -48,6 +48,7 @@ mp-ukagaka/
 ├── options_page_ai.php     # AI 功能設定頁面
 ├── options_page_llm.php    # LLM 功能設定頁面（BETA）
 ├── ukagaka-core.js         # 前端核心 JS（訊息顯示、春菜切換等）
+├── ukagaka-anime.js        # Canvas 動畫管理器（圖片序列播放）
 ├── ukagaka-features.js     # 前端功能 JS（AI 頁面感知、首次訪客打招呼等）
 ├── ukagaka_cookie.js       # Cookie 工具（訪客追蹤）
 ├── mpu_style.css           # 前端樣式表
@@ -85,6 +86,7 @@ $admin_modules = [
 ```
 
 **載入時機：**
+
 - 所有核心模組在 `plugins_loaded` action（優先級 1）載入
 - 前端模組僅在 `!is_admin()` 時載入
 - 後台模組僅在 `is_admin()` 時載入
@@ -815,6 +817,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 取得下一條訊息。
 
 **請求：**
+
 ```javascript
 {
     action: 'mpu_nextmsg',
@@ -825,6 +828,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 ```
 
 **回應：**
+
 ```javascript
 {
     success: true,
@@ -840,6 +844,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 切換春菜。
 
 **請求：**
+
 ```javascript
 {
     action: 'mpu_change',
@@ -848,6 +853,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 ```
 
 **回應：**
+
 ```javascript
 {
     success: true,
@@ -866,6 +872,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 測試 Ollama 連接。
 
 **請求：**
+
 ```javascript
 {
     action: 'mpu_test_ollama_connection',
@@ -876,6 +883,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 ```
 
 **回應（成功）：**
+
 ```javascript
 {
     success: true,
@@ -884,6 +892,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 ```
 
 **回應（失敗）：**
+
 ```javascript
 {
     success: false,
@@ -896,6 +905,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 載入外部對話檔案。
 
 **請求：**
+
 ```javascript
 {
     action: 'mpu_load_dialog',
@@ -905,6 +915,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 ```
 
 **回應：**
+
 ```javascript
 {
     success: true,
@@ -919,6 +930,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 AI 頁面感知對話。
 
 **請求：**
+
 ```javascript
 {
     action: 'mpu_ai_context_chat',
@@ -929,6 +941,7 @@ AI 頁面感知對話。
 ```
 
 **回應：**
+
 ```javascript
 {
     success: true,
@@ -943,6 +956,7 @@ AI 頁面感知對話。
 取得訪客資訊（需要 Slimstat）。
 
 **請求：**
+
 ```javascript
 {
     action: 'mpu_get_visitor_info',
@@ -951,6 +965,7 @@ AI 頁面感知對話。
 ```
 
 **回應：**
+
 ```javascript
 {
     success: true,
@@ -967,6 +982,7 @@ AI 頁面感知對話。
 AI 首次訪客打招呼。
 
 **請求：**
+
 ```javascript
 {
     action: 'mpu_ai_greet',
@@ -976,6 +992,7 @@ AI 首次訪客打招呼。
 ```
 
 **回應：**
+
 ```javascript
 {
     success: true,
@@ -1066,6 +1083,39 @@ function mpu_triggerAIGreeting()
  * @param {number} duration - 暫停時間（毫秒）
  */
 function mpu_pauseAutoTalk(duration)
+
+### Canvas 動畫函數 (ukagaka-anime.js)
+
+```javascript
+/**
+ * 全域 Canvas 管理器物件
+ */
+window.mpuCanvasManager = {
+    /**
+     * 初始化 Canvas
+     * @param {object} shellInfo - 圖片或資料夾資訊
+     * @param {string} name - 春菜名稱
+     */
+    init: function(shellInfo, name),
+
+    /**
+     * 開始播放動畫
+     */
+    playAnimation: function(),
+
+    /**
+     * 停止播放動畫
+     */
+    stopAnimation: function(),
+
+    /**
+     * 檢查是否為動畫模式
+     * @return {boolean}
+     */
+    isAnimationMode: function()
+};
+```
+
 ```
 
 ---
@@ -1242,4 +1292,3 @@ sprintf(__('歡迎 %s', 'mp-ukagaka'), $name)
 ---
 
 **Happy Coding! 🎉**
-

@@ -358,24 +358,27 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
             "いつも通り挨拶する",
             "久しぶりに会った人に軽く声をかける",
             "管理人に代わり挨拶する",
+            "会話例をそのまま言う",
         ],
         // 閒聊類
         'casual' => [
             "ふと思いついた有名人の名言を言う",
+            "任意アニメキャラの名言を言う",
             "淡々とした日常の言葉を言う",
             "どうでもいい小さなことを話す",
             "思い出したことをそのまま言う",
             "特に目的のない言葉を言う",
             "ふと思いついた魔族への恨みを言う",
-            "ふと思いついた会話例をそのまま言う",
+            "会話例をそのまま言う",
         ],
         // 觀察思考類
         'observation' => [
             "さっき気づいたことを言う",
+            "会話例をそのまま言う",
             "静かな観察を共有する",
-            "今浮かんだ考えを話す",
+            "今浮かんだPHPの関数を説明する",
             "軽く感じたことを表現する",
-            "ふと思いついたこと重要な人物へ記憶を言う",
+            "ふと思いついたこと仲間への記憶を言う",
             "管理人についてを揶揄う",
             "魔法を研究している時のように、ふと思いついたことを言う",
         ],
@@ -385,6 +388,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
             "{$time_context}の時間帯に、軽く何か言う",
             "{$time_context}の雰囲気に合わせて、一言言う",
             "長い旅を経たことを思い出し、今の時間に合わせて、一言言う",
+            "会話例をそのまま言う",
         ],
         // WordPress 資訊類
         'wordpress_info' => [
@@ -439,7 +443,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     if (!empty($last_response)) {
         $last_response_escaped = esc_attr($last_response);
         // 使用日語指令，符合角色風格
-        $user_prompt .= "\n\n注意：さっき「{$last_response_escaped}」と言った。新しいことがなければ、違う短い一言を言うか、何も言わないで（何も出力しない）。同じことを繰り返さないこと。";
+        $user_prompt .= "\n\n注意：さっき「{$last_response_escaped}」と言ったため、新しいことがなければ、違う短い一言を言うか、何も言わないで（何も出力しない）。同じことを繰り返さないこと。";
     }
 
     // 調用 Ollama API
