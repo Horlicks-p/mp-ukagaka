@@ -257,10 +257,10 @@ PHP 函數 `mpu_get_shell_info($num)` 負責：
 
 ### Q: 可以調整動畫播放速度嗎？
 
-**A:** 目前動畫幀間隔固定為 100 毫秒/幀。如需調整，可修改 `ukagaka-anime.js` 中的 `frameInterval` 屬性：
+**A:** 目前動畫幀間隔固定為 180 毫秒/幀。如需調整，可修改 `ukagaka-anime.js` 中的 `frameInterval` 屬性：
 
 ```javascript
-frameInterval: 100, // 改為其他數值（單位：毫秒）
+frameInterval: 180, // 改為其他數值（單位：毫秒）
 ```
 
 ### Q: CSS 修改後沒有生效？
