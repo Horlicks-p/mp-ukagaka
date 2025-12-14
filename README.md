@@ -73,7 +73,7 @@ The plugin now supports local LLM integration via Ollama, allowing you to genera
 - Install and run [Ollama](https://ollama.ai/) locally or on a remote server
 - Download desired models (e.g., `ollama pull qwen3:8b`)
 - Configure endpoint URL in plugin settings (local: `http://localhost:11434` or remote: `https://your-domain.com`)
-- For detailed setup instructions, please refer to [USER_GUIDE.md](/docs/USER_GUIDE.md)
+- For detailed setup instructions, please refer to [USER_GUIDE.md](/docs-en/USER_GUIDE.md)
 
 **Current Limitations:**
 
@@ -561,7 +561,7 @@ The plugin uses cookies to detect first-time visitors. If Slimstat plugin is ins
 - **Frame Rate**: Fixed 100ms per frame for smooth animation
 - **Supported Formats**: PNG, JPG, JPEG, GIF, WebP
 
-For detailed information, see [Canvas Customization Guide](docs/CANVAS_CUSTOMIZATION.md).
+For detailed information, see [Canvas Customization Guide](docs-en/CANVAS_CUSTOMIZATION.md).
 
 ## 📜 Changelog
 
@@ -575,7 +575,7 @@ For detailed information, see [Canvas Customization Guide](docs/CANVAS_CUSTOMIZA
   - Backward compatible with single static images
   - Frame rate: 180ms per frame
   - Supported formats: PNG, JPG, JPEG, GIF, WebP
-  - See [Canvas Customization Guide](docs/CANVAS_CUSTOMIZATION.md) for details
+  - See [Canvas Customization Guide](docs-en/CANVAS_CUSTOMIZATION.md) for details
   - Visit the author's website at [www.moelog.com](https://www.moelog.com/) to see how it works in action
 - ✨ **LLM**: WordPress information integration - LLM can now access and comment on site information
   - WordPress version, theme name/version/author, PHP version, site name
