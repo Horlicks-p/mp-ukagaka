@@ -159,13 +159,13 @@ function mpu_html($num = false)
                     </a>
                 </div>
             </div>
-            <div id="ukagaka_img"><img id="cur_ukagaka" title="' .
-        mpu_output_filter($ukagaka["name"]) .
-        '" alt="' .
-        mpu_output_filter($ukagaka["name"]) .
-        '" src="' .
-        esc_url(mpu_get_shell($ukagaka_num, false)) .
-        '" /></div>
+            <div id="ukagaka_img"><canvas id="cur_ukagaka" data-title="' .
+        esc_attr(mpu_output_filter($ukagaka["name"])) .
+        '" data-alt="' .
+        esc_attr(mpu_output_filter($ukagaka["name"])) .
+        '" data-shell="' .
+        esc_attr(mpu_get_shell($ukagaka_num, false)) .
+        '"></canvas></div>
             <div id="ukagaka_num" style="display:none;">' .
         $ukagaka_num .
         '</div>
@@ -232,11 +232,19 @@ function mpu_enqueue_frontend_assets()
         MPU_VERSION,
         true // 在頁尾載入
     );
-    // 再載入功能模組（依賴核心文件）
+    // 再載入動畫模組（依賴核心文件）
+    wp_enqueue_script(
+        'mpu-ukagaka-anime',
+        plugins_url('ukagaka-anime.js', $main_file),
+        array('jquery', 'mpu-ukagaka-core'), // 依賴 jQuery 和核心文件
+        MPU_VERSION,
+        true // 在頁尾載入
+    );
+    // 最後載入功能模組（依賴核心文件和動畫模組）
     wp_enqueue_script(
         'mpu-ukagaka-features',
         plugins_url('ukagaka-features.js', $main_file),
-        array('jquery', 'mpu-ukagaka-core'), // 依賴 jQuery 和核心文件
+        array('jquery', 'mpu-ukagaka-core', 'mpu-ukagaka-anime'), // 依賴 jQuery、核心文件和動畫模組
         MPU_VERSION,
         true // 在頁尾載入
     );
@@ -280,9 +288,20 @@ function mpu_head()
     echo "    ollama_replace: " . ($ollama_replace ? 'true' : 'false') . "\n";
     echo "};\n";
 
+    // 獲取當前春菜的 shell_info 用於初始化 Canvas
+    $ukagaka_num = $mpu_opt["cur_ukagaka"] ?? "default_1";
+    $shell_info = mpu_get_shell_info($ukagaka_num);
+    $ukagaka_name = $mpu_opt["ukagakas"][$ukagaka_num]["name"] ?? "";
+
     // mpu_getCookie 在 footer 載入，需在 DOM ready 後執行
     echo '
     jQuery(document).ready(function($) {
+        // 初始化 Canvas（延遲執行，確保 Canvas 元素已存在）
+        if (typeof window.mpuCanvasManager !== "undefined" && $("#cur_ukagaka").length > 0) {
+            var shellInfo = ' . wp_json_encode($shell_info) . ';
+            window.mpuCanvasManager.init(shellInfo, ' . wp_json_encode($ukagaka_name) . ');
+        }
+        
         var showRobot = mpu_getCookie("mpuRobot");
         var showMsg   = mpu_getCookie("mpuMsg");
         if (showRobot==null) {';

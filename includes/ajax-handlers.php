@@ -28,18 +28,20 @@ function mpu_ajax_nextmsg()
     // 檢查是否啟用了「使用 LLM 取代內建對話」
     $is_llm_enabled = mpu_is_llm_replace_dialogue_enabled();
 
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log('MP Ukagaka - mpu_ajax_nextmsg: is_llm_enabled = ' . ($is_llm_enabled ? 'true' : 'false'));
-        error_log('MP Ukagaka - mpu_ajax_nextmsg: ai_provider = ' . ($mpu_opt['ai_provider'] ?? 'not set'));
-        error_log('MP Ukagaka - mpu_ajax_nextmsg: ollama_replace_dialogue = ' . (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue'] ? 'true' : 'false'));
-    }
+    // 調試日誌已移除，避免 debug.log 中出現過多訊息
+    // 如需調試，可臨時取消以下註釋：
+    // if (defined('WP_DEBUG') && WP_DEBUG) {
+    //     error_log('MP Ukagaka - mpu_ajax_nextmsg: is_llm_enabled = ' . ($is_llm_enabled ? 'true' : 'false'));
+    //     error_log('MP Ukagaka - mpu_ajax_nextmsg: ai_provider = ' . ($mpu_opt['ai_provider'] ?? 'not set'));
+    //     error_log('MP Ukagaka - mpu_ajax_nextmsg: ollama_replace_dialogue = ' . (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue'] ? 'true' : 'false'));
+    // }
 
     if ($is_llm_enabled) {
         // 獲取上一次回應（從 GET 參數或 Cookie 中獲取，用於避免重複對話）
-        $last_response = isset($_GET['last_response']) 
-            ? sanitize_text_field($_GET['last_response']) 
+        $last_response = isset($_GET['last_response'])
+            ? sanitize_text_field($_GET['last_response'])
             : '';
-        
+
         // 使用 LLM 生成對話
         $llm_msg = mpu_generate_llm_dialogue($cur_num, $last_response);
 
@@ -126,6 +128,8 @@ function mpu_ajax_change()
         "msg" => [],
     ];
     $temp["shell"] = $mpu_opt["ukagakas"][$mpu_num]["shell"];
+    // 新增 shell_info 欄位
+    $temp["shell_info"] = mpu_get_shell_info($mpu_num);
     $temp["msg"] = ""; // 前端會透過 loadExternalDialog 載入實際對話
     $temp["name"] = $mpu_opt["ukagakas"][$mpu_num]["name"];
     $temp["num"] = $mpu_num;
@@ -320,6 +324,34 @@ function mpu_ajax_chat_context()
 
     // 構建提示詞
     $system_prompt = $mpu_opt["ai_system_prompt"] ?? "你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。";
+
+    // 獲取當前用戶資訊並添加到 system prompt
+    $user_info = mpu_get_current_user_info();
+    if ($user_info['is_logged_in']) {
+        $user_context = "\n\n【當前用戶資訊】\n";
+        $user_context .= "當前用戶已登入 WordPress。\n";
+        $user_context .= "用戶名稱: {$user_info['display_name']} ({$user_info['username']})\n";
+        if (!empty($user_info['primary_role'])) {
+            $role_labels = [
+                'administrator' => '管理員',
+                'editor' => '編輯',
+                'author' => '作者',
+                'contributor' => '投稿者',
+                'subscriber' => '訂閱者',
+            ];
+            $role_label = isset($role_labels[$user_info['primary_role']])
+                ? $role_labels[$user_info['primary_role']]
+                : $user_info['primary_role'];
+            $user_context .= "用戶角色: {$role_label}\n";
+        }
+        if ($user_info['is_admin']) {
+            $user_context .= "此用戶是網站管理員。\n";
+        }
+        $system_prompt .= $user_context;
+    } else {
+        $system_prompt .= "\n\n【當前用戶資訊】\n當前用戶未登入 WordPress（訪客）。\n";
+    }
+
     $language = $mpu_opt["ai_language"] ?? "zh-TW";
 
     $user_prompt = "文章標題：{$page_title}\n\n文章內容摘要：{$page_content}";
@@ -522,10 +554,42 @@ function mpu_ajax_chat_greet()
 
     // 構建提示詞
     $system_prompt = $mpu_opt["ai_greet_prompt"] ?? "你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。";
+
+    // 獲取當前用戶資訊並添加到 system prompt
+    $user_info = mpu_get_current_user_info();
+    if ($user_info['is_logged_in']) {
+        $user_context = "\n\n【當前用戶資訊】\n";
+        $user_context .= "當前用戶已登入 WordPress。\n";
+        $user_context .= "用戶名稱: {$user_info['display_name']} ({$user_info['username']})\n";
+        if (!empty($user_info['primary_role'])) {
+            $role_labels = [
+                'administrator' => '管理員',
+                'editor' => '編輯',
+                'author' => '作者',
+                'contributor' => '投稿者',
+                'subscriber' => '訂閱者',
+            ];
+            $role_label = isset($role_labels[$user_info['primary_role']])
+                ? $role_labels[$user_info['primary_role']]
+                : $user_info['primary_role'];
+            $user_context .= "用戶角色: {$role_label}\n";
+        }
+        if ($user_info['is_admin']) {
+            $user_context .= "此用戶是網站管理員。\n";
+        }
+        $system_prompt .= $user_context;
+    } else {
+        $system_prompt .= "\n\n【當前用戶資訊】\n當前用戶未登入 WordPress（訪客）。\n";
+    }
+
     $language = $mpu_opt["ai_language"] ?? "zh-TW";
 
     // 構建用戶提示詞
     $user_prompt = "有訪客第一次來到網站。";
+    // 如果是登入用戶，在提示詞中特別說明
+    if ($user_info['is_logged_in']) {
+        $user_prompt .= "（這是登入用戶「{$user_info['display_name']}」）";
+    }
     if ($is_direct) {
         $user_prompt .= "訪客是直接輸入網址或從書籤訪問的（沒有來源網頁）。";
     } else if (!empty($search_engine)) {

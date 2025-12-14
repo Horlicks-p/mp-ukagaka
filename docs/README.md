@@ -19,6 +19,7 @@
 |-----|------|---------|
 | [開發者指南](./DEVELOPER_GUIDE.md) | 架構說明、模組結構、擴展開發 | 開發者 |
 | [API 參考](./API_REFERENCE.md) | 函數、Hooks、AJAX 端點詳細參考 | 開發者 |
+| [Canvas 動畫與 CSS 自訂](./CANVAS_CUSTOMIZATION.md) | Canvas 動畫功能說明與 CSS 位置調整指南 | 開發者、進階使用者 |
 | [Slimstat 調試指南](./DEBUG_SLIMSTAT.md) | Slimstat API 整合調試方法 | 開發者 |
 
 ---
@@ -31,6 +32,8 @@
 - [如何創建新春菜？](./USER_GUIDE.md#創建新春菜)
 - [如何設定 AI 功能？](./USER_GUIDE.md#ai-功能設定)
 - [如何添加外部對話檔案？](./USER_GUIDE.md#外部對話檔案格式)
+- [如何設定 Canvas 動畫？](./CANVAS_CUSTOMIZATION.md#動畫設定方式)
+- [如何調整春菜位置？](./CANVAS_CUSTOMIZATION.md#css-位置調整)
 
 ### 開發任務
 

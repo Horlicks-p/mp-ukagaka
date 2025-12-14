@@ -209,6 +209,26 @@ function mpu_typewriter(text, target, speed) {
     let currentHTML = '';
     let pendingUpdate = false;
     let rafId = null;
+    let animationTriggered = false; // 標記動畫是否已觸發
+
+    // 檢查是否為系統訊息（不觸發動畫的訊息）
+    const systemMessages = [
+        '（えっと…何話せばいいかな…）',
+        '…ああ、記事か。どれどれ…',
+        '（思考中…）'
+    ];
+    
+    // 提取純文字內容（去除 HTML 標籤）用於檢查
+    let plainText = text.replace(/<[^>]*>/g, '').trim();
+    const isSystemMessage = systemMessages.some(function(msg) {
+        return plainText.indexOf(msg) !== -1;
+    });
+
+    // 在打字效果開始時觸發 Canvas 動畫（排除系統訊息）
+    if (typeof window.mpuCanvasManager !== 'undefined' && !animationTriggered && !isSystemMessage) {
+        animationTriggered = true;
+        window.mpuCanvasManager.playAnimation();
+    }
 
     /**
      * 批量更新 DOM（使用 requestAnimationFrame 優化渲染時機）
@@ -236,6 +256,8 @@ function mpu_typewriter(text, target, speed) {
                 rafId = null;
             }
             mpuTypewriterTimer = null;
+            // 重置動畫觸發標記
+            animationTriggered = false;
             return;
         }
 
@@ -968,39 +990,51 @@ function mpuChange(num) {
             // 分支 B: 切換人物（提供人物編號，回傳 JSON）
             if (typeof res !== 'object') throw new Error("Expected JSON, got HTML.");
             const payload = res || {};
-            const $img = jQuery("#cur_ukagaka");
+            const $canvas = jQuery("#cur_ukagaka");
             const $wrap = jQuery("#ukagaka");
 
-            if (payload.shell) {
-                const pre = new Image();
-                pre.onload = function () {
-                    $img.fadeOut(120, function () {
-                        $img.attr({
-                            "src": payload.shell,
-                            "alt": payload.name || $img.attr("alt") || "",
-                            "title": payload.name || $img.attr("title") || ""
-                        }).fadeIn(180);
+            // 使用 Canvas 管理器初始化圖片
+            if (payload.shell_info && typeof window.mpuCanvasManager !== 'undefined') {
+                const $imgWrapper = jQuery("#ukagaka_img");
+                $imgWrapper.fadeOut(120, function () {
+                    window.mpuCanvasManager.init(payload.shell_info, payload.name || '');
+                    $imgWrapper.fadeIn(180);
+                });
+            } else if (payload.shell) {
+                // 向後兼容：如果沒有 shell_info，嘗試使用 Canvas 管理器載入單張圖片
+                if (typeof window.mpuCanvasManager !== 'undefined') {
+                    const $imgWrapper = jQuery("#ukagaka_img");
+                    $imgWrapper.fadeOut(120, function () {
+                        window.mpuCanvasManager.init({
+                            type: 'single',
+                            url: payload.shell,
+                            images: []
+                        }, payload.name || '');
+                        $imgWrapper.fadeIn(180);
                     });
-                };
-                pre.onerror = function () {
+                } else {
+                    // 如果 Canvas 管理器不存在，顯示錯誤
                     mpu_handle_error(
-                        `圖片載入失敗: ${payload.shell}`,
-                        'mpuChange:image_load',
+                        'Canvas 管理器未載入',
+                        'mpuChange:canvas_manager',
                         {
                             showToUser: true,
-                            userMessage: "載入圖片失敗，稍後再試。"
+                            userMessage: "動畫模組載入失敗，請刷新頁面。"
                         }
                     );
-                };
-                pre.src = payload.shell;
+                }
             }
 
             if (payload.num) jQuery("#ukagaka_num").html(payload.num);
             if (payload.msg) mpu_typewriter(mpu_unescapeHTML(payload.msg), "#ukagaka_msg");
-            if (payload.name) $img.attr({ "alt": payload.name, "title": payload.name });
+            if (payload.name && $canvas.length) {
+                $canvas.attr({ "data-alt": payload.name, "title": payload.name });
+            }
 
             const msgListElem = document.getElementById("ukagaka_msglist");
-            if (payload.dialog_filename && msgListElem && msgListElem.getAttribute("data-load-external") === "true") {
+            const useExternalDialog = payload.dialog_filename && msgListElem && msgListElem.getAttribute("data-load-external") === "true";
+            
+            if (useExternalDialog) {
                 const currentFile = msgListElem.getAttribute("data-file") || "";
                 const ext = currentFile.split('.').pop() || "json";
                 const pure = `${payload.dialog_filename}.${ext}`;
@@ -1018,7 +1052,11 @@ function mpuChange(num) {
 
             $wrap.stop(true, true).fadeIn(200);
             mpu_showmsg(300);
-            if (mpuAutoTalk) startAutoTalk();
+            // 注意：如果使用外部對話文件，startAutoTalk 會在 loadExternalDialog 完成後由該函數內部調用
+            // 這裡只在沒有使用外部對話文件時才調用 startAutoTalk，避免重複觸發對話
+            if (mpuAutoTalk && !useExternalDialog) {
+                startAutoTalk();
+            }
             document.body.style.cursor = "auto";
         })
         .catch(error => {

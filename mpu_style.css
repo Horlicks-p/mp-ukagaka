@@ -24,11 +24,17 @@
 
 /* 春菜圖片的樣式 */
 #ukagaka_img {
-    margin-bottom: 0px; /* 向上偏移 10px，與其他元素對齊 */
+    margin-bottom: -10px; /* 向上偏移 10px，與其他元素對齊 */
+
+}
+
+/* 春菜圖片的樣式 */
+#ukagaka_img canvas {
+    opacity: 0.85; /* 透明度 90% */
 }
 
 /* 春菜圖片的懸停效果 */
-#ukagaka_img img:hover {
+#ukagaka_img canvas:hover {
     cursor: pointer; /* 滑鼠懸停時顯示手型 */
 }
 
@@ -36,7 +42,7 @@
 #ukagaka {
     position: relative;
     float: right;
-    padding-right: 60px; /* 右內邊距 60px，留空間給對話框 */
+    padding-right:40px; /* 右內邊距 60px，留空間給對話框 */
 }
 
 /* 對話框頂部的樣式 */
@@ -52,7 +58,7 @@
     font-family: "Noto Sans TC","Noto Sans JP", serif;
     color: #6d6d6d; /* 文字顏色為灰色 */
     top: 50%;       /* 改為 50%，相對於春菜垂直置中 */
-    left: -220px;   /* 向左偏移 220px，顯示在春菜左側 */
+    left: -200px;   /* 向左偏移 220px，顯示在春菜左側 */
     transform: translateY(-50%); /* 使用 transform 實現垂直置中，根據對話框自身高度動態調整 */
     width: 250px;   /* 固定寬度 250px */
     min-height: 50px; /* 最小高度 50px */
@@ -161,7 +167,6 @@
     padding: 0 !important;
     border: none !important;
     background: none !important;
-    vertical-align: baseline !important;
 }
 
 /* 控制面板按鈕共用樣式 - 使用 !important 確保不被主題覆蓋 */
@@ -183,11 +188,6 @@
     transition: none !important;
 }
 
-/* "回到頂部" 按鈕位置 */
-#mp_ukagaka #ukagaka-dock ul li.gotop a {
-    /* flexbox 自動對齊，不需要額外 margin */
-}
-
 /* "回到頂部" 按鈕的懸停效果 */
 #mp_ukagaka #ukagaka-dock ul li.gotop a:hover,
 #mp_ukagaka #ukagaka-dock ul li.gotop a:focus,
@@ -198,11 +198,6 @@
     background-position: center center !important;
 }
 
-/* "隱藏春菜" 按鈕位置 */
-#mp_ukagaka #ukagaka-dock ul li.hide a {
-    /* flexbox 自動對齊，不需要額外 margin */
-}
-
 /* "隱藏春菜" 按鈕的懸停效果 */
 #mp_ukagaka #ukagaka-dock ul li.hide a:hover,
 #mp_ukagaka #ukagaka-dock ul li.hide a:focus,
@@ -211,11 +206,6 @@
     background-image: url(images/hide.png) !important;
     background-repeat: no-repeat !important;
     background-position: center center !important;
-}
-
-/* "更換春菜" 按鈕位置 */
-#mp_ukagaka #ukagaka-dock ul li.change a {
-    /* flexbox 自動對齊，不需要額外 margin */
 }
 
 /* "更換春菜" 按鈕的懸停效果 */

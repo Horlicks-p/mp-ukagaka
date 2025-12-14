@@ -40,7 +40,7 @@
             <?php _e('您可以在春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。', 'mp-ukagaka'); ?>
             <br />
             <?php _e('更多擴展代碼資訊請參閱：', 'mp-ukagaka'); ?>
-            <a href="https://www.moelog.com/" title="MoeLog"><?php _e('前往維護者網站', 'mp-ukagaka'); ?></a>
+            <a href="https://github.com/Horlicks-p/mp-ukagaka/tree/main/docs" target="_blank" title="MP Ukagaka 文檔中心">MP Ukagaka 文檔中心</a>
         </p>
     </form>
 </div>

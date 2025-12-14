@@ -16,7 +16,7 @@
 
         <!-- 輸入欄：春菜吐槽內容 -->
         <p>
-            <label><?php _e('吐槽：', 'mp-ukagaka'); ?><br /><textarea name="ukagaka[msg]" rows="5" cols="40" class="resizable" style="line-height:130%;"></textarea></label><br />
+            <label><?php _e('吐槽：', 'mp-ukagaka'); ?><br /><textarea name="ukagaka[msg]" rows="5" cols="60" class="resizable" style="line-height:130%;"></textarea></label><br />
             <?php _e('每行一條吐槽，不可使用 HTML 代碼。', 'mp-ukagaka'); ?>
         </p>
 

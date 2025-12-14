@@ -37,7 +37,7 @@
                   <!-- 輸入欄：春菜圖片 URL -->
                   <p><label><?php _e('圖片：', 'mp-ukagaka'); ?><br /><input type="text" name="ukagakas[<?php echo $key; ?>][shell]" value="<?php echo mpu_output_filter($value['shell']); ?>" size="45" /></label></p>
 
-                  <p><label><?php _e('吐槽：', 'mp-ukagaka'); ?><br /><textarea name="ukagakas[<?php echo $key; ?>][msg]" rows="3" cols="40" class="resizable" style="line-height:130%;"><?php echo esc_textarea(mpu_array2str($value['msg'])); ?></textarea></label></p>
+                  <p><label><?php _e('吐槽：', 'mp-ukagaka'); ?><br /><textarea name="ukagakas[<?php echo $key; ?>][msg]" rows="3" cols="60" class="resizable" style="line-height:130%;"><?php echo esc_textarea(mpu_array2str($value['msg'])); ?></textarea></label></p>
                   <!-- 輸入欄：對話檔案名稱 -->
                   <p><label><?php _e('對話檔案名稱：', 'mp-ukagaka'); ?><br /><input type="text" name="ukagakas[<?php echo $key; ?>][dialog_filename]" value="<?php echo isset($value['dialog_filename']) ? mpu_output_filter($value['dialog_filename']) : $key; ?>" size="45" /></label><br />
                       <?php _e('此名稱將用於外部對話檔案，例如：asuna.txt 或 asuna.json', 'mp-ukagaka'); ?></p>

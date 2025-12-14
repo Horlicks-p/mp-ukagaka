@@ -393,22 +393,22 @@ function mpu_get_wordpress_info()
     // 使用 transient 緩存，5 分鐘過期（統計資訊不會頻繁變動）
     $cache_key = 'mpu_wordpress_info';
     $cached_info = get_transient($cache_key);
-    
+
     if ($cached_info !== false) {
         return $cached_info;
     }
 
     global $wpdb;
-    
+
     $info = [];
 
     // ========================================
     // 基本系統資訊
     // ========================================
-    
+
     // WordPress 版本
     $info['wp_version'] = get_bloginfo('version');
-    
+
     // 主題資訊
     $theme = wp_get_theme();
     $info['theme_name'] = $theme->get('Name');
@@ -419,33 +419,56 @@ function mpu_get_wordpress_info()
         $info['parent_theme'] = get_template();
     }
     $info['is_block_theme'] = function_exists('wp_is_block_theme') ? wp_is_block_theme() : false;
-    
+
     // 網站資訊
     $info['site_name'] = get_bloginfo('name');
     $info['site_description'] = get_bloginfo('description');
-    
+
     // PHP 版本
     $info['php_version'] = phpversion();
-    
-    // 啟用外掛數量
+
+    // 啟用外掛資訊
     $active_plugins = get_option('active_plugins', []);
     $info['active_plugins_count'] = count($active_plugins);
-    
+
+    // 獲取啟用外掛的名稱列表
+    $info['active_plugins_list'] = [];
+    if (!empty($active_plugins)) {
+        // 確保 get_plugins() 函數可用（需要載入 admin 檔案）
+        if (!function_exists('get_plugins')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        if (function_exists('get_plugins')) {
+            // 獲取所有外掛的詳細資訊
+            $all_plugins = get_plugins();
+            foreach ($active_plugins as $plugin_file) {
+                if (isset($all_plugins[$plugin_file])) {
+                    $plugin_data = $all_plugins[$plugin_file];
+                    // 只儲存外掛名稱（Name）
+                    $info['active_plugins_list'][] = $plugin_data['Name'];
+                }
+            }
+            // 按字母順序排序，方便閱讀
+            sort($info['active_plugins_list']);
+        }
+    }
+
     // 是否為多站點
     $info['is_multisite'] = is_multisite();
 
     // ========================================
     // 統計資訊（遊戲化用語）
     // ========================================
-    
+
     // 攻擊回數（文章篇數）
     $post_counts = wp_count_posts('post');
     $info['post_count'] = isset($post_counts->publish) ? (int) $post_counts->publish : 0;
-    
+
     // 最大傷害（留言數量）
     $comment_counts = wp_count_comments();
     $info['comment_count'] = isset($comment_counts->approved) ? (int) $comment_counts->approved : 0;
-    
+
     // 習得スキル總數（分類數量）
     $category_count = wp_count_terms([
         'taxonomy' => 'category',
@@ -458,7 +481,7 @@ function mpu_get_wordpress_info()
     } else {
         $info['category_count'] = (int) $category_count;
     }
-    
+
     // アイテム使用回數（TAG數量）
     $tag_count = wp_count_terms([
         'taxonomy' => 'post_tag',
@@ -471,7 +494,7 @@ function mpu_get_wordpress_info()
     } else {
         $info['tag_count'] = (int) $tag_count;
     }
-    
+
     // 冒險日數（運營日數）
     // 方法1：查詢最早文章的發布日期（使用直接查詢，因為沒有用戶輸入）
     $first_post = $wpdb->get_row(
@@ -481,7 +504,7 @@ function mpu_get_wordpress_info()
         ORDER BY post_date ASC 
         LIMIT 1"
     );
-    
+
     if ($first_post && !empty($first_post->post_date)) {
         $first_post_date = strtotime($first_post->post_date);
         $now = time();
@@ -501,6 +524,54 @@ function mpu_get_wordpress_info()
 
     // 緩存結果（5 分鐘）
     set_transient($cache_key, $info, 5 * MINUTE_IN_SECONDS);
-    
+
     return $info;
+}
+
+/**
+ * 獲取當前 WordPress 用戶資訊（不緩存，因為每個用戶不同）
+ * 
+ * @return array 當前用戶資訊陣列
+ */
+function mpu_get_current_user_info()
+{
+    $user_info = [];
+
+    // 檢查用戶是否已登入
+    $is_logged_in = is_user_logged_in();
+    $user_info['is_logged_in'] = $is_logged_in;
+
+    if ($is_logged_in) {
+        // 獲取當前用戶對象
+        $current_user = wp_get_current_user();
+
+        // 用戶基本資訊
+        $user_info['user_id'] = $current_user->ID;
+        $user_info['username'] = $current_user->user_login;
+        $user_info['display_name'] = $current_user->display_name;
+        $user_info['email'] = $current_user->user_email;
+
+        // 用戶角色
+        $user_roles = $current_user->roles;
+        $user_info['roles'] = $user_roles;
+        $user_info['primary_role'] = !empty($user_roles) ? $user_roles[0] : '';
+
+        // 是否是管理員
+        $user_info['is_admin'] = current_user_can('manage_options');
+        $user_info['is_editor'] = current_user_can('edit_posts');
+        $user_info['is_author'] = current_user_can('publish_posts');
+    } else {
+        // 未登入用戶
+        $user_info['user_id'] = 0;
+        $user_info['username'] = '';
+        $user_info['display_name'] = '';
+        $user_info['email'] = '';
+        $user_info['roles'] = [];
+        $user_info['primary_role'] = '';
+        $user_info['is_admin'] = false;
+        $user_info['is_editor'] = false;
+        $user_info['is_author'] = false;
+    }
+
+    return $user_info;
 }

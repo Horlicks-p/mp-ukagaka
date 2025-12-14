@@ -277,11 +277,14 @@ if (!$skip_form_processing && isset($_GET['del']) && $_GET['del'] != '') {
 <!-- 自訂樣式：調整文字區域的外觀（保留必要的內聯樣式） -->
 <style type="text/css">
     /* 增加文字區域大小以便於輸入HTML */
+    /* 統一 textarea 寬度，與 System Prompt 保持一致 */
     textarea[name$="[msg]"],
     textarea#common_msg,
-    textarea#auto_msg {
-        width: 500px !important;
-        min-height: 150px;
+    textarea#auto_msg,
+    textarea#ai_system_prompt,
+    textarea#ai_greet_prompt {
+        width: 1000px !important;
+        min-height: 200px;
         resize: both !important;
     }
 

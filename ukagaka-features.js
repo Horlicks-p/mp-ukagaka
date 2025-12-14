@@ -98,23 +98,10 @@ function mpu_chat_context() {
     return;
   }
 
-  // 檢查文章內容長度：小於 500 字時不觸發 AI，使用正常對話系統
+  // 檢查文章內容長度：小於 500 字時不觸發 AI，也不使用正常對話系統
+  // 修正：文字數が少ない場合は何もせず終了する（起動時の対話と重複させないため）
+  // 自動対話がオンであれば、時間が経てば自然に喋り出します
   if (contentLength < 500) {
-    // 使用正常對話系統
-    if (
-      window.mpuMsgList &&
-      Array.isArray(window.mpuMsgList.msg) &&
-      window.mpuMsgList.msg.length > 0
-    ) {
-      const msgArr = window.mpuMsgList.msg;
-      const auto = window.mpuMsgList.auto_msg || "";
-      const randomIdx = Math.floor(Math.random() * msgArr.length);
-      mpu_typewriter(
-        mpu_unescapeHTML(msgArr[randomIdx] + auto),
-        "#ukagaka_msg"
-      );
-      if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
-    }
     return;
   }
 
@@ -535,9 +522,17 @@ function loadExternalDialog(file) {
   document.body.style.cursor = "wait";
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
 
-  // 顯示載入訊息
-  const loadingMessage = "（えっと…何話せばいいかな…）";
-  mpu_typewriter(loadingMessage, "#ukagaka_msg");
+  // 檢查是否已經顯示過初始訊息（避免重複顯示載入訊息）
+  const msgElement = jQuery("#ukagaka_msg");
+  const currentMsg = msgElement.text().trim();
+  const initialMsg = msgElement.attr("data-initial-msg");
+  const hasShownInitialMsg = initialMsg && currentMsg.indexOf(initialMsg) !== -1;
+  
+  // 只有在尚未顯示初始訊息時，才顯示載入訊息
+  if (!hasShownInitialMsg) {
+    const loadingMessage = "（えっと…何話せばいいかな…）";
+    mpu_typewriter(loadingMessage, "#ukagaka_msg");
+  }
 
   mpuFetch(url, {
     cancelPrevious: true, // 取消之前的載入請求
@@ -556,73 +551,84 @@ function loadExternalDialog(file) {
           mpuNextMode = resp.next_msg == 1 ? "random" : "sequential";
           mpuDefaultMsg = resp.default_msg == 1 ? 1 : 0;
 
+          // 防止重複顯示對話的標記（使用閉包變數，確保唯一性）
+          let firstMessageShown = false;
+          let firstMessageTimer = null; // 用於取消待執行的定時器
+          let waitForTypewriterActive = false; // 標記 waitForTypewriter 是否正在運行
+
+          // 顯示第一句對話的函數（統一邏輯，避免重複）
+          const showFirstMessage = function() {
+            // 清除任何待執行的定時器
+            if (firstMessageTimer !== null) {
+              clearTimeout(firstMessageTimer);
+              firstMessageTimer = null;
+            }
+
+            if (firstMessageShown) {
+              mpuLogger.log('loadExternalDialog: 嘗試重複顯示第一句對話，已阻止');
+              return; // 已經顯示過，不再重複
+            }
+            firstMessageShown = true;
+            waitForTypewriterActive = false; // 重置標記
+
+            let first = 0;
+            if (mpuDefaultMsg === 0 && resp.msg.length) {
+              first = Math.floor(Math.random() * resp.msg.length);
+            }
+            mpu_typewriter(
+              mpu_unescapeHTML(resp.msg[first] + (resp.auto_msg || "")),
+              "#ukagaka_msg"
+            );
+            jQuery("#ukagaka_msgnum").html(first);
+
+            // 等待第一句台詞的打字效果完成後，再啟動自動對話計時器
+            const waitForFirstMessageTypewriter = () => {
+              if (mpuTypewriterTimer !== null) {
+                // 打字效果還在進行中，繼續等待
+                setTimeout(waitForFirstMessageTypewriter, 50);
+              } else {
+                // 打字效果已完成，現在啟動自動對話計時器
+                if (mpuAutoTalk) startAutoTalk();
+              }
+            };
+
+            if (mpuAutoTalk) {
+              waitForFirstMessageTypewriter();
+            }
+          };
+
           // 等待打字效果完成後，再延遲 1 秒顯示內建對話
           const waitForTypewriter = () => {
+            if (firstMessageShown) {
+              return; // 已經顯示過，不再執行
+            }
+            
             if (mpuTypewriterTimer !== null) {
               // 打字效果還在進行中，繼續等待
               setTimeout(waitForTypewriter, 50);
             } else {
               // 打字效果已完成，延遲 1 秒後顯示內建對話
-              setTimeout(() => {
-                let first = 0;
-                if (mpuDefaultMsg === 0 && resp.msg.length) {
-                  first = Math.floor(Math.random() * resp.msg.length);
-                }
-                mpu_typewriter(
-                  mpu_unescapeHTML(resp.msg[first] + (resp.auto_msg || "")),
-                  "#ukagaka_msg"
-                );
-                jQuery("#ukagaka_msgnum").html(first);
-
-                // 等待第一句台詞的打字效果完成後，再啟動自動對話計時器
-                const waitForFirstMessageTypewriter = () => {
-                  if (mpuTypewriterTimer !== null) {
-                    // 打字效果還在進行中，繼續等待
-                    setTimeout(waitForFirstMessageTypewriter, 50);
-                  } else {
-                    // 打字效果已完成，現在啟動自動對話計時器
-                    if (mpuAutoTalk) startAutoTalk();
-                  }
-                };
-
-                if (mpuAutoTalk) {
-                  waitForFirstMessageTypewriter();
-                }
-              }, 1000); // 延遲 1 秒
+              // 清除之前的定時器（如果存在）
+              if (firstMessageTimer !== null) {
+                clearTimeout(firstMessageTimer);
+              }
+              firstMessageTimer = setTimeout(showFirstMessage, 1000);
             }
           };
 
           // 如果打字效果還在進行，等待完成；否則延遲 1 秒後顯示
           if (mpuTypewriterTimer !== null) {
-            waitForTypewriter();
+            if (!waitForTypewriterActive) {
+              waitForTypewriterActive = true;
+              waitForTypewriter();
+            }
           } else {
             // 打字效果已完成（可能很快），延遲 1 秒後顯示
-            setTimeout(() => {
-              let first = 0;
-              if (mpuDefaultMsg === 0 && resp.msg.length) {
-                first = Math.floor(Math.random() * resp.msg.length);
-              }
-              mpu_typewriter(
-                mpu_unescapeHTML(resp.msg[first] + (resp.auto_msg || "")),
-                "#ukagaka_msg"
-              );
-              jQuery("#ukagaka_msgnum").html(first);
-
-              // 等待第一句台詞的打字效果完成後，再啟動自動對話計時器
-              const waitForFirstMessageTypewriter = () => {
-                if (mpuTypewriterTimer !== null) {
-                  // 打字效果還在進行中，繼續等待
-                  setTimeout(waitForFirstMessageTypewriter, 50);
-                } else {
-                  // 打字效果已完成，現在啟動自動對話計時器
-                  if (mpuAutoTalk) startAutoTalk();
-                }
-              };
-
-              if (mpuAutoTalk) {
-                waitForFirstMessageTypewriter();
-              }
-            }, 1000); // 延遲 1 秒
+            // 清除之前的定時器（如果存在）
+            if (firstMessageTimer !== null) {
+              clearTimeout(firstMessageTimer);
+            }
+            firstMessageTimer = setTimeout(showFirstMessage, 1000);
           }
         } catch (e) {
           mpu_handle_error(e, "loadExternalDialog:process_data", {
@@ -899,8 +905,13 @@ jQuery(document).ready(function () {
 
   // 點擊春菜圖片
   jQuery("#ukagaka_img").on("click", function () {
-    if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(400);
-    else mpu_nextmsg();
+    if (jQuery("#ukagaka_msgbox").is(":hidden")) {
+      mpu_showmsg(400);
+    } else {
+      // 對話框顯示時，點擊春菜應該隱藏對話框，而不是呼叫下一句台詞
+      // 呼叫下一句台詞僅在於 <a onclick="mpu_nextmsg('')" href="javascript:void(0);" alt="Next">
+      mpu_hidemsg(400);
+    }
   });
 
   // 擴展功能

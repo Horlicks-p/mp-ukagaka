@@ -239,6 +239,9 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     // 獲取 WordPress 網站資訊
     $wp_info = mpu_get_wordpress_info();
 
+    // 獲取當前用戶資訊
+    $user_info = mpu_get_current_user_info();
+
     // 將 WordPress 資訊格式化為背景知識，加入到 system_prompt
     $wp_context = "\n\n【網站資訊】\n";
     $wp_context .= "WordPress 版本: {$wp_info['wp_version']}\n";
@@ -257,6 +260,50 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     $wp_context .= "- TAG數量: {$wp_info['tag_count']}\n";
     if ($wp_info['days_operating'] > 0) {
         $wp_context .= "- 運營日數: {$wp_info['days_operating']}\n";
+    }
+
+    // 啟用外掛資訊
+    if (!empty($wp_info['active_plugins_list'])) {
+        $plugins_count = $wp_info['active_plugins_count'];
+        $plugins_list = $wp_info['active_plugins_list'];
+
+        // 如果外掛太多，只顯示前 20 個（避免 prompt 過長）
+        $max_plugins_display = 20;
+        $display_plugins = array_slice($plugins_list, 0, $max_plugins_display);
+        $plugins_text = implode('、', $display_plugins);
+
+        $wp_context .= "\n啟用外掛（共 {$plugins_count} 個）：\n";
+        $wp_context .= "- {$plugins_text}";
+        if ($plugins_count > $max_plugins_display) {
+            $remaining = $plugins_count - $max_plugins_display;
+            $wp_context .= "\n（還有 {$remaining} 個外掛未列出）";
+        }
+        $wp_context .= "\n";
+    }
+
+    // 用戶資訊
+    $wp_context .= "\n【當前用戶資訊】\n";
+    if ($user_info['is_logged_in']) {
+        $wp_context .= "當前用戶已登入 WordPress。\n";
+        $wp_context .= "用戶名稱: {$user_info['display_name']} ({$user_info['username']})\n";
+        if (!empty($user_info['primary_role'])) {
+            $role_labels = [
+                'administrator' => '管理員',
+                'editor' => '編輯',
+                'author' => '作者',
+                'contributor' => '投稿者',
+                'subscriber' => '訂閱者',
+            ];
+            $role_label = isset($role_labels[$user_info['primary_role']])
+                ? $role_labels[$user_info['primary_role']]
+                : $user_info['primary_role'];
+            $wp_context .= "用戶角色: {$role_label}\n";
+        }
+        if ($user_info['is_admin']) {
+            $wp_context .= "此用戶是網站管理員。\n";
+        }
+    } else {
+        $wp_context .= "當前用戶未登入 WordPress（訪客）。\n";
     }
 
     // 組合完整的 system_prompt
@@ -294,6 +341,13 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     $category_count = $wp_info['category_count'];
     $tag_count = $wp_info['tag_count'];
     $days_operating = $wp_info['days_operating'];
+
+    // 外掛資訊（用於魔法比喻）
+    $plugins_count = $wp_info['active_plugins_count'] ?? 0;
+    $plugins_list = $wp_info['active_plugins_list'] ?? [];
+    // 選擇前 3-5 個外掛名稱作為代表性魔法名稱（避免提示詞過長）
+    $sample_plugins = array_slice($plugins_list, 0, 5);
+    $plugins_names_text = !empty($sample_plugins) ? implode('、', $sample_plugins) : '';
 
     $prompt_categories = [
         // 問候類
@@ -354,9 +408,27 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $prompt_categories['statistics'][] = "管理人、{$days_operating}日も続けているんだね、これについて感想を言う";
     }
 
+    // 外掛資訊（魔法比喻）
+    if ($plugins_count > 0) {
+        // 使用外掛數量作為「習得的魔法數量」
+        $prompt_categories['statistics'][] = "習得した魔法は{$plugins_count}個ある、これについて軽く言う";
+        $prompt_categories['statistics'][] = "{$plugins_count}個の魔法を習得しているんだね、これについて感想を言う";
+
+        // 如果有具體的外掛名稱，使用「魔法名稱」的比喻
+        if (!empty($plugins_names_text)) {
+            $prompt_categories['statistics'][] = "習得している魔法には「{$plugins_names_text}」などがある、これについて軽く言う";
+            $prompt_categories['statistics'][] = "「{$plugins_names_text}」などの魔法を使っているんだね、これについて一言";
+        }
+    }
+
     // 組合多個統計資訊的提示詞
     $prompt_categories['statistics'][] = "このサイトが魔族に遭遇した回数は{$post_count}回、管理人が与えたダメージは{$comment_count}について一言";
     $prompt_categories['statistics'][] = "管理人がアイテムを使用した回数{$tag_count}回、習得したスキルは{$category_count}個について軽く言う";
+
+    // 組合外掛資訊與其他統計的提示詞
+    if ($plugins_count > 0) {
+        $prompt_categories['statistics'][] = "習得したスキルは{$category_count}個、習得した魔法は{$plugins_count}個について軽く言う";
+    }
 
     // 隨機選擇一個類別
     $selected_category = array_rand($prompt_categories);
@@ -402,12 +474,14 @@ function mpu_is_llm_replace_dialogue_enabled()
     $mpu_opt = mpu_get_option();
     $is_enabled = !empty($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ai_provider'] === 'ollama';
 
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log('MP Ukagaka - mpu_is_llm_replace_dialogue_enabled:');
-        error_log('  - ollama_replace_dialogue = ' . (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue'] ? 'true' : 'false'));
-        error_log('  - ai_provider = ' . ($mpu_opt['ai_provider'] ?? 'not set'));
-        error_log('  - 結果 = ' . ($is_enabled ? 'true' : 'false'));
-    }
+    // 調試日誌已移除，避免 debug.log 中出現過多訊息
+    // 如需調試，可臨時取消以下註釋：
+    // if (defined('WP_DEBUG') && WP_DEBUG) {
+    //     error_log('MP Ukagaka - mpu_is_llm_replace_dialogue_enabled:');
+    //     error_log('  - ollama_replace_dialogue = ' . (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue'] ? 'true' : 'false'));
+    //     error_log('  - ai_provider = ' . ($mpu_opt['ai_provider'] ?? 'not set'));
+    //     error_log('  - 結果 = ' . ($is_enabled ? 'true' : 'false'));
+    // }
 
     return $is_enabled;
 }

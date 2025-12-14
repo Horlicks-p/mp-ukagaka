@@ -27,6 +27,12 @@ MP Ukagaka allows you to create custom interactive desktop mascot characters for
 - **Common Messages**: Apply messages to all characters simultaneously
 - **Page Exclusion**: Control where ukagakas appear on your site
 - **Multi-Language**: Supports English, Traditional Chinese, and Japanese
+- **Canvas Animation**: Support for single static images and multi-frame animations
+  - Automatic folder detection for animation sequences
+  - Animation plays only when character is speaking
+  - Frame rate: 100ms per frame
+  - Supported formats: PNG, JPG, JPEG, GIF, WebP
+- **Canvas Animation**: Support for single static images and multi-frame animations
 
 ### 🚀 AI Context Awareness (NEW in v2.0.0)
 
@@ -346,6 +352,7 @@ mp-ukagaka/
 ├── mp-ukagaka.php               # Main plugin file (module loader)
 ├── ukagaka-core.js              # Frontend JavaScript (core functions)
 ├── ukagaka-features.js          # Frontend JavaScript (features & AI)
+├── ukagaka-anime.js             # Canvas animation manager
 ├── ukagaka_cookie.js            # Cookie handling utilities
 ├── mpu_style.css                # Stylesheet
 ├── readme.txt                   # WordPress.org readme
@@ -523,12 +530,30 @@ The plugin uses cookies to detect first-time visitors. If Slimstat plugin is ins
 - Check WordPress error logs for specific errors
 - Ensure PHP version is 7.4 or higher
 
+### 🎨 Canvas Animation (NEW in v2.1.6)
+
+- **Single Image Support**: Backward compatible with existing single image settings
+- **Multi-Frame Animation**: Automatic folder detection and frame animation playback
+- **Smart Animation Control**: Animation only plays when character is speaking
+- **Auto Image Loading**: Automatically loads all images from folder and plays in sequence
+- **Frame Rate**: Fixed 100ms per frame for smooth animation
+- **Supported Formats**: PNG, JPG, JPEG, GIF, WebP
+
+For detailed information, see [Canvas Customization Guide](docs/CANVAS_CUSTOMIZATION.md).
+
 ## 📜 Changelog
 
-### Version 2.1.6 (2025-12-13)
+### Version 2.1.6 (2025-12-14)
 
 **New Features:**
 
+- ✨ **Canvas Animation**: Support for multi-frame character animations
+  - Automatic folder detection for animation sequences
+  - Animation plays only when character is speaking (saves resources)
+  - Backward compatible with single static images
+  - Frame rate: 100ms per frame
+  - Supported formats: PNG, JPG, JPEG, GIF, WebP
+  - See [Canvas Customization Guide](docs/CANVAS_CUSTOMIZATION.md) for details
 - ✨ **LLM**: WordPress information integration - LLM can now access and comment on site information
   - WordPress version, theme name/version/author, PHP version, site name
   - Site statistics: post count, comment count, category count, tag count, days of operation
@@ -626,37 +651,6 @@ The plugin uses cookies to detect first-time visitors. If Slimstat plugin is ins
 **Bug Fixes:**
 
 - 🐛 **FIXED**: LLM enable checkbox state persistence issue
-
-### Version 2.1.1 (2025-11-28)
-
-**Bug Fixes:**
-
-- 🐛 **FIXED**: CSS stability improvements for theme compatibility (Twenty Ten, etc.)
-- 🐛 **FIXED**: Navigation button hover effects now work correctly across all themes
-- 🐛 **FIXED**: Removed focus outline on dialog buttons (OK/Cancel)
-
-**Enhancements:**
-
-- 🔧 **IMPROVED**: Use Flexbox layout for better button alignment
-- 🔧 **IMPROVED**: Added `!important` rules to prevent theme CSS overrides
-- 🔧 **IMPROVED**: Complete CSS reset for dock elements
-
-### Version 2.1.0 (2025-11-26)
-
-**New Features:**
-
-- ✨ **NEW**: Configurable typewriter speed (10-200ms per character)
-- 🔒 **SECURITY**: API keys now encrypted using AES-256-CBC
-- 🔒 **SECURITY**: Secure file operations using WordPress Filesystem API
-- 🔒 **SECURITY**: Directory traversal prevention for file operations
-
-**Enhancements:**
-
-- 🔧 **IMPROVED**: Added visual indicator for configured API keys
-- 🔧 **IMPROVED**: Better error messages for file operations
-- 🔧 **IMPROVED**: Backward compatibility for existing plaintext API keys
-
-### Version 2.0.0 (2025-11-22)
 
 **Architecture Improvements:**
 

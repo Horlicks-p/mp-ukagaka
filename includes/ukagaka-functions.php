@@ -68,6 +68,124 @@ function mpu_get_shell($num = false, $echo = false)
     }
 }
 
+/**
+ * 取得 shell 資訊（單張圖片或資料夾）
+ * @param string|false $num 春菜編號，false 表示使用當前春菜
+ * @return array 包含 type, url, images 的陣列
+ */
+function mpu_get_shell_info($num = false)
+{
+    $mpu_opt = mpu_get_option();
+    $name = $num === false ? $mpu_opt["cur_ukagaka"] ?? "default_1" : $num;
+    $shell = $mpu_opt["ukagakas"][$name]["shell"] ?? "";
+    
+    if (empty($shell)) {
+        return [
+            'type' => 'single',
+            'url' => '',
+            'images' => []
+        ];
+    }
+    
+    // 使用已定義的常量獲取主文件路徑
+    $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
+    $plugin_dir = plugin_dir_path($main_file);
+    $plugin_url = plugin_dir_url($main_file);
+    
+    // 將 URL 轉換為本地路徑
+    $shell_url = $shell;
+    $shell_path = '';
+    
+    // 檢查是否為插件內的 URL
+    if (strpos($shell_url, $plugin_url) === 0) {
+        // 提取相對路徑
+        $relative_path = str_replace($plugin_url, '', $shell_url);
+        $shell_path = $plugin_dir . $relative_path;
+    } else {
+        // 可能是外部 URL，嘗試解析
+        $parsed_url = parse_url($shell_url);
+        if (isset($parsed_url['path'])) {
+            // 嘗試從 WordPress 上傳目錄解析
+            $upload_dir = wp_upload_dir();
+            if (strpos($parsed_url['path'], $upload_dir['baseurl']) === 0) {
+                $relative_path = str_replace($upload_dir['baseurl'], '', $parsed_url['path']);
+                $shell_path = $upload_dir['basedir'] . $relative_path;
+            }
+        }
+    }
+    
+    // 如果無法解析為本地路徑，視為單張圖片
+    if (empty($shell_path) || !file_exists($shell_path)) {
+        return [
+            'type' => 'single',
+            'url' => $shell_url,
+            'images' => []
+        ];
+    }
+    
+    // 檢查是文件還是資料夾
+    if (is_file($shell_path)) {
+        // 單張圖片
+        return [
+            'type' => 'single',
+            'url' => $shell_url,
+            'images' => []
+        ];
+    } elseif (is_dir($shell_path)) {
+        // 資料夾，掃描圖片文件
+        $images = [];
+        $allowed_extensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+        
+        if ($handle = opendir($shell_path)) {
+            while (false !== ($entry = readdir($handle))) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+                
+                $file_path = $shell_path . '/' . $entry;
+                if (!is_file($file_path)) {
+                    continue;
+                }
+                
+                $extension = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+                if (in_array($extension, $allowed_extensions)) {
+                    $images[] = $entry;
+                }
+            }
+            closedir($handle);
+        }
+        
+        // 自然排序圖片文件名
+        if (!empty($images)) {
+            natsort($images);
+            $images = array_values($images); // 重新索引陣列
+        }
+        
+        // 取得資料夾的 URL
+        $folder_url = '';
+        if (strpos($shell_path, $plugin_dir) === 0) {
+            $relative_folder = str_replace($plugin_dir, '', $shell_path);
+            $folder_url = $plugin_url . $relative_folder . '/';
+        } elseif (isset($upload_dir) && strpos($shell_path, $upload_dir['basedir']) === 0) {
+            $relative_folder = str_replace($upload_dir['basedir'], '', $shell_path);
+            $folder_url = $upload_dir['baseurl'] . $relative_folder . '/';
+        }
+        
+        return [
+            'type' => 'folder',
+            'url' => $folder_url,
+            'images' => $images
+        ];
+    }
+    
+    // 默認返回單張圖片
+    return [
+        'type' => 'single',
+        'url' => $shell_url,
+        'images' => []
+    ];
+}
+
 function mpu_get_msg($msgnum = 0, $num = false, $echo = false)
 {
     $mpu_opt = mpu_get_option();
@@ -233,8 +351,12 @@ function mpu_msg_code($msglist = [])
     $templist = [];
 
     // 預先編譯正則表達式，略微提升效能
+    // 支援兩種格式：:recentpost[5]: 或 (:recentpost[5]:)
+    // 格式1：:recentpost[5]: （無括號，可在字串任何位置）
+    // 格式2：(:recentpost[5]:) （有括號，可在字串任何位置）
+    // 使用 \(?: 匹配可選的開始括號和冒號，然後匹配類型和數字，最後匹配冒號和可選的結束括號
     $pattern =
-        "/\(:(recentpost|recentposts|randompost|randomposts)\[(\d*)\]\)/";
+        "/\(?:(recentpost|recentposts|randompost|randomposts|commenters)\[(\d*)\]:\)?/";
 
     foreach ($msglist as $value) {
         if (!is_string($value)) {
@@ -259,6 +381,73 @@ function mpu_msg_code($msglist = [])
                 $n = 5;
             }
 
+            // 處理留言者列表
+            if ($type === "commenters") {
+                // 獲取最近留言（取更多留言以確保有足夠的不同留言者）
+                $comments = get_comments([
+                    "status" => "approve",
+                    "number" => $n * 3, // 獲取更多留言以確保有足夠的不同留言者
+                    "orderby" => "comment_date",
+                    "order" => "DESC",
+                ]);
+
+                $commenters = [];
+                $seen_authors = []; // 用於去重
+
+                foreach ($comments as $comment) {
+                    $author_name = $comment->comment_author;
+                    $author_url = $comment->comment_author_url;
+                    
+                    // 跳過匿名留言者（名稱為空）
+                    if (empty($author_name)) {
+                        continue;
+                    }
+
+                    // 使用 email 作為唯一標識（如果有），否則使用名稱
+                    $unique_key = !empty($comment->comment_author_email) 
+                        ? strtolower($comment->comment_author_email)
+                        : strtolower($author_name);
+
+                    // 如果已見過此留言者，跳過
+                    if (isset($seen_authors[$unique_key])) {
+                        continue;
+                    }
+
+                    $seen_authors[$unique_key] = true;
+
+                    // 如果有網站 URL，生成連結，否則只顯示名稱
+                    if (!empty($author_url) && filter_var($author_url, FILTER_VALIDATE_URL)) {
+                        $commenters[] =
+                            '<a href="' .
+                            esc_url($author_url) .
+                            '" title="' .
+                            esc_attr($author_name) .
+                            '" rel="nofollow external">' .
+                            esc_html($author_name) .
+                            "</a>";
+                    } else {
+                        $commenters[] = esc_html($author_name);
+                    }
+
+                    // 達到所需數量就停止
+                    if (count($commenters) >= $n) {
+                        break;
+                    }
+                }
+
+                // 生成 HTML 顯示
+                if (!empty($commenters)) {
+                    $html = implode("、", $commenters); // 使用頓號分隔
+                    $current_value = str_replace($match[0], $html, $current_value);
+                } else {
+                    // 如果沒有留言者，替換為空字串或預設訊息
+                    $current_value = str_replace($match[0], "", $current_value);
+                }
+
+                continue; // 處理完留言者後繼續下一個匹配
+            }
+
+            // 處理文章列表
             $orderby = strpos($type, "random") !== false ? "rand" : "date";
             $posts = get_posts([
                 "numberposts" => $n,
@@ -292,7 +481,7 @@ function mpu_msg_code($msglist = [])
             }
         }
 
-        if ($type === "recentposts" || $type === "randomposts") {
+        if ($type === "recentposts" || $type === "randomposts" || $type === "commenters") {
             $templist[] = $current_value;
         }
     }

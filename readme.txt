@@ -3,6 +3,10 @@ Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Context Awareness），支援 Gemini、OpenAI、Claude 多提供商。API Key 加密存儲、安全文件操作。
 Version: 2.1.6
+Requires at least: 5.0
+Tested up to: 6.4
+Requires PHP: 7.4
+Stable tag: 2.1.6
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Reviser: Horlicks
@@ -23,6 +27,7 @@ This plugin provides comprehensive features to help you create and customize you
   * Common messages that apply to all characters
   * Page exclusion rules
   * Multiple language support
+  * Canvas animation support (single image & multi-frame animation)
 
 * **AI Context Awareness (NEW in v1.7.0)**
   * Automatically analyzes page content and generates personalized responses
@@ -120,16 +125,24 @@ This plugin uses a modular architecture for better maintainability:
 **JavaScript Modules**
 * `ukagaka-core.js` - Core frontend functions (typewriter, storage, UI)
 * `ukagaka-features.js` - Features (AI chat, auto-talk, visitor greeting)
+* `ukagaka-anime.js` - Canvas animation manager (single image & multi-frame animation)
 * `ukagaka_cookie.js` - Cookie utilities
 
 == Changelog ==
 
-= 2025-12-13 =
+= 2025-12-14 =
 * v2.1.6
+* [NEW] Canvas animation support for multi-frame character animations
+  * Automatic folder detection for animation sequences
+  * Animation plays only when character is speaking (saves resources)
+  * Backward compatible with single static images
+  * Frame rate: 100ms per frame
+  * Supported formats: PNG, JPG, JPEG, GIF, WebP
+  * See docs/CANVAS_CUSTOMIZATION.md for detailed documentation
 * [NEW] WordPress information integration for LLM dialogues
   * LLM can now access WordPress version, theme info, PHP version, site statistics
   * New prompt categories: wordpress_info and statistics
-  * Customizable statistics prompts with RPG-style terminology support (see USER_GUIDE.md for details)
+  * Customizable statistics prompts with RPG-style terminology support
 * [NEW] Anti-repetition mechanism to prevent repetitive idle chatter
   * Tracks previous LLM responses to avoid saying the same thing repeatedly
   * Generates unique idle comments or stays silent when no new content
@@ -181,11 +194,6 @@ This plugin uses a modular architecture for better maintainability:
 * [NEW] JSON dialog file support
 * [IMPROVED] Better error handling and logging
 
-= 2025-10-23 =
-* v1.6.1
-* Complete modernization: Fetch API, WordPress AJAX API
-* Security enhancements: CSRF protection, XSS prevention
-* Bug fixes: Cookie handling, AJAX errors for non-logged-in users
 
 == Screenshots ==
 
