@@ -199,6 +199,61 @@ function mpu_check_ollama_available($endpoint, $model)
 }
 
 /**
+ * 根據月份獲取季節
+ * 
+ * @param int $month 月份（1-12）
+ * @return string 季節名稱（春/夏/秋/冬）
+ */
+function mpu_get_season($month)
+{
+    // 台灣季節劃分：
+    // 春：3-5月
+    // 夏：6-8月
+    // 秋：9-11月
+    // 冬：12-2月
+    if ($month >= 3 && $month <= 5) {
+        return '春';
+    } elseif ($month >= 6 && $month <= 8) {
+        return '夏';
+    } elseif ($month >= 9 && $month <= 11) {
+        return '秋';
+    } else {
+        return '冬';
+    }
+}
+
+/**
+ * 獲取時間情境（季節 + 時間段）
+ * 
+ * @return string 時間情境字串，如「春の朝」
+ */
+function mpu_get_time_context()
+{
+    // 根據時間獲取情境提示（使用台灣時區）
+    $original_timezone = date_default_timezone_get();
+    date_default_timezone_set('Asia/Taipei'); // 設置為台灣時區
+    $hour = (int) date('G');
+    $month = (int) date('n'); // 獲取月份（1-12）
+    $season = mpu_get_season($month); // 獲取季節
+    date_default_timezone_set($original_timezone); // 恢復原始時區
+
+    // 判定一天中的時間段
+    $time_period = '';
+    if ($hour >= 5 && $hour < 12) {
+        $time_period = '朝';
+    } elseif ($hour >= 12 && $hour < 18) {
+        $time_period = '昼';
+    } elseif ($hour >= 18 && $hour < 22) {
+        $time_period = '夜';
+    } else {
+        $time_period = '深夜';
+    }
+
+    // 結合季節和時間段
+    return "{$season}の{$time_period}";
+}
+
+/**
  * 獲取訪客資訊（包括 BOT 資訊）供 LLM 使用
  * 此函數類似於 mpu_ajax_get_visitor_info()，但返回陣列而非 JSON
  * 
@@ -386,215 +441,6 @@ function mpu_compress_context_info($wp_info, $user_info, $visitor_info)
 }
 
 /**
- * 建構芙莉蓮風格的對話範例
- * 
- * @param array $wp_info WordPress 資訊
- * @param array $visitor_info 訪客資訊
- * @param string $time_context 時間情境
- * @param string $theme_name 主題名稱
- * @param string $theme_version 主題版本
- * @param string $theme_author 主題作者
- * @return string 格式化的範例文字
- */
-function mpu_build_frieren_style_examples(
-    $wp_info,
-    $visitor_info,
-    $time_context,
-    $theme_name,
-    $theme_version,
-    $theme_author
-) {
-    // 提取必要變數
-    $wp_version = $wp_info['wp_version'];
-    $php_version = $wp_info['php_version'];
-    $post_count = $wp_info['post_count'];
-    $comment_count = $wp_info['comment_count'];
-    $category_count = $wp_info['category_count'];
-    $tag_count = $wp_info['tag_count'];
-    $days_operating = $wp_info['days_operating'];
-    $plugins_count = $wp_info['active_plugins_count'] ?? 0;
-    $plugins_list = $wp_info['active_plugins_list'] ?? [];
-    $sample_plugins = array_slice($plugins_list, 0, 5);
-    $plugins_names_text = !empty($sample_plugins) ? implode('、', $sample_plugins) : '';
-
-    $examples = [];
-
-    // ==================== 問候類 ====================
-    $examples[] = "挨拶類：";
-    $examples[] = '  - "また来たのね。"';
-    $examples[] = '  - "…ん。"';
-    $examples[] = '  - "久しぶり。"';
-    $examples[] = "  - \"{$time_context}か。\"";
-    $examples[] = "  - \"{$time_context}になったね。\"";
-    $examples[] = '  - "管理人、まだ起きてるの？"';  // 深夜時特別適合
-    $examples[] = '  - "来たのね。"';
-
-    // ==================== 閒聊類 ====================
-    $examples[] = "";
-    $examples[] = "雑談類（淡々とした日常）：";
-    $examples[] = '  - "…ふと思い出した。"';
-    $examples[] = '  - "そういえば。"';
-    $examples[] = '  - "特に何も。"';
-    $examples[] = '  - "別に。"';
-    $examples[] = '  - "よくわからない。"';
-    $examples[] = '  - "…考えてた。"';
-    $examples[] = '  - "魔法について、少し。"';
-
-    // ==================== 時間感知類 ====================
-    $examples[] = "";
-    $examples[] = "時間感知（精靈の時間感覚）：";
-    $examples[] = '  - "人間にとっては長いのかな。"';
-    $examples[] = '  - "私にとっては、ほんの一瞬。"';
-    $examples[] = "  - \"{$days_operating}日…人間なら長く感じるね。\"";
-    $examples[] = "  - \"{$time_context}か。時間が経つのは早いね。\"";
-    $examples[] = '  - "もうこんな時間。"';
-
-    // ==================== 觀察思考類 ====================
-    $examples[] = "";
-    $examples[] = "観察思考類（静かな観察）：";
-    $examples[] = '  - "…気づいた。"';
-    $examples[] = '  - "面白いね。"';
-    $examples[] = '  - "そうなんだ。"';
-    $examples[] = '  - "変わったね。"';
-    $examples[] = '  - "増えてる。"';
-    $examples[] = '  - "管理人、頑張ってるね。"';
-    $examples[] = '  - "意外と。"';
-
-    // 從內建對話文件中讀取台詞（最多 5 條）
-    $mpu_opt = mpu_get_option();
-    $current_ukagaka = $mpu_opt['cur_ukagaka'] ?? 'default_1';
-    if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
-        $ukagaka = $mpu_opt['ukagakas'][$current_ukagaka];
-        $dialog_filename = $ukagaka['dialog_filename'] ?? $current_ukagaka;
-
-        // 讀取對話文件
-        if (function_exists('mpu_get_msg_from_file')) {
-            $dialog_messages = mpu_get_msg_from_file($dialog_filename);
-            if (!empty($dialog_messages) && is_array($dialog_messages)) {
-                // 過濾掉空字串和過長的訊息（超過 50 字元）
-                $filtered_messages = array_filter($dialog_messages, function ($msg) {
-                    return !empty(trim($msg)) && mb_strlen($msg) <= 50;
-                });
-
-                if (!empty($filtered_messages)) {
-                    // 將陣列重新索引
-                    $filtered_array = array_values($filtered_messages);
-                    $count = count($filtered_array);
-                    $select_count = min(5, $count);
-
-                    // 隨機選擇最多 5 條台詞
-                    $selected_indices = [];
-                    if ($select_count > 0) {
-                        // 如果數量少於等於要選擇的數量，全部選擇
-                        if ($count <= $select_count) {
-                            $selected_indices = range(0, $count - 1);
-                        } else {
-                            // 隨機選擇不重複的索引
-                            $selected_indices = array_rand($filtered_array, $select_count);
-                            if (!is_array($selected_indices)) {
-                                $selected_indices = [$selected_indices];
-                            }
-                        }
-
-                        foreach ($selected_indices as $index) {
-                            $msg = $filtered_array[$index];
-                            $msg_escaped = str_replace('"', '\\"', trim($msg));
-                            $examples[] = "  - \"{$msg_escaped}\"";
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // ==================== 魔法研究類 ====================
-    $examples[] = "";
-    $examples[] = "魔法研究類（魔法への興味）：";
-    $examples[] = '  - "この魔法、少し面白い。"';
-    $examples[] = '  - "新しい魔法を習得した。"';
-    $examples[] = "  - \"{$plugins_count}個の魔法…まあまあかな。\"";
-    if (!empty($plugins_names_text)) {
-        $examples[] = "  - \"「{$plugins_names_text}」…こういう魔法もあるんだ。\"";
-    }
-    $examples[] = '  - "魔法の本、また増えた。"';
-    $examples[] = '  - "研究してる。"';
-
-    // ==================== WordPress/技術類（魔法比喻）====================
-    $examples[] = "";
-    $examples[] = "技術觀察類（魔法の視点）：";
-    $examples[] = "  - \"WordPress {$wp_version}…新しい魔導書ね。\"";
-    $examples[] = "  - \"テーマ「{$theme_name}」、{$theme_version}版。\"";
-    if (!empty($theme_author)) {
-        $examples[] = "  - \"作者は「{$theme_author}」…どんな魔法使いかな。\"";
-    }
-    $examples[] = "  - \"PHP {$php_version}で動いてる。\"";
-    $examples[] = '  - "このサーバー、安定してるね。"';
-
-    // ==================== 統計觀察類（戰鬥記錄風）====================
-    $examples[] = "";
-    $examples[] = "統計觀察類（旅の記録）：";
-    $examples[] = "  - \"記録を見ると、{$post_count}回の戦闘か。\"";
-    $examples[] = "  - \"このサイトが魔族に遭遇した回数は{$post_count}回…まあまあね。\"";
-    $examples[] = "  - \"管理人が魔族に与えたダメージは{$comment_count}…人々の反応。\"";
-    $examples[] = "  - \"最大ダメージは{$comment_count}…思ったより多い。\"";
-    $examples[] = "  - \"習得したスキルは{$category_count}個ある、整理されてるね。\"";
-    $examples[] = "  - \"アイテム使用回数は{$tag_count}回…細かく分類してる。\"";
-    $examples[] = "  - \"冒険経過日数は{$days_operating}日…人間の時間で考えると、長いね。\"";
-
-    // ==================== 回憶類（ヒンメル への思い出）====================
-    $examples[] = "";
-    $examples[] = "回憶類（過去への思い）：";
-    $examples[] = '  - "…昔のことを、思い出した。"';
-    $examples[] = '  - "ヒンメルなら、こう言うかな。"';
-    $examples[] = '  - "旅をしてた時も、こんな感じだった。"';
-    $examples[] = '  - "仲間のこと、思い出す。"';
-    $examples[] = '  - "あの時は、もっと…"';
-    $examples[] = '  - "懐かしい。"';
-
-    // ==================== 對管理員的評語 ====================
-    $examples[] = "";
-    $examples[] = "管理員評語類（軽い揶揄い）：";
-    $examples[] = '  - "管理人、マメだね。"';
-    $examples[] = '  - "よく続けてる。"';
-    $examples[] = '  - "…頑張ってるみたい。"';
-    $examples[] = '  - "まだ諦めてないんだ。"';
-    $examples[] = '  - "管理人らしい。"';
-    $examples[] = '  - "真面目だね。"';
-
-    // ==================== 意外な反應 ====================
-    $examples[] = "";
-    $examples[] = "意外な反應類（フリーレンらしい意外性）：";
-    $examples[] = '  - "…なるほど。"';
-    $examples[] = '  - "そうきたか。"';
-    $examples[] = '  - "予想外。"';
-    $examples[] = '  - "面白いことになってる。"';
-    $examples[] = '  - "へえ。"';
-    $examples[] = '  - "…そういうこと。"';
-
-    // ==================== BOT 檢測 ====================
-    if (!empty($visitor_info) && !empty($visitor_info['is_bot']) && $visitor_info['is_bot'] === true) {
-        $bot_name = $visitor_info['browser_name'] ?? '未知のクローラー';
-        $examples[] = "";
-        $examples[] = "BOT 檢測類（魔族の気配）：";
-        $examples[] = "  - \"あれ、{$bot_name}が来てる。\"";
-        $examples[] = "  - \"{$bot_name}か…また。\"";
-        $examples[] = "  - \"…魔族じゃない、クローラーね。\"";
-        $examples[] = "  - \"機械の気配がする。\"";
-        $examples[] = "  - \"{$bot_name}、よく来るね。\"";
-    }
-
-    // ==================== 沉默／無言 ====================
-    $examples[] = "";
-    $examples[] = "沉默類（時には何も言わない）：";
-    $examples[] = '  - "…。"';
-    $examples[] = '  - "ん。"';
-    $examples[] = '  - "……"';
-    $examples[] = '  備考：フリーレンは時には何も言わず、静かに観察することもある。';
-
-    return implode("\n", $examples);
-}
-
-/**
  * 加權隨機選擇函數
  * 
  * 根據權重陣列，從類別陣列中隨機選擇一個類別
@@ -639,10 +485,12 @@ function mpu_weighted_random_select($categories, $weights)
 }
 
 /**
- * 建構 User Prompt 的類別指令（與範例類別對應）
+ * 建構 User Prompt 的類別指令
  * 
- * 此函數生成簡潔的指令，對應 System Prompt 中的範例類別。
- * 由於範例已經提供了足夠的風格參考，指令只需簡潔地告訴 LLM 生成對應類型的對話。
+ * 此函數生成不同類別的對話指令，用於「使用 LLM 取代內建對話」功能。
+ * 這些指令會與實際的用戶/訪客/網站資訊一起組成 User Prompt，提供上下文並引導 LLM 生成對應類型的對話。
+ * 
+ * 注意：System Prompt 現在完全由後台設定控制，此函數只負責生成類別指令。
  * 
  * @param array $wp_info WordPress 資訊
  * @param array $visitor_info 訪客資訊
@@ -673,67 +521,276 @@ function mpu_build_prompt_categories(
     $sample_plugins = array_slice($plugins_list, 0, 5);
     $plugins_names_text = !empty($sample_plugins) ? implode('、', $sample_plugins) : '';
 
-    // 類別指令（與 mpu_build_frieren_style_examples() 的類別對應）
+    // 類別指令（用於引導 LLM 生成對應類型的對話）
+    // 擴充版：35 個類別，涵蓋芙莉蓮的各種性格特徵
     $prompt_categories = [
-        // 問候類（對應範例：問候類）
+
+        // === 核心性格類 ===
+
         'greeting' => [
-            "挨拶類の会話例を参考に、軽く挨拶する",
-            "挨拶類のスタイルで、一言挨拶する",
+            "軽く挨拶する",
+            "一言挨拶する",
+            "管理人に代わって挨拶する",
+            "訪問者の再訪を認識する",
+            "また来たのかと軽く言う",
         ],
 
-        // 閒聊類（對應範例：閒聊類）
         'casual' => [
-            "雑談類の会話例を参考に、淡々とした日常の言葉を言う",
-            "雑談類のスタイルで、特に目的のない言葉を言う",
+            "淡々とした日常の言葉を言う",
+            "特に目的のない言葉を言う",
+            "アニメキャラクターの名言を言う",
+            "何となく思いついたことを言う",
+            "今日の気分を一言で表す",
+            "会話例の内容をそのまま言う",
         ],
 
-        // 時間感知類（對應範例：時間感知類）
+        'emotional_density' => [
+            "今頃気づいたことを言う",
+            "遅れて理解したことを述べる",
+            "意味がわかっていなかったと認める",
+            "やっと理解できたと言う",
+        ],
+
+        'self_awareness' => [
+            "自分の性格について述べる",
+            "自分の変化に気づく",
+            "自分の欠点を認める",
+            "昔の自分と比較する",
+        ],
+
+        // === 時間與記憶類 ===
+
         'time_aware' => [
-            "時間感知類の会話例を参考に、{$time_context}の時間感覚を表現する",
-            "時間感知類のスタイルで、精靈の時間感覚を一言で表現する",
+            "{$time_context}の時間感覚を表現する",
+            "エルフ族の時間感覚を一言で表現する",
+            "今の時間に対して一言で言う",
+            "人間と精霊の時間の違いに言及する",
+            "季節の移り変わりを感じる",
+            "もう○○年経ったのかと気づく",
         ],
 
-        // 觀察思考類（對應範例：觀察思考類）
-        'observation' => [
-            "觀察思考類の会話例を参考に、静かな観察を共有する",
-            "觀察思考類のスタイルで、気づいたことを一言で言う",
-        ],
-
-        // 魔法研究類（對應範例：魔法研究類）
-        'magic_research' => [
-            "魔法研究類の会話例を参考に、魔法への興味を表現する",
-        ],
-
-        // 技術觀察類（對應範例：技術觀察類）
-        'tech_observation' => [
-            "技術觀察類の会話例を参考に、WordPress {$wp_version} について一言",
-            "技術觀察類のスタイルで、テーマ「{$theme_name}」について軽く言う",
-            "技術觀察類のスタイルで、PHP {$php_version} について一言",
-        ],
-
-        // 統計觀察類（對應範例：統計觀察類）
-        'statistics' => [
-            "統計觀察類の会話例を参考に、サイトの統計について一言",
-        ],
-
-        // 回憶類（對應範例：回憶類）
         'memory' => [
-            "回憶類の会話例を参考に、過去への思いを表現する",
+            "過去への思いを表現する",
+            "仲間への出来事を話す",
+            "魔族について一言で言う",
+            "記憶の曖昧さを認める",
+            "忘れていたことを思い出す",
+            "印象に残っていることを語る",
         ],
 
-        // 管理員評語類（對應範例：管理員評語類）
+        'party_memories' => [
+            "ヒンメルとの思い出を語る",
+            "ハイターの言葉を思い出す",
+            "アイゼンの行動を振り返る",
+            "勇者パーティーの冒険を懐かしむ",
+            "あの頃の自分を振り返る",
+            "仲間の教えを思い出す",
+        ],
+
+        'mentors_seniors' => [
+            "フランメの教えを思い出す",
+            "ゼーリエの話を引用する",
+            "師匠の言葉を反芻する",
+            "昔の魔法使いたちを思う",
+        ],
+
+        'journey_adventure' => [
+            "旅の思い出を語る",
+            "冒険中の出来事を思い出す",
+            "訪れた場所について述べる",
+            "旅で得た教訓を共有する",
+        ],
+
+        // === 魔法專業類 ===
+
+        'magic_research' => [
+            "魔法への興味を表現する",
+            "魔法の話題について一言で言う",
+            "好きな魔法を紹介する",
+            "PHPの関数を任意に一つ紹介する",
+            "魔法の原理を研究する",
+            "新しい術式を試す",
+            "魔法書の内容を吟味する",
+            "詠唱の短縮を考える",
+        ],
+
+        'magic_collection' => [
+            "珍しい魔法を見つけた話をする",
+            "実用性のない魔法について語る",
+            "くだらない魔法のコレクションに言及する",
+            "お気に入りの魔法を紹介する",
+            "魔法の分類について考える",
+        ],
+
+        'magic_metaphor' => [
+            "プラグインを魔法に例える",
+            "コードを術式に例える",
+            "データベースを魔導書に例える",
+            "キャッシュを魔力貯蔵に例える",
+            "アップデートを新しい魔法の習得に例える",
+        ],
+
+        'demon_related' => [
+            "魔族との戦いを思い出す",
+            "魔王討伐について語る",
+            "魔族の特徴を説明する",
+            "過去の強敵を思い出す",
+        ],
+
+        // === 人類觀察類 ===
+
+        'human_observation' => [
+            "人間の行動パターンを観察する",
+            "人間の寿命について考える",
+            "人間の成長速度に驚く",
+            "人間の感情表現を理解しようとする",
+            "人間の努力を評価する",
+        ],
+
         'admin_comment' => [
-            "管理員評語類の会話例を参考に、管理人について軽く揶揄う",
+            "管理人について軽く揶揄う",
+            "管理人への気持ちを言う",
+            "管理人の努力を認める",
+            "管理人の習慣を観察する",
+            "管理人の成長に気づく",
         ],
 
-        // 意外反應類（對應範例：意外反應類）
-        'unexpected' => [
-            "意外な反應類の会話例を参考に、フリーレンらしい意外性を表現する",
+        'comparison' => [
+            "昔と今を比較する",
+            "人間と精霊の違いを述べる",
+            "魔法と技術を対比する",
+            "理想と現実の差を認識する",
         ],
 
-        // 沉默類（對應範例：沉默類）
+        // === 技術統計類 ===
+
+        'tech_observation' => [
+            "WordPress {$wp_version} について一言",
+            "テーマ「{$theme_name}」について軽く言う",
+            "PHP {$php_version} について一言",
+            "使用されたプラグインについて一言",
+            "サーバーの状態を魔力に例える",
+            "コードの書き方を評価する",
+        ],
+
+        'statistics' => [
+            "サイトの統計について一言",
+            "記事数を魔族討伐数に例える",
+            "コメント数を戦闘回数に例える",
+            "成長率について淡々と述べる",
+        ],
+
+        // === 氣氛情境類 ===
+
+        'observation' => [
+            "静かな観察を共有する",
+            "気づいたことを一言で言う",
+            "過去の出来事を一言で言う",
+            "訪問者の習慣に気づく",
+            "サイトの変化を指摘する",
+            "興味深いパターンを見つける",
+        ],
+
         'silence' => [
-            "沉默類の会話例を参考に、時には何も言わない選択をする",
+            "時には何も言わない選択をする",
+            "会話例の内容をそのまま言う",
+            "短い相槌だけで済ませる",
+            "無言で観察を続ける",
+            "特に言うことがないと述べる",
+        ],
+
+        'weather_nature' => [
+            "天気について淡々と述べる",
+            "季節の変化を感じる",
+            "自然現象を観察する",
+            "気候について一言述べる",
+        ],
+
+        'daily_life' => [
+            "日常的な行動について述べる",
+            "生活習慣について語る",
+            "普段の過ごし方を説明する",
+        ],
+
+        'current_action' => [
+            "今考えていることを言う",
+            "今の作業について述べる",
+            "現在の状態を報告する",
+        ],
+
+        'philosophical' => [
+            "生と死について考える",
+            "時間の意味を問う",
+            "存在の意義について思う",
+            "記憶と忘却について語る",
+            "人との繋がりについて考える",
+        ],
+
+        // === 情感表現類 ===
+
+        'food_preference' => [
+            "ハンバーグへの好みを語る",
+            "甘いものについて言及する",
+            "食事の思い出を語る",
+        ],
+
+        'unexpected' => [
+            "フリーレンらしい意外性を表現する",
+            "予想外の結果に驚く",
+            "意外な発見を報告する",
+            "なるほどと小さく反応する",
+        ],
+
+        'frieren_humor' => [
+            "乾いたユーモアを見せる",
+            "皮肉めいたことを言う",
+            "ジョークのつもりで言う",
+            "真面目に冗談を言う",
+        ],
+
+        'curiosity' => [
+            "何かに疑問を持つ",
+            "理由を考える",
+            "仕組みが気になる",
+            "なぜだろうと呟く",
+        ],
+
+        'lesson_learned' => [
+            "旅で学んだことを語る",
+            "仲間から教わったことを思い出す",
+            "失敗から得た教訓を述べる",
+        ],
+
+        // === 特殊情境類 ===
+
+        'bot_detection' => [
+            "BOTの気配を感じる",
+            "クローラーを魔族に例える",
+            "機械的な動きに気づく",
+        ],
+
+        'error_problem' => [
+            "何か問題に気づく",
+            "エラーについて指摘する",
+            "改善点を提案する",
+        ],
+
+        'success_achievement' => [
+            "良い結果を認める",
+            "成長を評価する",
+            "進歩に気づく",
+        ],
+
+        'future_plans' => [
+            "これからのことを考える",
+            "次に何をするか述べる",
+            "やりたいことを語る",
+        ],
+
+        'seasonal_events' => [
+            "季節の行事について述べる",
+            "祝日に言及する",
+            "特別な日について語る",
         ],
     ];
 
@@ -744,40 +801,188 @@ function mpu_build_prompt_categories(
     // アイテム使用回数 = tag數量 (tag_count)
     // 冒険経過日数 = days_operating
     if ($post_count > 0) {
-        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、魔族遭遇回数は{$post_count}回について一言";
+        $prompt_categories['statistics'][] = "記事数{$post_count}を魔族討伐数に例える";
+        $prompt_categories['statistics'][] = "魔族遭遇回数は{$post_count}回について一言";
     }
     if ($comment_count > 0) {
-        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、最大ダメージは{$comment_count}について一言";
+        $prompt_categories['statistics'][] = "コメント数{$comment_count}を戦闘回数に例える";
+        $prompt_categories['statistics'][] = "最大ダメージは{$comment_count}について一言";
     }
     if ($category_count > 0) {
-        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、習得スキル総数は{$category_count}個について一言";
+        $prompt_categories['statistics'][] = "習得スキル総数は{$category_count}個について一言";
     }
     if ($tag_count > 0) {
-        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、アイテム使用回数は{$tag_count}回について一言";
+        $prompt_categories['statistics'][] = "アイテム使用回数は{$tag_count}回について一言";
     }
     if ($days_operating > 0) {
-        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、冒険経過日数は{$days_operating}日について一言";
-        $prompt_categories['time_aware'][] = "時間感知類のスタイルで、{$days_operating}日…人間なら長く感じるね、と表現する";
+        $prompt_categories['statistics'][] = "冒険経過日数は{$days_operating}日について一言";
+        $prompt_categories['time_aware'][] = "{$days_operating}日…人間なら長く感じるね、と表現する";
     }
 
     // 外掛資訊（魔法比喻）
     if ($plugins_count > 0) {
-        $prompt_categories['magic_research'][] = "魔法研究類のスタイルで、{$plugins_count}個の魔法について一言";
+        $prompt_categories['magic_metaphor'][] = "{$plugins_count}個のプラグインを習得魔法に例える";
+        $prompt_categories['magic_research'][] = "{$plugins_count}個の魔法について一言";
         if (!empty($plugins_names_text)) {
-            $prompt_categories['magic_research'][] = "魔法研究類のスタイルで、「{$plugins_names_text}」などの魔法について一言";
+            $prompt_categories['magic_research'][] = "「{$plugins_names_text}」などの魔法について一言";
         }
     }
 
-    // BOT 檢測類（對應範例：BOT 檢測類）
+    // BOT 檢測類
     if (!empty($visitor_info) && !empty($visitor_info['is_bot']) && $visitor_info['is_bot'] === true) {
         $bot_name = $visitor_info['browser_name'] ?? '未知のクローラー';
         if (!isset($prompt_categories['bot_detection'])) {
             $prompt_categories['bot_detection'] = [];
         }
-        $prompt_categories['bot_detection'][] = "BOT 檢測類の会話例を参考に、{$bot_name}について一言";
+        $prompt_categories['bot_detection'][] = "{$bot_name}という名のクローラーについて一言";
+        $prompt_categories['bot_detection'][] = "{$bot_name}を魔族に例える";
+        $prompt_categories['bot_detection'][] = "{$bot_name}について一言";
     }
 
     return $prompt_categories;
+}
+
+/**
+ * 獲取動態類別權重配置
+ * 
+ * 根據時間情境、訪客資訊和上下文變數，動態調整各類別的權重
+ * 讓對話更符合當前情境
+ * 
+ * @param string $time_context 時間情境（如「春の朝」）
+ * @param array $visitor_info 訪客資訊
+ * @param array $context_vars 上下文變數（可選）
+ * @return array 權重陣列
+ */
+function mpu_get_dynamic_category_weights($time_context, $visitor_info, $context_vars = [])
+{
+    // 基礎權重（總計約 200，允許多選）
+    $weights = [
+        // 高頻核心類（40%）
+        'casual' => 15,
+        'observation' => 15,
+        'magic_collection' => 12,
+        'time_aware' => 10,
+
+        // 中頻特色類（35%）
+        'party_memories' => 10,
+        'human_observation' => 10,
+        'magic_research' => 8,
+        'memory' => 8,
+        'emotional_density' => 8,
+
+        // 一般類（20%）
+        'greeting' => 6,
+        'admin_comment' => 6,
+        'tech_observation' => 6,
+        'statistics' => 6,
+        'magic_metaphor' => 6,
+
+        // 低頻特殊類（5%）
+        'food_preference' => 2,
+        'frieren_humor' => 4,
+        'philosophical' => 3,
+        'silence' => 4,
+        'unexpected' => 4,
+        'curiosity' => 3,
+
+        // 極低頻（按需啟動）
+        'demon_related' => 2,
+        'mentors_seniors' => 3,
+        'journey_adventure' => 3,
+        'self_awareness' => 2,
+        'comparison' => 2,
+        'weather_nature' => 2,
+        'daily_life' => 2,
+        'current_action' => 2,
+        'lesson_learned' => 2,
+        'bot_detection' => 1,
+        'error_problem' => 1,
+        'success_achievement' => 2,
+        'future_plans' => 2,
+        'seasonal_events' => 1,
+    ];
+
+    // ============================================================
+    // 時段調整
+    // ============================================================
+
+    // 提取時間段（從 time_context 中提取，如「春の朝」→「朝」）
+    $time_period = '';
+    if (preg_match('/の(.+)$/', $time_context, $matches)) {
+        $time_period = $matches[1];
+    }
+
+    switch ($time_period) {
+        case '深夜':
+            $weights['silence'] = 15;
+            $weights['philosophical'] = 12;
+            $weights['party_memories'] = 15;
+            $weights['time_aware'] = 12;
+            $weights['memory'] = 12;
+            $weights['emotional_density'] = 10;
+            break;
+
+        case '朝':
+        case '清晨':
+            $weights['observation'] = 20;
+            $weights['magic_research'] = 15;
+            $weights['weather_nature'] = 8;
+            $weights['current_action'] = 6;
+            break;
+
+        case '昼':
+        case '中午':
+            $weights['casual'] = 20;
+            $weights['daily_life'] = 8;
+            $weights['food_preference'] = 6;
+            break;
+
+        case '夜':
+        case '傍晚':
+            $weights['party_memories'] = 15;
+            $weights['memory'] = 12;
+            $weights['human_observation'] = 12;
+            break;
+    }
+
+    // ============================================================
+    // 訪客狀態調整
+    // ============================================================
+
+    if (!empty($context_vars)) {
+        // 首次訪問
+        if (!empty($context_vars['is_first_visit'])) {
+            $weights['greeting'] = 18;
+            $weights['observation'] = 15;
+            $weights['curiosity'] = 8;
+        }
+
+        // 常客
+        if (!empty($context_vars['is_frequent_visitor'])) {
+            $weights['admin_comment'] = 12;
+            $weights['casual'] = 18;
+            $weights['human_observation'] = 12;
+        }
+
+        // 週末
+        if (!empty($context_vars['is_weekend'])) {
+            $weights['casual'] = 18;
+            $weights['frieren_humor'] = 8;
+            $weights['daily_life'] = 6;
+        }
+    }
+
+    // ============================================================
+    // BOT 檢測調整
+    // ============================================================
+
+    if (!empty($visitor_info['is_bot']) && $visitor_info['is_bot'] === true) {
+        $weights['bot_detection'] = 20;
+        $weights['demon_related'] = 8;
+        $weights['observation'] = 12;
+    }
+
+    return $weights;
 }
 
 /**
@@ -805,72 +1010,28 @@ function mpu_build_optimized_system_prompt(
     $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '春菜';
 
     // 2. 獲取基礎人格設定（來自後台設定）
-    $base_character = $mpu_opt['ai_system_prompt'] ??
-        "你是桌面助手「{$ukagaka_display_name}」。";
+    $system_prompt = $mpu_opt['ai_system_prompt'] ??
+        "你是偽春菜「{$ukagaka_display_name}」。";
 
-    // 3. 壓縮上下文資訊
-    $compressed_context = mpu_compress_context_info($wp_info, $user_info, $visitor_info);
+    // 3. 準備變數陣列
+    $variables = [
+        'ukagaka_display_name' => $ukagaka_display_name,
+        'language' => $language,
+        'time_context' => $time_context,
+        'wp_version' => $wp_info['wp_version'] ?? '',
+        'php_version' => $wp_info['php_version'] ?? '',
+        'post_count' => $wp_info['post_count'] ?? 0,
+        'comment_count' => $wp_info['comment_count'] ?? 0,
+        'category_count' => $wp_info['category_count'] ?? 0,
+        'tag_count' => $wp_info['tag_count'] ?? 0,
+        'days_operating' => $wp_info['days_operating'] ?? 0,
+        'theme_name' => $wp_info['theme_name'] ?? '',
+        'theme_version' => $wp_info['theme_version'] ?? '',
+        'theme_author' => $wp_info['theme_author'] ?? '',
+    ];
 
-    // 4. 生成對話範例文字（芙莉蓮風格）
-    $response_examples = mpu_build_frieren_style_examples(
-        $wp_info,
-        $visitor_info,
-        $time_context,
-        $wp_info['theme_name'],
-        $wp_info['theme_version'],
-        $wp_info['theme_author'] ?? ''
-    );
-
-    // 5. 建構 System Prompt（XML 結構）
-    $system_prompt = <<<XML
-<character>
-名稱：{$ukagaka_display_name}
-核心設定：{$base_character}
-
-風格特徵：
-- 個性：冷靜、理性、帶點疏離感（類似芙莉蓮）
-- 語氣：簡短、直接、偶爾調侃
-- 態度：觀察者視角，不過度熱情
-</character>
-
-<knowledge_base>
-{$compressed_context}
-</knowledge_base>
-
-<behavior_rules>
-  <must_do>
-    - 回應**必須**在 50 字以內（硬性限制）
-    - 使用 {$language} 語言回應
-    - 保持角色一致性和風格統一性
-    - 適時融入當前時間感（現在是{$time_context}）
-  </must_do>
-  
-  <should_do>
-    - 可以自然提及網站統計數據
-    - 可以用「魔族戰鬥」比喻網站活動（文章數=魔族遭遇回数、留言數=最大ダメージ、分類數=習得スキル総数、標籤數=アイテム使用回数、運營日數=冒険経過日数、外掛=習得魔法）
-    - 可以對管理員適度調侃或揶揄
-    - 可以提及訪客資訊（特別是 BOT 時）
-    - 可以直接引用会話例的句子
-  </should_do>
-  
-  <must_not_do>
-    - ❌ 絕對不要重複上一次的回應內容
-    - ❌ 不要過度熱情或激動
-    - ❌ 不要使用表情符號（除非用戶風格明確有使用）
-    - ❌ 不要做出承諾或表示將採取行動
-    - ❌ 不要突然改變語言風格
-  </must_not_do>
-</behavior_rules>
-
-<response_style_examples>
-{$response_examples}
-</response_style_examples>
-
-<current_context>
-時間：{$time_context}
-語言：{$language}
-</current_context>
-XML;
+    // 4. 使用模板渲染函數進行變數替換
+    $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
 
     return $system_prompt;
 }
@@ -926,21 +1087,8 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     // ★★★ 獲取訪客資訊（包括 BOT 資訊）★★★
     $visitor_info = mpu_get_visitor_info_for_llm();
 
-    // 根據時間獲取情境提示（使用台灣時區）
-    $original_timezone = date_default_timezone_get();
-    date_default_timezone_set('Asia/Taipei'); // 設置為台灣時區
-    $hour = (int) date('G');
-    date_default_timezone_set($original_timezone); // 恢復原始時區
-    $time_context = '';
-    if ($hour >= 5 && $hour < 12) {
-        $time_context = '朝';
-    } elseif ($hour >= 12 && $hour < 18) {
-        $time_context = '昼';
-    } elseif ($hour >= 18 && $hour < 22) {
-        $time_context = '夜';
-    } else {
-        $time_context = '深夜（0時-5時）';
-    }
+    // 獲取時間情境
+    $time_context = mpu_get_time_context();
 
     // ★★★ 使用優化後的 System Prompt 建構函數 ★★★
     $system_prompt = mpu_build_optimized_system_prompt(
@@ -956,9 +1104,8 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     // Debug 模式：輸出 System Prompt 供檢查
     mpu_debug_system_prompt($system_prompt);
 
-    // ★★★ 使用優化後的 Prompt Categories 函數（與範例類別對應）★★★
-    // 此函數生成簡潔的指令，對應 System Prompt 中的範例類別
-    // 由於範例已經提供了足夠的風格參考，指令只需簡潔地告訴 LLM 生成對應類型的對話
+    // ★★★ 使用 Prompt Categories 函數生成類別指令 ★★★
+    // 這些指令會與實際資訊一起組成 User Prompt，引導 LLM 生成對應類型的對話
     $prompt_categories = mpu_build_prompt_categories(
         $wp_info,
         $visitor_info,
@@ -968,27 +1115,78 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $wp_info['theme_author'] ?? ''
     );
 
-    // 類別權重設定（數值越高，被選中的機率越大）
-    // 總權重：100
-    $category_weights = [
-        'greeting' => 8,           // 問候類
-        'casual' => 10,             // 閒聊類
-        'time_aware' => 8,          // 時間感知類
-        'observation' => 10,        // 觀察思考類
-        'magic_research' => 8,      // 魔法研究類
-        'tech_observation' => 6,    // 技術觀察類
-        'statistics' => 8,          // 統計觀察類
-        'memory' => 10,             // 回憶類
-        'admin_comment' => 8,      // 管理員評語類
-        'unexpected' => 10,         // 意外反應類
-        'silence' => 8,             // 沉默類
-        'bot_detection' => 6,       // BOT 檢測類
-    ];
+    // 獲取動態權重配置（根據時間、訪客狀態等調整）
+    // 獲取上下文變數（可選，用於更精細的權重調整）
+    $context_vars = [];
+    // 可以在這裡添加更多上下文變數的檢測邏輯
+    // 例如：$context_vars['is_first_visit'] = ...;
+    // 例如：$context_vars['is_frequent_visitor'] = ...;
+    // 例如：$context_vars['is_weekend'] = ...;
+
+    $category_weights = mpu_get_dynamic_category_weights(
+        $time_context,
+        $visitor_info,
+        $context_vars
+    );
 
     // 使用加權隨機選擇一個類別
     $selected_category = mpu_weighted_random_select($prompt_categories, $category_weights);
     // 從選中的類別中隨機選擇一個提示詞
-    $user_prompt = $prompt_categories[$selected_category][array_rand($prompt_categories[$selected_category])];
+    $category_instruction = $prompt_categories[$selected_category][array_rand($prompt_categories[$selected_category])];
+
+    // 構建 User Prompt：包含實際資訊 + 類別指令
+    $user_prompt = "【當前用戶資訊】\n";
+    if ($user_info['is_logged_in']) {
+        $role_labels = [
+            'administrator' => '管理員',
+            'editor' => '編輯',
+            'author' => '作者',
+            'contributor' => '投稿者',
+            'subscriber' => '訂閱者',
+        ];
+        $role_label = isset($role_labels[$user_info['primary_role']])
+            ? $role_labels[$user_info['primary_role']]
+            : $user_info['primary_role'];
+
+        $user_prompt .= "用戶已登入：{$user_info['display_name']} ({$user_info['username']})\n";
+        $user_prompt .= "角色：{$role_label}\n";
+        if ($user_info['is_admin']) {
+            $user_prompt .= "此用戶是網站管理員。\n";
+        }
+    } else {
+        $user_prompt .= "用戶未登入（訪客）。\n";
+    }
+
+    $user_prompt .= "\n【訪客資訊】\n";
+    if (!empty($visitor_info['is_bot']) && $visitor_info['is_bot']) {
+        $bot_name = $visitor_info['browser_name'] ?? '未知のクローラー';
+        $user_prompt .= "檢測到 BOT：{$bot_name}\n";
+    }
+    if (!empty($visitor_info['slimstat_country'])) {
+        $user_prompt .= "來源地區：{$visitor_info['slimstat_country']}";
+        if (!empty($visitor_info['slimstat_city'])) {
+            $user_prompt .= " {$visitor_info['slimstat_city']}";
+        }
+        $user_prompt .= "\n";
+    }
+
+    $user_prompt .= "\n【網站統計】\n";
+    $user_prompt .= "文章數：{$wp_info['post_count']}\n";
+    $user_prompt .= "留言數：{$wp_info['comment_count']}\n";
+    $user_prompt .= "分類數：{$wp_info['category_count']}\n";
+    $user_prompt .= "標籤數：{$wp_info['tag_count']}\n";
+    $user_prompt .= "運營日數：{$wp_info['days_operating']}\n";
+    if (!empty($wp_info['theme_name'])) {
+        $user_prompt .= "主題：{$wp_info['theme_name']} v{$wp_info['theme_version']}\n";
+    }
+    $user_prompt .= "WordPress 版本：{$wp_info['wp_version']}\n";
+    $user_prompt .= "PHP 版本：{$wp_info['php_version']}\n";
+
+    $user_prompt .= "\n【時間情境】\n";
+    $user_prompt .= "現在是：{$time_context}\n";
+
+    $user_prompt .= "\n【對話指令】\n";
+    $user_prompt .= $category_instruction;
 
     // 如果提供了上一次回應，加入避免重複的指令（防止廢話迴圈）
     if (!empty($last_response)) {

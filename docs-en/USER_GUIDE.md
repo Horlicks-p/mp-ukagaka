@@ -439,91 +439,145 @@ After enabling this option:
 
 Currently, the system default prompt is based on **Frieren style**, emphasizing:
 
-- Quiet, natural, unassuming dialogue.
-- Soft-spoken tone.
-- Plain daily observations.
-- Not forced, natural interaction.
+- Calm, rational, with a sense of detachment
+- Brief, direct, occasionally teasing
+- Observer perspective, not overly enthusiastic
+- Quiet, natural, unassuming dialogue
+
+**System Architecture:**
+
+The new prompt system adopts a **two-layer architecture** design:
+
+1. **System Prompt (System Prompt)**: Defines character style, behavior rules, and dialogue examples
+2. **User Prompt (User Prompt)**: Specific task instructions for each dialogue
+
+This design makes character style more consistent while maintaining dialogue diversity.
 
 **How to Customize Prompts:**
 
-1. **Find Prompt Definition Location**
-   - File path: `includes/llm-functions.php`
-   - Function: `mpu_generate_llm_dialogue()`
-   - Approximately lines 255-300.
+1. **Backend System Prompt Settings**
 
-2. **Prompt Category Structure**
+   System Prompt is now completely controlled by **backend settings**, with the code only performing `{{variable}}` variable replacement.
 
-   Prompts are divided into multiple categories. The system randomly selects a category, then randomly selects a prompt from that category:
+   - **Setting Location**: **Settings** → **MP Ukagaka** → **LLM Settings** → **Backend System Prompt**
+   - **Variable Support**: You can use variables like `{{ukagaka_display_name}}`, `{{language}}`, `{{time_context}}` in System Prompt
+   - **Design Philosophy**: Backend System Prompt is the single source of truth. All character styles, behavior rules, and dialogue examples should be defined here
+
+   **Variable List:**
+   - `{{ukagaka_display_name}}`: Character name
+   - `{{language}}`: Response language (Traditional Chinese, Japanese, English)
+   - `{{time_context}}`: Time context (e.g., "Spring Morning")
+
+   > 💡 **Tip**: System Prompt should contain complete character definition including personality, speaking style, behavior rules, etc. The code will no longer hardcode any XML structures, examples, or rules.
+
+2. **User Prompt Structure**
+
+   User Prompt is automatically constructed by the code and includes the following parts:
+
+   ```
+   【Current User Info】
+   (If user is logged in, display username, role, etc.)
+
+   【Visitor Info】
+   (Display BOT detection, source region, etc.)
+
+   【Site Statistics】
+   (Display post count, comment count, WordPress version, etc.)
+
+   【Time Context】
+   Current time: {time context}
+
+   【Dialogue Instruction】
+   {Randomly selected instruction from prompt_categories}
+   ```
+
+   > 💡 **Design Philosophy**: User Prompt contains actual contextual information and specific task instructions, allowing the LLM to generate appropriate responses based on the current situation.
+
+3. **Dialogue Category System (35 Categories)**
+
+   The system has 35 built-in dialogue categories covering various character traits:
+
+   **Core Personality Categories:**
+   - `greeting`: Greeting category
+   - `casual`: Casual chat category
+   - `emotional_density`: Emotional density category (late understanding, sudden realization, etc.)
+   - `self_awareness`: Self-awareness category
+
+   **Time and Memory Categories:**
+   - `time_aware`: Time-aware category
+   - `memory`: Memory category
+   - `party_memories`: Hero party memories category
+   - `mentors_seniors`: Mentors and seniors category
+   - `journey_adventure`: Journey and adventure category
+
+   **Magic Professional Categories:**
+   - `magic_research`: Magic research category
+   - `magic_collection`: Magic collection category
+   - `magic_metaphor`: Magic metaphor category (comparing technology to magic)
+   - `demon_related`: Demon-related category
+
+   **Human Observation Categories:**
+   - `human_observation`: Human observation category
+   - `admin_comment`: Admin comment category
+   - `comparison`: Comparison category
+
+   **Technical Statistics Categories:**
+   - `tech_observation`: Technical observation category
+   - `statistics`: Statistics observation category
+
+   **Atmosphere and Situation Categories:**
+   - `observation`: Observation and thinking category
+   - `silence`: Silence category
+   - `weather_nature`: Weather and nature category
+   - `daily_life`: Daily life category
+   - `current_action`: Current action category
+   - `philosophical`: Philosophical thinking category
+
+   **Emotional Expression Categories:**
+   - `food_preference`: Food preference category
+   - `unexpected`: Unexpected reaction category
+   - `frieren_humor`: Frieren-style humor category
+   - `curiosity`: Curiosity category
+   - `lesson_learned`: Lessons learned category
+
+   **Special Situation Categories:**
+   - `bot_detection`: BOT detection category
+   - `error_problem`: Error and problem category
+   - `success_achievement`: Success and achievement category
+   - `future_plans`: Future plans category
+   - `seasonal_events`: Seasonal events category
+
+   > ⭐ **Special Feature**: The `observation` (observation and thinking) category automatically reads up to 5 lines from the current character's built-in dialogue file, automatically filtering out empty strings and messages longer than 50 characters to ensure style consistency.
+
+4. **Dynamic Weight System**
+
+   The system uses dynamic weights to determine which type of dialogue to generate. Weights are automatically adjusted based on time, visitor status, etc.:
 
    ```php
-   $prompt_categories = [
-       'greeting' => [        // Greetings
-           "Softly say hello",
-           "Simply greet the user",
-           // ... more prompts
-       ],
-       'casual' => [          // Casual chat
-           "Say something that comes to mind",
-           "Say a plain daily observation",
-           // ... more prompts
-       ],
-       'observation' => [     // Observation/Thinking
-           "Say something just noticed",
-           "Share a quiet observation",
-           // ... more prompts
-           // ⭐ Special Feature: This category automatically reads up to 5 lines from the current character's built-in dialogue file
-           // Automatically filters out empty strings and messages longer than 50 characters
-           // Makes AI-generated dialogues closer to the character's actual style
-       ],
-       'contextual' => [       // Contextual (Combined with time)
-           "It is now {$time_context}, say something suitable for this time",
-           // ... more prompts
-       ],
-       'wordpress_info' => [  // WordPress Info
-           "Say a word about this site running on WordPress {$wp_version}",
-           "The theme is '{$theme_name}' version {$theme_version}",
-           // ... more prompts
-       ],
-       'statistics' => [      // Statistics (Gamified style)
-           "Lightly mention the site has encountered demons {$post_count} times",
-           "Comment on the damage dealt by the admin: {$comment_count}",
-           // ... more prompts
-       ],
+   // Base weights (total approximately 200)
+   $weights = [
+       'casual' => 15,              // High-frequency core categories
+       'observation' => 15,
+       'magic_collection' => 12,
+       'time_aware' => 10,
+       'party_memories' => 10,      // Mid-frequency characteristic categories
+       'human_observation' => 10,
+       // ... more categories
    ];
    ```
 
-   > 💡 **Design Philosophy**: User Prompt instructions are concise because the examples in System Prompt already provide sufficient style reference. Instructions only need to tell the LLM "what type of dialogue to generate this time", and the LLM will refer to examples to generate responses that match the style.
+   **Dynamic Adjustment Mechanism:**
+   - **Time Period Adjustment**: Increase `philosophical`, `party_memories` weights during late night; increase `observation`, `magic_research` weights during morning
+   - **Visitor Status Adjustment**: Increase `greeting`, `observation` weights for first-time visitors; increase `admin_comment`, `casual` weights for frequent visitors
+   - **BOT Detection Adjustment**: Significantly increase `bot_detection` weight when BOT is detected
 
-4. **Weighted Random Selection Mechanism**
+   **Customizing Weights:**
+   - Can be modified in the `mpu_get_dynamic_category_weights()` function in `includes/llm-functions.php`
+   - Can add more context variables in the `mpu_generate_llm_dialogue()` function (e.g., `is_first_visit`, `is_frequent_visitor`, `is_weekend`, etc.)
 
-   The system uses weighted random selection to determine which type of dialogue to generate, ensuring more balanced dialogue types:
+5. **WordPress Info Integration**
 
-   ```php
-   $category_weights = [
-       'greeting' => 8,           // Greeting
-       'casual' => 10,            // Casual chat
-       'time_aware' => 8,         // Time-aware
-       'observation' => 10,       // Observation/Thinking
-       'magic_research' => 8,     // Magic research
-       'tech_observation' => 6,   // Tech observation (lower weight)
-       'statistics' => 8,         // Statistics
-       'memory' => 10,            // Memory
-       'admin_comment' => 8,      // Admin comments
-       'unexpected' => 10,         // Unexpected reactions
-       'silence' => 8,             // Silence
-       'bot_detection' => 6,      // BOT detection
-   ];
-   ```
-
-   **Weight Explanation:**
-   - Higher values have higher probability of being selected
-   - Tech observation category (WordPress/tech topics) has lower weight (6) to avoid excessive preference for technical topics
-   - Total weight is 100, with more balanced probability distribution across categories
-   - Can be modified in the `mpu_generate_llm_dialogue()` function in `includes/llm-functions.php`
-
-3. **WordPress Info Integration**
-
-   The system automatically adds WordPress site info to the dialogue generation background knowledge, including:
+   The system automatically adds WordPress site info to User Prompt, including:
 
    **Basic System Info:**
    - WordPress version
@@ -541,103 +595,54 @@ Currently, the system default prompt is based on **Frieren style**, emphasizing:
    - **Items Used** (Tag Count): `{$tag_count}`
    - **Adventure Days** (Days Operating): `{$days_operating}`
 
-   These details are automatically added to the `system_prompt` as background knowledge. You can use the following variables in prompts:
-
-   ```php
-   // Basic Info Variables
-   $wp_version      // WordPress Version
-   $theme_name      // Theme Name
-   $theme_version   // Theme Version
-   $theme_author    // Theme Author
-   $php_version     // PHP Version
-   $post_count      // Post Count
-   $comment_count   // Comment Count
-   $category_count  // Category Count
-   $tag_count       // Tag Count
-   $days_operating  // Days Operating
-   ```
+   This information is automatically added to User Prompt, allowing the LLM to generate dialogues based on the actual site situation.
 
    > 💡 **Tip**: Statistics use a transient cache for 5 minutes to avoid frequent database queries affecting performance.
 
-4. **Personalized Statistics Prompt Example**
+6. **Statistics Gamification Mapping**
 
-   Here is an example of gamifying statistics (suitable for "Frieren: Beyond Journey's End" characters):
+   The system uses "demon battle" metaphors to describe site statistics. The mapping is as follows:
+
+   | Site Statistics | Gamified Metaphor | Variable |
+   |----------------|-------------------|----------|
+   | Post Count | Demon Encounters | `{$post_count}` |
+   | Comment Count | Max Damage | `{$comment_count}` |
+   | Category Count | Skills Learned | `{$category_count}` |
+   | Tag Count | Items Used | `{$tag_count}` |
+   | Days Operating | Adventure Days | `{$days_operating}` |
+   | Plugin Count | Magic Learned | `{$plugins_count}` |
+
+   These metaphors are automatically integrated into User Prompt, making dialogues more consistent with the character's worldview.
+
+7. **Customizing Dialogue Category Instructions**
+
+   If you want to modify dialogue category instructions, you can edit the `mpu_build_prompt_categories()` function:
 
    ```php
-   // Statistics (Gamified style - Demon Battle style)
-   'statistics' => [
-       "Lightly mention that this site has encountered demons {$post_count} times",
-       "Say a word about the damage dealt by the admin: {$comment_count}",
-       "Comment on the number of times the admin used items: {$tag_count}",
-       "Learned {$category_count} skills (categories), lightly mention this",
-   ];
-   
-   // If operating days > 0, add related prompts
-   if ($days_operating > 0) {
-       $prompt_categories['statistics'][] = "This site's adventure has lasted {$days_operating} days... a long journey, say a word about this";
-       $prompt_categories['statistics'][] = "Admin has been at it for {$days_operating} days, comment on this";
+   // In includes/llm-functions.php
+   function mpu_build_prompt_categories(...) {
+       $prompt_categories = [
+           'greeting' => [
+               "軽く挨拶する",
+               "一言挨拶する",
+               // ... add more instructions
+           ],
+           // ... more categories (35 total)
+       ];
+       
+       return $prompt_categories;
    }
-   
-   // Combine multiple statistics prompts
-   $prompt_categories['statistics'][] = "This site has encountered demons {$post_count} times, admin dealt {$comment_count} damage, say a word about this";
-   $prompt_categories['statistics'][] = "Admin used items {$tag_count} times, learned {$category_count} skills, lightly mention this";
    ```
 
-   **Prompt Design Points:**
+   **Instruction Design Points:**
 
-   - ✅ **Be Specific**: Clearly state the statistic item in the prompt (e.g., "Demon encounters", "Damage dealt") so the user understands the context.
-   - ✅ **Character Fit**: Transform statistics into terms fitting the character's worldview (e.g., "Demons", "Items", "Skills").
-   - ✅ **Natural Expression**: Use instructions like "Lightly mention", "Say a word about" to let AI generate more natural dialogue.
-   - ❌ **Avoid Just Numbers**: Don't just say "{$post_count} times", explain what happened that many times.
+   - ✅ **Concise and Clear**: Instructions should be concise and directly tell the LLM what type of dialogue to generate
+   - ✅ **Task-Oriented**: Instructions should clearly tell the LLM "what type of dialogue to generate this time"
+   - ✅ **Category-Appropriate**: Instructions should match the theme and style of the category
 
-5. **Customization Examples**
+8. **Time Variable Usage**
 
-   **Energetic Character Style:**
-
-   ```php
-   'greeting' => [
-       "Greet proactively!",
-       "Excitefully say hello to the user",
-       "Loudly say: Hello!",
-   ],
-   'casual' => [
-       "Share an interesting story",
-       "Tell a joke",
-       "Talk about something fun that happened today",
-   ],
-   ```
-
-   **Quiet Character Style:**
-
-   ```php
-   'greeting' => [
-       "Softly say hello",
-       "Simply greet the user",
-       "Say a discreet greeting",
-   ],
-   'casual' => [
-       "Say something that comes to mind",
-       "Say a plain daily observation",
-   ],
-   ```
-
-   **Tsundere Character Style:**
-
-   ```php
-   'greeting' => [
-       "Hmph, you're here.",
-       "I don't want to admit it, but I'll say hello.",
-       "Reluctantly say a word to you.",
-   ],
-   'casual' => [
-       "I-It's not like I want to chat with you.",
-       "Just thought of it randomly.",
-   ],
-   ```
-
-6. **Time Variable Usage**
-
-   In the `contextual` category, you can use the `{$time_context}` variable, which automatically replaces with:
+   In time-aware categories, you can use the `{$time_context}` variable, which automatically replaces with:
    - `Morning` (5:00-11:59)
    - `Afternoon` (12:00-17:59)
    - `Evening` (18:00-21:59)
@@ -676,13 +681,26 @@ Currently, the system default prompt is based on **Frieren style**, emphasizing:
 
 **Prompt Design Suggestions:**
 
-- ✅ **Fit Character**: Design prompts according to the character's personality.
-- ✅ **Diversity**: Recommend 4-6 different prompts per category.
-- ✅ **Natural Expression**: Use natural language, avoid being too mechanical.
-- ✅ **Avoid Contradictions**: Ensure prompt consistency within the same category.
+- ✅ **Fit Character**: Design System Prompt according to the character's personality
+- ✅ **Complete Definition**: System Prompt should contain complete character definition including personality, speaking style, behavior rules, etc.
+- ✅ **Natural Expression**: Use natural language, avoid being too mechanical
+- ✅ **Variable Usage**: Make good use of `{{variable}}` variables to make prompts more dynamic
+- ✅ **Diversity**: Recommend 4-6 different instructions per dialogue category
+- ✅ **Avoid Contradictions**: Ensure rules and style consistency in System Prompt
 - 💡 **Length Recommendations**:
-  - **Cloud AI Services** (Gemini, OpenAI, Claude): Suggest under 200-300 words to control API costs.
-  - **Local LLM** (Ollama): Can use longer prompts (1000+ words); detailed prompts usually provide better character consistency and personality definition.
+  - **Cloud AI Services** (Gemini, OpenAI, Claude): Recommend System Prompt within 500-1000 words to reduce token usage
+  - **Local LLM** (Ollama): Can use longer prompts (1000+ words); detailed prompts usually provide better character consistency and personality definition
+
+**System Architecture Advantages:**
+
+The new system architecture brings the following advantages:
+
+1. **Fully Controllable**: System Prompt is completely controlled by backend settings, no code modification needed
+2. **Variable Replacement**: Code only performs safe `{{variable}}` replacement, won't pollute System Prompt
+3. **Information Separation**: User info, visitor info, site statistics and other actual information are placed in User Prompt, keeping System Prompt pure
+4. **Dynamic Weights**: Automatically adjust dialogue category weights based on time, visitor status, etc., making dialogues more contextually appropriate
+
+This design makes character style more consistent while maintaining dialogue diversity and contextual adaptability.
 
 #### Disable Thinking Mode (Beta Models like Qwen3)
 

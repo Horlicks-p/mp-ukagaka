@@ -461,150 +461,129 @@ LLM（Large Language Model）功能允許你使用多種 AI 服務來生成對�
 
 **如何自定義提示詞：**
 
-1. **找到提示詞定義位置**
-   - 文件位置：`includes/llm-functions.php`
-   - 主要函數：
-     - `mpu_build_optimized_system_prompt()`：建構 System Prompt（約第 696 行）
-     - `mpu_build_frieren_style_examples()`：生成對話範例（約第 396 行）
-     - `mpu_build_prompt_categories()`：生成 User Prompt 指令（約第 561 行）
+1. **後台 System Prompt 設定**
 
-2. **System Prompt 結構（XML 格式）**
+   System Prompt 現在完全由**後台設定**控制，程式端只負責 `{{variable}}` 變數替換。
 
-   System Prompt 採用 XML 結構化設計，包含以下部分：
+   - **設定位置**：**設定** → **MP Ukagaka** → **LLM 設定** → **後台 System Prompt**
+   - **變數支援**：可以在 System Prompt 中使用 `{{ukagaka_display_name}}`、`{{language}}`、`{{time_context}}` 等變數
+   - **設計理念**：後台 System Prompt 是唯一真相，所有角色風格、行為規則、對話範例都應該在這裡定義
 
-   ```xml
-   <character>
-   名稱：{角色名稱}
-   核心設定：{來自後台的 System Prompt 設定}
-   
-   風格特徵：
-   - 個性：冷靜、理性、帶點疏離感（類似芙莉蓮）
-   - 語氣：簡短、直接、偶爾調侃
-   - 態度：觀察者視角，不過度熱情
-   </character>
-   
-   <knowledge_base>
-   {壓縮後的 WordPress 資訊、用戶資訊、訪客資訊}
-   </knowledge_base>
-   
-   <behavior_rules>
-     <must_do>
-       - 回應**必須**在 50 字以內（硬性限制）
-       - 使用 {語言} 語言回應
-       - 保持角色一致性和風格統一性
-     </must_do>
-     <should_do>
-       - 可以自然提及網站統計數據
-       - 可以用「魔族戰鬥」比喻網站活動
-       - 可以直接引用会話例的句子
-     </should_do>
-     <must_not_do>
-       - ❌ 絕對不要重複上一次的回應內容
-       - ❌ 不要過度熱情或激動
-     </must_not_do>
-   </behavior_rules>
-   
-   <response_style_examples>
-   {70+ 個實際對話範例，展示角色風格}
-   </response_style_examples>
+   **變數列表：**
+   - `{{ukagaka_display_name}}`：角色名稱
+   - `{{language}}`：回應語言（繁體中文、日文、英文）
+   - `{{time_context}}`：時間情境（如「春の朝」）
+
+   > 💡 **提示**：System Prompt 應該包含角色的個性、說話風格、行為規則等完整定義。程式端不會再硬編碼任何 XML 結構、範例或規則。
+
+2. **User Prompt 結構**
+
+   User Prompt 由程式端自動建構，包含以下部分：
+
+   ```
+   【當前用戶資訊】
+   （如果用戶已登入，顯示用戶名稱、角色等）
+
+   【訪客資訊】
+   （顯示 BOT 檢測、來源地區等）
+
+   【網站統計】
+   （顯示文章數、留言數、WordPress 版本等）
+
+   【時間情境】
+   現在是：{時間情境}
+
+   【對話指令】
+   {從 prompt_categories 中隨機選擇的指令}
    ```
 
-3. **對話範例系統**
+   > 💡 **設計理念**：User Prompt 包含實際的上下文資訊和具體任務指令，讓 LLM 能夠根據當前情境生成合適的回應。
 
-   系統內建了豐富的對話範例（`mpu_build_frieren_style_examples()`），涵蓋多個類別：
+3. **對話類別系統（35 個類別）**
 
-   - **問候類**：`"また来たのね。"`、`"…ん。"`、`"久しぶり。"` 等
-   - **閒聊類**：`"…ふと思い出した。"`、`"そういえば。"`、`"特に何も。"` 等
-   - **時間感知類**：`"人間にとっては長いのかな。"`、`"私にとっては、ほんの一瞬。"` 等
-   - **觀察思考類**：`"…気づいた。"`、`"面白いね。"`、`"変わったね。"` 等
-     - ⭐ **特殊功能**：此類別會自動從當前春菜的內建對話文件中讀取最多 5 條台詞
-     - 自動過濾空字串和超過 50 字元的訊息，確保風格一致
-     - 讓 AI 生成的對話更貼近角色的實際風格
-   - **魔法研究類**：`"この魔法、少し面白い。"`、`"新しい魔法を習得した。"` 等
-   - **技術觀察類**：`"WordPress {版本}…新しい魔導書ね。"` 等
-   - **統計觀察類**：`"記録を見ると、{文章數}回の戦闘か。"` 等
-   - **回憶類**：`"…昔のことを、思い出した。"`、`"ヒンメルなら、こう言うかな。"` 等
-   - **管理員評語類**：`"管理人、マメだね。"`、`"よく続けてる。"` 等
-   - **意外反應類**：`"…なるほど。"`、`"そうきたか。"` 等
-   - **BOT 檢測類**：`"あれ、{BOT名稱}が来てる。"` 等（僅在檢測到 BOT 時）
-   - **沉默類**：`"…。"`、`"ん。"`、`"……"` 等
+   系統內建了 35 個對話類別，涵蓋角色的各種性格特徵：
 
-4. **User Prompt 分類結構**
+   **核心性格類：**
+   - `greeting`：問候類
+   - `casual`：閒聊類
+   - `emotional_density`：情感密度類（遲到理解、恍然大悟等）
+   - `self_awareness`：自我認知類
 
-   User Prompt 分為多個類別，系統會隨機選擇一個類別，然後從該類別中隨機選擇一個指令：
+   **時間與記憶類：**
+   - `time_aware`：時間感知類
+   - `memory`：回憶類
+   - `party_memories`：勇者隊伍回憶類
+   - `mentors_seniors`：師長前輩類
+   - `journey_adventure`：旅程冒險類
+
+   **魔法專業類：**
+   - `magic_research`：魔法研究類
+   - `magic_collection`：魔法收藏類
+   - `magic_metaphor`：魔法比喻類（將技術比作魔法）
+   - `demon_related`：魔族相關類
+
+   **人類觀察類：**
+   - `human_observation`：人類觀察類
+   - `admin_comment`：管理員評語類
+   - `comparison`：比較類
+
+   **技術統計類：**
+   - `tech_observation`：技術觀察類
+   - `statistics`：統計觀察類
+
+   **氣氛情境類：**
+   - `observation`：觀察思考類
+   - `silence`：沉默類
+   - `weather_nature`：天氣自然類
+   - `daily_life`：日常生活類
+   - `current_action`：當前行動類
+   - `philosophical`：哲學思考類
+
+   **情感表現類：**
+   - `food_preference`：食物偏好類
+   - `unexpected`：意外反應類
+   - `frieren_humor`：芙莉蓮式幽默類
+   - `curiosity`：好奇心類
+   - `lesson_learned`：學到的教訓類
+
+   **特殊情境類：**
+   - `bot_detection`：BOT 檢測類
+   - `error_problem`：錯誤問題類
+   - `success_achievement`：成功成就類
+   - `future_plans`：未來計劃類
+   - `seasonal_events`：季節活動類
+
+   > ⭐ **特殊功能**：`observation`（觀察思考類）會自動從當前春菜的內建對話文件中讀取最多 5 條台詞，自動過濾空字串和超過 50 字元的訊息，確保風格一致。
+
+4. **動態權重系統**
+
+   系統使用動態權重來決定生成哪種類型的對話，權重會根據時間、訪客狀態等自動調整：
 
    ```php
-   $prompt_categories = [
-       'greeting' => [        // 問候類（對應範例：問候類）
-           "問候類の会話例を参考に、軽く挨拶する",
-           "問候類のスタイルで、一言挨拶する",
-       ],
-       'casual' => [          // 閒聊類（對應範例：閒聊類）
-           "閒聊類の会話例を参考に、淡々とした日常の言葉を言う",
-           "閒聊類のスタイルで、特に目的のない言葉を言う",
-       ],
-       'time_aware' => [     // 時間感知類（對應範例：時間感知類）
-           "時間感知類の会話例を参考に、{$time_context}の時間感覚を表現する",
-       ],
-       'observation' => [    // 觀察思考類（對應範例：觀察思考類）
-           "觀察思考類の会話例を参考に、静かな観察を共有する",
-       ],
-       'magic_research' => [ // 魔法研究類（對應範例：魔法研究類）
-           "魔法研究類の会話例を参考に、魔法への興味を表現する",
-       ],
-       'tech_observation' => [ // 技術觀察類（對應範例：技術觀察類）
-           "技術觀察類の会話例を参考に、WordPress {$wp_version} について一言",
-       ],
-       'statistics' => [     // 統計觀察類（對應範例：統計觀察類）
-           "統計觀察類の会話例を参考に、サイトの統計について一言",
-       ],
-       'memory' => [         // 回憶類（對應範例：回憶類）
-           "回憶類の会話例を参考に、過去への思いを表現する",
-       ],
-       'admin_comment' => [  // 管理員評語類（對應範例：管理員評語類）
-           "管理員評語類の会話例を参考に、管理人について軽く揶揄う",
-       ],
-       'unexpected' => [     // 意外反應類（對應範例：意外反應類）
-           "意外な反應類の会話例を参考に、フリーレンらしい意外性を表現する",
-       ],
-       'silence' => [        // 沉默類（對應範例：沉默類）
-           "沉默類の会話例を参考に、時には何も言わない選択をする",
-       ],
+   // 基礎權重（總計約 200）
+   $weights = [
+       'casual' => 15,              // 高頻核心類
+       'observation' => 15,
+       'magic_collection' => 12,
+       'time_aware' => 10,
+       'party_memories' => 10,      // 中頻特色類
+       'human_observation' => 10,
+       // ... 更多類別
    ];
    ```
 
-   > 💡 **設計理念**：User Prompt 指令簡潔，因為 System Prompt 中的範例已經提供了足夠的風格參考。指令只需告訴 LLM「這次要生成什麼類型的對話」，LLM 會參考範例來生成符合風格的回應。
+   **動態調整機制：**
+   - **時段調整**：深夜時增加 `philosophical`、`party_memories` 權重；早晨時增加 `observation`、`magic_research` 權重
+   - **訪客狀態調整**：首次訪問時增加 `greeting`、`observation` 權重；常客時增加 `admin_comment`、`casual` 權重
+   - **BOT 檢測調整**：檢測到 BOT 時大幅增加 `bot_detection` 權重
 
-5. **加權隨機選擇機制**
+   **自定義權重：**
+   - 可在 `includes/llm-functions.php` 的 `mpu_get_dynamic_category_weights()` 函數中修改權重
+   - 可在 `mpu_generate_llm_dialogue()` 函數中添加更多上下文變數（如 `is_first_visit`、`is_frequent_visitor`、`is_weekend` 等）
 
-   系統使用加權隨機選擇來決定生成哪種類型的對話，確保對話類型更均衡：
+5. **WordPress 資訊整合功能**
 
-   ```php
-   $category_weights = [
-       'greeting' => 8,           // 問候類
-       'casual' => 10,             // 閒聊類
-       'time_aware' => 8,          // 時間感知類
-       'observation' => 10,        // 觀察思考類
-       'magic_research' => 8,      // 魔法研究類
-       'tech_observation' => 6,    // 技術觀察類（降低權重）
-       'statistics' => 8,          // 統計觀察類
-       'memory' => 10,             // 回憶類
-       'admin_comment' => 8,      // 管理員評語類
-       'unexpected' => 10,         // 意外反應類
-       'silence' => 8,             // 沉默類
-       'bot_detection' => 6,       // BOT 檢測類
-   ];
-   ```
-
-   **權重說明：**
-   - 數值越高，被選中的機率越大
-   - 技術觀察類（WordPress/技術類）權重較低（6），避免過度偏好技術話題
-   - 總權重為 100，各類別機率分配更均衡
-   - 可在 `includes/llm-functions.php` 的 `mpu_generate_llm_dialogue()` 函數中修改權重
-
-3. **WordPress 資訊整合功能**
-
-   系統會自動將 WordPress 網站資訊加入到對話生成的背景知識中，包括：
+   系統會自動將 WordPress 網站資訊加入到 User Prompt 中，包括：
 
    **基本系統資訊：**
    - WordPress 版本
@@ -622,25 +601,11 @@ LLM（Large Language Model）功能允許你使用多種 AI 服務來生成對�
    - **アイテム使用回数**（TAG數量）：`{$tag_count}`
    - **冒険経過日数**（運營日數）：`{$days_operating}`
 
-   這些資訊會自動作為背景知識加入到 system_prompt 中，你可以在提示詞中使用以下變數：
-
-   ```php
-   // 基本資訊變數
-   $wp_version      // WordPress 版本
-   $theme_name      // 主題名稱
-   $theme_version   // 主題版本
-   $theme_author    // 主題作者
-   $php_version     // PHP 版本
-   $post_count      // 文章篇數
-   $comment_count   // 留言數量
-   $category_count  // 分類數量
-   $tag_count       // TAG數量
-   $days_operating  // 運營日數
-   ```
+   這些資訊會自動加入到 User Prompt 中，讓 LLM 能夠根據網站實際情況生成對話。
 
    > 💡 **提示**：統計資訊使用 transient 緩存 5 分鐘，避免頻繁查詢資料庫影響效能。
 
-4. **統計資訊比喻對應關係**
+6. **統計資訊比喻對應關係**
 
    系統使用「魔族戰鬥」比喻來描述網站統計，對應關係如下：
 
@@ -653,47 +618,22 @@ LLM（Large Language Model）功能允許你使用多種 AI 服務來生成對�
    | 運營日數 | 冒険経過日数 | `{$days_operating}` |
    | 外掛數量 | 習得魔法數量 | `{$plugins_count}` |
 
-   這些比喻會自動整合到 System Prompt 和 User Prompt 中，讓對話更符合角色世界觀。
+   這些比喻會自動整合到 User Prompt 中，讓對話更符合角色世界觀。
 
-5. **自定義範例系統**
+7. **自定義對話類別指令**
 
-   如果你想修改對話範例，可以編輯 `mpu_build_frieren_style_examples()` 函數：
-
-   ```php
-   // 在 includes/llm-functions.php 中
-   function mpu_build_frieren_style_examples(...) {
-       $examples = [];
-       
-       // ==================== 問候類 ====================
-       $examples[] = "問候類：";
-       $examples[] = '  - "また来たのね。"';
-       $examples[] = '  - "…ん。"';
-       // ... 添加更多範例
-       
-       return implode("\n", $examples);
-   }
-   ```
-
-   **範例設計要點：**
-
-   - ✅ **符合角色風格**：範例應該體現角色的個性和說話方式
-   - ✅ **多樣性**：每個類別建議有 5-10 個不同的範例
-   - ✅ **簡潔性**：範例應該簡短（通常 10-30 字），符合角色風格
-   - ✅ **情境化**：可以使用變數讓範例更動態（如 `{$time_context}`、`{$post_count}` 等）
-
-6. **自定義 User Prompt 指令**
-
-   如果你想修改 User Prompt 指令，可以編輯 `mpu_build_prompt_categories()` 函數：
+   如果你想修改對話類別指令，可以編輯 `mpu_build_prompt_categories()` 函數：
 
    ```php
    // 在 includes/llm-functions.php 中
    function mpu_build_prompt_categories(...) {
        $prompt_categories = [
            'greeting' => [
-               "問候類の会話例を参考に、軽く挨拶する",
+               "軽く挨拶する",
+               "一言挨拶する",
                // ... 添加更多指令
            ],
-           // ... 更多類別
+           // ... 更多類別（共 35 個）
        ];
        
        return $prompt_categories;
@@ -702,9 +642,9 @@ LLM（Large Language Model）功能允許你使用多種 AI 服務來生成對�
 
    **指令設計要點：**
 
-   - ✅ **簡潔明確**：指令應該簡潔，因為範例已經提供了風格參考
-   - ✅ **對應範例**：指令應該明確指出要參考哪個範例類別
+   - ✅ **簡潔明確**：指令應該簡潔，直接告訴 LLM 要生成什麼類型的對話
    - ✅ **任務導向**：指令應該明確告訴 LLM「這次要生成什麼類型的對話」
+   - ✅ **符合類別**：指令應該符合該類別的主題和風格
 
 7. **時間變數使用**
 
@@ -747,25 +687,26 @@ LLM（Large Language Model）功能允許你使用多種 AI 服務來生成對�
 
 **提示詞設計建議：**
 
-- ✅ **符合角色**：根據角色的個性設計對應的提示詞
-- ✅ **多樣性**：每個類別建議有 4-6 個不同的提示詞
+- ✅ **符合角色**：根據角色的個性設計對應的 System Prompt
+- ✅ **完整定義**：System Prompt 應該包含角色的個性、說話風格、行為規則等完整定義
 - ✅ **自然表達**：使用自然的語言，避免過於機械化
-- ✅ **避免矛盾**：確保同一類別的提示詞風格一致
-- ✅ **參考範例**：User Prompt 指令應該明確指出要參考哪個範例類別
+- ✅ **變數使用**：善用 `{{variable}}` 變數讓提示詞更動態
+- ✅ **多樣性**：每個對話類別建議有 4-6 個不同的指令
+- ✅ **避免矛盾**：確保 System Prompt 中的規則和風格一致
 - 💡 **長度建議**：
-  - **雲端 AI 服務**（Gemini、OpenAI、Claude）：System Prompt 會自動優化，使用 XML 結構化格式減少 token 使用
+  - **雲端 AI 服務**（Gemini、OpenAI、Claude）：建議 System Prompt 在 500-1000 字以內，減少 token 使用
   - **本機 LLM**（Ollama）：可以使用更長的提示詞（1000+ 字），詳細的提示詞通常能帶來更好的角色一致性和個性定義
 
-**System Prompt 優化系統：**
+**系統架構優勢：**
 
-系統內建了智能的 System Prompt 優化機制：
+新的系統架構帶來以下優勢：
 
-1. **XML 結構化**：使用 XML 標籤組織內容，讓 LLM 更容易理解
-2. **上下文壓縮**：自動壓縮 WordPress 資訊、用戶資訊、訪客資訊，減少 token 使用
-3. **範例整合**：自動整合 70+ 個對話範例，提供豐富的風格參考
-4. **動態生成**：根據當前情境（時間、訪客資訊等）動態生成範例和指令
+1. **完全可控**：System Prompt 完全由後台控制，無需修改程式碼
+2. **變數替換**：程式端只負責安全的 `{{variable}}` 替換，不會污染 System Prompt
+3. **資訊分離**：用戶資訊、訪客資訊、網站統計等實際資訊放在 User Prompt，保持 System Prompt 的純粹性
+4. **動態權重**：根據時間、訪客狀態等自動調整對話類別權重，讓對話更符合情境
 
-這些優化讓 System Prompt 更高效，同時保持角色風格的一致性。
+這種設計讓角色風格更一致，同時保持對話的多樣性和情境適應性。
 
 #### 關閉思考模式（Qwen3、DeepSeek 等模型）
 

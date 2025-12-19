@@ -310,8 +310,7 @@ function mpu_ajax_chat_context()
     }
 
     // 獲取提供商（向後兼容：優先使用 llm_provider，否則使用 ai_provider）
-    $provider = isset($mpu_opt["llm_provider"]) ? $mpu_opt["llm_provider"] : 
-                (isset($mpu_opt["ai_provider"]) ? $mpu_opt["ai_provider"] : "gemini");
+    $provider = isset($mpu_opt["llm_provider"]) ? $mpu_opt["llm_provider"] : (isset($mpu_opt["ai_provider"]) ? $mpu_opt["ai_provider"] : "gemini");
     $api_key_encrypted = "";
     $api_key = "";
 
@@ -357,39 +356,76 @@ function mpu_ajax_chat_context()
         return;
     }
 
-    // 構建提示詞
-    $system_prompt = $mpu_opt["ai_system_prompt"] ?? "你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。";
-
-    // 獲取當前用戶資訊並添加到 system prompt
-    $user_info = mpu_get_current_user_info();
-    if ($user_info['is_logged_in']) {
-        $user_context = "\n\n【當前用戶資訊】\n";
-        $user_context .= "當前用戶已登入 WordPress。\n";
-        $user_context .= "用戶名稱: {$user_info['display_name']} ({$user_info['username']})\n";
-        if (!empty($user_info['primary_role'])) {
-            $role_labels = [
-                'administrator' => '管理員',
-                'editor' => '編輯',
-                'author' => '作者',
-                'contributor' => '投稿者',
-                'subscriber' => '訂閱者',
-            ];
-            $role_label = isset($role_labels[$user_info['primary_role']])
-                ? $role_labels[$user_info['primary_role']]
-                : $user_info['primary_role'];
-            $user_context .= "用戶角色: {$role_label}\n";
-        }
-        if ($user_info['is_admin']) {
-            $user_context .= "此用戶是網站管理員。\n";
-        }
-        $system_prompt .= $user_context;
-    } else {
-        $system_prompt .= "\n\n【當前用戶資訊】\n當前用戶未登入 WordPress（訪客）。\n";
-    }
-
+    // System Prompt：只讀取後台設定並做變數替換
+    $wp_info = mpu_get_wordpress_info();
+    $ukagaka_name = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+    $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '春菜';
     $language = $mpu_opt["ai_language"] ?? "zh-TW";
 
-    $user_prompt = "文章標題：{$page_title}\n\n文章內容摘要：{$page_content}";
+    // 獲取時間情境
+    $time_context = mpu_get_time_context();
+
+    $variables = [
+        'ukagaka_display_name' => $ukagaka_display_name,
+        'language' => $language,
+        'time_context' => $time_context,
+        'wp_version' => $wp_info['wp_version'] ?? '',
+        'php_version' => $wp_info['php_version'] ?? '',
+        'post_count' => $wp_info['post_count'] ?? 0,
+        'comment_count' => $wp_info['comment_count'] ?? 0,
+        'category_count' => $wp_info['category_count'] ?? 0,
+        'tag_count' => $wp_info['tag_count'] ?? 0,
+        'days_operating' => $wp_info['days_operating'] ?? 0,
+        'theme_name' => $wp_info['theme_name'] ?? '',
+        'theme_version' => $wp_info['theme_version'] ?? '',
+        'theme_author' => $wp_info['theme_author'] ?? '',
+    ];
+
+    $system_prompt = $mpu_opt["ai_system_prompt"] ?? "你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。";
+    $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
+
+    // User Prompt：包含用戶資訊、訪客資訊、文章內容
+    $user_info = mpu_get_current_user_info();
+    $visitor_info = mpu_get_visitor_info_for_llm();
+
+    $user_prompt = "【當前用戶資訊】\n";
+    if ($user_info['is_logged_in']) {
+        $role_labels = [
+            'administrator' => '管理員',
+            'editor' => '編輯',
+            'author' => '作者',
+            'contributor' => '投稿者',
+            'subscriber' => '訂閱者',
+        ];
+        $role_label = isset($role_labels[$user_info['primary_role']])
+            ? $role_labels[$user_info['primary_role']]
+            : $user_info['primary_role'];
+
+        $user_prompt .= "用戶已登入：{$user_info['display_name']} ({$user_info['username']})\n";
+        $user_prompt .= "角色：{$role_label}\n";
+        if ($user_info['is_admin']) {
+            $user_prompt .= "此用戶是網站管理員。\n";
+        }
+    } else {
+        $user_prompt .= "用戶未登入（訪客）。\n";
+    }
+
+    $user_prompt .= "\n【訪客資訊】\n";
+    if (!empty($visitor_info['is_bot']) && $visitor_info['is_bot']) {
+        $bot_name = $visitor_info['browser_name'] ?? '未知のクローラー';
+        $user_prompt .= "檢測到 BOT：{$bot_name}\n";
+    }
+    if (!empty($visitor_info['slimstat_country'])) {
+        $user_prompt .= "來源地區：{$visitor_info['slimstat_country']}";
+        if (!empty($visitor_info['slimstat_city'])) {
+            $user_prompt .= " {$visitor_info['slimstat_city']}";
+        }
+        $user_prompt .= "\n";
+    }
+
+    $user_prompt .= "\n【文章內容】\n";
+    $user_prompt .= "標題：{$page_title}\n\n";
+    $user_prompt .= "內容摘要：{$page_content}";
 
     // 調用 AI API
     $result = mpu_call_ai_api(
@@ -565,8 +601,7 @@ function mpu_ajax_chat_greet()
     }
 
     // 獲取提供商（向後兼容：優先使用 llm_provider，否則使用 ai_provider）
-    $provider = isset($mpu_opt["llm_provider"]) ? $mpu_opt["llm_provider"] : 
-                (isset($mpu_opt["ai_provider"]) ? $mpu_opt["ai_provider"] : "gemini");
+    $provider = isset($mpu_opt["llm_provider"]) ? $mpu_opt["llm_provider"] : (isset($mpu_opt["ai_provider"]) ? $mpu_opt["ai_provider"] : "gemini");
     $api_key_encrypted = "";
     $api_key = "";
 
@@ -617,44 +652,62 @@ function mpu_ajax_chat_greet()
         $city = substr($city, 0, 100);
     }
 
-    // 構建提示詞
-    $system_prompt = $mpu_opt["ai_greet_prompt"] ?? "你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。";
-
-    // 獲取當前用戶資訊並添加到 system prompt
-    $user_info = mpu_get_current_user_info();
-    if ($user_info['is_logged_in']) {
-        $user_context = "\n\n【當前用戶資訊】\n";
-        $user_context .= "當前用戶已登入 WordPress。\n";
-        $user_context .= "用戶名稱: {$user_info['display_name']} ({$user_info['username']})\n";
-        if (!empty($user_info['primary_role'])) {
-            $role_labels = [
-                'administrator' => '管理員',
-                'editor' => '編輯',
-                'author' => '作者',
-                'contributor' => '投稿者',
-                'subscriber' => '訂閱者',
-            ];
-            $role_label = isset($role_labels[$user_info['primary_role']])
-                ? $role_labels[$user_info['primary_role']]
-                : $user_info['primary_role'];
-            $user_context .= "用戶角色: {$role_label}\n";
-        }
-        if ($user_info['is_admin']) {
-            $user_context .= "此用戶是網站管理員。\n";
-        }
-        $system_prompt .= $user_context;
-    } else {
-        $system_prompt .= "\n\n【當前用戶資訊】\n當前用戶未登入 WordPress（訪客）。\n";
-    }
-
+    // System Prompt：只讀取後台設定並做變數替換
+    $wp_info = mpu_get_wordpress_info();
+    $ukagaka_name = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+    $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '春菜';
     $language = $mpu_opt["ai_language"] ?? "zh-TW";
 
-    // 構建用戶提示詞
-    $user_prompt = "有訪客第一次來到網站。";
-    // 如果是登入用戶，在提示詞中特別說明
+    // 獲取時間情境
+    $time_context = mpu_get_time_context();
+
+    $variables = [
+        'ukagaka_display_name' => $ukagaka_display_name,
+        'language' => $language,
+        'time_context' => $time_context,
+        'wp_version' => $wp_info['wp_version'] ?? '',
+        'php_version' => $wp_info['php_version'] ?? '',
+        'post_count' => $wp_info['post_count'] ?? 0,
+        'comment_count' => $wp_info['comment_count'] ?? 0,
+        'category_count' => $wp_info['category_count'] ?? 0,
+        'tag_count' => $wp_info['tag_count'] ?? 0,
+        'days_operating' => $wp_info['days_operating'] ?? 0,
+        'theme_name' => $wp_info['theme_name'] ?? '',
+        'theme_version' => $wp_info['theme_version'] ?? '',
+        'theme_author' => $wp_info['theme_author'] ?? '',
+    ];
+
+    $system_prompt = $mpu_opt["ai_greet_prompt"] ?? "你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。";
+    $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
+
+    // User Prompt：包含用戶資訊、訪客來源資訊
+    $user_info = mpu_get_current_user_info();
+
+    $user_prompt = "【當前用戶資訊】\n";
     if ($user_info['is_logged_in']) {
-        $user_prompt .= "（這是登入用戶「{$user_info['display_name']}」）";
+        $role_labels = [
+            'administrator' => '管理員',
+            'editor' => '編輯',
+            'author' => '作者',
+            'contributor' => '投稿者',
+            'subscriber' => '訂閱者',
+        ];
+        $role_label = isset($role_labels[$user_info['primary_role']])
+            ? $role_labels[$user_info['primary_role']]
+            : $user_info['primary_role'];
+
+        $user_prompt .= "用戶已登入：{$user_info['display_name']} ({$user_info['username']})\n";
+        $user_prompt .= "角色：{$role_label}\n";
+        if ($user_info['is_admin']) {
+            $user_prompt .= "此用戶是網站管理員。\n";
+        }
+    } else {
+        $user_prompt .= "用戶未登入（訪客）。\n";
     }
+
+    $user_prompt .= "\n【訪客來源資訊】\n";
+    $user_prompt .= "有訪客第一次來到網站。";
+
     if ($is_direct) {
         $user_prompt .= "訪客是直接輸入網址或從書籤訪問的（沒有來源網頁）。";
     } else if (!empty($search_engine)) {
@@ -678,7 +731,7 @@ function mpu_ajax_chat_greet()
         $user_prompt .= "。";
     }
 
-    $user_prompt .= "請用親切友善的語氣打招呼。";
+    $user_prompt .= "\n\n請用親切友善的語氣打招呼。";
 
     // 調試模式：記錄傳遞給 AI 的資訊
     if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -946,7 +999,7 @@ function mpu_ajax_test_gemini_connection()
         $error_message = isset($error_data["error"]["message"])
             ? $error_data["error"]["message"]
             : sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
-        
+
         if ($response_code === 401 || $response_code === 403) {
             wp_send_json_error(sprintf(__('API 認證失敗：%s。請檢查 API Key 是否正確。', 'mp-ukagaka'), $error_message));
         } elseif ($response_code === 404) {
@@ -1027,7 +1080,7 @@ function mpu_ajax_test_openai_connection()
         $error_message = isset($error_data["error"]["message"])
             ? $error_data["error"]["message"]
             : sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
-        
+
         if ($response_code === 401 || $response_code === 403) {
             wp_send_json_error(sprintf(__('API 認證失敗：%s。請檢查 API Key 是否正確。', 'mp-ukagaka'), $error_message));
         } else {
@@ -1107,7 +1160,7 @@ function mpu_ajax_test_claude_connection()
         $error_message = isset($error_data["error"]["message"])
             ? $error_data["error"]["message"]
             : sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
-        
+
         if ($response_code === 401 || $response_code === 403) {
             wp_send_json_error(sprintf(__('API 認證失敗：%s。請檢查 API Key 是否正確。', 'mp-ukagaka'), $error_message));
         } else {

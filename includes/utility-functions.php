@@ -575,3 +575,47 @@ function mpu_get_current_user_info()
 
     return $user_info;
 }
+
+/**
+ * 渲染提示詞模板，替換 {{變數名}} 為實際值
+ * 
+ * @param string $template 模板字串，包含 {{變數名}} 佔位符
+ * @param array $variables 變數陣列，鍵為變數名（不含 {{}}），值為要替換的內容
+ * @return string 替換後的字串
+ */
+function mpu_render_prompt_template($template, $variables = [])
+{
+    if (empty($template) || !is_string($template)) {
+        return $template;
+    }
+
+    if (empty($variables) || !is_array($variables)) {
+        return $template;
+    }
+
+    // 使用 preg_replace_callback 進行安全替換
+    // 只替換純量值（字串、數字），確保安全
+    $result = preg_replace_callback(
+        '/\{\{(\w+)\}\}/',
+        function ($matches) use ($variables) {
+            $var_name = $matches[1];
+
+            // 只替換存在的變數
+            if (isset($variables[$var_name])) {
+                $value = $variables[$var_name];
+
+                // 只處理純量值（字串、數字、布林值）
+                if (is_scalar($value)) {
+                    // 轉換為字串
+                    return (string) $value;
+                }
+            }
+
+            // 未定義的變數保持原樣（不替換）
+            return $matches[0];
+        },
+        $template
+    );
+
+    return $result;
+}
