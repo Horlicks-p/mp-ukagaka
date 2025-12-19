@@ -103,9 +103,17 @@ function mpu_get_option()
                 if (!isset($mpu_opt['ukagakas']['default_1'])) {
                     $mpu_opt['ukagakas']['default_1'] = $default_opt['ukagakas']['default_1'];
                 } else {
-                    // 檢查是否為舊的預設值（名稱是「初音」），如果是則更新為新的預設值
+                    // 檢查是否為舊的預設值（名稱包含「初音」或「Miku」），如果是則更新為新的預設值
                     $current_name = $mpu_opt['ukagakas']['default_1']['name'] ?? '';
-                    if ($current_name === '初音') {
+                    // 檢查多種可能的舊名稱變體
+                    $is_old_default = (
+                        $current_name === '初音' ||
+                        $current_name === '初音ミク' ||
+                        stripos($current_name, '初音') !== false ||
+                        stripos($current_name, 'miku') !== false ||
+                        stripos($current_name, 'ミク') !== false
+                    );
+                    if ($is_old_default) {
                         // 只更新名稱、shell、msg 和 dialog_filename，保留其他設定（如 show）
                         $mpu_opt['ukagakas']['default_1']['name'] = $default_opt['ukagakas']['default_1']['name'];
                         $mpu_opt['ukagakas']['default_1']['shell'] = $default_opt['ukagakas']['default_1']['shell'];
@@ -113,6 +121,8 @@ function mpu_get_option()
                         $mpu_opt['ukagakas']['default_1']['dialog_filename'] = $default_opt['ukagakas']['default_1']['dialog_filename'];
                         // 儲存更新後的設定
                         update_option("mp_ukagaka", $mpu_opt);
+                        // 清除物件快取（如果有的話）
+                        wp_cache_delete("mp_ukagaka", "options");
                     }
                 }
             }
