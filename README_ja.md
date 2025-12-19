@@ -2,11 +2,15 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成・表示するプラグイン。AI コンテキスト認識機能搭載。
 
-[![プラグインバージョン](https://img.shields.io/badge/version-2.1.6-blue.svg)](https://github.com)
+[![プラグインバージョン](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
 🌍 **他の言語**: [English](README.md) | [繁體中文](README_zh-TW.md)
+
+## 🎉 特別告知
+
+**『葬送のフリーレン』第2期** の **2026年1月16日** 放送開始を記念して、デフォルトキャラクターを **初音ミク** から **フリーレン** に変更しました。
 
 ## 📸 スクリーンショット
 
@@ -50,21 +54,36 @@ MP Ukagaka は、WordPress サイトにカスタムのインタラクティブ�
 - **多言語 AI**：繁体中国語、日本語、または英語で応答を生成
 - **初回訪問者挨拶**：新規訪問者をパーソナライズされた AI 挨拶で歓迎（Slimstat プラグイン必要）
 
-### 🧪 ローカル LLM サポート（ベータ版）
+### 🤖 ユニバーサル LLM インターフェース（v2.2.0）
 
-> ⚠️ **注意**：LLM 機能は現在**テスト段階（BETA）**にあります。機能が不安定な可能性があるため、ご注意ください。
+> 💡 **重要更新**：LLM 機能が**ユニバーサル LLM インターフェース**にアップグレードされました！
 
-プラグインは Ollama を介したローカル LLM 統合をサポートし、API コストなしでダイアログを生成できます：
+プラグインは複数の AI サービスをサポートする統一インターフェースを提供し、以下のいずれかのサービスを使用してダイアログを生成できます：
 
-- **Ollama 統合**：ローカルまたはリモートの Ollama インスタンスに接続
-- **リモート接続サポート**：Cloudflare Tunnel、ngrok、その他のトンネルサービスと連携
-- **組み込みダイアログの置き換え**：静的ダイアログを AI 生成コンテンツに置き換えるオプション
-- **API Key 不要**：独自の LLM セットアップで完全無料
-- **スマート接続検出**：ローカルとリモート接続のタイムアウト設定を自動調整
-- **モデルサポート**：様々な Ollama モデル（Qwen3、Llama、Mistral など）と互換性
-- **思考モード制御**：Qwen3 などのモデルの思考動作を無効化するオプション
+- **Ollama**（ローカル/リモート）：完全無料、API Key 不要
+  - ローカルまたはリモートの Ollama インスタンスに接続
+  - Cloudflare Tunnel、ngrok、その他のトンネルサービスをサポート
+  - スマート接続検出、タイムアウト設定を自動調整
+  - モデルサポート：Qwen3、Llama、Mistral など
+  - 思考モード制御（Qwen3、DeepSeek などのモデル）
+
+- **Google Gemini**：API Key が必要
+  - サポートモデル：Gemini 2.5 Flash（推奨）、Gemini 1.5 Pro など
+
+- **OpenAI**：API Key が必要
+  - サポートモデル：GPT-4.1 Mini（推奨）、GPT-4o など
+
+- **Claude (Anthropic)**：API Key が必要
+  - サポートモデル：Claude Sonnet 4.5、Claude Haiku 4.5、Claude Opus 4.5
+
+**主な機能：**
+
+- **統一設定インターフェース**：すべてのプロバイダーが同じ設定ページを使用
+- **API Key 暗号化**：すべての API Key が自動的に暗号化されて保存され、セキュリティを確保
+- **接続テスト**：すべての AI プロバイダーにテストボタンを追加
+- **組み込みダイアログの置き換え**：静的ダイアログを AI 生成コンテンツに置き換えるオプション（すべてのプロバイダーをサポート）
+- **最適化された System Prompt**：XML 構造化 System Prompt、70+ のフリーレンスタイルダイアログ例を含む
 - **WordPress 情報統合**：LLM ダイアログにサイト情報を含めることが可能（WordPress バージョン、テーマ情報、統計情報）
-- **カスタマイズ可能な統計プロンプト**：RPG スタイルの用語をサポートする統計プロンプト（詳細は [USER_GUIDE.md](docs/USER_GUIDE.md) を参照）
 - **反復防止メカニズム**：以前の応答を追跡し、繰り返しのアイドル会話を防止
 - **アイドル検出機能**：ユーザーがアイドル状態（60 秒）のとき、自動会話を自動的に一時停止し、GPU とネットワークリソースを節約
 
@@ -138,77 +157,60 @@ MP Ukagaka は、WordPress サイトにカスタムのインタラクティブ�
    - 設定 → MP Ukagaka → AI 設定に移動
    - 「ページ認識機能を有効にする」をチェック
 
-2. **AI プロバイダーを選択**
-
-   **Google Gemini**（初心者におすすめ）：
-
-   - [Google AI Studio](https://makersuite.google.com/app/apikey)から API Key を取得
-   - プロバイダーとして「Gemini」を選択
-   - API Key を入力
-   - デフォルトモデル：gemini-2.5-flash
-
-   **OpenAI GPT**：
-
-   - [OpenAI Platform](https://platform.openai.com/api-keys)から API Key を取得
-   - プロバイダーとして「OpenAI」を選択
-   - API Key を入力
-   - モデルを選択：gpt-4o-mini（推奨）、gpt-4o、または gpt-3.5-turbo
-
-   **Anthropic Claude**：
-
-   - [Anthropic Console](https://console.anthropic.com/)から API Key を取得
-   - プロバイダーとして「Claude」を選択
-   - API Key を入力
-   - モデル：claude-sonnet-4-5-20250929
-
-3. **AI 設定を構成**
-
-   - **言語**：応答言語を選択（繁体中国語、日本語、英語）
-   - **キャラクター設定**：キャラクターの個性を定義（例：「あなたは遊び心のあるデスクトップマスコットです。記事の内容を面白く、短く（40 字以内）コメントしてください。」）
-   - **確率**：AI トリガー率を設定（1-100%、コスト管理には 10-30%推奨）
+   - **言語設定**：応答言語を選択（繁体中国語、日本語、英語）
+   - **キャラクター設定（System Prompt）**：キャラクターの個性を定義
+     - この設定は最適化された System Prompt システムと統合されます
+     - クラウド AI サービス：System Prompt は自動的に最適化され、token 使用量を削減します
+     - ローカル LLM：より長いプロンプトを使用して、より良いキャラクターの一貫性を得ることができます
+   - **頁面感知確率（%）**：AI トリガー率を設定（1-100%、コスト管理には 10-30%推奨）
    - **トリガーページ**：AI をトリガーするページを指定（例：「is_single」で単一投稿のみ）
-   - **テキスト色**：AI 会話のテキスト色をカスタマイズ
-   - **表示時間**：AI メッセージの表示時間を設定（5-10 秒推奨）
+   - **AI会話の表示時間（秒）**：AI メッセージの表示時間を設定（5-10 秒推奨）
+   - **初回訪問者への挨拶**：有効化して挨拶プロンプトを設定（オプション）
 
-4. **初回訪問者挨拶**（オプション）
-
-   - 「初回訪問者への挨拶を有効化」を有効にする
-   - 挨拶プロンプトを設定
-   - 拡張訪問者追跡には Slimstat プラグインが必要
-
-5. **設定を保存**
+4. **設定を保存**
    - 「保存」ボタンをクリック
    - 単一投稿ページで AI 応答をテスト
 
-### ローカル LLM (Ollama) 設定（ベータ版）
+### ユニバーサル LLM 設定
 
-> ⚠️ **警告**：この機能は現在**テスト段階（BETA）**にあります。自己責任でご使用ください。
+1. **AI プロバイダーを選択**
 
-1. **Ollama をインストール**
+   **設定 → MP Ukagaka → LLM 設定**に移動し、以下のいずれかの AI プロバイダーを選択：
 
-   - ローカルマシンまたはサーバーに[Ollama](https://ollama.ai/)をダウンロード・インストール
-   - Ollama サービスを起動
+   **Ollama**（無料、API Key 不要）：
+   - ローカルマシンまたはサーバーに[Ollama](https://ollama.ai/)をインストール・実行
    - モデルをダウンロード：`ollama pull qwen3:8b`（または希望のモデル）
-
-2. **プラグイン設定を構成**
-
-   - 設定 → MP Ukagaka → LLM 設定に移動
-   - 「LLM (Ollama) を有効化」をチェック
-   - Ollama エンドポイントを入力：
-     - **ローカル**：`http://localhost:11434`（デフォルト）
-     - **リモート**：`https://your-domain.com`（Cloudflare Tunnel、ngrok など）
+   - エンドポイントを入力：`http://localhost:11434`（ローカル）または `https://your-domain.com`（リモート）
    - モデル名を入力（例：`qwen3:8b`、`llama3.2`、`mistral`）
+   - 「Ollama 接続をテスト」ボタンで設定を確認
 
-3. **オプション設定**
+   **Google Gemini**（初心者におすすめ）：
+   - [Google AI Studio](https://makersuite.google.com/app/apikey)から API Key を取得
+   - API Key を入力（自動暗号化）
+   - モデルを選択：Gemini 2.5 Flash（推奨）、Gemini 1.5 Pro など
+   - 「接続テスト」ボタンで設定を確認
 
-   - **組み込みダイアログを置き換える**：静的ダイアログを LLM 生成ダイアログに置き換える
-   - **思考モードを無効化**：Qwen3 モデルの応答速度向上に推奨
-   - **接続をテスト**：「Ollama 接続をテスト」ボタンで設定を確認
+   **OpenAI**：
+   - [OpenAI Platform](https://platform.openai.com/api-keys)から API Key を取得
+   - API Key を入力（自動暗号化）
+   - モデルを選択：GPT-4.1 Mini（推奨）、GPT-4o など
+   - 「接続テスト」ボタンで設定を確認
 
-4. **リモート接続（Cloudflare Tunnel）**
-   - `http://localhost:11434`を指す Cloudflare Tunnel を設定
-   - トンネル URL をエンドポイントとして使用（例：`https://your-domain.com`）
-   - プラグインは自動的にリモート接続を検出し、タイムアウト設定を調整
+   **Claude (Anthropic)**：
+   - [Anthropic Console](https://console.anthropic.com/)から API Key を取得
+   - API Key を入力（自動暗号化）
+   - モデルを選択：Claude Sonnet 4.5（推奨）、Claude Haiku 4.5、Claude Opus 4.5
+   - 「接続テスト」ボタンで設定を確認
+
+2. **LLM 設定を構成**
+
+   - **組み込みダイアログを置き換える**：静的ダイアログを LLM 生成ダイアログに置き換える（すべてのプロバイダーをサポート）
+   - **ページ認識機能**：ページ認識機能が有効かどうかを制御
+   - **思考モードを無効化**：Qwen3、DeepSeek モデルに推奨（Ollama のみ）
+
+3. **AI 設定（ページ認識）を構成**
+
+   **設定 → MP Ukagaka → AI 設定**に移動してページ認識機能を設定：
 
 ## 🔧 高度な機能
 
@@ -297,32 +299,6 @@ AI トリガーに WordPress 条件タグを使用：
 - **ディレクトリトラバーサル防止**：ファイルパスを検証して不正アクセスを防止
 - **入力検証**：すべてのユーザー入力をサニタイズ・検証
 
-## 📝 ファイル構造
-
-```
-mp-ukagaka/
-├── includes/                      # PHPモジュール
-│   ├── core-functions.php        # コア機能（設定管理）
-│   ├── utility-functions.php     # ユーティリティ関数（セキュリティ）
-│   ├── ai-functions.php          # AI機能（クラウドAPI + Ollama）
-│   ├── llm-functions.php         # LLM機能（Ollama専用）- ベータ版
-│   ├── ukagaka-functions.php     # ゴースト管理
-│   ├── ajax-handlers.php         # AJAXハンドラー
-│   ├── frontend-functions.php    # フロントエンド機能
-│   └── admin-functions.php       # 管理機能
-├── dialogs/                      # ダイアログファイル（TXT/JSON）
-├── images/                       # 画像リソース
-│   └── shell/                    # キャラクター画像
-├── languages/                    # 言語ファイル
-├── docs/                         # ドキュメント
-├── mp-ukagaka.php               # メインプラグインファイル
-├── ukagaka-core.js              # フロントエンドJS（コア）
-├── ukagaka-features.js          # フロントエンドJS（機能）
-├── ukagaka-anime.js             # Canvas アニメーションマネージャー
-├── ukagaka_cookie.js            # Cookieユーティリティ
-└── mpu_style.css                # スタイルシート
-```
-
 ## ❓ よくある質問
 
 ### API コストを抑えるには？
@@ -394,7 +370,140 @@ mp-ukagaka/
 - ファイルが`dialogs/`フォルダにあるか確認
 - ファイル権限を確認
 
+## 📝 ファイル構造
+
+```
+mp-ukagaka/
+├── includes/                      # PHP モジュール化コンポーネント
+│   ├── core-functions.php        # コア機能（設定、オプション）
+│   ├── utility-functions.php     # ユーティリティ関数（文字列/配列、フィルタリング、セキュリティ）
+│   ├── ai-functions.php          # AI 機能（Gemini、OpenAI、Claude API 呼び出し）
+│   ├── llm-functions.php         # LLM 機能（Ollama 統合）
+│   ├── ukagaka-functions.php     # うかがか管理（CRUD、メッセージ処理）
+│   ├── ajax-handlers.php         # AJAX ハンドラー（すべての AJAX エンドポイント）
+│   ├── frontend-functions.php    # フロントエンド機能（HTML、アセット、表示ロジック）
+│   └── admin-functions.php        # 管理機能（設定保存、管理ページ）
+├── options/                       # 管理オプションページ
+│   ├── options.php               # 管理ページフレームワーク
+│   ├── options_page0.php         # 一般設定
+│   ├── options_page1.php         # キャラクター管理
+│   ├── options_page2.php         # 新規キャラクター作成
+│   ├── options_page3.php         # 拡張機能
+│   ├── options_page4.php         # ダイアログ管理
+│   ├── options_page_ai.php      # AI 設定（コンテキスト認識）
+│   └── options_page_llm.php      # LLM 設定（Ollama）- ベータ版
+├── dialogs/                      # ダイアログファイル（TXT/JSON）
+├── images/                       # キャラクター画像
+│   └── shell/                    # キャラクターシェル画像
+├── js/                           # JavaScript ファイル（v2.1.7+）
+│   ├── ukagaka-base.js          # ベース層（config + utils + ajax）
+│   ├── ukagaka-core.js          # コア機能（ui + dialogue + キャラクター切り替え）
+│   ├── ukagaka-features.js      # 機能モジュール（ai + external + events）
+│   ├── ukagaka-anime.js         # Canvas アニメーションマネージャー
+│   ├── ukagaka-cookie.js        # Cookie 処理ユーティリティ
+│   └── ukagaka-textarearesizer.js # 管理画面テキストエリアリサイザー
+├── languages/                    # 翻訳ファイル
+├── mp-ukagaka.php               # メインプラグインファイル（モジュールローダー）
+├── mpu_style.css                # スタイルシート
+├── readme.txt                   # WordPress.org readme
+└── README_ja.md                  # このファイル
+```
+
 ## 📜 変更履歴
+
+### バージョン 2.2.0（2025-12-19）
+
+**🚀 重大更新：ユニバーサル LLM インターフェース**
+
+- **マルチ AI プロバイダーサポート**：4 つの AI サービスをサポートする統一インターフェース
+  - **Ollama**：ローカル/リモート無料 LLM（API Key 不要）
+  - **Google Gemini**：Gemini 2.5 Flash（推奨）、Gemini 1.5 Pro などをサポート
+  - **OpenAI**：GPT-4.1 Mini（推奨）、GPT-4o などをサポート
+  - **Claude (Anthropic)**：Claude Sonnet 4.5、Claude Haiku 4.5、Claude Opus 4.5 をサポート
+  - すべてのプロバイダーが統一設定インターフェースを使用し、いつでも切り替え可能
+
+- **API Key 暗号化保存**：すべての API Key が自動的に暗号化されて保存され、セキュリティを確保
+- **接続テスト機能**：すべての AI プロバイダーに接続テストボタンを追加
+
+**🧠 System Prompt 最適化システム**
+
+- **XML 構造化設計**：XML タグを使用して System Prompt を整理し、LLM の理解効率を向上
+  - `<character>`：キャラクター名とコア設定
+  - `<knowledge_base>`：圧縮された WordPress 情報
+  - `<behavior_rules>`：行動ルール（must_do、should_do、must_not_do）
+  - `<response_style_examples>`：70+ のダイアログ例
+  - `<current_context>`：現在のコンテキスト情報
+
+- **コンテキスト圧縮メカニズム**：WordPress、ユーザー、訪問者情報を自動的に圧縮し、token 使用量を削減
+- **フリーレンスタイル例システム**：12 カテゴリをカバーする 70+ の実際のダイアログ例を内蔵
+- **二層アーキテクチャ設計**：System Prompt がスタイルを定義し、User Prompt がタスク指示を提供
+
+**🎨 UI/UX 全面アップグレード**
+
+- **統一カードデザイン**：すべての設定ページが一貫したカードベースのレイアウトを使用
+- **二列レイアウト**：メインコンテンツ + サイドバーデザイン（メインコンテンツ 55%、サイドバー 300px）
+- **カスタムスクロールバースタイル**：長いテキスト領域に美しいスクロールバーを追加
+
+**🔧 機能改善**
+
+- **ページ認識機能統合**：「ページ認識機能」設定を LLM 設定ページに移動
+- **AI 設定ページ簡素化**：「ページ認識」機能に焦点を当て
+- **統計メタファー最適化**：ゲーム化された統計メタファーを復元および最適化
+
+**📝 コード最適化**
+
+- **新機能**：mpu_build_optimized_system_prompt、mpu_build_frieren_style_examples、mpu_build_prompt_categories、mpu_compress_context_info、mpu_get_visitor_status_text、mpu_calculate_text_similarity、mpu_debug_system_prompt
+- **関数リファクタリング**：mpu_generate_llm_dialogue が新しい最適化された System Prompt システムを使用
+- **後方互換性**：古い設定のサポートを維持し、設定キーの自動移行
+
+**🐛 バグ修正**
+
+- 統計メタファーのマッピングを修正
+- テキストエリアの幅設定を最適化（850px に統一）
+- メインメニューの下部ラインの配置を修正
+- スクロールバーのスタイル問題を修正
+
+**🎉 特別更新（2025-12-19）**
+
+- 『葬送のフリーレン』第2期の2026年1月16日放送開始を記念して、デフォルトキャラクターを初音ミクからフリーレンに変更
+
+---
+
+### バージョン 2.1.7（2025-12-15）
+
+**パフォーマンス最適化：**
+
+- 🚀 **JavaScript ファイル構造リファクタリング**：10 個の JS ファイルを 4 個に統合し、HTTP リクエストを削減
+  - `ukagaka-base.js`：config + utils + ajax を統合（ベース層）
+  - `ukagaka-core.js`：ui + dialogue + core を統合（コア機能）
+  - `ukagaka-features.js`：ai + external + events を統合（機能モジュール）
+  - `ukagaka-anime.js`：独立保持（アニメーションモジュール）
+  - すべてのファイルを `ukagaka-` プレフィックスで統一命名
+- 🚀 **mousemove ログ最適化**：頻繁にトリガーされるログ記録を削除し、コンソールのフラッディングを回避
+
+**機能改善：**
+
+- 🔧 **LLM リクエスト最適化**：POST 方式に変更し、URL 長さ制限を回避
+  - すべてのパラメータを `FormData` で渡す
+  - バックエンドは POST と GET の両方式をサポート（後方互換性）
+  - `wp_unslash()` を使用して WordPress の JSON データを正しく処理
+- 🔧 **LLM リクエスト連打防止**：`cancelPrevious: true` オプションを追加
+  - ユーザーが「次へ」を素早く連続クリックした場合、前の未完了リクエストを自動的にキャンセル
+  - 複数の並列リクエストがタイプライター効果を上書きすることを回避
+
+**エラー処理最適化：**
+
+- 🐛 **Canvas アニメーションエラー処理**：`mpuChange` 関数の開始時に Canvas Manager をチェック
+  - `window.mpuCanvasManager` の存在を事前にチェック
+  - Ajax 成功後にエラーを発見することを回避
+- 🐛 **LLM エラー視覚的フィードバック**：デバッグモードでエラーメッセージを表示
+  - 表示形式：`[LLM エラー: エラーメッセージ]`
+  - 2 秒後に自動的にフォールバックダイアログに切り替え
+
+**その他の改善：**
+
+- 📝 ファイル命名規則の統一：すべての JavaScript ファイルに `ukagaka-` プレフィックスを使用
+  - `jquery.textarearesizer.compressed.js` → `ukagaka-textarearesizer.js`
 
 ### バージョン 2.1.6（2025-12-14）
 
@@ -424,68 +533,6 @@ mp-ukagaka/
 - 🔧 **LLM**: WordPress 関連のダイアログのための新しいプロンプトカテゴリ `wordpress_info` と `statistics` を追加
 - 🔧 **LLM**: WordPress コンテキスト情報でシステムプロンプトを強化
 - 🔧 **パフォーマンス**: ユーザーの非活動中に不要な LLM リクエストを削減
-
-### バージョン 2.1.5（2025-12-13）
-
-**構造変更：**
-
-- 📁 **リファクタリング**：管理オプションページを専用の `options/` フォルダに再編成
-  - すべてのオプションページファイル（options.php、options_page*.php）が `options/` ディレクトリに集約
-  - コード組織と保守性の向上
-  - includes と options の関心の分離の改善
-
-**改善：**
-
-- ✨ **LLM**: ランダム対話プロンプトシステムの改善（カテゴリ別プロンプト：挨拶、カジュアル、観察、コンテキスト、インタラクティブ）
-- ✨ **LLM**: 時間認識コンテキストプロンプトの追加（朝、午後、夜、深夜）
-- 🌍 **i18n**: 翻訳ファイルの完全な監査と更新
-- 🌍 **i18n**: すべてのエラーメッセージと成功メッセージの翻訳を追加
-- 🌍 **i18n**: すべての API エラーメッセージが適切に国際化されました
-- 🔧 **i18n**: .po から .mo への変換を改善する翻訳コンパイルスクリプトを更新
-
-**強化：**
-
-- 🔧 **LLM**: プロンプトの多様性を 7 個から 20+ 個に拡大（5 カテゴリ）
-- 🔧 **LLM**: より自然でコンテキストに応じたプロンプト表現
-- 🔧 **i18n**: llm-functions.php、ai-functions.php、ajax-handlers.php のすべてのハードコード文字列が翻訳関数を使用
-
-### バージョン 2.1.4（2025-12-11）
-
-**改善：**
-
-- ⚡ **AI**：Gemini の `maxOutputTokens` を 100 から 500 に増やし、コンテキスト認識処理中の応答切り捨てを防止（より長く完全な応答が可能に）。
-- 💰 **AI**：コスト管理のため、OpenAI と Claude は 100 トークンのまま維持。
-
-**バグ修正：**
-
-- 🐛 **UI**：管理画面の「AI 会話テキスト色」入力の表示問題を修正（CSS パディングの競合によりカラーピッカーがつぶれて表示されていた問題を解決）。
-
-### バージョン 2.1.3（2025-12-10）
-
-**重大な変更：**
-
-- 🔄 **破壊的変更**：システムは外部ダイアログファイル（TXT/JSON 形式）のみを使用
-  - 内部ダイアログ保存機能を削除
-  - すべてのダイアログは外部ファイルとして`dialogs/`フォルダに保存する必要があります
-  - キャラクター設定を保存すると自動的にダイアログファイルが生成されます
-- 🎨 **新規**：Claude スタイルの管理画面 UI を完全リデザイン
-  - モダンでクリーンなデザイン、温かみのあるカラーパレット
-  - 改善されたタブナビゲーションとコンテンツレイアウト
-  - より良いメッセージ配置とフォーマット
-  - モバイルデバイス対応のレスポンシブデザイン
-
-**改善：**
-
-- 🔧 **改善**：すべての管理ページでのメッセージ表示の一貫性向上
-- 🔧 **改善**：重複メッセージ表示の問題を修正
-- 🔧 **改善**：管理画面の幅を最適化（75%、左揃え）
-- 🔧 **改善**：シャドウを削除してよりクリーンな外観に
-- 🔧 **改善**：WordPress デフォルトの背景色を復元
-
-**バグ修正：**
-
-- 🐛 **修正**：メッセージボックスの配置の問題
-- 🐛 **修正**：複数の管理ページでの保存メッセージの重複表示の問題
 
 ### バージョン 2.1.2（2025-12-08）
 
@@ -525,7 +572,7 @@ mp-ukagaka/
 ## 👥 クレジット
 
 - **オリジナル作者**：Ariagle _（元のサイトは運営終了）_
-- **メンテナー**：Horlicks (https://www.moelog.com/)
+- **メンテナー**：Horlicks (<https://www.moelog.com/>)
 - **インスピレーション**：クラシック MP Ukagaka プラグイン / 伺か (Ukagaka)
 
 ## 📄 ライセンス

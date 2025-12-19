@@ -369,9 +369,9 @@ function mpu_call_claude_api(string $prompt, string $system_prompt): ?string
 
 ---
 
-### LLM Functions (llm-functions.php) - BETA
+### LLM Functions (llm-functions.php)
 
-> ⚠️ **Note**: This module is in **BETA**. API may change.
+> 💡 **v2.2.0 Update**: LLM functionality has been upgraded to a **Universal LLM Interface**, supporting four major AI services: Ollama, Gemini, OpenAI, and Claude.
 
 #### mpu_is_remote_endpoint()
 
@@ -466,14 +466,16 @@ if (mpu_check_ollama_available('https://your-domain.com', 'qwen3:8b')) {
 
 #### mpu_generate_llm_dialogue()
 
-Generate random dialogue using LLM (Replace built-in dialogue).
+Generate random dialogue using LLM (Replace built-in dialogue). Supports all AI providers (Ollama, Gemini, OpenAI, Claude).
 
 ```php
 /**
  * @param string $ukagaka_name Ukagaka name
+ * @param string $last_response Last AI response (for avoiding repetitive dialogue)
+ * @param array $response_history Response history array (recent responses for stricter repetition detection)
  * @return string|false Generated dialogue content, or false on failure
  */
-function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1')
+function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1', string $last_response = '', array $response_history = [])
 ```
 
 **Example:**
@@ -483,7 +485,17 @@ $dialogue = mpu_generate_llm_dialogue('frieren');
 if ($dialogue !== false) {
     echo $dialogue;
 }
+
+// With repetition detection
+$dialogue = mpu_generate_llm_dialogue('frieren', 'Last response', ['Response 1', 'Response 2']);
 ```
+
+**Key Features:**
+
+- Automatically uses optimized XML-structured System Prompt
+- Supports anti-repetition mechanism (similarity detection)
+- Automatically integrates WordPress info, user info, visitor info
+- Supports 70+ Frieren-style dialogue examples
 
 ---
 
@@ -519,6 +531,288 @@ function mpu_get_ollama_settings()
     'model' => 'qwen3:8b',
     'replace_dialogue' => true,
 ]
+```
+
+---
+
+#### mpu_get_visitor_info_for_llm()
+
+Get visitor information (for LLM dialogue generation). Integrates Slimstat data, including BOT detection and geolocation information.
+
+```php
+/**
+ * @return array Visitor information array
+ */
+function mpu_get_visitor_info_for_llm(): array
+```
+
+**Return Value:**
+
+```php
+[
+    'is_bot' => false,                    // Is BOT
+    'browser_type' => 0,                  // Browser type (0=normal, 1=BOT, 2=mobile)
+    'browser_name' => 'Chrome',            // Browser name (BOT name)
+    'slimstat_enabled' => true,            // Is Slimstat enabled
+    'slimstat_country' => 'TW',            // Country code
+    'slimstat_city' => 'Taipei',           // City name
+]
+```
+
+---
+
+#### mpu_get_visitor_status_text()
+
+Get visitor status text (BOT or geolocation).
+
+```php
+/**
+ * @param array $visitor_info Visitor information
+ * @return string Visitor status description
+ */
+function mpu_get_visitor_status_text(array $visitor_info): string
+```
+
+**Example:**
+
+```php
+$visitor_info = mpu_get_visitor_info_for_llm();
+$status = mpu_get_visitor_status_text($visitor_info);
+// May return: '🤖 BOT: Googlebot' or 'From TW / Taipei'
+```
+
+---
+
+#### mpu_compress_context_info()
+
+Compress WordPress, user, and visitor information into compact XML format (for System Prompt).
+
+```php
+/**
+ * @param array $wp_info WordPress information
+ * @param array $user_info User information
+ * @param array $visitor_info Visitor information
+ * @return string Compressed XML format string
+ */
+function mpu_compress_context_info(array $wp_info, array $user_info, array $visitor_info): string
+```
+
+---
+
+#### mpu_build_frieren_style_examples()
+
+Build Frieren-style dialogue examples (70+ examples covering 12 categories).
+
+```php
+/**
+ * @param array $wp_info WordPress information
+ * @param array $visitor_info Visitor information
+ * @param string $time_context Time context (morning/afternoon/evening/late night)
+ * @param string $theme_name Theme name
+ * @param string $theme_version Theme version
+ * @param string $theme_author Theme author
+ * @return string Formatted example text
+ */
+function mpu_build_frieren_style_examples(
+    array $wp_info,
+    array $visitor_info,
+    string $time_context,
+    string $theme_name,
+    string $theme_version,
+    string $theme_author
+): string
+```
+
+**Example Categories:**
+
+- Greeting, Casual, Time-aware, Observation
+- Magic research, Tech observation, Statistics, Memory
+- Admin comments, Unexpected reactions, BOT detection, Silence
+
+**Special Features:**
+
+- **Observation category** automatically reads up to 5 lines from the current character's built-in dialogue file
+  - Automatically filters out empty strings and messages longer than 50 characters
+  - Randomly selects qualifying dialogues to add to examples
+  - Makes AI-generated dialogues closer to the character's actual style
+
+---
+
+#### mpu_build_prompt_categories()
+
+Build User Prompt category instructions (corresponding to example categories).
+
+```php
+/**
+ * @param array $wp_info WordPress information
+ * @param array $visitor_info Visitor information
+ * @param string $time_context Time context
+ * @param string $theme_name Theme name
+ * @param string $theme_version Theme version
+ * @param string $theme_author Theme author
+ * @return array Category instruction array
+ */
+function mpu_build_prompt_categories(
+    array $wp_info,
+    array $visitor_info,
+    string $time_context,
+    string $theme_name,
+    string $theme_version,
+    string $theme_author
+): array
+```
+
+**Return Value:**
+
+```php
+[
+    'greeting' => ['Refer to greeting examples and lightly greet', ...],
+    'casual' => ['Refer to casual examples and say something plain', ...],
+    'time_aware' => ['Refer to time-aware examples and express {$time_context} time sense', ...],
+    // ... more categories
+]
+```
+
+---
+
+#### mpu_weighted_random_select()
+
+Randomly select a category from a category array based on a weight array (weighted random selection).
+
+```php
+/**
+ * @param array $categories Category array (key => value)
+ * @param array $weights Weight array (key => weight), higher values have higher probability of being selected
+ * @return string Selected category key
+ */
+function mpu_weighted_random_select(array $categories, array $weights): string
+```
+
+**Usage Example:**
+
+```php
+$categories = [
+    'greeting' => ['Greeting 1', 'Greeting 2'],
+    'casual' => ['Casual 1', 'Casual 2'],
+    'tech_observation' => ['Tech 1', 'Tech 2'],
+];
+
+$weights = [
+    'greeting' => 10,
+    'casual' => 10,
+    'tech_observation' => 3,  // Lower weight for tech observation category
+];
+
+$selected = mpu_weighted_random_select($categories, $weights);
+// May return: 'greeting', 'casual', or 'tech_observation'
+// tech_observation has approximately 30% probability compared to other categories
+```
+
+**Notes:**
+
+- If a category is not set in the weight array, the default weight is 5
+- If total weight is 0, uniform random selection (`array_rand()`) will be used
+- Higher weight values have higher probability of being selected
+
+---
+
+#### mpu_build_optimized_system_prompt()
+
+Build optimized System Prompt (XML-structured version).
+
+```php
+/**
+ * @param array $mpu_opt Plugin settings
+ * @param array $wp_info WordPress information
+ * @param array $user_info User information
+ * @param array $visitor_info Visitor information
+ * @param string $ukagaka_name Ukagaka name
+ * @param string $time_context Time context (morning/afternoon/evening/late night)
+ * @param string $language Language setting
+ * @return string Optimized system prompt
+ */
+function mpu_build_optimized_system_prompt(
+    array $mpu_opt,
+    array $wp_info,
+    array $user_info,
+    array $visitor_info,
+    string $ukagaka_name,
+    string $time_context,
+    string $language
+): string
+```
+
+**Returned XML Structure:**
+
+```xml
+<character>
+Name: {Character name}
+Core settings: {System Prompt from backend}
+Style features: ...
+</character>
+<knowledge_base>
+{Compressed context information}
+</knowledge_base>
+<behavior_rules>
+  <must_do>...</must_do>
+  <should_do>...</should_do>
+  <must_not_do>...</must_not_do>
+</behavior_rules>
+<response_style_examples>
+{70+ dialogue examples}
+</response_style_examples>
+<current_context>
+Time: {Time context}
+Language: {Language setting}
+</current_context>
+```
+
+---
+
+#### mpu_calculate_text_similarity()
+
+Calculate similarity between two texts (for preventing repetitive dialogue).
+
+```php
+/**
+ * @param string $text1 First text
+ * @param string $text2 Second text
+ * @return float Similarity (0.0-1.0)
+ */
+function mpu_calculate_text_similarity(string $text1, string $text2): float
+```
+
+**Example:**
+
+```php
+$similarity = mpu_calculate_text_similarity('Hello again.', 'Hello again.');
+// Returns: 1.0 (identical)
+
+$similarity = mpu_calculate_text_similarity('Hello again.', 'Long time no see.');
+// Returns: 0.0 (completely different)
+```
+
+---
+
+#### mpu_debug_system_prompt()
+
+Debug mode: Output System Prompt to WordPress debug log.
+
+```php
+/**
+ * @param string $system_prompt System prompt to debug
+ * @param string $context Debug context description
+ * @return void
+ */
+function mpu_debug_system_prompt(string $system_prompt, string $context = ''): void
+```
+
+**Example:**
+
+```php
+$system_prompt = mpu_build_optimized_system_prompt(...);
+mpu_debug_system_prompt($system_prompt, 'LLM Dialogue Generation');
+// Outputs to wp-content/debug.log if WP_DEBUG is enabled
 ```
 
 ---

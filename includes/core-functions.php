@@ -36,10 +36,10 @@ function mpu_default_opt()
         "typewriter_speed" => 40, // 打字速度（毫秒/字元），預設 40ms
         "ukagakas" => [
             "default_1" => [
-                "name" => "初音",
-                "shell" => plugins_url("images/shell/shell_1.png", defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php'),
-                "msg" => ["歡迎光臨～"],
-                "dialog_filename" => "miku",
+                "name" => "フリーレン",
+                "shell" => plugins_url("images/shell/Frieren/", defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php'),
+                "msg" => ["フリレーンだ。千年以上生きた魔法使いだ。"],
+                "dialog_filename" => "Frieren",
                 "show" => true,
             ],
         ],
@@ -48,13 +48,25 @@ function mpu_default_opt()
         ],
         // AI 設定 (Context Awareness)
         "ai_enabled" => false,
+        // LLM 設定（新架構）
+        "llm_provider" => "gemini", // 統一使用 llm_provider
+        "llm_gemini_api_key" => "", // Gemini API Key (加密)
+        "llm_gemini_model" => "gemini-2.5-flash", // Gemini 模型
+        "llm_openai_api_key" => "", // OpenAI API Key (加密)
+        "llm_openai_model" => "gpt-4.1-mini-2025-04-14", // OpenAI 模型
+        "llm_claude_api_key" => "", // Claude API Key (加密)
+        "llm_claude_model" => "claude-sonnet-4-5-20250929", // Claude 模型
+        "llm_replace_dialogue" => false, // 使用 LLM 取代內建對話（支援所有提供商）
+        // 向後兼容設定鍵（保留）
         "ai_provider" => "gemini",
-        "ai_api_key" => "", // Gemini API Key
-        "gemini_model" => "gemini-2.5-flash", // Gemini 模型
-        "openai_api_key" => "", // OpenAI API Key
-        "openai_model" => "gpt-4o-mini", // OpenAI 模型
-        "claude_api_key" => "", // Claude API Key
-        "claude_model" => "claude-sonnet-4-5-20250929", // Claude 模型
+        "ai_api_key" => "", // Gemini API Key (向後兼容)
+        "gemini_model" => "gemini-2.5-flash", // Gemini 模型 (向後兼容)
+        "openai_api_key" => "", // OpenAI API Key (向後兼容)
+        "openai_model" => "gpt-4.1-mini-2025-04-14", // OpenAI 模型 (向後兼容)
+        "claude_api_key" => "", // Claude API Key (向後兼容)
+        "claude_model" => "claude-sonnet-4-5-20250929", // Claude 模型 (向後兼容)
+        "ollama_replace_dialogue" => false, // Ollama 取代對話 (向後兼容)
+        // 頁面感知設定（保留在 AI 設定頁面）
         "ai_language" => "zh-TW",
         "ai_system_prompt" => "你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。",
         "ai_probability" => 10,
@@ -77,12 +89,33 @@ function mpu_get_option()
 
     if ($mpu_opt === null) {
         $options = get_option("mp_ukagaka");
+        $default_opt = mpu_default_opt();
 
         if (!is_array($options) || empty($options)) {
-            $mpu_opt = mpu_default_opt();
+            $mpu_opt = $default_opt;
             update_option("mp_ukagaka", $mpu_opt);
         } else {
-            $mpu_opt = array_merge(mpu_default_opt(), $options);
+            // 合併設定
+            $mpu_opt = array_merge($default_opt, $options);
+
+            // 確保 default_1 的預設值被應用（如果名稱還是舊的「初音」，則更新）
+            if (isset($default_opt['ukagakas']['default_1'])) {
+                if (!isset($mpu_opt['ukagakas']['default_1'])) {
+                    $mpu_opt['ukagakas']['default_1'] = $default_opt['ukagakas']['default_1'];
+                } else {
+                    // 檢查是否為舊的預設值（名稱是「初音」），如果是則更新為新的預設值
+                    $current_name = $mpu_opt['ukagakas']['default_1']['name'] ?? '';
+                    if ($current_name === '初音') {
+                        // 只更新名稱、shell、msg 和 dialog_filename，保留其他設定（如 show）
+                        $mpu_opt['ukagakas']['default_1']['name'] = $default_opt['ukagakas']['default_1']['name'];
+                        $mpu_opt['ukagakas']['default_1']['shell'] = $default_opt['ukagakas']['default_1']['shell'];
+                        $mpu_opt['ukagakas']['default_1']['msg'] = $default_opt['ukagakas']['default_1']['msg'];
+                        $mpu_opt['ukagakas']['default_1']['dialog_filename'] = $default_opt['ukagakas']['default_1']['dialog_filename'];
+                        // 儲存更新後的設定
+                        update_option("mp_ukagaka", $mpu_opt);
+                    }
+                }
+            }
         }
     }
 

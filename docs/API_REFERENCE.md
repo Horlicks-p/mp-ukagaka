@@ -250,24 +250,39 @@ function mpu_decrypt_api_key(string $encrypted): string
 
 #### mpu_call_ai_api()
 
-呼叫 AI API（自動選擇提供商）。
+呼叫 AI API（自動選擇提供商）。支援 Gemini、OpenAI、Claude。
 
 ```php
 /**
- * @param string $prompt 使用者提示
+ * @param string $provider AI 提供商（'gemini'、'openai'、'claude'）
+ * @param string $api_key API Key
  * @param string $system_prompt 系統提示（角色設定）
- * @return string|null AI 回應或 null
+ * @param string $user_prompt 使用者提示
+ * @param string $language 語言設定（'zh-TW'、'ja'、'en'）
+ * @param array $mpu_opt 外掛設定（用於獲取模型名稱）
+ * @return string|WP_Error AI 回應或錯誤
  */
-function mpu_call_ai_api(string $prompt, string $system_prompt): ?string
+function mpu_call_ai_api(
+    string $provider,
+    string $api_key,
+    string $system_prompt,
+    string $user_prompt,
+    string $language = 'zh-TW',
+    array $mpu_opt = []
+)
 ```
 
 **範例：**
 ```php
 $response = mpu_call_ai_api(
+    'gemini',
+    $api_key,
+    '你是一個友善的助手，回應請保持簡短。',
     '這篇文章講了什麼？',
-    '你是一個友善的助手，回應請保持簡短。'
+    'zh-TW',
+    $mpu_opt
 );
-if ($response) {
+if (!is_wp_error($response)) {
     echo $response;
 }
 ```
@@ -320,11 +335,20 @@ function mpu_get_language_instruction(string $language): string
 
 ```php
 /**
- * @param string $prompt 使用者提示
+ * @param string $api_key Gemini API Key
+ * @param string $model 模型名稱（如 'gemini-2.5-flash'）
  * @param string $system_prompt 系統提示
- * @return string|null AI 回應或 null
+ * @param string $user_prompt 使用者提示
+ * @param string $language 語言設定
+ * @return string|WP_Error AI 回應或錯誤
  */
-function mpu_call_gemini_api(string $prompt, string $system_prompt): ?string
+function mpu_call_gemini_api(
+    string $api_key,
+    string $model,
+    string $system_prompt,
+    string $user_prompt,
+    string $language = 'zh-TW'
+)
 ```
 
 ---
@@ -335,11 +359,20 @@ function mpu_call_gemini_api(string $prompt, string $system_prompt): ?string
 
 ```php
 /**
- * @param string $prompt 使用者提示
+ * @param string $api_key OpenAI API Key
+ * @param string $model 模型名稱（如 'gpt-4.1-mini-2025-04-14'）
  * @param string $system_prompt 系統提示
- * @return string|null AI 回應或 null
+ * @param string $user_prompt 使用者提示
+ * @param string $language 語言設定
+ * @return string|WP_Error AI 回應或錯誤
  */
-function mpu_call_openai_api(string $prompt, string $system_prompt): ?string
+function mpu_call_openai_api(
+    string $api_key,
+    string $model,
+    string $system_prompt,
+    string $user_prompt,
+    string $language = 'zh-TW'
+)
 ```
 
 ---
@@ -350,18 +383,56 @@ function mpu_call_openai_api(string $prompt, string $system_prompt): ?string
 
 ```php
 /**
- * @param string $prompt 使用者提示
+ * @param string $api_key Claude API Key
+ * @param string $model 模型名稱（如 'claude-sonnet-4-5-20250929'）
  * @param string $system_prompt 系統提示
- * @return string|null AI 回應或 null
+ * @param string $user_prompt 使用者提示
+ * @param string $language 語言設定
+ * @return string|WP_Error AI 回應或錯誤
  */
-function mpu_call_claude_api(string $prompt, string $system_prompt): ?string
+function mpu_call_claude_api(
+    string $api_key,
+    string $model,
+    string $system_prompt,
+    string $user_prompt,
+    string $language = 'zh-TW'
+)
 ```
 
 ---
 
-### LLM 功能函數 (llm-functions.php) - 測試階段
+#### mpu_call_ollama_api()
 
-> ⚠️ **注意**：此模組處於**測試階段（BETA）**，API 可能會變更。
+呼叫 Ollama API（本機或遠程）。
+
+```php
+/**
+ * @param string $endpoint Ollama 端點 URL
+ * @param string $model 模型名稱（如 'qwen3:8b'）
+ * @param string $system_prompt 系統提示
+ * @param string $user_prompt 使用者提示
+ * @param string $language 語言設定
+ * @return string|WP_Error AI 回應或錯誤
+ */
+function mpu_call_ollama_api(
+    string $endpoint,
+    string $model,
+    string $system_prompt,
+    string $user_prompt,
+    string $language = 'zh-TW'
+)
+```
+
+**功能特點：**
+- 自動檢測本地/遠程連接
+- 根據連接類型調整超時時間
+- 支援關閉思考模式（Qwen3、DeepSeek 等模型）
+
+---
+
+### LLM 功能函數 (llm-functions.php)
+
+> 💡 **2.2.0 更新**：LLM 功能已升級為**通用 LLM 接口**，支援 Ollama、Gemini、OpenAI、Claude 四大 AI 服務。
 
 #### mpu_is_remote_endpoint()
 
@@ -452,14 +523,16 @@ if (mpu_check_ollama_available('https://your-domain.com', 'qwen3:8b')) {
 
 #### mpu_generate_llm_dialogue()
 
-使用 LLM 生成隨機對話（取代內建對話）。
+使用 LLM 生成隨機對話（取代內建對話）。支援所有 AI 提供商（Ollama、Gemini、OpenAI、Claude）。
 
 ```php
 /**
  * @param string $ukagaka_name 春菜名稱
+ * @param string $last_response 上一次 AI 的回應（用於避免重複對話）
+ * @param array $response_history 回應歷史陣列（最近幾次回應，用於更嚴格的重複檢測）
  * @return string|false 生成的對話內容，失敗時返回 false
  */
-function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1')
+function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1', string $last_response = '', array $response_history = [])
 ```
 
 **範例：**
@@ -468,7 +541,16 @@ $dialogue = mpu_generate_llm_dialogue('frieren');
 if ($dialogue !== false) {
     echo $dialogue;
 }
+
+// 帶重複檢測
+$dialogue = mpu_generate_llm_dialogue('frieren', '上次的回應', ['回應1', '回應2']);
 ```
+
+**功能特點：**
+- 自動使用優化的 XML 結構化 System Prompt
+- 支援防止重複對話機制（相似度檢測）
+- 自動整合 WordPress 資訊、用戶資訊、訪客資訊
+- 支援 70+ 個芙莉蓮風格對話範例
 
 ---
 
@@ -504,6 +586,275 @@ function mpu_get_ollama_settings()
     'replace_dialogue' => true,
 ]
 ```
+
+---
+
+#### mpu_get_visitor_info_for_llm()
+
+獲取訪客資訊（用於 LLM 對話生成）。整合 Slimstat 資料，包含 BOT 檢測和地理位置資訊。
+
+```php
+/**
+ * @return array 訪客資訊陣列
+ */
+function mpu_get_visitor_info_for_llm(): array
+```
+
+**返回值：**
+```php
+[
+    'is_bot' => false,                    // 是否為 BOT
+    'browser_type' => 0,                  // 瀏覽器類型（0=一般, 1=BOT, 2=行動裝置）
+    'browser_name' => 'Chrome',            // 瀏覽器名稱（BOT 名稱）
+    'slimstat_enabled' => true,            // 是否啟用 Slimstat
+    'slimstat_country' => 'TW',            // 國家代碼
+    'slimstat_city' => 'Taipei',           // 城市名稱
+]
+```
+
+---
+
+#### mpu_get_visitor_status_text()
+
+獲取訪客狀態文字（BOT 或地理位置）。
+
+```php
+/**
+ * @param array $visitor_info 訪客資訊
+ * @return string 訪客狀態描述
+ */
+function mpu_get_visitor_status_text(array $visitor_info): string
+```
+
+**範例：**
+```php
+$visitor_info = mpu_get_visitor_info_for_llm();
+$status = mpu_get_visitor_status_text($visitor_info);
+// 可能返回：'🤖 BOT: Googlebot' 或 '來自 TW / Taipei'
+```
+
+---
+
+#### mpu_compress_context_info()
+
+壓縮 WordPress、用戶、訪客資訊為緊湊的 XML 格式（用於 System Prompt）。
+
+```php
+/**
+ * @param array $wp_info WordPress 資訊
+ * @param array $user_info 用戶資訊
+ * @param array $visitor_info 訪客資訊
+ * @return string 壓縮後的 XML 格式字串
+ */
+function mpu_compress_context_info(array $wp_info, array $user_info, array $visitor_info): string
+```
+
+---
+
+#### mpu_build_frieren_style_examples()
+
+建構芙莉蓮風格的對話範例（70+ 個範例，涵蓋 12 個類別）。
+
+```php
+/**
+ * @param array $wp_info WordPress 資訊
+ * @param array $visitor_info 訪客資訊
+ * @param string $time_context 時間情境（早上/下午/晚上/深夜）
+ * @param string $theme_name 主題名稱
+ * @param string $theme_version 主題版本
+ * @param string $theme_author 主題作者
+ * @return string 格式化的範例文字
+ */
+function mpu_build_frieren_style_examples(
+    array $wp_info,
+    array $visitor_info,
+    string $time_context,
+    string $theme_name,
+    string $theme_version,
+    string $theme_author
+): string
+```
+
+**範例類別：**
+- 問候類、閒聊類、時間感知類、觀察思考類
+- 魔法研究類、技術觀察類、統計觀察類、回憶類
+- 管理員評語類、意外反應類、BOT 檢測類、沉默類
+
+**特殊功能：**
+- **觀察思考類**會自動從當前春菜的內建對話文件中讀取最多 5 條台詞
+  - 自動過濾空字串和超過 50 字元的訊息
+  - 隨機選擇符合條件的台詞加入到範例中
+  - 讓 AI 生成的對話更貼近角色的實際風格
+
+---
+
+#### mpu_build_prompt_categories()
+
+建構 User Prompt 的類別指令（與範例類別對應）。
+
+```php
+/**
+ * @param array $wp_info WordPress 資訊
+ * @param array $visitor_info 訪客資訊
+ * @param string $time_context 時間情境
+ * @param string $theme_name 主題名稱
+ * @param string $theme_version 主題版本
+ * @param string $theme_author 主題作者
+ * @return array 類別指令陣列
+ */
+function mpu_build_prompt_categories(
+    array $wp_info,
+    array $visitor_info,
+    string $time_context,
+    string $theme_name,
+    string $theme_version,
+    string $theme_author
+): array
+```
+
+**返回值：**
+```php
+[
+    'greeting' => ['問候類の会話例を参考に、軽く挨拶する', ...],
+    'casual' => ['閒聊類の会話例を参考に、淡々とした日常の言葉を言う', ...],
+    'time_aware' => ['時間感知類の会話例を参考に、{$time_context}の時間感覚を表現する', ...],
+    // ... 更多類別
+]
+```
+
+---
+
+#### mpu_weighted_random_select()
+
+根據權重陣列，從類別陣列中隨機選擇一個類別（加權隨機選擇）。
+
+```php
+/**
+ * @param array $categories 類別陣列（key => value）
+ * @param array $weights 權重陣列（key => weight），數值越高被選中的機率越大
+ * @return string 選中的類別 key
+ */
+function mpu_weighted_random_select(array $categories, array $weights): string
+```
+
+**使用範例：**
+```php
+$categories = [
+    'greeting' => ['問候1', '問候2'],
+    'casual' => ['閒聊1', '閒聊2'],
+    'tech_observation' => ['技術1', '技術2'],
+];
+
+$weights = [
+    'greeting' => 10,
+    'casual' => 10,
+    'tech_observation' => 3,  // 降低技術觀察類的權重
+];
+
+$selected = mpu_weighted_random_select($categories, $weights);
+// 可能返回：'greeting'、'casual' 或 'tech_observation'
+// tech_observation 被選中的機率約為其他類別的 30%
+```
+
+**注意事項：**
+- 如果類別沒有在權重陣列中設定，預設權重為 5
+- 如果總權重為 0，會使用均勻隨機選擇（`array_rand()`）
+- 權重數值越高，被選中的機率越大
+
+---
+
+#### mpu_build_optimized_system_prompt()
+
+建構優化後的 System Prompt（XML 結構化版本）。
+
+```php
+/**
+ * @param array $mpu_opt 外掛設定
+ * @param array $wp_info WordPress 資訊
+ * @param array $user_info 用戶資訊
+ * @param array $visitor_info 訪客資訊
+ * @param string $ukagaka_name 春菜名稱
+ * @param string $time_context 時間情境（早上/下午/晚上/深夜）
+ * @param string $language 語言設定
+ * @return string 優化後的 system prompt
+ */
+function mpu_build_optimized_system_prompt(
+    array $mpu_opt,
+    array $wp_info,
+    array $user_info,
+    array $visitor_info,
+    string $ukagaka_name,
+    string $time_context,
+    string $language
+): string
+```
+
+**返回的 XML 結構：**
+```xml
+<character>
+名稱：{角色名稱}
+核心設定：{來自後台的 System Prompt}
+風格特徵：...
+</character>
+<knowledge_base>
+{壓縮後的上下文資訊}
+</knowledge_base>
+<behavior_rules>
+  <must_do>...</must_do>
+  <should_do>...</should_do>
+  <must_not_do>...</must_not_do>
+</behavior_rules>
+<response_style_examples>
+{70+ 個對話範例}
+</response_style_examples>
+<current_context>
+時間：{時間情境}
+語言：{語言設定}
+</current_context>
+```
+
+---
+
+#### mpu_calculate_text_similarity()
+
+計算兩個文字的相似度（用於防止重複對話）。
+
+```php
+/**
+ * @param string $text1 第一個文字
+ * @param string $text2 第二個文字
+ * @return float 相似度（0.0-1.0）
+ */
+function mpu_calculate_text_similarity(string $text1, string $text2): float
+```
+
+**範例：**
+```php
+$similarity = mpu_calculate_text_similarity('また来たのね。', 'また来たのね。');
+// 返回：1.0（完全相同）
+
+$similarity = mpu_calculate_text_similarity('また来たのね。', '久しぶり。');
+// 返回：0.0（完全不同）
+```
+
+---
+
+#### mpu_debug_system_prompt()
+
+Debug 模式：輸出 System Prompt 到 WordPress debug log。
+
+```php
+/**
+ * @param string $system_prompt System Prompt 內容
+ * @return void
+ */
+function mpu_debug_system_prompt(string $system_prompt): void
+```
+
+**使用條件：**
+- 僅在 `WP_DEBUG` 為 `true` 時輸出
+- 輸出到 `wp-content/debug.log`
+- 包含 System Prompt 內容、估計 token 數、字元長度
 
 ---
 
@@ -814,35 +1165,135 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ---
 
-### mpu_test_ollama_connection (測試階段)
-
-> ⚠️ **注意**：此端點處於**測試階段（BETA）**。
+### mpu_test_ollama_connection
 
 測試 Ollama 連接。
 
-**請求：**
+**Action:** `mpu_test_ollama_connection`
+
+**請求參數：**
+| 參數 | 類型 | 說明 |
+|-----|------|------|
+| `endpoint` | string | Ollama 端點 URL |
+| `model` | string | 模型名稱 |
+| `nonce` | string | WordPress nonce |
+
+**請求範例：**
 ```javascript
 {
     action: 'mpu_test_ollama_connection',
-    endpoint: 'https://your-domain.com',  // Ollama 端點
-    model: 'qwen3:8b',                     // 模型名稱
-    nonce: '...'                           // WordPress nonce
+    endpoint: 'https://your-domain.com',
+    model: 'qwen3:8b',
+    nonce: '...'
 }
 ```
 
-**回應（成功）：**
-```javascript
+**成功回應：**
+```json
 {
-    success: true,
-    data: '連接成功（遠程連接），模型響應正常（預覽：Hello...）'
+    "success": true,
+    "data": "連接成功（遠程連接），模型響應正常（預覽：Hello...）"
 }
 ```
 
-**回應（失敗）：**
-```javascript
+**失敗回應：**
+```json
 {
-    success: false,
-    data: '連接失敗：無法連接到遠程 Ollama 服務...'
+    "success": false,
+    "data": "連接失敗：無法連接到遠程 Ollama 服務..."
+}
+```
+
+---
+
+### mpu_test_gemini_connection
+
+測試 Google Gemini API 連接。
+
+**Action:** `mpu_test_gemini_connection`
+
+**請求參數：**
+| 參數 | 類型 | 說明 |
+|-----|------|------|
+| `api_key` | string | Gemini API Key（可選，如未提供則從設定中讀取） |
+| `model` | string | 模型名稱（可選，如未提供則從設定中讀取） |
+| `nonce` | string | WordPress nonce |
+
+**成功回應：**
+```json
+{
+    "success": true,
+    "data": "連接成功，API Key 有效"
+}
+```
+
+**失敗回應：**
+```json
+{
+    "success": false,
+    "data": "連接失敗：API Key 無效或網路錯誤"
+}
+```
+
+---
+
+### mpu_test_openai_connection
+
+測試 OpenAI API 連接。
+
+**Action:** `mpu_test_openai_connection`
+
+**請求參數：**
+| 參數 | 類型 | 說明 |
+|-----|------|------|
+| `api_key` | string | OpenAI API Key（可選，如未提供則從設定中讀取） |
+| `model` | string | 模型名稱（可選，如未提供則從設定中讀取） |
+| `nonce` | string | WordPress nonce |
+
+**成功回應：**
+```json
+{
+    "success": true,
+    "data": "連接成功，API Key 有效"
+}
+```
+
+**失敗回應：**
+```json
+{
+    "success": false,
+    "data": "連接失敗：API Key 無效或網路錯誤"
+}
+```
+
+---
+
+### mpu_test_claude_connection
+
+測試 Claude (Anthropic) API 連接。
+
+**Action:** `mpu_test_claude_connection`
+
+**請求參數：**
+| 參數 | 類型 | 說明 |
+|-----|------|------|
+| `api_key` | string | Claude API Key（可選，如未提供則從設定中讀取） |
+| `model` | string | 模型名稱（可選，如未提供則從設定中讀取） |
+| `nonce` | string | WordPress nonce |
+
+**成功回應：**
+```json
+{
+    "success": true,
+    "data": "連接成功，API Key 有效"
+}
+```
+
+**失敗回應：**
+```json
+{
+    "success": false,
+    "data": "連接失敗：API Key 無效或網路錯誤"
 }
 ```
 
@@ -1160,5 +1611,5 @@ window.mpuSettings = {
 
 ---
 
-**文檔版本：2.1.0**
+**文檔版本：2.2.0**
 

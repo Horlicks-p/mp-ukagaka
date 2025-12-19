@@ -4,6 +4,148 @@
 
 ---
 
+## [2.2.0] - 2025-12-19
+
+### 🚀 Major Update: Universal LLM Interface
+
+- **Multi-AI Provider Support**: Unified interface supporting four major AI services
+  - **Ollama**: Local/remote free LLM (no API Key required)
+  - **Google Gemini**: Supports Gemini 2.5 Flash (recommended), Gemini 1.5 Pro, etc.
+  - **OpenAI**: Supports GPT-4.1 Mini (recommended), GPT-4o, etc.
+  - **Claude (Anthropic)**: Supports Claude Sonnet 4.5, Claude Haiku 4.5, Claude Opus 4.5
+  - All providers use a unified settings interface, switchable at any time
+
+- **API Key Encrypted Storage**: All API Keys automatically encrypted for secure storage
+- **Connection Testing**: Added connection test buttons for all AI providers
+
+### 🧠 System Prompt Optimization
+
+- **XML-Structured Design**: Uses XML tags to organize System Prompt, improving LLM comprehension efficiency
+  - `<character>`: Character name and core settings
+  - `<knowledge_base>`: Compressed WordPress information
+  - `<behavior_rules>`: Behavior rules (must_do, should_do, must_not_do)
+  - `<response_style_examples>`: 70+ dialogue examples
+  - `<current_context>`: Current context information
+
+- **Context Compression Mechanism**: Automatically compresses WordPress, user, and visitor information to reduce token usage
+- **Frieren-Style Example System**: Built-in 70+ actual dialogue examples covering 12 categories
+  - Greeting, Casual, Time-aware, Observation
+  - Magic research, Tech observation, Statistics, Memory
+  - Admin comments, Unexpected reactions, BOT detection, Silence
+
+- **Dual-Layer Architecture**:
+  - **System Prompt**: Defines character style, behavior rules, and dialogue examples
+  - **User Prompt**: Specific task instructions for each dialogue (corresponding to example categories)
+
+### 🎨 Complete UI/UX Upgrade
+
+- **Unified Card Design**: All settings pages use consistent card-based layout
+- **Two-Column Layout**: Main settings page uses main content + sidebar design
+  - Main content width: 55%
+  - Sidebar width: 300px (fixed)
+  - Sidebar includes: AI Provider links, Documentation links, General links
+
+- **Custom Scrollbar Styles**: Added beautiful scrollbars for long text areas (System Prompt, etc.)
+
+### 🔧 Feature Improvements
+
+- **Page Awareness Feature Integration**: Moved "Page Awareness" settings to LLM Settings page
+  - Unified management of all LLM-related settings
+  - Integrated with "Use LLM to replace built-in dialogue" feature
+
+- **AI Settings Page Simplification**: Focus on "Page Awareness" functionality
+  - Retained: Language settings, Character settings, Page awareness probability, Trigger pages, AI conversation display time, First-time visitor greeting
+  - Removed: AI provider selection, API Key settings, Model selection (moved to LLM Settings page)
+
+- **Statistics Metaphor Optimization**: Restored and optimized gamified statistics metaphors
+  - Demon encounters = Post count (`post_count`)
+  - Max damage = Comment count (`comment_count`)
+  - Skills learned = Category count (`category_count`)
+  - Items used = Tag count (`tag_count`)
+  - Adventure days = Days operating (`days_operating`)
+
+### 📝 Code Optimization
+
+- **New Functions**:
+  - `mpu_build_optimized_system_prompt()`: Build XML-structured System Prompt
+  - `mpu_build_frieren_style_examples()`: Generate Frieren-style dialogue examples
+  - `mpu_build_prompt_categories()`: Generate User Prompt instructions (corresponding to example categories)
+  - `mpu_compress_context_info()`: Compress context information
+  - `mpu_get_visitor_status_text()`: Get visitor status text
+  - `mpu_calculate_text_similarity()`: Calculate text similarity for anti-repetition
+  - `mpu_debug_system_prompt()`: Debug System Prompt output
+
+- **Function Refactoring**:
+  - `mpu_generate_llm_dialogue()`: Uses new optimized System Prompt system
+  - Removed old verbose System Prompt construction logic
+
+- **Backward Compatibility**: Maintains support for old settings, automatically migrates setting keys
+
+### 🐛 Bug Fixes
+
+- Fixed statistics metaphor mappings
+- Optimized text area width settings (unified to 850px)
+- Fixed main menu bottom line alignment issues
+- Fixed scrollbar style issues
+
+### 📚 Documentation Updates
+
+- Updated `USER_GUIDE.md`: Complete explanation of Universal LLM Interface and System Prompt optimization
+- Updated `API_REFERENCE.md`: Added all new LLM functions documentation
+- Updated `CHANGELOG.md`: Recorded all v2.2.0 updates
+
+### 🎉 Special Update (2025-12-19)
+
+- Changed default character from Hatsune Miku to Frieren (フリーレン) to celebrate "Sousou no Frieren" Season 2 premiere on January 16, 2026
+- New installations will see Frieren as the default character
+- Existing installations with the default character name still set to "初音" will automatically be updated to Frieren
+
+---
+
+## [2.1.7] - 2025-12-15
+
+### 🚀 Performance Optimization
+
+- **JavaScript File Structure Refactoring**: Merged 10 JS files into 4, reducing HTTP requests
+  - `ukagaka-base.js`: Merged config + utils + ajax (base layer)
+  - `ukagaka-core.js`: Merged ui + dialogue + core (core functionality)
+  - `ukagaka-features.js`: Merged ai + external + events (feature modules)
+  - `ukagaka-anime.js`: Kept separate (animation module)
+  - All files unified with `ukagaka-` prefix naming
+
+- **Optimize mousemove Logging**: Removed frequently triggered log records to avoid console flooding
+  - Commented out log output in `mousemove` events
+  - Improved debugging experience in debug mode
+
+### 🔧 Feature Improvements
+
+- **LLM Request Optimization**: Changed to POST method for data transmission, avoiding URL length limits
+  - Use `FormData` to pass all parameters (`cur_num`, `cur_msgnum`, `last_response`, `response_history`)
+  - Backend supports both POST and GET methods (backward compatible)
+  - Use `wp_unslash()` to correctly handle WordPress JSON data
+
+- **Prevent LLM Request Double-Click**: Added `cancelPrevious: true` option
+  - When users rapidly click "next" multiple times, automatically cancel previous unfinished requests
+  - Avoid multiple parallel requests overwriting typewriter effects
+
+### 🐛 Error Handling Optimization
+
+- **Canvas Animation Error Handling**: Check Canvas Manager at the start of `mpuChange` function
+  - Early check for `window.mpuCanvasManager` existence
+  - Avoid discovering errors after Ajax success, providing more consistent experience
+
+- **LLM Error Visual Feedback**: Display error messages in debug mode
+  - Display format: `[LLM Error: error message]`
+  - Automatically switch to fallback dialogue after 2 seconds
+  - In non-debug mode, directly use fallback dialogue without affecting regular users
+
+### 📝 Other Improvements
+
+- Unified file naming convention: All JavaScript files use `ukagaka-` prefix
+  - `jquery.textarearesizer.compressed.js` → `ukagaka-textarearesizer.js`
+
+---
+
 ## [2.1.6] - 2025-12-13
 
 ### ✨ New Features

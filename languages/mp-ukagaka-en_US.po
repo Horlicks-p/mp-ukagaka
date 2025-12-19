@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the MP Ukagaka plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: MP Ukagaka 2.1.6\n"
+"Project-Id-Version: MP Ukagaka 2.2.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/mp-ukagaka\n"
 "Last-Translator: Horlicks <https://www.moelog.com/>\n"
 "Language-Team: English\n"
@@ -11,8 +11,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-11-28T00:00:00+0800\n"
-"PO-Revision-Date: 2025-11-28T00:00:00+0800\n"
+"POT-Creation-Date: 2025-01-27T00:00:00+0800\n"
+"PO-Revision-Date: 2025-01-27T00:00:00+0800\n"
 "X-Generator: MP Ukagaka\n"
 "X-Domain: mp-ukagaka\n"
 
@@ -574,4 +574,223 @@ msgstr "Unable to read dialog file"
 
 msgid "JSON 檔案格式錯誤"
 msgstr "Invalid JSON file format"
+
+# ========================================
+# LLM Settings Page - New Strings
+# ========================================
+
+msgid "此頁面用於設定 AI 提供商、模型選擇和 LLM 功能。頁面感知 AI 的行為參數請前往「AI 設定」頁面。"
+msgstr "This page is for configuring AI providers, model selection, and LLM features. For context awareness AI behavior parameters, please go to the \"AI Settings\" page."
+
+msgid "🤖 AI 提供商"
+msgstr "🤖 AI Provider"
+
+msgid "Gemini 模型："
+msgstr "Gemini Model:"
+
+msgid "啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。支援所有 AI 提供商（Gemini、OpenAI、Claude、Ollama）。"
+msgstr "When enabled, character dialogues will be generated in real-time by LLM, not using static dialogue lists. Supports all AI providers (Gemini, OpenAI, Claude, Ollama)."
+
+msgid "📄 頁面感知功能"
+msgstr "📄 Context Awareness"
+
+msgid "啟用頁面感知功能"
+msgstr "Enable context awareness"
+
+msgid "啟用後，AI 會根據頁面內容生成相關對話。此功能的行為參數（語言、角色、機率等）請在「AI 設定」頁面配置。"
+msgstr "When enabled, AI will generate relevant dialogues based on page content. Behavior parameters (language, character, probability, etc.) for this feature should be configured in the \"AI Settings\" page."
+
+# ========================================
+# Create New Character Page - New Strings
+# ========================================
+
+msgid "創建一個新的春菜角色。圖片請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭。"
+msgstr "Create a new character. Enter the full image URL, starting with http:// or https://"
+
+msgid "➕ 新增春菜"
+msgstr "➕ Add Character"
+
+msgid "請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭"
+msgstr "Enter the full URL, starting with http:// or https://"
+
+# ========================================
+# Extensions Page - New Strings
+# ========================================
+
+msgid "⚠️ 警告："
+msgstr "⚠️ Warning:"
+
+msgid "📜 JS 區"
+msgstr "📜 JavaScript"
+
+msgid "🔧 代碼擴展"
+msgstr "🔧 Code Extensions"
+
+# ========================================
+# Messages Page - New Strings
+# ========================================
+
+msgid "設定所有春菜共用的固定資訊和通用會話內容。"
+msgstr "Configure fixed information and common messages shared by all characters."
+
+msgid "📌 固定資訊"
+msgstr "📌 Fixed Information"
+
+msgid "所有春菜共用的會話內容。一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
+msgstr "Messages shared by all characters. If filled, these messages replace each character's custom messages. Leave empty to use each character's own messages."
+
+# ========================================
+# AJAX Handlers - New Strings
+# ========================================
+
+msgid "未指定或不合法的檔名"
+msgstr "Filename not specified or invalid"
+
+msgid "JSON 檔案格式錯誤："
+msgstr "Invalid JSON file format:"
+
+msgid "對話文件為空，請檢查對話文件內容"
+msgstr "Dialog file is empty, please check the dialog file content"
+
+msgid "安全性驗證失敗"
+msgstr "Security verification failed"
+
+msgid "請求過於頻繁，請稍後再試"
+msgstr "Request too frequent, please try again later"
+
+msgid "AI 功能未啟用"
+msgstr "AI feature is not enabled"
+
+msgid "首次訪客打招呼功能未啟用"
+msgstr "First-time visitor greeting feature is not enabled"
+
+msgid "頁面內容為空"
+msgstr "Page content is empty"
+
+msgid "連接成功，模型響應正常（預覽：%s...）"
+msgstr "Connection successful, model response normal (preview: %s...)"
+
+msgid "API 回應為空，請檢查模型是否正確"
+msgstr "API response is empty, please check if the model is correct"
+
+msgid "HTTP %s 錯誤"
+msgstr "HTTP %s error"
+
+msgid "API 認證失敗：%s。請檢查 API Key 是否正確。"
+msgstr "API authentication failed: %s. Please check if the API Key is correct."
+
+msgid "模型「%s」不存在。請在設定中選擇正確的模型。"
+msgstr "Model \"%s\" does not exist. Please select the correct model in settings."
+
+msgid "API 錯誤（HTTP %s）：%s"
+msgstr "API error (HTTP %s): %s"
+
+msgid "連接失敗：%s"
+msgstr "Connection failed: %s"
+
+msgid "請輸入 Gemini API Key"
+msgstr "Please enter Gemini API Key"
+
+msgid "請輸入 OpenAI API Key"
+msgstr "Please enter OpenAI API Key"
+
+msgid "請輸入 Claude API Key"
+msgstr "Please enter Claude API Key"
+
+# ========================================
+# AI Settings Page - New Strings
+# ========================================
+
+msgid "此頁面用於設定「頁面感知 AI」功能的行為參數。AI 提供商選擇和模型設定請前往「LLM 設定」頁面。"
+msgstr "This page is for configuring behavior parameters of the \"Context Awareness AI\" feature. For AI provider selection and model settings, please go to the \"LLM Settings\" page."
+
+msgid "🌐 語言與角色設定"
+msgstr "🌐 Language & Character Settings"
+
+msgid "⚙️ 觸發與機率設定"
+msgstr "⚙️ Trigger & Probability Settings"
+
+msgid "👋 首次訪客打招呼"
+msgstr "👋 First-time Visitor Greeting"
+
+msgid "頁面感知確率 (%)："
+msgstr "Context Awareness Probability (%):"
+
+msgid "頁面感知時 AI 對話文字顏色："
+msgstr "AI Dialog Text Color (Context Awareness):"
+
+msgid "🎨 顯示設定"
+msgstr "🎨 Display Settings"
+
+# ========================================
+# General Settings Page - New Strings
+# ========================================
+
+msgid "此頁面用於設定春菜的基本顯示和行為選項。"
+msgstr "This page is for configuring basic display and behavior options for characters."
+
+msgid "👤 基本顯示設定"
+msgstr "👤 Basic Display Settings"
+
+msgid "💬 對話行為設定"
+msgstr "💬 Dialogue Behavior Settings"
+
+msgid "⏰ 自動對話設定"
+msgstr "⏰ Auto Talk Settings"
+
+msgid "📄 對話文件設定"
+msgstr "📄 Dialog File Settings"
+
+msgid "注意：系統已固定使用外部對話文件，對話將從 dialogs/ 資料夾讀取。"
+msgstr "Note: The system is configured to use external dialog files. Dialogues will be read from the dialogs/ folder."
+
+msgid "輸入不顯示春菜的頁面 URL，每行一條。在地址尾部加入 (*) 可進行模糊匹配。"
+msgstr "Enter page URLs where character should not appear, one per line. Add (*) at the end for wildcard matching."
+
+msgid "ℹ️ 插件資訊"
+msgstr "ℹ️ Plugin Info"
+
+msgid "⚠️ 重置設定"
+msgstr "⚠️ Reset Settings"
+
+msgid "🎨 樣式設定"
+msgstr "🎨 Style Settings"
+
+msgid "🚫 頁面排除設定"
+msgstr "🚫 Page Exclusion Settings"
+
+msgid "⚙️ HTML 生成位置"
+msgstr "⚙️ HTML Output Position"
+
+# ========================================
+# Character Management Page - New Strings
+# ========================================
+
+msgid "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "Enter the full image URL starting with http://. Each line in the messages field represents one message. HTML is not allowed."
+
+# ========================================
+# Model Selection - New Strings
+# ========================================
+
+msgid "Gemini 2.5 Flash (推薦)"
+msgstr "Gemini 2.5 Flash (Recommended)"
+
+msgid "Gemini 2.5 Pro (更聰明，適合複雜推理)"
+msgstr "Gemini 2.5 Pro (Smarter, suitable for complex reasoning)"
+
+msgid "GPT-4.1 Mini (推薦，速度快成本低)"
+msgstr "GPT-4.1 Mini (Recommended, fast and cost-effective)"
+
+msgid "GPT-4o (更聰明)"
+msgstr "GPT-4o (Smarter)"
+
+msgid "Claude Sonnet 4.5 (推薦)"
+msgstr "Claude Sonnet 4.5 (Recommended)"
+
+msgid "Claude Haiku 4.5 (快速)"
+msgstr "Claude Haiku 4.5 (Fast)"
+
+msgid "Claude Opus 4.5 (進階)"
+msgstr "Claude Opus 4.5 (Advanced)"
 

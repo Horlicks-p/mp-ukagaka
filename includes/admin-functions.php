@@ -30,7 +30,7 @@ function mpu_admin_enqueue_scripts($hook_suffix)
     $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
     wp_enqueue_script(
         'mpu-textarearesizer',
-        plugins_url('jquery.textarearesizer.compressed.js', $main_file),
+        plugins_url('js/ukagaka-textarearesizer.js', $main_file),
         array('jquery'),
         null,
         true
@@ -119,7 +119,7 @@ function mpu_handle_options_save()
         $mpu_opt['ai_api_key'] = $current_opt['ai_api_key'] ?? '';
         $mpu_opt['gemini_model'] = $current_opt['gemini_model'] ?? 'gemini-2.5-flash';
         $mpu_opt['openai_api_key'] = $current_opt['openai_api_key'] ?? '';
-        $mpu_opt['openai_model'] = $current_opt['openai_model'] ?? 'gpt-4o-mini';
+        $mpu_opt['openai_model'] = $current_opt['openai_model'] ?? 'gpt-4.1-mini-2025-04-14';
         $mpu_opt['claude_api_key'] = $current_opt['claude_api_key'] ?? '';
         $mpu_opt['claude_model'] = $current_opt['claude_model'] ?? 'claude-sonnet-4-5-20250929';
         $mpu_opt['ai_language'] = $current_opt['ai_language'] ?? 'zh-TW';
@@ -231,50 +231,7 @@ function mpu_handle_options_save()
         $mpu_opt['auto_msg'] = $current_opt['auto_msg'] ?? '';
         $mpu_opt['common_msg'] = $current_opt['common_msg'] ?? '';
 
-        // 處理 AI 設定
-        $mpu_opt['ai_enabled'] = !empty($_POST['ai_enabled']);
-        $mpu_opt['ai_provider'] = isset($_POST['ai_provider']) ? sanitize_text_field($_POST['ai_provider']) : 'gemini';
-
-        // API Key 加密存儲（安全性強化）
-        $gemini_key = isset($_POST['ai_api_key']) ? sanitize_text_field($_POST['ai_api_key']) : '';
-        $openai_key = isset($_POST['openai_api_key']) ? sanitize_text_field($_POST['openai_api_key']) : '';
-        $claude_key = isset($_POST['claude_api_key']) ? sanitize_text_field($_POST['claude_api_key']) : '';
-
-        // 只有當 Key 有變更時才重新加密（避免重複加密）
-        // 檢查是否為已加密的密鑰（安全性改進）
-        if (!empty($gemini_key)) {
-            if (mpu_is_api_key_encrypted($gemini_key)) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('MP Ukagaka 安全警告：前端提交了已加密的 API Key，跳過處理');
-                }
-            } else {
-                $mpu_opt['ai_api_key'] = mpu_encrypt_api_key($gemini_key);
-            }
-        }
-
-        if (!empty($openai_key)) {
-            if (mpu_is_api_key_encrypted($openai_key)) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('MP Ukagaka 安全警告：前端提交了已加密的 OpenAI API Key，跳過處理');
-                }
-            } else {
-                $mpu_opt['openai_api_key'] = mpu_encrypt_api_key($openai_key);
-            }
-        }
-
-        if (!empty($claude_key)) {
-            if (mpu_is_api_key_encrypted($claude_key)) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('MP Ukagaka 安全警告：前端提交了已加密的 Claude API Key，跳過處理');
-                }
-            } else {
-                $mpu_opt['claude_api_key'] = mpu_encrypt_api_key($claude_key);
-            }
-        }
-
-        $mpu_opt['gemini_model'] = isset($_POST['gemini_model']) ? sanitize_text_field($_POST['gemini_model']) : 'gemini-2.5-flash';
-        $mpu_opt['openai_model'] = isset($_POST['openai_model']) ? sanitize_text_field($_POST['openai_model']) : 'gpt-4o-mini';
-        $mpu_opt['claude_model'] = isset($_POST['claude_model']) ? sanitize_text_field($_POST['claude_model']) : 'claude-sonnet-4-5-20250929';
+        // 處理 AI 設定（僅頁面感知相關的設定，不處理提供商、API Key、模型選擇）
         $mpu_opt['ai_language'] = isset($_POST['ai_language']) ? sanitize_text_field($_POST['ai_language']) : 'zh-TW';
         $mpu_opt['ai_system_prompt'] = isset($_POST['ai_system_prompt']) ? sanitize_textarea_field($_POST['ai_system_prompt']) : '你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。';
         $mpu_opt['ai_probability'] = isset($_POST['ai_probability']) ? max(1, min(100, intval($_POST['ai_probability']))) : 10;
@@ -284,26 +241,8 @@ function mpu_handle_options_save()
         $mpu_opt['ai_greet_first_visit'] = isset($_POST['ai_greet_first_visit']) && $_POST['ai_greet_first_visit'] ? true : false;
         $mpu_opt['ai_greet_prompt'] = isset($_POST['ai_greet_prompt']) ? sanitize_textarea_field($_POST['ai_greet_prompt']) : '你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。';
 
-        // 保存 Ollama 設定（僅在表單有此欄位時才更新）
-        // 注意：這些設定主要在 LLM 設定頁面，AI 設定頁面沒有這些欄位
-        // 如果未提交，保留現有值，避免覆蓋 LLM 設定頁面的設定
-        if (isset($_POST['ollama_endpoint'])) {
-            $mpu_opt['ollama_endpoint'] = sanitize_text_field($_POST['ollama_endpoint']);
-        }
-        if (isset($_POST['ollama_model'])) {
-            $mpu_opt['ollama_model'] = sanitize_text_field($_POST['ollama_model']);
-        }
-        // 保存「使用 LLM 取代內建對話」設定（僅在表單有此欄位時才更新）
-        if (isset($_POST['ollama_replace_dialogue'])) {
-            $mpu_opt['ollama_replace_dialogue'] = $_POST['ollama_replace_dialogue'] ? true : false;
-        }
-
-        // 保存「關閉思考模式」設定（僅在表單有此欄位時才更新）
-        if (isset($_POST['ollama_disable_thinking'])) {
-            $mpu_opt['ollama_disable_thinking'] = $_POST['ollama_disable_thinking'] ? true : false;
-        }
-
-        // 注意：「LLM 取代內建對話」和「頁面感知 AI (ai_enabled)」是兩個獨立的功能
+        // 注意：提供商選擇、API Key、模型選擇已移至 LLM 設定頁面
+        // 「LLM 取代內建對話」和「頁面感知 AI (ai_enabled)」是兩個獨立的功能
         // 用戶可以同時啟用或單獨啟用任一功能
 
         $text = '<div class="updated"><p><strong>' . __('AI 設定已儲存', 'mp-ukagaka') . '</strong></p></div>';

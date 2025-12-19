@@ -2,11 +2,15 @@
 
 A WordPress plugin for creating and displaying interactive ukagaka (伺か) characters on your blog, with AI-powered context awareness features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.1.6-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
 🌍 **Other Languages**: [繁體中文](README_zh-TW.md) | [日本語](README_ja.md)
+
+## 🎉 Special Announcement
+
+To celebrate the premiere of **"Sousou no Frieren" (葬送のフリーレン) Season 2** on **January 16, 2026**, the default character has been changed from **Hatsune Miku** to **Frieren (フリーレン)**.
 
 ## 📸 Screenshot
 
@@ -51,20 +55,36 @@ The plugin now includes intelligent AI-powered features that analyze page conten
 - **Multi-Language AI**: Generate responses in Traditional Chinese, Japanese, or English
 - **First-Time Visitor Greeting**: Welcome new visitors with personalized AI greetings (requires Slimstat plugin)
 
-### 🧪 Local LLM Support (BETA - Testing Phase)
+### 🤖 Universal LLM Interface (v2.2.0)
 
-> ⚠️ **Note**: LLM functionality is currently in **BETA testing phase**. Features may change and stability is not guaranteed.
+> 💡 **Major Update**: LLM functionality has been upgraded to a **Universal LLM Interface**, supporting multiple AI services!
 
-The plugin now supports local LLM integration via Ollama, allowing you to generate dialogues without API costs:
+The plugin now supports a unified interface for multiple AI services, allowing you to generate dialogues with:
 
-- **Ollama Integration**: Connect to local or remote Ollama instances
-- **Remote Connection Support**: Works with Cloudflare Tunnel, ngrok, or other tunneling services
-- **Replace Built-in Dialogues**: Option to replace static dialogues with AI-generated content
-- **No API Keys Required**: Completely free to use with your own LLM setup
-- **Smart Connection Detection**: Automatically adjusts timeout settings for local vs remote connections
-- **Model Support**: Compatible with various Ollama models (Qwen3, Llama, Mistral, etc.)
-- **Thinking Mode Control**: Option to disable thinking mode for Qwen3 and similar models
-- **WordPress Information Integration**: LLM dialogues can include site information (WordPress version, theme info, statistics)  
+- **Ollama** (Local/Remote): Completely free, no API Key required
+  - Connect to local or remote Ollama instances
+  - Remote connection support via Cloudflare Tunnel, ngrok, or other tunneling services
+  - Smart connection detection with automatic timeout adjustment
+  - Model support: Qwen3, Llama, Mistral, etc.
+  - Thinking mode control for Qwen3 and similar models
+
+- **Google Gemini**: Requires API Key
+  - Supported models: Gemini 2.5 Flash (recommended), Gemini 1.5 Pro, etc.
+
+- **OpenAI**: Requires API Key
+  - Supported models: GPT-4.1 Mini (recommended), GPT-4o, etc.
+
+- **Claude (Anthropic)**: Requires API Key
+  - Supported models: Claude Sonnet 4.5, Claude Haiku 4.5, Claude Opus 4.5
+
+**Key Features:**
+
+- **Unified Settings Interface**: All providers use the same settings page
+- **API Key Encryption**: All API keys are automatically encrypted for security
+- **Connection Testing**: Test buttons for all AI providers
+- **Replace Built-in Dialogues**: Option to replace static dialogues with AI-generated content (supports all providers)
+- **Optimized System Prompt**: XML-structured system prompt with 70+ Frieren-style dialogue examples
+- **WordPress Information Integration**: LLM dialogues can include site information (WordPress version, theme info, statistics)
 - **Anti-Repetition Mechanism**: Prevents repetitive idle chatter by tracking previous responses
 - **Idle Detection**: Automatically pauses auto-talk when users are idle (60 seconds), saving GPU and network resources
 
@@ -182,79 +202,59 @@ Modules are loaded in dependency order:
    - Find the "AI Setting (Context Awareness)" section
    - Check "Enable context awareness (requires AI API Key)"
 
-### Local LLM (Ollama) Setup (BETA)
+### Universal LLM Setup
 
-> ⚠️ **Warning**: This feature is in **BETA testing phase**. Use at your own risk.
+1. **Choose AI Provider**
 
-1. **Install Ollama**
+   Navigate to **Settings → MP Ukagaka → LLM Settings** and select one of the following AI providers:
 
-   - Download and install [Ollama](https://ollama.ai/) on your local machine or server
-   - Start the Ollama service
+   **Ollama** (Free, no API Key required):
+   - Install and run [Ollama](https://ollama.ai/) locally or on a remote server
    - Download a model: `ollama pull qwen3:8b` (or your preferred model)
-
-2. **Configure Plugin Settings**
-
-   - Navigate to Settings → MP Ukagaka → LLM Setting
-   - Check "Enable LLM (Ollama)"
-   - Enter Ollama endpoint:
-     - **Local**: `http://localhost:11434` (default)
-     - **Remote**: `https://your-domain.com` (Cloudflare Tunnel, ngrok, etc.)
+   - Enter endpoint: `http://localhost:11434` (local) or `https://your-domain.com` (remote)
    - Enter model name (e.g., `qwen3:8b`, `llama3.2`, `mistral`)
-
-3. **Optional Settings**
-
-   - **Replace Built-in Dialogues**: Enable to use LLM-generated dialogues instead of static ones
-   - **Disable Thinking Mode**: Recommended for Qwen3 models to improve response speed
-   - **Test Connection**: Use the "Test Connection" button to verify setup
-
-4. **Remote Connection (Cloudflare Tunnel)**
-
-   - Set up Cloudflare Tunnel pointing to `http://localhost:11434`
-   - Use the tunnel URL as your endpoint (e.g., `https://your-domain.com`)
-   - Plugin automatically detects remote connections and adjusts timeout settings
-
-5. **Choose AI Provider**
+   - Test connection using the "Test Ollama Connection" button
 
    **Google Gemini** (Recommended for beginners):
-
    - Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-   - Select "Gemini" as provider
-   - Enter your API key
-   - Default model: gemini-2.5-flash
+   - Enter your API key (automatically encrypted)
+   - Select model: Gemini 2.5 Flash (recommended), Gemini 1.5 Pro, etc.
+   - Test connection using the "Test Connection" button
 
-   **OpenAI GPT**:
-
+   **OpenAI**:
    - Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
-   - Select "OpenAI" as provider
-   - Enter your API key
-   - Choose model: gpt-4o-mini (recommended), gpt-4o, or gpt-3.5-turbo
+   - Enter your API key (automatically encrypted)
+   - Select model: GPT-4.1 Mini (recommended), GPT-4o, etc.
+   - Test connection using the "Test Connection" button
 
-   **Anthropic Claude**:
-
+   **Claude (Anthropic)**:
    - Get your API key from [Anthropic Console](https://console.anthropic.com/)
-   - Select "Claude" as provider
-   - Enter your API key
-   - Model: claude-sonnet-4-5-20250929
+   - Enter your API key (automatically encrypted)
+   - Select model: Claude Sonnet 4.5 (recommended), Claude Haiku 4.5, Claude Opus 4.5
+   - Test connection using the "Test Connection" button
 
-6. **Configure AI Settings**
+2. **Configure LLM Settings**
+
+   - **Replace Built-in Dialogues**: Enable to use LLM-generated dialogues instead of static ones (supports all providers)
+   - **Enable Page Awareness**: Control whether page awareness function is enabled
+   - **Disable Thinking Mode**: Recommended for Qwen3, DeepSeek models (Ollama only)
+
+3. **Configure AI Settings (Page Awareness)**
+
+   Navigate to **Settings → MP Ukagaka → AI Settings** to configure page awareness:
 
    - **Language**: Choose response language (zh-TW, ja, en)
-   - **System Prompt**: Define your character's personality
-     - For cloud AI services: Keep concise (200-300 chars) to manage costs
-     - For local LLM: Can use longer prompts (1000+ chars) for better character consistency
-   - **Probability**: Set AI trigger rate (1-100%, recommended: 10-30% for cost control)
+   - **Character Setting (System Prompt)**: Define your character's personality
+     - This setting integrates with the optimized System Prompt system
+     - For cloud AI services: System Prompt is automatically optimized to reduce token usage
+     - For local LLM: Can use longer prompts for better character consistency
+   - **Page Awareness Probability**: Set AI trigger rate (1-100%, recommended: 10-30% for cost control)
    - **Trigger Pages**: Specify which pages trigger AI (e.g., "is_single" for single posts only)
-   - **Text Color**: Customize AI conversation text color
-   - **Display Duration**: Set how long AI messages display before auto-talk resumes (recommended: 5-10 seconds)
+   - **Display Duration**: Set how long AI messages display (recommended: 5-10 seconds)
+   - **First-Time Visitor Greeting**: Enable and configure greeting prompt (optional)
 
-7. **First-Time Visitor Greeting** (Optional)
-
-   - Enable "首次訪客打招呼" (First-time visitor greeting)
-   - Configure greeting prompt
-   - Requires Slimstat plugin for enhanced visitor tracking
-
-8. **Save Settings**
-   - Click "Save" (Save) button
+4. **Save Settings**
+   - Click "Save" button
    - Test on a single post page to verify AI responses
 
 ## 🔧 Advanced Features
@@ -370,12 +370,15 @@ mp-ukagaka/
 ├── dialogs/                      # Dialog files (TXT/JSON)
 ├── images/                       # Character images
 │   └── shell/                    # Character shell images
+├── js/                           # JavaScript files (v2.1.7+)
+│   ├── ukagaka-base.js          # Base layer (config + utils + ajax)
+│   ├── ukagaka-core.js          # Core functionality (ui + dialogue + character switching)
+│   ├── ukagaka-features.js      # Feature modules (ai + external + events)
+│   ├── ukagaka-anime.js         # Canvas animation manager
+│   ├── ukagaka-cookie.js        # Cookie handling utilities
+│   └── ukagaka-textarearesizer.js # Textarea resizer for admin
 ├── languages/                    # Translation files
 ├── mp-ukagaka.php               # Main plugin file (module loader)
-├── ukagaka-core.js              # Frontend JavaScript (core functions)
-├── ukagaka-features.js          # Frontend JavaScript (features & AI)
-├── ukagaka-anime.js             # Canvas animation manager
-├── ukagaka_cookie.js            # Cookie handling utilities
 ├── mpu_style.css                # Stylesheet
 ├── readme.txt                   # WordPress.org readme
 └── README.md                    # This file
@@ -565,6 +568,100 @@ For detailed information, see [Canvas Customization Guide](docs-en/CANVAS_CUSTOM
 
 ## 📜 Changelog
 
+### Version 2.2.0 (2025-12-19)
+
+**🚀 Major Update: Universal LLM Interface**
+
+- **Multi-AI Provider Support**: Unified interface supporting four AI services
+  - **Ollama**: Local/remote free LLM (no API Key required)
+  - **Google Gemini**: Supports Gemini 2.5 Flash (recommended), Gemini 1.5 Pro, etc.
+  - **OpenAI**: Supports GPT-4.1 Mini (recommended), GPT-4o, etc.
+  - **Claude (Anthropic)**: Supports Claude Sonnet 4.5, Claude Haiku 4.5, Claude Opus 4.5
+  - All providers use unified settings interface, can switch anytime
+
+- **API Key Encryption**: All API keys automatically encrypted for security
+- **Connection Testing**: Test buttons for all AI providers
+
+**🧠 System Prompt Optimization System**
+
+- **XML Structured Design**: Uses XML tags to organize System Prompt, improving LLM comprehension
+  - `<character>`: Character name and core settings
+  - `<knowledge_base>`: Compressed WordPress information
+  - `<behavior_rules>`: Behavior rules (must_do, should_do, must_not_do)
+  - `<response_style_examples>`: 70+ dialogue examples
+  - `<current_context>`: Current context information
+
+- **Context Compression**: Automatically compresses WordPress, user, visitor information to reduce token usage
+- **Frieren Style Examples System**: Built-in 70+ actual dialogue examples covering 12 categories
+- **Dual-Layer Architecture**: System Prompt defines style, User Prompt provides task instructions
+
+**🎨 UI/UX Complete Upgrade**
+
+- **Unified Card Design**: All settings pages use consistent card-based layout
+- **Two-Column Layout**: Main content + sidebar design (main content 55%, sidebar 300px)
+- **Custom Scrollbar Styles**: Beautiful scrollbars for long text areas
+
+**🔧 Feature Improvements**
+
+- **Page Awareness Integration**: Moved "Page Awareness" setting to LLM Settings page
+- **AI Settings Page Simplification**: Focused on "Page Awareness" functionality
+- **Statistics Metaphor Optimization**: Restored and optimized gamified statistics metaphors
+
+**📝 Code Optimization**
+
+- **New Functions**: mpu_build_optimized_system_prompt, mpu_build_frieren_style_examples, mpu_build_prompt_categories, mpu_compress_context_info, mpu_get_visitor_status_text, mpu_calculate_text_similarity, mpu_debug_system_prompt
+- **Function Refactoring**: mpu_generate_llm_dialogue uses new optimized System Prompt system
+- **Backward Compatibility**: Maintains support for old settings, automatic migration of setting keys
+
+**🐛 Bug Fixes**
+
+- Fixed statistics metaphor mapping
+- Optimized textarea width settings (unified to 850px)
+- Fixed main menu bottom line alignment
+- Fixed scrollbar style issues
+
+**🎉 Special Update (2025-12-19)**
+
+- Changed default character from Hatsune Miku to Frieren (フリーレン) to celebrate "Sousou no Frieren" Season 2 premiere on January 16, 2026
+
+---
+
+### Version 2.1.7 (2025-12-15)
+
+**Performance Optimizations:**
+
+- 🚀 **JavaScript File Structure Refactoring**: Merged 10 JS files into 4, reducing HTTP requests
+  - `ukagaka-base.js`: Merged config + utils + ajax (base layer)
+  - `ukagaka-core.js`: Merged ui + dialogue + core (core functionality)
+  - `ukagaka-features.js`: Merged ai + external + events (feature modules)
+  - `ukagaka-anime.js`: Kept separate (animation module)
+  - All files unified with `ukagaka-` prefix naming
+- 🚀 **Optimized mousemove Logging**: Removed frequently triggered log records to avoid console flooding
+
+**Feature Improvements:**
+
+- 🔧 **LLM Request Optimization**: Changed to POST method for data transmission, avoiding URL length limits
+  - Use `FormData` to pass all parameters
+  - Backend supports both POST and GET methods (backward compatible)
+  - Use `wp_unslash()` to correctly handle WordPress JSON data
+- 🔧 **Prevent LLM Request Double-Click**: Added `cancelPrevious: true` option
+  - Automatically cancels previous unfinished requests when users rapidly click "next"
+  - Avoids multiple parallel requests overwriting typewriter effects
+
+**Error Handling Optimization:**
+
+- 🐛 **Canvas Animation Error Handling**: Check Canvas Manager at the start of `mpuChange` function
+  - Early check for `window.mpuCanvasManager` existence
+  - Avoid discovering errors after Ajax success
+- 🐛 **LLM Error Visual Feedback**: Display error messages in debug mode
+  - Display format: `[LLM Error: error message]`
+  - Automatically switch to fallback dialogue after 2 seconds
+
+**Other Improvements:**
+
+- 📝 Unified file naming convention: All JavaScript files use `ukagaka-` prefix
+  - `jquery.textarearesizer.compressed.js` → `ukagaka-textarearesizer.js`
+
 ### Version 2.1.6 (2025-12-14)
 
 **New Features:**
@@ -594,107 +691,10 @@ For detailed information, see [Canvas Customization Guide](docs-en/CANVAS_CUSTOM
 - 🔧 **LLM**: Enhanced system prompt with WordPress context information
 - 🔧 **Performance**: Reduced unnecessary LLM requests during user inactivity
 
-### Version 2.1.5 (2025-12-13)
-
-**Structure Changes:**
-
-- 📁 **REFACTOR**: Reorganized admin option pages into dedicated `options/` folder
-  - All option page files (options.php, options_page*.php) now centralized in `options/` directory
-  - Improved code organization and maintainability
-  - Better separation of concerns between includes and options
-
-**Enhancements:**
-
-- ✨ **LLM**: Improved random dialogue prompt system with categorized prompts (greeting, casual, observation, contextual, interactive)
-- ✨ **LLM**: Added time-aware contextual prompts (morning, afternoon, evening, late night)
-- 🌍 **i18n**: Complete translation file audit and updates
-- 🌍 **i18n**: Added missing translations for all error messages and success messages
-- 🌍 **i18n**: All API error messages now properly internationalized
-- 🔧 **i18n**: Updated translation compilation script for better .po to .mo conversion
-
-**Improvements:**
-
-- 🔧 **LLM**: Enhanced prompt diversity from 7 to 20+ prompts across 5 categories
-- 🔧 **LLM**: More natural and contextual prompt expressions
-- 🔧 **i18n**: All hardcoded strings in llm-functions.php, ai-functions.php, and ajax-handlers.php now use translation functions
-
-### Version 2.1.4 (2025-12-11)
-
-**Improvements:**
-
-- ⚡ **AI**: Increased Gemini `maxOutputTokens` from 100 to 500 to prevent response truncation during context awareness processing (allows for longer, more complete responses).
-- 💰 **AI**: Kept OpenAI and Claude at 100 tokens to maintain cost control.
-
-**Bug Fixes:**
-
-- 🐛 **UI**: Fixed "AI Dialog Text Color" input display issue in admin settings (color picker was collapsed to a line due to CSS padding conflict).
-
-### Version 2.1.3 (2025-12-10)
-
-**Major Changes:**
-
-- 🔄 **BREAKING**: System now exclusively uses external dialog files (TXT/JSON format)
-  - Internal dialog storage has been removed
-  - All dialogues must be stored in `dialogs/` folder as external files
-  - Dialog files are automatically generated when saving character settings
-- 🎨 **NEW**: Complete admin UI redesign with Claude-style interface
-  - Modern, clean design with warm color palette
-  - Improved tab navigation and content layout
-  - Better message alignment and formatting
-  - Responsive design for mobile devices
-
-**Enhancements:**
-
-- 🔧 **IMPROVED**: Better message display consistency across all admin pages
-- 🔧 **IMPROVED**: Fixed duplicate message display issue
-- 🔧 **IMPROVED**: Optimized admin interface width (75% with left alignment)
-- 🔧 **IMPROVED**: Removed shadows for cleaner appearance
-- 🔧 **IMPROVED**: WordPress default background color restored
-
-**Bug Fixes:**
-
-- 🐛 **FIXED**: Message box alignment issues
-- 🐛 **FIXED**: Duplicate save messages on multiple admin pages
-
-### Version 2.1.2 (2025-12-08)
-
-**New Features:**
-
-- ✨ **NEW (BETA)**: Local LLM support via Ollama integration
-- ✨ **NEW**: Cloudflare Tunnel and remote connection support
-- ✨ **NEW**: Dynamic timeout management for local vs remote connections
-- ✨ **NEW**: Automatic service availability checking
-
-**Enhancements:**
-
-- 🔧 **IMPROVED**: Better error messages for remote connections
-- 🔧 **IMPROVED**: URL validation for Ollama endpoints
-- 🔧 **IMPROVED**: Connection type detection (local/remote)
-
-**Bug Fixes:**
-
-- 🐛 **FIXED**: LLM enable checkbox state persistence issue
-
-**Architecture Improvements:**
-
-- ✨ **REFACTORED**: Complete modular architecture (7 modules)
-- ✨ **REFACTORED**: Main plugin file reduced to ~85 lines
-
-**New Features:**
-
-- ✨ **NEW**: AI Context Awareness with multi-provider support (Gemini, OpenAI, Claude)
-- ✨ **NEW**: First-time visitor greeting (Slimstat integration)
-- ✨ **NEW**: Configurable AI text color and display duration
-
-**Enhancements:**
-
-- 🔧 **ENHANCED**: JSON dialog file support
-- 🔧 **IMPROVED**: Better error handling and logging
-
 ## 👥 Credits
 
 - **Original Author**: Ariagle _(原站點已停止運營)_
-- **Maintainer**: Horlicks (https://www.moelog.com/)
+- **Maintainer**: Horlicks (<https://www.moelog.com/>)
 - **Inspired by**: The classic MP Ukagaka plugin / 伺か (Ukagaka)
 
 ## 📄 License

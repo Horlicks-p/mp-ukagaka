@@ -26,13 +26,14 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
     // 根據提供商調用對應的 API
     switch ($provider) {
         case "gemini":
-            $model = $mpu_opt["gemini_model"] ?? "gemini-2.5-flash";
+            // 向後兼容：優先使用新設定鍵，否則使用舊設定鍵
+            $model = $mpu_opt["llm_gemini_model"] ?? $mpu_opt["gemini_model"] ?? "gemini-2.5-flash";
             return mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language);
         case "openai":
-            $model = $mpu_opt["openai_model"] ?? "gpt-4o-mini";
+            $model = $mpu_opt["llm_openai_model"] ?? $mpu_opt["openai_model"] ?? "gpt-4.1-mini-2025-04-14";
             return mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $language);
         case "claude":
-            $model = $mpu_opt["claude_model"] ?? "claude-sonnet-4-5-20250929";
+            $model = $mpu_opt["llm_claude_model"] ?? $mpu_opt["claude_model"] ?? "claude-sonnet-4-5-20250929";
             return mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $language);
         case "ollama":
             $endpoint = $mpu_opt["ollama_endpoint"] ?? "http://localhost:11434";

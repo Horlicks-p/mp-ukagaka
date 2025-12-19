@@ -508,8 +508,9 @@ function mpu_greet_first_visitor(settings) {
 /**
  * 載入外部對話檔案
  * @param {string} file - 對話檔案名稱（路徑會被自動處理）
+ * @param {boolean} skipFirstMessage - 是否跳過顯示第一句對話（用於 LLM 取代對話模式）
  */
-function loadExternalDialog(file) {
+function loadExternalDialog(file, skipFirstMessage = false) {
   const pure = (file || "").replace(/^.*[\\/]/, "");
 
   const params = new URLSearchParams({
@@ -546,10 +547,48 @@ function loadExternalDialog(file) {
       }
 
       if (resp && !resp.error && Array.isArray(resp.msg)) {
+        // 檢查對話是否為空
+        if (resp.msg.length === 0) {
+          mpuLogger.warn('loadExternalDialog: 對話文件為空');
+          window.mpuMsgList = {
+            msg: [],
+            auto_msg: resp.auto_msg || "",
+            next_msg: resp.next_msg || 0,
+            default_msg: resp.default_msg || 0
+          };
+          // 如果啟用 LLM 取代對話，空對話也可以作為後備（雖然沒有內容）
+          if (skipFirstMessage) {
+            mpuLogger.log('loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成');
+            jQuery("#ukagaka").stop(true, true).fadeIn(200);
+            document.body.style.cursor = "auto"; // 重置游標
+            return;
+          }
+          // 非 LLM 模式，顯示錯誤
+          mpu_typewriter("對話文件為空，請檢查對話文件內容", "#ukagaka_msg");
+          mpu_showmsg(400);
+          jQuery("#ukagaka").stop(true, true).fadeIn(200);
+          document.body.style.cursor = "auto";
+          return;
+        }
+
         try {
           window.mpuMsgList = resp;
           mpuNextMode = resp.next_msg == 1 ? "random" : "sequential";
           mpuDefaultMsg = resp.default_msg == 1 ? 1 : 0;
+
+          // 如果啟用 LLM 取代對話，只載入數據，不顯示第一句對話
+          if (skipFirstMessage) {
+            mpuLogger.log('loadExternalDialog: LLM 取代對話模式，已載入後備對話數據，但不顯示第一句');
+            // 設置初始 msgnum
+            let first = 0;
+            if (mpuDefaultMsg === 0 && resp.msg.length) {
+              first = Math.floor(Math.random() * resp.msg.length);
+            }
+            jQuery("#ukagaka_msgnum").html(first);
+            jQuery("#ukagaka").stop(true, true).fadeIn(200);
+            document.body.style.cursor = "auto"; // 重置游標
+            return; // 直接返回，不顯示第一句對話
+          }
 
           // 防止重複顯示對話的標記（使用閉包變數，確保唯一性）
           let firstMessageShown = false;
@@ -640,9 +679,21 @@ function loadExternalDialog(file) {
           });
         }
       } else {
-        jQuery("#ukagaka_msg").html(
-          resp && resp.error ? resp.error : "無法取得對話資料"
-        );
+        // 後端返回錯誤（例如：對話文件為空、格式錯誤等）
+        const errorMsg = resp && resp.error ? resp.error : "無法取得對話資料";
+        jQuery("#ukagaka_msg").html(errorMsg);
+        
+        // 設置一個空的 mpuMsgList 結構，避免後續 mpu_nextmsg 檢查失敗
+        // 這樣即使載入失敗，也不會顯示"對話尚未載入"的錯誤
+        if (!window.mpuMsgList) {
+          window.mpuMsgList = {
+            msg: [],
+            auto_msg: "",
+            next_msg: 0,
+            default_msg: 0
+          };
+          mpuLogger.warn('loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 -', errorMsg);
+        }
       }
       jQuery("#ukagaka").stop(true, true).fadeIn(200);
       document.body.style.cursor = "auto";
@@ -655,6 +706,19 @@ function loadExternalDialog(file) {
             ? `載入對話文件失敗：${error.message}`
             : "載入對話文件失敗，請稍後再試。",
       });
+      
+      // 設置一個空的 mpuMsgList 結構，避免後續 mpu_nextmsg 檢查失敗
+      // 這樣即使載入失敗，也不會顯示"對話尚未載入"的錯誤
+      if (!window.mpuMsgList) {
+        window.mpuMsgList = {
+          msg: [],
+          auto_msg: "",
+          next_msg: 0,
+          default_msg: 0
+        };
+        mpuLogger.warn('loadExternalDialog: 載入失敗，設置空的 mpuMsgList 作為後備');
+      }
+      
       jQuery("#ukagaka").stop(true, true).fadeIn(200);
       document.body.style.cursor = "auto";
     });
@@ -684,19 +748,23 @@ jQuery(document).ready(function () {
 
   // 載入外部對話
   function initExternalDialog() {
-    // 如果 LLM 取代對話已啟用，跳過內建對話載入，直接使用 LLM
-    if (typeof mpuPreSettings !== 'undefined' && mpuPreSettings.ollama_replace === true) {
-      mpuLogger.log("LLM 取代對話已啟用，跳過內建對話載入，將直接使用 LLM");
-      return;
+    const msgListElem = document.getElementById("ukagaka_msglist");
+    const isLLMReplaceEnabled = typeof mpuPreSettings !== 'undefined' && mpuPreSettings.ollama_replace === true;
+    
+    // 即使啟用 LLM 取代對話，也載入對話文件作為後備（當 LLM 失敗時使用）
+    if (isLLMReplaceEnabled) {
+      mpuLogger.log("LLM 取代對話已啟用，但仍載入內建對話作為後備");
     }
 
-    const msgListElem = document.getElementById("ukagaka_msglist");
     if (
       msgListElem &&
       msgListElem.getAttribute("data-load-external") === "true"
     ) {
       const dialogFile = msgListElem.getAttribute("data-file");
-      if (dialogFile) loadExternalDialog(dialogFile);
+      if (dialogFile) {
+        // 如果啟用 LLM 取代對話，載入對話但不顯示第一句（由 LLM 處理）
+        loadExternalDialog(dialogFile, isLLMReplaceEnabled);
+      }
     } else {
       // 非外部檔案模式：初始化 mpuMsgList
       try {
@@ -715,7 +783,10 @@ jQuery(document).ready(function () {
       } catch (e) {
         mpu_handle_error(e, "jQuery.ready:init_dialog_data");
       }
-      if (mpuAutoTalk && !mpuAutoTalkTimer) startAutoTalk();
+      // 只有在未啟用 LLM 取代對話時才自動啟動自動對話
+      if (!isLLMReplaceEnabled && mpuAutoTalk && !mpuAutoTalkTimer) {
+        startAutoTalk();
+      }
     }
   }
 

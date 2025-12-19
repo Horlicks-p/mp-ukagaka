@@ -39,21 +39,24 @@ mp-ukagaka/
 │   └── shell/                  # Character images
 ├── languages/              # Language files
 ├── docs/                   # Documentation
-├── options.php             # Admin page framework
-├── options_page0.php       # Basic settings page
-├── options_page1.php       # Ukagaka management page
-├── options_page2.php       # Dialogue settings page
-├── options_page3.php       # Display settings page
-├── options_page4.php       # Advanced settings page
-├── options_page_ai.php     # AI settings page
-├── options_page_llm.php    # LLM settings page (BETA)
-├── ukagaka-core.js         # Frontend core JS (Message display, switching, etc.)
-├── ukagaka-anime.js        # Canvas Animation Manager (Image Sequence Playback)
-├── ukagaka-features.js     # Frontend features JS (AI page awareness, greeting, etc.)
-├── ukagaka_cookie.js       # Cookie utility (Visitor tracking)
+├── options/                # Admin settings pages
+│   ├── options.php             # Admin page framework
+│   ├── options_page0.php       # Basic settings page
+│   ├── options_page1.php       # Ukagaka management page
+│   ├── options_page2.php       # Dialogue settings page
+│   ├── options_page3.php       # Display settings page
+│   ├── options_page4.php       # Advanced settings page
+│   ├── options_page_ai.php     # AI settings page
+│   └── options_page_llm.php    # LLM settings page (BETA)
+├── js/                     # Frontend JavaScript Modules
+│   ├── ukagaka-base.js         # Base layer (Config + Utils + AJAX)
+│   ├── ukagaka-core.js         # Frontend core JS (Message display, switching, etc.)
+│   ├── ukagaka-features.js     # Frontend features JS (AI page awareness, greeting, etc.)
+│   ├── ukagaka-anime.js        # Canvas Animation Manager (Image Sequence Playback)
+│   ├── ukagaka-cookie.js       # Cookie utility (Visitor tracking)
+│   └── ukagaka-textarearesizer.js  # Admin textarea resizer
 ├── mpu_style.css           # Frontend stylesheet
 ├── admin-style.css         # Admin stylesheet
-├── jquery.textarearesizer.compressed.js  # jQuery textarea resizer
 └── readme.txt              # WordPress plugin directory readme
 ```
 
@@ -95,7 +98,7 @@ $admin_modules = [
 
 | Constant | Description | Value |
 |-----|------|-----|
-| `MPU_VERSION` | Plugin Version | `"2.1.4"` |
+| `MPU_VERSION` | Plugin Version | `"2.1.7"` |
 | `MPU_MAIN_FILE` | Main File Path | `__FILE__` |
 
 ---
@@ -744,11 +747,11 @@ $mpu_opt = [
     // Ukagaka List
     'ukagakas' => [
         'default_1' => [
-            'name' => 'Miku',
-            'shell' => 'shell_1.png',
-            'msg' => ['Welcome~'],
+            'name' => 'フリーレン',
+            'shell' => 'images/shell/Frieren/',
+            'msg' => ['フリレーンだ。千年以上生きた魔法使いだ。'],
             'show' => true,
-            'dialog_filename' => 'default_1',
+            'dialog_filename' => 'Frieren',
         ],
         // ... more ukagakas
     ],
@@ -1176,6 +1179,59 @@ function mpu_handle_custom_action() {
     wp_send_json_success(['data' => $result]);
 }
 ```
+
+### Customizing Dialogue Category Weights
+
+The system uses weighted random selection to determine which type of dialogue to generate. You can modify the weights in the `mpu_generate_llm_dialogue()` function in `includes/llm-functions.php`:
+
+```php
+// Category weight settings (higher values have higher probability of being selected)
+// Total weight: 100
+$category_weights = [
+    'greeting' => 8,           // Greeting
+    'casual' => 10,            // Casual chat
+    'time_aware' => 8,         // Time-aware
+    'observation' => 10,       // Observation/Thinking
+    'magic_research' => 8,     // Magic research
+    'tech_observation' => 6,   // Tech observation (lower weight)
+    'statistics' => 8,         // Statistics
+    'memory' => 10,            // Memory
+    'admin_comment' => 8,     // Admin comments
+    'unexpected' => 10,        // Unexpected reactions
+    'silence' => 8,            // Silence
+    'bot_detection' => 6,     // BOT detection
+];
+```
+
+**Weight Adjustment Recommendations:**
+- It's recommended to keep total weight at 100 for easier probability calculation
+- Lowering a category's weight reduces its appearance frequency
+- Increasing a category's weight increases its appearance frequency
+
+### Customizing Observation Category Built-in Dialogue Reading
+
+The observation category automatically reads dialogues from the current character's built-in dialogue file. You can modify this functionality in the `mpu_build_frieren_style_examples()` function in `includes/llm-functions.php`:
+
+```php
+// Read dialogues from built-in dialogue file (up to 5 lines)
+$mpu_opt = mpu_get_option();
+$current_ukagaka = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
+    $ukagaka = $mpu_opt['ukagakas'][$current_ukagaka];
+    $dialog_filename = $ukagaka['dialog_filename'] ?? $current_ukagaka;
+    
+    // Read dialogue file
+    if (function_exists('mpu_get_msg_from_file')) {
+        $dialog_messages = mpu_get_msg_from_file($dialog_filename);
+        // ... processing logic
+    }
+}
+```
+
+**Adjustable Parameters:**
+- Maximum read count: Currently 5 lines, can modify the number in `min(5, $count)`
+- Character length limit: Currently 50 characters, can modify in `mb_strlen($msg) <= 50`
+- Filter conditions: Can add more filter conditions to screen suitable dialogues
 
 ---
 

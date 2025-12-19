@@ -18,11 +18,15 @@ if (!defined('ABSPATH')) {
 function mpu_ajax_nextmsg()
 {
     $mpu_opt = mpu_get_option();
-    $cur_num = isset($_GET["cur_num"])
-        ? sanitize_text_field($_GET["cur_num"])
+
+    // 支援 POST 和 GET 兩種方式（優先使用 POST，向後兼容 GET）
+    $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
+
+    $cur_num = isset($request_data["cur_num"])
+        ? sanitize_text_field($request_data["cur_num"])
         : $mpu_opt["cur_ukagaka"];
-    $cur_msgnum = isset($_GET["cur_msgnum"])
-        ? intval($_GET["cur_msgnum"])
+    $cur_msgnum = isset($request_data["cur_msgnum"])
+        ? intval($request_data["cur_msgnum"])
         : 0;
 
     // 檢查是否啟用了「使用 LLM 取代內建對話」
@@ -37,13 +41,34 @@ function mpu_ajax_nextmsg()
     // }
 
     if ($is_llm_enabled) {
-        // 獲取上一次回應（從 GET 參數或 Cookie 中獲取，用於避免重複對話）
-        $last_response = isset($_GET['last_response'])
-            ? sanitize_text_field($_GET['last_response'])
+        // 獲取上一次回應（從 POST/GET 參數中獲取，用於避免重複對話）
+        // 注意：sanitize_text_field 內部已處理 wp_unslash，但為了明確性，這裡直接使用
+        $last_response = isset($request_data['last_response'])
+            ? sanitize_text_field($request_data['last_response'])
             : '';
 
+        // ★★★ 獲取回應歷史（用於更嚴格的重複檢測）★★★
+        $response_history = [];
+        if (isset($request_data['response_history'])) {
+            // 1. 先使用 wp_unslash 去除 WordPress 自動添加的反斜線
+            // WordPress 會對所有 $_POST、$_GET 數據自動進行 addslashes 處理
+            // 這會導致 JSON 字串中的引號 " 變成 \"，導致 json_decode 失敗
+            $history_json = wp_unslash($request_data['response_history']);
+
+            // 2. 解碼原始 JSON
+            $decoded_history = json_decode($history_json, true);
+
+            if (is_array($decoded_history)) {
+                // 3. 限制歷史記錄數量
+                $response_history = array_slice($decoded_history, -5);
+
+                // 4. 對解碼後的內容進行消毒 (Sanitization)
+                $response_history = array_map('sanitize_text_field', $response_history);
+            }
+        }
+
         // 使用 LLM 生成對話
-        $llm_msg = mpu_generate_llm_dialogue($cur_num, $last_response);
+        $llm_msg = mpu_generate_llm_dialogue($cur_num, $last_response, $response_history);
 
         if ($llm_msg !== false && $llm_msg !== 'MPU_OLLAMA_NOT_AVAILABLE') {
             // LLM 生成成功，使用生成的對話
@@ -213,17 +238,25 @@ function mpu_ajax_load_dialog()
 
     if ($ext === "json") {
         $json = json_decode($content, true);
-        if (
-            json_last_error() !== JSON_ERROR_NONE ||
-            empty($json["messages"])
-        ) {
+        if (json_last_error() !== JSON_ERROR_NONE) {
             wp_send_json([
                 "error" => "JSON 檔案格式錯誤：" . json_last_error_msg(),
+            ]);
+        }
+        if (empty($json["messages"]) || !is_array($json["messages"]) || count($json["messages"]) === 0) {
+            wp_send_json([
+                "error" => "對話文件為空，請檢查對話文件內容",
             ]);
         }
         $msg_array = $json["messages"];
     } else {
         $msg_array = mpu_str2array($content);
+        // 檢查 TXT 文件是否為空
+        if (empty($msg_array) || !is_array($msg_array) || count($msg_array) === 0) {
+            wp_send_json([
+                "error" => "對話文件為空，請檢查對話文件內容",
+            ]);
+        }
     }
 
     $arr = [
@@ -276,8 +309,9 @@ function mpu_ajax_chat_context()
         return;
     }
 
-    // 獲取提供商和對應的 API Key
-    $provider = $mpu_opt["ai_provider"] ?? "gemini";
+    // 獲取提供商（向後兼容：優先使用 llm_provider，否則使用 ai_provider）
+    $provider = isset($mpu_opt["llm_provider"]) ? $mpu_opt["llm_provider"] : 
+                (isset($mpu_opt["ai_provider"]) ? $mpu_opt["ai_provider"] : "gemini");
     $api_key_encrypted = "";
     $api_key = "";
 
@@ -285,14 +319,15 @@ function mpu_ajax_chat_context()
     if ($provider !== "ollama") {
         switch ($provider) {
             case "openai":
-                $api_key_encrypted = $mpu_opt["openai_api_key"] ?? "";
+                // 向後兼容：優先使用新設定鍵，否則使用舊設定鍵
+                $api_key_encrypted = $mpu_opt["llm_openai_api_key"] ?? $mpu_opt["openai_api_key"] ?? "";
                 break;
             case "claude":
-                $api_key_encrypted = $mpu_opt["claude_api_key"] ?? "";
+                $api_key_encrypted = $mpu_opt["llm_claude_api_key"] ?? $mpu_opt["claude_api_key"] ?? "";
                 break;
             case "gemini":
             default:
-                $api_key_encrypted = $mpu_opt["ai_api_key"] ?? "";
+                $api_key_encrypted = $mpu_opt["llm_gemini_api_key"] ?? $mpu_opt["ai_api_key"] ?? "";
                 break;
         }
 
@@ -413,9 +448,9 @@ function mpu_ajax_get_visitor_info()
         // 使用 prepare 防止 SQL 注入（安全性）
         $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $slimstat_table));
         if ($table_exists == $slimstat_table) {
-            // 查詢當前 IP 最近的完整記錄
+            // 查詢當前 IP 最近的完整記錄（包含 BOT 資訊）
             $query = $wpdb->prepare(
-                "SELECT referer, country, city FROM {$slimstat_table} WHERE ip = %s ORDER BY dt DESC LIMIT 1",
+                "SELECT referer, country, city, browser, browser_type FROM {$slimstat_table} WHERE ip = %s ORDER BY dt DESC LIMIT 1",
                 $ip
             );
             $result = $wpdb->get_row($query, OBJECT);
@@ -435,6 +470,34 @@ function mpu_ajax_get_visitor_info()
                 // 獲取 city（可選）
                 if (!empty($result->city)) {
                     $visitor_info["slimstat_city"] = sanitize_text_field($result->city);
+                }
+
+                // ★★★ 獲取 BOT 資訊 ★★★
+                // browser_type: 0 = 一般瀏覽器, 1 = crawler/bot, 2 = mobile
+                if (isset($result->browser_type)) {
+                    $visitor_info["is_bot"] = (intval($result->browser_type) === 1);
+                    $visitor_info["browser_type"] = intval($result->browser_type);
+                } else {
+                    $visitor_info["is_bot"] = false;
+                    $visitor_info["browser_type"] = 0;
+                }
+
+                // 獲取瀏覽器名稱（BOT 名稱）
+                if (!empty($result->browser)) {
+                    $visitor_info["browser_name"] = sanitize_text_field($result->browser);
+                }
+            } else {
+                // 如果資料庫中沒有記錄，嘗試從當前請求檢測 BOT
+                // 使用 Slimstat 的 Browscap 服務來檢測
+                if (class_exists('\SlimStat\Services\Browscap')) {
+                    $browser = \SlimStat\Services\Browscap::get_browser();
+                    if (!empty($browser)) {
+                        $visitor_info["is_bot"] = (isset($browser['browser_type']) && intval($browser['browser_type']) === 1);
+                        $visitor_info["browser_type"] = isset($browser['browser_type']) ? intval($browser['browser_type']) : 0;
+                        if (!empty($browser['browser'])) {
+                            $visitor_info["browser_name"] = sanitize_text_field($browser['browser']);
+                        }
+                    }
                 }
             }
         }
@@ -501,8 +564,9 @@ function mpu_ajax_chat_greet()
         return;
     }
 
-    // 獲取提供商和對應的 API Key
-    $provider = $mpu_opt["ai_provider"] ?? "gemini";
+    // 獲取提供商（向後兼容：優先使用 llm_provider，否則使用 ai_provider）
+    $provider = isset($mpu_opt["llm_provider"]) ? $mpu_opt["llm_provider"] : 
+                (isset($mpu_opt["ai_provider"]) ? $mpu_opt["ai_provider"] : "gemini");
     $api_key_encrypted = "";
     $api_key = "";
 
@@ -510,14 +574,15 @@ function mpu_ajax_chat_greet()
     if ($provider !== "ollama") {
         switch ($provider) {
             case "openai":
-                $api_key_encrypted = $mpu_opt["openai_api_key"] ?? "";
+                // 向後兼容：優先使用新設定鍵，否則使用舊設定鍵
+                $api_key_encrypted = $mpu_opt["llm_openai_api_key"] ?? $mpu_opt["openai_api_key"] ?? "";
                 break;
             case "claude":
-                $api_key_encrypted = $mpu_opt["claude_api_key"] ?? "";
+                $api_key_encrypted = $mpu_opt["llm_claude_api_key"] ?? $mpu_opt["claude_api_key"] ?? "";
                 break;
             case "gemini":
             default:
-                $api_key_encrypted = $mpu_opt["ai_api_key"] ?? "";
+                $api_key_encrypted = $mpu_opt["llm_gemini_api_key"] ?? $mpu_opt["ai_api_key"] ?? "";
                 break;
         }
 
@@ -657,7 +722,7 @@ add_action('wp_ajax_nopriv_mpu_chat_greet', 'mpu_ajax_chat_greet');
  */
 function mpu_ajax_test_ollama_connection()
 {
-    check_ajax_referer('mpu_test_ollama', 'nonce');
+    check_ajax_referer('mpu_test_connection', 'nonce');
 
     $endpoint = sanitize_text_field($_POST['endpoint'] ?? 'http://localhost:11434');
     $model = sanitize_text_field($_POST['model'] ?? 'qwen3:8b');
@@ -808,3 +873,246 @@ function mpu_ajax_test_ollama_connection()
     }
 }
 add_action('wp_ajax_mpu_test_ollama_connection', 'mpu_ajax_test_ollama_connection');
+
+/**
+ * AJAX 處理器：測試 Gemini 連接
+ * 驗證 API Key 和模型是否可用
+ */
+function mpu_ajax_test_gemini_connection()
+{
+    check_ajax_referer('mpu_test_connection', 'nonce');
+
+    $api_key = sanitize_text_field($_POST['api_key'] ?? '');
+    $model = sanitize_text_field($_POST['model'] ?? 'gemini-2.5-flash');
+
+    // 如果前端沒有提供 API Key，嘗試從已保存的設定中讀取
+    if (empty($api_key)) {
+        $mpu_opt = mpu_get_option();
+        $api_key_encrypted = $mpu_opt['llm_gemini_api_key'] ?? $mpu_opt['ai_api_key'] ?? '';
+        if (!empty($api_key_encrypted)) {
+            $api_key = mpu_decrypt_api_key($api_key_encrypted);
+        }
+    }
+
+    if (empty($api_key)) {
+        wp_send_json_error(__('請輸入 Gemini API Key', 'mp-ukagaka'));
+        return;
+    }
+
+    // 構建測試請求
+    $api_url = "https://generativelanguage.googleapis.com/v1/models/{$model}:generateContent?key=" . urlencode($api_key);
+    $request_body = [
+        "contents" => [
+            [
+                "parts" => [
+                    [
+                        "text" => "Hi"
+                    ]
+                ]
+            ]
+        ],
+        "generationConfig" => [
+            "maxOutputTokens" => 50,
+        ]
+    ];
+
+    $response = wp_remote_post($api_url, [
+        "headers" => [
+            "Content-Type" => "application/json",
+        ],
+        "body" => wp_json_encode($request_body),
+        "timeout" => 30,
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(sprintf(__('連接失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
+        return;
+    }
+
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body = wp_remote_retrieve_body($response);
+
+    if ($response_code === 200) {
+        $data = json_decode($response_body, true);
+        if (!empty($data["candidates"][0]["content"]["parts"][0]["text"])) {
+            $content = trim($data["candidates"][0]["content"]["parts"][0]["text"]);
+            $preview = mb_substr($content, 0, 50);
+            wp_send_json_success(sprintf(__('連接成功，模型響應正常（預覽：%s...）', 'mp-ukagaka'), $preview));
+        } else {
+            wp_send_json_error(__('API 回應為空，請檢查模型是否正確', 'mp-ukagaka'));
+        }
+    } else {
+        $error_data = json_decode($response_body, true);
+        $error_message = isset($error_data["error"]["message"])
+            ? $error_data["error"]["message"]
+            : sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
+        
+        if ($response_code === 401 || $response_code === 403) {
+            wp_send_json_error(sprintf(__('API 認證失敗：%s。請檢查 API Key 是否正確。', 'mp-ukagaka'), $error_message));
+        } elseif ($response_code === 404) {
+            wp_send_json_error(sprintf(__('模型「%s」不存在。請在設定中選擇正確的模型。', 'mp-ukagaka'), $model));
+        } else {
+            wp_send_json_error(sprintf(__('API 錯誤（HTTP %s）：%s', 'mp-ukagaka'), $response_code, $error_message));
+        }
+    }
+}
+add_action('wp_ajax_mpu_test_gemini_connection', 'mpu_ajax_test_gemini_connection');
+
+/**
+ * AJAX 處理器：測試 OpenAI 連接
+ * 驗證 API Key 和模型是否可用
+ */
+function mpu_ajax_test_openai_connection()
+{
+    check_ajax_referer('mpu_test_connection', 'nonce');
+
+    $api_key = sanitize_text_field($_POST['api_key'] ?? '');
+    $model = sanitize_text_field($_POST['model'] ?? 'gpt-4o-mini');
+
+    // 如果前端沒有提供 API Key，嘗試從已保存的設定中讀取
+    if (empty($api_key)) {
+        $mpu_opt = mpu_get_option();
+        $api_key_encrypted = $mpu_opt['llm_openai_api_key'] ?? $mpu_opt['openai_api_key'] ?? '';
+        if (!empty($api_key_encrypted)) {
+            $api_key = mpu_decrypt_api_key($api_key_encrypted);
+        }
+    }
+
+    if (empty($api_key)) {
+        wp_send_json_error(__('請輸入 OpenAI API Key', 'mp-ukagaka'));
+        return;
+    }
+
+    // 構建測試請求
+    $api_url = "https://api.openai.com/v1/chat/completions";
+    $request_body = [
+        "model" => $model,
+        "messages" => [
+            [
+                "role" => "user",
+                "content" => "Hi"
+            ]
+        ],
+        "max_tokens" => 50,
+    ];
+
+    $response = wp_remote_post($api_url, [
+        "headers" => [
+            "Content-Type" => "application/json",
+            "Authorization" => "Bearer " . $api_key,
+        ],
+        "body" => wp_json_encode($request_body),
+        "timeout" => 30,
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(sprintf(__('連接失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
+        return;
+    }
+
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body = wp_remote_retrieve_body($response);
+
+    if ($response_code === 200) {
+        $data = json_decode($response_body, true);
+        if (!empty($data["choices"][0]["message"]["content"])) {
+            $content = trim($data["choices"][0]["message"]["content"]);
+            $preview = mb_substr($content, 0, 50);
+            wp_send_json_success(sprintf(__('連接成功，模型響應正常（預覽：%s...）', 'mp-ukagaka'), $preview));
+        } else {
+            wp_send_json_error(__('API 回應格式錯誤', 'mp-ukagaka'));
+        }
+    } else {
+        $error_data = json_decode($response_body, true);
+        $error_message = isset($error_data["error"]["message"])
+            ? $error_data["error"]["message"]
+            : sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
+        
+        if ($response_code === 401 || $response_code === 403) {
+            wp_send_json_error(sprintf(__('API 認證失敗：%s。請檢查 API Key 是否正確。', 'mp-ukagaka'), $error_message));
+        } else {
+            wp_send_json_error(sprintf(__('API 錯誤（HTTP %s）：%s', 'mp-ukagaka'), $response_code, $error_message));
+        }
+    }
+}
+add_action('wp_ajax_mpu_test_openai_connection', 'mpu_ajax_test_openai_connection');
+
+/**
+ * AJAX 處理器：測試 Claude 連接
+ * 驗證 API Key 和模型是否可用
+ */
+function mpu_ajax_test_claude_connection()
+{
+    check_ajax_referer('mpu_test_connection', 'nonce');
+
+    $api_key = sanitize_text_field($_POST['api_key'] ?? '');
+    $model = sanitize_text_field($_POST['model'] ?? 'claude-sonnet-4-5-20250929');
+
+    // 如果前端沒有提供 API Key，嘗試從已保存的設定中讀取
+    if (empty($api_key)) {
+        $mpu_opt = mpu_get_option();
+        $api_key_encrypted = $mpu_opt['llm_claude_api_key'] ?? $mpu_opt['claude_api_key'] ?? '';
+        if (!empty($api_key_encrypted)) {
+            $api_key = mpu_decrypt_api_key($api_key_encrypted);
+        }
+    }
+
+    if (empty($api_key)) {
+        wp_send_json_error(__('請輸入 Claude API Key', 'mp-ukagaka'));
+        return;
+    }
+
+    // 構建測試請求
+    $api_url = "https://api.anthropic.com/v1/messages";
+    $request_body = [
+        "model" => $model,
+        "max_tokens" => 50,
+        "messages" => [
+            [
+                "role" => "user",
+                "content" => "Hi"
+            ]
+        ],
+    ];
+
+    $response = wp_remote_post($api_url, [
+        "headers" => [
+            "Content-Type" => "application/json",
+            "x-api-key" => $api_key,
+            "anthropic-version" => "2023-06-01",
+        ],
+        "body" => wp_json_encode($request_body),
+        "timeout" => 30,
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(sprintf(__('連接失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
+        return;
+    }
+
+    $response_code = wp_remote_retrieve_response_code($response);
+    $response_body = wp_remote_retrieve_body($response);
+
+    if ($response_code === 200) {
+        $data = json_decode($response_body, true);
+        if (!empty($data["content"][0]["text"])) {
+            $content = trim($data["content"][0]["text"]);
+            $preview = mb_substr($content, 0, 50);
+            wp_send_json_success(sprintf(__('連接成功，模型響應正常（預覽：%s...）', 'mp-ukagaka'), $preview));
+        } else {
+            wp_send_json_error(__('API 回應格式錯誤', 'mp-ukagaka'));
+        }
+    } else {
+        $error_data = json_decode($response_body, true);
+        $error_message = isset($error_data["error"]["message"])
+            ? $error_data["error"]["message"]
+            : sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
+        
+        if ($response_code === 401 || $response_code === 403) {
+            wp_send_json_error(sprintf(__('API 認證失敗：%s。請檢查 API Key 是否正確。', 'mp-ukagaka'), $error_message));
+        } else {
+            wp_send_json_error(sprintf(__('API 錯誤（HTTP %s）：%s', 'mp-ukagaka'), $response_code, $error_message));
+        }
+    }
+}
+add_action('wp_ajax_mpu_test_claude_connection', 'mpu_ajax_test_claude_connection');

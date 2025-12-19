@@ -2,11 +2,15 @@
 
 一個用於在 WordPress 網站上創建和顯示互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![外掛版本](https://img.shields.io/badge/version-2.1.6-blue.svg)](https://github.com)
+[![外掛版本](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
 🌍 **其他語言**: [English](README.md) | [日本語](README_ja.md)
+
+## 🎉 特別公告
+
+為慶祝 **『葬送のフリーレン』第2期** 於 **2026年1月16日** 開始放送，預設角色已從 **初音** 變更為 **芙莉蓮（フリーレン）**。
 
 ## 📸 預覽截圖
 
@@ -50,21 +54,36 @@ MP Ukagaka 讓你能夠為 WordPress 網站創建自訂的互動式偽春菜。�
 - **多語言 AI**：生成繁體中文、日文或英文回應
 - **首次訪客打招呼**：用個性化 AI 問候歡迎新訪客（需要 Slimstat 外掛）
 
-### 🧪 本機 LLM 支援（測試階段）
+### 🤖 通用 LLM 接口（v2.2.0）
 
-> ⚠️ **注意**：LLM 功能目前處於**測試階段（BETA）**，功能可能不穩定，請謹慎使用。
+> 💡 **重大更新**：LLM 功能已升級為**通用 LLM 接口**，支援多個 AI 服務！
 
-外掛現在支援透過 Ollama 整合本機 LLM，無需 API 費用即可生成對話：
+外掛現在支援統一接口的多種 AI 服務，讓你可以使用以下任一服務生成對話：
 
-- **Ollama 整合**：連接本地或遠程 Ollama 實例
-- **遠程連接支援**：支援 Cloudflare Tunnel、ngrok 或其他隧道服務
-- **取代內建對話**：可選擇使用 AI 生成的內容取代靜態對話
-- **無需 API Key**：完全免費使用你自己的 LLM 設定
-- **智慧連接檢測**：自動調整本地與遠程連接的超時設定
-- **模型支援**：相容多種 Ollama 模型（Qwen3、Llama、Mistral 等）
-- **思考模式控制**：可選擇關閉 Qwen3 等模型的思考行為
+- **Ollama**（本機/遠程）：完全免費，無需 API Key
+  - 連接本地或遠程 Ollama 實例
+  - 支援 Cloudflare Tunnel、ngrok 或其他隧道服務
+  - 智慧連接檢測，自動調整超時設定
+  - 模型支援：Qwen3、Llama、Mistral 等
+  - 思考模式控制（Qwen3、DeepSeek 等模型）
+
+- **Google Gemini**：需要 API Key
+  - 支援模型：Gemini 2.5 Flash（推薦）、Gemini 1.5 Pro 等
+
+- **OpenAI**：需要 API Key
+  - 支援模型：GPT-4.1 Mini（推薦）、GPT-4o 等
+
+- **Claude (Anthropic)**：需要 API Key
+  - 支援模型：Claude Sonnet 4.5、Claude Haiku 4.5、Claude Opus 4.5
+
+**主要功能：**
+
+- **統一設定介面**：所有提供商使用相同的設定頁面
+- **API Key 加密**：所有 API Key 自動加密儲存，確保安全性
+- **連接測試**：為所有 AI 提供商提供測試按鈕
+- **取代內建對話**：可選擇使用 AI 生成的內容取代靜態對話（支援所有提供商）
+- **優化 System Prompt**：XML 結構化 System Prompt，包含 70+ 個芙莉蓮風格對話範例
 - **WordPress 資訊整合**：LLM 對話可以包含網站資訊（WordPress 版本、主題資訊、統計資料）
-- **可自訂統計提示詞**：可自定風格來顯示這些統計提示詞（詳見 [USER_GUIDE.md](docs/USER_GUIDE.md)）
 - **防止重複對話機制**：追蹤之前的回應，避免重複的閒聊
 - **閒置偵測功能**：使用者閒置時（60 秒）自動暫停自動對話，節省 GPU 和網路資源
 
@@ -138,77 +157,60 @@ MP Ukagaka 讓你能夠為 WordPress 網站創建自訂的互動式偽春菜。�
    - 前往 設定 → MP Ukagaka → AI 設定
    - 勾選「啟用頁面感知功能」
 
-2. **選擇 AI 提供商**
+   - **言語設定**：選擇回應語言（繁體中文、日文、英文）
+   - **キャラクター設定（System Prompt）**：定義角色個性
+     - 此設定會與優化的 System Prompt 系統整合
+     - 雲端 AI 服務：System Prompt 會自動優化以減少 token 使用
+     - 本機 LLM：可以使用更長的提示詞以獲得更好的角色一致性
+   - **頁面感知確率（%）**：設定 AI 觸發機率（1-100%，建議 10-30% 以控制成本）
+   - **トリガーページ**：指定觸發 AI 的頁面（例如：「is_single」只在單篇文章觸發）
+   - **AI会話の表示時間（秒）**：設定 AI 訊息顯示多久（建議 5-10 秒）
+   - **初回訪問者への挨拶**：啟用並設定打招呼提示詞（可選）
 
-   **Google Gemini**（推薦新手使用）：
-
-   - 從 [Google AI Studio](https://makersuite.google.com/app/apikey) 取得 API Key
-   - 選擇「Gemini」作為提供商
-   - 輸入 API Key
-   - 預設模型：gemini-2.5-flash
-
-   **OpenAI GPT**：
-
-   - 從 [OpenAI Platform](https://platform.openai.com/api-keys) 取得 API Key
-   - 選擇「OpenAI」作為提供商
-   - 輸入 API Key
-   - 選擇模型：gpt-4o-mini（推薦）、gpt-4o 或 gpt-3.5-turbo
-
-   **Anthropic Claude**：
-
-   - 從 [Anthropic Console](https://console.anthropic.com/) 取得 API Key
-   - 選擇「Claude」作為提供商
-   - 輸入 API Key
-   - 模型：claude-sonnet-4-5-20250929
-
-3. **配置 AI 設定**
-
-   - **語言**：選擇回應語言（繁體中文、日文、英文）
-   - **人格設定**：定義角色個性（例如：「你是一個傲嬌的桌面助手『春菜』。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。」）
-   - **機率**：設定 AI 觸發機率（1-100%，建議 10-30% 以控制成本）
-   - **觸發頁面**：指定觸發 AI 的頁面（例如：「is_single」只在單篇文章觸發）
-   - **文字顏色**：自訂 AI 對話文字顏色
-   - **顯示時間**：設定 AI 訊息顯示多久後恢復自動對話（建議 5-10 秒）
-
-4. **首次訪客打招呼**（可選）
-
-   - 啟用「首次訪客打招呼」
-   - 設定打招呼提示詞
-   - 需要 Slimstat 外掛以獲得增強的訪客追蹤
-
-5. **儲存設定**
+4. **儲存設定**
    - 點擊「儲存」按鈕
    - 在單篇文章頁面測試 AI 回應
 
-### 本機 LLM (Ollama) 設定（測試階段）
+### 通用 LLM 設定
 
-> ⚠️ **警告**：此功能目前處於**測試階段（BETA）**，使用風險自負。
+1. **選擇 AI 提供商**
 
-1. **安裝 Ollama**
+   前往 **設定 → MP Ukagaka → LLM 設定**，選擇以下任一 AI 提供商：
 
-   - 在你的本地機器或伺服器上下載並安裝 [Ollama](https://ollama.ai/)
-   - 啟動 Ollama 服務
+   **Ollama**（免費，無需 API Key）：
+   - 安裝並運行 [Ollama](https://ollama.ai/)（本地或遠程伺服器）
    - 下載模型：`ollama pull qwen3:8b`（或你偏好的模型）
-
-2. **配置外掛設定**
-
-   - 前往 設定 → MP Ukagaka → LLM 設定
-   - 勾選「啟用 LLM (Ollama)」
-   - 輸入 Ollama 端點：
-     - **本地**：`http://localhost:11434`（預設）
-     - **遠程**：`https://your-domain.com`（Cloudflare Tunnel、ngrok 等）
+   - 輸入端點：`http://localhost:11434`（本地）或 `https://your-domain.com`（遠程）
    - 輸入模型名稱（例如：`qwen3:8b`、`llama3.2`、`mistral`）
+   - 使用「測試 Ollama 連接」按鈕驗證設定
 
-3. **可選設定**
+   **Google Gemini**（推薦新手使用）：
+   - 從 [Google AI Studio](https://makersuite.google.com/app/apikey) 取得 API Key
+   - 輸入 API Key（自動加密）
+   - 選擇模型：Gemini 2.5 Flash（推薦）、Gemini 1.5 Pro 等
+   - 使用「連接測試」按鈕驗證設定
 
-   - **取代內建對話**：啟用以使用 LLM 生成的對話取代靜態對話
-   - **關閉思考模式**：建議用於 Qwen3 模型以提高回應速度
-   - **測試連接**：使用「測試 Ollama 連接」按鈕驗證設定
+   **OpenAI**：
+   - 從 [OpenAI Platform](https://platform.openai.com/api-keys) 取得 API Key
+   - 輸入 API Key（自動加密）
+   - 選擇模型：GPT-4.1 Mini（推薦）、GPT-4o 等
+   - 使用「連接測試」按鈕驗證設定
 
-4. **遠程連接（Cloudflare Tunnel）**
-   - 設定 Cloudflare Tunnel 指向 `http://localhost:11434`
-   - 使用隧道 URL 作為端點（例如：`https://your-domain.com`）
-   - 外掛會自動檢測遠程連接並調整超時設定
+   **Claude (Anthropic)**：
+   - 從 [Anthropic Console](https://console.anthropic.com/) 取得 API Key
+   - 輸入 API Key（自動加密）
+   - 選擇模型：Claude Sonnet 4.5（推薦）、Claude Haiku 4.5、Claude Opus 4.5
+   - 使用「連接測試」按鈕驗證設定
+
+2. **配置 LLM 設定**
+
+   - **使用 LLM 取代內建對話**：啟用以使用 LLM 生成的對話取代靜態對話（支援所有提供商）
+   - **頁面認識機能**：控制頁面感知功能是否啟用
+   - **關閉思考模式**：建議用於 Qwen3、DeepSeek 模型（僅 Ollama）
+
+3. **配置 AI 設定（頁面感知）**
+
+   前往 **設定 → MP Ukagaka → AI 設定** 配置頁面感知功能：
 
 ## 🔧 進階功能
 
@@ -297,32 +299,6 @@ MP Ukagaka 讓你能夠為 WordPress 網站創建自訂的互動式偽春菜。�
 - **目錄遍歷防護**：驗證檔案路徑以防止未授權存取
 - **輸入驗證**：所有使用者輸入都經過清理和驗證
 
-## 📝 檔案結構
-
-```
-mp-ukagaka/
-├── includes/                      # PHP 模組
-│   ├── core-functions.php        # 核心功能（設定管理）
-│   ├── utility-functions.php     # 工具函數（安全性）
-│   ├── ai-functions.php          # AI 功能（雲端 API + Ollama）
-│   ├── llm-functions.php         # LLM 功能（Ollama 專用）- 測試階段
-│   ├── ukagaka-functions.php     # 春菜管理
-│   ├── ajax-handlers.php         # AJAX 處理器
-│   ├── frontend-functions.php    # 前端功能
-│   └── admin-functions.php       # 後台功能
-├── dialogs/                      # 對話檔案（TXT/JSON）
-├── images/                       # 圖片資源
-│   └── shell/                    # 角色圖片
-├── languages/                    # 語言檔案
-├── docs/                         # 文檔
-├── mp-ukagaka.php               # 主程式（模組載入器）
-├── ukagaka-core.js              # 前端 JavaScript（核心）
-├── ukagaka-features.js          # 前端 JavaScript（功能）
-├── ukagaka-anime.js             # Canvas 動畫管理器
-├── ukagaka_cookie.js            # Cookie 工具
-└── mpu_style.css                # 樣式表
-```
-
 ## ❓ 常見問題
 
 ### 如何控制 API 成本？
@@ -394,7 +370,140 @@ mp-ukagaka/
 - 確保檔案在 `dialogs/` 資料夾中
 - 檢查檔案權限
 
+## 📝 檔案結構
+
+```
+mp-ukagaka/
+├── includes/                      # PHP 模組化元件
+│   ├── core-functions.php        # 核心功能（設定、選項）
+│   ├── utility-functions.php     # 工具函數（字串/陣列、過濾、安全性）
+│   ├── ai-functions.php          # AI 功能（Gemini、OpenAI、Claude API 呼叫）
+│   ├── llm-functions.php         # LLM 功能（Ollama 整合）
+│   ├── ukagaka-functions.php     # 春菜管理（CRUD、訊息處理）
+│   ├── ajax-handlers.php         # AJAX 處理器（所有 AJAX 端點）
+│   ├── frontend-functions.php    # 前端功能（HTML、資源、顯示邏輯）
+│   └── admin-functions.php        # 後台功能（設定儲存、後台頁面）
+├── options/                       # 後台選項頁面
+│   ├── options.php               # 後台頁面框架
+│   ├── options_page0.php         # 一般設定
+│   ├── options_page1.php         # 角色管理
+│   ├── options_page2.php         # 建立新角色
+│   ├── options_page3.php         # 擴展功能
+│   ├── options_page4.php         # 對話管理
+│   ├── options_page_ai.php      # AI 設定（頁面感知）
+│   └── options_page_llm.php      # LLM 設定（Ollama）- 測試版
+├── dialogs/                      # 對話檔案（TXT/JSON）
+├── images/                       # 角色圖片
+│   └── shell/                    # 角色外殼圖片
+├── js/                           # JavaScript 檔案（v2.1.7+）
+│   ├── ukagaka-base.js          # 基礎層（config + utils + ajax）
+│   ├── ukagaka-core.js          # 核心功能（ui + dialogue + 角色切換）
+│   ├── ukagaka-features.js      # 功能模組（ai + external + events）
+│   ├── ukagaka-anime.js         # Canvas 動畫管理器
+│   ├── ukagaka-cookie.js        # Cookie 處理工具
+│   └── ukagaka-textarearesizer.js # 後台文字區域調整器
+├── languages/                    # 翻譯檔案
+├── mp-ukagaka.php               # 主外掛檔案（模組載入器）
+├── mpu_style.css                # 樣式表
+├── readme.txt                   # WordPress.org readme
+└── README_zh-TW.md              # 本檔案
+```
+
 ## 📜 版本歷史
+
+### 版本 2.2.0（2025-12-19）
+
+**🚀 重大更新：通用 LLM 接口**
+
+- **多 AI 提供商支援**：統一接口支援四大 AI 服務
+  - **Ollama**：本機/遠程免費 LLM（無需 API Key）
+  - **Google Gemini**：支援 Gemini 2.5 Flash（推薦）、Gemini 1.5 Pro 等
+  - **OpenAI**：支援 GPT-4.1 Mini（推薦）、GPT-4o 等
+  - **Claude (Anthropic)**：支援 Claude Sonnet 4.5、Claude Haiku 4.5、Claude Opus 4.5
+  - 所有提供商使用統一的設定介面，可隨時切換
+
+- **API Key 加密存儲**：所有 API Key 自動加密儲存，確保安全性
+- **連接測試功能**：為所有 AI 提供商新增連接測試按鈕
+
+**🧠 System Prompt 優化系統**
+
+- **XML 結構化設計**：採用 XML 標籤組織 System Prompt，提升 LLM 理解效率
+  - `<character>`：角色名稱和核心設定
+  - `<knowledge_base>`：壓縮後的 WordPress 資訊
+  - `<behavior_rules>`：行為規則（must_do、should_do、must_not_do）
+  - `<response_style_examples>`：70+ 個對話範例
+  - `<current_context>`：當前情境資訊
+
+- **上下文壓縮機制**：自動壓縮 WordPress、用戶、訪客資訊，減少 token 使用
+- **芙莉蓮風格範例系統**：內建 70+ 個實際對話範例，涵蓋 12 個類別
+- **雙層架構設計**：System Prompt 定義風格，User Prompt 提供任務指令
+
+**🎨 UI/UX 全面升級**
+
+- **統一卡片式設計**：所有設定頁面採用一致的卡片式佈局
+- **兩欄式佈局**：主內容 + 側邊欄設計（主內容 55%，側邊欄 300px）
+- **自訂滾動條樣式**：為長文字區域添加美觀的滾動條
+
+**🔧 功能改進**
+
+- **頁面認識機能整合**：將「頁面認識機能」設定移至 LLM 設定頁面
+- **AI 設定頁面簡化**：專注於「頁面感知」功能
+- **統計比喻優化**：恢復並優化遊戲化統計比喻
+
+**📝 代碼優化**
+
+- **新增函數**：mpu_build_optimized_system_prompt、mpu_build_frieren_style_examples、mpu_build_prompt_categories、mpu_compress_context_info、mpu_get_visitor_status_text、mpu_calculate_text_similarity、mpu_debug_system_prompt
+- **函數重構**：mpu_generate_llm_dialogue 使用新的優化 System Prompt 系統
+- **向後兼容**：保持對舊設定的支援，自動遷移設定鍵值
+
+**🐛 錯誤修復**
+
+- 修復統計比喻對應關係
+- 優化文字區域寬度設定（統一為 850px）
+- 修復主選單底部線條對齊問題
+- 修復滾動條樣式問題
+
+**🎉 特別更新（2025-12-19）**
+
+- 為慶祝『葬送のフリーレン』第2期於2026年1月16日開始放送，預設角色已從初音變更為芙莉蓮（フリーレン）
+
+---
+
+### 版本 2.1.7（2025-12-15）
+
+**效能優化：**
+
+- 🚀 **JavaScript 檔案結構重構**：將 10 個 JS 檔案合併為 4 個，減少 HTTP 請求
+  - `ukagaka-base.js`：合併 config + utils + ajax（基礎層）
+  - `ukagaka-core.js`：合併 ui + dialogue + core（核心功能）
+  - `ukagaka-features.js`：合併 ai + external + events（功能模組）
+  - `ukagaka-anime.js`：保持獨立（動畫模組）
+  - 所有檔案統一使用 `ukagaka-` 前綴命名
+- 🚀 **優化 mousemove 日誌**：移除頻繁觸發的日誌記錄，避免控制台被洗版
+
+**功能改進：**
+
+- 🔧 **LLM 請求優化**：改用 POST 方式傳遞資料，避免 URL 長度限制
+  - 使用 `FormData` 傳遞所有參數
+  - 後端支援 POST 和 GET 兩種方式（向後兼容）
+  - 使用 `wp_unslash()` 正確處理 WordPress 的 JSON 資料
+- 🔧 **防止 LLM 請求連點**：加入 `cancelPrevious: true` 選項
+  - 當使用者快速連續點擊「下一句」時，自動取消前一個未完成的請求
+  - 避免多個並行請求互相覆蓋打字機效果
+
+**錯誤處理優化：**
+
+- 🐛 **Canvas 動畫錯誤處理**：在 `mpuChange` 函數開始時檢查 Canvas Manager
+  - 提前檢查 `window.mpuCanvasManager` 是否存在
+  - 避免在 Ajax 成功後才發現錯誤
+- 🐛 **LLM 錯誤視覺提示**：在 debug 模式下顯示錯誤訊息
+  - 顯示格式：`[LLM 錯誤: 錯誤訊息]`
+  - 2 秒後自動切換到後備對話
+
+**其他改進：**
+
+- 📝 統一檔名命名規範：所有 JavaScript 檔案使用 `ukagaka-` 前綴
+  - `jquery.textarearesizer.compressed.js` → `ukagaka-textarearesizer.js`
 
 ### 版本 2.1.6（2025-12-14）
 
@@ -424,68 +533,6 @@ mp-ukagaka/
 - 🔧 **LLM**: 新增提示詞分類：`wordpress_info` 和 `statistics`，用於 WordPress 相關對話
 - 🔧 **LLM**: 增強系統提示詞，加入 WordPress 背景資訊
 - 🔧 **效能**: 減少使用者閒置時不必要的 LLM 請求
-
-### 版本 2.1.5（2025-12-13）
-
-**結構變更：**
-
-- 📁 **重構**：將後台選項頁面重新組織到專用的 `options/` 資料夾
-  - 所有選項頁面檔案（options.php、options_page*.php）現已集中到 `options/` 目錄
-  - 改善程式碼組織和可維護性
-  - 更好的關注點分離（includes 和 options 分離）
-
-**改進：**
-
-- ✨ **LLM**: 改進隨機對話提示詞系統，新增分類提示詞（問候、閒聊、觀察、情境、互動）
-- ✨ **LLM**: 新增時間感知情境提示詞（早上、下午、晚上、深夜）
-- 🌍 **i18n**: 完整翻譯檔審查與更新
-- 🌍 **i18n**: 新增所有錯誤訊息和成功訊息的翻譯
-- 🌍 **i18n**: 所有 API 錯誤訊息現已正確國際化
-- 🔧 **i18n**: 更新翻譯編譯腳本，改善 .po 到 .mo 的轉換
-
-**增強：**
-
-- 🔧 **LLM**: 提示詞多樣性從 7 個提升到 20+ 個，涵蓋 5 個類別
-- 🔧 **LLM**: 更自然和情境化的提示詞表達
-- 🔧 **i18n**: llm-functions.php、ai-functions.php 和 ajax-handlers.php 中的所有硬編碼字串現已使用翻譯函數
-
-### 版本 2.1.4（2025-12-11）
-
-**改進：**
-
-- ⚡ **AI**：將 Gemini 的 `maxOutputTokens` 從 100 增加到 500，以防止頁面感知處理時回應被截斷（允許更長、更完整的回應）。
-- 💰 **AI**：OpenAI 和 Claude 維持 100 tokens 以控制成本。
-
-**錯誤修正：**
-
-- 🐛 **UI**：修正後台設定中「AI 對話文字顏色」輸入框的顯示問題（解決因 CSS padding 衝突導致顏色選擇器縮成一條線的問題）。
-
-### 版本 2.1.3（2025-12-10）
-
-**重大變更：**
-
-- 🔄 **重大變更**：系統現已固定使用外部對話檔案（TXT/JSON 格式）
-  - 已移除內部對話儲存功能
-  - 所有對話必須以外部檔案形式存放在 `dialogs/` 資料夾中
-  - 儲存角色設定時會自動生成對話檔案
-- 🎨 **全新**：後台管理介面全面重新設計，採用 Claude 風格
-  - 現代簡潔的設計，溫暖的配色方案
-  - 改進的標籤頁導航和內容佈局
-  - 更好的訊息對齊和格式化
-  - 響應式設計，支援行動裝置
-
-**改進：**
-
-- 🔧 **改善**：所有後台頁面的訊息顯示一致性
-- 🔧 **改善**：修正重複訊息顯示問題
-- 🔧 **改善**：優化後台介面寬度（75%，靠左對齊）
-- 🔧 **改善**：移除陰影效果，更簡潔的外觀
-- 🔧 **改善**：恢復 WordPress 預設背景色
-
-**錯誤修正：**
-
-- 🐛 **修正**：訊息框對齊問題
-- 🐛 **修正**：多個後台頁面儲存訊息重複顯示的問題
 
 ### 版本 2.1.2（2025-12-08）
 
@@ -525,7 +572,7 @@ mp-ukagaka/
 ## 👥 致謝
 
 - **原作者**：Ariagle _（原站點已停止運營）_
-- **維護者**：Horlicks (https://www.moelog.com/)
+- **維護者**：Horlicks (<https://www.moelog.com/>)
 - **靈感來源**：經典 MP Ukagaka 外掛 / 伺か (Ukagaka)
 
 ## 📄 授權

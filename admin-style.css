@@ -14,8 +14,8 @@
   --claude-text-heading: #1d8ac3;
   --claude-link: #94b800;
   --claude-link-hover: #69644e;
-  --claude-border: #d0d0d0;
-  --claude-border-light: #e0dece;
+  --claude-border: #B8E6E6;
+  --claude-border-light: #A8D8EA;
   --claude-shadow: rgba(0, 0, 0, 0.08);
   --claude-shadow-hover: rgba(0, 0, 0, 0.12);
   --claude-accent: #1d8ac3;
@@ -52,14 +52,16 @@
 /* ========== 標籤頁導航 ========== */
 .mp-ukagaka-tabs {
   margin: 0 0 0 0;
-  padding: 0 0 0 30px;
-  width: 75%;
-  max-width: 1200px;
+  padding: 0 0 0 0;
+  width: 55%;
+  flex: 0 0 55%;
+  max-width: 55%;
   border-bottom: 2px solid var(--claude-border-light);
   background: transparent;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  box-sizing: border-box;
 }
 
 .mp-ukagaka-tabs a {
@@ -451,8 +453,8 @@
 }
 
 .mp-ukagaka-section .grippie {
-  background-color: var(--claude-bg-secondary);
-  border: 1px solid var(--claude-border-light);
+  background-color: #E8F4F8;
+  border: 1px solid #B8E6E6;
   border-top: none;
   border-radius: 0 0 8px 8px;
   cursor: s-resize;

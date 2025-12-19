@@ -23,14 +23,18 @@
 
 MP Ukagaka is a WordPress plugin that lets you display interactive desktop mascot characters (Ukagaka/Nanika) on your website. Characters can display custom dialogue messages and support AI intelligent page awareness, automatically generating comments based on article content.
 
+> 🎉 **Special Announcement**: To celebrate the premiere of "Sousou no Frieren" Season 2 on January 16, 2026, the default character has been changed from Hatsune Miku to Frieren (フリーレン). New installations will see Frieren as the default character, and existing installations with the default character name still set to "初音" will automatically be updated to Frieren.
+
 ### Key Features
 
 - 🎨 **Multi-Character Support**: Create and manage multiple Ukagaka characters.
 - 💬 **Custom Dialogue**: Set exclusive dialogue content for each character.
-- 🤖 **AI Page Awareness**: Supports Gemini, OpenAI, and Claude AI services.
+- 🤖 **Universal LLM Interface**: Supports Ollama, Gemini, OpenAI, and Claude AI services.
+- 🧠 **AI Page Awareness**: Automatically generates comments based on article content.
 - 🌍 **Multi-Language**: Supports Traditional Chinese, Japanese, and English.
 - 📁 **External Dialogue Files**: Supports TXT and JSON format dialogue files.
 - ⚙️ **Highly Customizable**: Typing speed, display position, styles, and more are adjustable.
+- 🎭 **Custom Prompt System**: XML-structured System Prompt with rich dialogue examples.
 
 ---
 
@@ -225,25 +229,141 @@ Clear this field to revert to using each Ukagaka's default dialogue.
 
 ---
 
-## AI Feature Settings
+## AI Feature Settings (Page Awareness)
+
+> 💡 **Important Note**: The AI Settings page is now dedicated to the "Page Awareness" feature. For LLM-related settings, please go to the **LLM Settings** page.
 
 Go to **Settings** → **MP Ukagaka** → **AI Settings**
 
-### Enable AI Page Awareness
+### What is Page Awareness?
 
-Check "Enable Page Awareness" to turn on AI features.
+Page Awareness allows Ukagaka to automatically generate AI comments related to article content on specific pages (such as single posts, pages). This feature requires first configuring in the **LLM Settings** page:
+
+1. Select AI provider (Gemini, OpenAI, Claude, or Ollama)
+2. Set API Key (except for Ollama)
+3. Select model
+   - **Gemini**: Gemini 2.5 Flash (Recommended, fast and cost-effective)
+   - **OpenAI**: GPT-4.1 Mini (Recommended, fast and cost-effective), GPT-4o (Smarter)
+   - **Claude**: Claude Sonnet 4.5 (Recommended), Claude Haiku 4.5 (Fast), Claude Opus 4.5 (Advanced)
+   
+   > 🌍 **Multi-Language Support**: The model selection dropdown descriptions automatically display in the corresponding language (Traditional Chinese, English, Japanese) based on WordPress language settings. This helps users in different languages clearly understand each model's characteristics.
+4. **Enable "Page Awareness Feature"**
+
+### Basic Settings
+
+#### 1. Language Settings
+
+Select the language for AI responses:
+
+- Traditional Chinese
+- Japanese
+- English
+
+#### 2. Character Settings (System Prompt)
+
+This is the core personality setting for the character, which will be sent to the LLM as part of the System Prompt. You can set the character's personality, speaking style, etc.
+
+**Example:**
+
+```
+You are the mage Frieren, speaking in a calm, slightly cold tone, showing more interest in magic-related topics. Keep responses under 50 words.
+```
+
+> 💡 **Tip**: This setting integrates with the System Prompt optimization system in the LLM Settings page, providing richer character definition.
+
+#### 3. Page Awareness Probability (%)
+
+Set the probability (1-100%) of triggering AI comments on matching pages.
+
+**Recommended Values:**
+
+- 10-30%: More natural, not too frequent
+- 50%: Balanced trigger frequency
+- 80-100%: Almost always triggers
+
+#### 4. Trigger Pages
+
+Set which page types trigger AI comments:
+
+- `is_single`: Single posts
+- `is_page`: Single pages
+- `is_home`: Home page
+- `is_front_page`: Static front page
+- `is_archive`: All archive pages
+- `is_category`: Category pages
+- `is_tag`: Tag pages
+
+**Example:**
+
+```
+is_single,is_page
+```
+
+> 💡 **Tip**: Separate multiple conditions with commas.
+
+#### 5. AI Conversation Display Time (seconds)
+
+Set how long AI-generated comments display before automatically disappearing.
+
+**Recommended Values:**
+
+- 5-10 seconds: Shorter display time, won't overly interrupt reading
+- 10-15 seconds: Balanced display time
+- 15-20 seconds: Longer display time, suitable for longer comments
+
+#### 6. Enable First-Time Visitor Greeting
+
+When enabled, first-time visitors to the website will receive a special greeting message.
+
+#### 7. First-Time Visitor Greeting Prompt
+
+Set the greeting message prompt for first-time visitors. This prompt combines with "Character Settings" to generate personalized greetings.
+
+**Example:**
+
+```
+Greet first-time visitors and briefly introduce this website.
+```
+
+### Page Awareness Workflow
+
+1. Visitor accesses a page matching "Trigger Pages" conditions
+2. System decides whether to trigger based on "Page Awareness Probability"
+3. If triggered, the system will:
+   - Read article content
+   - Combine "Character Settings" and System Prompt from LLM Settings
+   - Call selected AI service to generate comments
+   - Display comments in Ukagaka dialogue box
+   - Automatically disappear based on "AI Conversation Display Time" setting
+
+### Relationship with LLM Features
+
+- **AI Settings Page**: Controls "Page Awareness" feature behavior (when to trigger, how to display)
+- **LLM Settings Page**: Controls AI service selection and settings (which AI to use, how to generate dialogue)
+
+Used together, they can achieve:
+
+- Use AI to comment on articles on specific pages (Page Awareness)
+- Use LLM to generate random dialogue at other times (LLM replaces built-in dialogue)
 
 ---
 
-## LLM Feature Settings (BETA)
+## LLM Feature Settings
 
-> ⚠️ **IMPORTANT**: The LLM feature is currently in **BETA**. Functionality may be unstable, please use with caution.
+> 💡 **Major Update**: LLM functionality has been upgraded to a **Universal LLM Interface**, supporting multiple AI providers!
 
 Go to **Settings** → **MP Ukagaka** → **LLM Settings**
 
 ### What is the LLM Feature?
 
-The LLM (Large Language Model) feature allows you to use local or remote Ollama services to generate dialogue, **completely free**, with no API Key required.
+The LLM (Large Language Model) feature allows you to use multiple AI services to generate dialogue, including:
+
+- **Ollama** (Local/Remote): Completely free, no API Key required
+- **Google Gemini**: Requires API Key
+- **OpenAI**: Requires API Key
+- **Claude (Anthropic)**: Requires API Key
+
+All providers use a unified settings interface, and you can switch between different AI services at any time.
 
 ### Prerequisites
 
@@ -351,6 +471,9 @@ Currently, the system default prompt is based on **Frieren style**, emphasizing:
            "Say something just noticed",
            "Share a quiet observation",
            // ... more prompts
+           // ⭐ Special Feature: This category automatically reads up to 5 lines from the current character's built-in dialogue file
+           // Automatically filters out empty strings and messages longer than 50 characters
+           // Makes AI-generated dialogues closer to the character's actual style
        ],
        'contextual' => [       // Contextual (Combined with time)
            "It is now {$time_context}, say something suitable for this time",
@@ -368,6 +491,35 @@ Currently, the system default prompt is based on **Frieren style**, emphasizing:
        ],
    ];
    ```
+
+   > 💡 **Design Philosophy**: User Prompt instructions are concise because the examples in System Prompt already provide sufficient style reference. Instructions only need to tell the LLM "what type of dialogue to generate this time", and the LLM will refer to examples to generate responses that match the style.
+
+4. **Weighted Random Selection Mechanism**
+
+   The system uses weighted random selection to determine which type of dialogue to generate, ensuring more balanced dialogue types:
+
+   ```php
+   $category_weights = [
+       'greeting' => 8,           // Greeting
+       'casual' => 10,            // Casual chat
+       'time_aware' => 8,         // Time-aware
+       'observation' => 10,       // Observation/Thinking
+       'magic_research' => 8,     // Magic research
+       'tech_observation' => 6,   // Tech observation (lower weight)
+       'statistics' => 8,         // Statistics
+       'memory' => 10,            // Memory
+       'admin_comment' => 8,      // Admin comments
+       'unexpected' => 10,         // Unexpected reactions
+       'silence' => 8,             // Silence
+       'bot_detection' => 6,      // BOT detection
+   ];
+   ```
+
+   **Weight Explanation:**
+   - Higher values have higher probability of being selected
+   - Tech observation category (WordPress/tech topics) has lower weight (6) to avoid excessive preference for technical topics
+   - Total weight is 100, with more balanced probability distribution across categories
+   - Can be modified in the `mpu_generate_llm_dialogue()` function in `includes/llm-functions.php`
 
 3. **WordPress Info Integration**
 
@@ -790,7 +942,7 @@ If you have issues, please:
 
 1. Consult this User Guide.
 2. Check the [FAQ](#faq) section.
-3. Visit the [Maintainer's Blog](https://www.moelog.com/).
+3. Visit [萌えログ.COM](https://www.moelog.com/).
 
 ---
 

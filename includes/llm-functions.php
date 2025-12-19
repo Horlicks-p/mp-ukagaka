@@ -199,42 +199,723 @@ function mpu_check_ollama_available($endpoint, $model)
 }
 
 /**
+ * 獲取訪客資訊（包括 BOT 資訊）供 LLM 使用
+ * 此函數類似於 mpu_ajax_get_visitor_info()，但返回陣列而非 JSON
+ * 
+ * @return array 訪客資訊陣列，包含 is_bot, browser_name, browser_type, slimstat_country, slimstat_city 等
+ */
+function mpu_get_visitor_info_for_llm()
+{
+    global $wpdb;
+
+    // 從 $_SERVER 獲取基本資訊
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : "";
+
+    // 準備返回的資訊
+    $visitor_info = [
+        "is_bot" => false,
+        "browser_type" => 0,
+        "browser_name" => "",
+        "slimstat_enabled" => false,
+    ];
+
+    // 使用 Slimstat 獲取更詳細的訪客資訊
+    if (class_exists('wp_slimstat')) {
+        $visitor_info["slimstat_enabled"] = true;
+
+        // 直接查詢 Slimstat 資料庫
+        $slimstat_table = $wpdb->prefix . 'slim_stats';
+
+        // 使用 prepare 防止 SQL 注入（安全性）
+        $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $slimstat_table));
+        if ($table_exists == $slimstat_table) {
+            // 查詢當前 IP 最近的完整記錄（包含 BOT 資訊）
+            $query = $wpdb->prepare(
+                "SELECT country, city, browser, browser_type FROM {$slimstat_table} WHERE ip = %s ORDER BY dt DESC LIMIT 1",
+                $ip
+            );
+            $result = $wpdb->get_row($query, OBJECT);
+
+            if (!empty($result)) {
+                // 獲取 country
+                if (!empty($result->country)) {
+                    $visitor_info["slimstat_country"] = sanitize_text_field($result->country);
+                }
+
+                // 獲取 city（可選）
+                if (!empty($result->city)) {
+                    $visitor_info["slimstat_city"] = sanitize_text_field($result->city);
+                }
+
+                // ★★★ 獲取 BOT 資訊 ★★★
+                // browser_type: 0 = 一般瀏覽器, 1 = crawler/bot, 2 = mobile
+                if (isset($result->browser_type)) {
+                    $visitor_info["is_bot"] = (intval($result->browser_type) === 1);
+                    $visitor_info["browser_type"] = intval($result->browser_type);
+                }
+
+                // 獲取瀏覽器名稱（BOT 名稱）
+                if (!empty($result->browser)) {
+                    $visitor_info["browser_name"] = sanitize_text_field($result->browser);
+                }
+            } else {
+                // 如果資料庫中沒有記錄，嘗試從當前請求檢測 BOT
+                // 使用 Slimstat 的 Browscap 服務來檢測
+                if (class_exists('\SlimStat\Services\Browscap')) {
+                    // SlimStat\Services\Browscap is provided by the SlimStat plugin (external dependency)
+                    /** @phpstan-var class-string<\SlimStat\Services\Browscap> $browscap_class */
+                    $browscap_class = '\SlimStat\Services\Browscap';
+                    $browser = $browscap_class::get_browser();
+                    if (!empty($browser)) {
+                        $visitor_info["is_bot"] = (isset($browser['browser_type']) && intval($browser['browser_type']) === 1);
+                        $visitor_info["browser_type"] = isset($browser['browser_type']) ? intval($browser['browser_type']) : 0;
+                        if (!empty($browser['browser'])) {
+                            $visitor_info["browser_name"] = sanitize_text_field($browser['browser']);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return $visitor_info;
+}
+
+/**
+ * 獲取訪客狀態文字（BOT 或地理位置）
+ * 
+ * @param array $visitor_info 訪客資訊
+ * @return string 訪客狀態描述
+ */
+function mpu_get_visitor_status_text($visitor_info)
+{
+    // BOT 檢測優先
+    if (!empty($visitor_info['is_bot']) && $visitor_info['is_bot'] === true) {
+        $bot_name = !empty($visitor_info['browser_name'])
+            ? $visitor_info['browser_name']
+            : '未知機器人';
+        return "🤖 BOT: {$bot_name}";
+    }
+
+    // 地理位置資訊
+    if (!empty($visitor_info['slimstat_country'])) {
+        $location = $visitor_info['slimstat_country'];
+        if (!empty($visitor_info['slimstat_city'])) {
+            $location .= " / {$visitor_info['slimstat_city']}";
+        }
+        return "來自 {$location}";
+    }
+
+    return '';
+}
+
+/**
+ * 壓縮上下文資訊為緊湊格式（節省 Token）
+ * 
+ * @param array $wp_info WordPress 資訊
+ * @param array $user_info 用戶資訊
+ * @param array $visitor_info 訪客資訊
+ * @return string 壓縮後的上下文資訊
+ */
+function mpu_compress_context_info($wp_info, $user_info, $visitor_info)
+{
+    $context_lines = [];
+
+    // 1. 網站核心資訊（單行）
+    $site_info = sprintf(
+        "WP %s | Theme: %s v%s | PHP %s",
+        $wp_info['wp_version'],
+        $wp_info['theme_name'],
+        $wp_info['theme_version'],
+        $wp_info['php_version']
+    );
+    $context_lines[] = "<site>{$site_info}</site>";
+
+    // 2. 統計資訊（單行，使用簡寫）
+    $stats_info = sprintf(
+        "文章:%d 留言:%d 分類:%d 標籤:%d 運營:%d天",
+        $wp_info['post_count'],
+        $wp_info['comment_count'],
+        $wp_info['category_count'],
+        $wp_info['tag_count'],
+        $wp_info['days_operating']
+    );
+    $context_lines[] = "<stats>{$stats_info}</stats>";
+
+    // 3. 外掛資訊（只取前 5 個，避免過長）
+    if (!empty($wp_info['active_plugins_list'])) {
+        $plugins_count = $wp_info['active_plugins_count'];
+        $top_plugins = array_slice($wp_info['active_plugins_list'], 0, 5);
+        $plugins_text = implode('、', $top_plugins);
+
+        if ($plugins_count > 5) {
+            $plugins_info = "主要プラグイン: {$plugins_text}...等 (総計{$plugins_count}個)";
+        } else {
+            $plugins_info = "プラグイン: {$plugins_text} (総計{$plugins_count}個)";
+        }
+        $context_lines[] = "<plugins>{$plugins_info}</plugins>";
+    }
+
+    // 4. 用戶狀態（單行）
+    if ($user_info['is_logged_in']) {
+        $role_labels = [
+            'administrator' => '管理員',
+            'editor' => '編集',
+            'author' => '作者',
+            'contributor' => '貢献者',
+            'subscriber' => '購読者',
+        ];
+        $role = $role_labels[$user_info['primary_role']] ?? $user_info['primary_role'];
+        $user_status = sprintf(
+            "%s (%s)",
+            $user_info['display_name'],
+            $role
+        );
+    } else {
+        $user_status = "訪問者（未ログイン）";
+    }
+    $context_lines[] = "<user>{$user_status}</user>";
+
+    // 5. 訪客資訊（BOT 檢測或地理位置）
+    $visitor_status = mpu_get_visitor_status_text($visitor_info);
+    if (!empty($visitor_status)) {
+        $context_lines[] = "<visitor>{$visitor_status}</visitor>";
+    }
+
+    return implode("\n", $context_lines);
+}
+
+/**
+ * 建構芙莉蓮風格的對話範例
+ * 
+ * @param array $wp_info WordPress 資訊
+ * @param array $visitor_info 訪客資訊
+ * @param string $time_context 時間情境
+ * @param string $theme_name 主題名稱
+ * @param string $theme_version 主題版本
+ * @param string $theme_author 主題作者
+ * @return string 格式化的範例文字
+ */
+function mpu_build_frieren_style_examples(
+    $wp_info,
+    $visitor_info,
+    $time_context,
+    $theme_name,
+    $theme_version,
+    $theme_author
+) {
+    // 提取必要變數
+    $wp_version = $wp_info['wp_version'];
+    $php_version = $wp_info['php_version'];
+    $post_count = $wp_info['post_count'];
+    $comment_count = $wp_info['comment_count'];
+    $category_count = $wp_info['category_count'];
+    $tag_count = $wp_info['tag_count'];
+    $days_operating = $wp_info['days_operating'];
+    $plugins_count = $wp_info['active_plugins_count'] ?? 0;
+    $plugins_list = $wp_info['active_plugins_list'] ?? [];
+    $sample_plugins = array_slice($plugins_list, 0, 5);
+    $plugins_names_text = !empty($sample_plugins) ? implode('、', $sample_plugins) : '';
+
+    $examples = [];
+
+    // ==================== 問候類 ====================
+    $examples[] = "挨拶類：";
+    $examples[] = '  - "また来たのね。"';
+    $examples[] = '  - "…ん。"';
+    $examples[] = '  - "久しぶり。"';
+    $examples[] = "  - \"{$time_context}か。\"";
+    $examples[] = "  - \"{$time_context}になったね。\"";
+    $examples[] = '  - "管理人、まだ起きてるの？"';  // 深夜時特別適合
+    $examples[] = '  - "来たのね。"';
+
+    // ==================== 閒聊類 ====================
+    $examples[] = "";
+    $examples[] = "雑談類（淡々とした日常）：";
+    $examples[] = '  - "…ふと思い出した。"';
+    $examples[] = '  - "そういえば。"';
+    $examples[] = '  - "特に何も。"';
+    $examples[] = '  - "別に。"';
+    $examples[] = '  - "よくわからない。"';
+    $examples[] = '  - "…考えてた。"';
+    $examples[] = '  - "魔法について、少し。"';
+
+    // ==================== 時間感知類 ====================
+    $examples[] = "";
+    $examples[] = "時間感知（精靈の時間感覚）：";
+    $examples[] = '  - "人間にとっては長いのかな。"';
+    $examples[] = '  - "私にとっては、ほんの一瞬。"';
+    $examples[] = "  - \"{$days_operating}日…人間なら長く感じるね。\"";
+    $examples[] = "  - \"{$time_context}か。時間が経つのは早いね。\"";
+    $examples[] = '  - "もうこんな時間。"';
+
+    // ==================== 觀察思考類 ====================
+    $examples[] = "";
+    $examples[] = "観察思考類（静かな観察）：";
+    $examples[] = '  - "…気づいた。"';
+    $examples[] = '  - "面白いね。"';
+    $examples[] = '  - "そうなんだ。"';
+    $examples[] = '  - "変わったね。"';
+    $examples[] = '  - "増えてる。"';
+    $examples[] = '  - "管理人、頑張ってるね。"';
+    $examples[] = '  - "意外と。"';
+
+    // 從內建對話文件中讀取台詞（最多 5 條）
+    $mpu_opt = mpu_get_option();
+    $current_ukagaka = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+    if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
+        $ukagaka = $mpu_opt['ukagakas'][$current_ukagaka];
+        $dialog_filename = $ukagaka['dialog_filename'] ?? $current_ukagaka;
+
+        // 讀取對話文件
+        if (function_exists('mpu_get_msg_from_file')) {
+            $dialog_messages = mpu_get_msg_from_file($dialog_filename);
+            if (!empty($dialog_messages) && is_array($dialog_messages)) {
+                // 過濾掉空字串和過長的訊息（超過 50 字元）
+                $filtered_messages = array_filter($dialog_messages, function ($msg) {
+                    return !empty(trim($msg)) && mb_strlen($msg) <= 50;
+                });
+
+                if (!empty($filtered_messages)) {
+                    // 將陣列重新索引
+                    $filtered_array = array_values($filtered_messages);
+                    $count = count($filtered_array);
+                    $select_count = min(5, $count);
+
+                    // 隨機選擇最多 5 條台詞
+                    $selected_indices = [];
+                    if ($select_count > 0) {
+                        // 如果數量少於等於要選擇的數量，全部選擇
+                        if ($count <= $select_count) {
+                            $selected_indices = range(0, $count - 1);
+                        } else {
+                            // 隨機選擇不重複的索引
+                            $selected_indices = array_rand($filtered_array, $select_count);
+                            if (!is_array($selected_indices)) {
+                                $selected_indices = [$selected_indices];
+                            }
+                        }
+
+                        foreach ($selected_indices as $index) {
+                            $msg = $filtered_array[$index];
+                            $msg_escaped = str_replace('"', '\\"', trim($msg));
+                            $examples[] = "  - \"{$msg_escaped}\"";
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ==================== 魔法研究類 ====================
+    $examples[] = "";
+    $examples[] = "魔法研究類（魔法への興味）：";
+    $examples[] = '  - "この魔法、少し面白い。"';
+    $examples[] = '  - "新しい魔法を習得した。"';
+    $examples[] = "  - \"{$plugins_count}個の魔法…まあまあかな。\"";
+    if (!empty($plugins_names_text)) {
+        $examples[] = "  - \"「{$plugins_names_text}」…こういう魔法もあるんだ。\"";
+    }
+    $examples[] = '  - "魔法の本、また増えた。"';
+    $examples[] = '  - "研究してる。"';
+
+    // ==================== WordPress/技術類（魔法比喻）====================
+    $examples[] = "";
+    $examples[] = "技術觀察類（魔法の視点）：";
+    $examples[] = "  - \"WordPress {$wp_version}…新しい魔導書ね。\"";
+    $examples[] = "  - \"テーマ「{$theme_name}」、{$theme_version}版。\"";
+    if (!empty($theme_author)) {
+        $examples[] = "  - \"作者は「{$theme_author}」…どんな魔法使いかな。\"";
+    }
+    $examples[] = "  - \"PHP {$php_version}で動いてる。\"";
+    $examples[] = '  - "このサーバー、安定してるね。"';
+
+    // ==================== 統計觀察類（戰鬥記錄風）====================
+    $examples[] = "";
+    $examples[] = "統計觀察類（旅の記録）：";
+    $examples[] = "  - \"記録を見ると、{$post_count}回の戦闘か。\"";
+    $examples[] = "  - \"このサイトが魔族に遭遇した回数は{$post_count}回…まあまあね。\"";
+    $examples[] = "  - \"管理人が魔族に与えたダメージは{$comment_count}…人々の反応。\"";
+    $examples[] = "  - \"最大ダメージは{$comment_count}…思ったより多い。\"";
+    $examples[] = "  - \"習得したスキルは{$category_count}個ある、整理されてるね。\"";
+    $examples[] = "  - \"アイテム使用回数は{$tag_count}回…細かく分類してる。\"";
+    $examples[] = "  - \"冒険経過日数は{$days_operating}日…人間の時間で考えると、長いね。\"";
+
+    // ==================== 回憶類（ヒンメル への思い出）====================
+    $examples[] = "";
+    $examples[] = "回憶類（過去への思い）：";
+    $examples[] = '  - "…昔のことを、思い出した。"';
+    $examples[] = '  - "ヒンメルなら、こう言うかな。"';
+    $examples[] = '  - "旅をしてた時も、こんな感じだった。"';
+    $examples[] = '  - "仲間のこと、思い出す。"';
+    $examples[] = '  - "あの時は、もっと…"';
+    $examples[] = '  - "懐かしい。"';
+
+    // ==================== 對管理員的評語 ====================
+    $examples[] = "";
+    $examples[] = "管理員評語類（軽い揶揄い）：";
+    $examples[] = '  - "管理人、マメだね。"';
+    $examples[] = '  - "よく続けてる。"';
+    $examples[] = '  - "…頑張ってるみたい。"';
+    $examples[] = '  - "まだ諦めてないんだ。"';
+    $examples[] = '  - "管理人らしい。"';
+    $examples[] = '  - "真面目だね。"';
+
+    // ==================== 意外な反應 ====================
+    $examples[] = "";
+    $examples[] = "意外な反應類（フリーレンらしい意外性）：";
+    $examples[] = '  - "…なるほど。"';
+    $examples[] = '  - "そうきたか。"';
+    $examples[] = '  - "予想外。"';
+    $examples[] = '  - "面白いことになってる。"';
+    $examples[] = '  - "へえ。"';
+    $examples[] = '  - "…そういうこと。"';
+
+    // ==================== BOT 檢測 ====================
+    if (!empty($visitor_info) && !empty($visitor_info['is_bot']) && $visitor_info['is_bot'] === true) {
+        $bot_name = $visitor_info['browser_name'] ?? '未知のクローラー';
+        $examples[] = "";
+        $examples[] = "BOT 檢測類（魔族の気配）：";
+        $examples[] = "  - \"あれ、{$bot_name}が来てる。\"";
+        $examples[] = "  - \"{$bot_name}か…また。\"";
+        $examples[] = "  - \"…魔族じゃない、クローラーね。\"";
+        $examples[] = "  - \"機械の気配がする。\"";
+        $examples[] = "  - \"{$bot_name}、よく来るね。\"";
+    }
+
+    // ==================== 沉默／無言 ====================
+    $examples[] = "";
+    $examples[] = "沉默類（時には何も言わない）：";
+    $examples[] = '  - "…。"';
+    $examples[] = '  - "ん。"';
+    $examples[] = '  - "……"';
+    $examples[] = '  備考：フリーレンは時には何も言わず、静かに観察することもある。';
+
+    return implode("\n", $examples);
+}
+
+/**
+ * 加權隨機選擇函數
+ * 
+ * 根據權重陣列，從類別陣列中隨機選擇一個類別
+ * 權重越高，被選中的機率越大
+ * 
+ * @param array $categories 類別陣列（key => value）
+ * @param array $weights 權重陣列（key => weight）
+ * @return string 選中的類別 key
+ */
+function mpu_weighted_random_select($categories, $weights)
+{
+    // 計算總權重
+    $total_weight = 0;
+    $weighted_keys = [];
+
+    foreach ($categories as $key => $value) {
+        // 如果該類別有設定權重，使用設定的權重；否則使用預設權重 5
+        $weight = isset($weights[$key]) ? $weights[$key] : 5;
+        $total_weight += $weight;
+        $weighted_keys[$key] = $weight;
+    }
+
+    // 如果總權重為 0，使用均勻隨機
+    if ($total_weight <= 0) {
+        return array_rand($categories);
+    }
+
+    // 生成 0 到總權重之間的隨機數
+    $random = mt_rand(1, $total_weight);
+
+    // 根據權重區間選擇類別
+    $current_weight = 0;
+    foreach ($weighted_keys as $key => $weight) {
+        $current_weight += $weight;
+        if ($random <= $current_weight) {
+            return $key;
+        }
+    }
+
+    // 如果沒有選中（理論上不應該發生），返回第一個類別
+    return array_key_first($categories);
+}
+
+/**
+ * 建構 User Prompt 的類別指令（與範例類別對應）
+ * 
+ * 此函數生成簡潔的指令，對應 System Prompt 中的範例類別。
+ * 由於範例已經提供了足夠的風格參考，指令只需簡潔地告訴 LLM 生成對應類型的對話。
+ * 
+ * @param array $wp_info WordPress 資訊
+ * @param array $visitor_info 訪客資訊
+ * @param string $time_context 時間情境
+ * @param string $theme_name 主題名稱
+ * @param string $theme_version 主題版本
+ * @param string $theme_author 主題作者
+ * @return array 類別指令陣列
+ */
+function mpu_build_prompt_categories(
+    $wp_info,
+    $visitor_info,
+    $time_context,
+    $theme_name,
+    $theme_version,
+    $theme_author
+) {
+    // 提取必要變數
+    $wp_version = $wp_info['wp_version'];
+    $php_version = $wp_info['php_version'];
+    $post_count = $wp_info['post_count'];
+    $comment_count = $wp_info['comment_count'];
+    $category_count = $wp_info['category_count'];
+    $tag_count = $wp_info['tag_count'];
+    $days_operating = $wp_info['days_operating'];
+    $plugins_count = $wp_info['active_plugins_count'] ?? 0;
+    $plugins_list = $wp_info['active_plugins_list'] ?? [];
+    $sample_plugins = array_slice($plugins_list, 0, 5);
+    $plugins_names_text = !empty($sample_plugins) ? implode('、', $sample_plugins) : '';
+
+    // 類別指令（與 mpu_build_frieren_style_examples() 的類別對應）
+    $prompt_categories = [
+        // 問候類（對應範例：問候類）
+        'greeting' => [
+            "挨拶類の会話例を参考に、軽く挨拶する",
+            "挨拶類のスタイルで、一言挨拶する",
+        ],
+
+        // 閒聊類（對應範例：閒聊類）
+        'casual' => [
+            "雑談類の会話例を参考に、淡々とした日常の言葉を言う",
+            "雑談類のスタイルで、特に目的のない言葉を言う",
+        ],
+
+        // 時間感知類（對應範例：時間感知類）
+        'time_aware' => [
+            "時間感知類の会話例を参考に、{$time_context}の時間感覚を表現する",
+            "時間感知類のスタイルで、精靈の時間感覚を一言で表現する",
+        ],
+
+        // 觀察思考類（對應範例：觀察思考類）
+        'observation' => [
+            "觀察思考類の会話例を参考に、静かな観察を共有する",
+            "觀察思考類のスタイルで、気づいたことを一言で言う",
+        ],
+
+        // 魔法研究類（對應範例：魔法研究類）
+        'magic_research' => [
+            "魔法研究類の会話例を参考に、魔法への興味を表現する",
+        ],
+
+        // 技術觀察類（對應範例：技術觀察類）
+        'tech_observation' => [
+            "技術觀察類の会話例を参考に、WordPress {$wp_version} について一言",
+            "技術觀察類のスタイルで、テーマ「{$theme_name}」について軽く言う",
+            "技術觀察類のスタイルで、PHP {$php_version} について一言",
+        ],
+
+        // 統計觀察類（對應範例：統計觀察類）
+        'statistics' => [
+            "統計觀察類の会話例を参考に、サイトの統計について一言",
+        ],
+
+        // 回憶類（對應範例：回憶類）
+        'memory' => [
+            "回憶類の会話例を参考に、過去への思いを表現する",
+        ],
+
+        // 管理員評語類（對應範例：管理員評語類）
+        'admin_comment' => [
+            "管理員評語類の会話例を参考に、管理人について軽く揶揄う",
+        ],
+
+        // 意外反應類（對應範例：意外反應類）
+        'unexpected' => [
+            "意外な反應類の会話例を参考に、フリーレンらしい意外性を表現する",
+        ],
+
+        // 沉默類（對應範例：沉默類）
+        'silence' => [
+            "沉默類の会話例を参考に、時には何も言わない選択をする",
+        ],
+    ];
+
+    // 動態添加統計相關的具體指令（使用原本的比喻設定）
+    // 魔族遭遇回数 = 文章數 (post_count)
+    // 最大ダメージ = 留言數量 (comment_count)
+    // 習得スキル総数 = 分類數量 (category_count)
+    // アイテム使用回数 = tag數量 (tag_count)
+    // 冒険経過日数 = days_operating
+    if ($post_count > 0) {
+        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、魔族遭遇回数は{$post_count}回について一言";
+    }
+    if ($comment_count > 0) {
+        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、最大ダメージは{$comment_count}について一言";
+    }
+    if ($category_count > 0) {
+        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、習得スキル総数は{$category_count}個について一言";
+    }
+    if ($tag_count > 0) {
+        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、アイテム使用回数は{$tag_count}回について一言";
+    }
+    if ($days_operating > 0) {
+        $prompt_categories['statistics'][] = "統計觀察類のスタイルで、冒険経過日数は{$days_operating}日について一言";
+        $prompt_categories['time_aware'][] = "時間感知類のスタイルで、{$days_operating}日…人間なら長く感じるね、と表現する";
+    }
+
+    // 外掛資訊（魔法比喻）
+    if ($plugins_count > 0) {
+        $prompt_categories['magic_research'][] = "魔法研究類のスタイルで、{$plugins_count}個の魔法について一言";
+        if (!empty($plugins_names_text)) {
+            $prompt_categories['magic_research'][] = "魔法研究類のスタイルで、「{$plugins_names_text}」などの魔法について一言";
+        }
+    }
+
+    // BOT 檢測類（對應範例：BOT 檢測類）
+    if (!empty($visitor_info) && !empty($visitor_info['is_bot']) && $visitor_info['is_bot'] === true) {
+        $bot_name = $visitor_info['browser_name'] ?? '未知のクローラー';
+        if (!isset($prompt_categories['bot_detection'])) {
+            $prompt_categories['bot_detection'] = [];
+        }
+        $prompt_categories['bot_detection'][] = "BOT 檢測類の会話例を参考に、{$bot_name}について一言";
+    }
+
+    return $prompt_categories;
+}
+
+/**
+ * 建構優化後的 System Prompt（XML 結構化版本）
+ * 
+ * @param array $mpu_opt 外掛設定
+ * @param array $wp_info WordPress 資訊
+ * @param array $user_info 用戶資訊
+ * @param array $visitor_info 訪客資訊
+ * @param string $ukagaka_name 春菜名稱
+ * @param string $time_context 時間情境（早上/下午/晚上/深夜）
+ * @param string $language 語言設定
+ * @return string 優化後的 system prompt
+ */
+function mpu_build_optimized_system_prompt(
+    $mpu_opt,
+    $wp_info,
+    $user_info,
+    $visitor_info,
+    $ukagaka_name,
+    $time_context,
+    $language
+) {
+    // 1. 獲取角色名稱
+    $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '春菜';
+
+    // 2. 獲取基礎人格設定（來自後台設定）
+    $base_character = $mpu_opt['ai_system_prompt'] ??
+        "你是桌面助手「{$ukagaka_display_name}」。";
+
+    // 3. 壓縮上下文資訊
+    $compressed_context = mpu_compress_context_info($wp_info, $user_info, $visitor_info);
+
+    // 4. 生成對話範例文字（芙莉蓮風格）
+    $response_examples = mpu_build_frieren_style_examples(
+        $wp_info,
+        $visitor_info,
+        $time_context,
+        $wp_info['theme_name'],
+        $wp_info['theme_version'],
+        $wp_info['theme_author'] ?? ''
+    );
+
+    // 5. 建構 System Prompt（XML 結構）
+    $system_prompt = <<<XML
+<character>
+名稱：{$ukagaka_display_name}
+核心設定：{$base_character}
+
+風格特徵：
+- 個性：冷靜、理性、帶點疏離感（類似芙莉蓮）
+- 語氣：簡短、直接、偶爾調侃
+- 態度：觀察者視角，不過度熱情
+</character>
+
+<knowledge_base>
+{$compressed_context}
+</knowledge_base>
+
+<behavior_rules>
+  <must_do>
+    - 回應**必須**在 50 字以內（硬性限制）
+    - 使用 {$language} 語言回應
+    - 保持角色一致性和風格統一性
+    - 適時融入當前時間感（現在是{$time_context}）
+  </must_do>
+  
+  <should_do>
+    - 可以自然提及網站統計數據
+    - 可以用「魔族戰鬥」比喻網站活動（文章數=魔族遭遇回数、留言數=最大ダメージ、分類數=習得スキル総数、標籤數=アイテム使用回数、運營日數=冒険経過日数、外掛=習得魔法）
+    - 可以對管理員適度調侃或揶揄
+    - 可以提及訪客資訊（特別是 BOT 時）
+    - 可以直接引用会話例的句子
+  </should_do>
+  
+  <must_not_do>
+    - ❌ 絕對不要重複上一次的回應內容
+    - ❌ 不要過度熱情或激動
+    - ❌ 不要使用表情符號（除非用戶風格明確有使用）
+    - ❌ 不要做出承諾或表示將採取行動
+    - ❌ 不要突然改變語言風格
+  </must_not_do>
+</behavior_rules>
+
+<response_style_examples>
+{$response_examples}
+</response_style_examples>
+
+<current_context>
+時間：{$time_context}
+語言：{$language}
+</current_context>
+XML;
+
+    return $system_prompt;
+}
+
+/**
  * 使用 LLM 生成隨機對話（取代內建對話）
  * 此函數用於當啟用「使用 LLM 取代內建對話」時，生成不依賴頁面內容的隨機對話
  * 
  * @param string $ukagaka_name 春菜名稱
  * @param string $last_response 上一次 AI 的回應（用於避免重複對話）
+ * @param array $response_history 回應歷史陣列（最近幾次回應，用於更嚴格的重複檢測）
  * @return string|false 生成的對話內容，失敗時返回 false
  */
-function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response = '')
+function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response = '', $response_history = [])
 {
     $mpu_opt = mpu_get_option();
 
-    // 檢查是否啟用了「使用 LLM 取代內建對話」
-    if (empty($mpu_opt['ollama_replace_dialogue']) || $mpu_opt['ai_provider'] !== 'ollama') {
+    // 檢查是否啟用了「使用 LLM 取代內建對話」（支援所有提供商）
+    $llm_replace = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_replace_dialogue'] : (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue']);
+
+    if (empty($llm_replace)) {
         return false;
     }
 
-    // 獲取 Ollama 設定
-    $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
-    $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
+    // 獲取提供商（向後兼容：優先使用 llm_provider，否則使用 ai_provider）
+    $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
+
     $language = $mpu_opt['ai_language'] ?? 'zh-TW';
 
-    // 在調用前先檢查 Ollama 服務是否可用
-    if (!mpu_check_ollama_available($endpoint, $model)) {
-        // 服務不可用，返回特定錯誤標記，不再回退到內建台詞
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('MP Ukagaka - Ollama 服務不可用，返回錯誤提示');
-            error_log('MP Ukagaka - 端點: ' . $endpoint . ', 模型: ' . $model);
-            error_log('MP Ukagaka - ollama_replace_dialogue: ' . ($mpu_opt['ollama_replace_dialogue'] ? 'true' : 'false'));
-            error_log('MP Ukagaka - ai_provider: ' . ($mpu_opt['ai_provider'] ?? 'not set'));
+    // 如果是 Ollama，檢查服務是否可用
+    if ($provider === 'ollama') {
+        $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
+        $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
+
+        if (!mpu_check_ollama_available($endpoint, $model)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('MP Ukagaka - Ollama 服務不可用，返回錯誤提示');
+                error_log('MP Ukagaka - 端點: ' . $endpoint . ', 模型: ' . $model);
+            }
+            return 'MPU_OLLAMA_NOT_AVAILABLE';
         }
-        return 'MPU_OLLAMA_NOT_AVAILABLE';
     }
 
-    // 獲取春菜名稱和人格設定
+    // 獲取春菜名稱
     $ukagaka_name_display = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '春菜';
-    $base_system_prompt = $mpu_opt['ai_system_prompt'] ?? "你是一個傲嬌的桌面助手「{$ukagaka_name_display}」。你會用簡短、帶點傲嬌的語氣說話。回應請保持在 40 字以內。";
 
     // 獲取 WordPress 網站資訊
     $wp_info = mpu_get_wordpress_info();
@@ -242,74 +923,9 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     // 獲取當前用戶資訊
     $user_info = mpu_get_current_user_info();
 
-    // 將 WordPress 資訊格式化為背景知識，加入到 system_prompt
-    $wp_context = "\n\n【網站資訊】\n";
-    $wp_context .= "WordPress 版本: {$wp_info['wp_version']}\n";
-    $wp_context .= "當前主題: {$wp_info['theme_name']} (版本 {$wp_info['theme_version']})\n";
-    if (!empty($wp_info['theme_author'])) {
-        $wp_context .= "主題作者: {$wp_info['theme_author']}\n";
-    }
-    $wp_context .= "PHP 版本: {$wp_info['php_version']}\n";
-    $wp_context .= "網站名稱: {$wp_info['site_name']}\n";
+    // ★★★ 獲取訪客資訊（包括 BOT 資訊）★★★
+    $visitor_info = mpu_get_visitor_info_for_llm();
 
-    // 統計資訊
-    $wp_context .= "\n統計資訊：\n";
-    $wp_context .= "- 文章篇數: {$wp_info['post_count']}\n";
-    $wp_context .= "- 留言數量: {$wp_info['comment_count']}\n";
-    $wp_context .= "- 分類數量: {$wp_info['category_count']}\n";
-    $wp_context .= "- TAG數量: {$wp_info['tag_count']}\n";
-    if ($wp_info['days_operating'] > 0) {
-        $wp_context .= "- 運營日數: {$wp_info['days_operating']}\n";
-    }
-
-    // 啟用外掛資訊
-    if (!empty($wp_info['active_plugins_list'])) {
-        $plugins_count = $wp_info['active_plugins_count'];
-        $plugins_list = $wp_info['active_plugins_list'];
-
-        // 如果外掛太多，只顯示前 20 個（避免 prompt 過長）
-        $max_plugins_display = 20;
-        $display_plugins = array_slice($plugins_list, 0, $max_plugins_display);
-        $plugins_text = implode('、', $display_plugins);
-
-        $wp_context .= "\n啟用外掛（共 {$plugins_count} 個）：\n";
-        $wp_context .= "- {$plugins_text}";
-        if ($plugins_count > $max_plugins_display) {
-            $remaining = $plugins_count - $max_plugins_display;
-            $wp_context .= "\n（還有 {$remaining} 個外掛未列出）";
-        }
-        $wp_context .= "\n";
-    }
-
-    // 用戶資訊
-    $wp_context .= "\n【當前用戶資訊】\n";
-    if ($user_info['is_logged_in']) {
-        $wp_context .= "當前用戶已登入 WordPress。\n";
-        $wp_context .= "用戶名稱: {$user_info['display_name']} ({$user_info['username']})\n";
-        if (!empty($user_info['primary_role'])) {
-            $role_labels = [
-                'administrator' => '管理員',
-                'editor' => '編輯',
-                'author' => '作者',
-                'contributor' => '投稿者',
-                'subscriber' => '訂閱者',
-            ];
-            $role_label = isset($role_labels[$user_info['primary_role']])
-                ? $role_labels[$user_info['primary_role']]
-                : $user_info['primary_role'];
-            $wp_context .= "用戶角色: {$role_label}\n";
-        }
-        if ($user_info['is_admin']) {
-            $wp_context .= "此用戶是網站管理員。\n";
-        }
-    } else {
-        $wp_context .= "當前用戶未登入 WordPress（訪客）。\n";
-    }
-
-    // 組合完整的 system_prompt
-    $system_prompt = $base_system_prompt . $wp_context;
-
-    // 生成隨機對話提示詞（不依賴頁面內容）
     // 根據時間獲取情境提示（使用台灣時區）
     $original_timezone = date_default_timezone_get();
     date_default_timezone_set('Asia/Taipei'); // 設置為台灣時區
@@ -317,125 +933,60 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     date_default_timezone_set($original_timezone); // 恢復原始時區
     $time_context = '';
     if ($hour >= 5 && $hour < 12) {
-        $time_context = '早上';
+        $time_context = '朝';
     } elseif ($hour >= 12 && $hour < 18) {
-        $time_context = '下午';
+        $time_context = '昼';
     } elseif ($hour >= 18 && $hour < 22) {
-        $time_context = '晚上';
+        $time_context = '夜';
     } else {
-        $time_context = '深夜';
+        $time_context = '深夜（0時-5時）';
     }
 
-    // 使用分類提示詞，增加多樣性與自然度
-    // 注意：此提示詞系統以芙莉蓮風格為基準，強調安靜、自然、不張揚的對話風格
-    // 使用者可以根據自己的角色個性修改這些提示詞（詳見 docs/USER_GUIDE.md）
+    // ★★★ 使用優化後的 System Prompt 建構函數 ★★★
+    $system_prompt = mpu_build_optimized_system_prompt(
+        $mpu_opt,
+        $wp_info,
+        $user_info,
+        $visitor_info,
+        $ukagaka_name,
+        $time_context,
+        $language
+    );
 
-    // 準備 WordPress 資訊變數（用於提示詞模板）
-    $wp_version = $wp_info['wp_version'];
-    $theme_name = $wp_info['theme_name'];
-    $theme_version = $wp_info['theme_version'];
-    $theme_author = $wp_info['theme_author'];
-    $php_version = $wp_info['php_version'];
-    $post_count = $wp_info['post_count'];
-    $comment_count = $wp_info['comment_count'];
-    $category_count = $wp_info['category_count'];
-    $tag_count = $wp_info['tag_count'];
-    $days_operating = $wp_info['days_operating'];
+    // Debug 模式：輸出 System Prompt 供檢查
+    mpu_debug_system_prompt($system_prompt);
 
-    // 外掛資訊（用於魔法比喻）
-    $plugins_count = $wp_info['active_plugins_count'] ?? 0;
-    $plugins_list = $wp_info['active_plugins_list'] ?? [];
-    // 選擇前 3-5 個外掛名稱作為代表性魔法名稱（避免提示詞過長）
-    $sample_plugins = array_slice($plugins_list, 0, 5);
-    $plugins_names_text = !empty($sample_plugins) ? implode('、', $sample_plugins) : '';
+    // ★★★ 使用優化後的 Prompt Categories 函數（與範例類別對應）★★★
+    // 此函數生成簡潔的指令，對應 System Prompt 中的範例類別
+    // 由於範例已經提供了足夠的風格參考，指令只需簡潔地告訴 LLM 生成對應類型的對話
+    $prompt_categories = mpu_build_prompt_categories(
+        $wp_info,
+        $visitor_info,
+        $time_context,
+        $wp_info['theme_name'],
+        $wp_info['theme_version'],
+        $wp_info['theme_author'] ?? ''
+    );
 
-    $prompt_categories = [
-        // 問候類
-        'greeting' => [
-            "軽く挨拶する",
-            "簡単に挨拶する",
-            "控えめに挨拶する",
-            "いつも通り挨拶する",
-            "久しぶりに会った人に軽く声をかける",
-            "管理人に代わり挨拶する",
-            "会話例をそのまま言う",
-        ],
-        // 閒聊類
-        'casual' => [
-            "ふと思いついた有名人の名言を言う",
-            "任意アニメキャラの名言を言う",
-            "淡々とした日常の言葉を言う",
-            "どうでもいい小さなことを話す",
-            "思い出したことをそのまま言う",
-            "特に目的のない言葉を言う",
-            "ふと思いついた魔族への恨みを言う",
-            "会話例をそのまま言う",
-        ],
-        // 觀察思考類
-        'observation' => [
-            "さっき気づいたことを言う",
-            "会話例をそのまま言う",
-            "静かな観察を共有する",
-            "今浮かんだPHPの関数を説明する",
-            "軽く感じたことを表現する",
-            "ふと思いついたこと仲間への記憶を言う",
-            "管理人についてを揶揄う",
-            "魔法を研究している時のように、ふと思いついたことを言う",
-        ],
-        // 情境類（結合時間）
-        'contextual' => [
-            "今は{$time_context}だ、この時間に合った言葉を言う",
-            "{$time_context}の時間帯に、軽く何か言う",
-            "{$time_context}の雰囲気に合わせて、一言言う",
-            "長い旅を経たことを思い出し、今の時間に合わせて、一言言う",
-            "会話例をそのまま言う",
-        ],
-        // WordPress 資訊類
-        'wordpress_info' => [
-            "WordPress {$wp_version} で動いているこのサイトについて一言",
-            "テーマは「{$theme_name}」バージョン {$theme_version} だね",
-            "PHP {$php_version} で動作しているサーバーについて軽く言う",
-            "テーマの作者「{$theme_author}」について感想を言う",
-        ],
-        // 統計資訊類（遊戲化風格 - 魔族戰鬥風格）
-        'statistics' => [
-            "このサイトが魔族に遭遇した回数は{$post_count}回について軽く言う",
-            "管理人が魔族に与えたダメージは{$comment_count}について一言",
-            "管理人がアイテムを使用した回数{$tag_count}について感想を言う",
-            "習得したスキルは{$category_count}個ある、これについて軽く言う",
-        ],
+    // 類別權重設定（數值越高，被選中的機率越大）
+    // 總權重：100
+    $category_weights = [
+        'greeting' => 8,           // 問候類
+        'casual' => 10,             // 閒聊類
+        'time_aware' => 8,          // 時間感知類
+        'observation' => 10,        // 觀察思考類
+        'magic_research' => 8,      // 魔法研究類
+        'tech_observation' => 6,    // 技術觀察類
+        'statistics' => 8,          // 統計觀察類
+        'memory' => 10,             // 回憶類
+        'admin_comment' => 8,      // 管理員評語類
+        'unexpected' => 10,         // 意外反應類
+        'silence' => 8,             // 沉默類
+        'bot_detection' => 6,       // BOT 檢測類
     ];
 
-    // 如果運營日數大於 0，加入相關提示詞
-    if ($days_operating > 0) {
-        $prompt_categories['statistics'][] = "このサイトの冒険日数は{$days_operating}日...長い旅だね、これについて一言";
-        $prompt_categories['statistics'][] = "管理人、{$days_operating}日も続けているんだね、これについて感想を言う";
-    }
-
-    // 外掛資訊（魔法比喻）
-    if ($plugins_count > 0) {
-        // 使用外掛數量作為「習得的魔法數量」
-        $prompt_categories['statistics'][] = "習得した魔法は{$plugins_count}個ある、これについて軽く言う";
-        $prompt_categories['statistics'][] = "{$plugins_count}個の魔法を習得しているんだね、これについて感想を言う";
-
-        // 如果有具體的外掛名稱，使用「魔法名稱」的比喻
-        if (!empty($plugins_names_text)) {
-            $prompt_categories['statistics'][] = "習得している魔法には「{$plugins_names_text}」などがある、これについて軽く言う";
-            $prompt_categories['statistics'][] = "「{$plugins_names_text}」などの魔法を使っているんだね、これについて一言";
-        }
-    }
-
-    // 組合多個統計資訊的提示詞
-    $prompt_categories['statistics'][] = "このサイトが魔族に遭遇した回数は{$post_count}回、管理人が与えたダメージは{$comment_count}について一言";
-    $prompt_categories['statistics'][] = "管理人がアイテムを使用した回数{$tag_count}回、習得したスキルは{$category_count}個について軽く言う";
-
-    // 組合外掛資訊與其他統計的提示詞
-    if ($plugins_count > 0) {
-        $prompt_categories['statistics'][] = "習得したスキルは{$category_count}個、習得した魔法は{$plugins_count}個について軽く言う";
-    }
-
-    // 隨機選擇一個類別
-    $selected_category = array_rand($prompt_categories);
+    // 使用加權隨機選擇一個類別
+    $selected_category = mpu_weighted_random_select($prompt_categories, $category_weights);
     // 從選中的類別中隨機選擇一個提示詞
     $user_prompt = $prompt_categories[$selected_category][array_rand($prompt_categories[$selected_category])];
 
@@ -446,21 +997,167 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $user_prompt .= "\n\n注意：さっき「{$last_response_escaped}」と言ったため、新しいことがなければ、違う短い一言を言うか、何も言わないで（何も出力しない）。同じことを繰り返さないこと。";
     }
 
-    // 調用 Ollama API
-    $result = mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language);
+    // 根據提供商調用對應的 API
+    $api_key = '';
+    if ($provider !== 'ollama') {
+        // 獲取 API Key（向後兼容）
+        switch ($provider) {
+            case 'gemini':
+                $api_key = !empty($mpu_opt['llm_gemini_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_gemini_api_key']) : (!empty($mpu_opt['ai_api_key']) ? mpu_decrypt_api_key($mpu_opt['ai_api_key']) : '');
+                break;
+            case 'openai':
+                $api_key = !empty($mpu_opt['llm_openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_openai_api_key']) : (!empty($mpu_opt['openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['openai_api_key']) : '');
+                break;
+            case 'claude':
+                $api_key = !empty($mpu_opt['llm_claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_claude_api_key']) : (!empty($mpu_opt['claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['claude_api_key']) : '');
+                break;
+        }
+    }
+
+    // 調用對應的 API
+    if ($provider === 'ollama') {
+        $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
+        $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
+        $result = mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language);
+    } else {
+        $result = mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt);
+    }
 
     if (is_wp_error($result)) {
         // 如果 LLM 調用失敗，返回 false，讓系統使用後備對話
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('LLM Dialogue Generation Failed: ' . $result->get_error_message());
         }
-        // 如果調用失敗，清除緩存，讓下次可以重新檢查
-        $cache_key = 'mpu_ollama_available_' . md5($endpoint . $model);
-        delete_transient($cache_key);
+        // 如果調用失敗，清除緩存（僅 Ollama）
+        if ($provider === 'ollama') {
+            $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
+            $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
+            $cache_key = 'mpu_ollama_available_' . md5($endpoint . $model);
+            delete_transient($cache_key);
+        }
         return false;
     }
 
+    // ★★★ 後端相似度檢查（防止廢話迴圈）★★★
+    if (!empty($result) && (!empty($last_response) || !empty($response_history))) {
+        $similarity_threshold = 0.7; // 相似度閾值（70%），超過此值視為重複
+
+        // 檢查與上一次回應的相似度
+        if (!empty($last_response)) {
+            $similarity = mpu_calculate_text_similarity($result, $last_response);
+            if ($similarity >= $similarity_threshold) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log("MP Ukagaka - 檢測到重複回應（相似度: " . round($similarity * 100, 1) . "%），拒絕返回");
+                }
+                // 相似度太高，返回 false 讓系統使用後備對話
+                return false;
+            }
+        }
+
+        // 檢查與歷史回應的相似度
+        if (!empty($response_history) && is_array($response_history)) {
+            foreach ($response_history as $hist_response) {
+                $similarity = mpu_calculate_text_similarity($result, $hist_response);
+                if ($similarity >= $similarity_threshold) {
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log("MP Ukagaka - 檢測到與歷史回應重複（相似度: " . round($similarity * 100, 1) . "%），拒絕返回");
+                    }
+                    // 相似度太高，返回 false 讓系統使用後備對話
+                    return false;
+                }
+            }
+        }
+    }
+
     return $result;
+}
+
+/**
+ * 計算兩個文字的相似度（使用簡單的字符級別相似度算法）
+ * 
+ * @param string $text1 第一個文字
+ * @param string $text2 第二個文字
+ * @return float 相似度（0.0 到 1.0，1.0 表示完全相同）
+ */
+function mpu_calculate_text_similarity($text1, $text2)
+{
+    if (empty($text1) || empty($text2)) {
+        return 0.0;
+    }
+
+    // 標準化文字（移除空白、標點，轉為小寫）
+    $normalize = function ($text) {
+        // 移除標點符號和空白
+        $text = preg_replace('/[^\p{L}\p{N}]/u', '', $text);
+        // 轉為小寫
+        $text = mb_strtolower($text, 'UTF-8');
+        return $text;
+    };
+
+    $norm1 = $normalize($text1);
+    $norm2 = $normalize($text2);
+
+    if (empty($norm1) || empty($norm2)) {
+        return 0.0;
+    }
+
+    // 如果完全相同，返回 1.0
+    if ($norm1 === $norm2) {
+        return 1.0;
+    }
+
+    // 使用最長公共子序列（LCS）算法計算相似度
+    $len1 = mb_strlen($norm1, 'UTF-8');
+    $len2 = mb_strlen($norm2, 'UTF-8');
+
+    // 如果長度差異太大，直接返回較低相似度
+    $length_ratio = min($len1, $len2) / max($len1, $len2);
+    if ($length_ratio < 0.5) {
+        return 0.0; // 長度差異太大，視為完全不同
+    }
+
+    // 計算最長公共子序列長度
+    $lcs_length = mpu_lcs_length($norm1, $norm2);
+
+    // 相似度 = LCS 長度 / 平均長度
+    $avg_length = ($len1 + $len2) / 2;
+    $similarity = $lcs_length / $avg_length;
+
+    return min(1.0, $similarity);
+}
+
+/**
+ * 計算兩個字串的最長公共子序列（LCS）長度
+ * 
+ * @param string $str1 第一個字串
+ * @param string $str2 第二個字串
+ * @return int LCS 長度
+ */
+function mpu_lcs_length($str1, $str2)
+{
+    $len1 = mb_strlen($str1, 'UTF-8');
+    $len2 = mb_strlen($str2, 'UTF-8');
+
+    // 使用動態規劃計算 LCS
+    $dp = [];
+    for ($i = 0; $i <= $len1; $i++) {
+        $dp[$i] = [];
+        for ($j = 0; $j <= $len2; $j++) {
+            if ($i === 0 || $j === 0) {
+                $dp[$i][$j] = 0;
+            } else {
+                $char1 = mb_substr($str1, $i - 1, 1, 'UTF-8');
+                $char2 = mb_substr($str2, $j - 1, 1, 'UTF-8');
+                if ($char1 === $char2) {
+                    $dp[$i][$j] = $dp[$i - 1][$j - 1] + 1;
+                } else {
+                    $dp[$i][$j] = max($dp[$i - 1][$j], $dp[$i][$j - 1]);
+                }
+            }
+        }
+    }
+
+    return $dp[$len1][$len2];
 }
 
 /**
@@ -476,18 +1173,34 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 function mpu_is_llm_replace_dialogue_enabled()
 {
     $mpu_opt = mpu_get_option();
-    $is_enabled = !empty($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ai_provider'] === 'ollama';
 
-    // 調試日誌已移除，避免 debug.log 中出現過多訊息
-    // 如需調試，可臨時取消以下註釋：
-    // if (defined('WP_DEBUG') && WP_DEBUG) {
-    //     error_log('MP Ukagaka - mpu_is_llm_replace_dialogue_enabled:');
-    //     error_log('  - ollama_replace_dialogue = ' . (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue'] ? 'true' : 'false'));
-    //     error_log('  - ai_provider = ' . ($mpu_opt['ai_provider'] ?? 'not set'));
-    //     error_log('  - 結果 = ' . ($is_enabled ? 'true' : 'false'));
-    // }
+    // 檢查是否啟用 LLM 取代內建對話（支援所有提供商）
+    $llm_replace = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_replace_dialogue'] : (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue']);
 
-    return $is_enabled;
+    if (empty($llm_replace)) {
+        return false;
+    }
+
+    // 獲取提供商（向後兼容）
+    $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
+
+    // 檢查提供商是否有有效的設定
+    if ($provider === 'ollama') {
+        // Ollama 不需要 API Key，只需要檢查端點和模型
+        return true;
+    } else {
+        // 雲端提供商需要 API Key
+        switch ($provider) {
+            case 'gemini':
+                return !empty($mpu_opt['llm_gemini_api_key']) || !empty($mpu_opt['ai_api_key']);
+            case 'openai':
+                return !empty($mpu_opt['llm_openai_api_key']) || !empty($mpu_opt['openai_api_key']);
+            case 'claude':
+                return !empty($mpu_opt['llm_claude_api_key']) || !empty($mpu_opt['claude_api_key']);
+            default:
+                return false;
+        }
+    }
 }
 
 /**
@@ -508,4 +1221,35 @@ function mpu_get_ollama_settings()
         'model' => $mpu_opt['ollama_model'] ?? 'qwen3:8b',
         'replace_dialogue' => !empty($mpu_opt['ollama_replace_dialogue']),
     ];
+}
+
+/**
+ * Debug 工具：輸出 System Prompt 供檢查
+ * 使用方式：在 WordPress Debug 模式下會自動記錄到日誌
+ * 
+ * @param string $system_prompt System prompt 內容
+ */
+function mpu_debug_system_prompt($system_prompt)
+{
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        // 粗略估算 Token 數（中文約 2-3 字符 = 1 token，英文約 4 字符 = 1 token）
+        $char_count = mb_strlen($system_prompt, 'UTF-8');
+
+        // 計算中文字數
+        preg_match_all('/[\x{4e00}-\x{9fa5}]/u', $system_prompt, $chinese_chars);
+        $chinese_count = count($chinese_chars[0]);
+
+        // 計算英文字數
+        $english_count = $char_count - $chinese_count;
+
+        // 估算 token 數
+        $estimated_tokens = ($chinese_count / 2) + ($english_count / 4);
+
+        error_log('=== MP Ukagaka - System Prompt Debug ===');
+        error_log('估算 Token 數: ' . (int)ceil($estimated_tokens));
+        error_log('字符長度: ' . $char_count);
+        error_log('--- Prompt 內容 ---');
+        error_log($system_prompt);
+        error_log('=== End Debug ===');
+    }
 }

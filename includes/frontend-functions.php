@@ -224,29 +224,41 @@ function mpu_enqueue_frontend_assets()
     // 載入 JavaScript
     // 使用已定義的常量獲取主文件路徑
     $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
-    // 先載入核心文件
+
+    // 1. 基礎層（配置、工具、AJAX）
     wp_enqueue_script(
-        'mpu-ukagaka-core',
-        plugins_url('ukagaka-core.js', $main_file),
-        array('jquery'), // 依賴 jQuery
+        'mpu-base',
+        plugins_url('js/ukagaka-base.js', $main_file),
+        array('jquery'),
         MPU_VERSION,
-        true // 在頁尾載入
+        true
     );
-    // 再載入動畫模組（依賴核心文件）
+
+    // 2. 核心功能（UI、對話、切換春菜）
     wp_enqueue_script(
-        'mpu-ukagaka-anime',
-        plugins_url('ukagaka-anime.js', $main_file),
-        array('jquery', 'mpu-ukagaka-core'), // 依賴 jQuery 和核心文件
+        'mpu-core',
+        plugins_url('js/ukagaka-core.js', $main_file),
+        array('mpu-base'),
         MPU_VERSION,
-        true // 在頁尾載入
+        true
     );
-    // 最後載入功能模組（依賴核心文件和動畫模組）
+
+    // 3. 動畫模組
     wp_enqueue_script(
-        'mpu-ukagaka-features',
-        plugins_url('ukagaka-features.js', $main_file),
-        array('jquery', 'mpu-ukagaka-core', 'mpu-ukagaka-anime'), // 依賴 jQuery、核心文件和動畫模組
+        'mpu-anime',
+        plugins_url('js/ukagaka-anime.js', $main_file),
+        array('jquery', 'mpu-core'),
         MPU_VERSION,
-        true // 在頁尾載入
+        true
+    );
+
+    // 4. 功能模組（AI、外部對話、事件處理）
+    wp_enqueue_script(
+        'mpu-features',
+        plugins_url('js/ukagaka-features.js', $main_file),
+        array('mpu-core', 'mpu-anime'),
+        MPU_VERSION,
+        true
     );
 }
 add_action('wp_enqueue_scripts', 'mpu_enqueue_frontend_assets');

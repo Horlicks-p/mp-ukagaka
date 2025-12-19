@@ -39,21 +39,24 @@ mp-ukagaka/
 │   └── shell/                  # 角色圖片
 ├── languages/              # 語言檔案
 ├── docs/                   # 文檔
-├── options.php             # 後台頁面框架
-├── options_page0.php       # 基本設定頁面
-├── options_page1.php       # 春菜管理頁面
-├── options_page2.php       # 對話設定頁面
-├── options_page3.php       # 顯示設定頁面
-├── options_page4.php       # 進階設定頁面
-├── options_page_ai.php     # AI 功能設定頁面
-├── options_page_llm.php    # LLM 功能設定頁面（BETA）
-├── ukagaka-core.js         # 前端核心 JS（訊息顯示、春菜切換等）
-├── ukagaka-anime.js        # Canvas 動畫管理器（圖片序列播放）
-├── ukagaka-features.js     # 前端功能 JS（AI 頁面感知、首次訪客打招呼等）
-├── ukagaka_cookie.js       # Cookie 工具（訪客追蹤）
+├── options/                # 後台設定頁面
+│   ├── options.php             # 後台頁面框架
+│   ├── options_page0.php       # 基本設定頁面
+│   ├── options_page1.php       # 春菜管理頁面
+│   ├── options_page2.php       # 對話設定頁面
+│   ├── options_page3.php       # 顯示設定頁面
+│   ├── options_page4.php       # 進階設定頁面
+│   ├── options_page_ai.php     # AI 功能設定頁面
+│   └── options_page_llm.php    # LLM 功能設定頁面（BETA）
+├── js/                     # 前端 JavaScript 模組
+│   ├── ukagaka-base.js         # 基礎層（配置 + 工具 + AJAX）
+│   ├── ukagaka-core.js         # 前端核心 JS（訊息顯示、春菜切換等）
+│   ├── ukagaka-features.js     # 前端功能 JS（AI 頁面感知、首次訪客打招呼等）
+│   ├── ukagaka-anime.js        # Canvas 動畫管理器（圖片序列播放）
+│   ├── ukagaka-cookie.js       # Cookie 工具（訪客追蹤）
+│   └── ukagaka-textarearesizer.js  # 後台文字區域調整器
 ├── mpu_style.css           # 前端樣式表
 ├── admin-style.css         # 後台樣式表
-├── jquery.textarearesizer.compressed.js  # jQuery 文字區域調整器
 └── readme.txt              # WordPress 外掛目錄說明檔
 ```
 
@@ -95,7 +98,7 @@ $admin_modules = [
 
 | 常數 | 說明 | 值 |
 |-----|------|-----|
-| `MPU_VERSION` | 外掛版本 | `"2.1.4"` |
+| `MPU_VERSION` | 外掛版本 | `"2.1.7"` |
 | `MPU_MAIN_FILE` | 主檔案路徑 | `__FILE__` |
 
 ---
@@ -744,11 +747,11 @@ $mpu_opt = [
     // 春菜列表
     'ukagakas' => [
         'default_1' => [
-            'name' => '初音',
-            'shell' => 'shell_1.png',
-            'msg' => ['歡迎光臨～'],
+            'name' => 'フリーレン',
+            'shell' => 'images/shell/Frieren/',
+            'msg' => ['フリレーンだ。千年以上生きた魔法使いだ。'],
             'show' => true,
-            'dialog_filename' => 'default_1',
+            'dialog_filename' => 'Frieren',
         ],
         // ... 更多春菜
     ],
@@ -1176,6 +1179,59 @@ function mpu_handle_custom_action() {
     wp_send_json_success(['data' => $result]);
 }
 ```
+
+### 自訂對話類別權重
+
+系統使用加權隨機選擇來決定生成哪種類型的對話。你可以在 `includes/llm-functions.php` 的 `mpu_generate_llm_dialogue()` 函數中修改權重：
+
+```php
+// 類別權重設定（數值越高，被選中的機率越大）
+// 總權重：100
+$category_weights = [
+    'greeting' => 8,           // 問候類
+    'casual' => 10,             // 閒聊類
+    'time_aware' => 8,          // 時間感知類
+    'observation' => 10,        // 觀察思考類
+    'magic_research' => 8,      // 魔法研究類
+    'tech_observation' => 6,    // 技術觀察類（降低權重）
+    'statistics' => 8,          // 統計觀察類
+    'memory' => 10,             // 回憶類
+    'admin_comment' => 8,      // 管理員評語類
+    'unexpected' => 10,         // 意外反應類
+    'silence' => 8,             // 沉默類
+    'bot_detection' => 6,       // BOT 檢測類
+];
+```
+
+**權重調整建議：**
+- 總權重建議保持為 100，方便計算機率
+- 降低某類別的權重可以減少其出現頻率
+- 提高某類別的權重可以增加其出現頻率
+
+### 自訂觀察思考類的內建台詞讀取
+
+觀察思考類會自動從當前春菜的內建對話文件中讀取台詞。你可以在 `includes/llm-functions.php` 的 `mpu_build_frieren_style_examples()` 函數中修改此功能：
+
+```php
+// 從內建對話文件中讀取台詞（最多 5 條）
+$mpu_opt = mpu_get_option();
+$current_ukagaka = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
+    $ukagaka = $mpu_opt['ukagakas'][$current_ukagaka];
+    $dialog_filename = $ukagaka['dialog_filename'] ?? $current_ukagaka;
+    
+    // 讀取對話文件
+    if (function_exists('mpu_get_msg_from_file')) {
+        $dialog_messages = mpu_get_msg_from_file($dialog_filename);
+        // ... 處理邏輯
+    }
+}
+```
+
+**可調整的參數：**
+- 最大讀取數量：目前為 5 條，可修改 `min(5, $count)` 中的數字
+- 字元長度限制：目前為 50 字元，可修改 `mb_strlen($msg) <= 50` 中的數字
+- 過濾條件：可以添加更多過濾條件來篩選合適的台詞
 
 ---
 

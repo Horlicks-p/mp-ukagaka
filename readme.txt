@@ -2,15 +2,19 @@
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. Supports reading dialogues from dialogs/*.txt or *.json. Added AI-powered context awareness, supporting multiple providers including Gemini, OpenAI, and Claude. API keys are stored encrypted and files are operated securely.
-Version: 2.1.6
+Version: 2.2.0
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.1.6
+Stable tag: 2.2.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Reviser: Horlicks
 Reviser URL: https://www.moelog.com/
+
+== Special Announcement ==
+
+🎉 To celebrate the premiere of "Sousou no Frieren" Season 2 on January 16, 2026, the default character has been changed from Hatsune Miku to Frieren (フリーレン).
 
 == Description ==
 
@@ -121,7 +125,7 @@ Recent commenters：:commenters[5]:
 
 Special codes are processed on the server side and converted to HTML links. Both formats `:recentpost[5]:` and `(:recentpost[5]:)` are supported.
 
-Visit the [Maintainer's Blog](https://www.moelog.com/) for more information.
+Visit the [MOELOG.COM](https://www.moelog.com/) for more information.
 
 == Architecture ==
 
@@ -140,13 +144,55 @@ This plugin uses a modular architecture for better maintainability:
 * `frontend-functions.php` - Frontend HTML and assets
 * `admin-functions.php` - Admin settings pages
 
-**JavaScript Modules**
-* `ukagaka-core.js` - Core frontend functions (typewriter, storage, UI)
-* `ukagaka-features.js` - Features (AI chat, auto-talk, visitor greeting)
-* `ukagaka-anime.js` - Canvas animation manager (single image & multi-frame animation)
-* `ukagaka_cookie.js` - Cookie utilities
+**JavaScript Modules (v2.1.7+)**
+* `js/ukagaka-base.js` - Base layer (config + utils + ajax)
+* `js/ukagaka-core.js` - Core functionality (ui + dialogue + character switching)
+* `js/ukagaka-features.js` - Feature modules (ai + external + events)
+* `js/ukagaka-anime.js` - Canvas animation manager (single image & multi-frame animation)
+* `js/ukagaka-cookie.js` - Cookie utilities
+* `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2025-12-19 =
+* v2.2.0
+* [MISC] Changed default character from Hatsune Miku to Frieren (フリーレン) to celebrate "Sousou no Frieren" Season 2 premiere on January 16, 2026
+* [MAJOR] Universal LLM Interface: Unified interface supporting four major AI services (Ollama, Gemini, OpenAI, Claude)
+  * All providers use a unified settings interface, switchable at any time
+  * API Keys automatically encrypted for secure storage
+  * Added connection test buttons for all AI providers
+* [MAJOR] System Prompt Optimization: XML-structured design to improve LLM comprehension efficiency
+  * XML tag organization: character, knowledge_base, behavior_rules, response_style_examples, current_context
+  * Context compression mechanism: automatically compresses WordPress, user, and visitor information to reduce token usage
+  * Frieren-style example system: built-in 70+ actual dialogue examples covering 12 categories
+  * Dual-layer architecture: System Prompt defines style, User Prompt provides task instructions
+* [MAJOR] Complete UI/UX Upgrade: Unified card-based design with anime-style color scheme
+  * All settings pages use consistent card-based layout
+  * Inspired by Frieren website design with soft gradient backgrounds
+  * Two-column layout: main content + sidebar design (main content 55%, sidebar 300px)
+  * Custom scrollbar styles: added beautiful scrollbars for long text areas
+* [MAJOR] Page Awareness Feature Integration: Moved "Page Awareness" settings to LLM settings page
+  * Unified management of all LLM-related settings
+  * Integrated with "Use LLM to replace built-in dialogue" feature
+* [IMPROVE] AI Settings Page Simplification: Focus on "Page Awareness" functionality
+  * Retained: Language settings, Character settings, Page awareness probability, Trigger pages, AI conversation display time, First-time visitor greeting
+  * Removed: AI provider selection, API Key settings, Model selection (moved to LLM settings page)
+* [IMPROVE] Statistics Metaphor Optimization: Restored and optimized gamified statistics metaphors
+  * Demon encounters = Post count, Maximum damage = Comment count, Skills learned = Category count, Items used = Tag count, Adventure days = Days since launch
+* [NEW] New functions: mpu_build_optimized_system_prompt, mpu_build_frieren_style_examples, mpu_build_prompt_categories, mpu_compress_context_info, mpu_get_visitor_status_text, mpu_calculate_text_similarity, mpu_debug_system_prompt
+* [IMPROVE] Function refactoring: mpu_generate_llm_dialogue now uses the new optimized System Prompt system
+* [IMPROVE] Backward compatibility: Maintains support for old settings, automatically migrates setting keys
+* [FIX] Fixed statistics metaphor mappings, text area width settings, main menu bottom line alignment issues, scrollbar style issues
+
+= 2025-12-15 =
+* v2.1.7
+* [PERF] JavaScript file structure refactoring: merged 10 files into 4, reducing HTTP requests
+* [PERF] Optimized mousemove logging to avoid console flooding
+* [IMPROVE] LLM requests changed to POST method, avoiding URL length limits
+* [IMPROVE] Added cancelPrevious option to prevent LLM request double-click
+* [FIX] Canvas animation error handling: check Canvas Manager before Ajax request
+* [FIX] LLM error visual feedback in debug mode
+* [MISC] Unified file naming convention with ukagaka- prefix
 
 = 2025-12-14 =
 * v2.1.6
@@ -172,46 +218,6 @@ This plugin uses a modular architecture for better maintainability:
 * [IMPROVED] Enhanced LLM dialogue system with WordPress context awareness
 * [IMPROVED] Better resource management and performance optimization
 
-= 2025-12-13 =
-* v2.1.5
-* [REFACTOR] Reorganized admin option pages into dedicated options/ folder
-* [ENHANCED] Improved LLM random dialogue prompt system with categorized prompts
-* [ENHANCED] Added time-aware contextual prompts (morning, afternoon, evening, late night)
-* [ENHANCED] Complete translation file audit and updates
-* [ENHANCED] Added missing translations for all error messages and success messages
-* [IMPROVED] Enhanced prompt diversity from 7 to 20+ prompts across 5 categories
-* [IMPROVED] All API error messages now properly internationalized
-
-= 2025-12-11 =
-* v2.1.4
-* [IMPROVED] Increased Gemini maxOutputTokens to 500 for better context awareness responses
-* [FIXED] Fixed "AI Dialog Text Color" input display issue in admin settings
-
-= 2025-12-10 =
-* v2.1.3
-* [CHANGE] System now exclusively uses external dialog files (TXT/JSON format)
-* [NEW] Complete admin UI redesign with Claude-style interface
-* [IMPROVED] Better message display consistency and layout
-
-= 2025-11-26 =
-* v2.1.0
-* [NEW] Configurable typewriter speed (10-200ms per character) in settings
-* [SECURITY] API keys now encrypted using AES-256-CBC before storage
-* [SECURITY] Secure file operations using WordPress Filesystem API
-* [SECURITY] Directory traversal prevention for all file operations
-* [IMPROVED] Visual indicator showing "✓ 已設定" for configured API keys
-* [IMPROVED] Better error messages for file operation failures
-* [IMPROVED] Backward compatibility for existing plaintext API keys
-
-= 2025-11-22 =
-* v2.0.0
-* [REFACTOR] Complete modular architecture - split into 7 components
-* [REFACTOR] Main plugin file reduced from 2020 lines to ~85 lines
-* [NEW] AI Context Awareness with multi-provider support (Gemini, OpenAI, Claude)
-* [NEW] Configurable AI response probability, text color, display duration
-* [NEW] First-time visitor greeting (with Slimstat integration)
-* [NEW] JSON dialog file support
-* [IMPROVED] Better error handling and logging
 
 
 == Screenshots ==
