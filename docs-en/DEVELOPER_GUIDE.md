@@ -29,6 +29,7 @@ mp-ukagaka/
 │   ├── core-functions.php      # Core functions
 │   ├── utility-functions.php   # Utility functions
 │   ├── ai-functions.php        # AI functions (Cloud API + Ollama)
+│   ├── prompt-categories.php   # Prompt category instruction management
 │   ├── llm-functions.php       # LLM functions (Ollama specific) - BETA
 │   ├── ukagaka-functions.php   # Ukagaka management
 │   ├── ajax-handlers.php       # AJAX handlers
@@ -72,9 +73,10 @@ $core_modules = [
     'core-functions.php',      // 1. Core functions (Settings)
     'utility-functions.php',   // 2. Utility functions
     'ai-functions.php',        // 3. AI functions (Cloud API: Gemini, OpenAI, Claude)
-    'llm-functions.php',       // 4. LLM functions (Local LLM: Ollama)
-    'ukagaka-functions.php',   // 5. Ukagaka management
-    'ajax-handlers.php',       // 6. AJAX handlers (Used by both)
+    'prompt-categories.php',   // 4. Prompt category management (Load before llm-functions.php)
+    'llm-functions.php',       // 5. LLM functions (Local LLM: Ollama)
+    'ukagaka-functions.php',   // 6. Ukagaka management
+    'ajax-handlers.php',       // 7. AJAX handlers (Used by both)
 ];
 
 // Frontend modules (Loaded only in non-admin environment)
@@ -98,7 +100,7 @@ $admin_modules = [
 
 | Constant | Description | Value |
 |-----|------|-----|
-| `MPU_VERSION` | Plugin Version | `"2.1.7"` |
+| `MPU_VERSION` | Plugin Version | `"2.2.0"` |
 | `MPU_MAIN_FILE` | Main File Path | `__FILE__` |
 
 ---
@@ -1204,6 +1206,7 @@ $category_weights = [
 ```
 
 **Weight Adjustment Recommendations:**
+
 - It's recommended to keep total weight at 100 for easier probability calculation
 - Lowering a category's weight reduces its appearance frequency
 - Increasing a category's weight increases its appearance frequency
@@ -1229,6 +1232,7 @@ if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
 ```
 
 **Adjustable Parameters:**
+
 - Maximum read count: Currently 5 lines, can modify the number in `min(5, $count)`
 - Character length limit: Currently 50 characters, can modify in `mb_strlen($msg) <= 50`
 - Filter conditions: Can add more filter conditions to screen suitable dialogues

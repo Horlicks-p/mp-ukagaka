@@ -54,6 +54,7 @@ function mpu_load_modules()
         'core-functions.php',      // 核心功能（設定管理）
         'utility-functions.php',   // 工具函數
         'ai-functions.php',        // AI 功能（雲端 API：Gemini, OpenAI, Claude）
+        'prompt-categories.php',   // Prompt 類別指令管理（需在 llm-functions.php 之前載入）
         'llm-functions.php',       // LLM 功能（本機 LLM：Ollama）
         'ukagaka-functions.php',   // 春菜管理
         'ajax-handlers.php',       // AJAX 處理器（前端和後台都可能使用）

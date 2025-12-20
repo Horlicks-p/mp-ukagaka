@@ -257,25 +257,40 @@ function mpu_decrypt_api_key(string $encrypted): string
 
 #### mpu_call_ai_api()
 
-Call AI API (Automatically select provider).
+Call AI API (Automatically select provider). Supports Gemini, OpenAI, Claude.
 
 ```php
 /**
- * @param string $prompt User prompt
+ * @param string $provider AI provider ('gemini', 'openai', 'claude')
+ * @param string $api_key API Key
  * @param string $system_prompt System prompt (Personality settings)
- * @return string|null AI response or null
+ * @param string $user_prompt User prompt
+ * @param string $language Language setting ('zh-TW', 'ja', 'en')
+ * @param array $mpu_opt Plugin options (used to get model name)
+ * @return string|WP_Error AI response or error
  */
-function mpu_call_ai_api(string $prompt, string $system_prompt): ?string
+function mpu_call_ai_api(
+    string $provider,
+    string $api_key,
+    string $system_prompt,
+    string $user_prompt,
+    string $language = 'zh-TW',
+    array $mpu_opt = []
+)
 ```
 
 **Example:**
 
 ```php
 $response = mpu_call_ai_api(
+    'gemini',
+    $api_key,
+    'You are a friendly assistant, keep responses short.',
     'What is this article about?',
-    'You are a friendly assistant, keep responses short.'
+    'zh-TW',
+    $mpu_opt
 );
-if ($response) {
+if (!is_wp_error($response)) {
     echo $response;
 }
 ```

@@ -86,16 +86,19 @@
                                                 echo ' selected="selected"';
                                             } ?>><?php _e('繁體中文', 'mp-ukagaka'); ?></option>
                     <option value="ja" <?php if (isset($mpu_opt['ai_language']) && $mpu_opt['ai_language'] == 'ja') {
-                                        echo ' selected="selected"';
-                                    } ?>><?php _e('日本語', 'mp-ukagaka'); ?></option>
+                                            echo ' selected="selected"';
+                                        } ?>><?php _e('日本語', 'mp-ukagaka'); ?></option>
                     <option value="en" <?php if (isset($mpu_opt['ai_language']) && $mpu_opt['ai_language'] == 'en') {
-                                        echo ' selected="selected"';
-                                    } ?>><?php _e('English', 'mp-ukagaka'); ?></option>
+                                            echo ' selected="selected"';
+                                        } ?>><?php _e('English', 'mp-ukagaka'); ?></option>
                 </select>
             </div>
             <div class="mpu-field-group">
                 <label for="ai_system_prompt"><?php _e('人格設定 (System Prompt)：', 'mp-ukagaka'); ?></label>
-                <textarea cols="60" rows="4" id="ai_system_prompt" name="ai_system_prompt" class="resizable" style="line-height:130%; width: 100%; max-width: 850px;"><?php echo isset($mpu_opt['ai_system_prompt']) ? esc_textarea($mpu_opt['ai_system_prompt']) : '你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。'; ?></textarea>
+                <textarea cols="60" rows="10" id="ai_system_prompt" name="ai_system_prompt" class="resizable" style="line-height:130%; width: 100%; max-width: 850px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace;"><?php echo isset($mpu_opt['ai_system_prompt']) ? esc_textarea($mpu_opt['ai_system_prompt']) : '你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。'; ?></textarea>
+                <small>
+                    <?php _e('提示：支援 Markdown 和 XML 標籤格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。', 'mp-ukagaka'); ?>
+                </small>
             </div>
         </div>
 
@@ -144,8 +147,10 @@
             </div>
             <div class="mpu-field-group" id="ai_greet_prompt_container" style="<?php echo (isset($mpu_opt['ai_greet_first_visit']) && $mpu_opt['ai_greet_first_visit']) ? '' : 'display:none;'; ?>">
                 <label for="ai_greet_prompt"><?php _e('首次訪客打招呼提示詞：', 'mp-ukagaka'); ?></label>
-                <textarea cols="60" rows="3" id="ai_greet_prompt" name="ai_greet_prompt" class="resizable" style="line-height:130%; width: 100%; max-width: 850px;"><?php echo isset($mpu_opt['ai_greet_prompt']) ? esc_textarea($mpu_opt['ai_greet_prompt']) : '你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。'; ?></textarea>
-                <small><?php _e('定義春菜對首次訪客的打招呼風格和語氣', 'mp-ukagaka'); ?></small>
+                <textarea cols="60" rows="8" id="ai_greet_prompt" name="ai_greet_prompt" class="resizable" style="line-height:130%; width: 100%; max-width: 850px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace;"><?php echo isset($mpu_opt['ai_greet_prompt']) ? esc_textarea($mpu_opt['ai_greet_prompt']) : '你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。'; ?></textarea>
+                <small>
+                    <?php _e('提示：支援 Markdown 和 XML 標籤格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。', 'mp-ukagaka'); ?>
+                </small>
             </div>
         </div>
 

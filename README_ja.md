@@ -378,6 +378,7 @@ mp-ukagaka/
 │   ├── core-functions.php        # コア機能（設定、オプション）
 │   ├── utility-functions.php     # ユーティリティ関数（文字列/配列、フィルタリング、セキュリティ）
 │   ├── ai-functions.php          # AI 機能（Gemini、OpenAI、Claude API 呼び出し）
+│   ├── prompt-categories.php     # プロンプトカテゴリ管理
 │   ├── llm-functions.php         # LLM 機能（Ollama 統合）
 │   ├── ukagaka-functions.php     # うかがか管理（CRUD、メッセージ処理）
 │   ├── ajax-handlers.php         # AJAX ハンドラー（すべての AJAX エンドポイント）

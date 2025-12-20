@@ -378,6 +378,7 @@ mp-ukagaka/
 │   ├── core-functions.php        # 核心功能（設定、選項）
 │   ├── utility-functions.php     # 工具函數（字串/陣列、過濾、安全性）
 │   ├── ai-functions.php          # AI 功能（Gemini、OpenAI、Claude API 呼叫）
+│   ├── prompt-categories.php     # Prompt 類別管理
 │   ├── llm-functions.php         # LLM 功能（Ollama 整合）
 │   ├── ukagaka-functions.php     # 春菜管理（CRUD、訊息處理）
 │   ├── ajax-handlers.php         # AJAX 處理器（所有 AJAX 端點）

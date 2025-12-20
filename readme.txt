@@ -138,7 +138,9 @@ This plugin uses a modular architecture for better maintainability:
 **PHP Modules** (`includes/`)
 * `core-functions.php` - Settings management
 * `utility-functions.php` - Utilities, security functions (file I/O, API key encryption)
-* `ai-functions.php` - AI API calls (Gemini, OpenAI, Claude)
+* `ai-functions.php` - AI API calls (Gemini, OpenAI, Claude, Ollama)
+* `prompt-categories.php` - Prompt categories management
+* `llm-functions.php` - LLM functionality (Ollama integration)
 * `ukagaka-functions.php` - Character management
 * `ajax-handlers.php` - AJAX endpoints
 * `frontend-functions.php` - Frontend HTML and assets

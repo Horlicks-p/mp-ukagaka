@@ -29,6 +29,7 @@ mp-ukagaka/
 │   ├── core-functions.php      # 核心功能
 │   ├── utility-functions.php   # 工具函數
 │   ├── ai-functions.php        # AI 功能（雲端 API + Ollama）
+│   ├── prompt-categories.php   # Prompt 類別指令管理
 │   ├── llm-functions.php       # LLM 功能（Ollama 專用）- BETA
 │   ├── ukagaka-functions.php   # 春菜管理
 │   ├── ajax-handlers.php       # AJAX 處理
@@ -72,9 +73,10 @@ $core_modules = [
     'core-functions.php',      // 1. 核心功能（設定管理）
     'utility-functions.php',   // 2. 工具函數
     'ai-functions.php',        // 3. AI 功能（雲端 API：Gemini, OpenAI, Claude）
-    'llm-functions.php',       // 4. LLM 功能（本機 LLM：Ollama）
-    'ukagaka-functions.php',   // 5. 春菜管理
-    'ajax-handlers.php',       // 6. AJAX 處理器（前端和後台都可能使用）
+    'prompt-categories.php',   // 4. Prompt 類別指令管理（需在 llm-functions.php 之前載入）
+    'llm-functions.php',       // 5. LLM 功能（本機 LLM：Ollama）
+    'ukagaka-functions.php',   // 6. 春菜管理
+    'ajax-handlers.php',       // 7. AJAX 處理器（前端和後台都可能使用）
 ];
 
 // 前端專用模組（僅在非後台環境載入）
@@ -98,7 +100,7 @@ $admin_modules = [
 
 | 常數 | 說明 | 值 |
 |-----|------|-----|
-| `MPU_VERSION` | 外掛版本 | `"2.1.7"` |
+| `MPU_VERSION` | 外掛版本 | `"2.2.0"` |
 | `MPU_MAIN_FILE` | 主檔案路徑 | `__FILE__` |
 
 ---
@@ -1204,6 +1206,7 @@ $category_weights = [
 ```
 
 **權重調整建議：**
+
 - 總權重建議保持為 100，方便計算機率
 - 降低某類別的權重可以減少其出現頻率
 - 提高某類別的權重可以增加其出現頻率
@@ -1229,6 +1232,7 @@ if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
 ```
 
 **可調整的參數：**
+
 - 最大讀取數量：目前為 5 條，可修改 `min(5, $count)` 中的數字
 - 字元長度限制：目前為 50 字元，可修改 `mb_strlen($msg) <= 50` 中的數字
 - 過濾條件：可以添加更多過濾條件來篩選合適的台詞

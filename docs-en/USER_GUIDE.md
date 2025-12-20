@@ -34,7 +34,7 @@ MP Ukagaka is a WordPress plugin that lets you display interactive desktop masco
 - 🌍 **Multi-Language**: Supports Traditional Chinese, Japanese, and English.
 - 📁 **External Dialogue Files**: Supports TXT and JSON format dialogue files.
 - ⚙️ **Highly Customizable**: Typing speed, display position, styles, and more are adjustable.
-- 🎭 **Custom Prompt System**: XML-structured System Prompt with rich dialogue examples.
+- 🎭 **Custom Prompt System**: Markdown/XML-formatted System Prompt for structured character settings.
 
 ---
 
@@ -263,13 +263,62 @@ Select the language for AI responses:
 
 This is the core personality setting for the character, which will be sent to the LLM as part of the System Prompt. You can set the character's personality, speaking style, etc.
 
-**Example:**
+**Supported Formats:**
+
+- **Plain Text Format** (Basic): Direct text description
+- **Markdown Format** (Recommended): Use headings, lists, emphasis, etc. for structured formatting that helps models understand better
+- **XML Tag Format** (Advanced): Use XML tags to mark structure for finer control
+
+**Plain Text Example:**
 
 ```
 You are the mage Frieren, speaking in a calm, slightly cold tone, showing more interest in magic-related topics. Keep responses under 50 words.
 ```
 
-> 💡 **Tip**: This setting integrates with the System Prompt optimization system in the LLM Settings page, providing richer character definition.
+**Markdown Format Example:**
+
+```markdown
+## Role
+You are the mage Frieren.
+
+## Personality
+- Speaking in a calm, slightly cold tone
+- Showing more interest in magic-related topics
+- Time perception differs from humans
+
+## Dialogue Rules
+- Keep responses under 50 words
+- Use casual tone (no honorifics)
+```
+
+**XML Format Example:**
+
+```xml
+<role>Mage Frieren</role>
+<personality>
+  <trait>Calm, slightly cold tone</trait>
+  <interest>Magic-related topics</interest>
+</personality>
+<rules>
+  <response_length>Under 50 words</response_length>
+  <tone>Casual (no honorifics)</tone>
+</rules>
+```
+
+**Variable Support:**
+
+You can use `{{variable_name}}` for dynamic replacement, for example:
+- `{{ukagaka_display_name}}`: Character name
+- `{{language}}`: Response language
+- `{{time_context}}`: Time context (e.g., "Spring Morning")
+
+**See the "Prompt System Architecture" section below for the complete variable list.**
+
+> 💡 **Tip**:
+> - This setting integrates with the System Prompt optimization system in the LLM Settings page
+> - Modern LLMs (OpenAI, Claude, Gemini) can understand Markdown and XML formats directly
+> - Using structured formats helps models better understand character settings; Markdown format is recommended
+> - The input box uses monospace font for easier format structure viewing
 
 #### 3. Page Awareness Probability (%)
 
@@ -319,11 +368,31 @@ When enabled, first-time visitors to the website will receive a special greeting
 
 Set the greeting message prompt for first-time visitors. This prompt combines with "Character Settings" to generate personalized greetings.
 
-**Example:**
+**Supported Formats:**
+
+Same as "Character Settings", supports plain text, Markdown, and XML formats.
+
+**Plain Text Example:**
 
 ```
 Greet first-time visitors and briefly introduce this website.
 ```
+
+**Markdown Format Example:**
+
+```markdown
+## First-Time Visitor Greeting Rules
+
+- Greet concisely within 50 characters
+- Use casual tone (no honorifics)
+- Lightly mention visitor source or geographic info if available
+
+### Conversation Examples
+- "Nice to meet you. What brought you here?"
+- "You came from Google, didn't you?"
+```
+
+> 💡 **Tip**: Supports `{{variable_name}}` variable replacement, same as System Prompt.
 
 ### Page Awareness Workflow
 
@@ -459,16 +528,39 @@ This design makes character style more consistent while maintaining dialogue div
 
    System Prompt is now completely controlled by **backend settings**, with the code only performing `{{variable}}` variable replacement.
 
-   - **Setting Location**: **Settings** → **MP Ukagaka** → **LLM Settings** → **Backend System Prompt**
+   - **Setting Location**: **Settings** → **MP Ukagaka** → **LLM Settings** → **Personality (System Prompt)**
+   - **Format Support**: Supports **Plain Text**, **Markdown**, and **XML Tag** formats
    - **Variable Support**: You can use variables like `{{ukagaka_display_name}}`, `{{language}}`, `{{time_context}}` in System Prompt
    - **Design Philosophy**: Backend System Prompt is the single source of truth. All character styles, behavior rules, and dialogue examples should be defined here
 
+   **Format Description:**
+
+   - **Plain Text Format**: The simplest and most direct way, suitable for simple settings
+   - **Markdown Format** (Recommended): Use headings, lists, emphasis, etc., making settings more structured and readable; models can also understand better
+   - **XML Tag Format** (Advanced): Provides the finest control, suitable for complex character settings
+
+   > 💡 **Tip**:
+   > - Modern LLMs (OpenAI GPT, Claude, Gemini) can directly understand Markdown and XML formats without additional processing
+   > - Markdown format is recommended for a balance between readability and structure
+   > - The input box uses monospace font for easier format structure viewing
+   > - See `system-prompt-markdown-example.md` in the root directory for a complete Markdown format example
+
    **Variable List:**
    - `{{ukagaka_display_name}}`: Character name
-   - `{{language}}`: Response language (Traditional Chinese, Japanese, English)
+   - `{{language}}`: Response language (zh-TW, ja, en)
    - `{{time_context}}`: Time context (e.g., "Spring Morning")
+   - `{{wp_version}}`: WordPress version
+   - `{{php_version}}`: PHP version
+   - `{{post_count}}`: Post count
+   - `{{comment_count}}`: Comment count
+   - `{{category_count}}`: Category count
+   - `{{tag_count}}`: Tag count
+   - `{{days_operating}}`: Days of operation
+   - `{{theme_name}}`: Theme name
+   - `{{theme_version}}`: Theme version
+   - `{{theme_author}}`: Theme author
 
-   > 💡 **Tip**: System Prompt should contain complete character definition including personality, speaking style, behavior rules, etc. The code will no longer hardcode any XML structures, examples, or rules.
+   > 💡 **Important**: System Prompt should contain complete character definition including personality, speaking style, behavior rules, etc. The code will no longer hardcode any XML structures, examples, or rules.
 
 2. **User Prompt Structure**
 

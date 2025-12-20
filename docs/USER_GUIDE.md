@@ -34,7 +34,7 @@ MP Ukagaka 是一個 WordPress 外掛，讓你在網站上顯示互動式的桌�
 - 🌍 **多語言**：支援繁體中文、日文、英文
 - 📁 **外部對話檔案**：支援 TXT 和 JSON 格式的對話檔案
 - ⚙️ **高度可自訂**：打字速度、顯示位置、樣式等皆可調整
-- 🎭 **自定義提示詞系統**：XML 結構化 System Prompt，支援豐富的對話範例
+- 🎭 **自定義提示詞系統**：支援 Markdown/XML 格式的 System Prompt，結構化角色設定
 
 ---
 
@@ -257,13 +257,62 @@ MP Ukagaka 是一個 WordPress 外掛，讓你在網站上顯示互動式的桌�
 
 這是角色的核心個性設定，會作為 System Prompt 的核心部分傳送給 LLM。你可以在此設定角色的個性、說話風格等。
 
-**範例：**
+**支援格式：**
+
+- **純文字格式**（基本）：直接輸入文字描述
+- **Markdown 格式**（推薦）：使用標題、列表、強調等結構化格式，讓模型更好理解
+- **XML 標籤格式**（進階）：使用 XML 標籤標記結構，提供更精細的控制
+
+**純文字範例：**
 
 ```
 你是魔法使芙莉蓮，說話語氣平靜、略帶冷淡，對魔法相關話題會比較有興趣。回應保持在 50 字以內。
 ```
 
-> 💡 **提示**：此設定會與 LLM 設定頁面中的 System Prompt 優化系統整合，提供更豐富的角色定義。
+**Markdown 格式範例：**
+
+```markdown
+## 角色
+你是魔法使芙莉蓮。
+
+## 性格
+- 說話語氣平靜、略帶冷淡
+- 對魔法相關話題比較有興趣
+- 時間感覺與人類不同
+
+## 對話規則
+- 回應保持在 50 字以內
+- 使用常體（不使用敬語）
+```
+
+**XML 格式範例：**
+
+```xml
+<role>魔法使芙莉蓮</role>
+<personality>
+  <trait>說話語氣平靜、略帶冷淡</trait>
+  <interest>魔法相關話題</interest>
+</personality>
+<rules>
+  <response_length>50字以內</response_length>
+  <tone>常體（不使用敬語）</tone>
+</rules>
+```
+
+**變數支援：**
+
+可以使用 `{{變數名}}` 進行動態替換，例如：
+- `{{ukagaka_display_name}}`：角色名稱
+- `{{language}}`：回應語言
+- `{{time_context}}`：時間情境（如「春の朝」）
+
+**完整變數列表請參考下方的「Prompt 系統架構」章節。**
+
+> 💡 **提示**：
+> - 此設定會與 LLM 設定頁面中的 System Prompt 優化系統整合
+> - 現代 LLM（OpenAI、Claude、Gemini）都能理解 Markdown 和 XML 格式
+> - 使用結構化格式可以讓模型更好理解角色設定，推薦使用 Markdown 格式
+> - 可在輸入框中使用等寬字體（monospace）查看格式結構
 
 #### 3. 頁面感知確率（%）
 
@@ -311,11 +360,31 @@ is_single,is_page
 
 設定首次訪問者的問候訊息提示詞。此提示詞會與「キャラクター設定」結合，生成個性化的問候。
 
-**範例：**
+**支援格式：**
+
+與「キャラクター設定」相同，支援純文字、Markdown 和 XML 格式。
+
+**純文字範例：**
 
 ```
 向首次訪問的訪客打招呼，簡單介紹一下這個網站。
 ```
+
+**Markdown 格式範例：**
+
+```markdown
+## 初回訪問者への挨拶ルール
+
+- 50文字以内で簡潔に挨拶
+- 常体で話す（敬語は使わない）
+- 訪問元や地理情報があれば軽く言及する
+
+### 会話例
+- 「初めまして。何か用事があったのかな。」
+- 「Google から来たんだね。」
+```
+
+> 💡 **提示**：支援 `{{變數名}}` 變數替換，與 System Prompt 相同。
 
 ### 頁面感知功能的工作流程
 
@@ -465,16 +534,39 @@ LLM（Large Language Model）功能允許你使用多種 AI 服務來生成對�
 
    System Prompt 現在完全由**後台設定**控制，程式端只負責 `{{variable}}` 變數替換。
 
-   - **設定位置**：**設定** → **MP Ukagaka** → **LLM 設定** → **後台 System Prompt**
+   - **設定位置**：**設定** → **MP Ukagaka** → **LLM 設定** → **人格設定 (System Prompt)**
+   - **格式支援**：支援**純文字**、**Markdown** 和 **XML 標籤**格式
    - **變數支援**：可以在 System Prompt 中使用 `{{ukagaka_display_name}}`、`{{language}}`、`{{time_context}}` 等變數
    - **設計理念**：後台 System Prompt 是唯一真相，所有角色風格、行為規則、對話範例都應該在這裡定義
 
+   **格式說明：**
+
+   - **純文字格式**：最簡單直接的方式，適合簡單的設定
+   - **Markdown 格式**（推薦）：使用標題、列表、強調等，讓設定更結構化易讀，模型也能更好理解
+   - **XML 標籤格式**（進階）：提供最精細的控制，適合複雜的角色設定
+
+   > 💡 **提示**：
+   > - 現代 LLM（OpenAI GPT、Claude、Gemini）都能直接理解 Markdown 和 XML 格式，無需額外處理
+   > - 推薦使用 Markdown 格式，兼顧可讀性和結構化
+   > - 輸入框使用等寬字體（monospace），方便查看格式結構
+   > - 完整的 Markdown 格式範例請參考根目錄的 `system-prompt-markdown-example.md`
+
    **變數列表：**
    - `{{ukagaka_display_name}}`：角色名稱
-   - `{{language}}`：回應語言（繁體中文、日文、英文）
+   - `{{language}}`：回應語言（zh-TW、ja、en）
    - `{{time_context}}`：時間情境（如「春の朝」）
+   - `{{wp_version}}`：WordPress 版本
+   - `{{php_version}}`：PHP 版本
+   - `{{post_count}}`：文章數
+   - `{{comment_count}}`：留言數
+   - `{{category_count}}`：分類數
+   - `{{tag_count}}`：標籤數
+   - `{{days_operating}}`：運營日數
+   - `{{theme_name}}`：主題名稱
+   - `{{theme_version}}`：主題版本
+   - `{{theme_author}}`：主題作者
 
-   > 💡 **提示**：System Prompt 應該包含角色的個性、說話風格、行為規則等完整定義。程式端不會再硬編碼任何 XML 結構、範例或規則。
+   > 💡 **重要**：System Prompt 應該包含角色的個性、說話風格、行為規則等完整定義。程式端不會再硬編碼任何 XML 結構、範例或規則。
 
 2. **User Prompt 結構**
 

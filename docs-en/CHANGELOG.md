@@ -359,6 +359,32 @@ includes/
    - Ensure `dialogs/` folder is writable.
    - WordPress Filesystem API requires appropriate permissions.
 
+### Upgrading from 2.1.x to 2.2.0
+
+1. **Automatic Settings Migration**
+   - All existing settings will be automatically preserved and migrated.
+   - AI provider settings will be automatically migrated to the LLM Settings page.
+   - No manual action required.
+
+2. **Check LLM Settings**
+   - Go to **Settings** → **MP Ukagaka** → **LLM Settings**.
+   - Confirm AI provider selection is correct.
+   - Confirm API Key is correctly set (automatically encrypted).
+   - Test connection to confirm it works.
+
+3. **Check AI Settings**
+   - Go to **Settings** → **MP Ukagaka** → **AI Settings**.
+   - Confirm "Page Awareness Probability" and "Trigger Pages" settings are correct.
+   - Confirm "Character Settings (System Prompt)" content is correct.
+
+4. **Clear Cache**
+   - Clear browser cache.
+   - Clear WordPress cache plugin cache (if applicable).
+
+5. **Experience New UI**
+   - All settings pages have been updated with new card-based design.
+   - Main settings page now includes sidebar quick links.
+
 ---
 
 ## Known Issues
