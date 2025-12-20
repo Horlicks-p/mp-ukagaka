@@ -119,6 +119,7 @@ The plugin has been refactored into a clean, modular architecture for better mai
 - **`core-functions.php`**: Core functionality (default options, settings management)
 - **`utility-functions.php`**: Utility functions (array/string conversion, filtering, sanitization)
 - **`ai-functions.php`**: AI functionality (API calls for Gemini, OpenAI, Claude, Ollama)
+- **`prompt-categories.php`**: Prompt category instructions management (must load before llm-functions.php)
 - **`llm-functions.php`**: Local LLM functionality (Ollama integration, connection management)
 - **`ukagaka-functions.php`**: Ukagaka management (CRUD operations, message processing)
 - **`ajax-handlers.php`**: AJAX handlers (next message, change character, load dialog, AI chat, visitor info)

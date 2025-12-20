@@ -67,9 +67,8 @@
 ### 📝 Code Optimization
 
 - **New Functions**:
-  - `mpu_build_optimized_system_prompt()`: Build XML-structured System Prompt
-  - `mpu_build_frieren_style_examples()`: Generate Frieren-style dialogue examples
-  - `mpu_build_prompt_categories()`: Generate User Prompt instructions (corresponding to example categories)
+  - `mpu_build_optimized_system_prompt()`: Build System Prompt (supports variable replacement)
+  - `mpu_build_prompt_categories()`: Generate User Prompt instruction categories
   - `mpu_compress_context_info()`: Compress context information
   - `mpu_get_visitor_status_text()`: Get visitor status text
   - `mpu_calculate_text_similarity()`: Calculate text similarity for anti-repetition

@@ -338,6 +338,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <label for="llm_openai_model"><?php _e('OpenAI 模型：', 'mp-ukagaka'); ?></label>
                     <select id="llm_openai_model" name="llm_openai_model" style="width: 100%; max-width: 400px;">
                         <option value="gpt-4.1-mini-2025-04-14" <?php echo $openai_model === 'gpt-4.1-mini-2025-04-14' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4.1 Mini (推薦，速度快成本低)', 'mp-ukagaka')); ?></option>
+                        <option value="gpt-4o-mini" <?php echo $openai_model === 'gpt-4o-mini' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o Mini (快速且經濟)', 'mp-ukagaka')); ?></option>
                         <option value="gpt-4o" <?php echo $openai_model === 'gpt-4o' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o (更聰明)', 'mp-ukagaka')); ?></option>
                     </select>
                 </div>

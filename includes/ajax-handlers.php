@@ -343,12 +343,12 @@ function mpu_ajax_chat_context()
     $page_title = isset($_POST["page_title"]) ? sanitize_text_field($_POST["page_title"]) : "";
     $page_content = isset($_POST["page_content"]) ? sanitize_textarea_field($_POST["page_content"]) : "";
 
-    // 限制內容長度，防止過大請求
-    if (strlen($page_title) > 500) {
-        $page_title = substr($page_title, 0, 500);
+    // 限制內容長度，防止過大請求（使用多位元組函數避免 UTF-8 亂碼）
+    if (mb_strlen($page_title, 'UTF-8') > 500) {
+        $page_title = mb_substr($page_title, 0, 500, 'UTF-8');
     }
-    if (strlen($page_content) > 5000) {
-        $page_content = substr($page_content, 0, 5000);
+    if (mb_strlen($page_content, 'UTF-8') > 5000) {
+        $page_content = mb_substr($page_content, 0, 5000, 'UTF-8');
     }
 
     if (empty($page_title) && empty($page_content)) {
@@ -638,18 +638,18 @@ function mpu_ajax_chat_greet()
     $country = isset($_POST["country"]) ? sanitize_text_field($_POST["country"]) : "";
     $city = isset($_POST["city"]) ? sanitize_text_field($_POST["city"]) : "";
 
-    // 驗證輸入長度（安全性）
-    if (strlen($referrer) > 500) {
-        $referrer = substr($referrer, 0, 500);
+    // 驗證輸入長度（安全性，使用多位元組函數避免 UTF-8 亂碼）
+    if (mb_strlen($referrer, 'UTF-8') > 500) {
+        $referrer = mb_substr($referrer, 0, 500, 'UTF-8');
     }
-    if (strlen($referrer_host) > 255) {
-        $referrer_host = substr($referrer_host, 0, 255);
+    if (mb_strlen($referrer_host, 'UTF-8') > 255) {
+        $referrer_host = mb_substr($referrer_host, 0, 255, 'UTF-8');
     }
-    if (strlen($country) > 10) {
-        $country = substr($country, 0, 10);
+    if (mb_strlen($country, 'UTF-8') > 10) {
+        $country = mb_substr($country, 0, 10, 'UTF-8');
     }
-    if (strlen($city) > 100) {
-        $city = substr($city, 0, 100);
+    if (mb_strlen($city, 'UTF-8') > 100) {
+        $city = mb_substr($city, 0, 100, 'UTF-8');
     }
 
     // System Prompt：只讀取後台設定並做變數替換

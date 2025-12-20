@@ -736,6 +736,24 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         return false;
     }
 
+    // ★★★ 過濾推理模型的思考過程標籤（DeepSeek-R1 等）★★★
+    if (!empty($result) && is_string($result)) {
+        // 移除 <think>...</think> 標籤（DeepSeek-R1 等推理模型使用）
+        $result = preg_replace('/<think>.*?<\/think>/s', '', $result);
+        // 移除 <think>...</redacted_reasoning> 標籤（部分模型可能使用）
+        $result = preg_replace('/<think>.*?<\/redacted_reasoning>/s', '', $result);
+        // 清理可能殘留的空白
+        $result = trim($result);
+
+        // 如果過濾後結果為空，返回 false
+        if (empty($result)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('MP Ukagaka - LLM 回應僅包含思考過程，無實際內容');
+            }
+            return false;
+        }
+    }
+
     // ★★★ 後端相似度檢查（防止廢話迴圈）★★★
     if (!empty($result) && (!empty($last_response) || !empty($response_history))) {
         $similarity_threshold = 0.7; // 相似度閾值（70%），超過此值視為重複

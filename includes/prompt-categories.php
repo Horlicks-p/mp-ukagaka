@@ -398,10 +398,10 @@ function mpu_add_statistics_prompts(&$categories, $wp_info)
             'key' => 'comment_count',
             'category' => 'statistics',
             'templates' => [
-                "コメント数{value}を戦闘回数に例える",
+                "コメント数{value}を最大ダメージに例える",
                 "最大ダメージは{value}について一言",
             ],
-            'fallback' => "コメント数を戦闘回数に例える",
+            'fallback' => "コメント数を最大ダメージに例える",
         ],
         [
             'key' => 'category_count',
@@ -471,9 +471,6 @@ function mpu_build_prompt_categories(
     $wp_version = $wp_info['wp_version'];
     $php_version = $wp_info['php_version'];
     $plugins_count = $wp_info['active_plugins_count'] ?? 0;
-    $plugins_list = $wp_info['active_plugins_list'] ?? [];
-    $sample_plugins = array_slice($plugins_list, 0, 5);
-    $plugins_names_text = !empty($sample_plugins) ? implode('、', $sample_plugins) : '';
 
     // 添加時間情境相關指令
     $prompt_categories['time_aware'][] = "{$time_context}の時間感覚を表現する";
@@ -496,7 +493,12 @@ function mpu_build_prompt_categories(
     if ($plugins_count > 0) {
         $prompt_categories['magic_metaphor'][] = "{$plugins_count}個のプラグインを習得魔法に例える";
         $prompt_categories['magic_research'][] = "{$plugins_count}個の魔法について一言";
-        if (!empty($plugins_names_text)) {
+
+        // 如果有外掛名稱列表，添加具體外掛名稱的指令
+        $plugins_list = $wp_info['active_plugins_list'] ?? [];
+        if (!empty($plugins_list)) {
+            $sample_plugins = array_slice($plugins_list, 0, 5);
+            $plugins_names_text = implode('、', $sample_plugins);
             $prompt_categories['magic_research'][] = "「{$plugins_names_text}」などの魔法について一言";
         }
     }

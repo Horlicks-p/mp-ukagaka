@@ -2,15 +2,16 @@
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. Supports reading dialogues from dialogs/*.txt or *.json. Added AI-powered context awareness, supporting multiple providers including Gemini, OpenAI, and Claude. API keys are stored encrypted and files are operated securely.
-Version: 2.2.0
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
 Stable tag: 2.2.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
+Contributors: horlicks, ariagle
 Reviser: Horlicks
 Reviser URL: https://www.moelog.com/
+Tags: ukagaka, ai, context awareness, llm, ollama, gemini, openai, claude
 
 == Special Announcement ==
 

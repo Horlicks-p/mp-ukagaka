@@ -73,9 +73,8 @@
 ### 📝 代碼優化
 
 - **新增函數**：
-  - `mpu_build_optimized_system_prompt()`：建構 XML 結構化的 System Prompt
-  - `mpu_build_frieren_style_examples()`：生成芙莉蓮風格對話範例
-  - `mpu_build_prompt_categories()`：生成 User Prompt 指令（與範例類別對應）
+  - `mpu_build_optimized_system_prompt()`：建構 System Prompt（支援變數替換）
+  - `mpu_build_prompt_categories()`：生成 User Prompt 指令類別
   - `mpu_compress_context_info()`：壓縮上下文資訊
   - `mpu_get_visitor_status_text()`：獲取訪客狀態文字
 
