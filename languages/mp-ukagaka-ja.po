@@ -669,6 +669,9 @@ msgstr "ページ内容が空です"
 msgid "連接成功，模型響應正常（預覽：%s...）"
 msgstr "接続成功、モデル応答正常（プレビュー：%s...）"
 
+msgid "連接成功（%s連接），模型響應正常（預覽：%s...）"
+msgstr "接続成功（%s接続）、モデル応答正常（プレビュー：%s...）"
+
 msgid "API 回應為空，請檢查模型是否正確"
 msgstr "API応答が空です。モデルが正しいか確認してください"
 
@@ -683,6 +686,9 @@ msgstr "モデル「%s」が存在しません。設定で正しいモデルを�
 
 msgid "API 錯誤（HTTP %s）：%s"
 msgstr "APIエラー（HTTP %s）：%s"
+
+msgid "連接失敗（%s連接）：%s"
+msgstr "接続失敗（%s接続）：%s"
 
 msgid "連接失敗：%s"
 msgstr "接続失敗：%s"
@@ -780,6 +786,9 @@ msgstr "Gemini 2.5 Pro (より賢い、複雑な推論に適している)"
 
 msgid "GPT-4.1 Mini (推薦，速度快成本低)"
 msgstr "GPT-4.1 Mini (推奨、高速でコストが低い)"
+
+msgid "GPT-4o Mini (快速且經濟)"
+msgstr "GPT-4o Mini (高速で経済的)"
 
 msgid "GPT-4o (更聰明)"
 msgstr "GPT-4o (より賢い)"

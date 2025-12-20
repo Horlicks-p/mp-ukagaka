@@ -615,8 +615,8 @@ msgstr "無法連接到遠程 Ollama 服務。請確認 Cloudflare Tunnel 是否
 msgid "無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。錯誤："
 msgstr "無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。錯誤："
 
-msgid "連接失敗（%s連接）："
-msgstr "連接失敗（%s連接）："
+msgid "連接失敗（%s連接）：%s"
+msgstr "連接失敗（%s連接）：%s"
 
 msgid "本地"
 msgstr "本地"
@@ -915,6 +915,9 @@ msgstr "Gemini 2.5 Pro (更聰明，適合複雜推理)"
 
 msgid "GPT-4.1 Mini (推薦，速度快成本低)"
 msgstr "GPT-4.1 Mini (推薦，速度快成本低)"
+
+msgid "GPT-4o Mini (快速且經濟)"
+msgstr "GPT-4o Mini (快速且經濟)"
 
 msgid "GPT-4o (更聰明)"
 msgstr "GPT-4o (更聰明)"
