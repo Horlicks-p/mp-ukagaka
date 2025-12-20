@@ -454,6 +454,9 @@ msgstr "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭�
 msgid "吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
 msgstr "吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
 
+msgid "每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "每行代表一條吐槽。不可使用 HTML 代碼。"
+
 msgid "刪除"
 msgstr "刪除"
 
@@ -930,3 +933,6 @@ msgstr "Claude Haiku 4.5 (快速)"
 
 msgid "Claude Opus 4.5 (進階)"
 msgstr "Claude Opus 4.5 (進階)"
+
+msgid "提示：支援 Markdown 和 XML 標籤格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
+msgstr "提示：支援 Markdown 和 XML 標籤格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"

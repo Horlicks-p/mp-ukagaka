@@ -250,7 +250,7 @@ function mpu_get_static_prompt_categories()
 
         'comparison' => [
             "昔と今を比較する",
-            "人間と精霊の違いを述べる",
+            "人間とエルフの違いを述べる",
             "魔法と技術を対比する",
             "理想と現実の差を認識する",
         ],

@@ -299,10 +299,10 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         if (!preg_match('/^https?:\/\/.+/', $endpoint)) {
             return new WP_Error("invalid_endpoint", __('Ollama 端點必須是有效的 HTTP 或 HTTPS URL', 'mp-ukagaka'));
         }
-        $timeout = 60; // 默認超時
+        $timeout = 30; // 默認超時（考慮 Ollama 單工特性，需要足夠時間等待排隊請求）
         $is_remote = !preg_match('/localhost|127\.0\.0\.1|::1/', $endpoint);
         if ($is_remote) {
-            $timeout = 90;
+            $timeout = 90;  // 遠程保持 90 秒
         }
     } else {
         $validated_endpoint = mpu_validate_ollama_endpoint($endpoint);

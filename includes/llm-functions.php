@@ -64,11 +64,11 @@ function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
     switch ($operation_type) {
         case 'check':
             // 服務可用性檢查
-            return $is_remote ? 10 : 3;
+            return $is_remote ? 15 : 15;  // 本地從 5 秒增加到 10 秒，與遠程一致
 
         case 'api_call':
-            // API 調用（生成對話）
-            return $is_remote ? 90 : 60;
+            // API 調用（生成對話）- 考慮 Ollama 單工特性，需要足夠時間等待排隊請求
+            return $is_remote ? 90 : 45;  // 本地改為 30 秒，遠程保持 90 秒
 
         case 'test':
             // 測試連接
@@ -184,8 +184,14 @@ function mpu_check_ollama_available($endpoint, $model)
         // 這裡不需要額外設置，因為 $is_available 已經是 false
     }
 
-    // 緩存結果（5 分鐘）
-    set_transient($cache_key, $is_available ? 1 : 0, 5 * MINUTE_IN_SECONDS);
+    // 優化緩存策略：成功時緩存 5 分鐘，失敗時只緩存 30 秒
+    if ($is_available) {
+        // 成功時緩存 5 分鐘，減少不必要的檢查
+        set_transient($cache_key, 1, 5 * MINUTE_IN_SECONDS);
+    } else {
+        // 失敗時只緩存 30 秒，避免長時間阻塞後續檢查
+        set_transient($cache_key, 0, 30);
+    }
 
     if (defined('WP_DEBUG') && WP_DEBUG) {
         $connection_type = $is_remote ? '遠程' : '本地';
@@ -561,18 +567,26 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 
     $language = $mpu_opt['ai_language'] ?? 'zh-TW';
 
-    // 如果是 Ollama，檢查服務是否可用
+    // 如果是 Ollama，優化檢查邏輯：如果緩存顯示可用，直接跳過檢查
     if ($provider === 'ollama') {
         $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
         $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
 
-        if (!mpu_check_ollama_available($endpoint, $model)) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('MP Ukagaka - Ollama 服務不可用，返回錯誤提示');
-                error_log('MP Ukagaka - 端點: ' . $endpoint . ', 模型: ' . $model);
+        // 檢查緩存，如果緩存顯示服務可用，直接跳過檢查（避免連續呼叫時的誤判）
+        $cache_key = 'mpu_ollama_available_' . md5($endpoint . $model);
+        $cached_result = get_transient($cache_key);
+
+        // 只有在緩存不存在或顯示不可用時，才進行實際檢查
+        if ($cached_result === false || $cached_result === 0) {
+            if (!mpu_check_ollama_available($endpoint, $model)) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('MP Ukagaka - Ollama 服務不可用，返回錯誤提示');
+                    error_log('MP Ukagaka - 端點: ' . $endpoint . ', 模型: ' . $model);
+                }
+                return 'MPU_OLLAMA_NOT_AVAILABLE';
             }
-            return 'MPU_OLLAMA_NOT_AVAILABLE';
         }
+        // 如果緩存顯示可用，直接跳過檢查，讓實際的 API 調用來驗證
     }
 
     // 獲取春菜名稱

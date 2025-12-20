@@ -11,8 +11,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-01-27T00:00:00+0800\n"
-"PO-Revision-Date: 2025-01-27T00:00:00+0800\n"
+"POT-Creation-Date: 2025-01-27 00:00+0800\n"
+"PO-Revision-Date: 2025-01-27 00:00+0800\n"
 "X-Generator: MP Ukagaka\n"
 "X-Domain: mp-ukagaka\n"
 
@@ -455,6 +455,9 @@ msgstr "Enter the full image URL, starting with http://"
 msgid "吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
 msgstr "Each line is a message. HTML is not allowed."
 
+msgid "每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "Each line represents one message. HTML code is not allowed."
+
 msgid "刪除"
 msgstr "Delete"
 
@@ -802,4 +805,7 @@ msgstr "Claude Haiku 4.5 (Fast)"
 
 msgid "Claude Opus 4.5 (進階)"
 msgstr "Claude Opus 4.5 (Advanced)"
+
+msgid "提示：支援 Markdown 和 XML 標籤格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
+msgstr "Tip: Supports Markdown and XML tag formats. You can directly use structured formats to enhance model understanding.<br>You can use {{variable_name}} for variable substitution (e.g., {{ukagaka_display_name}}, {{time_context}}, {{language}}, etc.)."
 
