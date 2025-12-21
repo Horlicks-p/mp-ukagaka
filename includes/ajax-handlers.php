@@ -70,12 +70,37 @@ function mpu_ajax_nextmsg()
         // 使用 LLM 生成對話
         $llm_msg = mpu_generate_llm_dialogue($cur_num, $last_response, $response_history);
 
-        if ($llm_msg !== false && $llm_msg !== 'MPU_OLLAMA_NOT_AVAILABLE') {
+        // 檢查是否需要使用內建對話（重複檢測或 Ollama 忙碌）
+        $use_fallback = ($llm_msg === 'MPU_USE_FALLBACK' || $llm_msg === 'MPU_OLLAMA_BUSY');
+
+        if ($llm_msg !== false && $llm_msg !== 'MPU_OLLAMA_NOT_AVAILABLE' && !$use_fallback) {
             // LLM 生成成功，使用生成的對話
             $msg = $llm_msg;
             $msgnum = 0; // LLM 生成的對話不需要 msgnum
+        } elseif ($use_fallback || $llm_msg === false) {
+            // ★★★ 重複檢測觸發或 Ollama 忙碌或生成失敗，使用內建對話 ★★★
+            $msg_array = mpu_get_msg_arr($cur_num);
+            $msgs = $msg_array["msg"] ?? [];
+            $total = count($msgs);
+
+            if ($total > 0) {
+                // 隨機選擇一條內建對話
+                $msg = $msgs[mt_rand(0, $total - 1)];
+                $msgnum = array_search($msg, $msgs, true);
+                if ($msgnum === false) {
+                    $msgnum = 0;
+                }
+                
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    $reason = $llm_msg === 'MPU_USE_FALLBACK' ? '重複檢測' : ($llm_msg === 'MPU_OLLAMA_BUSY' ? 'Ollama 忙碌' : '生成失敗');
+                    error_log('MP Ukagaka - ' . $reason . '，改用內建對話');
+                }
+            } else {
+                $msg = __("無對話內容", "mp-ukagaka");
+                $msgnum = 0;
+            }
         } else {
-            // 當 Ollama 未啟動時，顯示錯誤提示而非回退
+            // 當 Ollama 未啟動時，顯示錯誤提示
             $msg = __("本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。", "mp-ukagaka");
             $msgnum = 0;
 

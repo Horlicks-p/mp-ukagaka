@@ -151,6 +151,25 @@ function mpuMoe(command) {
 }
 
 // ====== 下一句對話 ======
+
+/**
+ * ★★★ 方案 C：處理 Ollama 請求佇列 ★★★
+ * 從佇列中取出下一個請求並處理
+ */
+function mpu_processOllamaQueue() {
+    if (mpuOllamaRequestQueue.length === 0) {
+        mpuLogger.log('mpu_processOllamaQueue: 佇列為空');
+        return;
+    }
+    
+    // 延遲處理下一個請求，給 Ollama 一些緩衝時間
+    setTimeout(function() {
+        const nextTrigger = mpuOllamaRequestQueue.shift();
+        mpuLogger.log('mpu_processOllamaQueue: 處理佇列中的請求, trigger =', nextTrigger, ', 剩餘佇列長度 =', mpuOllamaRequestQueue.length);
+        mpu_nextmsg(nextTrigger);
+    }, mpuOllamaQueueDelay);
+}
+
 /**
  * 顯示下一句對話
  * @param {string} trigger - 觸發方式：'auto'（自動）、'startup'（啟動）、undefined（手動）
@@ -186,6 +205,24 @@ function mpu_nextmsg(trigger) {
         return;
     }
 
+    // ★★★ 方案 C：前端請求節流機制 ★★★
+    // 如果正在使用 LLM 且有請求正在處理中，將此請求加入佇列
+    if (mpuOllamaReplaceDialogue && mpuOllamaRequesting) {
+        // 自動觸發的請求在排隊時直接跳過，不加入佇列（避免佇列堆積）
+        if (isAuto) {
+            mpuLogger.log('mpu_nextmsg: Ollama 正在處理請求，自動觸發的請求被跳過');
+            return;
+        }
+        // 手動觸發的請求加入佇列（最多保留 2 個，避免過度堆積）
+        if (mpuOllamaRequestQueue.length < 2) {
+            mpuLogger.log('mpu_nextmsg: Ollama 正在處理請求，此請求加入佇列');
+            mpuOllamaRequestQueue.push(trigger);
+        } else {
+            mpuLogger.log('mpu_nextmsg: 佇列已滿，跳過此請求');
+        }
+        return;
+    }
+
     if (!isAuto && mpuAutoTalk) {
         startAutoTalk();
     }
@@ -195,6 +232,9 @@ function mpu_nextmsg(trigger) {
     // 檢查是否啟用了 LLM 取代內建對話
     if (mpuOllamaReplaceDialogue) {
         mpuLogger.log('mpu_nextmsg: 使用 LLM 生成對話');
+        
+        // ★★★ 設定請求狀態為處理中 ★★★
+        mpuOllamaRequesting = true;
         // 使用 LLM 生成對話
         const curNum = window.mpuInfo?.num || 'default_1';
         const curMsgnum = parseInt(document.getElementById("ukagaka_msgnum")?.innerHTML || '0', 10) || 0;
@@ -262,8 +302,16 @@ function mpu_nextmsg(trigger) {
                     // LLM 生成失敗，使用後備對話
                     mpu_nextmsg_fallback();
                 }
+                
+                // ★★★ 釋放請求狀態並處理佇列 ★★★
+                mpuOllamaRequesting = false;
+                mpu_processOllamaQueue();
             })
             .catch(error => {
+                // ★★★ 釋放請求狀態並處理佇列（即使出錯也要釋放）★★★
+                mpuOllamaRequesting = false;
+                mpu_processOllamaQueue();
+                
                 // 檢查是否被頁面感知 AI 或其他重要訊息阻擋
                 if (mpuMessageBlocking || mpuAiContextInProgress) {
                     mpuLogger.log('mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過');

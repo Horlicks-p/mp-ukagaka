@@ -23,6 +23,12 @@ const mpuMaxResponseHistory = 5;        // 最大歷史記錄數量
 let mpuLastUserActionTime = Date.now(); // 記錄最後動作時間（用於閒置偵測）
 const mpuIdleThreshold = 60000;         // 閒置閾值：60 秒（1 分鐘），超過此時間則暫停自動對話（可根據需求調整：30秒=30000, 90秒=90000, 180秒=180000）
 
+// ★★★ 方案 C：前端請求節流機制 ★★★
+// 用於防止連續快速點擊導致多個 Ollama 請求堆積
+let mpuOllamaRequesting = false;        // Ollama 是否正在處理請求
+let mpuOllamaRequestQueue = [];         // 等待處理的請求佇列
+const mpuOllamaQueueDelay = 1500;       // 佇列處理延遲（毫秒）
+
 // 以記憶體保存已解析的對話資料
 window.mpuMsgList = null;
 

@@ -49,6 +49,49 @@ function mpu_is_remote_endpoint($endpoint)
     return false;
 }
 
+// ============================================================
+// ★★★ 方案 B：Ollama 請求鎖定機制 ★★★
+// 防止多個請求同時發送到 Ollama（因為 Ollama 一次只能處理一個請求）
+// ============================================================
+
+/**
+ * 檢查 Ollama 是否正在處理請求
+ * 
+ * @param string $endpoint Ollama 端點
+ * @param string $model 模型名稱
+ * @return bool 是否正在忙碌
+ */
+function mpu_is_ollama_busy($endpoint, $model)
+{
+    $lock_key = 'mpu_ollama_lock_' . md5($endpoint . $model);
+    return get_transient($lock_key) !== false;
+}
+
+/**
+ * 設定 Ollama 忙碌狀態
+ * 
+ * @param string $endpoint Ollama 端點
+ * @param string $model 模型名稱
+ * @param int $duration 鎖定持續時間（秒），默認 90 秒
+ */
+function mpu_set_ollama_busy($endpoint, $model, $duration = 90)
+{
+    $lock_key = 'mpu_ollama_lock_' . md5($endpoint . $model);
+    set_transient($lock_key, time(), $duration);
+}
+
+/**
+ * 釋放 Ollama 鎖定
+ * 
+ * @param string $endpoint Ollama 端點
+ * @param string $model 模型名稱
+ */
+function mpu_release_ollama_lock($endpoint, $model)
+{
+    $lock_key = 'mpu_ollama_lock_' . md5($endpoint . $model);
+    delete_transient($lock_key);
+}
+
 /**
  * 根據端點類型和操作類型獲取適當的超時時間
  * 
@@ -61,14 +104,16 @@ function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
     $is_remote = mpu_is_remote_endpoint($endpoint);
 
     // 根據操作類型和連接類型返回超時時間
+    // ★★★ 改善：大幅增加超時時間以應對 Ollama 單工特性 ★★★
     switch ($operation_type) {
         case 'check':
-            // 服務可用性檢查
-            return $is_remote ? 15 : 15;  // 本地從 5 秒增加到 10 秒，與遠程一致
+            // 服務可用性檢查（保持快速）
+            return $is_remote ? 15 : 15;
 
         case 'api_call':
             // API 調用（生成對話）- 考慮 Ollama 單工特性，需要足夠時間等待排隊請求
-            return $is_remote ? 90 : 45;  // 本地改為 30 秒，遠程保持 90 秒
+            // 本地從 45 秒增加到 90 秒，遠程從 90 秒增加到 120 秒
+            return $is_remote ? 120 : 90;
 
         case 'test':
             // 測試連接
@@ -76,7 +121,7 @@ function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
 
         default:
             // 默認使用 API 調用的超時時間
-            return $is_remote ? 90 : 60;
+            return $is_remote ? 120 : 90;
     }
 }
 
@@ -184,13 +229,13 @@ function mpu_check_ollama_available($endpoint, $model)
         // 這裡不需要額外設置，因為 $is_available 已經是 false
     }
 
-    // 優化緩存策略：成功時緩存 5 分鐘，失敗時只緩存 30 秒
+    // ★★★ 改善：優化緩存策略，避免惡性循環 ★★★
     if ($is_available) {
-        // 成功時緩存 5 分鐘，減少不必要的檢查
-        set_transient($cache_key, 1, 5 * MINUTE_IN_SECONDS);
+        // 成功時緩存 10 分鐘（原本 5 分鐘），減少不必要的檢查
+        set_transient($cache_key, 1, 10 * MINUTE_IN_SECONDS);
     } else {
-        // 失敗時只緩存 30 秒，避免長時間阻塞後續檢查
-        set_transient($cache_key, 0, 30);
+        // 失敗時緩存 60 秒（原本 30 秒），避免短時間內重複檢查導致惡性循環
+        set_transient($cache_key, 0, 60);
     }
 
     if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -730,7 +775,25 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     if ($provider === 'ollama') {
         $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
         $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
+
+        // ★★★ 方案 B：請求鎖定機制 ★★★
+        // 檢查 Ollama 是否正在處理其他請求
+        if (mpu_is_ollama_busy($endpoint, $model)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('MP Ukagaka - Ollama 正在處理其他請求，此請求將被跳過');
+            }
+            // 返回特殊標記，讓前端知道需要稍後重試
+            return 'MPU_OLLAMA_BUSY';
+        }
+
+        // 設定忙碌鎖（90 秒後自動過期，防止死鎖）
+        mpu_set_ollama_busy($endpoint, $model, 90);
+
+        // 調用 Ollama API
         $result = mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language);
+
+        // 完成後釋放鎖
+        mpu_release_ollama_lock($endpoint, $model);
     } else {
         $result = mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt);
     }
@@ -740,13 +803,10 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('LLM Dialogue Generation Failed: ' . $result->get_error_message());
         }
-        // 如果調用失敗，清除緩存（僅 Ollama）
-        if ($provider === 'ollama') {
-            $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
-            $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
-            $cache_key = 'mpu_ollama_available_' . md5($endpoint . $model);
-            delete_transient($cache_key);
-        }
+        // ★★★ 改善：移除失敗時清除緩存的邏輯 ★★★
+        // 原本這裡會清除緩存，但這會導致惡性循環：
+        // 超時 → 清除快取 → 重新驗證 → 再超時 → 再清除
+        // 現在保留緩存，讓系統在緩存過期後自然重試
         return false;
     }
 
@@ -777,10 +837,10 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
             $similarity = mpu_calculate_text_similarity($result, $last_response);
             if ($similarity >= $similarity_threshold) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log("MP Ukagaka - 檢測到重複回應（相似度: " . round($similarity * 100, 1) . "%），拒絕返回");
+                    error_log("MP Ukagaka - 檢測到重複回應（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
                 }
-                // 相似度太高，返回 false 讓系統使用後備對話
-                return false;
+                // 相似度太高，返回特殊標記讓前端使用內建對話
+                return 'MPU_USE_FALLBACK';
             }
         }
 
@@ -790,10 +850,10 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
                 $similarity = mpu_calculate_text_similarity($result, $hist_response);
                 if ($similarity >= $similarity_threshold) {
                     if (defined('WP_DEBUG') && WP_DEBUG) {
-                        error_log("MP Ukagaka - 檢測到與歷史回應重複（相似度: " . round($similarity * 100, 1) . "%），拒絕返回");
+                        error_log("MP Ukagaka - 檢測到與歷史回應重複（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
                     }
-                    // 相似度太高，返回 false 讓系統使用後備對話
-                    return false;
+                    // 相似度太高，返回特殊標記讓前端使用內建對話
+                    return 'MPU_USE_FALLBACK';
                 }
             }
         }
