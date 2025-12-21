@@ -19,7 +19,6 @@ function mpu_ajax_nextmsg()
 {
     $mpu_opt = mpu_get_option();
 
-    // 支援 POST 和 GET 兩種方式（優先使用 POST，向後兼容 GET）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
 
     $cur_num = isset($request_data["cur_num"])
@@ -29,62 +28,37 @@ function mpu_ajax_nextmsg()
         ? intval($request_data["cur_msgnum"])
         : 0;
 
-    // 檢查是否啟用了「使用 LLM 取代內建對話」
     $is_llm_enabled = mpu_is_llm_replace_dialogue_enabled();
 
-    // 調試日誌已移除，避免 debug.log 中出現過多訊息
-    // 如需調試，可臨時取消以下註釋：
-    // if (defined('WP_DEBUG') && WP_DEBUG) {
-    //     error_log('MP Ukagaka - mpu_ajax_nextmsg: is_llm_enabled = ' . ($is_llm_enabled ? 'true' : 'false'));
-    //     error_log('MP Ukagaka - mpu_ajax_nextmsg: ai_provider = ' . ($mpu_opt['ai_provider'] ?? 'not set'));
-    //     error_log('MP Ukagaka - mpu_ajax_nextmsg: ollama_replace_dialogue = ' . (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue'] ? 'true' : 'false'));
-    // }
-
     if ($is_llm_enabled) {
-        // 獲取上一次回應（從 POST/GET 參數中獲取，用於避免重複對話）
-        // 注意：sanitize_text_field 內部已處理 wp_unslash，但為了明確性，這裡直接使用
         $last_response = isset($request_data['last_response'])
             ? sanitize_text_field($request_data['last_response'])
             : '';
 
-        // ★★★ 獲取回應歷史（用於更嚴格的重複檢測）★★★
         $response_history = [];
         if (isset($request_data['response_history'])) {
-            // 1. 先使用 wp_unslash 去除 WordPress 自動添加的反斜線
-            // WordPress 會對所有 $_POST、$_GET 數據自動進行 addslashes 處理
-            // 這會導致 JSON 字串中的引號 " 變成 \"，導致 json_decode 失敗
             $history_json = wp_unslash($request_data['response_history']);
-
-            // 2. 解碼原始 JSON
             $decoded_history = json_decode($history_json, true);
 
             if (is_array($decoded_history)) {
-                // 3. 限制歷史記錄數量
                 $response_history = array_slice($decoded_history, -5);
-
-                // 4. 對解碼後的內容進行消毒 (Sanitization)
                 $response_history = array_map('sanitize_text_field', $response_history);
             }
         }
 
-        // 使用 LLM 生成對話
         $llm_msg = mpu_generate_llm_dialogue($cur_num, $last_response, $response_history);
 
-        // 檢查是否需要使用內建對話（重複檢測或 Ollama 忙碌）
         $use_fallback = ($llm_msg === 'MPU_USE_FALLBACK' || $llm_msg === 'MPU_OLLAMA_BUSY');
 
         if ($llm_msg !== false && $llm_msg !== 'MPU_OLLAMA_NOT_AVAILABLE' && !$use_fallback) {
-            // LLM 生成成功，使用生成的對話
             $msg = $llm_msg;
-            $msgnum = 0; // LLM 生成的對話不需要 msgnum
+            $msgnum = 0;
         } elseif ($use_fallback || $llm_msg === false) {
-            // ★★★ 重複檢測觸發或 Ollama 忙碌或生成失敗，使用內建對話 ★★★
             $msg_array = mpu_get_msg_arr($cur_num);
             $msgs = $msg_array["msg"] ?? [];
             $total = count($msgs);
 
             if ($total > 0) {
-                // 隨機選擇一條內建對話
                 $msg = $msgs[mt_rand(0, $total - 1)];
                 $msgnum = array_search($msg, $msgs, true);
                 if ($msgnum === false) {
@@ -100,7 +74,6 @@ function mpu_ajax_nextmsg()
                 $msgnum = 0;
             }
         } else {
-            // 當 Ollama 未啟動時，顯示錯誤提示
             $msg = __("本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。", "mp-ukagaka");
             $msgnum = 0;
 
@@ -109,7 +82,6 @@ function mpu_ajax_nextmsg()
             }
         }
     } else {
-        // 正常模式：從外部文件讀取對話
         $msg_array = mpu_get_msg_arr($cur_num);
         $msgs = $msg_array["msg"] ?? [];
         $total = count($msgs);
@@ -381,7 +353,6 @@ function mpu_ajax_chat_context()
         return;
     }
 
-    // System Prompt：只讀取後台設定並做變數替換
     $wp_info = mpu_get_wordpress_info();
     $ukagaka_name = $mpu_opt['cur_ukagaka'] ?? 'default_1';
     $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '春菜';
@@ -409,7 +380,6 @@ function mpu_ajax_chat_context()
     $system_prompt = $mpu_opt["ai_system_prompt"] ?? "你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。";
     $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
 
-    // User Prompt：包含用戶資訊、訪客資訊、文章內容
     $user_info = mpu_get_current_user_info();
     $visitor_info = mpu_get_visitor_info_for_llm();
 
@@ -452,14 +422,13 @@ function mpu_ajax_chat_context()
     $user_prompt .= "標題：{$page_title}\n\n";
     $user_prompt .= "內容摘要：{$page_content}";
 
-    // 調用 AI API
     $result = mpu_call_ai_api(
         $provider,
         $api_key,
         $system_prompt,
         $user_prompt,
         $language,
-        $mpu_opt // 傳遞完整設定以便獲取模型名稱
+        $mpu_opt
     );
 
     if (is_wp_error($result)) {
@@ -467,29 +436,22 @@ function mpu_ajax_chat_context()
         return;
     }
 
-    // 更新速率限制計數器
     $current_count = ($rate_limit !== false) ? intval($rate_limit) : 0;
-    set_transient($transient_key, $current_count + 1, 60); // 60 秒內最多 10 次
+    set_transient($transient_key, $current_count + 1, 60);
 
     wp_send_json(["msg" => $result]);
 }
 add_action('wp_ajax_mpu_chat_context', 'mpu_ajax_chat_context');
 add_action('wp_ajax_nopriv_mpu_chat_context', 'mpu_ajax_chat_context');
 
-/**
- * AJAX 處理器：獲取訪客資訊
- * 使用 Slimstat API 獲取更詳細的訪客資訊
- */
 function mpu_ajax_get_visitor_info()
 {
     global $wpdb;
 
-    // 從 $_SERVER 獲取基本資訊
     $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw($_SERVER['HTTP_REFERER']) : "";
     $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? sanitize_text_field($_SERVER['HTTP_USER_AGENT']) : "";
     $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : "";
 
-    // 準備返回的資訊
     $visitor_info = [
         "referrer" => $referrer,
         "user_agent" => $user_agent,
@@ -498,18 +460,14 @@ function mpu_ajax_get_visitor_info()
         "slimstat_enabled" => false,
     ];
 
-    // 使用 Slimstat 獲取更詳細的訪客資訊
     if (class_exists('wp_slimstat')) {
         $visitor_info["slimstat_enabled"] = true;
 
-        // 直接查詢 Slimstat 資料庫
         global $wpdb;
         $slimstat_table = $wpdb->prefix . 'slim_stats';
 
-        // 使用 prepare 防止 SQL 注入（安全性）
         $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $slimstat_table));
         if ($table_exists == $slimstat_table) {
-            // 查詢當前 IP 最近的完整記錄（包含 BOT 資訊）
             $query = $wpdb->prepare(
                 "SELECT referer, country, city, browser, browser_type FROM {$slimstat_table} WHERE ip = %s ORDER BY dt DESC LIMIT 1",
                 $ip
@@ -517,24 +475,19 @@ function mpu_ajax_get_visitor_info()
             $result = $wpdb->get_row($query, OBJECT);
 
             if (!empty($result)) {
-                // 優先使用 Slimstat 的 referer（更準確）
                 if (!empty($result->referer)) {
                     $visitor_info["slimstat_referer"] = esc_url_raw($result->referer);
                     $visitor_info["referrer"] = $visitor_info["slimstat_referer"];
                 }
 
-                // 獲取 country
                 if (!empty($result->country)) {
                     $visitor_info["slimstat_country"] = sanitize_text_field($result->country);
                 }
 
-                // 獲取 city（可選）
                 if (!empty($result->city)) {
                     $visitor_info["slimstat_city"] = sanitize_text_field($result->city);
                 }
 
-                // ★★★ 獲取 BOT 資訊 ★★★
-                // browser_type: 0 = 一般瀏覽器, 1 = crawler/bot, 2 = mobile
                 if (isset($result->browser_type)) {
                     $visitor_info["is_bot"] = (intval($result->browser_type) === 1);
                     $visitor_info["browser_type"] = intval($result->browser_type);
@@ -548,8 +501,6 @@ function mpu_ajax_get_visitor_info()
                     $visitor_info["browser_name"] = sanitize_text_field($result->browser);
                 }
             } else {
-                // 如果資料庫中沒有記錄，嘗試從當前請求檢測 BOT
-                // 使用 Slimstat 的 Browscap 服務來檢測
                 if (class_exists('\SlimStat\Services\Browscap')) {
                     $browser = \SlimStat\Services\Browscap::get_browser();
                     if (!empty($browser)) {
@@ -564,13 +515,11 @@ function mpu_ajax_get_visitor_info()
         }
     }
 
-    // 解析 referrer 獲取來源資訊
     if (!empty($visitor_info["referrer"])) {
         $parsed_url = parse_url($visitor_info["referrer"]);
         $visitor_info["referrer_host"] = isset($parsed_url['host']) ? $parsed_url['host'] : "";
         $visitor_info["referrer_path"] = isset($parsed_url['path']) ? $parsed_url['path'] : "";
 
-        // 判斷是否為搜尋引擎
         $search_engines = ['google', 'bing', 'yahoo', 'baidu', 'yandex', 'duckduckgo', 'naver'];
         $referrer_host_lower = strtolower($visitor_info["referrer_host"]);
         foreach ($search_engines as $engine) {
@@ -586,14 +535,8 @@ function mpu_ajax_get_visitor_info()
 add_action('wp_ajax_mpu_get_visitor_info', 'mpu_ajax_get_visitor_info');
 add_action('wp_ajax_nopriv_mpu_get_visitor_info', 'mpu_ajax_get_visitor_info');
 
-/**
- * AJAX 處理器：首次訪客 AI 打招呼
- * 根據訪客資訊生成個性化問候語
- */
 function mpu_ajax_chat_greet()
 {
-    // 驗證 Nonce（如果提供）
-    // 注意：Nonce 驗證是可選的，主要依賴速率限制來防止濫用
     if (isset($_POST['mpu_nonce'])) {
         if (!wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
             wp_send_json(["error" => "安全性驗證失敗"]);
@@ -613,13 +556,11 @@ function mpu_ajax_chat_greet()
 
     $mpu_opt = mpu_get_option();
 
-    // 驗證 AI 是否啟用
     if (empty($mpu_opt["ai_enabled"])) {
         wp_send_json(["error" => "AI 功能未啟用"]);
         return;
     }
 
-    // 驗證首次訪客打招呼是否啟用
     if (empty($mpu_opt["ai_greet_first_visit"])) {
         wp_send_json(["error" => "首次訪客打招呼功能未啟用"]);
         return;
@@ -663,7 +604,6 @@ function mpu_ajax_chat_greet()
     $country = isset($_POST["country"]) ? sanitize_text_field($_POST["country"]) : "";
     $city = isset($_POST["city"]) ? sanitize_text_field($_POST["city"]) : "";
 
-    // 驗證輸入長度（安全性，使用多位元組函數避免 UTF-8 亂碼）
     if (mb_strlen($referrer, 'UTF-8') > 500) {
         $referrer = mb_substr($referrer, 0, 500, 'UTF-8');
     }
@@ -677,7 +617,6 @@ function mpu_ajax_chat_greet()
         $city = mb_substr($city, 0, 100, 'UTF-8');
     }
 
-    // System Prompt：只讀取後台設定並做變數替換
     $wp_info = mpu_get_wordpress_info();
     $ukagaka_name = $mpu_opt['cur_ukagaka'] ?? 'default_1';
     $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '春菜';
@@ -705,7 +644,6 @@ function mpu_ajax_chat_greet()
     $system_prompt = $mpu_opt["ai_greet_prompt"] ?? "你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。";
     $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
 
-    // User Prompt：包含用戶資訊、訪客來源資訊
     $user_info = mpu_get_current_user_info();
 
     $user_prompt = "【當前用戶資訊】\n";
@@ -747,7 +685,6 @@ function mpu_ajax_chat_greet()
         $user_prompt .= "訪客來源資訊不明。";
     }
 
-    // 添加地理位置資訊（如果有的話）
     if (!empty($country)) {
         $user_prompt .= "訪客來自「{$country}」";
         if (!empty($city)) {
@@ -758,7 +695,6 @@ function mpu_ajax_chat_greet()
 
     $user_prompt .= "\n\n請用親切友善的語氣打招呼。";
 
-    // 調試模式：記錄傳遞給 AI 的資訊
     if (defined('WP_DEBUG') && WP_DEBUG) {
         error_log("MP Ukagaka - AI 打招呼提示詞:");
         error_log("  - Referrer: " . ($referrer ?: "無"));
@@ -770,7 +706,6 @@ function mpu_ajax_chat_greet()
         error_log("  - User Prompt: " . $user_prompt);
     }
 
-    // 調用 AI API
     $result = mpu_call_ai_api(
         $provider,
         $api_key,
@@ -785,19 +720,14 @@ function mpu_ajax_chat_greet()
         return;
     }
 
-    // 更新速率限制計數器
     $current_count = ($rate_limit !== false) ? intval($rate_limit) : 0;
-    set_transient($transient_key, $current_count + 1, 300); // 5 分鐘內最多 5 次
+    set_transient($transient_key, $current_count + 1, 300);
 
     wp_send_json(["msg" => $result]);
 }
 add_action('wp_ajax_mpu_chat_greet', 'mpu_ajax_chat_greet');
 add_action('wp_ajax_nopriv_mpu_chat_greet', 'mpu_ajax_chat_greet');
 
-/**
- * AJAX 處理器：測試 Ollama 連接
- * 驗證 Ollama 端點和模型是否可用
- */
 function mpu_ajax_test_ollama_connection()
 {
     check_ajax_referer('mpu_test_connection', 'nonce');
@@ -805,16 +735,13 @@ function mpu_ajax_test_ollama_connection()
     $endpoint = sanitize_text_field($_POST['endpoint'] ?? 'http://localhost:11434');
     $model = sanitize_text_field($_POST['model'] ?? 'qwen3:8b');
 
-    // 驗證端點 URL
-    // 檢查輔助函數是否存在（確保 llm-functions.php 已載入）
     if (!function_exists('mpu_validate_ollama_endpoint')) {
-        // 如果函數不存在，使用基本驗證
         $endpoint = rtrim($endpoint, '/');
         if (!preg_match('/^https?:\/\/.+/', $endpoint)) {
             wp_send_json_error(__('端點 URL 格式錯誤：必須是有效的 HTTP 或 HTTPS URL', 'mp-ukagaka'));
             return;
         }
-        $timeout = 30; // 默認超時
+        $timeout = 30;
         $is_remote = !preg_match('/localhost|127\.0\.0\.1|::1/', $endpoint);
         if ($is_remote) {
             $timeout = 45;
@@ -827,12 +754,10 @@ function mpu_ajax_test_ollama_connection()
         }
         $endpoint = $validated_endpoint;
 
-        // 根據端點類型使用動態超時時間
         $timeout = mpu_get_ollama_timeout($endpoint, 'test');
         $is_remote = mpu_is_remote_endpoint($endpoint);
     }
 
-    // 構建測試請求
     $api_url = rtrim($endpoint, '/') . '/api/chat';
     $request_body = [
         'model' => $model,
@@ -841,7 +766,7 @@ function mpu_ajax_test_ollama_connection()
         ],
         'stream' => false,
         'options' => [
-            'num_predict' => 50,  // 增加 token 數量，確保生成實際內容
+            'num_predict' => 50,
             'temperature' => 0.7
         ]
     ];
@@ -849,14 +774,13 @@ function mpu_ajax_test_ollama_connection()
     $response = wp_remote_post($api_url, [
         'headers' => ['Content-Type' => 'application/json'],
         'body' => wp_json_encode($request_body),
-        'timeout' => $timeout,  // 動態超時：本地 30 秒，遠程 45 秒
+        'timeout' => $timeout,
     ]);
 
     if (is_wp_error($response)) {
         $error_message = $response->get_error_message();
         $connection_type = $is_remote ? '遠程' : '本地';
 
-        // 根據連接類型提供更詳細的錯誤訊息
         if (strpos($error_message, 'timeout') !== false || strpos($error_message, 'timed out') !== false) {
             if ($is_remote) {
                 wp_send_json_error(sprintf(__('連接超時（已等待 %s 秒）。遠程連接可能需要更長時間，請檢查 Cloudflare Tunnel 或網絡狀況。', 'mp-ukagaka'), $timeout));
@@ -886,17 +810,14 @@ function mpu_ajax_test_ollama_connection()
     if ($response_code === 200) {
         $data = json_decode($response_body, true);
 
-        // 調試：記錄響應結構（僅在 WP_DEBUG 模式下）
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('Ollama Test Response: ' . print_r($data, true));
         }
 
-        // 檢查多種可能的響應格式
         $content = null;
         $has_content = false;
 
         if (!empty($data['message']['content'])) {
-            // 優先使用 content（實際回應）
             $content = $data['message']['content'];
             $has_content = true;
         } elseif (!empty($data['content'])) {
@@ -909,30 +830,24 @@ function mpu_ajax_test_ollama_connection()
             $content = $data['response'];
             $has_content = true;
         } elseif (!empty($data['message']['thinking'])) {
-            // 只有在沒有 content 時才使用 thinking（僅用於測試）
             $content = $data['message']['thinking'];
-            $has_content = false; // 標記這不是實際內容
+            $has_content = false;
         }
 
         if (!empty($content)) {
             if ($has_content) {
-                // 清除之前的失敗緩存，確保下次檢查時使用最新狀態
                 $cache_key = 'mpu_ollama_available_' . md5($endpoint . $model);
                 delete_transient($cache_key);
-                // 設置成功緩存（5 分鐘）
                 set_transient($cache_key, 1, 5 * MINUTE_IN_SECONDS);
 
-                // 成功：返回簡短的確認訊息
                 $preview = mb_substr($content, 0, 50);
                 $connection_type_text = $is_remote ? __('遠程', 'mp-ukagaka') : __('本地', 'mp-ukagaka');
                 wp_send_json_success(sprintf(__('連接成功（%s連接），模型響應正常（預覽：%s...）', 'mp-ukagaka'), $connection_type_text, $preview));
             } else {
-                // 只有 thinking 沒有 content，提示用戶可能需要調整參數
                 $preview = mb_substr($content, 0, 50);
                 wp_send_json_success(sprintf(__('連接成功，但模型只返回思考過程（預覽：%s...）。實際使用時應會生成內容。', 'mp-ukagaka'), $preview));
             }
         } else {
-            // 提供更詳細的錯誤信息和實際響應內容（用於調試）
             $response_keys = is_array($data) ? array_keys($data) : [];
             $response_preview = mb_substr($response_body, 0, 200);
 
@@ -952,10 +867,6 @@ function mpu_ajax_test_ollama_connection()
 }
 add_action('wp_ajax_mpu_test_ollama_connection', 'mpu_ajax_test_ollama_connection');
 
-/**
- * AJAX 處理器：測試 Gemini 連接
- * 驗證 API Key 和模型是否可用
- */
 function mpu_ajax_test_gemini_connection()
 {
     check_ajax_referer('mpu_test_connection', 'nonce');
@@ -963,7 +874,6 @@ function mpu_ajax_test_gemini_connection()
     $api_key = sanitize_text_field($_POST['api_key'] ?? '');
     $model = sanitize_text_field($_POST['model'] ?? 'gemini-2.5-flash');
 
-    // 如果前端沒有提供 API Key，嘗試從已保存的設定中讀取
     if (empty($api_key)) {
         $mpu_opt = mpu_get_option();
         $api_key_encrypted = $mpu_opt['llm_gemini_api_key'] ?? $mpu_opt['ai_api_key'] ?? '';
@@ -977,7 +887,6 @@ function mpu_ajax_test_gemini_connection()
         return;
     }
 
-    // 構建測試請求
     $api_url = "https://generativelanguage.googleapis.com/v1/models/{$model}:generateContent?key=" . urlencode($api_key);
     $request_body = [
         "contents" => [
@@ -1036,10 +945,6 @@ function mpu_ajax_test_gemini_connection()
 }
 add_action('wp_ajax_mpu_test_gemini_connection', 'mpu_ajax_test_gemini_connection');
 
-/**
- * AJAX 處理器：測試 OpenAI 連接
- * 驗證 API Key 和模型是否可用
- */
 function mpu_ajax_test_openai_connection()
 {
     check_ajax_referer('mpu_test_connection', 'nonce');
@@ -1047,7 +952,6 @@ function mpu_ajax_test_openai_connection()
     $api_key = sanitize_text_field($_POST['api_key'] ?? '');
     $model = sanitize_text_field($_POST['model'] ?? 'gpt-4o-mini');
 
-    // 如果前端沒有提供 API Key，嘗試從已保存的設定中讀取
     if (empty($api_key)) {
         $mpu_opt = mpu_get_option();
         $api_key_encrypted = $mpu_opt['llm_openai_api_key'] ?? $mpu_opt['openai_api_key'] ?? '';
@@ -1061,7 +965,6 @@ function mpu_ajax_test_openai_connection()
         return;
     }
 
-    // 構建測試請求
     $api_url = "https://api.openai.com/v1/chat/completions";
     $request_body = [
         "model" => $model,
@@ -1115,10 +1018,6 @@ function mpu_ajax_test_openai_connection()
 }
 add_action('wp_ajax_mpu_test_openai_connection', 'mpu_ajax_test_openai_connection');
 
-/**
- * AJAX 處理器：測試 Claude 連接
- * 驗證 API Key 和模型是否可用
- */
 function mpu_ajax_test_claude_connection()
 {
     check_ajax_referer('mpu_test_connection', 'nonce');
@@ -1126,7 +1025,6 @@ function mpu_ajax_test_claude_connection()
     $api_key = sanitize_text_field($_POST['api_key'] ?? '');
     $model = sanitize_text_field($_POST['model'] ?? 'claude-sonnet-4-5-20250929');
 
-    // 如果前端沒有提供 API Key，嘗試從已保存的設定中讀取
     if (empty($api_key)) {
         $mpu_opt = mpu_get_option();
         $api_key_encrypted = $mpu_opt['llm_claude_api_key'] ?? $mpu_opt['claude_api_key'] ?? '';
@@ -1140,7 +1038,6 @@ function mpu_ajax_test_claude_connection()
         return;
     }
 
-    // 構建測試請求
     $api_url = "https://api.anthropic.com/v1/messages";
     $request_body = [
         "model" => $model,

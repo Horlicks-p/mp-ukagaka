@@ -58,7 +58,6 @@ function mpu_is_show_page()
         $_SERVER["REQUEST_URI"]
         : "";
 
-    // 修正：如果網址為空，直接返回 true (通常不會發生，但以防萬一)
     if (empty($url)) {
         return true;
     }
@@ -113,19 +112,16 @@ function mpu_html($num = false)
     $ukagaka = mpu_get_ukagaka($ukagaka_num);
     $ukagaka_num = $ukagaka_num ?? "default_1"; // 確保有值
 
-    // 檢查 ukagaka 是否為空，避免錯誤
     if (empty($ukagaka)) {
         return "";
     }
 
-    // 使用已定義的常量獲取主文件路徑
     $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
     $ok_png = esc_url(plugins_url("images/ok_hover.png", $main_file));
     $cancel_png = esc_url(plugins_url("images/cancel_hover.png", $main_file));
 
     $html = "";
 
-    // 一律使用外部文件模式，不再從內部對話讀取
     $ext = $mpu_opt["external_file_format"] ?? "txt";
     $dialog_filename = $ukagaka["dialog_filename"] ?? $ukagaka_num;
     $data_file = "dialogs/" . $dialog_filename . "." . $ext;
@@ -234,7 +230,6 @@ function mpu_enqueue_frontend_assets()
         true
     );
 
-    // 2. 核心功能（UI、對話、切換春菜）
     wp_enqueue_script(
         'mpu-core',
         plugins_url('js/ukagaka-core.js', $main_file),
@@ -243,7 +238,6 @@ function mpu_enqueue_frontend_assets()
         true
     );
 
-    // 3. 動畫模組
     wp_enqueue_script(
         'mpu-anime',
         plugins_url('js/ukagaka-anime.js', $main_file),
@@ -252,7 +246,6 @@ function mpu_enqueue_frontend_assets()
         true
     );
 
-    // 4. 功能模組（AI、外部對話、事件處理）
     wp_enqueue_script(
         'mpu-features',
         plugins_url('js/ukagaka-features.js', $main_file),
@@ -263,11 +256,6 @@ function mpu_enqueue_frontend_assets()
 }
 add_action('wp_enqueue_scripts', 'mpu_enqueue_frontend_assets');
 
-
-/**
- * 在 <head> 標籤中的處理
- * 移除 JS/CSS 檔案的直接輸出，僅保留 JS 變數和內聯邏輯
- */
 function mpu_head()
 {
     if (!mpu_is_show_page()) {
@@ -276,9 +264,6 @@ function mpu_head()
 
     $mpu_opt = mpu_get_option();
 
-    // CSS 和 JS 檔案的 <link> <script> 輸出已移除（由 mpu_enqueue_frontend_assets 處理）
-
-    // 定義 JS 全域變數（ukagaka.js 依賴這些變數）
     $robot_show = mpu_js_filter(__("顯示春菜 ▲", "mp-ukagaka"));
     $robot_hide = mpu_js_filter(__("隱藏春菜 ▼", "mp-ukagaka"));
     $msg_show = mpu_js_filter(__("顯示會話 ▲", "mp-ukagaka"));
@@ -292,7 +277,6 @@ function mpu_head()
         msg: ['{$msg_show}', '{$msg_hide}']
     };\n";
 
-    // 預先輸出 LLM 設定，供前端判斷是否跳過內建對話載入
     $ollama_replace = function_exists('mpu_is_llm_replace_dialogue_enabled')
         ? mpu_is_llm_replace_dialogue_enabled()
         : false;
@@ -300,15 +284,12 @@ function mpu_head()
     echo "    ollama_replace: " . ($ollama_replace ? 'true' : 'false') . "\n";
     echo "};\n";
 
-    // 獲取當前春菜的 shell_info 用於初始化 Canvas
     $ukagaka_num = $mpu_opt["cur_ukagaka"] ?? "default_1";
     $shell_info = mpu_get_shell_info($ukagaka_num);
     $ukagaka_name = $mpu_opt["ukagakas"][$ukagaka_num]["name"] ?? "";
 
-    // mpu_getCookie 在 footer 載入，需在 DOM ready 後執行
     echo '
     jQuery(document).ready(function($) {
-        // 初始化 Canvas（延遲執行，確保 Canvas 元素已存在）
         if (typeof window.mpuCanvasManager !== "undefined" && $("#cur_ukagaka").length > 0) {
             var shellInfo = ' . wp_json_encode($shell_info) . ';
             window.mpuCanvasManager.init(shellInfo, ' . wp_json_encode($ukagaka_name) . ');
@@ -318,31 +299,28 @@ function mpu_head()
         var showMsg   = mpu_getCookie("mpuMsg");
         if (showRobot==null) {';
     if (empty($mpu_opt["show_ukagaka"])) {
-        // 預設隱藏
         echo '
             $("#show_ukagaka").html(mpuInfo.robot[0]); 
             $("#ukagaka").fadeOut(400);';
     }
     echo '
-        } else if (showRobot=="hidden") { // Cookie 記住隱藏狀態
+        } else if (showRobot=="hidden") {
             $("#show_ukagaka").html(mpuInfo.robot[0]); 
             $("#ukagaka").fadeOut(400);
         }
         if (showMsg==null) {';
     if (empty($mpu_opt["show_msg"])) {
-        // 預設隱藏
         echo '
             $("#show_msg").html(mpuInfo.msg[0]); 
             $("#ukagaka_msgbox").fadeOut(400);';
     }
     echo '
-        } else if (showMsg=="hidden") { // Cookie 記住隱藏狀態
+        } else if (showMsg=="hidden") {
             $("#show_msg").html(mpuInfo.msg[0]); 
             $("#ukagaka_msgbox").fadeOut(400);
         }
     });';
 
-    // 擴展 JavaScript
     if (!empty($mpu_opt["extend"]["js_area"])) {
         echo stripslashes($mpu_opt["extend"]["js_area"]) . "\n";
     }

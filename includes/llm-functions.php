@@ -49,11 +49,6 @@ function mpu_is_remote_endpoint($endpoint)
     return false;
 }
 
-// ============================================================
-// ★★★ 方案 B：Ollama 請求鎖定機制 ★★★
-// 防止多個請求同時發送到 Ollama（因為 Ollama 一次只能處理一個請求）
-// ============================================================
-
 /**
  * 檢查 Ollama 是否正在處理請求
  * 
@@ -103,24 +98,17 @@ function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
 {
     $is_remote = mpu_is_remote_endpoint($endpoint);
 
-    // 根據操作類型和連接類型返回超時時間
-    // ★★★ 改善：大幅增加超時時間以應對 Ollama 單工特性 ★★★
     switch ($operation_type) {
         case 'check':
-            // 服務可用性檢查（保持快速）
             return $is_remote ? 15 : 15;
 
         case 'api_call':
-            // API 調用（生成對話）- 考慮 Ollama 單工特性，需要足夠時間等待排隊請求
-            // 本地從 45 秒增加到 90 秒，遠程從 90 秒增加到 120 秒
             return $is_remote ? 120 : 90;
 
         case 'test':
-            // 測試連接
             return $is_remote ? 45 : 30;
 
         default:
-            // 默認使用 API 調用的超時時間
             return $is_remote ? 120 : 90;
     }
 }
@@ -190,8 +178,6 @@ function mpu_check_ollama_available($endpoint, $model)
     $timeout = mpu_get_ollama_timeout($endpoint, 'check');
     $is_remote = mpu_is_remote_endpoint($endpoint);
 
-    // 構建測試 API URL（嘗試多個端點以確保兼容性）
-    // 優先使用 /api/version（最輕量），如果失敗則嘗試 /api/tags
     $api_urls = [
         rtrim($endpoint, '/') . '/api/version',
         rtrim($endpoint, '/') . '/api/tags',
@@ -201,40 +187,27 @@ function mpu_check_ollama_available($endpoint, $model)
     $last_error = null;
 
     foreach ($api_urls as $api_url) {
-        // 發送輕量級請求檢查服務是否可用（使用動態超時）
         $response = wp_remote_get($api_url, [
             'headers' => [
                 'Content-Type' => 'application/json',
             ],
-            'timeout' => $timeout,  // 動態超時：本地 3 秒，遠程 10 秒
+            'timeout' => $timeout,
         ]);
 
         if (!is_wp_error($response)) {
             $response_code = wp_remote_retrieve_response_code($response);
             if ($response_code === 200) {
-                // 服務可用（Ollama 服務正在運行）
                 $is_available = true;
-                break; // 找到可用的端點，退出循環
+                break;
             }
         } else {
-            // 記錄最後一個錯誤
             $last_error = $response;
         }
     }
 
-    // 如果所有端點都失敗，檢查最後一個錯誤
-    if (!$is_available && $last_error !== null) {
-        $error_message = $last_error->get_error_message();
-        // 連接錯誤表示服務不可用（這已經是 false，但我們記錄錯誤信息）
-        // 這裡不需要額外設置，因為 $is_available 已經是 false
-    }
-
-    // ★★★ 改善：優化緩存策略，避免惡性循環 ★★★
     if ($is_available) {
-        // 成功時緩存 10 分鐘（原本 5 分鐘），減少不必要的檢查
         set_transient($cache_key, 1, 10 * MINUTE_IN_SECONDS);
     } else {
-        // 失敗時緩存 60 秒（原本 30 秒），避免短時間內重複檢查導致惡性循環
         set_transient($cache_key, 0, 60);
     }
 
@@ -353,22 +326,16 @@ function mpu_get_visitor_info_for_llm()
                     $visitor_info["slimstat_city"] = sanitize_text_field($result->city);
                 }
 
-                // ★★★ 獲取 BOT 資訊 ★★★
-                // browser_type: 0 = 一般瀏覽器, 1 = crawler/bot, 2 = mobile
                 if (isset($result->browser_type)) {
                     $visitor_info["is_bot"] = (intval($result->browser_type) === 1);
                     $visitor_info["browser_type"] = intval($result->browser_type);
                 }
 
-                // 獲取瀏覽器名稱（BOT 名稱）
                 if (!empty($result->browser)) {
                     $visitor_info["browser_name"] = sanitize_text_field($result->browser);
                 }
             } else {
-                // 如果資料庫中沒有記錄，嘗試從當前請求檢測 BOT
-                // 使用 Slimstat 的 Browscap 服務來檢測
                 if (class_exists('\SlimStat\Services\Browscap')) {
-                    // SlimStat\Services\Browscap is provided by the SlimStat plugin (external dependency)
                     /** @phpstan-var class-string<\SlimStat\Services\Browscap> $browscap_class */
                     $browscap_class = '\SlimStat\Services\Browscap';
                     $browser = $browscap_class::get_browser();
@@ -413,6 +380,40 @@ function mpu_get_visitor_status_text($visitor_info)
     }
 
     return '';
+}
+
+/**
+ * 獲取隨機文章供 LLM 推薦使用
+ * 
+ * @param int $count 要獲取的文章數量（1-3篇）
+ * @return array 文章陣列，每個元素包含 'title' 和 'url'
+ */
+function mpu_get_random_posts_for_llm($count = 2)
+{
+    // 限制數量範圍
+    $count = max(1, min(3, intval($count)));
+
+    // 查詢隨機的已發布文章
+    $posts = get_posts([
+        "numberposts" => $count,
+        "orderby" => "rand",
+        "post_status" => "publish",
+        "suppress_filters" => true,
+    ]);
+
+    $articles = [];
+
+    foreach ($posts as $post) {
+        $title = get_the_title($post->ID);
+        $permalink = get_permalink($post->ID);
+
+        $articles[] = [
+            'title' => $title,
+            'url' => $permalink,
+        ];
+    }
+
+    return $articles;
 }
 
 /**
@@ -600,28 +601,23 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 {
     $mpu_opt = mpu_get_option();
 
-    // 檢查是否啟用了「使用 LLM 取代內建對話」（支援所有提供商）
     $llm_replace = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_replace_dialogue'] : (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue']);
 
     if (empty($llm_replace)) {
         return false;
     }
 
-    // 獲取提供商（向後兼容：優先使用 llm_provider，否則使用 ai_provider）
     $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
 
     $language = $mpu_opt['ai_language'] ?? 'zh-TW';
 
-    // 如果是 Ollama，優化檢查邏輯：如果緩存顯示可用，直接跳過檢查
     if ($provider === 'ollama') {
         $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
         $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
 
-        // 檢查緩存，如果緩存顯示服務可用，直接跳過檢查（避免連續呼叫時的誤判）
         $cache_key = 'mpu_ollama_available_' . md5($endpoint . $model);
         $cached_result = get_transient($cache_key);
 
-        // 只有在緩存不存在或顯示不可用時，才進行實際檢查
         if ($cached_result === false || $cached_result === 0) {
             if (!mpu_check_ollama_available($endpoint, $model)) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -631,25 +627,14 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
                 return 'MPU_OLLAMA_NOT_AVAILABLE';
             }
         }
-        // 如果緩存顯示可用，直接跳過檢查，讓實際的 API 調用來驗證
     }
 
-    // 獲取春菜名稱
     $ukagaka_name_display = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '春菜';
-
-    // 獲取 WordPress 網站資訊
     $wp_info = mpu_get_wordpress_info();
-
-    // 獲取當前用戶資訊
     $user_info = mpu_get_current_user_info();
-
-    // ★★★ 獲取訪客資訊（包括 BOT 資訊）★★★
     $visitor_info = mpu_get_visitor_info_for_llm();
-
-    // 獲取時間情境
     $time_context = mpu_get_time_context();
 
-    // ★★★ 使用優化後的 System Prompt 建構函數 ★★★
     $system_prompt = mpu_build_optimized_system_prompt(
         $mpu_opt,
         $wp_info,
@@ -660,11 +645,8 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $language
     );
 
-    // Debug 模式：輸出 System Prompt 供檢查
     mpu_debug_system_prompt($system_prompt);
 
-    // ★★★ 使用 Prompt Categories 函數生成類別指令 ★★★
-    // 這些指令會與實際資訊一起組成 User Prompt，引導 LLM 生成對應類型的對話
     $prompt_categories = mpu_build_prompt_categories(
         $wp_info,
         $visitor_info,
@@ -674,13 +656,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $wp_info['theme_author'] ?? ''
     );
 
-    // 獲取動態權重配置（根據時間、訪客狀態等調整）
-    // 獲取上下文變數（可選，用於更精細的權重調整）
     $context_vars = [];
-    // 可以在這裡添加更多上下文變數的檢測邏輯
-    // 例如：$context_vars['is_first_visit'] = ...;
-    // 例如：$context_vars['is_frequent_visitor'] = ...;
-    // 例如：$context_vars['is_weekend'] = ...;
 
     $category_weights = mpu_get_dynamic_category_weights(
         $time_context,
@@ -688,12 +664,25 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $context_vars
     );
 
-    // 使用加權隨機選擇一個類別
     $selected_category = mpu_weighted_random_select($prompt_categories, $category_weights);
-    // 從選中的類別中隨機選擇一個提示詞
     $category_instruction = $prompt_categories[$selected_category][array_rand($prompt_categories[$selected_category])];
 
-    // 構建 User Prompt：包含實際資訊 + 類別指令
+    $articles_info = '';
+    if ($selected_category === 'article_recommendation') {
+        $article_count = mt_rand(1, 3);
+        $articles = mpu_get_random_posts_for_llm($article_count);
+
+        if (!empty($articles)) {
+            $articles_info = "\n【記事情報】\n";
+            $article_num = 1;
+            foreach ($articles as $article) {
+                $articles_info .= "記事{$article_num}：{$article['title']} - {$article['url']}\n";
+                $article_num++;
+            }
+            $articles_info .= "\n注意：記事を紹介する際は、HTML形式の<a>タグを使用してリンクを生成してください（例：<a href=\"記事のURL\">記事のタイトル</a>）。";
+        }
+    }
+
     $user_prompt = "【當前用戶資訊】\n";
     if ($user_info['is_logged_in']) {
         $role_labels = [
@@ -744,20 +733,20 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     $user_prompt .= "\n【時間感覚】\n";
     $user_prompt .= "今は：{$time_context}\n";
 
+    if (!empty($articles_info)) {
+        $user_prompt .= $articles_info;
+    }
+
     $user_prompt .= "\n【会話指示】\n";
     $user_prompt .= $category_instruction;
 
-    // 如果提供了上一次回應，加入避免重複的指令（防止廢話迴圈）
     if (!empty($last_response)) {
         $last_response_escaped = esc_attr($last_response);
-        // 使用日語指令，符合角色風格
         $user_prompt .= "\n\n注意：さっき「{$last_response_escaped}」と言ったため、新しいことがなければ、違う短い一言を言うか、何も言わないで（何も出力しない）。同じことを繰り返さないこと。";
     }
 
-    // 根據提供商調用對應的 API
     $api_key = '';
     if ($provider !== 'ollama') {
-        // 獲取 API Key（向後兼容）
         switch ($provider) {
             case 'gemini':
                 $api_key = !empty($mpu_opt['llm_gemini_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_gemini_api_key']) : (!empty($mpu_opt['ai_api_key']) ? mpu_decrypt_api_key($mpu_opt['ai_api_key']) : '');
@@ -771,28 +760,21 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         }
     }
 
-    // 調用對應的 API
     if ($provider === 'ollama') {
         $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
         $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
 
-        // ★★★ 方案 B：請求鎖定機制 ★★★
-        // 檢查 Ollama 是否正在處理其他請求
         if (mpu_is_ollama_busy($endpoint, $model)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('MP Ukagaka - Ollama 正在處理其他請求，此請求將被跳過');
             }
-            // 返回特殊標記，讓前端知道需要稍後重試
             return 'MPU_OLLAMA_BUSY';
         }
 
-        // 設定忙碌鎖（90 秒後自動過期，防止死鎖）
         mpu_set_ollama_busy($endpoint, $model, 90);
 
-        // 調用 Ollama API
         $result = mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language);
 
-        // 完成後釋放鎖
         mpu_release_ollama_lock($endpoint, $model);
     } else {
         $result = mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt);
@@ -828,23 +810,19 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         }
     }
 
-    // ★★★ 後端相似度檢查（防止廢話迴圈）★★★
     if (!empty($result) && (!empty($last_response) || !empty($response_history))) {
-        $similarity_threshold = 0.7; // 相似度閾值（70%），超過此值視為重複
+        $similarity_threshold = 0.7;
 
-        // 檢查與上一次回應的相似度
         if (!empty($last_response)) {
             $similarity = mpu_calculate_text_similarity($result, $last_response);
             if ($similarity >= $similarity_threshold) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
                     error_log("MP Ukagaka - 檢測到重複回應（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
                 }
-                // 相似度太高，返回特殊標記讓前端使用內建對話
                 return 'MPU_USE_FALLBACK';
             }
         }
 
-        // 檢查與歷史回應的相似度
         if (!empty($response_history) && is_array($response_history)) {
             foreach ($response_history as $hist_response) {
                 $similarity = mpu_calculate_text_similarity($result, $hist_response);
@@ -852,7 +830,6 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
                     if (defined('WP_DEBUG') && WP_DEBUG) {
                         error_log("MP Ukagaka - 檢測到與歷史回應重複（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
                     }
-                    // 相似度太高，返回特殊標記讓前端使用內建對話
                     return 'MPU_USE_FALLBACK';
                 }
             }
@@ -952,34 +929,23 @@ function mpu_lcs_length($str1, $str2)
 
 /**
  * 檢查是否啟用了 LLM 取代內建對話
- * 
- * 注意：此功能獨立於「頁面感知 AI」(ai_enabled)
- * LLM 取代對話只需要：
- * 1. ollama_replace_dialogue 為 true
- * 2. ai_provider 為 'ollama'
- * 
  * @return bool
  */
 function mpu_is_llm_replace_dialogue_enabled()
 {
     $mpu_opt = mpu_get_option();
 
-    // 檢查是否啟用 LLM 取代內建對話（支援所有提供商）
     $llm_replace = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_replace_dialogue'] : (isset($mpu_opt['ollama_replace_dialogue']) && $mpu_opt['ollama_replace_dialogue']);
 
     if (empty($llm_replace)) {
         return false;
     }
 
-    // 獲取提供商（向後兼容）
     $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
 
-    // 檢查提供商是否有有效的設定
     if ($provider === 'ollama') {
-        // Ollama 不需要 API Key，只需要檢查端點和模型
         return true;
     } else {
-        // 雲端提供商需要 API Key
         switch ($provider) {
             case 'gemini':
                 return !empty($mpu_opt['llm_gemini_api_key']) || !empty($mpu_opt['ai_api_key']);

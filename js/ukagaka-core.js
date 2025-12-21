@@ -152,17 +152,12 @@ function mpuMoe(command) {
 
 // ====== 下一句對話 ======
 
-/**
- * ★★★ 方案 C：處理 Ollama 請求佇列 ★★★
- * 從佇列中取出下一個請求並處理
- */
 function mpu_processOllamaQueue() {
     if (mpuOllamaRequestQueue.length === 0) {
         mpuLogger.log('mpu_processOllamaQueue: 佇列為空');
         return;
     }
     
-    // 延遲處理下一個請求，給 Ollama 一些緩衝時間
     setTimeout(function() {
         const nextTrigger = mpuOllamaRequestQueue.shift();
         mpuLogger.log('mpu_processOllamaQueue: 處理佇列中的請求, trigger =', nextTrigger, ', 剩餘佇列長度 =', mpuOllamaRequestQueue.length);
@@ -179,41 +174,31 @@ function mpu_nextmsg(trigger) {
     const isStartup = (trigger === 'startup');
     mpuLogger.log('mpu_nextmsg 被調用, trigger =', trigger, ', isAuto =', isAuto, ', isStartup =', isStartup, ', mpuOllamaReplaceDialogue =', mpuOllamaReplaceDialogue);
 
-    // 如果正在顯示重要訊息（如 API 錯誤或頁面感知 AI 載入中），則完全阻擋切換
-    // 必須在最前面檢查，確保所有觸發方式都被阻止
     if (mpuMessageBlocking) {
         mpuLogger.log('mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過');
         return;
     }
 
-    // 如果關閉了自動對話，且這是自動觸發，則不執行
-    // 注意：isStartup 不受 mpuAutoTalk 影響，因為它是初始對話
     if (isAuto && !mpuAutoTalk) {
         mpuLogger.log('mpu_nextmsg: 自動對話已關閉，退出');
         return;
     }
 
-    // 如果頁面感知 AI 正在進行中，且這是自動觸發或啟動觸發，則跳過
     if ((isAuto || isStartup) && mpuAiContextInProgress) {
         mpuLogger.log('mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話');
         return;
     }
 
-    // 如果首次訪客打招呼正在進行中，且這是自動觸發或啟動觸發，則跳過
     if ((isAuto || isStartup) && mpuGreetInProgress) {
         mpuLogger.log('mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動/啟動對話');
         return;
     }
 
-    // ★★★ 方案 C：前端請求節流機制 ★★★
-    // 如果正在使用 LLM 且有請求正在處理中，將此請求加入佇列
     if (mpuOllamaReplaceDialogue && mpuOllamaRequesting) {
-        // 自動觸發的請求在排隊時直接跳過，不加入佇列（避免佇列堆積）
         if (isAuto) {
             mpuLogger.log('mpu_nextmsg: Ollama 正在處理請求，自動觸發的請求被跳過');
             return;
         }
-        // 手動觸發的請求加入佇列（最多保留 2 個，避免過度堆積）
         if (mpuOllamaRequestQueue.length < 2) {
             mpuLogger.log('mpu_nextmsg: Ollama 正在處理請求，此請求加入佇列');
             mpuOllamaRequestQueue.push(trigger);
@@ -229,30 +214,23 @@ function mpu_nextmsg(trigger) {
 
     mpu_hidemsg(400);
 
-    // 檢查是否啟用了 LLM 取代內建對話
     if (mpuOllamaReplaceDialogue) {
         mpuLogger.log('mpu_nextmsg: 使用 LLM 生成對話');
         
-        // ★★★ 設定請求狀態為處理中 ★★★
         mpuOllamaRequesting = true;
-        // 使用 LLM 生成對話
         const curNum = window.mpuInfo?.num || 'default_1';
         const curMsgnum = parseInt(document.getElementById("ukagaka_msgnum")?.innerHTML || '0', 10) || 0;
 
-        // 使用 POST 方式傳遞資料，避免 URL 長度限制
         const formData = new FormData();
         formData.append('action', 'mpu_nextmsg');
         formData.append('cur_num', curNum);
         formData.append('cur_msgnum', curMsgnum);
         
-        // 傳遞上一次 LLM 回應，用於避免重複對話
         if (mpuLastLLMResponse) {
             formData.append('last_response', mpuLastLLMResponse);
         }
         
-        // ★★★ 傳遞回應歷史（最近3次），用於更嚴格的重複檢測 ★★★
         if (mpuLLMResponseHistory.length > 0) {
-            // 只傳遞最近3次，使用 POST 方式避免 URL 長度限制
             const recentHistory = mpuLLMResponseHistory.slice(-3);
             formData.append('response_history', JSON.stringify(recentHistory));
         }
@@ -262,15 +240,14 @@ function mpu_nextmsg(trigger) {
         mpuFetch(mpuurl, {
             method: 'POST',
             body: formData,
-            timeout: 60000,  // LLM 可能需要較長時間（60秒）
+            timeout: 60000,
             retries: 1,
             requestId: 'mpu_nextmsg_llm',
-            cancelPrevious: true  // 取消前一次還沒跑完的對話請求，防止連點導致多個並行請求
+            cancelPrevious: true
         })
             .then(res => {
                 mpuLogger.log('mpu_nextmsg: LLM 回應 =', res);
 
-                // 檢查是否被頁面感知 AI 或其他重要訊息阻擋
                 if (mpuMessageBlocking || mpuAiContextInProgress) {
                     mpuLogger.log('mpu_nextmsg: LLM 回應被阻擋（頁面感知 AI 正在進行中），跳過顯示');
                     return;
@@ -281,12 +258,10 @@ function mpu_nextmsg(trigger) {
                     const out = res.msg + auto;
                     mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
                     
-                    // 記錄這一次的 LLM 回應，用於下次避免重複對話
                     mpuLastLLMResponse = res.msg;
                     
-                    // ★★★ 記錄到歷史中（用於更嚴格的重複檢測）★★★
                     if (mpuLLMResponseHistory.length >= mpuMaxResponseHistory) {
-                        mpuLLMResponseHistory.shift(); // 移除最舊的記錄
+                        mpuLLMResponseHistory.shift();
                     }
                     mpuLLMResponseHistory.push(res.msg);
                     
@@ -296,42 +271,34 @@ function mpu_nextmsg(trigger) {
                     mpu_showmsg(400);
                 } else {
                     mpuLogger.warn('mpu_nextmsg: LLM 回應沒有 msg，使用後備對話');
-                    // LLM 生成失敗，清除記錄（因為使用的是後備對話）
                     mpuLastLLMResponse = '';
-                    mpuLLMResponseHistory = []; // 清除歷史記錄
-                    // LLM 生成失敗，使用後備對話
+                    mpuLLMResponseHistory = [];
                     mpu_nextmsg_fallback();
                 }
                 
-                // ★★★ 釋放請求狀態並處理佇列 ★★★
                 mpuOllamaRequesting = false;
                 mpu_processOllamaQueue();
             })
             .catch(error => {
-                // ★★★ 釋放請求狀態並處理佇列（即使出錯也要釋放）★★★
                 mpuOllamaRequesting = false;
                 mpu_processOllamaQueue();
                 
-                // 檢查是否被頁面感知 AI 或其他重要訊息阻擋
                 if (mpuMessageBlocking || mpuAiContextInProgress) {
                     mpuLogger.log('mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過');
                     return;
                 }
                 mpuLogger.warn("LLM dialogue generation failed, using fallback:", error);
                 
-                // 在 debug 模式下顯示錯誤提示
                 if (debugMode || window.mpuDebugMode) {
                     const errorMsg = error.message || 'LLM 連接失敗';
                     const debugMessage = `<span style="color: #ff4444;">[LLM 錯誤: ${errorMsg}]</span>`;
                     mpu_typewriter(debugMessage, "#ukagaka_msg");
                     mpu_showmsg(400);
-                    // 2 秒後切換到後備對話
                     setTimeout(() => {
                         mpuLastLLMResponse = '';
                         mpu_nextmsg_fallback();
                     }, 2000);
                 } else {
-                    // 非 debug 模式，直接使用後備對話
                     mpuLastLLMResponse = '';
                     mpu_nextmsg_fallback();
                 }
@@ -339,23 +306,19 @@ function mpu_nextmsg(trigger) {
         return;
     }
 
-    // 正常模式：使用內建對話
     setTimeout(function () {
         const store = window.mpuMsgList;
         
-        // 如果對話尚未載入，等待一段時間後重試（最多重試 3 次）
         if (!store) {
             mpuLogger.warn('mpu_nextmsg: 對話尚未載入，等待載入完成...');
-            // 檢查是否正在載入外部對話（通過檢查是否有載入中的請求）
             const retryCount = window.__mpu_retry_count || 0;
             if (retryCount < 3) {
                 window.__mpu_retry_count = retryCount + 1;
                 setTimeout(() => {
-                    // 不在此處重置計數器，讓重試邏輯繼續累積計數
-                    mpu_nextmsg(trigger); // 重試
-                }, 1000); // 等待 1 秒後重試
+                    mpu_nextmsg(trigger);
+                }, 1000);
             } else {
-                window.__mpu_retry_count = 0; // 最終失敗時才重置計數器
+                window.__mpu_retry_count = 0;
                 mpu_typewriter("對話尚未載入，請稍候...", "#ukagaka_msg");
                 mpu_showmsg(400);
                 mpuLogger.warn('mpu_nextmsg: 對話載入超時，已重試 3 次');
@@ -363,11 +326,9 @@ function mpu_nextmsg(trigger) {
             return;
         }
         
-        // 成功載入後，重置計數器
         window.__mpu_retry_count = 0;
         
         if (!Array.isArray(store.msg) || store.msg.length === 0) {
-            // 提供更詳細的錯誤訊息
             const errorMsg = store.msg && store.msg.length === 0 
                 ? "對話文件為空，請檢查對話文件內容" 
                 : "訊息列表格式錯誤";
@@ -399,12 +360,8 @@ function mpu_nextmsg(trigger) {
     }, 400);
 }
 
-/**
- * 後備函數：當 LLM 生成失敗時使用內建對話
- */
 function mpu_nextmsg_fallback() {
     setTimeout(function () {
-        // 檢查是否被頁面感知 AI 或其他重要訊息阻擋
         if (mpuMessageBlocking || mpuAiContextInProgress) {
             mpuLogger.log('mpu_nextmsg_fallback: 被阻擋（頁面感知 AI 正在進行中），跳過顯示');
             return;
@@ -412,18 +369,16 @@ function mpu_nextmsg_fallback() {
 
         const store = window.mpuMsgList;
         
-        // 如果對話尚未載入，等待一段時間後重試（最多重試 2 次）
         if (!store) {
             mpuLogger.warn('mpu_nextmsg_fallback: 對話尚未載入，等待載入完成...');
             const retryCount = window.__mpu_fallback_retry_count || 0;
             if (retryCount < 2) {
                 window.__mpu_fallback_retry_count = retryCount + 1;
                 setTimeout(() => {
-                    // 不在此處重置計數器，讓重試邏輯繼續累積計數
-                    mpu_nextmsg_fallback(); // 重試
-                }, 1500); // 等待 1.5 秒後重試
+                    mpu_nextmsg_fallback();
+                }, 1500);
             } else {
-                window.__mpu_fallback_retry_count = 0; // 最終失敗時才重置計數器
+                window.__mpu_fallback_retry_count = 0;
                 mpu_typewriter("對話尚未載入，請稍候...", "#ukagaka_msg");
                 mpu_showmsg(400);
                 mpuLogger.warn('mpu_nextmsg_fallback: 對話載入超時，已重試 2 次');
@@ -431,11 +386,9 @@ function mpu_nextmsg_fallback() {
             return;
         }
         
-        // 成功載入後，重置計數器
         window.__mpu_fallback_retry_count = 0;
         
         if (!Array.isArray(store.msg) || store.msg.length === 0) {
-            // 提供更詳細的錯誤訊息
             const errorMsg = store.msg && store.msg.length === 0 
                 ? "對話文件為空，請檢查對話文件內容" 
                 : "訊息列表格式錯誤";
@@ -467,15 +420,9 @@ function mpu_nextmsg_fallback() {
     }, 400);
 }
 
-// ====== 切換春菜 ======
-/**
- * 切換春菜人物或顯示選單
- * @param {string|number|undefined} num - 人物編號，若未提供則顯示選單
- */
 function mpuChange(num) {
     const hasNum = (typeof num !== 'undefined' && num !== null && num !== '');
 
-    // 如果是要切換人物（提供編號），先檢查 Canvas 管理器是否存在
     if (hasNum && typeof window.mpuCanvasManager === 'undefined') {
         mpu_handle_error(
             'Canvas 管理器未載入',
@@ -485,7 +432,7 @@ function mpuChange(num) {
                 userMessage: "動畫模組載入失敗，無法切換角色。請刷新頁面後再試。"
             }
         );
-        return; // 直接返回，不發送請求
+        return;
     }
 
     const params = new URLSearchParams({ action: 'mpu_change' });
@@ -494,18 +441,16 @@ function mpuChange(num) {
     }
     const url = `${mpuurl}?${params.toString()}`;
 
-    // 顯示載入中游標
     document.body.style.cursor = "wait";
     if (!jQuery("#ukagaka_msgbox").is(":hidden")) mpu_hidemsg(200);
 
     mpuFetch(url, {
-        cancelPrevious: true,  // 取消之前的切換請求
+        cancelPrevious: true,
         requestId: `mpu_change_${hasNum ? num : 'menu'}`,
-        timeout: 15000,  // 15 秒超時
+        timeout: 15000,
         retries: 1
     })
         .then(res => {
-            // 分支 A: 顯示選單 HTML（未提供人物編號）
             if (!hasNum) {
                 if (typeof res !== 'string') throw new Error("Expected HTML, got JSON.");
                 jQuery("#ukagaka_msg").html(res || "No content.");
@@ -515,13 +460,11 @@ function mpuChange(num) {
                 return;
             }
 
-            // 分支 B: 切換人物（提供人物編號，回傳 JSON）
             if (typeof res !== 'object') throw new Error("Expected JSON, got HTML.");
             const payload = res || {};
             const $canvas = jQuery("#cur_ukagaka");
             const $wrap = jQuery("#ukagaka");
 
-            // 使用 Canvas 管理器初始化圖片
             if (payload.shell_info && typeof window.mpuCanvasManager !== 'undefined') {
                 const $imgWrapper = jQuery("#ukagaka_img");
                 $imgWrapper.fadeOut(120, function () {
@@ -529,8 +472,6 @@ function mpuChange(num) {
                     $imgWrapper.fadeIn(180);
                 });
             } else if (payload.shell) {
-                // 向後兼容：如果沒有 shell_info，嘗試使用 Canvas 管理器載入單張圖片
-                // 注意：這裡的檢查是備用，主要檢查已在函數開始時完成
                 if (typeof window.mpuCanvasManager !== 'undefined') {
                     const $imgWrapper = jQuery("#ukagaka_img");
                     $imgWrapper.fadeOut(120, function () {
@@ -542,7 +483,6 @@ function mpuChange(num) {
                         $imgWrapper.fadeIn(180);
                     });
                 } else {
-                    // 如果 Canvas 管理器不存在（理論上不應該到達這裡，因為已在開始時檢查）
                     mpuLogger.warn('mpuChange: Canvas 管理器在 Ajax 成功後才發現不存在，這不應該發生');
                     mpu_handle_error(
                         'Canvas 管理器未載入',
@@ -582,8 +522,6 @@ function mpuChange(num) {
 
             $wrap.stop(true, true).fadeIn(200);
             mpu_showmsg(300);
-            // 注意：如果使用外部對話文件，startAutoTalk 會在 loadExternalDialog 完成後由該函數內部調用
-            // 這裡只在沒有使用外部對話文件時才調用 startAutoTalk，避免重複觸發對話
             if (mpuAutoTalk && !useExternalDialog) {
                 startAutoTalk();
             }

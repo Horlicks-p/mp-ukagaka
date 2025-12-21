@@ -23,10 +23,8 @@ if (!defined('ABSPATH')) {
  */
 function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt = null)
 {
-    // 根據提供商調用對應的 API
     switch ($provider) {
         case "gemini":
-            // 向後兼容：優先使用新設定鍵，否則使用舊設定鍵
             $model = $mpu_opt["llm_gemini_model"] ?? $mpu_opt["gemini_model"] ?? "gemini-2.5-flash";
             return mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language);
         case "openai":
@@ -55,13 +53,9 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
  */
 function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language)
 {
-    // 構建語言指令
     $language_instruction = mpu_get_language_instruction($language);
-
-    // 組合完整的提示詞
     $full_prompt = $system_prompt . "\n\n" . $language_instruction . "\n\n" . $user_prompt;
 
-    // 構建請求體
     $request_body = [
         "contents" => [
             [
@@ -78,21 +72,18 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
             "topP" => 0.95,
             "maxOutputTokens" => 500,
         ]
-    ];
+            ];
 
-    // 構建 API URL（使用用戶選擇的模型）
-    $api_url = "https://generativelanguage.googleapis.com/v1/models/{$model}:generateContent?key=" . urlencode($api_key);
+            $api_url = "https://generativelanguage.googleapis.com/v1/models/{$model}:generateContent?key=" . urlencode($api_key);
 
-    // 發送請求
-    $response = wp_remote_post($api_url, [
+            $response = wp_remote_post($api_url, [
         "headers" => [
             "Content-Type" => "application/json",
         ],
         "body" => wp_json_encode($request_body),
-        "timeout" => 60, // Gemini 可能需要較長時間
+        "timeout" => 60,
     ]);
 
-    // 處理錯誤
     if (is_wp_error($response)) {
         return new WP_Error("api_request_failed", sprintf(__('Gemini API 請求失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
     }
@@ -101,7 +92,6 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
     $response_body = wp_remote_retrieve_body($response);
 
     if ($response_code === 200) {
-        // 解析回應
         $data = json_decode($response_body, true);
 
         if (!empty($data["candidates"][0]["content"]["parts"][0]["text"])) {
@@ -111,18 +101,15 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
             return new WP_Error("empty_response", __('Gemini API 回應為空，請檢查模型是否正確', 'mp-ukagaka'));
         }
     } else {
-        // 解析錯誤訊息
         $error_data = json_decode($response_body, true);
         $error_message = isset($error_data["error"]["message"])
             ? $error_data["error"]["message"]
             : __('未知錯誤', 'mp-ukagaka');
 
-        // 如果是認證錯誤（401/403）
         if ($response_code === 401 || $response_code === 403) {
             return new WP_Error("api_auth_error", sprintf(__('API 認證失敗（HTTP %s）：%s。請檢查 API Key 是否正確。', 'mp-ukagaka'), $response_code, $error_message));
         }
 
-        // 如果是 404（模型不存在）
         if ($response_code === 404) {
             return new WP_Error("model_not_found", sprintf(__('Gemini 模型「%s」不存在。請在設定中選擇正確的模型。', 'mp-ukagaka'), $model));
         }
@@ -286,23 +273,18 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
 {
     $mpu_opt = mpu_get_option();
 
-    // 檢查是否為 Qwen3 模型且需要關閉思考模式
     $is_qwen3 = (strpos(strtolower($model), 'qwen3') !== false) || (strpos(strtolower($model), 'frieren') !== false);
-    // 如果設定了關閉思考模式，或者未設定但使用 Qwen3（預設關閉）
     $disable_thinking = $is_qwen3 && (isset($mpu_opt['ollama_disable_thinking']) ? $mpu_opt['ollama_disable_thinking'] : true);
 
-    // 驗證端點 URL
-    // 檢查輔助函數是否存在（確保 llm-functions.php 已載入）
     if (!function_exists('mpu_validate_ollama_endpoint')) {
-        // 如果函數不存在，使用基本驗證
         $endpoint = rtrim($endpoint, '/');
         if (!preg_match('/^https?:\/\/.+/', $endpoint)) {
             return new WP_Error("invalid_endpoint", __('Ollama 端點必須是有效的 HTTP 或 HTTPS URL', 'mp-ukagaka'));
         }
-        $timeout = 30; // 默認超時（考慮 Ollama 單工特性，需要足夠時間等待排隊請求）
+        $timeout = 30;
         $is_remote = !preg_match('/localhost|127\.0\.0\.1|::1/', $endpoint);
         if ($is_remote) {
-            $timeout = 90;  // 遠程保持 90 秒
+            $timeout = 90;
         }
     } else {
         $validated_endpoint = mpu_validate_ollama_endpoint($endpoint);
@@ -311,18 +293,14 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         }
         $endpoint = $validated_endpoint;
 
-        // 根據端點類型使用動態超時時間
         $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
         $is_remote = mpu_is_remote_endpoint($endpoint);
     }
 
-    // 構建 API URL
     $api_url = rtrim($endpoint, '/') . '/api/chat';
 
-    // 構建請求體
     $messages = [];
 
-    // 添加系統提示詞
     if (!empty($system_prompt)) {
         $language_instruction = mpu_get_language_instruction($language);
         $full_system_prompt = $system_prompt . "\n\n" . $language_instruction;

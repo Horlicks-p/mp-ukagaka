@@ -98,9 +98,6 @@ function mpu_chat_context() {
     return;
   }
 
-  // 檢查文章內容長度：小於 500 字時不觸發 AI，也不使用正常對話系統
-  // 修正：文字數が少ない場合は何もせず終了する（起動時の対話と重複させないため）
-  // 自動対話がオンであれば、時間が経てば自然に喋り出します
   if (contentLength < 500) {
     return;
   }
@@ -111,15 +108,11 @@ function mpu_chat_context() {
     stopAutoTalk();
   }
 
-  // 立即設置頁面感知 AI 正在進行中的標誌，防止 LLM 自發性對話打岔
-  // 必須在顯示載入訊息之前設置，確保 mpu_nextmsg('auto') 會被阻止
   mpuAiContextInProgress = true;
 
   // 設置阻擋標誌，完全阻止自發對話
   mpuMessageBlocking = true;
 
-  // 顯示載入訊息，應用設定的文字顏色
-  // mpu_typewriter 會自動清除之前的打字效果，所以不需要等待
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
   const loadingMessage = "（…ああ、記事か。どれどれ…）";
   mpu_typewriter(
@@ -127,10 +120,8 @@ function mpu_chat_context() {
     "#ukagaka_msg"
   );
 
-  // 準備並發送 AJAX 請求
   const formData = new FormData();
   formData.append("action", "mpu_chat_context");
-  // 如果 nonce 存在，則添加（非強制要求）
   if (typeof mpuNonce !== "undefined" && mpuNonce) {
     formData.append("mpu_nonce", mpuNonce);
   }
@@ -140,32 +131,29 @@ function mpu_chat_context() {
   mpuFetch(mpuurl, {
     method: "POST",
     body: formData,
-    cancelPrevious: true, // 取消之前的 AI 對話請求
-    requestId: "mpu_chat_context", // 使用固定 ID 以便取消
-    timeout: 60000, // AI 請求可能需要更長時間，設置 60 秒超時
-    retries: 1, // AI 請求只重試 1 次
+    cancelPrevious: true,
+    requestId: "mpu_chat_context",
+    timeout: 60000,
+    retries: 1,
   })
     .then((res) => {
       if (res && res.msg && !res.error) {
-        const aiResponse = mpu_unescapeHTML(res.msg);
+        let aiResponse = mpu_unescapeHTML(res.msg);
+        aiResponse = mpu_linkifyUrls(aiResponse);
         mpu_typewriter(
           `<span style="color: ${mpuAiTextColor};">${aiResponse}</span>`,
           "#ukagaka_msg"
         );
 
-        // 清除之前的計時器（如果有）
         if (mpuAiDisplayTimer !== null) {
           clearTimeout(mpuAiDisplayTimer);
           mpuAiDisplayTimer = null;
         }
 
-        // 設置計時器，在指定時間後恢復自動對話
         const displayDurationMs = mpuAiDisplayDuration * 1000;
         mpuAiDisplayTimer = setTimeout(function () {
           mpuAiDisplayTimer = null;
-          // 解除阻擋標誌
           mpuMessageBlocking = false;
-          // 清除頁面感知 AI 正在進行中的標誌
           mpuAiContextInProgress = false;
           if (wasAutoTalkRunning && mpuAutoTalk) {
             startAutoTalk();
@@ -179,23 +167,17 @@ function mpu_chat_context() {
           res && res.error && res.error.includes("請求過於頻繁");
 
         if (isRateLimit) {
-          // 顯示速率限制訊息
           const rateLimitMessage = "…ちょっと待って。API魔力が足りない";
           mpu_typewriter(
             `<span style="color: ${mpuAiTextColor};">${rateLimitMessage}</span>`,
             "#ukagaka_msg"
           );
 
-          // 設置阻擋標誌，防止被其他對話打斷
           mpuMessageBlocking = true;
-          // 使用設定的顯示時間（或預設 8 秒）
           const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
-          // 顯示指定時間後恢復正常對話
           setTimeout(function () {
-            // 解除阻擋標誌
             mpuMessageBlocking = false;
-            // 清除頁面感知 AI 正在進行中的標誌
             mpuAiContextInProgress = false;
             if (
               window.mpuMsgList &&
@@ -210,13 +192,11 @@ function mpu_chat_context() {
                 "#ukagaka_msg"
               );
             }
-            // 恢復自動對話
             if (wasAutoTalkRunning && mpuAutoTalk) {
               startAutoTalk();
             }
           }, waitTime);
         } else {
-          // 其他錯誤，直接恢復正常對話
           mpuMessageBlocking = false;
           if (
             window.mpuMsgList &&
@@ -231,9 +211,7 @@ function mpu_chat_context() {
               "#ukagaka_msg"
             );
           }
-          // 清除頁面感知 AI 正在進行中的標誌
           mpuAiContextInProgress = false;
-          // AI 對話失敗時也要恢復自動對話
           if (wasAutoTalkRunning && mpuAutoTalk) {
             startAutoTalk();
           }
@@ -245,7 +223,6 @@ function mpu_chat_context() {
         showToUser: false, // 已經有 fallback 處理，不需要顯示錯誤
       });
 
-      // 解除阻擋標誌並恢復正常對話
       mpuMessageBlocking = false;
       if (
         window.mpuMsgList &&
@@ -260,9 +237,7 @@ function mpu_chat_context() {
           "#ukagaka_msg"
         );
       }
-      // 清除頁面感知 AI 正在進行中的標誌
       mpuAiContextInProgress = false;
-      // 錯誤時也要恢復自動對話
       if (wasAutoTalkRunning && mpuAutoTalk) {
         startAutoTalk();
       }
@@ -335,10 +310,8 @@ function mpu_greet_first_visitor(settings) {
           "#ukagaka_msg"
         );
 
-        // 準備打招呼的資料
         const formData = new FormData();
         formData.append("action", "mpu_chat_greet");
-        // 如果 nonce 存在，則添加（非強制要求）
         if (typeof mpuNonce !== "undefined" && mpuNonce) {
           formData.append("mpu_nonce", mpuNonce);
         }
@@ -349,7 +322,6 @@ function mpu_greet_first_visitor(settings) {
           "is_direct",
           visitorInfo.is_direct === true ? "true" : "false"
         );
-        // 添加 Slimstat 提供的地理位置資訊（國家和城市）
         formData.append(
           "country",
           visitorInfo.slimstat_country || visitorInfo.country || ""
@@ -359,36 +331,33 @@ function mpu_greet_first_visitor(settings) {
           visitorInfo.slimstat_city || visitorInfo.city || ""
         );
 
-        // 發送打招呼請求
         return mpuFetch(mpuurl, {
           method: "POST",
           body: formData,
-          cancelPrevious: true, // 取消之前的打招呼請求
-          requestId: "mpu_chat_greet", // 使用固定 ID 以便取消
-          timeout: 60000, // AI 請求可能需要較長時間，設置 60 秒超時
-          retries: 1, // AI 請求只重試 1 次
+          cancelPrevious: true,
+          requestId: "mpu_chat_greet",
+          timeout: 60000,
+          retries: 1,
         });
       })
       .then((res) => {
         if (res && res.msg && !res.error) {
-          const greetingMessage = mpu_unescapeHTML(res.msg);
+          let greetingMessage = mpu_unescapeHTML(res.msg);
+          greetingMessage = mpu_linkifyUrls(greetingMessage);
 
           mpu_typewriter(
             `<span style="color: ${mpuAiTextColor};">${greetingMessage}</span>`,
             "#ukagaka_msg"
           );
 
-          // 清除之前的計時器（如果有）
           if (mpuAiDisplayTimer !== null) {
             clearTimeout(mpuAiDisplayTimer);
             mpuAiDisplayTimer = null;
           }
 
-          // 設置計時器，在指定時間後恢復自動對話
           const displayDurationMs = mpuAiDisplayDuration * 1000;
           mpuAiDisplayTimer = setTimeout(function () {
             mpuAiDisplayTimer = null;
-            // 恢復自動對話（如果之前在運行）
             if (
               wasAutoTalkRunning &&
               settings.auto_talk === true &&
@@ -406,20 +375,16 @@ function mpu_greet_first_visitor(settings) {
             res && res.error && res.error.includes("請求過於頻繁");
 
           if (isRateLimit) {
-            // 顯示速率限制訊息
             const rateLimitMessage = "…ちょっと待って。API魔力が足りない";
             mpu_typewriter(
               `<span style="color: ${mpuAiTextColor};">${rateLimitMessage}</span>`,
               "#ukagaka_msg"
             );
 
-            // 設置阻擋標誌
             mpuMessageBlocking = true;
             const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
-            // 顯示指定時間後恢復正常對話
             setTimeout(function () {
-              // 解除阻擋標誌
               mpuMessageBlocking = false;
 
               if (
@@ -435,7 +400,6 @@ function mpu_greet_first_visitor(settings) {
                   "#ukagaka_msg"
                 );
               }
-              // 恢復自動對話
               if (
                 wasAutoTalkRunning &&
                 settings.auto_talk === true &&
@@ -443,11 +407,9 @@ function mpu_greet_first_visitor(settings) {
               ) {
                 startAutoTalk();
               }
-              // 標記已訪問，避免重複嘗試
               resolve();
             }, waitTime);
           } else {
-            // 其他錯誤，直接恢復正常對話
             if (
               window.mpuMsgList &&
               Array.isArray(window.mpuMsgList.msg) &&
@@ -461,7 +423,6 @@ function mpu_greet_first_visitor(settings) {
                 "#ukagaka_msg"
               );
             }
-            // 失敗時也要恢復自動對話（如果之前在運行）
             if (
               wasAutoTalkRunning &&
               settings.auto_talk === true &&
@@ -469,17 +430,15 @@ function mpu_greet_first_visitor(settings) {
             ) {
               startAutoTalk();
             }
-            // 失敗時也標記已訪問，避免重複嘗試
             resolve();
           }
         }
       })
       .catch((error) => {
         mpu_handle_error(error, "mpu_greet_first_visitor", {
-          showToUser: false, // 已經有 fallback 處理
+          showToUser: false,
         });
 
-        // 顯示錯誤訊息並恢復正常對話
         if (
           window.mpuMsgList &&
           Array.isArray(window.mpuMsgList.msg) &&
@@ -494,11 +453,9 @@ function mpu_greet_first_visitor(settings) {
           );
         }
 
-        // 錯誤時也要恢復自動對話（如果之前在運行）
         if (wasAutoTalkRunning && settings.auto_talk === true && mpuAutoTalk) {
           startAutoTalk();
         }
-        // 錯誤時也標記已訪問，避免重複嘗試
         resolve();
       });
   });
@@ -519,26 +476,23 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   });
   const url = `${mpuurl}?${params.toString()}`;
 
-  // 顯示載入中狀態
   document.body.style.cursor = "wait";
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
 
-  // 檢查是否已經顯示過初始訊息（避免重複顯示載入訊息）
   const msgElement = jQuery("#ukagaka_msg");
   const currentMsg = msgElement.text().trim();
   const initialMsg = msgElement.attr("data-initial-msg");
   const hasShownInitialMsg = initialMsg && currentMsg.indexOf(initialMsg) !== -1;
 
-  // 只有在尚未顯示初始訊息時，才顯示載入訊息
   if (!hasShownInitialMsg) {
     const loadingMessage = "（えっと…何話せばいいかな…）";
     mpu_typewriter(loadingMessage, "#ukagaka_msg");
   }
 
   mpuFetch(url, {
-    cancelPrevious: true, // 取消之前的載入請求
+    cancelPrevious: true,
     requestId: `loadExternalDialog_${pure}`,
-    timeout: 15000, // 15 秒超時
+    timeout: 15000,
     retries: 1,
   })
     .then((resp) => {
@@ -546,25 +500,22 @@ function loadExternalDialog(file, skipFirstMessage = false) {
         throw new Error(resp.error || "Expected JSON response from server.");
       }
 
-      if (resp && !resp.error && Array.isArray(resp.msg)) {
-        // 檢查對話是否為空
-        if (resp.msg.length === 0) {
+        if (resp && !resp.error && Array.isArray(resp.msg)) {
+          if (resp.msg.length === 0) {
           mpuLogger.warn('loadExternalDialog: 對話文件為空');
-          window.mpuMsgList = {
-            msg: [],
-            auto_msg: resp.auto_msg || "",
-            next_msg: resp.next_msg || 0,
-            default_msg: resp.default_msg || 0
-          };
-          // 如果啟用 LLM 取代對話，空對話也可以作為後備（雖然沒有內容）
-          if (skipFirstMessage) {
-            mpuLogger.log('loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成');
-            jQuery("#ukagaka").stop(true, true).fadeIn(200);
-            document.body.style.cursor = "auto"; // 重置游標
-            return;
-          }
-          // 非 LLM 模式，顯示錯誤
-          mpu_typewriter("對話文件為空，請檢查對話文件內容", "#ukagaka_msg");
+            window.mpuMsgList = {
+              msg: [],
+              auto_msg: resp.auto_msg || "",
+              next_msg: resp.next_msg || 0,
+              default_msg: resp.default_msg || 0
+            };
+            if (skipFirstMessage) {
+              mpuLogger.log('loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成');
+              jQuery("#ukagaka").stop(true, true).fadeIn(200);
+              document.body.style.cursor = "auto";
+              return;
+            }
+            mpu_typewriter("對話文件為空，請檢查對話文件內容", "#ukagaka_msg");
           mpu_showmsg(400);
           jQuery("#ukagaka").stop(true, true).fadeIn(200);
           document.body.style.cursor = "auto";
@@ -576,28 +527,23 @@ function loadExternalDialog(file, skipFirstMessage = false) {
           mpuNextMode = resp.next_msg == 1 ? "random" : "sequential";
           mpuDefaultMsg = resp.default_msg == 1 ? 1 : 0;
 
-          // 如果啟用 LLM 取代對話，只載入數據，不顯示第一句對話
           if (skipFirstMessage) {
             mpuLogger.log('loadExternalDialog: LLM 取代對話模式，已載入後備對話數據，但不顯示第一句');
-            // 設置初始 msgnum
             let first = 0;
             if (mpuDefaultMsg === 0 && resp.msg.length) {
               first = Math.floor(Math.random() * resp.msg.length);
             }
             jQuery("#ukagaka_msgnum").html(first);
             jQuery("#ukagaka").stop(true, true).fadeIn(200);
-            document.body.style.cursor = "auto"; // 重置游標
-            return; // 直接返回，不顯示第一句對話
+            document.body.style.cursor = "auto";
+            return;
           }
 
-          // 防止重複顯示對話的標記（使用閉包變數，確保唯一性）
           let firstMessageShown = false;
-          let firstMessageTimer = null; // 用於取消待執行的定時器
-          let waitForTypewriterActive = false; // 標記 waitForTypewriter 是否正在運行
+          let firstMessageTimer = null;
+          let waitForTypewriterActive = false;
 
-          // 顯示第一句對話的函數（統一邏輯，避免重複）
           const showFirstMessage = function () {
-            // 清除任何待執行的定時器
             if (firstMessageTimer !== null) {
               clearTimeout(firstMessageTimer);
               firstMessageTimer = null;
@@ -605,10 +551,10 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
             if (firstMessageShown) {
               mpuLogger.log('loadExternalDialog: 嘗試重複顯示第一句對話，已阻止');
-              return; // 已經顯示過，不再重複
+              return;
             }
             firstMessageShown = true;
-            waitForTypewriterActive = false; // 重置標記
+            waitForTypewriterActive = false;
 
             let first = 0;
             if (mpuDefaultMsg === 0 && resp.msg.length) {
@@ -620,13 +566,10 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             );
             jQuery("#ukagaka_msgnum").html(first);
 
-            // 等待第一句台詞的打字效果完成後，再啟動自動對話計時器
             const waitForFirstMessageTypewriter = () => {
               if (mpuTypewriterTimer !== null) {
-                // 打字效果還在進行中，繼續等待
                 setTimeout(waitForFirstMessageTypewriter, 50);
               } else {
-                // 打字效果已完成，現在啟動自動對話計時器
                 if (mpuAutoTalk) startAutoTalk();
               }
             };
@@ -636,18 +579,14 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             }
           };
 
-          // 等待打字效果完成後，再延遲 1 秒顯示內建對話
           const waitForTypewriter = () => {
             if (firstMessageShown) {
-              return; // 已經顯示過，不再執行
+              return;
             }
 
             if (mpuTypewriterTimer !== null) {
-              // 打字效果還在進行中，繼續等待
               setTimeout(waitForTypewriter, 50);
             } else {
-              // 打字效果已完成，延遲 1 秒後顯示內建對話
-              // 清除之前的定時器（如果存在）
               if (firstMessageTimer !== null) {
                 clearTimeout(firstMessageTimer);
               }
@@ -655,15 +594,12 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             }
           };
 
-          // 如果打字效果還在進行，等待完成；否則延遲 1 秒後顯示
           if (mpuTypewriterTimer !== null) {
             if (!waitForTypewriterActive) {
               waitForTypewriterActive = true;
               waitForTypewriter();
             }
           } else {
-            // 打字效果已完成（可能很快），延遲 1 秒後顯示
-            // 清除之前的定時器（如果存在）
             if (firstMessageTimer !== null) {
               clearTimeout(firstMessageTimer);
             }
@@ -678,23 +614,20 @@ function loadExternalDialog(file, skipFirstMessage = false) {
                 : "處理對話數據時出錯，請稍後再試。",
           });
         }
-      } else {
-        // 後端返回錯誤（例如：對話文件為空、格式錯誤等）
-        const errorMsg = resp && resp.error ? resp.error : "無法取得對話資料";
-        jQuery("#ukagaka_msg").html(errorMsg);
+        } else {
+          const errorMsg = resp && resp.error ? resp.error : "無法取得對話資料";
+          jQuery("#ukagaka_msg").html(errorMsg);
 
-        // 設置一個空的 mpuMsgList 結構，避免後續 mpu_nextmsg 檢查失敗
-        // 這樣即使載入失敗，也不會顯示"對話尚未載入"的錯誤
-        if (!window.mpuMsgList) {
+          if (!window.mpuMsgList) {
           window.mpuMsgList = {
             msg: [],
             auto_msg: "",
             next_msg: 0,
             default_msg: 0
           };
-          mpuLogger.warn('loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 -', errorMsg);
+            mpuLogger.warn('loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 -', errorMsg);
+          }
         }
-      }
       jQuery("#ukagaka").stop(true, true).fadeIn(200);
       document.body.style.cursor = "auto";
     })
@@ -707,8 +640,6 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             : "載入對話文件失敗，請稍後再試。",
       });
 
-      // 設置一個空的 mpuMsgList 結構，避免後續 mpu_nextmsg 檢查失敗
-      // 這樣即使載入失敗，也不會顯示"對話尚未載入"的錯誤
       if (!window.mpuMsgList) {
         window.mpuMsgList = {
           msg: [],
@@ -751,7 +682,6 @@ jQuery(document).ready(function () {
     const msgListElem = document.getElementById("ukagaka_msglist");
     const isLLMReplaceEnabled = typeof mpuPreSettings !== 'undefined' && mpuPreSettings.ollama_replace === true;
 
-    // 即使啟用 LLM 取代對話，也載入對話文件作為後備（當 LLM 失敗時使用）
     if (isLLMReplaceEnabled) {
       mpuLogger.log("LLM 取代對話已啟用，但仍載入內建對話作為後備");
     }
@@ -762,11 +692,9 @@ jQuery(document).ready(function () {
     ) {
       const dialogFile = msgListElem.getAttribute("data-file");
       if (dialogFile) {
-        // 如果啟用 LLM 取代對話，載入對話但不顯示第一句（由 LLM 處理）
         loadExternalDialog(dialogFile, isLLMReplaceEnabled);
       }
     } else {
-      // 非外部檔案模式：初始化 mpuMsgList
       try {
         const jsonText = msgListElem ? msgListElem.innerHTML.trim() : "";
         if (jsonText) {
@@ -783,7 +711,6 @@ jQuery(document).ready(function () {
       } catch (e) {
         mpu_handle_error(e, "jQuery.ready:init_dialog_data");
       }
-      // 只有在未啟用 LLM 取代對話時才自動啟動自動對話
       if (!isLLMReplaceEnabled && mpuAutoTalk && !mpuAutoTalkTimer) {
         startAutoTalk();
       }
@@ -792,14 +719,13 @@ jQuery(document).ready(function () {
 
   initExternalDialog();
 
-  // 從伺服器獲取最新設定
   const settingsParams = new URLSearchParams({ action: "mpu_get_settings" });
   const settingsUrl = `${mpuurl}?${settingsParams.toString()}`;
 
   mpuFetch(settingsUrl, {
-    dedupe: true, // 設定請求可以去重
+    dedupe: true,
     requestId: "mpu_get_settings",
-    timeout: 10000, // 10 秒超時
+    timeout: 10000,
     retries: 2,
   })
     .then((res) => {
@@ -808,7 +734,6 @@ jQuery(document).ready(function () {
         return;
       }
 
-      // 記錄設定資訊（調試用）
       mpuLogger.log("mpu_get_settings: 收到設定 =", JSON.stringify(res));
       mpuLogger.log("mpu_get_settings: auto_talk =", res.auto_talk, ", ollama_replace_dialogue =", res.ollama_replace_dialogue);
 
@@ -826,25 +751,20 @@ jQuery(document).ready(function () {
       if (res.ai_display_duration) {
         mpuAiDisplayDuration = parseInt(res.ai_display_duration, 10) || 8;
       }
-      // 保存 LLM 取代對話設定
       mpuOllamaReplaceDialogue = !!res.ollama_replace_dialogue;
       mpuLogger.log(
         "LLM 取代對話設定: " + (mpuOllamaReplaceDialogue ? "啟用" : "停用")
       );
 
-      // 如果啟用了 LLM 取代對話，等待初始訊息打字效果完成後，再延遲 1.5 秒觸發 LLM 對話
       if (mpuOllamaReplaceDialogue) {
         mpuLogger.log("LLM 取代對話已啟用，等待初始訊息完成後觸發 LLM 對話");
-        // 等待初始訊息的打字效果完成
         const waitForInitialMessageTypewriter = () => {
           if (mpuTypewriterTimer !== null) {
-            // 打字效果還在進行中，繼續等待
             setTimeout(waitForInitialMessageTypewriter, 60);
           } else {
-            // 打字效果已完成，延遲 1.5 秒後觸發 LLM 對話
             setTimeout(function () {
-              mpu_nextmsg('startup'); // 使用 'startup' 觸發，以便檢查衝突
-            }, 1500); // 延遲 1.5 秒
+              mpu_nextmsg('startup');
+            }, 1500);
           }
         };
         waitForInitialMessageTypewriter();
@@ -855,9 +775,7 @@ jQuery(document).ready(function () {
       else stopAutoTalk();
       setAutoTalkUI();
 
-      // 首次訪客打招呼檢查
       if (res.ai_enabled === true && res.ai_greet_first_visit === true) {
-        // 防止重複觸發
         if (mpuGreetInProgress) {
           return;
         }
@@ -865,14 +783,11 @@ jQuery(document).ready(function () {
         const firstVisitCookie =
           "mpu_first_visit_" + (document.domain || "default");
 
-        // 確保 jQuery.cookie 已初始化
         if (typeof jQuery.cookie === "undefined") {
           mpu_init_jquery_cookie();
         }
 
-        // 如果仍然無法使用，使用備用方案
         if (typeof jQuery.cookie === "undefined") {
-          // 使用 mpu_getCookie 作為備用
           const isFirstVisit = !mpu_getCookie(firstVisitCookie);
           if (isFirstVisit) {
             mpuGreetInProgress = true;
@@ -894,52 +809,41 @@ jQuery(document).ready(function () {
         const isFirstVisit = !jQuery.cookie(firstVisitCookie);
 
         if (isFirstVisit) {
-          // 標記為正在進行中
           mpuGreetInProgress = true;
-          // 獲取訪客資訊並打招呼
           mpu_greet_first_visitor(res)
             .then(() => {
-              // 設置 cookie，標記已訪問（保存 1 年）
               if (typeof jQuery.cookie !== "undefined") {
                 jQuery.cookie(firstVisitCookie, "1", {
                   expires: 365,
                   path: "/",
                 });
               } else {
-                // 備用方案：使用 mpu_setCookie
                 mpu_setCookie(firstVisitCookie, "1", 365, "/");
               }
-              // 重置標記
               mpuGreetInProgress = false;
             })
             .catch((error) => {
               mpu_handle_error(error, "首次訪客打招呼:catch2", {
                 showToUser: false,
               });
-              // 重置標記
               mpuGreetInProgress = false;
             });
-          // 首次訪客打招呼時，跳過正常 AI 對話和正常對話系統
           return;
         }
       }
 
-      // AI 自動觸發邏輯（頁面感知 AI）
       if (res.ai_enabled === true) {
-        // 前端檢查頁面條件
         const shouldTrigger = mpu_check_page_trigger(res.ai_trigger_pages);
 
         if (shouldTrigger) {
-          // 檢查機率
           const probability = parseInt(res.ai_probability || 10, 10);
           const roll = Math.floor(Math.random() * 100) + 1;
 
           if (roll <= probability) {
-            // 等待 3 秒後觸發 AI
             setTimeout(function () {
               mpu_chat_context();
             }, 3000);
-            return; // 如果觸發了 AI，就不使用正常對話系統
+            return;
           }
         }
       }
@@ -948,7 +852,6 @@ jQuery(document).ready(function () {
       mpuLogger.warn("Failed to get mpu_get_settings:", error);
     });
 
-  // 加入自動對話開關
   if (jQuery("#toggleAutoTalk").length === 0) {
     const btn =
       '<li class="auto-talk"><a id="toggleAutoTalk" href="javascript:void(0);" title="自動對話"></a></li>';
@@ -963,7 +866,6 @@ jQuery(document).ready(function () {
     });
   }
 
-  // 顯示/隱藏訊息
   jQuery("#show_msg").on("click", function () {
     if (jQuery("#ukagaka_msgbox").is(":hidden")) {
       mpu_showmsg(400);
@@ -974,23 +876,18 @@ jQuery(document).ready(function () {
     }
   });
 
-  // 點擊春菜圖片
   jQuery("#ukagaka_img").on("click", function () {
     if (jQuery("#ukagaka_msgbox").is(":hidden")) {
       mpu_showmsg(400);
     } else {
-      // 對話框顯示時，點擊春菜應該隱藏對話框，而不是呼叫下一句台詞
-      // 呼叫下一句台詞僅在於 <a onclick="mpu_nextmsg('')" href="javascript:void(0);" alt="Next">
       mpu_hidemsg(400);
     }
   });
 
-  // 擴展功能
   jQuery("#mpu_extend").on("click", function () {
     const extendParams = new URLSearchParams({ action: "mpu_extend" });
     const extendUrl = `${mpuurl}?${extendParams.toString()}`;
 
-    // 顯示載入中狀態
     document.body.style.cursor = "wait";
     if (jQuery("#ukagaka").is(":hidden")) mpu_showrobot(400);
     else if (!jQuery("#ukagaka_msgbox").is(":hidden")) mpu_hidemsg(200);
@@ -1019,14 +916,12 @@ jQuery(document).ready(function () {
       });
   });
 
-  // 捲動 / 回頂功能
   jQuery(window).on("scroll", function () {
     const soffset = jQuery("#ukagaka_shell").attr("rel") || 0;
     if (jQuery(this).scrollTop() > soffset) jQuery("#ukagaka_shell").fadeIn();
     else jQuery("#ukagaka_shell").fadeOut();
   });
   jQuery("#toTop").on("click", function () {
-    // 自定義平滑滾動（600ms，與主題分頁滾動速度一致）
     const startY = window.pageYOffset;
     const duration = 600;
     const startTime = performance.now();
@@ -1050,32 +945,28 @@ jQuery(document).ready(function () {
     requestAnimationFrame(step);
   });
 
-  // 顯示/隱藏春菜
-  jQuery("#mp_ukagaka").css("display", "block"); // 確保主容器可見
+  jQuery("#mp_ukagaka").css("display", "block");
   jQuery("#remove").on("click", function () {
-    const $ukagaka = jQuery("#ukagaka"); // 這是人物+對話的容器
+    const $ukagaka = jQuery("#ukagaka");
     if ($ukagaka.is(":hidden")) {
-      mpu_showrobot(400); // 淡入 #ukagaka
+      mpu_showrobot(400);
       mpu_setLocal("mpuRobot", "show");
     } else {
-      mpu_hiderobot(400); // 淡出 #ukagaka
+      mpu_hiderobot(400);
       mpu_setLocal("mpuRobot", "hidden");
     }
     return false;
   });
 
-  // 檢查春菜隱藏狀態
   const robotState = mpu_getLocal("mpuRobot");
   if (robotState === "hidden") {
-    jQuery("#ukagaka").css("display", "none"); // 只隱藏人物+對話
-    jQuery("#remove").html(mpuInfo.robot[0]); // 設為 "顯示春菜 ▲"
+    jQuery("#ukagaka").css("display", "none");
+    jQuery("#remove").html(mpuInfo.robot[0]);
   } else {
-    // 預設是顯示，按鈕文字應為 "隱藏春菜 ▼"
-    jQuery("#remove").html(mpuInfo.robot[1]); // 設為 "隱藏春菜 ▼"
+    jQuery("#remove").html(mpuInfo.robot[1]);
   }
 });
 
-// 視窗焦點/可見性處理（避免多計時器）
 jQuery(window).on("blur", function () {
   if (mpuAutoTalk) stopAutoTalk();
 });
@@ -1090,5 +981,4 @@ document.addEventListener("visibilitychange", function () {
   }
 });
 
-// 腳本載入完成
 mpuLogger.log("腳本載入完成");
