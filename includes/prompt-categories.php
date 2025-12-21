@@ -183,7 +183,7 @@ function mpu_get_static_prompt_categories()
 
         'mentors_seniors' => [
             "フランメの教えを思い出す",
-            "ゼーリエの話を引用する",
+            "ゼーリエの事蹟を思い出す",
             "師匠の言葉を反芻する",
             "昔の魔法使いたちを思う",
         ],
@@ -229,6 +229,7 @@ function mpu_get_static_prompt_categories()
             "魔王討伐について語る",
             "魔族の特徴を説明する",
             "過去の強敵を思い出す",
+            "管理人の飼ったサキュバス(魔族)について一言で言う",
         ],
 
         // === 人類觀察類 ===
@@ -477,14 +478,20 @@ function mpu_build_prompt_categories(
     $prompt_categories['time_aware'][] = "今の時間に対して一言で言う";
 
     // 添加技術觀察指令（動態生成）
+    $theme_info = !empty($theme_version) ? "「{$theme_name}」({$theme_version})" : "「{$theme_name}」";
     $prompt_categories['tech_observation'] = [
         "WordPress {$wp_version} について一言",
-        "テーマ「{$theme_name}」について軽く言う",
+        "テーマ{$theme_info}について軽く言う",
         "PHP {$php_version} について一言",
         "使用されたプラグインについて一言",
         "サーバーの状態を魔力に例える",
         "コードの書き方を評価する",
     ];
+
+    // 如果有主題作者資訊，添加相關指令
+    if (!empty($theme_author)) {
+        $prompt_categories['tech_observation'][] = "テーマ作者「{$theme_author}」について軽く言う";
+    }
 
     // 添加動態統計指令
     mpu_add_statistics_prompts($prompt_categories, $wp_info);

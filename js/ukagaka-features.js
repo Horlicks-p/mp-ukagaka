@@ -255,11 +255,11 @@ function mpu_chat_context() {
         const msgArr = window.mpuMsgList.msg;
         const auto = window.mpuMsgList.auto_msg || "";
         const randomIdx = Math.floor(Math.random() * msgArr.length);
-          mpu_typewriter(
-            mpu_unescapeHTML(msgArr[randomIdx] + auto),
-            "#ukagaka_msg"
-          );
-        }
+        mpu_typewriter(
+          mpu_unescapeHTML(msgArr[randomIdx] + auto),
+          "#ukagaka_msg"
+        );
+      }
       // 清除頁面感知 AI 正在進行中的標誌
       mpuAiContextInProgress = false;
       // 錯誤時也要恢復自動對話
@@ -528,7 +528,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   const currentMsg = msgElement.text().trim();
   const initialMsg = msgElement.attr("data-initial-msg");
   const hasShownInitialMsg = initialMsg && currentMsg.indexOf(initialMsg) !== -1;
-  
+
   // 只有在尚未顯示初始訊息時，才顯示載入訊息
   if (!hasShownInitialMsg) {
     const loadingMessage = "（えっと…何話せばいいかな…）";
@@ -596,7 +596,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
           let waitForTypewriterActive = false; // 標記 waitForTypewriter 是否正在運行
 
           // 顯示第一句對話的函數（統一邏輯，避免重複）
-          const showFirstMessage = function() {
+          const showFirstMessage = function () {
             // 清除任何待執行的定時器
             if (firstMessageTimer !== null) {
               clearTimeout(firstMessageTimer);
@@ -641,7 +641,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             if (firstMessageShown) {
               return; // 已經顯示過，不再執行
             }
-            
+
             if (mpuTypewriterTimer !== null) {
               // 打字效果還在進行中，繼續等待
               setTimeout(waitForTypewriter, 50);
@@ -682,7 +682,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
         // 後端返回錯誤（例如：對話文件為空、格式錯誤等）
         const errorMsg = resp && resp.error ? resp.error : "無法取得對話資料";
         jQuery("#ukagaka_msg").html(errorMsg);
-        
+
         // 設置一個空的 mpuMsgList 結構，避免後續 mpu_nextmsg 檢查失敗
         // 這樣即使載入失敗，也不會顯示"對話尚未載入"的錯誤
         if (!window.mpuMsgList) {
@@ -706,7 +706,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             ? `載入對話文件失敗：${error.message}`
             : "載入對話文件失敗，請稍後再試。",
       });
-      
+
       // 設置一個空的 mpuMsgList 結構，避免後續 mpu_nextmsg 檢查失敗
       // 這樣即使載入失敗，也不會顯示"對話尚未載入"的錯誤
       if (!window.mpuMsgList) {
@@ -718,7 +718,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
         };
         mpuLogger.warn('loadExternalDialog: 載入失敗，設置空的 mpuMsgList 作為後備');
       }
-      
+
       jQuery("#ukagaka").stop(true, true).fadeIn(200);
       document.body.style.cursor = "auto";
     });
@@ -750,7 +750,7 @@ jQuery(document).ready(function () {
   function initExternalDialog() {
     const msgListElem = document.getElementById("ukagaka_msglist");
     const isLLMReplaceEnabled = typeof mpuPreSettings !== 'undefined' && mpuPreSettings.ollama_replace === true;
-    
+
     // 即使啟用 LLM 取代對話，也載入對話文件作為後備（當 LLM 失敗時使用）
     if (isLLMReplaceEnabled) {
       mpuLogger.log("LLM 取代對話已啟用，但仍載入內建對話作為後備");
@@ -1026,7 +1026,28 @@ jQuery(document).ready(function () {
     else jQuery("#ukagaka_shell").fadeOut();
   });
   jQuery("#toTop").on("click", function () {
-    jQuery("body,html").animate({ scrollTop: 0 }, 800);
+    // 自定義平滑滾動（600ms，與主題分頁滾動速度一致）
+    const startY = window.pageYOffset;
+    const duration = 600;
+    const startTime = performance.now();
+    
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+    
+    function step(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease = easeOutCubic(progress);
+      
+      window.scrollTo(0, startY * (1 - ease));
+      
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    }
+    
+    requestAnimationFrame(step);
   });
 
   // 顯示/隱藏春菜
