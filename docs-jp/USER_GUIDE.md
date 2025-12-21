@@ -441,6 +441,123 @@ Ollama を選択した場合、追加設定が必要：
 
 「Ollama 接続テスト」ボタンをクリックして接続が正常か確認。
 
+#### 5. Modelfile でキャラクター専用モデルを作成（上級）
+
+Ollama の **Modelfile** を使うと、キャラクター設定をモデルに直接埋め込むことができます。これにより、会話ごとに System Prompt を送信する必要がなくなり、**トークン消費を大幅に削減**し、応答の一貫性が向上します。
+
+##### Modelfile とは？
+
+Modelfile は Ollama のモデル設定ファイルで、Docker の Dockerfile に似ています。以下のことができます：
+
+- ベースモデルの指定
+- System Prompt（キャラクター設定）の埋め込み
+- 生成パラメータの調整（温度、繰り返しペナルティなど）
+- 出力長の制限
+
+##### サンプル Modelfile の使用
+
+このプラグインはフリーレンキャラクターの Modelfile サンプルを提供しています：`frieren_modelfile.txt`
+
+**ステップ 1：Modelfile を準備**
+
+```bash
+# サンプル Modelfile を作業ディレクトリにコピー
+cp wp-content/plugins/mp-ukagaka/frieren_modelfile.txt ~/frieren_modelfile
+```
+
+**ステップ 2：ベースモデルを変更（オプション）**
+
+Modelfile を編集し、最初の `FROM` 行をダウンロード済みのモデルに変更：
+
+```dockerfile
+# ダウンロード済みのモデルに変更
+FROM gemma3:12b
+# または他のモデル：
+# FROM qwen3:8b
+# FROM llama3.2
+# FROM mistral
+```
+
+**ステップ 3：カスタムモデルを作成**
+
+```bash
+# Modelfile を使用して新しいモデルを作成
+ollama create frieren -f ~/frieren_modelfile
+
+# 成功すると以下が表示されます
+# success
+```
+
+**ステップ 4：モデルをテスト**
+
+```bash
+# 会話テスト
+ollama run frieren "こんにちは"
+
+# フリーレンの口調で応答するはずです
+```
+
+**ステップ 5：プラグインで使用**
+
+**LLM 設定** ページで、モデル名を `frieren`（または作成したモデル名）に設定します。
+
+##### Modelfile の構造
+
+```dockerfile
+# ベースモデル（事前にダウンロード必要）
+FROM gemma3:12b
+
+# System Prompt（キャラクター設定）
+SYSTEM """
+あなたは「フリーレン」。以下の人格・記憶・態度・話し方・制約を必ず守ること。
+...
+"""
+
+# パラメータ調整
+PARAMETER num_predict 100      # 最大出力トークン数
+PARAMETER num_ctx 8192         # コンテキスト長
+PARAMETER temperature 0.7      # 温度（創造性）
+PARAMETER top_p 0.9            # Top-p サンプリング
+PARAMETER top_k 40             # Top-k サンプリング
+PARAMETER repeat_penalty 1.3   # 繰り返しペナルティ
+PARAMETER repeat_last_n 64     # 繰り返しチェック範囲
+```
+
+##### パラメータ推奨値
+
+| パラメータ | 説明 | 推奨値 |
+|-----------|------|--------|
+| `num_predict` | 最大出力トークン数 | 100（約 40 字の日本語） |
+| `num_ctx` | コンテキスト長 | 8192（System Prompt の完全読み取りを確保） |
+| `temperature` | 創造性 | 0.7（一貫性と多様性のバランス） |
+| `top_p` | Top-p サンプリング | 0.9（適度な多様性） |
+| `repeat_penalty` | 繰り返しペナルティ | 1.3（繰り返し削減） |
+
+##### Modelfile vs バックエンド System Prompt
+
+| 方法 | メリット | デメリット |
+|------|----------|------------|
+| **Modelfile** | トークン消費なし、応答一貫性 | 変更時にモデル再構築が必要 |
+| **バックエンド設定** | いつでも変更可能、柔軟 | 毎回トークン消費 |
+
+> 💡 **推奨**：キャラクター設定が安定している場合は Modelfile を使用。まだキャラクターを調整中の場合はバックエンド設定を使用。
+
+##### よく使う Modelfile コマンド
+
+```bash
+# 作成したモデルを一覧表示
+ollama list
+
+# カスタムモデルを削除
+ollama rm frieren
+
+# モデルを再構築（Modelfile 変更後）
+ollama rm frieren && ollama create frieren -f ~/frieren_modelfile
+
+# モデル情報を表示
+ollama show frieren
+```
+
 ### 詳細設定
 
 #### LLM で内蔵ダイアログを置換

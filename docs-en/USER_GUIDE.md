@@ -483,6 +483,123 @@ Enter the name of the model you downloaded, for example:
 
 Click the "Test Ollama Connection" button to confirm the connection is working.
 
+#### 5. Using Modelfile to Create Character-Specific Models (Advanced)
+
+Ollama's **Modelfile** allows you to embed character settings directly into the model. This means you don't need to send the System Prompt with each conversation, **significantly reducing token consumption** and improving response consistency.
+
+##### What is a Modelfile?
+
+A Modelfile is Ollama's model configuration file, similar to Docker's Dockerfile. It can:
+
+- Specify the base model
+- Embed System Prompt (character settings)
+- Adjust generation parameters (temperature, repeat penalty, etc.)
+- Limit output length
+
+##### Using the Example Modelfile
+
+This plugin provides a Frieren character Modelfile example: `frieren_modelfile.txt`
+
+**Step 1: Prepare the Modelfile**
+
+```bash
+# Copy the example Modelfile to your working directory
+cp wp-content/plugins/mp-ukagaka/frieren_modelfile.txt ~/frieren_modelfile
+```
+
+**Step 2: Modify the Base Model (Optional)**
+
+Edit the Modelfile and change the `FROM` line to a model you've downloaded:
+
+```dockerfile
+# Change to your downloaded model
+FROM gemma3:12b
+# Or other models:
+# FROM qwen3:8b
+# FROM llama3.2
+# FROM mistral
+```
+
+**Step 3: Create the Custom Model**
+
+```bash
+# Create new model using Modelfile
+ollama create frieren -f ~/frieren_modelfile
+
+# On success, you'll see:
+# success
+```
+
+**Step 4: Test the Model**
+
+```bash
+# Test conversation
+ollama run frieren "Hello"
+
+# Should respond in Frieren's character
+```
+
+**Step 5: Use in Plugin**
+
+In **LLM Settings** page, set the model name to `frieren` (or your custom model name).
+
+##### Modelfile Structure
+
+```dockerfile
+# Base model (must be downloaded first)
+FROM gemma3:12b
+
+# System Prompt (character settings)
+SYSTEM """
+あなたは「フリーレン」。以下の人格・記憶・態度・話し方・制約を必ず守ること。
+...
+"""
+
+# Parameter adjustments
+PARAMETER num_predict 100      # Max output tokens
+PARAMETER num_ctx 8192         # Context length
+PARAMETER temperature 0.7      # Temperature (creativity)
+PARAMETER top_p 0.9            # Top-p sampling
+PARAMETER top_k 40             # Top-k sampling
+PARAMETER repeat_penalty 1.3   # Repeat penalty
+PARAMETER repeat_last_n 64     # Repeat check window
+```
+
+##### Parameter Recommendations
+
+| Parameter | Description | Recommended |
+|-----------|-------------|-------------|
+| `num_predict` | Max output tokens | 100 (~40 Japanese chars) |
+| `num_ctx` | Context length | 8192 (ensures full System Prompt) |
+| `temperature` | Creativity | 0.7 (balance consistency & variety) |
+| `top_p` | Top-p sampling | 0.9 (moderate variety) |
+| `repeat_penalty` | Repeat penalty | 1.3 (reduce repetition) |
+
+##### Modelfile vs Backend System Prompt
+
+| Method | Pros | Cons |
+|--------|------|------|
+| **Modelfile** | No token cost, consistent responses | Need to rebuild model to change |
+| **Backend Settings** | Easy to modify, flexible | Costs tokens each time |
+
+> 💡 **Recommendation**: Use Modelfile if your character settings are stable. Use backend settings while still tuning the character.
+
+##### Common Modelfile Commands
+
+```bash
+# List created models
+ollama list
+
+# Delete custom model
+ollama rm frieren
+
+# Rebuild model (after modifying Modelfile)
+ollama rm frieren && ollama create frieren -f ~/frieren_modelfile
+
+# Show model info
+ollama show frieren
+```
+
 ### Advanced Settings
 
 #### Use LLM to Replace Built-in Dialogue

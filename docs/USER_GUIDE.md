@@ -481,6 +481,7 @@ LLM（Large Language Model）功能允許你使用多種 AI 服務來生成對�
 - `qwen3:8b`
 - `llama3.2`
 - `mistral`
+- `frieren`（自訂 Modelfile 模型，見下方說明）
 
 > 💡 在終端機使用 `ollama list` 命令查看已下載的模型
 
@@ -489,6 +490,132 @@ LLM（Large Language Model）功能允許你使用多種 AI 服務來生成對�
 點擊「測試 Ollama 連接」按鈕，確認連接正常。
 
 > 💡 插件會自動檢測連接類型（本地/遠程）並調整超時時間
+
+#### 5. 使用 Modelfile 創建角色專屬模型（進階）
+
+Ollama 的 **Modelfile** 可以將角色設定直接嵌入模型中，這樣每次對話都不需要重複傳送 System Prompt，**顯著減少 token 消耗**並提高回應一致性。
+
+##### 什麼是 Modelfile？
+
+Modelfile 是 Ollama 的模型配置文件，類似於 Docker 的 Dockerfile。它可以：
+
+- 指定基礎模型
+- 嵌入 System Prompt（角色設定）
+- 調整生成參數（溫度、重複懲罰等）
+- 限制輸出長度
+
+##### 使用範例 Modelfile
+
+本插件提供了一個芙莉蓮角色的 Modelfile 範例：`frieren_modelfile.txt`
+
+**步驟 1：準備 Modelfile**
+
+```bash
+# 複製範例 Modelfile 到工作目錄
+cp wp-content/plugins/mp-ukagaka/frieren_modelfile.txt ~/frieren_modelfile
+```
+
+**步驟 2：修改基礎模型（可選）**
+
+編輯 Modelfile，將第一行的 `FROM` 改為你已下載的模型：
+
+```dockerfile
+# 修改為你已下載的模型
+FROM gemma3:12b
+# 或其他模型：
+# FROM qwen3:8b
+# FROM llama3.2
+# FROM mistral
+```
+
+**步驟 3：創建自訂模型**
+
+```bash
+# 使用 Modelfile 創建新模型
+ollama create frieren -f ~/frieren_modelfile
+
+# 創建成功後會顯示
+# success
+```
+
+**步驟 4：測試模型**
+
+```bash
+# 測試對話
+ollama run frieren "你好"
+
+# 應該會以芙莉蓮的口吻回應
+```
+
+**步驟 5：在插件中使用**
+
+在 **LLM 設定** 頁面中，將模型名稱設為 `frieren`（或你創建的模型名稱）。
+
+##### Modelfile 結構說明
+
+```dockerfile
+# 基礎模型（必須先下載）
+FROM gemma3:12b
+
+# System Prompt（角色設定）
+SYSTEM """
+あなたは「フリーレン」。以下の人格・記憶・態度・話し方・制約を必ず守ること。
+...
+"""
+
+# 參數調整
+PARAMETER num_predict 100      # 最大輸出 token 數
+PARAMETER num_ctx 8192         # 上下文長度
+PARAMETER temperature 0.7      # 溫度（創造力）
+PARAMETER top_p 0.9            # Top-p 採樣
+PARAMETER top_k 40             # Top-k 採樣
+PARAMETER repeat_penalty 1.3   # 重複懲罰
+PARAMETER repeat_last_n 64     # 重複檢查視窗
+```
+
+##### 自訂角色 Modelfile
+
+你可以參考 `frieren_modelfile.txt` 創建自己的角色：
+
+1. **複製範例檔案**：`cp frieren_modelfile.txt my_character_modelfile`
+2. **修改 SYSTEM 部分**：替換為你的角色設定
+3. **調整參數**：根據需求調整溫度、輸出長度等
+4. **創建模型**：`ollama create my_character -f my_character_modelfile`
+
+##### 參數調整建議
+
+| 參數 | 說明 | 建議值 |
+|------|------|--------|
+| `num_predict` | 最大輸出 token 數 | 100（約 40 字日文） |
+| `num_ctx` | 上下文長度 | 8192（確保 System Prompt 完整讀取） |
+| `temperature` | 溫度（創造力） | 0.7（平衡一致性與多樣性） |
+| `top_p` | Top-p 採樣 | 0.9（適度多樣性） |
+| `repeat_penalty` | 重複懲罰 | 1.3（減少重複） |
+
+##### Modelfile vs 後台 System Prompt
+
+| 方式 | 優點 | 缺點 |
+|------|------|------|
+| **Modelfile** | 不消耗 token、回應一致 | 修改需重建模型 |
+| **後台設定** | 隨時可改、靈活調整 | 每次消耗 token |
+
+> 💡 **建議**：如果角色設定穩定不常修改，使用 Modelfile 可以顯著降低成本。如果還在調試角色，建議先用後台設定。
+
+##### 常用 Modelfile 命令
+
+```bash
+# 查看已創建的模型
+ollama list
+
+# 刪除自訂模型
+ollama rm frieren
+
+# 重新創建模型（修改 Modelfile 後）
+ollama rm frieren && ollama create frieren -f ~/frieren_modelfile
+
+# 查看模型資訊
+ollama show frieren
+```
 
 ### 進階設定
 
