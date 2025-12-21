@@ -510,29 +510,29 @@ Modelfile 是 Ollama 的模型配置文件，類似於 Docker 的 Dockerfile。�
 
 **步驟 1：準備 Modelfile**
 
-```bash
+```powershell
 # 複製範例 Modelfile 到工作目錄
-cp wp-content/plugins/mp-ukagaka/frieren_modelfile.txt ~/frieren_modelfile
+Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.txt $HOME\frieren_modelfile
 ```
 
 **步驟 2：修改基礎模型（可選）**
 
-編輯 Modelfile，將第一行的 `FROM` 改為你已下載的模型：
+編輯 Modelfile，將第 2 行的 `FROM` 改為你已下載的模型：
 
 ```dockerfile
 # 修改為你已下載的模型
-FROM gemma3:12b
+FROM qwen3:8b
 # 或其他模型：
-# FROM qwen3:8b
+# FROM gemma3:12b
 # FROM llama3.2
 # FROM mistral
 ```
 
 **步驟 3：創建自訂模型**
 
-```bash
+```powershell
 # 使用 Modelfile 創建新模型
-ollama create frieren -f ~/frieren_modelfile
+ollama create frieren -f $HOME\frieren_modelfile
 
 # 創建成功後會顯示
 # success
@@ -540,7 +540,7 @@ ollama create frieren -f ~/frieren_modelfile
 
 **步驟 4：測試模型**
 
-```bash
+```powershell
 # 測試對話
 ollama run frieren "你好"
 
@@ -555,7 +555,7 @@ ollama run frieren "你好"
 
 ```dockerfile
 # 基礎模型（必須先下載）
-FROM gemma3:12b
+FROM qwen3:8b
 
 # System Prompt（角色設定）
 SYSTEM """
@@ -564,11 +564,10 @@ SYSTEM """
 """
 
 # 參數調整
-PARAMETER num_predict 100      # 最大輸出 token 數
+PARAMETER num_predict 80       # 最大輸出 token 數
 PARAMETER num_ctx 8192         # 上下文長度
 PARAMETER temperature 0.7      # 溫度（創造力）
 PARAMETER top_p 0.9            # Top-p 採樣
-PARAMETER top_k 40             # Top-k 採樣
 PARAMETER repeat_penalty 1.3   # 重複懲罰
 PARAMETER repeat_last_n 64     # 重複檢查視窗
 ```
@@ -586,7 +585,7 @@ PARAMETER repeat_last_n 64     # 重複檢查視窗
 
 | 參數 | 說明 | 建議值 |
 |------|------|--------|
-| `num_predict` | 最大輸出 token 數 | 100（約 40 字日文） |
+| `num_predict` | 最大輸出 token 數 | 80（約 40 字日文） |
 | `num_ctx` | 上下文長度 | 8192（確保 System Prompt 完整讀取） |
 | `temperature` | 溫度（創造力） | 0.7（平衡一致性與多樣性） |
 | `top_p` | Top-p 採樣 | 0.9（適度多樣性） |
@@ -603,7 +602,7 @@ PARAMETER repeat_last_n 64     # 重複檢查視窗
 
 ##### 常用 Modelfile 命令
 
-```bash
+```powershell
 # 查看已創建的模型
 ollama list
 
@@ -611,7 +610,7 @@ ollama list
 ollama rm frieren
 
 # 重新創建模型（修改 Modelfile 後）
-ollama rm frieren && ollama create frieren -f ~/frieren_modelfile
+ollama rm frieren; ollama create frieren -f $HOME\frieren_modelfile
 
 # 查看模型資訊
 ollama show frieren

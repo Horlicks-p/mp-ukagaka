@@ -460,29 +460,29 @@ Modelfile は Ollama のモデル設定ファイルで、Docker の Dockerfile �
 
 **ステップ 1：Modelfile を準備**
 
-```bash
+```powershell
 # サンプル Modelfile を作業ディレクトリにコピー
-cp wp-content/plugins/mp-ukagaka/frieren_modelfile.txt ~/frieren_modelfile
+Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.txt $HOME\frieren_modelfile
 ```
 
 **ステップ 2：ベースモデルを変更（オプション）**
 
-Modelfile を編集し、最初の `FROM` 行をダウンロード済みのモデルに変更：
+Modelfile を編集し、2 行目の `FROM` をダウンロード済みのモデルに変更：
 
 ```dockerfile
 # ダウンロード済みのモデルに変更
-FROM gemma3:12b
+FROM qwen3:8b
 # または他のモデル：
-# FROM qwen3:8b
+# FROM gemma3:12b
 # FROM llama3.2
 # FROM mistral
 ```
 
 **ステップ 3：カスタムモデルを作成**
 
-```bash
+```powershell
 # Modelfile を使用して新しいモデルを作成
-ollama create frieren -f ~/frieren_modelfile
+ollama create frieren -f $HOME\frieren_modelfile
 
 # 成功すると以下が表示されます
 # success
@@ -490,7 +490,7 @@ ollama create frieren -f ~/frieren_modelfile
 
 **ステップ 4：モデルをテスト**
 
-```bash
+```powershell
 # 会話テスト
 ollama run frieren "こんにちは"
 
@@ -505,7 +505,7 @@ ollama run frieren "こんにちは"
 
 ```dockerfile
 # ベースモデル（事前にダウンロード必要）
-FROM gemma3:12b
+FROM qwen3:8b
 
 # System Prompt（キャラクター設定）
 SYSTEM """
@@ -514,11 +514,10 @@ SYSTEM """
 """
 
 # パラメータ調整
-PARAMETER num_predict 100      # 最大出力トークン数
+PARAMETER num_predict 80       # 最大出力トークン数
 PARAMETER num_ctx 8192         # コンテキスト長
 PARAMETER temperature 0.7      # 温度（創造性）
 PARAMETER top_p 0.9            # Top-p サンプリング
-PARAMETER top_k 40             # Top-k サンプリング
 PARAMETER repeat_penalty 1.3   # 繰り返しペナルティ
 PARAMETER repeat_last_n 64     # 繰り返しチェック範囲
 ```
@@ -527,7 +526,7 @@ PARAMETER repeat_last_n 64     # 繰り返しチェック範囲
 
 | パラメータ | 説明 | 推奨値 |
 |-----------|------|--------|
-| `num_predict` | 最大出力トークン数 | 100（約 40 字の日本語） |
+| `num_predict` | 最大出力トークン数 | 80（約 40 字の日本語） |
 | `num_ctx` | コンテキスト長 | 8192（System Prompt の完全読み取りを確保） |
 | `temperature` | 創造性 | 0.7（一貫性と多様性のバランス） |
 | `top_p` | Top-p サンプリング | 0.9（適度な多様性） |
@@ -544,7 +543,7 @@ PARAMETER repeat_last_n 64     # 繰り返しチェック範囲
 
 ##### よく使う Modelfile コマンド
 
-```bash
+```powershell
 # 作成したモデルを一覧表示
 ollama list
 
@@ -552,7 +551,7 @@ ollama list
 ollama rm frieren
 
 # モデルを再構築（Modelfile 変更後）
-ollama rm frieren && ollama create frieren -f ~/frieren_modelfile
+ollama rm frieren; ollama create frieren -f $HOME\frieren_modelfile
 
 # モデル情報を表示
 ollama show frieren

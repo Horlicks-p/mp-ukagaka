@@ -502,29 +502,29 @@ This plugin provides a Frieren character Modelfile example: `frieren_modelfile.t
 
 **Step 1: Prepare the Modelfile**
 
-```bash
+```powershell
 # Copy the example Modelfile to your working directory
-cp wp-content/plugins/mp-ukagaka/frieren_modelfile.txt ~/frieren_modelfile
+Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.txt $HOME\frieren_modelfile
 ```
 
 **Step 2: Modify the Base Model (Optional)**
 
-Edit the Modelfile and change the `FROM` line to a model you've downloaded:
+Edit the Modelfile and change the `FROM` line (line 2) to a model you've downloaded:
 
 ```dockerfile
 # Change to your downloaded model
-FROM gemma3:12b
+FROM qwen3:8b
 # Or other models:
-# FROM qwen3:8b
+# FROM gemma3:12b
 # FROM llama3.2
 # FROM mistral
 ```
 
 **Step 3: Create the Custom Model**
 
-```bash
+```powershell
 # Create new model using Modelfile
-ollama create frieren -f ~/frieren_modelfile
+ollama create frieren -f $HOME\frieren_modelfile
 
 # On success, you'll see:
 # success
@@ -532,7 +532,7 @@ ollama create frieren -f ~/frieren_modelfile
 
 **Step 4: Test the Model**
 
-```bash
+```powershell
 # Test conversation
 ollama run frieren "Hello"
 
@@ -547,7 +547,7 @@ In **LLM Settings** page, set the model name to `frieren` (or your custom model 
 
 ```dockerfile
 # Base model (must be downloaded first)
-FROM gemma3:12b
+FROM qwen3:8b
 
 # System Prompt (character settings)
 SYSTEM """
@@ -556,11 +556,10 @@ SYSTEM """
 """
 
 # Parameter adjustments
-PARAMETER num_predict 100      # Max output tokens
+PARAMETER num_predict 80       # Max output tokens
 PARAMETER num_ctx 8192         # Context length
 PARAMETER temperature 0.7      # Temperature (creativity)
 PARAMETER top_p 0.9            # Top-p sampling
-PARAMETER top_k 40             # Top-k sampling
 PARAMETER repeat_penalty 1.3   # Repeat penalty
 PARAMETER repeat_last_n 64     # Repeat check window
 ```
@@ -569,7 +568,7 @@ PARAMETER repeat_last_n 64     # Repeat check window
 
 | Parameter | Description | Recommended |
 |-----------|-------------|-------------|
-| `num_predict` | Max output tokens | 100 (~40 Japanese chars) |
+| `num_predict` | Max output tokens | 80 (~40 Japanese chars) |
 | `num_ctx` | Context length | 8192 (ensures full System Prompt) |
 | `temperature` | Creativity | 0.7 (balance consistency & variety) |
 | `top_p` | Top-p sampling | 0.9 (moderate variety) |
@@ -586,7 +585,7 @@ PARAMETER repeat_last_n 64     # Repeat check window
 
 ##### Common Modelfile Commands
 
-```bash
+```powershell
 # List created models
 ollama list
 
@@ -594,7 +593,7 @@ ollama list
 ollama rm frieren
 
 # Rebuild model (after modifying Modelfile)
-ollama rm frieren && ollama create frieren -f ~/frieren_modelfile
+ollama rm frieren; ollama create frieren -f $HOME\frieren_modelfile
 
 # Show model info
 ollama show frieren
