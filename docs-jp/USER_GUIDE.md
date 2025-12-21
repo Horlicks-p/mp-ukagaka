@@ -456,13 +456,13 @@ Modelfile は Ollama のモデル設定ファイルで、Docker の Dockerfile �
 
 ##### サンプル Modelfile の使用
 
-このプラグインはフリーレンキャラクターの Modelfile サンプルを提供しています：`frieren_modelfile.txt`
+このプラグインはフリーレンキャラクターの Modelfile サンプルを提供しています：`frieren_modelfile.example.txt`
 
 **ステップ 1：Modelfile を準備**
 
 ```powershell
 # サンプル Modelfile を作業ディレクトリにコピー
-Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.txt $HOME\frieren_modelfile
+Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.example.txt $HOME\frieren_modelfile
 ```
 
 **ステップ 2：ベースモデルを変更（オプション）**

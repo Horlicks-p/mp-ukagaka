@@ -47,8 +47,9 @@ wp-config.php
 *.temp
 
 # Ollama model files (personal configuration)
-frieren_modelfile.txt
+# Note: frieren_modelfile.example.txt is tracked as a template
 *_modelfile.txt
+!*_modelfile.example.txt
 
 # User-generated content
 images/

@@ -498,13 +498,13 @@ A Modelfile is Ollama's model configuration file, similar to Docker's Dockerfile
 
 ##### Using the Example Modelfile
 
-This plugin provides a Frieren character Modelfile example: `frieren_modelfile.txt`
+This plugin provides a Frieren character Modelfile example: `frieren_modelfile.example.txt`
 
 **Step 1: Prepare the Modelfile**
 
 ```powershell
 # Copy the example Modelfile to your working directory
-Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.txt $HOME\frieren_modelfile
+Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.example.txt $HOME\frieren_modelfile
 ```
 
 **Step 2: Modify the Base Model (Optional)**

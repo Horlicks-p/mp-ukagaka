@@ -506,13 +506,13 @@ Modelfile 是 Ollama 的模型配置文件，類似於 Docker 的 Dockerfile。�
 
 ##### 使用範例 Modelfile
 
-本插件提供了一個芙莉蓮角色的 Modelfile 範例：`frieren_modelfile.txt`
+本插件提供了一個芙莉蓮角色的 Modelfile 範例：`frieren_modelfile.example.txt`
 
 **步驟 1：準備 Modelfile**
 
 ```powershell
 # 複製範例 Modelfile 到工作目錄
-Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.txt $HOME\frieren_modelfile
+Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.example.txt $HOME\frieren_modelfile
 ```
 
 **步驟 2：修改基礎模型（可選）**
@@ -574,9 +574,9 @@ PARAMETER repeat_last_n 64     # 重複檢查視窗
 
 ##### 自訂角色 Modelfile
 
-你可以參考 `frieren_modelfile.txt` 創建自己的角色：
+你可以參考 `frieren_modelfile.example.txt` 創建自己的角色：
 
-1. **複製範例檔案**：`cp frieren_modelfile.txt my_character_modelfile`
+1. **複製範例檔案**：`cp frieren_modelfile.example.txt my_character_modelfile`
 2. **修改 SYSTEM 部分**：替換為你的角色設定
 3. **調整參數**：根據需求調整溫度、輸出長度等
 4. **創建模型**：`ollama create my_character -f my_character_modelfile`
