@@ -307,6 +307,8 @@ AI 応答の言語を選択：
 - `{{ukagaka_display_name}}`：キャラクター名
 - `{{language}}`：応答言語
 - `{{time_context}}`：時間コンテキスト（「春の朝」など）
+- `{{admin_nickname}}`：管理人の完全なニックネーム（サンプルファイルで手動置き換えが必要）
+- `{{admin_name}}`：管理人の短い名前（サンプルファイルで手動置き換えが必要）
 
 #### 3. ページ感知確率（%）
 
@@ -456,18 +458,18 @@ Modelfile は Ollama のモデル設定ファイルで、Docker の Dockerfile �
 
 ##### サンプル Modelfile の使用
 
-このプラグインはフリーレンキャラクターの Modelfile サンプルを提供しています：`frieren_modelfile.example.txt`
+このプラグインはフリーレンキャラクターの Modelfile サンプルを提供しています：`example/frieren_modelfile.example.txt`
 
 **ステップ 1：Modelfile を準備**
 
 ```powershell
 # サンプル Modelfile を作業ディレクトリにコピー
-Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.example.txt $HOME\frieren_modelfile
+Copy-Item wp-content\plugins\mp-ukagaka\example\frieren_modelfile.example.txt $HOME\frieren_modelfile
 ```
 
 **ステップ 2：ベースモデルを変更（オプション）**
 
-Modelfile を編集し、2 行目の `FROM` をダウンロード済みのモデルに変更：
+Modelfile を編集し、1 行目の `FROM` をダウンロード済みのモデルに変更：
 
 ```dockerfile
 # ダウンロード済みのモデルに変更
@@ -478,7 +480,16 @@ FROM qwen3:8b
 # FROM mistral
 ```
 
-**ステップ 3：カスタムモデルを作成**
+**ステップ 3：管理人名称変数を置き換え（重要）**
+
+Modelfile を編集し、以下の変数を検索して置き換え：
+
+- `{{admin_nickname}}`：管理人の完全なニックネームに置き換え
+- `{{admin_name}}`：管理人の短い名前に置き換え
+
+> ⚠️ **重要**：これらの変数を置き換えないと、AI が会話中に `{{admin_nickname}}` や `{{admin_name}}` を直接言ってしまう可能性があります。
+
+**ステップ 4：カスタムモデルを作成**
 
 ```powershell
 # Modelfile を使用して新しいモデルを作成
@@ -488,7 +499,7 @@ ollama create frieren -f $HOME\frieren_modelfile
 # success
 ```
 
-**ステップ 4：モデルをテスト**
+**ステップ 5：モデルをテスト**
 
 ```powershell
 # 会話テスト
@@ -497,7 +508,7 @@ ollama run frieren "こんにちは"
 # フリーレンの口調で応答するはずです
 ```
 
-**ステップ 5：プラグインで使用**
+**ステップ 6：プラグインで使用**
 
 **LLM 設定** ページで、モデル名を `frieren`（または作成したモデル名）に設定します。
 
@@ -521,6 +532,16 @@ PARAMETER top_p 0.9            # Top-p サンプリング
 PARAMETER repeat_penalty 1.3   # 繰り返しペナルティ
 PARAMETER repeat_last_n 64     # 繰り返しチェック範囲
 ```
+
+##### カスタムキャラクター Modelfile
+
+`example/frieren_modelfile.example.txt` を参考にして、独自のキャラクターを作成できます：
+
+1. **サンプルファイルをコピー**：`cp example/frieren_modelfile.example.txt my_character_modelfile`
+2. **SYSTEM 部分を変更**：キャラクター設定に置き換え
+3. **管理人名称変数を置き換え**：`{{admin_nickname}}` と `{{admin_name}}` を実際の管理人名称に置き換え
+4. **パラメータを調整**：必要に応じて温度、出力長などを調整
+5. **モデルを作成**：`ollama create my_character -f my_character_modelfile`
 
 ##### パラメータ推奨値
 

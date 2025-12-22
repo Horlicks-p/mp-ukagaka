@@ -522,6 +522,18 @@ function mpu_get_wordpress_info()
         }
     }
 
+    // ========================================
+    // Slimstat 統計數據（如果可用）
+    // ========================================
+    if (function_exists('mpu_fetch_slimstat_stats')) {
+        $slimstat_stats = mpu_fetch_slimstat_stats();
+        $info['slimstat_total_visits'] = $slimstat_stats['total_visits'] ?? 0;
+        $info['slimstat_top_resources'] = $slimstat_stats['top_resources'] ?? [];
+    } else {
+        $info['slimstat_total_visits'] = 0;
+        $info['slimstat_top_resources'] = [];
+    }
+
     // 緩存結果（5 分鐘）
     set_transient($cache_key, $info, 5 * MINUTE_IN_SECONDS);
 

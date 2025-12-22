@@ -498,18 +498,18 @@ A Modelfile is Ollama's model configuration file, similar to Docker's Dockerfile
 
 ##### Using the Example Modelfile
 
-This plugin provides a Frieren character Modelfile example: `frieren_modelfile.example.txt`
+This plugin provides a Frieren character Modelfile example: `example/frieren_modelfile.example.txt`
 
 **Step 1: Prepare the Modelfile**
 
 ```powershell
 # Copy the example Modelfile to your working directory
-Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.example.txt $HOME\frieren_modelfile
+Copy-Item wp-content\plugins\mp-ukagaka\example\frieren_modelfile.example.txt $HOME\frieren_modelfile
 ```
 
 **Step 2: Modify the Base Model (Optional)**
 
-Edit the Modelfile and change the `FROM` line (line 2) to a model you've downloaded:
+Edit the Modelfile and change the `FROM` line (line 1) to a model you've downloaded:
 
 ```dockerfile
 # Change to your downloaded model
@@ -520,7 +520,16 @@ FROM qwen3:8b
 # FROM mistral
 ```
 
-**Step 3: Create the Custom Model**
+**Step 3: Replace Admin Name Variables (Important)**
+
+Edit the Modelfile and search for and replace the following variables:
+
+- `{{admin_nickname}}`: Replace with the admin's full nickname
+- `{{admin_name}}`: Replace with the admin's short name
+
+> ⚠️ **Important**: If you don't replace these variables, the AI may directly say `{{admin_nickname}}` or `{{admin_name}}` in conversations instead of the actual admin name.
+
+**Step 4: Create the Custom Model**
 
 ```powershell
 # Create new model using Modelfile
@@ -530,7 +539,7 @@ ollama create frieren -f $HOME\frieren_modelfile
 # success
 ```
 
-**Step 4: Test the Model**
+**Step 5: Test the Model**
 
 ```powershell
 # Test conversation
@@ -539,9 +548,19 @@ ollama run frieren "Hello"
 # Should respond in Frieren's character
 ```
 
-**Step 5: Use in Plugin**
+**Step 6: Use in Plugin**
 
 In **LLM Settings** page, set the model name to `frieren` (or your custom model name).
+
+##### Creating Your Own Character Modelfile
+
+You can reference `example/frieren_modelfile.example.txt` to create your own character:
+
+1. **Copy the example file**: `cp example/frieren_modelfile.example.txt my_character_modelfile`
+2. **Modify the SYSTEM section**: Replace with your character settings
+3. **Replace admin name variables**: Replace `{{admin_nickname}}` and `{{admin_name}}` with actual admin names
+4. **Adjust parameters**: Adjust temperature, output length, etc. as needed
+5. **Create the model**: `ollama create my_character -f my_character_modelfile`
 
 ##### Modelfile Structure
 
@@ -659,12 +678,14 @@ This design makes character style more consistent while maintaining dialogue div
    > - Modern LLMs (OpenAI GPT, Claude, Gemini) can directly understand Markdown and XML formats without additional processing
    > - Markdown format is recommended for a balance between readability and structure
    > - The input box uses monospace font for easier format structure viewing
-   > - See `system-prompt-markdown-example.md` in the root directory for a complete Markdown format example
+   > - See `example/system-prompt-markdown-example.md` for a complete Markdown format example
 
    **Variable List:**
    - `{{ukagaka_display_name}}`: Character name
    - `{{language}}`: Response language (zh-TW, ja, en)
    - `{{time_context}}`: Time context (e.g., "Spring Morning")
+   - `{{admin_nickname}}`: Admin's full nickname (must be manually replaced in example files)
+   - `{{admin_name}}`: Admin's short name (must be manually replaced in example files)
    - `{{wp_version}}`: WordPress version
    - `{{php_version}}`: PHP version
    - `{{post_count}}`: Post count

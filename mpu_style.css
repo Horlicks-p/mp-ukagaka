@@ -18,19 +18,19 @@
     float: right;
     display: block;
     z-index: 10000;     /* 高層級，確保顯示在其他元素上方 */
-    margin: 0 20px 0 0; /* 右邊距 20px */
+    margin: 0 50px 0 0; /* 右邊距 50px */
     padding: 0;
 }
 
 /* 春菜圖片的樣式 */
 #ukagaka_img {
-    margin-bottom: -10px; /* 向上偏移 10px，與其他元素對齊 */
+    margin-bottom: 0px; /* 向上偏移 10px，與其他元素對齊 */
 
 }
 
 /* 春菜圖片的樣式 */
 #ukagaka_img canvas {
-    opacity: 0.85; /* 透明度 90% */
+    opacity: 0.85 /* 透明度 85% */
 }
 
 /* 春菜圖片的懸停效果 */
@@ -42,7 +42,7 @@
 #ukagaka {
     position: relative;
     float: right;
-    padding-right:40px; /* 右內邊距 60px，留空間給對話框 */
+    padding-right:65px; /* 右內邊距 60px，留空間給對話框 */
 }
 
 /* 對話框頂部的樣式 */
@@ -58,7 +58,7 @@
     font-family: "Noto Sans TC","Noto Sans JP", serif;
     color: #6d6d6d; /* 文字顏色為灰色 */
     top: 50%;       /* 改為 50%，相對於春菜垂直置中 */
-    left: -200px;   /* 向左偏移 220px，顯示在春菜左側 */
+    left: -220px;   /* 向左偏移 220px，顯示在春菜左側 */
     transform: translateY(-50%); /* 使用 transform 實現垂直置中，根據對話框自身高度動態調整 */
     width: 250px;   /* 固定寬度 250px */
     min-height: 50px; /* 最小高度 50px */

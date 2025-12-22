@@ -506,18 +506,18 @@ Modelfile 是 Ollama 的模型配置文件，類似於 Docker 的 Dockerfile。�
 
 ##### 使用範例 Modelfile
 
-本插件提供了一個芙莉蓮角色的 Modelfile 範例：`frieren_modelfile.example.txt`
+本插件提供了一個芙莉蓮角色的 Modelfile 範例：`example/frieren_modelfile.example.txt`
 
 **步驟 1：準備 Modelfile**
 
 ```powershell
 # 複製範例 Modelfile 到工作目錄
-Copy-Item wp-content\plugins\mp-ukagaka\frieren_modelfile.example.txt $HOME\frieren_modelfile
+Copy-Item wp-content\plugins\mp-ukagaka\example\frieren_modelfile.example.txt $HOME\frieren_modelfile
 ```
 
 **步驟 2：修改基礎模型（可選）**
 
-編輯 Modelfile，將第 2 行的 `FROM` 改為你已下載的模型：
+編輯 Modelfile，將第 1 行的 `FROM` 改為你已下載的模型：
 
 ```dockerfile
 # 修改為你已下載的模型
@@ -528,7 +528,16 @@ FROM qwen3:8b
 # FROM mistral
 ```
 
-**步驟 3：創建自訂模型**
+**步驟 3：替換管理人名稱變數（重要）**
+
+編輯 Modelfile，搜尋並替換以下變數：
+
+- `{{admin_nickname}}`：替換為管理人的完整暱稱
+- `{{admin_name}}`：替換為管理人的簡稱
+
+> ⚠️ **重要**：如果不替換這些變數，AI 可能會在對話中直接說出 `{{admin_nickname}}` 或 `{{admin_name}}`，而不是實際的管理人名稱。
+
+**步驟 4：創建自訂模型**
 
 ```powershell
 # 使用 Modelfile 創建新模型
@@ -538,7 +547,7 @@ ollama create frieren -f $HOME\frieren_modelfile
 # success
 ```
 
-**步驟 4：測試模型**
+**步驟 5：測試模型**
 
 ```powershell
 # 測試對話
@@ -547,7 +556,7 @@ ollama run frieren "你好"
 # 應該會以芙莉蓮的口吻回應
 ```
 
-**步驟 5：在插件中使用**
+**步驟 6：在插件中使用**
 
 在 **LLM 設定** 頁面中，將模型名稱設為 `frieren`（或你創建的模型名稱）。
 
@@ -574,12 +583,13 @@ PARAMETER repeat_last_n 64     # 重複檢查視窗
 
 ##### 自訂角色 Modelfile
 
-你可以參考 `frieren_modelfile.example.txt` 創建自己的角色：
+你可以參考 `example/frieren_modelfile.example.txt` 創建自己的角色：
 
-1. **複製範例檔案**：`cp frieren_modelfile.example.txt my_character_modelfile`
+1. **複製範例檔案**：`cp example/frieren_modelfile.example.txt my_character_modelfile`
 2. **修改 SYSTEM 部分**：替換為你的角色設定
-3. **調整參數**：根據需求調整溫度、輸出長度等
-4. **創建模型**：`ollama create my_character -f my_character_modelfile`
+3. **替換管理人名稱變數**：將 `{{admin_nickname}}` 和 `{{admin_name}}` 替換為實際的管理人名稱
+4. **調整參數**：根據需求調整溫度、輸出長度等
+5. **創建模型**：`ollama create my_character -f my_character_modelfile`
 
 ##### 參數調整建議
 
@@ -675,12 +685,14 @@ ollama show frieren
    > - 現代 LLM（OpenAI GPT、Claude、Gemini）都能直接理解 Markdown 和 XML 格式，無需額外處理
    > - 推薦使用 Markdown 格式，兼顧可讀性和結構化
    > - 輸入框使用等寬字體（monospace），方便查看格式結構
-   > - 完整的 Markdown 格式範例請參考根目錄的 `system-prompt-markdown-example.md`
+   > - 完整的 Markdown 格式範例請參考 `example/system-prompt-markdown-example.md`
 
    **變數列表：**
    - `{{ukagaka_display_name}}`：角色名稱
    - `{{language}}`：回應語言（zh-TW、ja、en）
    - `{{time_context}}`：時間情境（如「春の朝」）
+   - `{{admin_nickname}}`：管理人的完整暱稱（需在範例文件中手動替換）
+   - `{{admin_name}}`：管理人的簡稱（需在範例文件中手動替換）
    - `{{wp_version}}`：WordPress 版本
    - `{{php_version}}`：PHP 版本
    - `{{post_count}}`：文章數

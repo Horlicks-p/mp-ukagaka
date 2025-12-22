@@ -463,6 +463,12 @@ function mpu_ajax_get_visitor_info()
     if (class_exists('wp_slimstat')) {
         $visitor_info["slimstat_enabled"] = true;
 
+        // 直接查詢 Slimstat 資料庫
+        // 注意：這裡使用直接查詢而非 REST API，因為：
+        // 1. 需要根據當前訪客的 IP 精確查詢個人資訊
+        // 2. REST API 的 recent 功能無法精確按 IP 過濾（filters 參數格式複雜）
+        // 3. 直接查詢更快、更精確，且是內部使用
+        // 統計數據（總訪問數、最熱門文章）則使用 REST API（見 mpu_fetch_slimstat_stats()）
         global $wpdb;
         $slimstat_table = $wpdb->prefix . 'slim_stats';
 

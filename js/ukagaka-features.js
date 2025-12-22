@@ -304,7 +304,7 @@ function mpu_greet_first_visitor(settings) {
 
         // 顯示載入訊息
         if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
-        const loadingMessage = "（…あ、知らない人間だ）";
+        const loadingMessage = "（…あ、知らない人間だ…）";
         mpu_typewriter(
           `<span style="color: ${mpuAiTextColor};">${loadingMessage}</span>`,
           "#ukagaka_msg"

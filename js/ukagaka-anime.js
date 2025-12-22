@@ -20,7 +20,7 @@
         imageUrls: [], // 圖片 URL 陣列
         currentFrame: 0,
         animationTimer: null,
-        frameInterval: 200, // 動畫幀間隔（毫秒）
+        frameInterval: 150, // 動畫幀間隔（毫秒）
         imagesLoaded: false, // 圖片是否已全部載入
         pendingAnimation: false, // 是否有待執行的動畫
 
