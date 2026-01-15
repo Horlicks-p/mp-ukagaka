@@ -8,9 +8,10 @@
 
 1. [Canvas 動畫功能簡介](#canvas-動畫功能簡介)
 2. [動畫設定方式](#動畫設定方式)
-3. [技術實裝細節](#技術實裝細節)
-4. [CSS 位置調整](#css-位置調整)
-5. [常見問題](#常見問題)
+3. [芙莉蓮專屬配件系統](#芙莉蓮專屬配件系統)
+4. [技術實裝細節](#技術實裝細節)
+5. [CSS 位置調整](#css-位置調整)
+6. [常見問題](#常見問題)
 
 ---
 
@@ -66,6 +67,298 @@ images/shell/Frieren/
 - 資料夾路徑必須以 `/` 結尾
 - 支援的圖片格式：`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`
 - 圖片檔名建議使用數字序號以便正確排序
+
+---
+
+## 芙莉蓮專屬配件系統
+
+> 🎨 **v2.2.1+ 新功能**：預設角色芙莉蓮（`default_1`）擁有專屬的裝飾配件系統
+
+### 配件概覽
+
+芙莉蓮角色會自動載入三個專屬裝飾配件（アクセサリー），無需手動設定：
+
+| 配件 | 檔案名稱 | 位置 | 層級 | 用途 |
+|------|---------|------|-----|------|
+| 皮箱 | `suitcase.png` | 右前方 | `z-index: 10` | 芙莉蓮的旅行皮箱 |
+| 巨大頭蓋骨 | `evil_horns.png` | 左後方 | `z-index: -1` | 不知道能用來幹嘛 |
+| 魔導書 | `magic_book.png` | 右後方上 | `z-index: -1` | 芙莉蓮的魔法書 |
+| 魔法杖 | `magic_staff.png` | 右後方下 | `z-index: -1` | 芙莉蓮的魔法杖 |
+
+> 🖌️ **互動功能**：點擊任何配件，芙莉蓮會介紹該物品！
+
+### 配件位置與尺寸
+
+#### 1. 手提箱（Suitcase）
+
+```javascript
+{
+    type: 'suitcase',
+    src: decorationsBaseUrl + 'suitcase.png',
+    top: '82%',        // 垂直位置：82% 從上方
+    right: '-62px',    // 水平位置：向右外側 62px
+    width: '90px',     // 寬度
+    height: 'auto',    // 高度自動
+    transform: 'translateY(-50%)', // 垂直置中
+    zIndex: 10         // 在角色圖片前方
+}
+```
+
+#### 2. 巨大頭蓋骨（Evil Horns）
+
+```javascript
+{
+    type: 'evil_horns',
+    src: decorationsBaseUrl + 'evil_horns.png',
+    top: '42%',        // 垂直位置：42% 從上方
+    left: '-65px',     // 水平位置：向左外側 65px
+    width: '135px',    // 寬度
+    height: 'auto',    // 高度自動
+    transform: 'translateY(-50%)', // 垂直置中
+    zIndex: -1         // 在角色圖片後方
+}
+```
+
+#### 3. 魔法杖與書（Books & Staff）
+
+```javascript
+{
+    type: 'books_staff',
+    src: decorationsBaseUrl + 'books_staff.png',
+    top: '25%',        // 垂直位置：25% 從上方
+    right: '-60px',    // 水平位置：向右外側 60px
+    width: '135px',    // 寬度
+    height: 'auto',    // 高度自動
+    transform: 'translateY(-50%)', // 垂直置中
+    zIndex: -1         // 在角色圖片後方
+}
+```
+
+### 配件檔案路徑
+
+配件圖片預設存放於：
+
+```
+images/decorations/
+├── suitcase.png       # 皮箱
+├── evil_horns.png     # 惡魔角
+├── magic_book.png     # 魔導書
+└── magic_staff.png    # 魔法杖
+```
+
+系統會自動從以下來源推導配件路徑：
+
+1. **PHP 全域變數**（優先）：`window.mpuDecorationsBaseUrl`
+2. **Shell 路徑推導**：從 `shell/Frieren/` 推導到 `decorations/`
+3. **腳本路徑推導**（備用）：從 `js/ukagaka-anime.js` 推導
+
+### 啟用/停用配件
+
+**方法 1：使用後台設定（推薦）**
+
+1. 前往 **設定** → **MP Ukagaka** → **伺か管理**
+2. 找到芙莉蓮角色（`default_1`）
+3. 勾選或取消勾選「**顯示專屬配件**」選項
+4. 保存設定
+
+**方法 2：使用 CSS 隱藏特定配件（進階）**
+
+```css
+/* 隱藏所有配件 */
+.frieren-decoration {
+    display: none !important;
+}
+
+/* 或隱藏特定配件 */
+.frieren-decoration.suitcase {
+    display: none !important;
+}
+```
+
+> 💡 **提示**：CSS 方法適用於需要隱藏部分配件但保留其他配件的情況。
+
+### 配件位置調整
+
+#### 調整皮箱位置
+
+```css
+.frieren-decoration.suitcase {
+    top: 85% !important;    /* 向下移動 */
+    right: -55px !important; /* 向左移動（減少負值）*/
+    width: 100px !important; /* 放大 */
+}
+```
+
+#### 調整惡魔角位置
+
+```css
+.frieren-decoration.evil_horns {
+    top: 40% !important;    /* 向上移動 */
+    left: -70px !important; /* 向左移動（增加負值）*/
+    width: 120px !important; /* 縮小 */
+}
+```
+
+#### 調整魔法杖與書位置
+
+```css
+.frieren-decoration.books_staff {
+    top: 30% !important;    /* 向下移動 */
+    right: -50px !important; /* 向左移動（減少負值）*/
+    opacity: 0.8;           /* 調整透明度 */
+}
+```
+
+### 技術實作細節
+
+#### 配件載入流程
+
+1. **檢查角色**：`mpuCanvasManager.isFrieren(num, name)`
+   - 檢查 `num === 'default_1'`
+   - 檢查 `name` 包含 'フリーレン' 或 'Frieren'
+
+2. **初始化芙莉蓮模式**：`initFrierenMode()`
+   - 設定容器為相對定位
+   - 調用 `loadFrierenDecorations()`
+
+3. **載入配件**：`loadFrierenDecorations()`
+   - 檢查 `window.mpuShowDecorations` 是否啟用
+   - 推導配件圖片基礎 URL
+   - 逐一添加配件元素
+
+4. **添加配件**：`addFrierenDecoration(config)`
+   - 創建 `<img>` 元素
+   - 設置 `frieren-decoration` CSS 類別
+   - 應用絕對定位樣式
+   - 附加到 `#ukagaka_img` 容器
+
+#### 配件 HTML 結構
+
+```html
+<div id="ukagaka_img" style="position: relative;">
+    <!-- 春菜 Canvas 或 img -->
+    <canvas id="cur_ukagaka">...</canvas>
+    
+    <!-- 配件元素（自動添加）-->
+    <img class="frieren-decoration suitcase" 
+         src=".../decorations/suitcase.png"
+         style="position: absolute; top: 82%; right: -62px; ...">
+    
+    <img class="frieren-decoration evil_horns" 
+         src=".../decorations/evil_horns.png"
+         style="position: absolute; top: 42%; left: -65px; ...">
+    
+    <img class="frieren-decoration books_staff" 
+         src=".../decorations/books_staff.png"
+         style="position: absolute; top: 25%; right: -60px; ...">
+</div>
+```
+
+#### JavaScript API
+
+```javascript
+// 檢查是否為芙莉蓮
+mpuCanvasManager.isFrieren(num, name);
+
+// 手動添加配件（進階用法）
+mpuCanvasManager.addFrierenDecoration({
+    type: 'custom_accessory',
+    src: 'path/to/accessory.png',
+    top: '50%',
+    right: '-40px',
+    width: '80px',
+    zIndex: 5
+});
+
+// 移除特定配件
+mpuCanvasManager.removeFrierenDecoration('suitcase');
+
+// 清除所有配件
+mpuCanvasManager.clearFrierenDecorations();
+```
+
+### 自訂配件範例
+
+#### 添加新配件
+
+```javascript
+// 在 ukagaka-anime.js 的 loadFrierenDecorations() 函數中添加
+mpuCanvasManager.addFrierenDecoration({
+    type: 'custom_hat',
+    src: decorationsBaseUrl + 'custom_hat.png',
+    top: '10%',
+    left: '50%',
+    width: '60px',
+    transform: 'translateX(-50%)', // 水平置中
+    zIndex: 20
+});
+```
+
+#### 動態控制配件
+
+```javascript
+// 在特定事件時添加配件
+document.addEventListener('某個事件', function() {
+    if (mpuCanvasManager.isFrierenMode) {
+        mpuCanvasManager.addFrierenDecoration({
+            type: 'special_effect',
+            src: '/path/to/effect.png',
+            top: '30%',
+            left: '30%',
+            width: '50px',
+            zIndex: 15
+        });
+        
+        // 5秒後移除
+        setTimeout(function() {
+            mpuCanvasManager.removeFrierenDecoration('special_effect');
+        }, 5000);
+    }
+});
+```
+
+### 配件相容性
+
+- ✅ **支援角色切換**：切換到其他角色時，配件會自動清除
+- ✅ **支援響應式**：配件使用百分比定位，自動適應不同螢幕尺寸
+- ✅ **支援透明度**：可透過 CSS `opacity` 調整配件透明度
+- ✅ **支援 z-index**：可自由調整配件層級（前景/背景）
+
+### 常見自訂需求
+
+#### 1. 隱藏皮箱，保留其他配件
+
+```css
+.frieren-decoration.suitcase {
+    display: none !important;
+}
+```
+
+#### 2. 讓所有配件都在背景
+
+```css
+.frieren-decoration {
+    z-index: -1 !important;
+}
+```
+
+#### 3. 調整所有配件的透明度
+
+```css
+.frieren-decoration {
+    opacity: 0.7 !important;
+}
+```
+
+#### 4. 在小螢幕隱藏配件
+
+```css
+@media (max-width: 768px) {
+    .frieren-decoration {
+        display: none !important;
+    }
+}
+```
 
 ---
 

@@ -8,19 +8,20 @@
 
 ### User Documentation
 
-| Document | Description | Audience |
-|-----|------|---------|
-| [User Guide](./USER_GUIDE.md) | Complete guide for installation, configuration, and usage | General Users |
-| [Changelog](./CHANGELOG.md) | Update history for all versions | Everyone |
+| Document                                           | Description                                               | Audience       |
+| -------------------------------------------------- | --------------------------------------------------------- | -------------- |
+| [User Guide](./USER_GUIDE.md)                         | Complete guide for installation, configuration, and usage | General Users  |
+| [Personality Creation Guide](./GHOST_CREATE_GUIDE.md) | How to create new character personalities                 | Advanced Users |
+| [Changelog](./CHANGELOG.md)                           | Update history for all versions                           | Everyone       |
 
 ### Developer Documentation
 
-| Document | Description | Audience |
-|-----|------|---------|
-| [Developer Guide](./DEVELOPER_GUIDE.md) | Architecture overview, module structure, and extension development | Developers |
-| [API Reference](./API_REFERENCE.md) | Detailed reference for functions, Hooks, and AJAX endpoints | Developers |
-| [Canvas Animation & Custom CSS](./CANVAS_CUSTOMIZATION.md) | Canvas animation features and CSS positioning guide | Developers, Advanced Users |
-| [Slimstat Debugging Guide](./DEBUG_SLIMSTAT.md) | Guide for debugging Slimstat API integration | Developers |
+| Document                                                    | Description                                                        | Audience                   |
+| ----------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------- |
+| [Developer Guide](./DEVELOPER_GUIDE.md)                        | Architecture overview, module structure, and extension development | Developers                 |
+| [API Reference](./API_REFERENCE.md)                            | Detailed reference for functions, Hooks, and AJAX endpoints        | Developers                 |
+| [Canvas Animation &amp; Custom CSS](./CANVAS_CUSTOMIZATION.md) | Canvas animation features and CSS positioning guide                | Developers, Advanced Users |
+| [Slimstat Debugging Guide](./DEBUG_SLIMSTAT.md)                | Guide for debugging Slimstat API integration                       | Developers                 |
 
 ---
 
@@ -30,6 +31,7 @@
 
 - [How to install the plugin?](./USER_GUIDE.md#installation-and-activation)
 - [How to create a new Ukagaka?](./USER_GUIDE.md#creating-a-new-ukagaka)
+- [How to create a new personality?](./GHOST_CREATE_GUIDE.md#overview)
 - [How to configure AI features?](./USER_GUIDE.md#ai-feature-configuration)
 - [How to add external dialogue files?](./USER_GUIDE.md#external-dialogue-file-format)
 - [How to configure Canvas animations?](./CANVAS_CUSTOMIZATION.md#animation-configuration)
@@ -46,8 +48,8 @@
 
 ## 📋 Version Information
 
-- **Current Version**: 2.2.0
-- **Last Updated**: 2025-12-19
+- **Current Version**: 2.5.6
+- **Last Updated**: 2026-01-15
 - **WordPress Requirement**: 5.0+
 - **PHP Requirement**: 7.4+
 

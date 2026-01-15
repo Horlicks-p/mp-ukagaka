@@ -1,0 +1,47 @@
+{
+  "_format_version": "1.1",
+  "_description": "Touch zone definitions for Frieren character (249px height)",
+  "_measurements": {
+    "total_height": 249,
+    "head": 35,
+    "face": 40,
+    "chest": 35,
+    "book": 45,
+    "legs": 94
+  },
+
+  "zones": {
+    "head": {
+      "yStart": 0,
+      "yEnd": 0.14,
+      "reactions": ["touch_head"],
+      "description": "頭（0-35px）"
+    },
+    "face": {
+      "yStart": 0.14,
+      "yEnd": 0.30,
+      "reactions": ["touch_face"],
+      "description": "顔（35-75px）"
+    },
+    "chest": {
+      "yStart": 0.30,
+      "yEnd": 0.44,
+      "reactions": ["touch_chest"],
+      "description": "胸（75-110px）"
+    },
+    "book": {
+      "yStart": 0.44,
+      "yEnd": 0.62,
+      "reactions": ["touch_book"],
+      "description": "手の本（110-155px）"
+    },
+    "legs": {
+      "yStart": 0.62,
+      "yEnd": 1.0,
+      "reactions": ["touch_legs"],
+      "description": "足/宝箱（155-249px）"
+    }
+  },
+
+  "default_reaction": "touch_body"
+}

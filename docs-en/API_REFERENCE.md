@@ -192,12 +192,12 @@ if (is_wp_error($content)) {
 
 **Possible Errors:**
 
-| Error Code | Description |
-|---------|------|
-| `file_not_found` | File not found |
+| Error Code           | Description              |
+| -------------------- | ------------------------ |
+| `file_not_found`   | File not found           |
 | `path_not_allowed` | Path not allowed to read |
-| `file_too_large` | File too large to read |
-| `read_failed` | Failed to read file |
+| `file_too_large`   | File too large to read   |
+| `read_failed`      | Failed to read file      |
 
 ---
 
@@ -216,12 +216,12 @@ function mpu_secure_file_write(string $file_path, string $content)
 
 **Possible Errors:**
 
-| Error Code | Description |
-|---------|------|
-| `mkdir_failed` | Failed to create directory |
-| `path_not_allowed` | Path not allowed to write |
-| `invalid_filename` | Invalid filename |
-| `write_failed` | Failed to write file |
+| Error Code           | Description                |
+| -------------------- | -------------------------- |
+| `mkdir_failed`     | Failed to create directory |
+| `path_not_allowed` | Path not allowed to write  |
+| `invalid_filename` | Invalid filename           |
+| `write_failed`     | Failed to write file       |
 
 ---
 
@@ -331,11 +331,11 @@ function mpu_get_language_instruction(string $language): string
 
 **Return Values:**
 
-| Language Code | Return Value |
-|---------|--------|
-| `zh-TW` | `請用繁體中文回覆。` |
-| `ja` | `日本語で返答してください。` |
-| `en` | `Please reply in English.` |
+| Language Code | Return Value                   |
+| ------------- | ------------------------------ |
+| `zh-TW`     | `請用繁體中文回覆。`         |
+| `ja`        | `日本語で返答してください。` |
+| `en`        | `Please reply in English.`   |
 
 ---
 
@@ -1076,11 +1076,11 @@ Get next message.
 
 **Request Parameters:**
 
-| Parameter | Type | Description |
-|-----|------|------|
-| `ukagaka` | string | Ukagaka key |
-| `current` | int | Current message index |
-| `mode` | string | `next` or `random` |
+| Parameter   | Type   | Description            |
+| ----------- | ------ | ---------------------- |
+| `ukagaka` | string | Ukagaka key            |
+| `current` | int    | Current message index  |
+| `mode`    | string | `next` or `random` |
 
 **Success Response:**
 
@@ -1104,8 +1104,8 @@ Switch Ukagaka.
 
 **Request Parameters:**
 
-| Parameter | Type | Description |
-|-----|------|------|
+| Parameter   | Type   | Description        |
+| ----------- | ------ | ------------------ |
 | `ukagaka` | string | Target Ukagaka key |
 
 **Success Response:**
@@ -1190,10 +1190,10 @@ Load external dialogue file.
 
 **Request Parameters:**
 
-| Parameter | Type | Description |
-|-----|------|------|
-| `filename` | string | Filename |
-| `format` | string | `txt` or `json` |
+| Parameter    | Type   | Description         |
+| ------------ | ------ | ------------------- |
+| `filename` | string | Filename            |
+| `format`   | string | `txt` or `json` |
 
 **Success Response:**
 
@@ -1216,11 +1216,11 @@ AI page awareness chat.
 
 **Request Parameters:**
 
-| Parameter | Type | Description |
-|-----|------|------|
-| `title` | string | Post Title |
-| `content` | string | Post Content |
-| `nonce` | string | Security nonce |
+| Parameter   | Type   | Description    |
+| ----------- | ------ | -------------- |
+| `title`   | string | Post Title     |
+| `content` | string | Post Content   |
+| `nonce`   | string | Security nonce |
 
 **Success Response:**
 
@@ -1243,8 +1243,8 @@ Get visitor info (Requires Slimstat).
 
 **Request Parameters:**
 
-| Parameter | Type | Description |
-|-----|------|------|
+| Parameter | Type   | Description    |
+| --------- | ------ | -------------- |
 | `nonce` | string | Security nonce |
 
 **Success Response:**
@@ -1273,10 +1273,10 @@ AI first visitor greeting.
 
 **Request Parameters:**
 
-| Parameter | Type | Description |
-|-----|------|------|
-| `visitor_info` | object | Visitor Info |
-| `nonce` | string | Security nonce |
+| Parameter        | Type   | Description    |
+| ---------------- | ------ | -------------- |
+| `visitor_info` | object | Visitor Info   |
+| `nonce`        | string | Security nonce |
 
 **Success Response:**
 
@@ -1285,6 +1285,68 @@ AI first visitor greeting.
     "success": true,
     "data": {
         "message": "Welcome friend from Taiwan!"
+    }
+}
+```
+
+---
+
+### mpu_user_chat (v2.3.0)
+
+User interactive chat request. Process user input in interactive chat mode.
+
+**Action:** `mpu_user_chat`
+
+**Request Parameters:**
+
+| Parameter   | Type   | Description                |
+| ----------- | ------ | -------------------------- |
+| `message` | string | User input message         |
+| `history` | array  | Conversation history array |
+| `nonce`   | string | Security nonce             |
+
+**Conversation History Format:**
+
+```json
+[
+    {"role": "user", "content": "Hello"},
+    {"role": "assistant", "content": "Hello! What would you like to chat about?"}
+]
+```
+
+**Success Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "message": "AI generated response"
+    }
+}
+```
+
+---
+
+### mpu_decoration_chat (v2.3.0)
+
+Decoration click dialogue request. Generate related dialogue when user clicks character decorations.
+
+**Action:** `mpu_decoration_chat`
+
+**Request Parameters:**
+
+| Parameter           | Type   | Description                                          |
+| ------------------- | ------ | ---------------------------------------------------- |
+| `decoration_type` | string | Decoration type (suitcase, evil_horns, staff, books) |
+| `nonce`           | string | Security nonce                                       |
+
+**Success Response:**
+
+```json
+{
+    "success": true,
+    "data": {
+        "message": "About this suitcase... it contains collected magic."
     }
 }
 ```
@@ -1468,7 +1530,7 @@ Thanks for commenting: :commenters[5]:
 
 ---
 
-### :date:
+### 📅
 
 Show today's date.
 
@@ -1502,4 +1564,4 @@ Welcome to :sitename:!
 
 ---
 
-**Documentation Version: 2.1.0**
+**Documentation Version: 2.5.6**

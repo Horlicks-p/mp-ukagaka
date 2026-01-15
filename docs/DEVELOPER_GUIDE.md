@@ -22,42 +22,95 @@
 
 ### 目錄結構
 
-```
-mp-ukagaka/
+```text
+6mp-ukagaka/
 ├── mp-ukagaka.php          # 主程式進入點
+├── css/                    # 樣式表
+│   ├── mpu_style.css           # 前端樣式表
+│   └── admin-style.css         # 後台樣式表
 ├── includes/               # PHP 模組
-│   ├── core-functions.php      # 核心功能
-│   ├── utility-functions.php   # 工具函數
-│   ├── ai-functions.php        # AI 功能（雲端 API + Ollama）
-│   ├── prompt-categories.php   # Prompt 類別指令管理
-│   ├── llm-functions.php       # LLM 功能（Ollama 專用）- BETA
-│   ├── ukagaka-functions.php   # 春菜管理
-│   ├── ajax-handlers.php       # AJAX 處理
-│   ├── frontend-functions.php  # 前端功能
+│   ├── core/                   # 核心功能模組
+│   │   ├── core-functions.php      # 核心功能（設定管理）
+│   │   ├── utility-functions.php   # 工具函數
+│   │   ├── ukagaka-functions.php   # 偽春菜管理
+│   │   └── frontend-functions.php  # 前端功能
+│   ├── ajax/                   # AJAX 處理模組
+│   │   ├── ajax-handlers.php       # AJAX 處理（核心功能）
+│   │   ├── ajax-chat-handlers-llm.php  # LLM 對話相關 AJAX 處理（v2.5.0）
+│   │   ├── ajax-touch-handlers-llm.php # LLM 觸摸相關 AJAX 處理（v2.5.0）
+│   │   ├── ajax-handlers-test.php  # API 連線測試處理器（v2.3.0）
+│   │   └── chat-api-handlers.php   # 多輪對話 API 處理（v2.3.0）
+│   ├── personality/            # 人格系統模組
+│   │   ├── personality-loader.php  # 人格系統（JSON 載入器，v2.4.0）
+│   │   ├── personality-prompts.php # 人格提示詞模組
+│   │   ├── personality-decorations.php # 裝飾物系統
+│   │   ├── personality-emoji.php   # 表情系統
+│   │   └── emoji-mapper.php        # 表情映射與情緒分析（v2.4.0）
+│   ├── llm/                    # LLM/AI 功能模組
+│   │   ├── api-cache.php           # API 快取系統（v2.5.6）
+│   │   ├── ai-functions.php        # AI 功能（雲端 API + Ollama）
+│   │   ├── llm-functions.php       # LLM 功能（Ollama 專用）- BETA
+│   │   ├── llm-context-builder.php # LLM 上下文建構
+│   │   ├── llm-slimstat.php        # LLM Slimstat 整合
+│   │   ├── prompt-categories.php   # Prompt 類別指令管理
+│   │   ├── weather-functions.php   # 天氣功能（Open-Meteo API）
+│   │   └── diary-functions.php     # AI 日記功能（v2.5.0）
 │   └── admin-functions.php     # 後台功能
+├── ghost/                  # 角色人格配置（v2.4.0，類似偽春菜的 ghost 資料夾）
+│   ├── Frieren/
+│   │   ├── shell/              # Frieren 的角色圖片
+│   │   ├── decorations/        # Frieren 的裝飾物圖片
+│   │   ├── manifest.json       # 元數據與設定
+│   │   ├── system_prompt.md    # 系統提示詞（Markdown）
+│   │   ├── prompts.json        # 靜態對話類別
+│   │   ├── dynamics.json       # 動態模板（含變數）
+│   │   ├── weights.json        # 類別權重配置
+│   │   ├── sleep_mode.json     # 睡眠模式配置
+│   │   ├── calendar.json       # 節日配置
+│   │   ├── touchzones.json     # 觸摸區域配置
+│   │   ├── decorations.json    # 裝飾物點擊提示詞
+│   │   ├── frieren.js          # 角色專屬 JavaScript
+│   │   ├── frieren-emoji.js    # Frieren 專屬表情系統（RO 風格，v2.4.0）
+│   │   ├── emoji-keywords.json # 表情關鍵字自定義配置（v2.4.0）
+│   │   └── emojis/             # Frieren 專屬表情圖片（RO 風格）
+│   └── [其他角色...]/
+│       ├── shell/              # 角色圖片
+│       └── decorations/        # 裝飾物圖片（可選）
 ├── dialogs/                # 對話檔案
-├── images/                 # 圖片資源
-│   └── shell/                  # 角色圖片
+├── images/                 # 通用圖片資源
+│   └── msgbox_*.png            # 對話視窗圖片
 ├── languages/              # 語言檔案
 ├── docs/                   # 文檔
 ├── options/                # 後台設定頁面
+│   ├── handlers/               # 表單處理器模組
+│   │   ├── handler-llm.php         # LLM + AI 設定處理器
+│   │   ├── handler-ukagaka.php     # 偽春菜管理處理器
+│   │   ├── handler-general.php     # 擴展 + 會話設定處理器
+│   │   ├── handler-diary.php       # 日記設定處理器
+│   │   └── handler-reset.php       # 重置設定處理器
 │   ├── options.php             # 後台頁面框架
-│   ├── options_page0.php       # 基本設定頁面
-│   ├── options_page1.php       # 春菜管理頁面
-│   ├── options_page2.php       # 對話設定頁面
-│   ├── options_page3.php       # 顯示設定頁面
-│   ├── options_page4.php       # 進階設定頁面
+│   ├── options_general.php     # 通用設定頁面
+│   ├── options_ukagakas.php    # 偽春菜管理頁面
+│   ├── options_create.php      # 創建新偽春菜頁面
+│   ├── options_extend.php      # 擴展設定頁面
+│   ├── options_dialog.php      # 會話設定頁面
 │   ├── options_page_ai.php     # AI 功能設定頁面
-│   └── options_page_llm.php    # LLM 功能設定頁面（BETA）
+│   ├── options_page_llm.php    # LLM 功能設定頁面（BETA）
+│   └── options_page_diary.php  # 日記功能設定頁面
 ├── js/                     # 前端 JavaScript 模組
+│   ├── dist/                   # 打包輸出目錄（生產版）
+│   │   ├── ukagaka-bundle.min.js   # 合併壓縮後的核心 bundle
+│   │   └── ukagaka-textarearesizer.min.js  # 後台工具（壓縮版）
 │   ├── ukagaka-base.js         # 基礎層（配置 + 工具 + AJAX）
-│   ├── ukagaka-core.js         # 前端核心 JS（訊息顯示、春菜切換等）
+│   ├── ukagaka-core.js         # 前端核心 JS（訊息顯示、偽春菜切換等）
 │   ├── ukagaka-features.js     # 前端功能 JS（AI 頁面感知、首次訪客打招呼等）
 │   ├── ukagaka-anime.js        # Canvas 動畫管理器（圖片序列播放）
+│   ├── ukagaka-chat.js         # 聊天功能前端（v2.3.0）
+│   ├── ukagaka-emoji.js        # 表情配置載入器
 │   ├── ukagaka-cookie.js       # Cookie 工具（訪客追蹤）
 │   └── ukagaka-textarearesizer.js  # 後台文字區域調整器
-├── mpu_style.css           # 前端樣式表
-├── admin-style.css         # 後台樣式表
+├── build.js                # JS 打包腳本（Terser）
+├── package.json            # npm 設定（開發依賴）
 └── readme.txt              # WordPress 外掛目錄說明檔
 ```
 
@@ -70,18 +123,31 @@ mp-ukagaka/
 
 // 核心模組：前端和後台都需要
 $core_modules = [
-    'core-functions.php',      // 1. 核心功能（設定管理）
-    'utility-functions.php',   // 2. 工具函數
-    'ai-functions.php',        // 3. AI 功能（雲端 API：Gemini, OpenAI, Claude）
-    'prompt-categories.php',   // 4. Prompt 類別指令管理（需在 llm-functions.php 之前載入）
-    'llm-functions.php',       // 5. LLM 功能（本機 LLM：Ollama）
-    'ukagaka-functions.php',   // 6. 春菜管理
-    'ajax-handlers.php',       // 7. AJAX 處理器（前端和後台都可能使用）
+    'core/core-functions.php',      // 1. 核心功能（設定管理）
+    'core/utility-functions.php',   // 2. 工具函數
+    'personality/personality-loader.php',  // 3. 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
+    'personality/personality-prompts.php', // 4. 人格提示詞模組（動態提示詞、變數替換）
+    'personality/personality-decorations.php', // 5. 裝飾物系統
+    'personality/personality-emoji.php',   // 6. 表情系統
+    'llm/ai-functions.php',        // 7. AI 功能（雲端 API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 8. Prompt 類別指令管理（需在 llm-functions.php 之前載入）
+    'llm/llm-slimstat.php',        // 9. LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
+    'llm/llm-context-builder.php', // 10. LLM 上下文建構（需在 llm-functions.php 之前載入）
+    'llm/weather-functions.php',   // 11. 天氣功能（Open-Meteo API）
+    'llm/diary-functions.php',     // 12. AI 日記功能（v2.5.0）
+    'llm/llm-functions.php',       // 13. LLM 功能（本機 LLM：Ollama）
+    'personality/emoji-mapper.php',        // 13. 表情映射與情緒分析（需在 AJAX 處理器之前載入）
+    'core/ukagaka-functions.php',   // 14. 偽春菜管理
+    'ajax/ajax-handlers.php',       // 15. AJAX 處理器（核心功能）
+    'ajax/ajax-chat-handlers-llm.php',      // 16. LLM 相關 AJAX 處理器（對話相關）
+    'ajax/ajax-touch-handlers-llm.php',     // 17. LLM 相關 AJAX 處理器（觸摸相關）
+    'ajax/ajax-handlers-test.php',  // 18. API 連線測試處理器
+    'ajax/chat-api-handlers.php',   // 19. 對話模式 API 處理器（多輪對話）
 ];
 
 // 前端專用模組（僅在非後台環境載入）
 $frontend_modules = [
-    'frontend-functions.php',  // 前端功能
+    'core/frontend-functions.php',  // 前端功能
 ];
 
 // 後台專用模組（僅在後台環境載入）
@@ -98,9 +164,9 @@ $admin_modules = [
 
 ### 常數定義
 
-| 常數 | 說明 | 值 |
-|-----|------|-----|
-| `MPU_VERSION` | 外掛版本 | `"2.2.0"` |
+| 常數              | 說明       | 值           |
+| ----------------- | ---------- | ------------ |
+| `MPU_VERSION`   | 外掛版本   | `"2.5.0"`  |
 | `MPU_MAIN_FILE` | 主檔案路徑 | `__FILE__` |
 
 ---
@@ -256,11 +322,159 @@ function mpu_decrypt_api_key($encrypted_key)
 function mpu_is_api_key_encrypted($api_key): bool
 ```
 
+### personality-loader.php (v2.4.0)
+
+Personality 系統載入器模組，提供基於 JSON 的角色配置系統。允許不同角色通過 JSON 檔案定義人格，無需修改 PHP 程式碼。
+
+#### personality-loader.php 主要函數
+
+```php
+/**
+ * 獲取 ghost 目錄路徑（personalities 目錄）
+ * @return string 絕對路徑
+ */
+function mpu_get_personalities_dir(): string
+
+/**
+ * 獲取當前 personality ID
+ * @return string Personality ID（資料夾名稱）
+ */
+function mpu_get_current_personality_id(): string
+
+/**
+ * 檢查 personality 是否存在
+ * @param string $personality_id Personality 資料夾名稱
+ * @return bool 是否存在
+ */
+function mpu_personality_exists($personality_id): bool
+
+/**
+ * 獲取所有可用的 personalities
+ * @param bool $include_placeholders 是否包含佔位角色
+ * @return array Personality ID => manifest 的關聯陣列
+ */
+function mpu_get_available_personalities($include_placeholders = false): array
+
+/**
+ * 載入 personality manifest
+ * @param string|null $personality_id Personality ID，null 為當前
+ * @return array Manifest 資料
+ */
+function mpu_load_personality_manifest($personality_id = null): array
+
+/**
+ * 載入 personality prompts
+ * @param string|null $personality_id Personality ID，null 為當前
+ * @return array 提示詞類別陣列
+ */
+function mpu_load_personality_prompts($personality_id = null): array
+
+/**
+ * 載入 personality weights
+ * @param string|null $personality_id Personality ID，null 為當前
+ * @return array 權重配置陣列
+ */
+function mpu_load_personality_weights($personality_id = null): array
+
+/**
+ * 載入 personality decorations 配置
+ * @param string|null $personality_id Personality ID，null 為當前
+ * @return array 裝飾物配置陣列
+ */
+function mpu_load_personality_decorations($personality_id = null): array
+
+/**
+ * 載入 personality dynamic prompts
+ * @param string|null $personality_id Personality ID，null 為當前
+ * @return array 動態提示詞配置陣列
+ */
+function mpu_load_personality_dynamic_prompts($personality_id = null): array
+
+/**
+ * 載入 personality emoji keywords
+ * @param string|null $personality_id Personality ID，null 為當前
+ * @return array 表情關鍵字配置陣列
+ */
+function mpu_load_personality_emoji_keywords($personality_id = null): array
+```
+
+#### Personality 檔案結構
+
+每個 personality 資料夾應包含：
+
+- **manifest.json**（必需）：元數據和設定
+
+  - `id`：Personality ID
+  - `name`、`name_en`、`name_zh`：多語言名稱
+  - `version`：版本號
+  - `settings`：角色設定（如 `max_response_length`、`speech_style`、`tone`）
+  - `character_traits`：角色特質（如 `age`、`race`、`occupation`、`personality`）
+- **prompts.json**（可選）：靜態對話類別
+
+  - 鍵值為類別名稱，值為提示詞陣列
+- **dynamics.json**（可選）：動態模板（含變數替換）
+
+  - 支援 `{variable_name}` 變數替換
+  - 包含 `time_aware_dynamic`、`tech_observation`、`bot_detection` 等類別
+- **weights.json**（可選）：類別權重配置
+
+  - `base_weights`：基礎權重
+  - `time_adjustments`：時間段調整
+- **decorations.json**（可選）：裝飾物點擊提示詞
+
+  - `items`：裝飾物配置陣列，每項包含：
+    - `id`：裝飾物 ID
+    - `image`：圖片路徑（相對於 `decorations/` 資料夾）
+    - `position`：位置設定（如 `{"bottom": "0px", "right": "0px"}`）
+    - `size`：尺寸設定（如 `{"width": "100px", "height": "auto"}`）
+    - `z_index`：層級（數字）
+    - `prompt`：點擊時的提示詞
+    - `transform`：CSS 變形（可選，如 `scale(1)`）
+- **emoji-keywords.json**（可選，v2.4.0）：表情觸發關鍵字
+
+  - `mappings`：表情類型與關鍵字的映射
+  - 格式範例：
+    ```json
+    {
+      "mappings": {
+        "happy": {
+          "keywords": ["開心", "happy"],
+          "file": "happy.png",
+          "weight": 10
+        }
+      }
+    }
+    ```
+- **script**（可選）：角色專屬 JavaScript 檔案
+
+  - 如 `frieren.js`，由前端自動載入
+
+#### 使用範例
+
+```php
+// 獲取當前 personality 的提示詞
+$prompts = mpu_load_personality_prompts();
+
+// 獲取特定 personality 的 manifest
+$manifest = mpu_load_personality_manifest('Frieren');
+
+// 檢查 personality 是否存在
+if (mpu_personality_exists('Frieren')) {
+    // Frieren personality 存在
+}
+
+// 獲取所有可用的 personalities
+$personalities = mpu_get_available_personalities();
+foreach ($personalities as $id => $manifest) {
+    echo $manifest['name'];
+}
+```
+
 ### ai-functions.php
 
 AI 功能模組，處理雲端 AI API 呼叫（Gemini、OpenAI、Claude）和 Ollama 整合。
 
-#### 主要函數
+#### ai-functions.php 主要函數
 
 ```php
 /**
@@ -341,12 +555,12 @@ function mpu_get_allowed_conditional_tags(): array
 
 #### 支援的 AI 提供商
 
-| 提供商 | 函數 | API 端點 | 模型選擇 |
-|-------|------|---------|---------|
+| 提供商 | 函數                      | API 端點                              | 模型選擇                                    |
+| ------ | ------------------------- | ------------------------------------- | ------------------------------------------- |
 | Gemini | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | 支援（gemini-2.5-flash, gemini-2.5-pro 等） |
-| OpenAI | `mpu_call_openai_api()` | `api.openai.com` | 支援（gpt-4o-mini, gpt-4o 等） |
-| Claude | `mpu_call_claude_api()` | `api.anthropic.com` | 支援（claude-sonnet-4-5-20250929 等） |
-| Ollama | `mpu_call_ollama_api()` | 本地或遠程 Ollama 服務 | 支援（任何 Ollama 模型） |
+| OpenAI | `mpu_call_openai_api()` | `api.openai.com`                    | 支援（gpt-4o-mini, gpt-4o 等）              |
+| Claude | `mpu_call_claude_api()` | `api.anthropic.com`                 | 支援（claude-sonnet-4-5-20250929 等）       |
+| Ollama | `mpu_call_ollama_api()` | 本地或遠程 Ollama 服務                | 支援（任何 Ollama 模型）                    |
 
 ### llm-functions.php (BETA)
 
@@ -354,7 +568,7 @@ function mpu_get_allowed_conditional_tags(): array
 
 LLM 功能模組，專門處理 Ollama 本地 LLM 整合。
 
-#### 主要函數
+#### llm-functions.php 主要函數
 
 ```php
 /**
@@ -389,7 +603,7 @@ function mpu_check_ollama_available(string $endpoint, string $model): bool
 
 /**
  * 使用 LLM 生成隨機對話（取代內建對話）
- * @param string $ukagaka_name 春菜名稱
+ * @param string $ukagaka_name 偽春菜名稱
  * @return string|false 生成的對話內容，失敗時返回 false
  */
 function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1')
@@ -409,11 +623,11 @@ function mpu_get_ollama_settings()
 
 #### 超時時間設定
 
-| 操作類型 | 本地連接 | 遠程連接 |
-|---------|---------|---------|
-| 服務檢查 (`check`) | 3 秒 | 10 秒 |
-| API 調用 (`api_call`) | 60 秒 | 90 秒 |
-| 測試連接 (`test`) | 30 秒 | 45 秒 |
+| 操作類型                | 本地連接 | 遠程連接 |
+| ----------------------- | -------- | -------- |
+| 服務檢查 (`check`)    | 3 秒     | 10 秒    |
+| API 調用 (`api_call`) | 60 秒    | 90 秒    |
+| 測試連接 (`test`)     | 30 秒    | 45 秒    |
 
 #### 使用範例
 
@@ -434,29 +648,124 @@ $is_remote = mpu_is_remote_endpoint($endpoint);
 $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
 ```
 
-### ukagaka-functions.php
+### diary-functions.php (v2.5.0)
 
-春菜管理模組，處理角色相關操作和對話管理。
+AI 日記功能模組，負責自動生成和發佈角色日記。
 
-#### 主要函數
+#### diary-functions.php 主要函數
 
 ```php
 /**
- * 取得春菜列表 HTML
+ * 獲取日記標題前綴
+ * @param string|null $personality_id 人格 ID
+ * @return string 前綴（如 "[フリーレン手記] "）
+ */
+function mpu_get_diary_title_prefix($personality_id = null): string
+
+/**
+ * 判斷是否應觸發日記（基於機率和每日一次限制）
+ * @return bool 是否觸發
+ */
+function mpu_should_trigger_diary(): bool
+
+/**
+ * 生成日記內容
+ * @return array|WP_Error 日記資料或錯誤
+ */
+function mpu_generate_diary_content()
+
+/**
+ * 發表日記文章
+ * @param array $diary_data 日記資料
+ * @return int|WP_Error 文章 ID 或錯誤
+ */
+function mpu_publish_diary_post($diary_data)
+```
+
+### emoji-mapper.php (v2.4.0)
+
+表情映射與情緒分析模組，根據對話內容的情緒自動選擇對應的表情圖案。
+
+#### emoji-mapper.php 主要函數
+
+```php
+/**
+ * 分析對話內容的情緒，返回對應的表情文件名
+ * 優先從角色專屬配置 `emoji-keywords.json` 載入，
+ * 如果不存在則回退到內建的通用預設值。
+ * 
+ * @param string $text 對話內容
+ * @param string|null $personality_id Personality ID (可選)
+ * @return string|null 表情文件名（如 'happy.png'），無法匹配時返回 null
+ */
+function mpu_analyze_emoji_from_text($text, $personality_id = null)
+```
+
+#### 支援的表情類型
+
+系統支援多種表情類型，包括：
+
+- `happy`：開心、高興
+- `waku_waku`：興奮、期待
+- `laugh`：大笑
+- `angry`：生氣
+- `get_angry`：暴怒
+- `surprised` / `startled`：驚訝
+- `stunned`：震驚
+- `discovery`：發現
+- `scared_to_death`：嚇死
+- `heart`：愛心
+- `kiss`：親吻
+- `sleepy`：想睡
+- `awkward`：尷尬
+- `proud`：驕傲
+- `suspect`：懷疑
+- 等等...
+
+#### 關鍵字匹配機制
+
+- 支援繁體中文、日文、英文關鍵字
+- 使用加權機制，優先匹配高權重表情
+- 關鍵字匹配不區分大小寫
+
+#### 使用範例
+
+```php
+// 分析對話內容並獲取表情
+$text = "今天真是開心的一天！";
+$emoji = mpu_analyze_emoji_from_text($text);
+// 可能返回：'happy.png'
+
+// 在 AJAX 回應中使用
+wp_send_json([
+    'msg' => $text,
+    'emoji' => $emoji
+]);
+```
+
+### ukagaka-functions.php
+
+偽春菜管理模組，處理角色相關操作和對話管理。
+
+#### ukagaka-functions.php 主要函數
+
+```php
+/**
+ * 取得偽春菜列表 HTML
  * @return string HTML 字串
  */
 function mpu_ukagaka_list(): string
 
 /**
- * 取得春菜資料
- * @param string|false $num 春菜鍵值（false 為目前春菜）
- * @return array|false 春菜資料或 false
+ * 取得偽春菜資料
+ * @param string|false $num 偽春菜鍵值（false 為目前偽春菜）
+ * @return array|false 偽春菜資料或 false
  */
 function mpu_get_ukagaka($num = false)
 
 /**
- * 取得春菜圖片 URL
- * @param string|false $num 春菜鍵值（false 為目前春菜）
+ * 取得偽春菜圖片 URL
+ * @param string|false $num 偽春菜鍵值（false 為目前偽春菜）
  * @param bool $echo 是否直接輸出
  * @return string 圖片 URL
  */
@@ -465,7 +774,7 @@ function mpu_get_shell($num = false, $echo = false): string
 /**
  * 取得指定訊息
  * @param int $msgnum 訊息索引
- * @param string|false $num 春菜鍵值
+ * @param string|false $num 偽春菜鍵值
  * @param bool $echo 是否直接輸出
  * @return string 訊息內容
  */
@@ -473,7 +782,7 @@ function mpu_get_msg($msgnum = 0, $num = false, $echo = false): string
 
 /**
  * 取得隨機訊息
- * @param string|false $num 春菜鍵值
+ * @param string|false $num 偽春菜鍵值
  * @param bool $echo 是否直接輸出
  * @return string 訊息內容
  */
@@ -481,7 +790,7 @@ function mpu_get_random_msg($num = false, $echo = false): string
 
 /**
  * 取得預設訊息
- * @param string|false $num 春菜鍵值
+ * @param string|false $num 偽春菜鍵值
  * @param bool $echo 是否直接輸出
  * @return string 訊息內容
  */
@@ -495,14 +804,14 @@ function mpu_common_msg(): string
 
 /**
  * 取得訊息陣列
- * @param string|false $num 春菜鍵值
+ * @param string|false $num 偽春菜鍵值
  * @return array 訊息陣列
  */
 function mpu_get_msg_arr($num = false): array
 
 /**
  * 取得下一條訊息
- * @param string|false $num 春菜鍵值
+ * @param string|false $num 偽春菜鍵值
  * @param int $msgnum 目前訊息索引
  * @return array 包含訊息和索引的陣列
  */
@@ -517,21 +826,21 @@ function mpu_msg_code($msglist = []): array
 
 /**
  * 取得訊息鍵值
- * @param string|false $num 春菜鍵值
+ * @param string|false $num 偽春菜鍵值
  * @param string $msg 訊息內容
  * @return int|false 訊息索引或 false
  */
 function mpu_get_msg_key($num = false, $msg = "")
 
 /**
- * 計算春菜訊息數
- * @param string|false $num 春菜鍵值
+ * 計算偽春菜訊息數
+ * @param string|false $num 偽春菜鍵值
  * @return int 訊息數量
  */
 function mpu_count_msg($num = false): int
 
 /**
- * 計算所有春菜的總對話數
+ * 計算所有偽春菜的總對話數
  * @return int 總對話數
  */
 function mpu_count_total_msg(): int
@@ -544,11 +853,52 @@ function mpu_count_total_msg(): int
 function mpu_get_msg_from_file($filename_base): array
 ```
 
+### ajax-chat-handlers-llm.php (v2.5.0)
+
+LLM 對話相關 AJAX 處理器，負責處理各種對話情境。
+
+#### ajax-chat-handlers-llm.php 主要函數
+
+```php
+/**
+ * 處理 AI 上下文對話（頁面感知）
+ */
+function mpu_ajax_chat_context()
+
+/**
+ * 處理 AI 打招呼對話
+ */
+function mpu_ajax_chat_greet()
+
+/**
+ * 處理用戶互動對話
+ */
+function mpu_ajax_user_chat()
+```
+
+### ajax-touch-handlers-llm.php (v2.5.0)
+
+LLM 觸摸相關 AJAX 處理器，負責處理點擊裝飾物或角色的互動。
+
+#### ajax-touch-handlers-llm.php 主要函數
+
+```php
+/**
+ * 處理裝飾物點擊對話
+ */
+function mpu_ajax_decoration_chat()
+
+/**
+ * 處理角色觸摸區域對話
+ */
+function mpu_ajax_touch_zone_chat()
+```
+
 ### ajax-handlers.php
 
-AJAX 處理模組，處理所有 AJAX 請求。
+AJAX 處理模組，處理核心 AJAX 請求。
 
-#### 主要函數
+#### ajax-handlers.php 主要函數
 
 ```php
 /**
@@ -562,7 +912,7 @@ function mpu_ajax_nextmsg()
 function mpu_ajax_extend()
 
 /**
- * 處理切換春菜請求
+ * 處理切換偽春菜請求
  */
 function mpu_ajax_change()
 
@@ -577,33 +927,188 @@ function mpu_ajax_get_settings()
 function mpu_ajax_load_dialog()
 
 /**
- * 處理 AI 頁面感知對話請求
- */
-function mpu_ajax_chat_context()
-
-/**
  * 處理取得訪客資訊請求（需要 Slimstat）
  */
 function mpu_ajax_get_visitor_info()
-
-/**
- * 處理 AI 首次訪客打招呼請求
- */
-function mpu_ajax_chat_greet()
-
-/**
- * 處理測試 Ollama 連接請求（BETA）
- */
-function mpu_ajax_test_ollama_connection()
 ```
 
 > 詳見 [AJAX 端點](#ajax-端點) 章節
+
+### ajax-handlers-test.php (v2.3.0)
+
+API 連線測試 AJAX 處理模組，提供各 AI 提供商的連線測試功能。
+
+#### ajax-handlers-test.php 主要函數
+
+```php
+/**
+ * 測試 Ollama 連接
+ */
+function mpu_ajax_test_ollama_connection()
+
+/**
+ * 測試 Gemini 連接
+ */
+function mpu_ajax_test_gemini_connection()
+
+/**
+ * 測試 OpenAI 連接
+ */
+function mpu_ajax_test_openai_connection()
+
+/**
+ * 測試 Claude 連接
+ */
+function mpu_ajax_test_claude_connection()
+```
+
+### chat-api-handlers.php (v2.3.0)
+
+多輪對話 API 處理模組，專門處理互動對話模式（Interactive Chat Mode）的多輪對話請求。
+
+#### chat-api-handlers.php 主要函數
+
+```php
+/**
+ * 處理多輪對話請求（AJAX 處理器）
+ */
+function mpu_ajax_chat()
+
+/**
+ * 呼叫 AI API（多輪對話統一入口）
+ * @param string $system_prompt 系統提示（角色設定）
+ * @param array $messages 對話歷史陣列
+ * @param array $options 選項陣列（包含 provider, api_key, model 等）
+ * @return string|WP_Error AI 回應或錯誤
+ */
+function mpu_call_ai_api_with_messages($system_prompt, $messages, $options = [])
+
+/**
+ * Ollama 多輪對話 API
+ * @param string $system_prompt 系統提示
+ * @param array $messages 對話歷史陣列
+ * @param array $options 選項陣列
+ * @return string|WP_Error AI 回應或錯誤
+ */
+function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
+
+/**
+ * Gemini 多輪對話 API
+ * @param string $api_key API 金鑰
+ * @param string $model 模型名稱
+ * @param string $system_prompt 系統提示
+ * @param array $messages 對話歷史陣列
+ * @param string $language 語言代碼
+ * @return string|WP_Error AI 回應或錯誤
+ */
+function mpu_call_gemini_with_messages($api_key, $model, $system_prompt, $messages, $language)
+
+/**
+ * OpenAI 多輪對話 API
+ * @param string $api_key API 金鑰
+ * @param string $model 模型名稱
+ * @param string $system_prompt 系統提示
+ * @param array $messages 對話歷史陣列
+ * @param string $language 語言代碼
+ * @return string|WP_Error AI 回應或錯誤
+ */
+function mpu_call_openai_with_messages($api_key, $model, $system_prompt, $messages, $language)
+
+/**
+ * Claude 多輪對話 API
+ * @param string $api_key API 金鑰
+ * @param string $model 模型名稱
+ * @param string $system_prompt 系統提示
+ * @param array $messages 對話歷史陣列
+ * @param string $language 語言代碼
+ * @return string|WP_Error AI 回應或錯誤
+ */
+function mpu_call_claude_with_messages($api_key, $model, $system_prompt, $messages, $language)
+```
+
+#### 對話訊息格式
+
+```php
+// 對話歷史陣列格式
+$messages = [
+    [
+        'role' => 'user',      // 'user' 或 'assistant'
+        'content' => '你好'    // 訊息內容
+    ],
+    [
+        'role' => 'assistant',
+        'content' => '你好！有什麼我可以幫助的嗎？'
+    ],
+    // ... 更多訊息
+];
+```
+
+#### 動態上下文注入
+
+系統會根據用戶訊息內容決定是否注入 WordPress 統計資訊：
+
+```php
+// 關鍵字列表（繁中/日文/英文）
+$stats_keywords = [
+    '文章', '記事', 'article', 'post',
+    '留言', 'コメント', 'comment',
+    '網站', 'サイト', 'site', 'website',
+    'php', 'wordpress', '外掛', 'plugins', プラグイン',
+    '主題', 'テーマ', 'theme'
+];
+
+// 只有在用戶訊息包含這些關鍵字時才加入統計資訊
+```
+
+**優點**：
+
+- 節省 70%+ token 消耗
+- 減少 API 成本
+- 加快回應速度
+
+#### 思考模式支援（Ollama）
+
+```php
+// 在 mpu_call_ollama_with_messages() 中
+$is_thinking_model = (strpos(strtolower($model), 'qwen3') !== false)
+    || (strpos(strtolower($model), 'frieren') !== false)
+    || (strpos(strtolower($model), 'deepseek') !== false);
+
+// 預設啟用思考模式
+$enable_thinking = $is_thinking_model && !(isset($options['ollama_disable_thinking']) && $options['ollama_disable_thinking']);
+
+if ($enable_thinking) {
+    $request_body['think'] = true;
+    $request_body['options']['num_ctx'] = 8192;  // 擴大 context window
+} else {
+    $request_body['think'] = false;
+    $request_body['options']['num_ctx'] = 4096;
+}
+```
+
+#### 回應長度限制
+
+所有 AI 提供商統一限制為 **300 tokens**：
+
+```php
+// Ollama
+$request_body['options']['num_predict'] = 300;
+
+// OpenAI
+'max_tokens' => 300,
+
+// Gemini
+'generationConfig' => ['maxOutputTokens' => 300],
+
+// Claude
+'max_tokens' => 300,
+```
 
 ### frontend-functions.php
 
 前端功能模組，負責頁面顯示和資源載入。
 
-#### 主要函數
+#### frontend-functions.php 主要函數
 
 ```php
 /**
@@ -613,7 +1118,7 @@ function mpu_ajax_test_ollama_connection()
 function mpu_is_show_page(): bool
 
 /**
- * 輸出緩衝回調（用於插入春菜 HTML）
+ * 輸出緩衝回調（用於插入偽春菜 HTML）
  * @param string $buffer 頁面內容
  * @return string 處理後的內容
  */
@@ -625,14 +1130,14 @@ function mpu_ob_callback($buffer): string
 function mpu_shutdown_callback(): void
 
 /**
- * 生成春菜 HTML
- * @param string|false $num 春菜鍵值
+ * 生成偽春菜 HTML
+ * @param string|false $num 偽春菜鍵值
  * @return string HTML 字串
  */
 function mpu_html($num = false): string
 
 /**
- * 輸出春菜 HTML
+ * 輸出偽春菜 HTML
  */
 function mpu_echo_html(): void
 
@@ -651,7 +1156,7 @@ function mpu_head(): void
 
 後台功能模組，處理設定儲存和後台介面。
 
-#### 主要函數
+#### admin-functions.php 主要函數
 
 ```php
 /**
@@ -694,8 +1199,8 @@ function mpu_options(): void
 ```php
 $mpu_opt = [
     // 基本設定
-    'cur_ukagaka' => 'default_1',      // 目前春菜
-    'show_ukagaka' => true,             // 是否顯示春菜
+    'cur_ukagaka' => 'default_1',      // 目前偽春菜
+    'show_ukagaka' => true,             // 是否顯示偽春菜
     'show_msg' => true,                 // 是否顯示對話框
     'default_msg' => 0,                 // 0=隨機, 1=第一條
     'next_msg' => 0,                    // 0=順序, 1=隨機
@@ -703,27 +1208,27 @@ $mpu_opt = [
     'insert_html' => 0,                 // HTML 插入位置
     'no_style' => false,                // 是否使用自訂樣式
     'no_page' => '',                    // 排除頁面列表
-    
+
     // 自動對話
     'auto_talk' => true,                // 是否啟用自動對話
     'auto_talk_interval' => 8,          // 自動對話間隔（秒）
     'typewriter_speed' => 40,           // 打字速度（毫秒/字）
-    
+
     // 外部對話檔案
     'use_external_file' => true,        // 是否使用外部檔案（系統已固定啟用）
     'external_file_format' => 'txt',     // 檔案格式（txt/json）
-    
+
     // 會話設定
     'auto_msg' => '',                   // 固定訊息
     'common_msg' => '',                 // 通用會話
-    
+
     // AI 設定（頁面感知功能）
     'ai_enabled' => false,              // 是否啟用 AI
     'ai_provider' => 'gemini',          // AI 提供商（gemini/openai/claude/ollama）
     'ai_api_key' => '',                 // Gemini API Key（加密）
     'gemini_model' => 'gemini-2.5-flash', // Gemini 模型
     'openai_api_key' => '',             // OpenAI API Key（加密）
-    'openai_model' => 'gpt-4o-mini',    // OpenAI 模型
+    'openai_model' => 'gpt-4.1-mini-2025-04-14',    // OpenAI 模型
     'claude_api_key' => '',             // Claude API Key（加密）
     'claude_model' => 'claude-sonnet-4-5-20250929', // Claude 模型
     'ai_language' => 'zh-TW',           // AI 回應語言
@@ -734,19 +1239,19 @@ $mpu_opt = [
     'ai_display_duration' => 8,         // AI 顯示時間（秒）
     'ai_greet_enabled' => false,        // 首次訪客打招呼
     'ai_greet_prompt' => '',            // 打招呼提示詞
-    
+
     // LLM 設定 (BETA)
     'ollama_endpoint' => 'http://localhost:11434',  // Ollama 端點
     'ollama_model' => 'qwen3:8b',                   // Ollama 模型
     'ollama_replace_dialogue' => false,              // 使用 LLM 取代內建對話
     'ollama_disable_thinking' => true,               // 關閉思考模式
-    
+
     // 擴展
     'extend' => [
         'js_area' => '',                // 自訂 JavaScript
     ],
-    
-    // 春菜列表
+
+    // 偽春菜列表
     'ukagakas' => [
         'default_1' => [
             'name' => 'フリーレン',
@@ -755,12 +1260,12 @@ $mpu_opt = [
             'show' => true,
             'dialog_filename' => 'Frieren',
         ],
-        // ... 更多春菜
+        // ... 更多偽春菜
     ],
 ];
 ```
 
-### 春菜結構
+### 偽春菜結構
 
 ```php
 $ukagaka = [
@@ -785,10 +1290,10 @@ $ukagaka = [
 // 外掛載入後
 do_action('mpu_loaded');
 
-// 春菜 HTML 生成前
+// 偽春菜 HTML 生成前
 do_action('mpu_before_html');
 
-// 春菜 HTML 生成後
+// 偽春菜 HTML 生成後
 do_action('mpu_after_html');
 
 // 設定儲存後
@@ -807,7 +1312,7 @@ $messages = apply_filters('mpu_messages', $messages, $ukagaka_key);
 // 過濾 AI 回應
 $response = apply_filters('mpu_ai_response', $response, $prompt);
 
-// 過濾春菜 HTML
+// 過濾偽春菜 HTML
 $html = apply_filters('mpu_ukagaka_html', $html);
 ```
 
@@ -826,7 +1331,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 ```javascript
 {
     action: 'mpu_nextmsg',
-    ukagaka: 'default_1',    // 春菜鍵值
+    ukagaka: 'default_1',    // 偽春菜鍵值
     current: 0,               // 目前訊息索引
     mode: 'next'              // next 或 random
 }
@@ -846,7 +1351,7 @@ $html = apply_filters('mpu_ukagaka_html', $html);
 
 ### mpu_change
 
-切換春菜。
+切換偽春菜。
 
 **請求：**
 
@@ -1016,15 +1521,15 @@ AI 首次訪客打招呼。
 ```javascript
 // 設定物件
 window.mpuSettings = {
-    ajaxUrl: '/wp-admin/admin-ajax.php',
-    nonce: 'xxx',
-    autoTalk: true,
-    autoTalkInterval: 8000,
-    typewriterSpeed: 40,
-    aiEnabled: true,
-    aiTextColor: '#ff6b6b',
-    aiDisplayDuration: 8000,
-    // ...
+  ajaxUrl: "/wp-admin/admin-ajax.php",
+  nonce: "xxx",
+  autoTalk: true,
+  autoTalkInterval: 8000,
+  typewriterSpeed: 40,
+  aiEnabled: true,
+  aiTextColor: "#ff6b6b",
+  aiDisplayDuration: 8000,
+  // ...
 };
 ```
 
@@ -1072,7 +1577,7 @@ function mpu_showMessage(message, options)
 
 ### AI 功能函數 (ukagaka-features.js)
 
-```javascript
+````javascript
 /**
  * 觸發 AI 頁面感知
  */
@@ -1119,9 +1624,7 @@ window.mpuCanvasManager = {
      */
     isAnimationMode: function()
 };
-```
-
-```
+````
 
 ---
 
@@ -1135,21 +1638,21 @@ window.mpuCanvasManager = {
 function mpu_call_newprovider_api($prompt, $system_prompt) {
     $mpu_opt = mpu_get_option();
     $api_key = mpu_decrypt_api_key($mpu_opt['newprovider_api_key']);
-    
+
     // API 呼叫邏輯...
-    
+
     return $response;
 }
 ```
 
-2. 在 `mpu_call_ai_api()` 中添加 case：
+2\. 在 `mpu_call_ai_api()` 中添加 case：
 
 ```php
 case 'newprovider':
     return mpu_call_newprovider_api($prompt, $system_prompt);
 ```
 
-3. 在後台設定頁面添加對應選項。
+3\. 在後台設定頁面添加對應選項。
 
 ### 添加新的訊息代碼
 
@@ -1175,9 +1678,9 @@ add_action('wp_ajax_nopriv_mpu_custom_action', 'mpu_handle_custom_action');
 function mpu_handle_custom_action() {
     // 驗證 nonce
     check_ajax_referer('mpu_nonce', 'nonce');
-    
+
     // 處理邏輯...
-    
+
     wp_send_json_success(['data' => $result]);
 }
 ```
@@ -1222,7 +1725,7 @@ $current_ukagaka = $mpu_opt['cur_ukagaka'] ?? 'default_1';
 if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
     $ukagaka = $mpu_opt['ukagakas'][$current_ukagaka];
     $dialog_filename = $ukagaka['dialog_filename'] ?? $current_ukagaka;
-    
+
     // 讀取對話文件
     if (function_exists('mpu_get_msg_from_file')) {
         $dialog_messages = mpu_get_msg_from_file($dialog_filename);
@@ -1236,6 +1739,46 @@ if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
 - 最大讀取數量：目前為 5 條，可修改 `min(5, $count)` 中的數字
 - 字元長度限制：目前為 50 字元，可修改 `mb_strlen($msg) <= 50` 中的數字
 - 過濾條件：可以添加更多過濾條件來篩選合適的台詞
+
+### 未來展望：通用角色管理器支援
+
+**目前狀態：**
+
+目前系統中，角色專屬的動畫和互動邏輯（如芙莉蓮的喚醒動畫、翻書動畫、睡眠模式等）是通過硬編碼的 `window.mpuFrierenManager` 來實現的。這意味著：
+
+- 只有芙莉蓮（Frieren）人格擁有專屬的角色管理器
+- 其他角色無法使用類似的專屬動畫和互動功能
+- 所有角色管理器的引用都直接指向 `mpuFrierenManager`
+
+**改進方向：**
+
+未來可以實現一個通用的角色管理器系統，支援多個角色各自擁有專屬的動畫和互動邏輯：
+
+1. **動態管理器查找機制**
+
+   - 在 `ukagaka-anime.js` 中實現 `getCurrentCharacterManager()` 方法
+   - 根據當前角色的 `dialog_filename` 或 personality ID 動態查找對應的管理器
+   - 使用命名約定：`window.mpu{PersonalityId}Manager`（例如：`mpuFrierenManager`、`mpuSakuraManager`）
+2. **統一介面標準**
+
+   - 定義標準的角色管理器介面（方法名和屬性）
+   - 所有角色管理器必須實現：`initMode()`, `triggerSpeaking()`, `isCharacterMode` 等
+   - 確保向後兼容（保持對 `mpuFrierenManager` 的支援）
+3. **實現位置**
+
+   - 主要修改：`js/ukagaka-anime.js`（約 20 處引用需要修改）
+   - 次要修改：`js/ukagaka-chat.js` 和 `js/ukagaka-core.js`（少量引用）
+   - 預估工作量：約 2-3 小時（包含測試）
+4. **觸發時機**
+
+   - 當有第二個角色需要專屬動畫或互動功能時，可以一併實現
+   - 或者當需要將芙莉蓮專屬功能抽象化時進行重構
+
+**技術要點：**
+
+- 需要從 `dialog_filename` 或 personality ID 獲取當前角色資訊
+- 需要保持向後兼容，確保現有的芙莉蓮功能正常運作
+- 可以參考 `ghost/Frieren/frieren.js` 中的 `mpuFrierenManager` 作為實現範例
 
 ---
 
@@ -1351,4 +1894,4 @@ sprintf(__('歡迎 %s', 'mp-ukagaka'), $name)
 
 ---
 
-**Happy Coding! 🎉**
+### Happy Coding! 🎉

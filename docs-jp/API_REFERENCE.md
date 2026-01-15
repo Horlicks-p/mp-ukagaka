@@ -139,12 +139,12 @@ function mpu_secure_file_read(string $file_path, int $max_size = 2097152)
 
 **可能なエラー：**
 
-| エラーコード | 説明 |
-|---------|------|
-| `file_not_found` | 指定されたファイルが見つからない |
+| エラーコード         | 説明                                 |
+| -------------------- | ------------------------------------ |
+| `file_not_found`   | 指定されたファイルが見つからない     |
 | `path_not_allowed` | そのパスの読み取りは許可されていない |
-| `file_too_large` | ファイルが大きすぎて読み取れない |
-| `read_failed` | ファイルの読み取りに失敗 |
+| `file_too_large`   | ファイルが大きすぎて読み取れない     |
+| `read_failed`      | ファイルの読み取りに失敗             |
 
 ---
 
@@ -269,11 +269,11 @@ function mpu_get_language_instruction(string $language): string
 
 **戻り値：**
 
-| 言語コード | 戻り値 |
-|---------|--------|
-| `zh-TW` | `請用繁體中文回覆。` |
-| `ja` | `日本語で返答してください。` |
-| `en` | `Please reply in English.` |
+| 言語コード | 戻り値                         |
+| ---------- | ------------------------------ |
+| `zh-TW`  | `請用繁體中文回覆。`         |
+| `ja`     | `日本語で返答してください。` |
+| `en`     | `Please reply in English.`   |
 
 ---
 
@@ -607,21 +607,21 @@ function mpu_get_random_msg($num = false, $echo = false): string
 
 ### Actions
 
-| Hook | 説明 | パラメータ |
-|------|------|----------|
-| `mpu_loaded` | プラグイン読み込み後 | なし |
-| `mpu_before_html` | 伺か HTML 生成前 | なし |
-| `mpu_after_html` | 伺か HTML 生成後 | なし |
-| `mpu_settings_saved` | 設定保存後 | `$mpu_opt` |
+| Hook                   | 説明                 | パラメータ   |
+| ---------------------- | -------------------- | ------------ |
+| `mpu_loaded`         | プラグイン読み込み後 | なし         |
+| `mpu_before_html`    | 伺か HTML 生成前     | なし         |
+| `mpu_after_html`     | 伺か HTML 生成後     | なし         |
+| `mpu_settings_saved` | 設定保存後           | `$mpu_opt` |
 
 ### Filters
 
-| Filter | 説明 | パラメータ |
-|--------|------|----------|
-| `mpu_options` | 設定配列をフィルター | `$mpu_opt` |
-| `mpu_html` | 伺か HTML をフィルター | `$html`, `$ukagaka` |
-| `mpu_message` | メッセージをフィルター | `$message`, `$ukagaka_key` |
-| `mpu_ai_response` | AI 応答をフィルター | `$response`, `$provider` |
+| Filter              | 説明                   | パラメータ                     |
+| ------------------- | ---------------------- | ------------------------------ |
+| `mpu_options`     | 設定配列をフィルター   | `$mpu_opt`                   |
+| `mpu_html`        | 伺か HTML をフィルター | `$html`, `$ukagaka`        |
+| `mpu_message`     | メッセージをフィルター | `$message`, `$ukagaka_key` |
+| `mpu_ai_response` | AI 応答をフィルター    | `$response`, `$provider`   |
 
 ---
 
@@ -635,10 +635,10 @@ function mpu_get_random_msg($num = false, $echo = false): string
 
 **パラメータ：**
 
-| パラメータ | タイプ | 説明 |
-|-----------|--------|------|
-| `cur_num` | string | 現在の伺かキー |
-| `cur_msgnum` | int | 現在のメッセージインデックス |
+| パラメータ        | タイプ | 説明                         |
+| ----------------- | ------ | ---------------------------- |
+| `cur_num`       | string | 現在の伺かキー               |
+| `cur_msgnum`    | int    | 現在のメッセージインデックス |
 | `last_response` | string | (オプション) 前回の LLM 応答 |
 
 **戻り値：**
@@ -662,8 +662,8 @@ function mpu_get_random_msg($num = false, $echo = false): string
 
 **パラメータ：**
 
-| パラメータ | タイプ | 説明 |
-|-----------|--------|------|
+| パラメータ  | タイプ | 説明           |
+| ----------- | ------ | -------------- |
 | `new_num` | string | 新しい伺かキー |
 
 **戻り値：**
@@ -688,10 +688,10 @@ AI ページ感知ダイアログを取得。
 
 **パラメータ：**
 
-| パラメータ | タイプ | 説明 |
-|-----------|--------|------|
-| `post_content` | string | 記事内容 |
-| `post_title` | string | 記事タイトル |
+| パラメータ       | タイプ | 説明         |
+| ---------------- | ------ | ------------ |
+| `post_content` | string | 記事内容     |
+| `post_title`   | string | 記事タイトル |
 
 **戻り値：**
 
@@ -712,8 +712,8 @@ AI ページ感知ダイアログを取得。
 
 **パラメータ：**
 
-| パラメータ | タイプ | 説明 |
-|-----------|--------|------|
+| パラメータ       | タイプ | 説明       |
+| ---------------- | ------ | ---------- |
 | `visitor_info` | object | 訪問者情報 |
 
 **戻り値：**
@@ -723,6 +723,346 @@ AI ページ感知ダイアログを取得。
     "success": true,
     "data": {
         "response": "AI が生成した挨拶"
+    }
+}
+```
+
+---
+
+### mpu_get_settings
+
+フロントエンド設定を取得。
+
+**Action:** `mpu_get_settings`
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": {
+        "autoTalk": true,
+        "autoTalkInterval": 8000,
+        "typewriterSpeed": 40,
+        "clickBehavior": 0
+    }
+}
+```
+
+---
+
+### mpu_test_ollama_connection
+
+Ollama 接続をテスト。
+
+**Action:** `mpu_test_ollama_connection`
+
+**リクエストパラメータ：**
+
+| パラメータ   | タイプ | 説明                      |
+| ------------ | ------ | ------------------------- |
+| `endpoint` | string | Ollama エンドポイント URL |
+| `model`    | string | モデル名                  |
+| `nonce`    | string | WordPress nonce           |
+
+**リクエスト例：**
+
+```javascript
+{
+    action: 'mpu_test_ollama_connection',
+    endpoint: 'https://your-domain.com',
+    model: 'qwen3:8b',
+    nonce: '...'
+}
+```
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": "接続成功（リモート接続）、モデル応答正常（プレビュー：Hello...）"
+}
+```
+
+**失敗応答：**
+
+```json
+{
+    "success": false,
+    "data": "接続失敗：リモート Ollama サービスに接続できません..."
+}
+```
+
+---
+
+### mpu_test_gemini_connection
+
+Google Gemini API 接続をテスト。
+
+**Action:** `mpu_test_gemini_connection`
+
+**リクエストパラメータ：**
+
+| パラメータ  | タイプ | 説明                                                         |
+| ----------- | ------ | ------------------------------------------------------------ |
+| `api_key` | string | Gemini API Key（オプション、未提供の場合は設定から読み込み） |
+| `model`   | string | モデル名（オプション、未提供の場合は設定から読み込み）       |
+| `nonce`   | string | WordPress nonce                                              |
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": "接続成功、API Key 有効"
+}
+```
+
+**失敗応答：**
+
+```json
+{
+    "success": false,
+    "data": "接続失敗：API Key 無効またはネットワークエラー"
+}
+```
+
+---
+
+### mpu_test_openai_connection
+
+OpenAI API 接続をテスト。
+
+**Action:** `mpu_test_openai_connection`
+
+**リクエストパラメータ：**
+
+| パラメータ  | タイプ | 説明                                                         |
+| ----------- | ------ | ------------------------------------------------------------ |
+| `api_key` | string | OpenAI API Key（オプション、未提供の場合は設定から読み込み） |
+| `model`   | string | モデル名（オプション、未提供の場合は設定から読み込み）       |
+| `nonce`   | string | WordPress nonce                                              |
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": "接続成功、API Key 有効"
+}
+```
+
+**失敗応答：**
+
+```json
+{
+    "success": false,
+    "data": "接続失敗：API Key 無効またはネットワークエラー"
+}
+```
+
+---
+
+### mpu_test_claude_connection
+
+Claude (Anthropic) API 接続をテスト。
+
+**Action:** `mpu_test_claude_connection`
+
+**リクエストパラメータ：**
+
+| パラメータ  | タイプ | 説明                                                         |
+| ----------- | ------ | ------------------------------------------------------------ |
+| `api_key` | string | Claude API Key（オプション、未提供の場合は設定から読み込み） |
+| `model`   | string | モデル名（オプション、未提供の場合は設定から読み込み）       |
+| `nonce`   | string | WordPress nonce                                              |
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": "接続成功、API Key 有効"
+}
+```
+
+**失敗応答：**
+
+```json
+{
+    "success": false,
+    "data": "接続失敗：API Key 無効またはネットワークエラー"
+}
+```
+
+---
+
+### mpu_load_dialog
+
+外部ダイアログファイルを読み込み。
+
+**Action:** `mpu_load_dialog`
+
+**リクエストパラメータ：**
+
+| パラメータ   | タイプ | 説明                    |
+| ------------ | ------ | ----------------------- |
+| `filename` | string | ファイル名              |
+| `format`   | string | `txt` または `json` |
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": {
+        "messages": ["ダイアログ1", "ダイアログ2", "ダイアログ3"]
+    }
+}
+```
+
+---
+
+### mpu_ai_context_chat
+
+AI ページ感知ダイアログ。
+
+**Action:** `mpu_ai_context_chat`
+
+**リクエストパラメータ：**
+
+| パラメータ  | タイプ | 説明                   |
+| ----------- | ------ | ---------------------- |
+| `title`   | string | 記事タイトル           |
+| `content` | string | 記事内容               |
+| `nonce`   | string | セキュリティ認証コード |
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": {
+        "message": "AI が生成したコメント"
+    }
+}
+```
+
+---
+
+### mpu_get_visitor_info
+
+訪問者情報を取得（Slimstat が必要）。
+
+**Action:** `mpu_get_visitor_info`
+
+**リクエストパラメータ：**
+
+| パラメータ | タイプ | 説明                   |
+| ---------- | ------ | ---------------------- |
+| `nonce`  | string | セキュリティ認証コード |
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": {
+        "country": "JP",
+        "city": "Tokyo",
+        "referer": "https://google.com",
+        "searchterms": "検索キーワード",
+        "browser": "Chrome",
+        "platform": "Windows"
+    }
+}
+```
+
+---
+
+### mpu_ai_greet
+
+AI 初回訪問者挨拶。
+
+**Action:** `mpu_ai_greet`
+
+**リクエストパラメータ：**
+
+| パラメータ       | タイプ | 説明                   |
+| ---------------- | ------ | ---------------------- |
+| `visitor_info` | object | 訪問者情報             |
+| `nonce`        | string | セキュリティ認証コード |
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": {
+        "message": "日本からの友達、ようこそ！"
+    }
+}
+```
+
+---
+
+### mpu_user_chat (v2.3.0)
+
+ユーザーインタラクティブチャットリクエスト。インタラクティブチャットモードでのユーザー入力を処理。
+
+**Action:** `mpu_user_chat`
+
+**リクエストパラメータ：**
+
+| パラメータ  | タイプ | 説明                         |
+| ----------- | ------ | ---------------------------- |
+| `message` | string | ユーザーが入力したメッセージ |
+| `history` | array  | 会話履歴配列                 |
+| `nonce`   | string | セキュリティ認証コード       |
+
+**会話履歴形式：**
+
+```json
+[
+    {"role": "user", "content": "こんにちは"},
+    {"role": "assistant", "content": "こんにちは！何か話したいことある？"}
+]
+```
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": {
+        "message": "AI が生成した応答"
+    }
+}
+```
+
+---
+
+### mpu_decoration_chat (v2.3.0)
+
+装飾物クリックダイアログリクエスト。ユーザーがキャラクターの装飾物をクリックした際に関連するダイアログを生成。
+
+**Action:** `mpu_decoration_chat`
+
+**リクエストパラメータ：**
+
+| パラメータ          | タイプ | 説明                                               |
+| ------------------- | ------ | -------------------------------------------------- |
+| `decoration_type` | string | 装飾物タイプ（suitcase, evil_horns, staff, books） |
+| `nonce`           | string | セキュリティ認証コード                             |
+
+**成功応答：**
+
+```json
+{
+    "success": true,
+    "data": {
+        "message": "このスーツケースについて...中には集めた魔法が入っている。"
     }
 }
 ```
@@ -752,66 +1092,213 @@ window.mpuCanvasManager = {
 };
 ```
 
-### 主要関数
+### コア関数
 
-#### mpu_typewriter()
+#### mpu_nextmsg(mode)
 
-タイプライター効果でメッセージを表示。
+次のメッセージを表示。
 
 ```javascript
 /**
- * @param {string} message - 表示するメッセージ
- * @param {HTMLElement} element - ターゲット要素
- * @param {number} speed - タイプ速度（ミリ秒/文字）
+ * @param {string} mode - 'next' 順序 / 'random' ランダム / '' 設定値を使用
  */
-function mpu_typewriter(message, element, speed)
+mpu_nextmsg('next');
+```
+
+---
+
+#### mpu_hidemsg()
+
+ダイアログボックスを非表示。
+
+```javascript
+mpu_hidemsg();
+```
+
+---
+
+#### mpu_showmsg()
+
+ダイアログボックスを表示。
+
+```javascript
+mpu_showmsg();
+```
+
+---
+
+#### mpu_hideukagaka()
+
+伺かを非表示。
+
+```javascript
+mpu_hideukagaka();
+```
+
+---
+
+#### mpu_showukagaka()
+
+伺かを表示。
+
+```javascript
+mpu_showukagaka();
 ```
 
 ---
 
 #### mpuChange()
 
-伺かを切り替え。
+伺か切り替えメニューを開く。
 
 ```javascript
-/**
- * @param {string} newUkagakaKey - 新しい伺かキー
- */
-function mpuChange(newUkagakaKey)
+mpuChange();
 ```
 
 ---
 
-#### mpuNextMsg()
+#### mpu_showMessage(message, options)
 
-次のメッセージを取得して表示。
+指定したメッセージを表示（タイプライター効果付き）。
 
 ```javascript
 /**
- * @returns {Promise}
+ * @param {string} message - メッセージ内容
+ * @param {object} options - オプション
+ * @param {string} options.color - テキスト色
+ * @param {boolean} options.typewriter - タイプライター効果を使用するか
  */
-function mpuNextMsg()
+mpu_showMessage('ようこそ！', {
+    color: '#ff6b6b',
+    typewriter: true
+});
+```
+
+---
+
+### AI 機能関数
+
+#### mpu_triggerAIContext()
+
+AI ページ感知をトリガー。
+
+```javascript
+mpu_triggerAIContext();
+```
+
+---
+
+#### mpu_triggerAIGreeting()
+
+AI 初回訪問者挨拶をトリガー。
+
+```javascript
+mpu_triggerAIGreeting();
+```
+
+---
+
+#### mpu_pauseAutoTalk(duration)
+
+自動対話を一時停止。
+
+```javascript
+/**
+ * @param {number} duration - 一時停止時間（ミリ秒）
+ */
+mpu_pauseAutoTalk(10000); // 10 秒間一時停止
+```
+
+---
+
+### グローバル設定オブジェクト
+
+```javascript
+window.mpuSettings = {
+    ajaxUrl: '/wp-admin/admin-ajax.php',
+    nonce: 'xxx',
+    autoTalk: true,
+    autoTalkInterval: 8000,      // ミリ秒
+    typewriterSpeed: 40,          // ミリ秒/文字
+    clickBehavior: 0,             // 0=次へ, 1=操作なし
+    nextMode: 0,                  // 0=順序, 1=ランダム
+    aiEnabled: true,
+    aiTextColor: '#ff6b6b',
+    aiDisplayDuration: 8000,      // ミリ秒
+    aiGreetEnabled: true,
+    useExternalFile: false,
+    externalFileFormat: 'txt'
+};
 ```
 
 ---
 
 ## 特殊コード
 
-ダイアログ内で使用できる特殊コード：
+ダイアログ内容で使用できる特殊コード：
 
-| コード | 説明 | 例 |
-|--------|------|-----|
-| `:recentpost[N]:` | 最近の N 記事を表示 | `:recentpost[5]:` |
-| `:randompost[N]:` | ランダムな N 記事を表示 | `:randompost[3]:` |
-| `:commenters[N]:` | 最近の N 人のコメント者を表示 | `:commenters[5]:` |
+### :recentpost[n]:
 
-**使用例：**
+最近の n 記事一覧を表示。
 
 ```
-最近の記事を見てみる？
-:recentpost[3]:
+最近の記事：:recentpost[5]:
 ```
 
 ---
 
-**Made with ❤ for WordPress**
+### :randompost[n]:
+
+ランダムな n 記事一覧を表示。
+
+```
+おすすめ：:randompost[3]:
+```
+
+---
+
+### :commenters[n]:
+
+最近の n 人のコメント者を表示。
+
+```
+コメントありがとう：:commenters[5]:
+```
+
+---
+
+### 📅
+
+今日の日付を表示。
+
+```
+今日は :date:
+```
+
+---
+
+### :time:
+
+現在の時刻を表示。
+
+```
+現在の時刻は :time:
+```
+
+---
+
+### :sitename:
+
+サイト名を表示。
+
+```
+:sitename: へようこそ！
+```
+
+---
+
+**📌 注意：** 特殊コードはサーバー側で処理され、実際の内容に変換されてからフロントエンドに送信されます。
+
+---
+
+**ドキュメントバージョン：2.5.6**

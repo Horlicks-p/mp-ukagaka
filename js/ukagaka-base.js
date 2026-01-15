@@ -13,13 +13,23 @@ let mpuAiDisplayDuration = 8;           // AI 對話顯示時間（秒）
 let mpuAiDisplayTimer = null;           // AI 對話顯示計時器
 let mpuGreetInProgress = false;         // 首次訪客打招呼是否正在進行中
 let mpuTypewriterTimer = null;          // 打字效果計時器
-let mpuTypewriterSpeed = 40;            // 打字速度（毫秒/字元）
+let mpuTypewriterSpeed = 40;            // 打字速度（毫秒/字元），將從後台設定讀取
 let mpuOllamaReplaceDialogue = false;   // 是否使用 LLM 取代內建對話
+
+// 從後台設定初始化變數
+if (typeof mpuPreSettings !== 'undefined') {
+    if (typeof mpuPreSettings.typewriter_speed !== 'undefined') {
+        mpuTypewriterSpeed = parseInt(mpuPreSettings.typewriter_speed, 10) || 40;
+    }
+    if (typeof mpuPreSettings.ollama_replace !== 'undefined') {
+        mpuOllamaReplaceDialogue = mpuPreSettings.ollama_replace === true;
+    }
+}
 let mpuAiContextInProgress = false;     // 頁面感知 AI 是否正在進行中（防止自動對話打斷）
 let mpuMessageBlocking = false;         // 強制阻擋訊息切換（用於顯示錯誤或重要訊息時防止被打斷）
 let mpuLastLLMResponse = '';            // 上一次 LLM 生成的回應（用於避免重複對話）
-let mpuLLMResponseHistory = [];         // LLM 回應歷史（最近5次，用於更嚴格的重複檢測）
-const mpuMaxResponseHistory = 5;        // 最大歷史記錄數量
+let mpuLLMResponseHistory = [];         // LLM 回應歷史（最近10次，用於更嚴格的重複檢測）
+const mpuMaxResponseHistory = 10;       // 最大歷史記錄數量
 let mpuLastUserActionTime = Date.now(); // 記錄最後動作時間（用於閒置偵測）
 const mpuIdleThreshold = 60000;         // 閒置閾值：60 秒（1 分鐘），超過此時間則暫停自動對話（可根據需求調整：30秒=30000, 90秒=90000, 180秒=180000）
 
@@ -136,8 +146,9 @@ function mpu_handle_error(error, context, options = {}) {
  * @param {string} text - 要顯示的文字（可包含 HTML）
  * @param {string|jQuery} target - 目標元素選擇器或 jQuery 對象
  * @param {number} speed - 打字速度（毫秒/字元），預設使用 mpuTypewriterSpeed
+ * @param {boolean} skipCharacterAnimation - 是否跳過角色動畫，預設 false
  */
-function mpu_typewriter(text, target, speed) {
+function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
     // 清除之前的打字效果
     if (mpuTypewriterTimer !== null) {
         clearTimeout(mpuTypewriterTimer);
@@ -215,7 +226,8 @@ function mpu_typewriter(text, target, speed) {
         return plainText.indexOf(msg) !== -1;
     });
 
-    if (typeof window.mpuCanvasManager !== 'undefined' && !animationTriggered && !isSystemMessage) {
+    // 只有在非系統訊息且未要求跳過動畫時才播放動畫
+    if (typeof window.mpuCanvasManager !== 'undefined' && !animationTriggered && !isSystemMessage && !skipCharacterAnimation) {
         animationTriggered = true;
         window.mpuCanvasManager.playAnimation();
     }
@@ -297,6 +309,59 @@ function mpu_typewriter(text, target, speed) {
     }
 
     processNextChar();
+}
+
+/**
+ * 取消正在進行的打字效果
+ * 用於需要立即搶佔訊息框的場景（如裝飾物點擊）
+ * @returns {boolean} 是否成功取消
+ */
+function mpu_cancelTypewriter() {
+    if (mpuTypewriterTimer !== null) {
+        clearTimeout(mpuTypewriterTimer);
+        mpuTypewriterTimer = null;
+        mpuLogger.log('打字效果已被中斷');
+        return true;
+    }
+    return false;
+}
+
+/**
+ * 等待打字效果完成後執行回調
+ * @param {Function} callback - 打字效果完成後要執行的函數
+ * @param {number} maxWaitTime - 最大等待時間（毫秒），預設 30000（30秒）
+ * @param {number} checkInterval - 檢查間隔（毫秒），預設 50
+ */
+function mpu_waitForTypewriterComplete(callback, maxWaitTime, checkInterval) {
+    if (typeof callback !== 'function') {
+        mpuLogger.warn('mpu_waitForTypewriterComplete: callback 不是函數');
+        return;
+    }
+    
+    maxWaitTime = maxWaitTime || 30000;
+    checkInterval = checkInterval || 50;
+    
+    const startTime = Date.now();
+    
+    function checkTypewriter() {
+        // 如果打字效果已完成（計時器為 null）
+        if (mpuTypewriterTimer === null) {
+            callback();
+            return;
+        }
+        
+        // 檢查是否超時
+        if (Date.now() - startTime > maxWaitTime) {
+            mpuLogger.warn('mpu_waitForTypewriterComplete: 等待超時，強制執行回調');
+            callback();
+            return;
+        }
+        
+        // 繼續等待
+        setTimeout(checkTypewriter, checkInterval);
+    }
+    
+    checkTypewriter();
 }
 
 /**
@@ -483,14 +548,69 @@ function mpu_init_idle_detection() {
     return true;
 }
 
+/**
+ * 更新最後訪問時間
+ * 將當前時間戳存入 localStorage
+ */
+function mpu_updateLastVisitTime() {
+    try {
+        localStorage.setItem('mpu_last_visit_time', Date.now().toString());
+        mpuLogger.log('已更新最後訪問時間');
+    } catch (e) {
+        mpuLogger.warn('無法更新最後訪問時間:', e);
+    }
+}
+
+/**
+ * 獲取上次訪問時間戳
+ * @returns {number|null} 上次訪問的時間戳，若為首次訪問則返回 null
+ */
+function mpu_getLastVisitTime() {
+    try {
+        const lastVisit = localStorage.getItem('mpu_last_visit_time');
+        return lastVisit ? parseInt(lastVisit, 10) : null;
+    } catch (e) {
+        mpuLogger.warn('無法獲取最後訪問時間:', e);
+        return null;
+    }
+}
+
+/**
+ * 計算距離上次訪問的小時數
+ * @returns {number} 距離上次訪問的小時數，-1 表示首次訪問
+ */
+function mpu_getHoursSinceLastVisit() {
+    const lastVisit = mpu_getLastVisitTime();
+    if (lastVisit === null) {
+        return -1; // 首次訪問
+    }
+    const hours = (Date.now() - lastVisit) / (1000 * 60 * 60);
+    return Math.floor(hours);
+}
+
+/**
+ * 初始化訪問時間追蹤
+ * 在頁面載入時記錄當前訪問時間
+ */
+function mpu_init_visit_tracking() {
+    // 先獲取上次訪問時間（供後續 LLM 請求使用）
+    const hoursSince = mpu_getHoursSinceLastVisit();
+    if (hoursSince === -1) {
+        mpuLogger.log('首次訪問，無上次訪問記錄');
+    } else {
+        mpuLogger.log('距離上次訪問:', hoursSince, '小時');
+    }
+    
+    // 更新訪問時間為當前時間
+    mpu_updateLastVisitTime();
+    
+    return hoursSince;
+}
+
 if (typeof jQuery !== 'undefined') {
     mpu_init_jquery_cookie();
     mpu_init_idle_detection();
 }
-function mpu_delCookie(name) {
-    return mpu_delLocal(name);
-}
-
 function mpu_unescapeHTML(str) {
     if (!str) return "";
     return String(str)
@@ -724,4 +844,42 @@ function mpuCancelRequest(url, options = {}) {
 
 function mpuCancelAllRequests() {
     mpuRequestManager.cancelAll();
+}
+
+/**
+ * 初始化右鍵菜單：在角色上右鍵點擊時顯示切換選單
+ */
+function mpu_init_context_menu() {
+    if (typeof jQuery === 'undefined') {
+        mpuLogger.warn('jQuery 尚未載入，無法初始化右鍵菜單');
+        return false;
+    }
+
+    // 等待 DOM 完全加載
+    jQuery(document).ready(function() {
+        // 監聽角色圖片的右鍵點擊
+        jQuery(document).on('contextmenu', '#ukagaka_img, #cur_ukagaka', function(e) {
+            e.preventDefault(); // 阻止默認的右鍵菜單
+            
+            mpuLogger.log('右鍵菜單觸發：顯示角色切換選單');
+            
+            // 調用現有的 mpuChange() 函數來顯示角色選擇菜單
+            if (typeof mpuChange === 'function') {
+                mpuChange(); // 不帶參數調用會顯示選擇菜單
+            } else {
+                mpuLogger.warn('mpuChange 函數未定義');
+            }
+            
+            return false;
+        });
+        
+        mpuLogger.log('右鍵菜單已初始化');
+    });
+    
+    return true;
+}
+
+// 自動初始化右鍵菜單
+if (typeof jQuery !== 'undefined') {
+    mpu_init_context_menu();
 }

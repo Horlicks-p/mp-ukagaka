@@ -67,13 +67,14 @@ function mpu_handle_options_save()
 
     // 檢查是否為本外掛的表單提交
     $is_our_submit = isset($_POST['submit1'])     // 通用設定
-        || isset($_POST['submit2'])     // 春菜們
-        || isset($_POST['submit3'])     // 創建新春菜
+        || isset($_POST['submit2'])     // 偽春菜們
+        || isset($_POST['submit3'])     // 創建偽春菜
         || isset($_POST['submit4'])     // 擴展
         || isset($_POST['submit5'])     // 會話
         || isset($_POST['submit_ai'])   // AI 設定
         || isset($_POST['submit_llm'])  // LLM 設定
-        || isset($_POST['submit_reset']); // 重置設定
+        || isset($_POST['submit_reset']) // 重置設定
+        || isset($_POST['submit_upload_zip']); // ZIP 上傳
 
     if (! $is_our_submit) {
         return;
@@ -107,6 +108,11 @@ function mpu_handle_options_save()
         $mpu_opt['auto_talk'] = isset($_POST['auto_talk']);
         $mpu_opt['auto_talk_interval'] = isset($_POST['auto_talk_interval']) ? max(3, min(30, intval($_POST['auto_talk_interval']))) : 8;
         $mpu_opt['typewriter_speed'] = isset($_POST['typewriter_speed']) ? max(10, min(200, intval($_POST['typewriter_speed']))) : 40;
+        
+        // 保存人格選擇
+        if (isset($_POST['current_personality'])) {
+            $mpu_opt['current_personality'] = sanitize_file_name($_POST['current_personality']);
+        }
 
         if (isset($_POST['insert_html'])) {
             $mpu_opt['insert_html'] = (int)$_POST['insert_html'][0];
@@ -123,18 +129,18 @@ function mpu_handle_options_save()
         $mpu_opt['claude_api_key'] = $current_opt['claude_api_key'] ?? '';
         $mpu_opt['claude_model'] = $current_opt['claude_model'] ?? 'claude-sonnet-4-5-20250929';
         $mpu_opt['ai_language'] = $current_opt['ai_language'] ?? 'zh-TW';
-        $mpu_opt['ai_system_prompt'] = $current_opt['ai_system_prompt'] ?? '你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。';
+        $mpu_opt['ai_system_prompt'] = $current_opt['ai_system_prompt'] ?? '你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。';
         $mpu_opt['ai_probability'] = $current_opt['ai_probability'] ?? 10;
         $mpu_opt['ai_trigger_pages'] = $current_opt['ai_trigger_pages'] ?? 'is_single';
         $mpu_opt['ai_text_color'] = $current_opt['ai_text_color'] ?? '#000000';
         $mpu_opt['ai_display_duration'] = $current_opt['ai_display_duration'] ?? 8;
         $mpu_opt['ai_greet_first_visit'] = $current_opt['ai_greet_first_visit'] ?? false;
-        $mpu_opt['ai_greet_prompt'] = $current_opt['ai_greet_prompt'] ?? '你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。';
+        $mpu_opt['ai_greet_prompt'] = $current_opt['ai_greet_prompt'] ?? 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。';
 
         $message = __('設定已儲存', 'mp-ukagaka');
         $text = '<div class="updated"><p><strong>' . $message . '</strong></p></div>';
     } elseif (isset($_POST['submit2'])) {
-        // 處理春菜設定更新
+        // 處理偽春菜設定更新
         $ukagakas_raw = $_POST['ukagakas'] ?? [];
         $ukagakas_sanitized = [];
 
@@ -147,6 +153,11 @@ function mpu_handle_options_save()
             $ukagakas_sanitized[$key]['show'] = isset($value['show']);
             $ukagakas_sanitized[$key]['dialog_filename'] = isset($value['dialog_filename']) ? sanitize_file_name($value['dialog_filename']) : $key;
 
+            // 處理芙莉蓮專屬的裝飾配件設定
+            if ($key === 'default_1') {
+                $ukagakas_sanitized[$key]['show_decorations'] = isset($value['show_decorations']);
+            }
+
             if (isset($_POST['generate_dialog_file'][$key]) && $_POST['generate_dialog_file'][$key] == 'true') {
                 mpu_generate_dialog_file(
                     $ukagakas_sanitized[$key]['dialog_filename'],
@@ -157,13 +168,88 @@ function mpu_handle_options_save()
         }
         $mpu_opt['ukagakas'] = $ukagakas_sanitized;
 
-        $message = __('春菜們已經煥然一新啦', 'mp-ukagaka');
+        $message = __('偽春菜們已經更新', 'mp-ukagaka');
         if (isset($_POST['generate_dialog_file'])) {
             $message .= __('，對話檔案已生成', 'mp-ukagaka');
         }
         $text = '<div class="updated"><p><strong>' . $message . '</strong></p></div>';
+    } elseif (isset($_POST['submit_upload_zip'])) {
+        // 處理 ZIP 文件上傳
+        if (!function_exists('mpu_handle_ghost_zip_upload')) {
+            add_settings_error('mpu_options', 'function_missing', __('ZIP 上傳處理函數不存在。', 'mp-ukagaka'));
+            return;
+        }
+
+        $upload_result = mpu_handle_ghost_zip_upload();
+
+        if (is_wp_error($upload_result)) {
+            add_settings_error('mpu_options', 'zip_upload_error', $upload_result->get_error_message());
+            return;
+        }
+
+        // 將預覽數據存儲到 transient
+        $transient_key = 'mpu_ghost_zip_preview_' . get_current_user_id();
+        set_transient($transient_key, $upload_result, HOUR_IN_SECONDS); // 1 小時有效期
+
+        // 重定向到預覽頁面
+        $redirect_url = admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=2&preview=1');
+        wp_safe_redirect($redirect_url);
+        exit;
     } elseif (isset($_POST['submit3'])) {
-        // 處理新春菜創建
+        // 處理新偽春菜創建
+        $transient_key = 'mpu_ghost_zip_preview_' . get_current_user_id();
+        $preview_data = get_transient($transient_key);
+        $is_zip_upload = ($preview_data !== false);
+
+        if ($is_zip_upload && isset($_POST['ghost_preview_id'])) {
+            // 從 ZIP 預覽數據創建偽春菜
+            $ghost_id = sanitize_file_name($_POST['ghost_preview_id']);
+
+            // 驗證 preview_id 與 transient 中的數據一致
+            if ($preview_data['id'] !== $ghost_id) {
+                add_settings_error('mpu_options', 'preview_mismatch', __('預覽數據不匹配，請重新上傳。', 'mp-ukagaka'));
+                delete_transient($transient_key);
+                return;
+            }
+
+            $ukagaka = array();
+            $ukagaka['name'] = sanitize_text_field($preview_data['name']);
+            $ukagaka['shell'] = esc_url_raw($preview_data['shell_url']);
+            $ukagaka['show'] = true; // 默認顯示
+            $ukagaka['dialog_filename'] = sanitize_file_name($ghost_id);
+            $ukagaka['msg'] = array(); // 留空，後續在「偽春菜們」頁面配置
+
+            // 檢查是否有 decorations 配置
+            if (function_exists('mpu_load_personality_manifest')) {
+                $manifest = mpu_load_personality_manifest($ghost_id);
+                if (!empty($manifest['decorations_folder'])) {
+                    $ukagaka['show_decorations'] = true;
+                }
+            }
+
+            // 清除 transient
+            delete_transient($transient_key);
+
+            $mpu_opt['ukagakas'][] = $ukagaka;
+
+            // 處理鍵名為 0 的情況
+            if (isset($mpu_opt['ukagakas'][0]) && is_array($mpu_opt['ukagakas'][0])) {
+                $mpu_opt['ukagakas'][] = $mpu_opt['ukagakas'][0];
+                unset($mpu_opt['ukagakas'][0]);
+            }
+
+            update_option('mp_ukagaka', $mpu_opt);
+
+            $message = __('偽春菜創建成功', 'mp-ukagaka');
+            $message .= ' ' . __('請前往「偽春菜們」頁面配置對話文件等設定。', 'mp-ukagaka');
+            set_transient('mpu_admin_message', '<div class="updated"><p><strong>' . $message . '</strong></p></div>', 30);
+
+            // 重定向到「偽春菜們」頁面
+            $redirect_url = admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=1');
+            wp_safe_redirect($redirect_url);
+            exit;
+        } else {
+            // 傳統手動創建方式
         $ukagaka_raw = $_POST['ukagaka'] ?? [];
         $ukagaka = [];
 
@@ -189,11 +275,12 @@ function mpu_handle_options_save()
             unset($mpu_opt['ukagakas'][0]);
         }
 
-        $message = __('春菜創建成功～', 'mp-ukagaka');
+        $message = __('偽春菜創建成功', 'mp-ukagaka');
         if (isset($_POST['generate_dialog_file_new']) && $_POST['generate_dialog_file_new'] == 'true') {
             $message .= __('，對話檔案已生成', 'mp-ukagaka');
         }
         $text = '<div class="updated"><p><strong>' . $message . '</strong></p></div>';
+        }
     } elseif (isset($_POST['submit4'])) {
         // 處理擴展設定
         $extend = $_POST['extend'] ?? [];
@@ -233,13 +320,13 @@ function mpu_handle_options_save()
 
         // 處理 AI 設定（僅頁面感知相關的設定，不處理提供商、API Key、模型選擇）
         $mpu_opt['ai_language'] = isset($_POST['ai_language']) ? sanitize_text_field($_POST['ai_language']) : 'zh-TW';
-        $mpu_opt['ai_system_prompt'] = isset($_POST['ai_system_prompt']) ? sanitize_textarea_field($_POST['ai_system_prompt']) : '你是一個傲嬌的桌面助手「春菜」。你會用簡短、帶點傲嬌的語氣評論文章內容。回應請保持在 40 字以內。';
+        $mpu_opt['ai_system_prompt'] = isset($_POST['ai_system_prompt']) ? sanitize_textarea_field($_POST['ai_system_prompt']) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。必ずこのキャラクターとして振る舞い、一人称は「私」を使用してください。回答は日本語で、50文字以内の短い一言で返してください。自分が AI や Qwen だと言わないでください。';
         $mpu_opt['ai_probability'] = isset($_POST['ai_probability']) ? max(1, min(100, intval($_POST['ai_probability']))) : 10;
         $mpu_opt['ai_trigger_pages'] = isset($_POST['ai_trigger_pages']) ? sanitize_text_field($_POST['ai_trigger_pages']) : 'is_single';
         $mpu_opt['ai_text_color'] = isset($_POST['ai_text_color']) ? sanitize_hex_color($_POST['ai_text_color']) : '#000000';
         $mpu_opt['ai_display_duration'] = isset($_POST['ai_display_duration']) ? max(1, min(60, intval($_POST['ai_display_duration']))) : 8;
         $mpu_opt['ai_greet_first_visit'] = isset($_POST['ai_greet_first_visit']) && $_POST['ai_greet_first_visit'] ? true : false;
-        $mpu_opt['ai_greet_prompt'] = isset($_POST['ai_greet_prompt']) ? sanitize_textarea_field($_POST['ai_greet_prompt']) : '你是一個友善的桌面助手「春菜」。當有訪客第一次來到網站時，你會根據訪客的來源（referrer）用親切的語氣打招呼。回應請保持在 50 字以內。';
+        $mpu_opt['ai_greet_prompt'] = isset($_POST['ai_greet_prompt']) ? sanitize_textarea_field($_POST['ai_greet_prompt']) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。';
 
         // 注意：提供商選擇、API Key、模型選擇已移至 LLM 設定頁面
         // 「LLM 取代內建對話」和「頁面感知 AI (ai_enabled)」是兩個獨立的功能
@@ -370,3 +457,322 @@ function mpu_options()
     }
 }
 add_action("admin_menu", "mpu_options");
+
+
+/**
+ * 從 ZIP 文件中讀取 manifest.json
+ * 
+ * @param string $zip_path ZIP 文件路徑
+ * @return array|WP_Error manifest.json 數據或錯誤
+ */
+function mpu_get_ghost_manifest_from_zip($zip_path)
+{
+    if (!class_exists('ZipArchive')) {
+        return new WP_Error('zip_not_supported', __('PHP ZipArchive 類別不可用，請聯繫服務器管理員。', 'mp-ukagaka'));
+    }
+
+    $zip = new ZipArchive();
+    $result = $zip->open($zip_path);
+
+    if ($result !== true) {
+        return new WP_Error('zip_open_failed', __('無法打開 ZIP 文件。', 'mp-ukagaka'));
+    }
+
+    // 查找 manifest.json
+    $manifest_content = false;
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $filename = $zip->getNameIndex($i);
+        if ($filename === 'manifest.json' || basename($filename) === 'manifest.json') {
+            $manifest_content = $zip->getFromIndex($i);
+            break;
+        }
+    }
+
+    $zip->close();
+
+    if ($manifest_content === false) {
+        return new WP_Error('manifest_not_found', __('ZIP 文件中找不到 manifest.json。', 'mp-ukagaka'));
+    }
+
+    $manifest_data = json_decode($manifest_content, true);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        return new WP_Error('invalid_json', __('manifest.json 格式無效：', 'mp-ukagaka') . json_last_error_msg());
+    }
+
+    return $manifest_data;
+}
+
+/**
+ * 驗證 ZIP 文件結構
+ * 
+ * @param string $zip_path ZIP 文件路徑
+ * @return array|WP_Error 驗證結果（包含 manifest 數據和 shell 信息）或錯誤
+ */
+function mpu_validate_ghost_zip($zip_path)
+{
+    if (!class_exists('ZipArchive')) {
+        return new WP_Error('zip_not_supported', __('PHP ZipArchive 類別不可用，請聯繫服務器管理員。', 'mp-ukagaka'));
+    }
+
+    // 讀取 manifest.json
+    $manifest_data = mpu_get_ghost_manifest_from_zip($zip_path);
+    if (is_wp_error($manifest_data)) {
+        return $manifest_data;
+    }
+
+    // 驗證 manifest.json 必須包含 id 字段
+    if (empty($manifest_data['id'])) {
+        return new WP_Error('missing_id', __('manifest.json 中缺少必需的 id 字段。', 'mp-ukagaka'));
+    }
+
+    $zip = new ZipArchive();
+    $result = $zip->open($zip_path);
+
+    if ($result !== true) {
+        return new WP_Error('zip_open_failed', __('無法打開 ZIP 文件。', 'mp-ukagaka'));
+    }
+
+    // 安全檢查：遍歷 ZIP 內的所有文件
+    $has_shell = false;
+    $shell_files = [];
+    // 允許的副檔名白名單 (嚴格限制)
+    $allowed_extensions = ['json', 'txt', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp3', 'wav', 'ogg', 'ico'];
+    // 允許的 shell 圖片副檔名
+    $shell_img_extensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $filename = $zip->getNameIndex($i);
+        $basename = basename($filename);
+
+        // 1. 檢查路徑遍歷 (Zip Slip) 和絕對路徑
+        // 檢查相對路徑遍歷
+        if (strpos($filename, '../') !== false || strpos($filename, '..\\') !== false) {
+            $zip->close();
+            return new WP_Error('invalid_path', __('ZIP 文件包含非法路徑 (..)，因安全原因被拒絕。', 'mp-ukagaka'));
+        }
+        // 檢查絕對路徑（Unix 系統以 / 開頭，Windows 系統以驅動器字母開頭如 C:）
+        if (substr($filename, 0, 1) === '/' || preg_match('/^[a-zA-Z]:[\\\\\/]/', $filename)) {
+            $zip->close();
+            return new WP_Error('invalid_path', __('ZIP 文件包含絕對路徑，因安全原因被拒絕。', 'mp-ukagaka'));
+        }
+        // 檢查空字節注入（雖然 ZIP 通常不會有，但為安全起見）
+        if (strpos($filename, "\0") !== false) {
+            $zip->close();
+            return new WP_Error('invalid_path', __('ZIP 文件包含非法字元（空字節），因安全原因被拒絕。', 'mp-ukagaka'));
+        }
+
+        // 跳過目錄項目
+        if (substr($filename, -1) === '/') {
+            continue;
+        }
+
+        // 2. 檢查副檔名白名單
+        $extension = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
+        if (!in_array($extension, $allowed_extensions)) {
+            $zip->close();
+            return new WP_Error('invalid_file_type', sprintf(__('ZIP 文件包含不允許的檔案類型 (.%s)，僅允許圖片、音訊、TXT 和 JSON。', 'mp-ukagaka'), $extension));
+        }
+
+        // 檢查是否在 shell/ 目錄下的圖片
+        if (strpos($filename, 'shell/') === 0 || strpos($filename, 'shell\\') === 0) {
+            if (in_array($extension, $shell_img_extensions)) {
+                $has_shell = true;
+                $shell_files[] = $basename;
+            }
+        }
+    }
+
+    $zip->close();
+
+    if (!$has_shell) {
+        return new WP_Error('shell_not_found', __('ZIP 文件中找不到 shell/ 文件夾。', 'mp-ukagaka'));
+    }
+
+    if (empty($shell_files)) {
+        return new WP_Error('no_shell_images', __('shell/ 文件夾中沒有找到圖片文件（.png, .jpg, .jpeg, .gif, .webp）。', 'mp-ukagaka'));
+    }
+
+    return [
+        'manifest' => $manifest_data,
+        'shell_files' => $shell_files,
+    ];
+}
+
+/**
+ * 解壓 ZIP 文件到目標目錄
+ * 
+ * @param string $zip_path ZIP 文件路徑
+ * @param string $target_dir 目標目錄
+ * @return bool|WP_Error 成功返回 true，失敗返回錯誤
+ */
+function mpu_extract_ghost_zip($zip_path, $target_dir)
+{
+    if (!class_exists('ZipArchive')) {
+        return new WP_Error('zip_not_supported', __('PHP ZipArchive 類別不可用，請聯繫服務器管理員。', 'mp-ukagaka'));
+    }
+
+    // 確保目標目錄存在
+    if (!file_exists($target_dir)) {
+        if (!wp_mkdir_p($target_dir)) {
+            return new WP_Error('mkdir_failed', __('無法創建目標目錄：', 'mp-ukagaka') . $target_dir);
+        }
+    }
+
+    // 驗證目標目錄路徑安全性（必須在 ghost 目錄下）
+    $real_target = realpath($target_dir);
+    $ghost_dir = mpu_get_personalities_dir();
+    $real_ghost = realpath($ghost_dir);
+
+    if ($real_ghost === false || $real_target === false) {
+        return new WP_Error('invalid_path', __('無效的目錄路徑。', 'mp-ukagaka'));
+    }
+
+    if (strpos($real_target, $real_ghost) !== 0) {
+        return new WP_Error('path_not_allowed', __('目標目錄不在允許範圍內。', 'mp-ukagaka'));
+    }
+
+    $zip = new ZipArchive();
+    $result = $zip->open($zip_path);
+
+    if ($result !== true) {
+        return new WP_Error('zip_open_failed', __('無法打開 ZIP 文件。', 'mp-ukagaka'));
+    }
+
+    // 解壓文件（ZipArchive::extractTo 會自動處理路徑規範化，但我們已在驗證階段檢查過路徑安全）
+    $extract_result = $zip->extractTo($target_dir);
+    $zip->close();
+
+    if (!$extract_result) {
+        return new WP_Error('extract_failed', __('解壓文件失敗。', 'mp-ukagaka'));
+    }
+
+    // 驗證解壓後的文件結構
+    if (!file_exists($target_dir . '/manifest.json')) {
+        return new WP_Error('manifest_missing_after_extract', __('解壓後找不到 manifest.json。', 'mp-ukagaka'));
+    }
+
+    $shell_path = $target_dir . '/shell';
+    if (!file_exists($shell_path) && !is_dir($shell_path)) {
+        return new WP_Error('shell_missing_after_extract', __('解壓後找不到 shell/ 目錄。', 'mp-ukagaka'));
+    }
+
+    return true;
+}
+
+/**
+ * 處理 Ghost ZIP 文件上傳
+ * 
+ * @return array|WP_Error 成功返回預覽數據數組，失敗返回錯誤
+ */
+function mpu_handle_ghost_zip_upload()
+{
+    // 檢查文件上傳
+    if (empty($_FILES['ghost_zip_file']) || $_FILES['ghost_zip_file']['error'] !== UPLOAD_ERR_OK) {
+        $error_code = $_FILES['ghost_zip_file']['error'] ?? UPLOAD_ERR_NO_FILE;
+        switch ($error_code) {
+            case UPLOAD_ERR_INI_SIZE:
+            case UPLOAD_ERR_FORM_SIZE:
+                return new WP_Error('upload_size_exceeded', __('上傳的文件太大。', 'mp-ukagaka'));
+            case UPLOAD_ERR_PARTIAL:
+                return new WP_Error('upload_partial', __('文件上傳不完整。', 'mp-ukagaka'));
+            case UPLOAD_ERR_NO_FILE:
+                return new WP_Error('no_file', __('請選擇要上傳的 ZIP 文件。', 'mp-ukagaka'));
+            default:
+                return new WP_Error('upload_error', __('文件上傳失敗。', 'mp-ukagaka'));
+        }
+    }
+
+    $file = $_FILES['ghost_zip_file'];
+
+    // 驗證文件類型
+    $file_type = wp_check_filetype($file['name']);
+    if ($file_type['ext'] !== 'zip') {
+        return new WP_Error('invalid_file_type', __('只能上傳 ZIP 格式的文件。', 'mp-ukagaka'));
+    }
+
+    // 驗證文件大小（50MB 限制）
+    $max_size = 50 * 1024 * 1024; // 50MB
+    if ($file['size'] > $max_size) {
+        return new WP_Error('file_too_large', __('文件大小不能超過 50MB。', 'mp-ukagaka'));
+    }
+
+    // 使用 WordPress 文件上傳處理函數
+    require_once(ABSPATH . 'wp-admin/includes/file.php');
+    $uploaded_file = wp_handle_upload($file, array('test_form' => false));
+
+    if (isset($uploaded_file['error'])) {
+        return new WP_Error('upload_handle_error', $uploaded_file['error']);
+    }
+
+    $zip_path = $uploaded_file['file'];
+
+    // 驗證 ZIP 文件結構
+    $validation_result = mpu_validate_ghost_zip($zip_path);
+    if (is_wp_error($validation_result)) {
+        @unlink($zip_path); // 清理上傳的文件
+        return $validation_result;
+    }
+
+    $manifest_data = $validation_result['manifest'];
+    $ghost_id = $manifest_data['id'];
+
+    // 確定目標目錄
+    $ghost_dir = mpu_get_personalities_dir();
+    $target_dir = $ghost_dir . '/' . sanitize_file_name($ghost_id);
+
+    // 如果目錄已存在，覆蓋（先刪除現有目錄）
+    if (file_exists($target_dir) && is_dir($target_dir)) {
+        // 使用 WP_Filesystem 或遞歸刪除
+        global $wp_filesystem;
+        if (empty($wp_filesystem)) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            WP_Filesystem();
+        }
+
+        if ($wp_filesystem && $wp_filesystem->is_dir($target_dir)) {
+            $wp_filesystem->rmdir($target_dir, true);
+        } else {
+            // 備用方法：使用 PHP 遞歸刪除
+            function mpu_recursive_rmdir($dir)
+            {
+                if (!is_dir($dir)) {
+                    return false;
+                }
+                $files = array_diff(scandir($dir), array('.', '..'));
+                foreach ($files as $file) {
+                    $path = $dir . '/' . $file;
+                    is_dir($path) ? mpu_recursive_rmdir($path) : unlink($path);
+                }
+                return rmdir($dir);
+            }
+            mpu_recursive_rmdir($target_dir);
+        }
+    }
+
+    // 解壓 ZIP 文件
+    $extract_result = mpu_extract_ghost_zip($zip_path, $target_dir);
+
+    // 清理臨時上傳的 ZIP 文件
+    @unlink($zip_path);
+
+    if (is_wp_error($extract_result)) {
+        return $extract_result;
+    }
+
+    // 生成 shell URL
+    $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
+    $shell_url = plugins_url("ghost/{$ghost_id}/shell/", $main_file);
+
+    // 準備預覽數據
+    $preview_data = array(
+        'id' => $ghost_id,
+        'name' => !empty($manifest_data['name_zh']) ? $manifest_data['name_zh'] : (!empty($manifest_data['name']) ? $manifest_data['name'] : $ghost_id),
+        'name_en' => !empty($manifest_data['name_en']) ? $manifest_data['name_en'] : '',
+        'shell_url' => $shell_url,
+        'version' => !empty($manifest_data['version']) ? $manifest_data['version'] : '',
+        'author' => !empty($manifest_data['author']) ? $manifest_data['author'] : '',
+        'description' => !empty($manifest_data['description_zh']) ? $manifest_data['description_zh'] : (!empty($manifest_data['description']) ? $manifest_data['description'] : ''),
+    );
+
+    return $preview_data;
+}

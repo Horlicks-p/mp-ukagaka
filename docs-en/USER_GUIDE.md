@@ -14,8 +14,10 @@
 6. [Dialogue Settings](#dialogue-settings)
 7. [AI Feature Settings](#ai-feature-settings)
 8. [LLM Feature Settings (BETA)](#llm-feature-settings-beta)
-9. [Extensions](#extensions)
-10. [FAQ](#faq)
+9. [Interactive Chat Mode (v2.3.0)](#interactive-chat-mode-v230)
+10. [Thinking Mode (v2.3.0)](#thinking-mode-v230)
+11. [Extensions](#extensions)
+12. [FAQ](#faq)
 
 ---
 
@@ -199,6 +201,53 @@ File path: `wp-content/plugins/mp-ukagaka/dialogs/CharacterName.json`
   "messages": ["First dialogue", "Second dialogue", "Third dialogue"]
 }
 ```
+
+---
+
+---
+
+## Customizing Emoji System (v2.4.0)
+
+MP Ukagaka v2.4.0 introduces a dynamic emoji system, allowing each character to have their own set of emojis.
+
+### File Structure
+
+To add emoji support for a character, create the following structure in the character's folder (`ghost/CharacterID/`):
+
+- `emojis/` folder: Stores emoji images (Supports PNG, APNG, GIF)
+- `CharacterID-emoji.js`: Emoji control script (Can copy `Frieren-emoji.js` and modify)
+- `emoji-keywords.json`: Emoji trigger keyword settings (Optional)
+
+### Keyword Settings (`emoji-keywords.json`)
+
+This file defines which keywords trigger which emoji. If this file is not created, the system uses built-in generic keyword mappings.
+
+**Format Example:**
+
+```json
+{
+  "_meta": {
+    "description": "Character specific emoji keywords",
+    "version": "1.0"
+  },
+  "mappings": {
+    "happy": {
+      "keywords": ["happy", "glad", "lol"],
+      "file": "happy.png",
+      "weight": 10
+    },
+    "angry": {
+      "keywords": ["angry", "mad", "furious"],
+      "file": "angry.png",
+      "weight": 10
+    }
+  }
+}
+```
+
+- **keywords**: List of keywords triggering this emoji
+- **file**: Image filename in `emojis/` folder
+- **weight**: Weight (Higher priority when multiple emojis match)
 
 ---
 
@@ -475,7 +524,7 @@ Enter the name of the model you downloaded, for example:
 
 - `qwen3:8b`
 - `llama3.2`
-- `mistral`
+- `qwen2.5:14b` (Recommended, best results)
 
 > 💡 Use the `ollama list` command in PowerShell to view downloaded models.
 
@@ -517,7 +566,7 @@ FROM qwen3:8b
 # Or other models:
 # FROM gemma3:12b
 # FROM llama3.2
-# FROM mistral
+# FROM qwen2.5:14b
 ```
 
 **Step 3: Replace Admin Name Variables (Important)**
@@ -1180,6 +1229,389 @@ Recent posts: :recentpost[3]:
 2. Limit "Trigger Pages" (Only trigger on `is_single`).
 3. Use cheaper models.
 4. **Or use LLM feature**: Completely free, no API Key (Beta).
+
+---
+
+## Interactive Chat Mode (v2.3.0)
+
+> 🎉 **v2.3.0 Major Feature**: Let visitors directly engage in real-time multi-turn conversations with Ukagaka characters!
+
+### What is Interactive Chat Mode?
+
+Interactive Chat Mode transforms the frontend "Change Ukagaka" button into a real-time chat interface, allowing visitors to click and engage in actual multi-turn conversations with characters. This differs from the Page Awareness feature (automatic article comments), as Chat Mode is entirely triggered by the visitor.
+
+### Main Features
+
+- **Real-time Chat**: Visitors can input any message, and the character responds using AI
+- **Multi-turn Conversations**: System maintains conversation history for coherent contextual responses
+- **Context Awareness**: AI understands current page content and basic site information
+- **Dynamic Context Injection**: Only adds WordPress statistics when relevant keywords are detected, significantly saving tokens
+- **Scroll​able History**: Long conversations auto-scroll, input box fixed at bottom for easy typing
+- **Custom Scrollbar**: Beautiful scrollbar styling
+- **Responsive Layout**: Automatically adapts to different screen sizes
+
+### How to Enable
+
+#### Prerequisites
+
+Must first complete these settings in the **LLM Settings** page:
+
+1. Select AI Provider (Gemini, OpenAI, Claude, or Ollama)
+2. Set API Key (except for Ollama)
+3. Choose appropriate model
+4. Test connection to confirm it works
+
+#### Activation Steps
+
+1. Go to **Settings → MP Ukagaka → General Settings**
+2. In the "💬 Dialogue Settings" section
+3. Check "**Enable Interactive Chat**"
+4. Click "Save" button
+5. Visit the site frontend, the original "Change Ukagaka" button will become "💬 Chat" button
+
+### How to Use
+
+**Visitor Operations**:
+
+1. Click the "💬 Chat" button in the bottom right corner
+2. Chat box expands, displaying welcome message
+3. Enter message in the bottom input box
+4. Press Enter or click send icon
+5. AI generates response based on input
+6. Continue chatting, system remembers previous content
+
+**Chat Characteristics**:
+
+- Welcome message displays automatically based on language (Traditional Chinese/Japanese/English)
+- Chat history retained on current page (cleared after refresh)
+- Long conversations auto-scroll to ensure latest messages visible
+- Input box fixed at bottom for continuous conversation
+
+![Interactive Chat Mode Demo](../screenshot3.PNG)
+
+_Interactive Chat Mode: Visitors can directly engage in multi-turn conversations with characters_
+
+### Chat Mode vs Page Awareness
+
+| Feature | Interactive Chat Mode | Page Awareness Mode |
+|---------|----------------------|---------------------|
+| **Trigger Method** | Visitor actively clicks "Chat" button | Auto-trigger (probability-based) |
+| **Interactivity** | Bidirectional multi-turn dialogue | One-way comments |
+| **Context** | Maintains complete conversation history | Only analyzes current page content |
+| **Use Case** | Visitor actively asks questions, consults | Auto-comments on article content |
+| **Response Frequency** | Responds to every input | Based on probability settings |
+| **Token Consumption** | Accumulates per conversation turn | Single comment |
+| **Enable Location** | General Settings → Dialogue Settings | AI Settings → Page Awareness |
+
+### Technical Details
+
+#### Dynamic Context Injection
+
+System uses keyword detection to decide whether to add WordPress statistics:
+
+**Supported Keywords (Traditional Chinese/Japanese/English)**:
+- Posts related: 文章, 記事, article, post
+- Comments related: 留言, コメント, comment
+- Site related: 網站, サイト, site, website
+- Technical related: php, wordpress, 外掛, plugins, プラグイン
+- Theme related: 主題, テーマ, theme
+
+**Benefits**:
+- Most conversations don't include statistics, saving 70%+ tokens
+- Only adds when visitors ask relevant questions
+- Reduces API costs and response times
+
+#### Context Window Settings
+
+- **Thinking Mode Enabled**: 8192 tokens (Ollama default behavior)
+- **Thinking Mode Disabled**: 4096 tokens
+
+#### Response Length Limit
+
+- Default limit is **800 tokens** (configurable via `settings.max_tokens` in `manifest.json`)
+- Ensures concise responses, avoids excessive verbosity
+
+### Common Questions
+
+**Q: Is conversation history saved?**
+A: Conversation history is only retained in current page memory, cleared after page refresh. Future versions may add persistence features.
+
+**Q: Can I enable both Chat Mode and Page Awareness?**
+A: Yes. They don't conflict. Page Awareness auto-triggers on specific pages; Chat Mode is opened by visitors.
+
+**Q: Which AI providers support Chat Mode?**
+A: All LLM providers: Ollama, Gemini, OpenAI, Claude.
+
+**Q: How to control token consumption in conversations?**
+A: Conversation history accumulates tokens, suggestions:
+   - Use cheaper models (gemini-2.5-flash, gpt-4o-mini)
+   - Use Ollama (runs locally, completely free)
+   - Limit conversation turns (recommend restarting after 10 turns)
+
+**Q: Can chat box styling be customized?**
+A: Currently chat box styling is fixed, future versions may open customization options.
+
+---
+
+## Thinking Mode (v2.3.0)
+
+> 🧠 **v2.3.0 Important Change**: Thinking Mode is now **enabled by default** to improve AI response quality!
+
+### What is Thinking Mode?
+
+Thinking Mode lets supported AI models (like Qwen3, DeepSeek) perform internal reasoning before answering. The thinking process is completely separated from the final response, showing only the response content to visitors, ensuring output quality.
+
+### Default Behavior Change (v2.3.0)
+
+**Before (v2.2.0 and earlier)**:
+- ❌ Thinking Mode default **disabled** (`think = false`)
+- ❌ Configuration note: "Recommended to enable"
+- Behavior: AI answers directly, may be less accurate, thinking content may mix into response
+
+**Now (v2.3.0 onwards)**:
+- ✅ Thinking Mode default **enabled** (`think = true`)
+- ✅ Configuration note: "Enabled by default, optional disable"
+- Behavior: AI thinks first then answers, thinking separated from response, only shows response
+
+### Supported Models
+
+Thinking Mode supports the following Ollama models:
+
+- **Qwen3** series: `qwen3:8b`, `qwen3:14b`, etc.
+- **DeepSeek** series: `deepseek`, `deepseek-r1`, etc.
+- **Custom Modelfile models**: Like the example `frieren` model
+
+> 💡 **Tip**: Cloud services like Gemini, OpenAI, Claude don't support Thinking Mode settings, as their thinking process is handled internally.
+
+### Thinking Mode Advantages
+
+#### 1. Improves Answer Accuracy
+
+AI analyzes questions and thinks about strategy before generating answers, rather than responding directly. Especially suitable for:
+- Questions requiring reasoning
+- Complex multi-turn conversations
+- Responses considering context
+
+#### 2. Separates Thinking from Response
+
+System automatically filters thinking process, ensuring visitors only see final response:
+
+**Thinking Content Detection Mechanisms**:
+- Detects `<think>...</think>` XML tags
+- Detects `<thinking>...</thinking>` XML tags
+- Detects thinking mode text patterns (like "I need", "User is", "Let me think")
+- Detects mixed Chinese-English thinking content
+
+#### 3. Advantages in Chat Mode
+
+When enabling thinking in Interactive Chat Mode:
+- Context window automatically expands to **8192 tokens**
+- Better multi-turn conversation context understanding
+- More coherent character personality maintenance
+
+### Technical Details
+
+#### Monologue Mode (Auto Dialogue)
+
+```php
+// includes/ai-functions.php
+$think = $enable_thinking;  // Default true
+```
+
+- Thinking enabled: `think = true`
+- Context window: Default value (depends on model)
+
+#### Chat Mode (Interactive Chat)
+
+```php
+// includes/chat-api-handlers.php
+if ($enable_thinking) {
+    $request_body['think'] = true;
+    $request_body['options']['num_ctx'] = 8192;  // Expand context window
+} else {
+    $request_body['think'] = false;
+    $request_body['options']['num_ctx'] = 4096;
+}
+```
+
+- Thinking enabled: context window expands to 8192 tokens
+- Thinking disabled: context window is 4096 tokens
+
+### How to Disable Thinking Mode
+
+If you want faster responses (sacrificing some accuracy):
+
+1. Go to **Settings → MP Ukagaka → LLM Settings**
+2. In the **Ollama Settings** section
+3. Check "**Disable Thinking Mode (Qwen3, DeepSeek, etc.)**"
+4. Click "Save" button
+
+**Effects**:
+- ✅ Faster response speed (about 1-2 seconds faster)
+- ⚠️ Answer accuracy may decrease
+- ⚠️ Thinking content may mix into response (requires additional filtering)
+
+### Thinking Mode vs Non-Thinking Mode
+
+| Feature | Thinking Mode (Default) | Non-Thinking Mode |
+|---------|------------------------|-------------------|
+| **Response Quality** | ⭐⭐⭐⭐⭐ High accuracy | ⭐⭐⭐ Faster but may be less accurate |
+| **Response Speed** | 🐌 Slightly slower (+1-2s) | 🚀 Faster |
+| **Context Window** | 8192 tokens (Chat Mode) | 4096 tokens (Chat Mode) |
+| **Thinking & Response** | ✅ Completely separated | ⚠️ May mix together |
+| **Use Cases** | Complex reasoning, long conversations | Simple chat, quick responses |
+
+### Common Questions
+
+**Q: How much response time does Thinking Mode add?**
+A: Usually adds 1-2 seconds, depending on:
+   - Model size (8B faster than 14B)
+   - Question complexity (simple questions think faster)
+   - Hardware configuration (GPU performance)
+
+**Q: Do cloud AI (Gemini/OpenAI/Claude) have Thinking Mode?**
+A: These services have built-in optimization, don't need or support manual thinking mode control.
+
+**Q: Will visitors see the thinking content?**
+A: No. System automatically filters thinking content, only shows final response.
+
+**Q: How to determine if Thinking Mode is active?**
+A: When testing in backend, open browser developer tools (F12) → Network → check Ollama API request, if `"think": true` then enabled.
+
+**Q: Can I enable/disable thinking for different scenarios?**
+A: Currently global setting, cannot adjust for specific pages or scenarios. Recommend keeping default enabled unless you absolutely need faster response speed.
+
+---
+
+---
+
+## Automated Diary Settings (Diary Settings)
+
+> 📓 **V2.5.0 New Feature**: Let your character automatically write diaries!
+
+Go to **Settings** → **MP Ukagaka** → **Diary Settings**
+
+### What is the Automated Diary Feature?
+
+This is a feature that allows the Ukagaka character to "live automatically". When enabled, the character will automatically write and publish diary posts with a very low probability (set by you). These diaries will include:
+
+- Today's date and season
+- Current weather conditions (if weather feature is enabled)
+- Mood and thoughts fitting the character's personality
+- Random daily events
+
+### Basic Settings
+
+#### 1. Enable Automated Diary
+
+Check this option to turn on the feature. When enabled, the system will check once a day whether to trigger diary generation.
+
+#### 2. Post Category
+
+Select which category to publish diary posts to.
+> 💡 **Recommendation**: Create a dedicated category in WordPress Posts first, e.g., "Frieren's Notes" (slug: `frieren-notes`), and then select it here.
+
+#### 3. Post Author
+
+Select which WordPress user to publish the diary as. It is usually recommended to create a dedicated "Character Account" or use the administrator account directly.
+
+#### 4. Trigger Probability
+
+Set the daily probability of triggering a diary (1% - 10%).
+- **2%**: About 0~1 posts per month (Rare)
+- **5%**: About 1~2 posts per month (Occasional)
+- **10%**: About 3 posts per month (Frequent)
+
+> ⚠️ To avoid flooding with diaries, it is recommended to keep it around 2-5%.
+
+#### 5. Post Signature
+
+Set the signature text to be appended to the end of each diary post. Leave blank to not append.
+Example: `*This entry was written by Frieren, the mage who has lived for over a thousand years.`
+
+### Diary AI Provider
+
+The diary feature uses **independent AI settings**, which means you can:
+- Use Ollama (Free) for chat functions
+- Use Gemini 2.5 Flash (High quality and cheap) for diary functions
+
+This ensures response speed for daily conversations while guaranteeing literary quality for diary content.
+
+Supported providers are the same as LLM settings:
+- **Gemini**: Recommended `Gemini 2.5 Flash`
+- **OpenAI**: Recommended `GPT-4.1 Mini`
+- **Claude**: Recommended `Claude Sonnet 4.5`
+- **Ollama**: Supports custom models
+
+### Diary Topic Configuration (diary.json)
+
+What the diary "writes about" is controlled by `diary.json` in the character folder. This file defines the diary's **topic categories** and **prompts**.
+
+**File Location:** `ghost/CharacterID/diary.json`
+
+#### Category Weighting System
+
+Each category has a `weight` value. The higher the weight, the more likely that category will be selected.
+
+**Default Character (Frieren) Category Examples:**
+
+| Category | Weight | Description |
+|----------|--------|-------------|
+| `daily_observation` | 20 | Daily observations, street scenes |
+| `magic_research` | 18 | Magic research, experiment notes |
+| `memories` | 16 | Past journey memories |
+| `companions` | 15 | Interactions with companions |
+| `time_awareness` | 12 | Sense of time, millennial perspective |
+| `emotional_growth` | 10 | Emotional growth, self-discovery |
+| `first_class_exam` | 8 | First-class mage exam |
+| `demon_encounters` | 5 | Demon encounter records |
+| `mimic_adventures` | 4 | Treasure chests and dungeon exploration |
+| `food_thoughts` | 3 | Food thoughts |
+| `sleep_laziness` | 3 | Oversleeping diary |
+| `purchases_regrets` | 2 | Impulse buying regrets |
+| `philosophical` | 2 | Philosophical thoughts |
+
+#### Customizing Diary Topics
+
+If you want to customize diary topics, edit `diary.json`:
+
+```json
+{
+  "categories": {
+    "my_category": {
+      "weight": 10,
+      "title_themes": ["Title Keyword 1", "Title Keyword 2"],
+      "prompts": [
+        "Prompt 1 (about 150-250 characters)",
+        "Prompt 2 (about 150-250 characters)"
+      ]
+    }
+  }
+}
+```
+
+- **weight**: Weight value, relative selection probability
+- **title_themes**: Keywords used to generate diary titles
+- **prompts**: AI randomly selects one to generate diary content
+
+### Diary Title Prefix
+
+Diary titles automatically have a prefix added (e.g., `[フリーレン手記]`). This prefix is defined in the `diary_title_prefix` field of `dynamics.json`.
+
+This prefix has two purposes:
+
+1. **Visual Identification**: Readers can immediately see this is a character's diary
+2. **Page Awareness**: When the character sees their own diary on the website, they have a special reaction (defined in `page_aware_own_diary`)
+
+### Test Feature
+
+There is a "🧪 Test" section at the bottom of the settings page. Click the **"Generate Diary Now (Test)"** button, and the system will immediately attempt to generate and publish a diary post.
+
+This can be used to confirm:
+
+1. AI connection is normal
+2. Post category and author settings are correct
+3. Diary content style is as expected
 
 ---
 

@@ -22,42 +22,76 @@
 
 ### ディレクトリ構造
 
-```
+```text
 mp-ukagaka/
 ├── mp-ukagaka.php          # メインエントリーポイント
+├── css/                    # スタイルシート
+│   ├── mpu_style.css           # フロントエンドスタイルシート
+│   └── admin-style.css         # 管理画面スタイルシート
 ├── includes/               # PHP モジュール
-│   ├── core-functions.php      # コア機能
-│   ├── utility-functions.php   # ユーティリティ関数
-│   ├── ai-functions.php        # AI 機能（クラウド API + Ollama）
-│   ├── prompt-categories.php   # Prompt カテゴリ指示管理
-│   ├── llm-functions.php       # LLM 機能（Ollama 専用）- BETA
-│   ├── ukagaka-functions.php   # 伺か管理
-│   ├── ajax-handlers.php       # AJAX 処理
-│   ├── frontend-functions.php  # フロントエンド機能
+│   ├── core/                   # コア機能モジュール
+│   │   ├── core-functions.php      # コア機能（設定管理）
+│   │   ├── utility-functions.php   # ユーティリティ関数
+│   │   ├── ukagaka-functions.php   # 伺か管理
+│   │   └── frontend-functions.php  # フロントエンド機能
+│   ├── ajax/                   # AJAX ハンドラーモジュール
+│   │   ├── ajax-handlers.php       # AJAX 処理（コア）
+│   │   ├── ajax-chat-handlers-llm.php  # LLM 対話 AJAX 処理（v2.5.0）
+│   │   ├── ajax-touch-handlers-llm.php # LLM タッチ AJAX 処理（v2.5.0）
+│   │   ├── ajax-handlers-test.php  # API 接続テストハンドラー（v2.3.0）
+│   │   └── chat-api-handlers.php   # マルチターンダイアログ API ハンドラー（v2.3.0）
+│   ├── personality/            # パーソナリティシステムモジュール
+│   │   ├── personality-loader.php  # パーソナリティシステム（JSON ローダー，v2.4.0）
+│   │   ├── personality-prompts.php # パーソナリティプロンプトモジュール
+│   │   ├── personality-decorations.php # 装飾品システム
+│   │   ├── personality-emoji.php   # 表情システム
+│   │   └── emoji-mapper.php        # 表情マッピングと感情分析（v2.4.0）
+│   ├── llm/                    # LLM/AI 機能モジュール
+│   │   ├── ai-functions.php        # AI 機能（クラウド API + Ollama）
+│   │   ├── llm-functions.php       # LLM 機能（Ollama 専用）- BETA
+│   │   ├── llm-context-builder.php # LLM コンテキスト構築
+│   │   ├── llm-slimstat.php        # LLM Slimstat 統合
+│   │   ├── prompt-categories.php   # Prompt カテゴリ指示管理
+│   │   ├── weather-functions.php   # 天気機能（Open-Meteo API）
+│   │   └── diary-functions.php     # AI 日記機能（v2.5.0）
 │   └── admin-functions.php     # 管理画面機能
+├── ghost/                  # キャラクターパーソナリティ設定（v2.4.0）
+│   ├── Frieren/
+│   │   ├── shell/              # キャラクター画像
+│   │   ├── decorations/        # 装飾品画像
+│   │   ├── manifest.json       # メタデータと設定
+│   │   ├── frieren.js          # キャラクター専用 JavaScript
+│   │   ├── frieren-emoji.js    # Frieren 専用表情システム（RO スタイル，v2.4.0）
+│   │   ├── emoji-keywords.json # 表情キーワードカスタム設定（v2.4.0）
+│   │   └── emojis/             # Frieren 専用表情画像（RO スタイル）
+│   └── [その他のキャラクター...]/
 ├── dialogs/                # ダイアログファイル
 ├── images/                 # 画像リソース
-│   └── shell/                  # キャラクター画像
 ├── languages/              # 言語ファイル
 ├── docs/                   # ドキュメント
 ├── options/                # 管理画面設定ページ
 │   ├── options.php             # 管理画面ページフレームワーク
-│   ├── options_page0.php       # 基本設定ページ
-│   ├── options_page1.php       # 伺か管理ページ
-│   ├── options_page2.php       # ダイアログ設定ページ
-│   ├── options_page3.php       # 表示設定ページ
-│   ├── options_page4.php       # 詳細設定ページ
+│   ├── options_general.php     # 一般設定ページ
+│   ├── options_ukagakas.php    # 伺か管理ページ
+│   ├── options_create.php      # 新規伺か作成ページ
+│   ├── options_extend.php      # 拡張設定ページ
+│   ├── options_dialog.php      # 会話設定ページ
 │   ├── options_page_ai.php     # AI 機能設定ページ
 │   └── options_page_llm.php    # LLM 機能設定ページ（BETA）
 ├── js/                     # フロントエンド JavaScript モジュール
+│   ├── dist/                   # ビルド出力ディレクトリ（本番用）
+│   │   ├── ukagaka-bundle.min.js   # 結合・圧縮されたコアバンドル
+│   │   └── ukagaka-textarearesizer.min.js  # 管理画面ツール（圧縮版）
 │   ├── ukagaka-base.js         # 基盤層（設定 + ユーティリティ + AJAX）
 │   ├── ukagaka-core.js         # フロントエンドコア JS（メッセージ表示、伺か切り替えなど）
 │   ├── ukagaka-features.js     # フロントエンド機能 JS（AI ページ感知、初回訪問者挨拶など）
 │   ├── ukagaka-anime.js        # Canvas アニメーションマネージャー（画像シーケンス再生）
+│   ├── ukagaka-chat.js         # チャット機能フロントエンド（v2.3.0）
+│   ├── ukagaka-emoji.js        # 表情設定ローダー
 │   ├── ukagaka-cookie.js       # Cookie ユーティリティ（訪問者追跡）
 │   └── ukagaka-textarearesizer.js  # 管理画面テキストエリアリサイザー
-├── mpu_style.css           # フロントエンドスタイルシート
-├── admin-style.css         # 管理画面スタイルシート
+├── build.js                # JS バンドルスクリプト（Terser）
+├── package.json            # npm 設定（開発依存）
 └── readme.txt              # WordPress プラグインディレクトリ説明ファイル
 ```
 
@@ -70,18 +104,31 @@ mp-ukagaka/
 
 // コアモジュール：フロントエンドと管理画面の両方で必要
 $core_modules = [
-    'core-functions.php',      // 1. コア機能（設定管理）
-    'utility-functions.php',   // 2. ユーティリティ関数
-    'ai-functions.php',        // 3. AI 機能（クラウド API：Gemini, OpenAI, Claude）
-    'prompt-categories.php',   // 4. Prompt カテゴリ指示管理（llm-functions.php より前に読み込み）
-    'llm-functions.php',       // 5. LLM 機能（ローカル LLM：Ollama）
-    'ukagaka-functions.php',   // 6. 伺か管理
-    'ajax-handlers.php',       // 7. AJAX 処理（フロントエンドと管理画面両方で使用可能）
+    'core/core-functions.php',      // 1. コア機能（設定管理）
+    'core/utility-functions.php',   // 2. ユーティリティ関数
+    'personality/personality-loader.php',  // 3. パーソナリティシステム（JSON ローダー）
+    'personality/personality-prompts.php', // 4. パーソナリティプロンプトモジュール
+    'personality/personality-decorations.php', // 5. 装飾品システム
+    'personality/personality-emoji.php',   // 6. 表情システム
+    'llm/ai-functions.php',        // 7. AI 機能（クラウド API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 8. Prompt カテゴリ指示管理（llm-functions.php より前に読み込み）
+    'llm/llm-slimstat.php',        // 9. LLM Slimstat 統合（llm-context-builder.php より前に読み込み）
+    'llm/llm-context-builder.php', // 10. LLM コンテキスト構築（llm-functions.php より前に読み込み）
+    'llm/weather-functions.php',   // 11. 天気機能（Open-Meteo API）
+    'llm/diary-functions.php',     // 12. AI 日記機能（v2.5.0）
+    'llm/llm-functions.php',       // 13. LLM 機能（ローカル LLM：Ollama）
+    'personality/emoji-mapper.php',        // 13. 表情マッピング（AJAX 処理より前に読み込み）
+    'core/ukagaka-functions.php',   // 14. 伺か管理
+    'ajax/ajax-handlers.php',       // 15. AJAX 処理（コア）
+    'ajax/ajax-chat-handlers-llm.php',      // 16. LLM 対話 AJAX 処理
+    'ajax/ajax-touch-handlers-llm.php',     // 17. LLM タッチ AJAX 処理
+    'ajax/ajax-handlers-test.php',  // 18. API 接続テストハンドラー
+    'ajax/chat-api-handlers.php',   // 19. マルチターンダイアログ API ハンドラー
 ];
 
 // フロントエンド専用モジュール（非管理画面環境でのみ読み込み）
 $frontend_modules = [
-    'frontend-functions.php',  // フロントエンド機能
+    'core/frontend-functions.php',  // フロントエンド機能
 ];
 
 // 管理画面専用モジュール（管理画面環境でのみ読み込み）
@@ -98,10 +145,10 @@ $admin_modules = [
 
 ### 定数定義
 
-| 定数 | 説明 | 値 |
-|-----|------|-----|
-| `MPU_VERSION` | プラグインバージョン | `"2.2.0"` |
-| `MPU_MAIN_FILE` | メインファイルパス | `__FILE__` |
+| 定数            | 説明                 | 値         |
+| --------------- | -------------------- | ---------- |
+| `MPU_VERSION`   | プラグインバージョン   | `"2.3.0"`  |
+| `MPU_MAIN_FILE` | メインファイルパス   | `__FILE__` |
 
 ---
 
@@ -128,6 +175,147 @@ function mpu_get_option(): array
 ```
 
 **注意：** `mpu_count_total_msg()` は `ukagaka-functions.php` モジュールにあります。
+
+### personality-loader.php (v2.4.0)
+
+Personality システムローダーモジュール、JSON ベースのキャラクター設定システムを提供します。異なるキャラクターが PHP コードを変更することなく、JSON ファイルを通じて人格を定義できるようにします。
+
+#### personality-loader.php 主要関数
+
+```php
+/**
+ * ghost ディレクトリパスを取得（personalities ディレクトリ）
+ * @return string 絶対パス
+ */
+function mpu_get_personalities_dir(): string
+
+/**
+ * 現在の personality ID を取得
+ * @return string Personality ID（フォルダ名）
+ */
+function mpu_get_current_personality_id(): string
+
+/**
+ * personality が存在するか確認
+ * @param string $personality_id Personality フォルダ名
+ * @return bool 存在するか
+ */
+function mpu_personality_exists($personality_id): bool
+
+/**
+ * 利用可能なすべての personalities を取得
+ * @param bool $include_placeholders プレースホルダーを含むか
+ * @return array Personality ID => manifest の連想配列
+ */
+function mpu_get_available_personalities($include_placeholders = false): array
+
+/**
+ * personality manifest を読み込み
+ * @param string|null $personality_id Personality ID，null は現在
+ * @return array Manifest データ
+ */
+function mpu_load_personality_manifest($personality_id = null): array
+
+/**
+ * personality prompts を読み込み
+ * @param string|null $personality_id Personality ID，null は現在
+ * @return array プロンプトカテゴリアレイ
+ */
+function mpu_load_personality_prompts($personality_id = null): array
+
+/**
+ * personality weights を読み込み
+ * @param string|null $personality_id Personality ID，null は現在
+ * @return array 重み設定アレイ
+ */
+function mpu_load_personality_weights($personality_id = null): array
+
+/**
+ * personality decorations 設定を読み込み
+ * @param string|null $personality_id Personality ID，null は現在
+ * @return array 装飾品設定アレイ
+ */
+function mpu_load_personality_decorations($personality_id = null): array
+
+/**
+ * personality dynamic prompts を読み込み
+ * @param string|null $personality_id Personality ID，null は現在
+ * @return array 動的プロンプト設定アレイ
+ */
+function mpu_load_personality_dynamic_prompts($personality_id = null): array
+
+/**
+ * personality emoji keywords を読み込み
+ * @param string|null $personality_id Personality ID，null は現在
+ * @return array 表情キーワード設定アレイ
+ */
+function mpu_load_personality_emoji_keywords($personality_id = null): array
+```
+
+#### Personality ファイル構造
+
+各 personality フォルダには以下を含める必要があります：
+
+- **manifest.json**（必須）：メタデータと設定
+  - `id`：Personality ID
+  - `name`、`name_en`、`name_zh`：多言語名
+  - `version`：バージョン番号
+  - `settings`：キャラクター設定（例：`max_response_length`、`speech_style`、`tone`）
+  - `character_traits`：キャラクター特性（例：`age`、`race`、`occupation`、`personality`）
+
+- **prompts.json**（オプション）：静的ダイアログカテゴリ
+  - キーはカテゴリ名、値はプロンプト配列
+
+- **dynamics.json**（オプション）：動的テンプレート（変数置換付き）
+  - `{variable_name}` 変数置換をサポート
+  - `time_aware_dynamic`、`tech_observation`、`bot_detection` などのカテゴリを含む
+
+- **weights.json**（オプション）：カテゴリ重み設定
+  - `base_weights`：基本重み
+  - `time_adjustments`：時間帯ごとの調整
+
+- **decorations.json**（オプション）：装飾品クリックプロンプト
+  - `items`：装飾品設定配列、各項目には以下が含まれます：
+    - `id`：装飾品 ID
+    - `image`：画像パス（`decorations/` フォルダからの相対パス）
+    - `position`：位置設定（例：`{"bottom": "0px", "right": "0px"}`）
+    - `size`：サイズ設定（例：`{"width": "100px", "height": "auto"}`）
+    - `z_index`：Z-index（数値）
+    - `prompt`：クリック時のプロンプト
+    - `transform`：CSS 変形（オプション、例：`scale(1)`）
+
+- **emoji-keywords.json**（オプション，v2.4.0）：表情トリガーキーワード
+  - `mappings`：表情タイプとキーワードのマッピング
+  - フォーマット例：
+    ```json
+    {
+      "mappings": {
+        "happy": {
+          "keywords": ["嬉しい", "happy"],
+          "file": "happy.png",
+          "weight": 10
+        }
+      }
+    }
+    ```
+
+    - **diary.json**（オプション、v2.5.0）：AI 日記設定
+      - `categories`：日記カテゴリ設定
+      - フォーマット例：
+        ```json
+        {
+          "categories": {
+            "daily": {
+              "weight": 10,
+              "title_themes": ["日常"],
+              "prompts": ["日常に関する日記を書いてください"]
+            }
+          }
+        }
+        ```
+
+- **script**（オプション）：キャラクター専用 JavaScript ファイル
+  - 例：`frieren.js`、フロントエンドによって自動的に読み込まれます
 
 ### utility-functions.php
 
@@ -219,12 +407,12 @@ AI 機能モジュール、クラウド AI API 呼び出し（Gemini、OpenAI、
 
 #### サポートされている AI プロバイダー
 
-| プロバイダー | 関数 | API エンドポイント | モデル選択 |
-|-------|------|---------|---------
-| Gemini | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | サポート |
-| OpenAI | `mpu_call_openai_api()` | `api.openai.com` | サポート |
-| Claude | `mpu_call_claude_api()` | `api.anthropic.com` | サポート |
-| Ollama | `mpu_call_ollama_api()` | ローカルまたはリモート Ollama サービス | サポート |
+| プロバイダー | 関数                    | API エンドポイント                  | モデル選択 |
+| ------------ | ----------------------- | ----------------------------------- | ---------- |
+| Gemini       | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | サポート   |
+| OpenAI       | `mpu_call_openai_api()` | `api.openai.com`                    | サポート   |
+| Claude       | `mpu_call_claude_api()` | `api.anthropic.com`                 | サポート   |
+| Ollama       | `mpu_call_ollama_api()` | ローカルまたはリモート Ollama サービス | サポート   |
 
 ### llm-functions.php (BETA)
 
@@ -234,11 +422,45 @@ LLM 機能モジュール、Ollama ローカル LLM 統合を専門に処理。
 
 #### タイムアウト設定
 
-| 操作タイプ | ローカル接続 | リモート接続 |
-|---------|---------|---------
-| サービスチェック (`check`) | 3 秒 | 10 秒 |
-| API 呼び出し (`api_call`) | 60 秒 | 90 秒 |
-| 接続テスト (`test`) | 30 秒 | 45 秒 |
+| 操作タイプ                    | ローカル接続 | リモート接続 |
+| --------------------------- | ------------ | ------------ |
+| サービスチェック (`check`)   | 3 秒         | 10 秒        |
+| API 呼び出し (`api_call`)   | 60 秒        | 90 秒        |
+| 接続テスト (`test`)         | 30 秒        | 45 秒        |
+
+### diary-functions.php (v2.5.0)
+
+AI 日記機能モジュール、キャラクター日記の自動生成と投稿を担当。
+
+#### diary-functions.php 主要関数
+
+```php
+/**
+ * 日記タイトルプレフィックスを取得
+ * @param string|null $personality_id パーソナリティ ID
+ * @return string プレフィックス（例："[フリーレン手記] "）
+ */
+function mpu_get_diary_title_prefix($personality_id = null): string
+
+/**
+ * 日記をトリガーすべきか判定（確率と1日1回制限に基づく）
+ * @return bool トリガーすべきか
+ */
+function mpu_should_trigger_diary(): bool
+
+/**
+ * 日記コンテンツを生成
+ * @return array|WP_Error 日記データまたはエラー
+ */
+function mpu_generate_diary_content()
+
+/**
+ * 日記投稿を公開
+ * @param array $diary_data 日記データ
+ * @return int|WP_Error 投稿 ID またはエラー
+ */
+function mpu_publish_diary_post($diary_data)
+```
 
 ### ukagaka-functions.php
 
@@ -287,7 +509,7 @@ $mpu_opt = [
     'ai_api_key' => '',                 // Gemini API Key（暗号化）
     'gemini_model' => 'gemini-2.5-flash', // Gemini モデル
     'openai_api_key' => '',             // OpenAI API Key（暗号化）
-    'openai_model' => 'gpt-4o-mini',    // OpenAI モデル
+    'openai_model' => 'gpt-4.1-mini-2025-04-14',    // OpenAI モデル
     'claude_api_key' => '',             // Claude API Key（暗号化）
     'claude_model' => 'claude-sonnet-4-5-20250929', // Claude モデル
     'ai_language' => 'zh-TW',           // AI 応答言語
@@ -373,25 +595,25 @@ $response = apply_filters('mpu_ai_response', $response, $provider);
 
 ### 公開エンドポイント（wp_ajax_nopriv_*）
 
-| アクション | 説明 | パラメータ |
-|--------|------|----------|
-| `mpu_nextmsg` | 次のメッセージを取得 | `cur_num`, `cur_msgnum` |
-| `mpu_extend` | 拡張機能を実行 | 状況による |
-| `mpu_change` | 伺かを切り替え | `new_num` |
-| `mpu_get_settings` | 設定を取得 | なし |
-| `mpu_load_dialog` | ダイアログファイルを読み込み | `filename`, `format` |
-| `mpu_chat_context` | AI ページ感知 | `post_content`, `post_title` |
-| `mpu_get_visitor_info` | 訪問者情報を取得 | なし |
-| `mpu_chat_greet` | 初回訪問者挨拶 | `visitor_info` |
+| アクション               | 説明                 | パラメータ                   |
+| ---------------------- | -------------------- | -------------------------- |
+| `mpu_nextmsg`          | 次のメッセージを取得 | `cur_num`, `cur_msgnum`    |
+| `mpu_extend`           | 拡張機能を実行       | 状況による                 |
+| `mpu_change`           | 伺かを切り替え       | `new_num`                  |
+| `mpu_get_settings`     | 設定を取得           | なし                       |
+| `mpu_load_dialog`      | ダイアログファイルを読み込み | `filename`, `format`       |
+| `mpu_chat_context`     | AI ページ感知       | `post_content`, `post_title` |
+| `mpu_get_visitor_info` | 訪問者情報を取得     | なし                       |
+| `mpu_chat_greet`       | 初回訪問者挨拶       | `visitor_info`             |
 
 ### 管理画面エンドポイント（wp_ajax_*）
 
-| アクション | 説明 |
-|--------|------|
-| `mpu_test_ollama` | Ollama 接続テスト |
-| `mpu_test_gemini` | Gemini 接続テスト |
-| `mpu_test_openai` | OpenAI 接続テスト |
-| `mpu_test_claude` | Claude 接続テスト |
+| アクション            | 説明               |
+| ------------------- | ------------------ |
+| `mpu_test_ollama`   | Ollama 接続テスト   |
+| `mpu_test_gemini`   | Gemini 接続テスト   |
+| `mpu_test_openai`   | OpenAI 接続テスト   |
+| `mpu_test_claude`   | Claude 接続テスト   |
 
 ---
 
@@ -453,9 +675,9 @@ function mpu_call_newprovider_api($api_key, $model, $system_prompt, $user_prompt
 }
 ```
 
-2. `mpu_call_ai_api()` にプロバイダー分岐を追加
+2\. `mpu_call_ai_api()` にプロバイダー分岐を追加
 
-3. 管理画面に設定フィールドを追加
+3\. 管理画面に設定フィールドを追加
 
 ### 新しい AJAX エンドポイントを追加
 
@@ -520,4 +742,4 @@ add_action('wp_ajax_nopriv_mpu_custom_action', 'mpu_ajax_custom_action');
 
 ---
 
-**Made with ❤ for WordPress**
+### Made with ❤ for WordPress

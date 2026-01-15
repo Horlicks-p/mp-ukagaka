@@ -283,7 +283,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
         <!-- AI 提供商選擇 -->
         <div class="mpu-settings-card">
             <h4><?php _e('🤖 AI 提供商', 'mp-ukagaka'); ?></h4>
-            
+
             <div class="mpu-provider-tabs">
                 <div class="mpu-provider-tab <?php echo $current_provider === 'gemini' ? 'active' : ''; ?>" data-provider="gemini">
                     ✨ Gemini
@@ -308,8 +308,8 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <input type="password" id="llm_gemini_api_key" name="llm_gemini_api_key" value="" placeholder="<?php echo $gemini_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 Google Gemini API Key', 'mp-ukagaka'); ?>" style="width: 100%; max-width: 400px;" autocomplete="off" />
                     <br />
                     <small><?php _e('請前往 <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a> 取得 API Key', 'mp-ukagaka'); ?> <?php if ($gemini_key_exists) {
-                        echo '<span class="mpu-key-set">✓ ' . __('已設定', 'mp-ukagaka') . '</span>';
-                    } ?></small>
+                                                                                                                                                                    echo '<span class="mpu-key-set">✓ ' . __('已設定', 'mp-ukagaka') . '</span>';
+                                                                                                                                                                } ?></small>
                 </div>
                 <div class="mpu-field-group">
                     <label for="llm_gemini_model"><?php _e('Gemini 模型：', 'mp-ukagaka'); ?></label>
@@ -331,8 +331,8 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <input type="password" id="llm_openai_api_key" name="llm_openai_api_key" value="" placeholder="<?php echo $openai_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 OpenAI API Key', 'mp-ukagaka'); ?>" style="width: 100%; max-width: 400px;" autocomplete="off" />
                     <br />
                     <small><?php _e('請前往 <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a> 取得 API Key', 'mp-ukagaka'); ?> <?php if ($openai_key_exists) {
-                        echo '<span class="mpu-key-set">✓ ' . __('已設定', 'mp-ukagaka') . '</span>';
-                    } ?></small>
+                                                                                                                                                                echo '<span class="mpu-key-set">✓ ' . __('已設定', 'mp-ukagaka') . '</span>';
+                                                                                                                                                            } ?></small>
                 </div>
                 <div class="mpu-field-group">
                     <label for="llm_openai_model"><?php _e('OpenAI 模型：', 'mp-ukagaka'); ?></label>
@@ -355,8 +355,8 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <input type="password" id="llm_claude_api_key" name="llm_claude_api_key" value="" placeholder="<?php echo $claude_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 Claude API Key', 'mp-ukagaka'); ?>" style="width: 100%; max-width: 400px;" autocomplete="off" />
                     <br />
                     <small><?php _e('請前往 <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a> 取得 API Key', 'mp-ukagaka'); ?> <?php if ($claude_key_exists) {
-                        echo '<span class="mpu-key-set">✓ ' . __('已設定', 'mp-ukagaka') . '</span>';
-                    } ?></small>
+                                                                                                                                                            echo '<span class="mpu-key-set">✓ ' . __('已設定', 'mp-ukagaka') . '</span>';
+                                                                                                                                                        } ?></small>
                 </div>
                 <div class="mpu-field-group">
                     <label for="llm_claude_model"><?php _e('Claude 模型：', 'mp-ukagaka'); ?></label>
@@ -403,7 +403,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                         <?php _e('關閉思考模式（Qwen3、DeepSeek 等模型）', 'mp-ukagaka'); ?>
                     </label>
                     <br />
-                    <small><?php _e('部分模型會輸出「思考過程」而非實際對話。啟用此選項可避免此問題。建議啟用。', 'mp-ukagaka'); ?></small>
+                    <small><?php _e('預設啟用思考模式，AI 會先思考再回答，提高回答品質。勾選此選項可關閉思考、加快回應速度。', 'mp-ukagaka'); ?></small>
                 </div>
             </div>
         </div>
@@ -417,7 +417,15 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <?php _e('使用 LLM 取代內建對話', 'mp-ukagaka'); ?>
                 </label>
                 <br />
-                <small><?php _e('啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。支援所有 AI 提供商（Gemini、OpenAI、Claude、Ollama）。', 'mp-ukagaka'); ?></small>
+                <small><?php _e('啟用後，偽春菜對話將由 LLM 實時生成，不使用靜態對話列表。支援所有 AI 提供商（Gemini、OpenAI、Claude、Ollama）。', 'mp-ukagaka'); ?></small>
+            </div>
+            <div class="mpu-field-group" style="margin-top: 16px;">
+                <label>
+                    <input type="checkbox" id="enable_chat_mode" name="enable_chat_mode" value="1" <?php echo (isset($mpu_opt['enable_chat_mode']) && $mpu_opt['enable_chat_mode']) ? 'checked="checked"' : ''; ?> />
+                    <?php _e('啟用互動對話功能', 'mp-ukagaka'); ?>
+                </label>
+                <br />
+                <small><?php _e('啟用後，前台的「更換偽春菜」按鈕將變為「對話」按鈕，讓訪客可以直接與偽春菜對話。關閉則顯示原本的角色切換選單。', 'mp-ukagaka'); ?></small>
             </div>
         </div>
 
@@ -433,6 +441,92 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                 <small><?php _e('啟用後，AI 會根據頁面內容生成相關對話。此功能的行為參數（語言、角色、機率等）請在「AI 設定」頁面配置。', 'mp-ukagaka'); ?></small>
             </div>
         </div>
+
+        <!-- 天氣設定 -->
+        <?php
+        $weather_enabled = isset($mpu_opt['weather_enabled']) && $mpu_opt['weather_enabled'];
+        $weather_latitude = isset($mpu_opt['weather_latitude']) ? floatval($mpu_opt['weather_latitude']) : 25.0330;
+        $weather_longitude = isset($mpu_opt['weather_longitude']) ? floatval($mpu_opt['weather_longitude']) : 121.5654;
+        ?>
+        <div class="mpu-settings-card">
+            <h4><?php _e('🌤️ 天氣設定', 'mp-ukagaka'); ?></h4>
+            <div class="mpu-field-group">
+                <label>
+                    <input type="checkbox" id="weather_enabled" name="weather_enabled" value="1" <?php echo $weather_enabled ? 'checked="checked"' : ''; ?> />
+                    <?php _e('啟用天氣感知功能', 'mp-ukagaka'); ?>
+                </label>
+                <br />
+                <small><?php _e('讓角色知道當地天氣，並根據天氣發表看法。使用 Open-Meteo 免費 API，無需 API Key。', 'mp-ukagaka'); ?></small>
+            </div>
+            <div class="mpu-field-group" style="margin-top: 12px;">
+                <label><?php _e('位置座標：', 'mp-ukagaka'); ?></label>
+                <div style="display: flex; gap: 16px; align-items: center; margin-top: 8px;">
+                    <div>
+                        <label for="weather_latitude" style="font-weight: normal; margin-right: 4px;"><?php _e('緯度：', 'mp-ukagaka'); ?></label>
+                        <input type="text" id="weather_latitude" name="weather_latitude" value="<?php echo esc_attr($weather_latitude); ?>" style="width: 120px;" placeholder="25.0330" />
+                    </div>
+                    <div>
+                        <label for="weather_longitude" style="font-weight: normal; margin-right: 4px;"><?php _e('經度：', 'mp-ukagaka'); ?></label>
+                        <input type="text" id="weather_longitude" name="weather_longitude" value="<?php echo esc_attr($weather_longitude); ?>" style="width: 120px;" placeholder="121.5654" />
+                    </div>
+                </div>
+                <small style="display: block; margin-top: 8px;">
+                    <?php _e('預設為台北（25.0330, 121.5654）。可使用', 'mp-ukagaka'); ?> 
+                    <a href="https://www.google.com/maps" target="_blank">Google Maps</a> 
+                    <?php _e('查詢座標（右鍵點擊地圖即可複製座標）。', 'mp-ukagaka'); ?>
+                </small>
+            </div>
+            <div class="mpu-test-row" style="margin-top: 12px;">
+                <button type="button" id="test_weather_api" class="button"><?php _e('測試天氣 API', 'mp-ukagaka'); ?></button>
+                <span id="weather_test_result"></span>
+            </div>
+        </div>
+
+        <!-- API 快取設定 -->
+        <?php
+        $api_cache_enabled = isset($mpu_opt['api_cache_enabled']) && $mpu_opt['api_cache_enabled'];
+        $api_cache_ttl = isset($mpu_opt['api_cache_ttl']) ? intval($mpu_opt['api_cache_ttl']) : 3600;
+        $cache_stats = function_exists('mpu_get_api_cache_stats') ? mpu_get_api_cache_stats() : ['count' => 0, 'size_kb' => 0];
+        ?>
+        <div class="mpu-settings-card">
+            <h4><?php _e('💾 API 快取設定', 'mp-ukagaka'); ?></h4>
+            <div class="mpu-field-group">
+                <label>
+                    <input type="checkbox" id="api_cache_enabled" name="api_cache_enabled" value="1" <?php echo $api_cache_enabled ? 'checked="checked"' : ''; ?> />
+                    <?php _e('啟用 API 回應快取', 'mp-ukagaka'); ?>
+                </label>
+                <br />
+                <small><?php _e('啟用後，相同的 AI 請求將使用快取回應，減少 API 費用和響應延遲。適合訪客流量大的網站。', 'mp-ukagaka'); ?></small>
+            </div>
+            <div class="mpu-field-group" style="margin-top: 12px;">
+                <label for="api_cache_ttl"><?php _e('快取有效期（TTL）：', 'mp-ukagaka'); ?></label>
+                <select id="api_cache_ttl" name="api_cache_ttl" style="width: auto; min-width: 200px;">
+                    <option value="1800" <?php echo $api_cache_ttl === 1800 ? 'selected="selected"' : ''; ?>><?php _e('30 分鐘', 'mp-ukagaka'); ?></option>
+                    <option value="3600" <?php echo $api_cache_ttl === 3600 ? 'selected="selected"' : ''; ?>><?php _e('1 小時（推薦）', 'mp-ukagaka'); ?></option>
+                    <option value="7200" <?php echo $api_cache_ttl === 7200 ? 'selected="selected"' : ''; ?>><?php _e('2 小時', 'mp-ukagaka'); ?></option>
+                    <option value="21600" <?php echo $api_cache_ttl === 21600 ? 'selected="selected"' : ''; ?>><?php _e('6 小時', 'mp-ukagaka'); ?></option>
+                    <option value="86400" <?php echo $api_cache_ttl === 86400 ? 'selected="selected"' : ''; ?>><?php _e('24 小時', 'mp-ukagaka'); ?></option>
+                </select>
+                <br />
+                <small><?php _e('快取過期後，下次相同請求將重新呼叫 API。', 'mp-ukagaka'); ?></small>
+            </div>
+            <div class="mpu-field-group" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #B8E6E6;">
+                <label><?php _e('快取狀態：', 'mp-ukagaka'); ?></label>
+                <div style="margin-top: 8px; display: flex; gap: 24px; align-items: center;">
+                    <span>
+                        <strong><?php echo esc_html($cache_stats['count']); ?></strong> <?php _e('筆快取', 'mp-ukagaka'); ?>
+                    </span>
+                    <span>
+                        <strong><?php echo esc_html(number_format($cache_stats['size_kb'], 1)); ?></strong> KB
+                    </span>
+                    <button type="button" id="clear_api_cache" class="button" style="margin-left: auto;">
+                        <?php _e('清除所有快取', 'mp-ukagaka'); ?>
+                    </button>
+                    <span id="cache_clear_result"></span>
+                </div>
+            </div>
+        </div>
+
 
         <p><input name="submit_llm" class="button" value="<?php _e(' 儲 存 ', 'mp-ukagaka'); ?>" type="submit" /></p>
     </form>
@@ -451,14 +545,14 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
             // 提供商選項卡切換
             $('.mpu-provider-tab').on('click', function() {
                 var provider = $(this).data('provider');
-                
+
                 // 更新選項卡狀態
                 $('.mpu-provider-tab').removeClass('active');
                 $(this).addClass('active');
-                
+
                 // 更新隱藏欄位
                 $('#llm_provider').val(provider);
-                
+
                 // 更新內容顯示
                 $('.mpu-provider-content').removeClass('active');
                 $('.mpu-provider-content[data-provider="' + provider + '"]').addClass('active');
@@ -533,6 +627,86 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                 e.preventDefault();
                 e.stopPropagation();
                 testConnection('ollama', '', 'ollama_model', 'ollama_test_result', 'test_ollama_connection');
+                return false;
+            });
+
+            // 天氣 API 測試
+            $('#test_weather_api').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var $btn = $(this);
+                var latitude = $('#weather_latitude').val();
+                var longitude = $('#weather_longitude').val();
+                
+                $btn.prop('disabled', true);
+                $('#weather_test_result').html('<span class="mpu-loading"></span><?php _e("測試中...", "mp-ukagaka"); ?>');
+                
+                $.ajax({
+                    url: '<?php echo admin_url("admin-ajax.php"); ?>',
+                    method: 'POST',
+                    data: {
+                        action: 'mpu_test_weather_api',
+                        latitude: latitude,
+                        longitude: longitude,
+                        nonce: '<?php echo wp_create_nonce("mpu_test_weather"); ?>'
+                    },
+                    success: function(response) {
+                        $btn.prop('disabled', false);
+                        if (response.success) {
+                            $('#weather_test_result').html('<span class="mpu-test-success">✓ ' + response.data + '</span>');
+                        } else {
+                            $('#weather_test_result').html('<span class="mpu-test-error">✗ ' + response.data + '</span>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $btn.prop('disabled', false);
+                        $('#weather_test_result').html('<span class="mpu-test-error">✗ <?php _e("測試失敗，請檢查網絡連接", "mp-ukagaka"); ?> (' + error + ')</span>');
+                    }
+                });
+                
+                return false;
+            });
+
+            // 清除 API 快取按鈕
+            $('#clear_api_cache').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var $btn = $(this);
+                
+                if (!confirm('<?php _e("確定要清除所有 API 快取嗎？", "mp-ukagaka"); ?>')) {
+                    return false;
+                }
+                
+                $btn.prop('disabled', true);
+                $('#cache_clear_result').html('<span class="mpu-loading"></span><?php _e("清除中...", "mp-ukagaka"); ?>');
+                
+                $.ajax({
+                    url: '<?php echo admin_url("admin-ajax.php"); ?>',
+                    method: 'POST',
+                    data: {
+                        action: 'mpu_clear_api_cache',
+                        nonce: '<?php echo wp_create_nonce("mpu_clear_cache"); ?>'
+                    },
+                    success: function(response) {
+                        $btn.prop('disabled', false);
+                        if (response.success) {
+                            $('#cache_clear_result').html('<span class="mpu-test-success">✓ ' + response.data + '</span>');
+                            // 更新統計顯示為 0
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            $('#cache_clear_result').html('<span class="mpu-test-error">✗ ' + response.data + '</span>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $btn.prop('disabled', false);
+                        $('#cache_clear_result').html('<span class="mpu-test-error">✗ <?php _e("清除失敗", "mp-ukagaka"); ?> (' + error + ')</span>');
+                    }
+                });
+                
                 return false;
             });
         });

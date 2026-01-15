@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.2.0
+Stable tag: 2.5.6
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -34,7 +34,7 @@ This plugin provides comprehensive features to help you create and customize you
   * Multiple language support
   * Canvas animation support (single image & multi-frame animation)
 
-* **AI Context Awareness (NEW in v1.7.0)**
+* **AI Context Awareness**
   * Automatically analyzes page content and generates personalized responses
   * Supports multiple AI providers: Google Gemini, OpenAI GPT, Anthropic Claude
   * Configurable AI response probability
@@ -84,7 +84,7 @@ Visit the [Maintainer's Blog](https://www.moelog.com/) for more information.
   * Supported models: gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite, gemini-2.0-flash-001, gemini-1.5-flash
 
 * **OpenAI GPT**: Requires OpenAI API Key
-  * Supported models: gpt-4o-mini, gpt-4o, gpt-3.5-turbo
+  * Supported models: gpt-4.1-mini-2025-04-14 (recommended), gpt-4o-mini, gpt-4o
 
 * **Anthropic Claude**: Requires Claude API Key
   * Supported model: claude-sonnet-4-5-20250929
@@ -139,11 +139,17 @@ This plugin uses a modular architecture for better maintainability:
 **PHP Modules** (`includes/`)
 * `core-functions.php` - Settings management
 * `utility-functions.php` - Utilities, security functions (file I/O, API key encryption)
+* `personality-loader.php` - Personality system loader (JSON file loading and caching)
 * `ai-functions.php` - AI API calls (Gemini, OpenAI, Claude, Ollama)
-* `prompt-categories.php` - Prompt categories management
+* `prompt-categories.php` - Prompt categories management (integrated with Personality system)
 * `llm-functions.php` - LLM functionality (Ollama integration)
+* `llm-context-builder.php` - LLM context building (System Prompt construction)
+* `llm-slimstat.php` - Slimstat integration for visitor statistics
+* `emoji-mapper.php` - Emoji mapping and emotion analysis
 * `ukagaka-functions.php` - Character management
 * `ajax-handlers.php` - AJAX endpoints
+* `ajax-handlers-llm.php` - LLM-related AJAX handlers
+* `chat-api-handlers.php` - Chat mode API handlers (multi-turn conversations)
 * `frontend-functions.php` - Frontend HTML and assets
 * `admin-functions.php` - Admin settings pages
 
@@ -156,6 +162,102 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-01-15 =
+* v2.5.6
+* [IMPROVE] Frontend JS Optimization: Bundled and minified frontend JavaScript
+  * 87.5% reduction in HTTP requests (8 files → 1 bundle)
+  * 64.5% reduction in file size using Terser minification
+  * Development mode supported via `SCRIPT_DEBUG` constant
+  * Use `npm run build` to rebuild the bundle
+* [NEW] API Cache System: Intelligent response caching to reduce API costs
+  * Uses WordPress Transient API for reliable caching
+  * Configurable TTL options (30min, 1hr, 2hr, 6hr, 24hr)
+  * Admin UI with cache statistics and manual clear function
+  * Cache key based on provider + system prompt + user prompt hash
+* [NEW] Auto Diary Feature: AI-generated diary posts based on browsing data
+  * Automatic title generation with personality integration
+  * Configurable publish settings, author, and signature
+  * Independent AI provider settings for cost optimization
+* [IMPROVE] Code Refactoring: Modularized AJAX chat handlers
+  * Split ajax-chat-handlers-llm.php into context, greet, and user-chat handlers
+  * Improved code organization and maintainability
+* [DOCS] Updated DEVELOPER_GUIDE with new JS directory structure
+
+= 2026-01-11 =
+* v2.5.2
+* [NEW] Weather Awareness: Characters can now perceive weather conditions using Open-Meteo API
+  * Uses free Open-Meteo API, no API Key required
+  * Weather settings can be configured in the admin panel
+  * Supports dialogue adjustments based on weather conditions
+* [NEW] Sleep Mode: Added sleep functionality
+  * Characters can enter sleep mode during specified hours
+  * Sleep time can be configured via `sleep_settings` in `manifest.json`
+  * Supports deep sleep time and oversleep settings
+* [IMPROVE] Enhanced Frieren Personality: Improved `system_prompt.md` and `prompts.json` for the default Frieren character
+  * Expanded prompts.json for more diverse dialogue
+  * Enhanced dialogue diversity and role-playing quality
+* [NEW] Touch Interaction: Added touch zones functionality
+  * Characters can respond to touches on different body parts (head, face, chest, legs, etc.)
+  * Configured via `touchzones.json`
+  * Each zone can define independent reaction dialogues
+* [NEW] Expanded Emoji System: Added more emoji types for richer character expressions
+* [NEW] New Decorations: Added two new decorations for Frieren
+  * "Dark Dragon Horn" (暗黒竜の角)
+  * "Clothes-Dissolving Potion" (服だけ溶かす薬)
+  * Clicking decorations triggers related dialogues
+* [IMPROVE] Code Refactoring: Improved code structure and maintainability, optimized module organization
+
+= 2026-01-03 =
+* v2.4.0
+* [MAJOR] JSON Personality System: Complete character configuration system based on JSON files
+  * Added `ghost/` folder structure (similar to traditional Ukagaka's ghost folder)
+  * Each character can have independent configuration files (manifest.json, prompts.json, weights.json, decorations.json, etc.)
+  * Characters can include custom JavaScript files (e.g., frieren.js)
+  * Similar to traditional Ukagaka's SHIORI DLL architecture - define character personalities without modifying PHP code
+* [NEW] Personality Loader Module: New `personality-loader.php` module for loading JSON files and caching mechanisms
+* [NEW] Emoji Mapper Module: New `emoji-mapper.php` module for emotion analysis and emoji mapping based on dialogue content
+* [NEW] Dynamic Emoji System: Character-specific emoji support with custom keywords and scripts
+* [NEW] ZIP Upload Feature: Upload new characters as ZIP files for easy installation
+* [NEW] Personality Creation Guide: New documentation (GHOST_CREATE_GUIDE.md) explaining how to create new personalities
+* [IMPROVE] Architecture improvements: prompt-categories.php fully integrated with Personality system
+* [IMPROVE] Dynamic prompts, weights, and statistics mappings can now be loaded from JSON files
+* [IMPROVE] Backward compatibility: Automatically falls back to old behavior if Personality system is unavailable
+* [IMPROVE] Module loading order optimization: personality-loader.php loads before prompt-categories.php (required)
+* [IMPROVE] Code cleanup: Removed unnecessary comments from PHP files in includes/ directory
+
+= 2025-12-27 =
+* v2.3.0
+* [MAJOR] Interactive Chat Mode: Transformed "Change Ukagaka" button into a real-time chat interface
+  * Visitors can now directly chat with your character
+  * Maintains conversation history for contextual responses
+  * Scrollable chat area with automatic scrolling for long conversations
+  * Input field stays fixed at bottom while messages scroll above
+* [MAJOR] Dynamic Context Injection: Smart token optimization
+  * WordPress statistics are only added to System Prompt when relevant keywords are detected
+  * Significantly reduces token usage for most conversations
+  * Supports keywords in Traditional Chinese, Japanese, and English
+* [IMPROVE] Thinking Mode (Default Enabled): Enhanced AI response quality
+  * Default behavior: Thinking mode is now enabled by default for supported models (Qwen3, DeepSeek)
+  * Monologue mode: AI thinks before responding, improving accuracy
+  * Chat mode: Thinking enabled with expanded context window (8192 tokens) for better conversation quality
+  * Separation: Thinking process and response are separated - only the response is shown to users
+  * Quality improvement: More accurate responses, especially in chat mode
+  * Configurable: Can be disabled via "Disable Thinking Mode" option in LLM settings
+* [IMPROVE] Character Personality Consistency: Improved role-playing
+  * Fixed System Prompt variable rendering ({{ukagaka_display_name}})
+  * Default System Prompt now explicitly emphasizes role-playing
+  * Chat mode uses the same backend System Prompt as monologue mode
+* [IMPROVE] Code Refactoring: Better organization
+  * Split ajax-handlers.php into ajax-handlers.php and chat-api-handlers.php
+  * Moved multi-turn conversation API functions to dedicated module
+* [IMPROVE] Response Length Control: Optimized AI responses
+  * Increased AI response token limit from 200 to 300 tokens
+  * Applied to all AI providers (Ollama, Gemini, OpenAI, Claude)
+* [FIX] Fixed ollama_disable_thinking key mismatch between monologue and chat mode
+* [FIX] Fixed page awareness AI conflict with chat mode
+* [FIX] Fixed welcome message translation in chat mode
+* [MISC] Removed excessive code comments for cleaner codebase
 
 = 2025-12-19 =
 * v2.2.0
@@ -186,40 +288,6 @@ This plugin uses a modular architecture for better maintainability:
 * [IMPROVE] Function refactoring: mpu_generate_llm_dialogue now uses the new optimized System Prompt system
 * [IMPROVE] Backward compatibility: Maintains support for old settings, automatically migrates setting keys
 * [FIX] Fixed statistics metaphor mappings, text area width settings, main menu bottom line alignment issues, scrollbar style issues
-
-= 2025-12-15 =
-* v2.1.7
-* [PERF] JavaScript file structure refactoring: merged 10 files into 4, reducing HTTP requests
-* [PERF] Optimized mousemove logging to avoid console flooding
-* [IMPROVE] LLM requests changed to POST method, avoiding URL length limits
-* [IMPROVE] Added cancelPrevious option to prevent LLM request double-click
-* [FIX] Canvas animation error handling: check Canvas Manager before Ajax request
-* [FIX] LLM error visual feedback in debug mode
-* [MISC] Unified file naming convention with ukagaka- prefix
-
-= 2025-12-14 =
-* v2.1.6
-* [NEW] Canvas animation support for multi-frame character animations
-  * Automatic folder detection for animation sequences
-  * Animation plays only when character is speaking (saves resources)
-  * Backward compatible with single static images
-  * Frame rate: 180ms per frame
-  * Supported formats: PNG, JPG, JPEG, GIF, WebP
-  * See docs/CANVAS_CUSTOMIZATION.md for detailed documentation
-  * Visit the author's website at www.moelog.com to see how it works in action
-* [NEW] WordPress information integration for LLM dialogues
-  * LLM can now access WordPress version, theme info, PHP version, site statistics
-  * New prompt categories: wordpress_info and statistics
-  * Customizable statistics prompts with RPG-style terminology support
-* [NEW] Anti-repetition mechanism to prevent repetitive idle chatter
-  * Tracks previous LLM responses to avoid saying the same thing repeatedly
-  * Generates unique idle comments or stays silent when no new content
-* [NEW] Idle detection for auto-talk
-  * Automatically pauses auto-talk when users are idle (60 seconds)
-  * Tracks user activity (mouse, keyboard, scroll, clicks)
-  * Saves GPU and network resources when users leave the page
-* [IMPROVED] Enhanced LLM dialogue system with WordPress context awareness
-* [IMPROVED] Better resource management and performance optimization
 
 
 

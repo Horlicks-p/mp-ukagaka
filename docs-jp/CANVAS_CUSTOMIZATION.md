@@ -4,13 +4,14 @@
 
 ---
 
-## 📑 目次
+##  📑 目次
 
 1. [Canvas アニメーション機能について](#canvas-アニメーション機能について)
 2. [アニメーション設定方法](#アニメーション設定方法)
-3. [技術的実装詳細](#技術的実装詳細)
-4. [CSS 位置調整](#css-位置調整)
-5. [よくある質問](#よくある質問)
+3. [フリーレン専用デコレーションシステム](#フリーレン専用デコレーションシステム)
+4. [技術的実装詳細](#技術的実装詳細)
+5. [CSS 位置調整](#css-位置調整)
+6. [よくある質問](#よくある質問)
 
 ---
 
@@ -68,6 +69,298 @@ images/shell/Frieren/
 - フォルダパスは `/` で終わる必要があります
 - サポート形式：`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`
 - 正しいソートのため、ファイル名には数字の連番を使用することを推奨
+
+---
+
+## フリーレン専用デコレーションシステム
+
+> 🎨 **v2.2.1+ 新機能**：デフォルトキャラクター フリーレン（`default_1`）専用のデコレーションシステム
+
+### デコレーション概要
+
+フリーレンキャラクターは、手動設定なしで 3 つの専用デコレーション（アクセサリー）を自動読み込みします：
+
+| デコレーション | ファイル名 | 位置 | レイヤー | 用途 |
+|------|---------|------|-----|------|
+| スーツケース | `suitcase.png` | 右前方 | `z-index: 10` | フリーレンの旅行用スーツケース |
+| 巨大な頭蓋骨 | `evil_horns.png` | 左後方 | `z-index: -1` | 何に使えるかわからない |
+| 魔導書 | `magic_book.png` | 右後方上 | `z-index: -1` | フリーレンの魔法書 |
+| 魔法杖 | `magic_staff.png` | 右後方下 | `z-index: -1` | フリーレンの魔法杖 |
+
+> 🖌️ **インタラクティブ機能**：デコレーションをクリックすると、フリーレンがそのアイテムを紹介します！
+
+### デコレーション位置とサイズ
+
+#### 1. スーツケース
+
+```javascript
+{
+    type: 'suitcase',
+    src: decorationsBaseUrl + 'suitcase.png',
+    top: '82%',        // 垂直位置：上から 82%
+    right: '-62px',    // 水平位置：右外側に 62px
+    width: '90px',     // 幅
+    height: 'auto',    // 高さ自動
+    transform: 'translateY(-50%)', // 垂直中央
+    zIndex: 10         // キャラクター画像の前
+}
+```
+
+#### 2. 巨大な頭蓋骨
+
+```javascript
+{
+    type: 'evil_horns',
+    src: decorationsBaseUrl + 'evil_horns.png',
+    top: '42%',        // 垂直位置：上から 42%
+    left: '-65px',     // 水平位置：左外側に 65px
+    width: '135px',    // 幅
+    height: 'auto',    // 高さ自動
+    transform: 'translateY(-50%)', // 垂直中央
+    zIndex: -1         // キャラクター画像の後ろ
+}
+```
+
+#### 3. 書物と杖
+
+```javascript
+{
+    type: 'books_staff',
+    src: decorationsBaseUrl + 'books_staff.png',
+    top: '25%',        // 垂直位置：上から 25%
+    right: '-60px',    // 水平位置：右外側に 60px
+    width: '135px',    // 幅
+    height: 'auto',    // 高さ自動
+    transform: 'translateY(-50%)', // 垂直中央
+    zIndex: -1         // キャラクター画像の後ろ
+}
+```
+
+### デコレーションファイルパス
+
+デコレーション画像はデフォルトで以下に保存：
+
+```
+images/decorations/
+├── suitcase.png       # スーツケース
+├── evil_horns.png     # 巨大な頭蓋骨
+├── magic_book.png     # 魔導書
+└── magic_staff.png    # 魔法杖
+```
+
+システムは以下のソースからデコレーションパスを自動導出：
+
+1. **PHP グローバル変数**（優先）：`window.mpuDecorationsBaseUrl`
+2. **シェルパス導出**：`shell/Frieren/` から `decorations/` へ導出
+3. **スクリプトパス導出**（フォールバック）：`js/ukagaka-anime.js` から導出
+
+### デコレーションの有効化/無効化
+
+**方法 1：管理画面設定を使用（推奨）**
+
+1. **設定** → **MP Ukagaka** → **伺か管理** に移動
+2. フリーレンキャラクター（`default_1`）を探す
+3. 「**専用デコレーションを表示**」オプションをチェックまたはチェック解除
+4. 設定を保存
+
+**方法 2：CSS で特定のデコレーションを非表示（上級）**
+
+```css
+/* すべてのデコレーションを非表示 */
+.frieren-decoration {
+    display: none !important;
+}
+
+/* または特定のデコレーションを非表示 */
+.frieren-decoration.suitcase {
+    display: none !important;
+}
+```
+
+> 💡 **ヒント**：CSS 方法は、一部のデコレーションを非表示にしつつ他を保持したい場合に適しています。
+
+### デコレーション位置の調整
+
+#### スーツケースの位置を調整
+
+```css
+.frieren-decoration.suitcase {
+    top: 85% !important;    /* 下に移動 */
+    right: -55px !important; /* 左に移動（負の値を減らす）*/
+    width: 100px !important; /* 拡大 */
+}
+```
+
+#### 巨大な頭蓋骨の位置を調整
+
+```css
+.frieren-decoration.evil_horns {
+    top: 40% !important;    /* 上に移動 */
+    left: -70px !important; /* 左に移動（負の値を増やす）*/
+    width: 120px !important; /* 縮小 */
+}
+```
+
+#### 書物と杖の位置を調整
+
+```css
+.frieren-decoration.books_staff {
+    top: 30% !important;    /* 下に移動 */
+    right: -50px !important; /* 左に移動（負の値を減らす）*/
+    opacity: 0.8;           /* 透明度を調整 */
+}
+```
+
+### 技術的実装詳細
+
+#### デコレーション読み込みフロー
+
+1. **キャラクター確認**：`mpuCanvasManager.isFrieren(num, name)`
+   - `num === 'default_1'` を確認
+   - `name` に 'フリーレン' または 'Frieren' が含まれるか確認
+
+2. **フリーレンモード初期化**：`initFrierenMode()`
+   - コンテナを相対位置に設定
+   - `loadFrierenDecorations()` を呼び出し
+
+3. **デコレーション読み込み**：`loadFrierenDecorations()`
+   - `window.mpuShowDecorations` が有効か確認
+   - デコレーション画像ベース URL を導出
+   - デコレーション要素を 1 つずつ追加
+
+4. **デコレーション追加**：`addFrierenDecoration(config)`
+   - `<img>` 要素を作成
+   - `frieren-decoration` CSS クラスを設定
+   - 絶対位置スタイルを適用
+   - `#ukagaka_img` コンテナに追加
+
+#### デコレーション HTML 構造
+
+```html
+<div id="ukagaka_img" style="position: relative;">
+    <!-- 伺か Canvas または img -->
+    <canvas id="cur_ukagaka">...</canvas>
+    
+    <!-- デコレーション要素（自動追加）-->
+    <img class="frieren-decoration suitcase" 
+         src=".../decorations/suitcase.png"
+         style="position: absolute; top: 82%; right: -62px; ...">
+    
+    <img class="frieren-decoration evil_horns" 
+         src=".../decorations/evil_horns.png"
+         style="position: absolute; top: 42%; left: -65px; ...">
+    
+    <img class="frieren-decoration books_staff" 
+         src=".../decorations/books_staff.png"
+         style="position: absolute; top: 25%; right: -60px; ...">
+</div>
+```
+
+#### JavaScript API
+
+```javascript
+// フリーレンか確認
+mpuCanvasManager.isFrieren(num, name);
+
+// 手動でデコレーションを追加（高度な使い方）
+mpuCanvasManager.addFrierenDecoration({
+    type: 'custom_accessory',
+    src: 'path/to/accessory.png',
+    top: '50%',
+    right: '-40px',
+    width: '80px',
+    zIndex: 5
+});
+
+// 特定のデコレーションを削除
+mpuCanvasManager.removeFrierenDecoration('suitcase');
+
+// すべてのデコレーションをクリア
+mpuCanvasManager.clearFrierenDecorations();
+```
+
+### カスタムデコレーション例
+
+#### 新しいデコレーションを追加
+
+```javascript
+// ukagaka-anime.js の loadFrierenDecorations() 関数に追加
+mpuCanvasManager.addFrierenDecoration({
+    type: 'custom_hat',
+    src: decorationsBaseUrl + 'custom_hat.png',
+    top: '10%',
+    left: '50%',
+    width: '60px',
+    transform: 'translateX(-50%)', // 水平中央
+    zIndex: 20
+});
+```
+
+#### 動的デコレーション制御
+
+```javascript
+// 特定のイベントでデコレーションを追加
+document.addEventListener('someEvent', function() {
+    if (mpuCanvasManager.isFrierenMode) {
+        mpuCanvasManager.addFrierenDecoration({
+            type: 'special_effect',
+            src: '/path/to/effect.png',
+            top: '30%',
+            left: '30%',
+            width: '50px',
+            zIndex: 15
+        });
+        
+        // 5 秒後に削除
+        setTimeout(function() {
+            mpuCanvasManager.removeFrierenDecoration('special_effect');
+        }, 5000);
+    }
+});
+```
+
+### デコレーション互換性
+
+- ✅ **キャラクター切り替えサポート**：他のキャラクターに切り替えるとデコレーションは自動クリア
+- ✅ **レスポンシブサポート**：デコレーションはパーセンテージ位置で異なる画面サイズに自動適応
+- ✅ **透明度サポート**：CSS `opacity` でデコレーション透明度を調整可能
+- ✅ **Z-index サポート**：デコレーションレイヤー（前景/背景）を自由に調整可能
+
+### よくあるカスタマイズニーズ
+
+#### 1. スーツケースを非表示、他のデコレーションは保持
+
+```css
+.frieren-decoration.suitcase {
+    display: none !important;
+}
+```
+
+#### 2. すべてのデコレーションを背景に
+
+```css
+.frieren-decoration {
+    z-index: -1 !important;
+}
+```
+
+#### 3. すべてのデコレーションの透明度を調整
+
+```css
+.frieren-decoration {
+    opacity: 0.7 !important;
+}
+```
+
+#### 4. 小画面でデコレーションを非表示
+
+```css
+@media (max-width: 768px) {
+    .frieren-decoration {
+        display: none !important;
+    }
+}
+```
 
 ---
 

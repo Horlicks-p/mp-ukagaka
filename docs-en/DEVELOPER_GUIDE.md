@@ -22,42 +22,76 @@
 
 ### Directory Structure
 
-```
+```text
 mp-ukagaka/
 ├── mp-ukagaka.php          # Main entry point
+├── css/                    # Stylesheets
+│   ├── mpu_style.css           # Frontend stylesheet
+│   └── admin-style.css         # Admin stylesheet
 ├── includes/               # PHP Modules
-│   ├── core-functions.php      # Core functions
-│   ├── utility-functions.php   # Utility functions
-│   ├── ai-functions.php        # AI functions (Cloud API + Ollama)
-│   ├── prompt-categories.php   # Prompt category instruction management
-│   ├── llm-functions.php       # LLM functions (Ollama specific) - BETA
-│   ├── ukagaka-functions.php   # Ukagaka management
-│   ├── ajax-handlers.php       # AJAX handlers
-│   ├── frontend-functions.php  # Frontend functions
+│   ├── core/                   # Core function modules
+│   │   ├── core-functions.php      # Core functions (Settings)
+│   │   ├── utility-functions.php   # Utility functions
+│   │   ├── ukagaka-functions.php   # Ukagaka management
+│   │   └── frontend-functions.php  # Frontend functions
+│   ├── ajax/                   # AJAX handler modules
+│   │   ├── ajax-handlers.php       # AJAX handlers (Core)
+│   │   ├── ajax-chat-handlers-llm.php  # LLM chat AJAX handlers (v2.5.0)
+│   │   ├── ajax-touch-handlers-llm.php # LLM touch AJAX handlers (v2.5.0)
+│   │   ├── ajax-handlers-test.php  # API connection test handlers (v2.3.0)
+│   │   └── chat-api-handlers.php   # Multi-turn dialogue API handlers (v2.3.0)
+│   ├── personality/            # Personality system modules
+│   │   ├── personality-loader.php  # Personality system (JSON loader, v2.4.0)
+│   │   ├── personality-prompts.php # Personality prompt module
+│   │   ├── personality-decorations.php # Decoration system
+│   │   ├── personality-emoji.php   # Emoji system
+│   │   └── emoji-mapper.php        # Emoji mapping and emotion analysis (v2.4.0)
+│   ├── llm/                    # LLM/AI function modules
+│   │   ├── ai-functions.php        # AI functions (Cloud API + Ollama)
+│   │   ├── llm-functions.php       # LLM functions (Ollama specific) - BETA
+│   │   ├── llm-context-builder.php # LLM context builder
+│   │   ├── llm-slimstat.php        # LLM Slimstat integration
+│   │   ├── prompt-categories.php   # Prompt category management
+│   │   ├── weather-functions.php   # Weather functions (Open-Meteo API)
+│   │   └── diary-functions.php     # AI Diary functions (v2.5.0)
 │   └── admin-functions.php     # Admin functions
+├── ghost/                  # Character personality configuration (v2.4.0)
+│   ├── Frieren/
+│   │   ├── shell/              # Character images
+│   │   ├── decorations/        # Decoration images
+│   │   ├── manifest.json       # Metadata and settings
+│   │   ├── frieren.js          # Character specific JavaScript
+│   │   ├── frieren-emoji.js    # Frieren specific emoji system (RO style, v2.4.0)
+│   │   ├── emoji-keywords.json # Emoji keyword custom configuration (v2.4.0)
+│   │   └── emojis/             # Frieren specific emoji images (RO style)
+│   └── [other characters...]/
 ├── dialogs/                # Dialogue files
 ├── images/                 # Image resources
-│   └── shell/                  # Character images
 ├── languages/              # Language files
 ├── docs/                   # Documentation
 ├── options/                # Admin settings pages
 │   ├── options.php             # Admin page framework
-│   ├── options_page0.php       # Basic settings page
-│   ├── options_page1.php       # Ukagaka management page
-│   ├── options_page2.php       # Dialogue settings page
-│   ├── options_page3.php       # Display settings page
-│   ├── options_page4.php       # Advanced settings page
+│   ├── options_general.php     # General settings page
+│   ├── options_ukagakas.php    # Ukagaka management page
+│   ├── options_create.php      # Create new ukagaka page
+│   ├── options_extend.php      # Extension settings page
+│   ├── options_dialog.php      # Dialogue settings page
 │   ├── options_page_ai.php     # AI settings page
 │   └── options_page_llm.php    # LLM settings page (BETA)
 ├── js/                     # Frontend JavaScript Modules
+│   ├── dist/                   # Build output directory (Production)
+│   │   ├── ukagaka-bundle.min.js   # Merged and minified core bundle
+│   │   └── ukagaka-textarearesizer.min.js  # Admin tool (minified)
 │   ├── ukagaka-base.js         # Base layer (Config + Utils + AJAX)
 │   ├── ukagaka-core.js         # Frontend core JS (Message display, switching, etc.)
 │   ├── ukagaka-features.js     # Frontend features JS (AI page awareness, greeting, etc.)
 │   ├── ukagaka-anime.js        # Canvas Animation Manager (Image Sequence Playback)
+│   ├── ukagaka-chat.js         # Chat functionality frontend (v2.3.0)
+│   ├── ukagaka-emoji.js        # Emoji config loader
 │   ├── ukagaka-cookie.js       # Cookie utility (Visitor tracking)
 │   └── ukagaka-textarearesizer.js  # Admin textarea resizer
-├── mpu_style.css           # Frontend stylesheet
-├── admin-style.css         # Admin stylesheet
+├── build.js                # JS bundling script (Terser)
+├── package.json            # npm config (dev dependencies)
 └── readme.txt              # WordPress plugin directory readme
 ```
 
@@ -70,18 +104,31 @@ The plugin uses conditional loading mechanisms to load modules based on the exec
 
 // Core modules: Required by both frontend and admin
 $core_modules = [
-    'core-functions.php',      // 1. Core functions (Settings)
-    'utility-functions.php',   // 2. Utility functions
-    'ai-functions.php',        // 3. AI functions (Cloud API: Gemini, OpenAI, Claude)
-    'prompt-categories.php',   // 4. Prompt category management (Load before llm-functions.php)
-    'llm-functions.php',       // 5. LLM functions (Local LLM: Ollama)
-    'ukagaka-functions.php',   // 6. Ukagaka management
-    'ajax-handlers.php',       // 7. AJAX handlers (Used by both)
+    'core/core-functions.php',      // 1. Core functions (Settings)
+    'core/utility-functions.php',   // 2. Utility functions
+    'personality/personality-loader.php',  // 3. Personality system (JSON loader)
+    'personality/personality-prompts.php', // 4. Personality prompt module
+    'personality/personality-decorations.php', // 5. Decoration system
+    'personality/personality-emoji.php',   // 6. Emoji system
+    'llm/ai-functions.php',        // 7. AI functions (Cloud API: Gemini, OpenAI, Claude)
+    'llm/prompt-categories.php',   // 8. Prompt category management (Load before llm-functions.php)
+    'llm/llm-slimstat.php',        // 9. LLM Slimstat integration (Load before llm-context-builder.php)
+    'llm/llm-context-builder.php', // 10. LLM context builder (Load before llm-functions.php)
+    'llm/weather-functions.php',   // 11. Weather functions (Open-Meteo API)
+    'llm/diary-functions.php',     // 12. AI Diary functions (v2.5.0)
+    'llm/llm-functions.php',       // 13. LLM functions (Local LLM: Ollama)
+    'personality/emoji-mapper.php',        // 13. Emoji mapping (Load before AJAX handlers)
+    'core/ukagaka-functions.php',   // 14. Ukagaka management
+    'ajax/ajax-handlers.php',       // 15. AJAX handlers (Core)
+    'ajax/ajax-chat-handlers-llm.php',      // 16. LLM chat AJAX handlers
+    'ajax/ajax-touch-handlers-llm.php',     // 17. LLM touch AJAX handlers
+    'ajax/ajax-handlers-test.php',  // 18. API connection test handlers
+    'ajax/chat-api-handlers.php',   // 19. Multi-turn dialogue API handlers
 ];
 
 // Frontend modules (Loaded only in non-admin environment)
 $frontend_modules = [
-    'frontend-functions.php',  // Frontend functions
+    'core/frontend-functions.php',  // Frontend functions
 ];
 
 // Admin modules (Loaded only in admin environment)
@@ -98,10 +145,10 @@ $admin_modules = [
 
 ### Constant Definitions
 
-| Constant | Description | Value |
-|-----|------|-----|
-| `MPU_VERSION` | Plugin Version | `"2.2.0"` |
-| `MPU_MAIN_FILE` | Main File Path | `__FILE__` |
+| Constant        | Description      | Value     |
+| --------------- | ---------------- | --------- |
+| `MPU_VERSION`   | Plugin Version   | `"2.3.0"` |
+| `MPU_MAIN_FILE` | Main File Path   | `__FILE__`|
 
 ---
 
@@ -260,7 +307,7 @@ function mpu_is_api_key_encrypted($api_key): bool
 
 AI functions module, handling Cloud AI API calls (Gemini, OpenAI, Claude) and Ollama integration.
 
-#### Main Functions
+#### ai-functions.php Main Functions
 
 ```php
 /**
@@ -337,16 +384,95 @@ function mpu_get_language_instruction(string $language): string
  * @return array Conditional tags array
  */
 function mpu_get_allowed_conditional_tags(): array
+
+/**
+ * Load personality dynamic prompts
+ * @param string|null $personality_id Personality ID, null for current
+ * @return array Dynamic prompt configuration array
+ */
+function mpu_load_personality_dynamic_prompts($personality_id = null): array
+
+/**
+ * Load personality emoji keywords
+ * @param string|null $personality_id Personality ID, null for current
+ * @return array Emoji keywords configuration array
+ */
+function mpu_load_personality_emoji_keywords($personality_id = null): array
 ```
+
+#### Personality File Structure
+
+Each personality folder should contain:
+
+- **manifest.json** (Required): Metadata and settings
+  - `id`: Personality ID
+  - `name`, `name_en`, `name_zh`: Multilingual names
+  - `version`: Version number
+  - `settings`: Character settings (e.g. `max_response_length`, `speech_style`, `tone`)
+  - `character_traits`: Character traits (e.g. `age`, `race`, `occupation`, `personality`)
+
+- **prompts.json** (Optional): Static dialogue categories
+  - Key is category name, value is array of prompts
+
+- **dynamics.json** (Optional): Dynamic templates (with variable substitution)
+  - Supports `{variable_name}` variable substitution
+  - Contains `time_aware_dynamic`, `tech_observation`, `bot_detection` etc. categories
+
+- **weights.json** (Optional): Category weight configuration
+  - `base_weights`: Base weights
+  - `time_adjustments`: Time based adjustments
+
+- **decorations.json** (Optional): Decoration click prompts
+  - `items`: Decoration items array, each containing:
+    - `id`: Decoration ID
+    - `image`: Image path (relative to `decorations/` folder)
+    - `position`: Position settings (e.g. `{"bottom": "0px", "right": "0px"}`)
+    - `size`: Size settings (e.g. `{"width": "100px", "height": "auto"}`)
+    - `z_index`: Z-index (number)
+    - `prompt`: Prompt when clicked
+    - `transform`: CSS transform (optional, e.g. `scale(1)`)
+
+- **emoji-keywords.json** (Optional, v2.4.0): Emoji trigger keywords
+  - `mappings`: Mapping of emoji types to keywords
+  - Format example:
+    ```json
+    {
+      "mappings": {
+        "happy": {
+          "keywords": ["happy", "glad"],
+          "file": "happy.png",
+          "weight": 10
+        }
+      }
+    }
+    ```
+
+    - **diary.json** (Optional, v2.5.0): AI Diary settings
+      - `categories`: Diary category configuration
+      - Format example:
+        ```json
+        {
+          "categories": {
+            "daily": {
+              "weight": 10,
+              "title_themes": ["Daily Life"],
+              "prompts": ["Write a diary about daily life"]
+            }
+          }
+        }
+        ```
+
+- **script** (Optional): Character specific JavaScript file
+  - e.g. `frieren.js`, automatically loaded by frontend
 
 #### Supported AI Providers
 
-| Provider | Function | API Endpoint | Model Selection |
-|-------|------|---------|---------|
-| Gemini | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | Supported (gemini-2.5-flash, gemini-2.5-pro, etc.) |
-| OpenAI | `mpu_call_openai_api()` | `api.openai.com` | Supported (gpt-4o-mini, gpt-4o, etc.) |
-| Claude | `mpu_call_claude_api()` | `api.anthropic.com` | Supported (claude-sonnet-4-5-20250929, etc.) |
-| Ollama | `mpu_call_ollama_api()` | Local or Remote Ollama Service | Supported (Any Ollama model) |
+| Provider | Function                | API Endpoint                        | Model Selection                                   |
+| -------- | ----------------------- | ----------------------------------- | ------------------------------------------------- |
+| Gemini   | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | Supported (gemini-2.5-flash, gemini-2.5-pro, etc.)|
+| OpenAI   | `mpu_call_openai_api()` | `api.openai.com`                    | Supported (gpt-4o-mini, gpt-4o, etc.)             |
+| Claude   | `mpu_call_claude_api()` | `api.anthropic.com`                 | Supported (claude-sonnet-4-5-20250929, etc.)      |
+| Ollama   | `mpu_call_ollama_api()` | Local or Remote Ollama Service      | Supported (Any Ollama model)                      |
 
 ### llm-functions.php (BETA)
 
@@ -354,7 +480,7 @@ function mpu_get_allowed_conditional_tags(): array
 
 LLM functions module, specifically handling Ollama local LLM integration.
 
-#### Main Functions
+#### llm-functions.php Main Functions
 
 ```php
 /**
@@ -409,11 +535,11 @@ function mpu_get_ollama_settings()
 
 #### Timeout Settings
 
-| Operation Type | Local Connection | Remote Connection |
-|---------|---------|---------|
-| Service Check (`check`) | 3s | 10s |
-| API Call (`api_call`) | 60s | 90s |
-| Test Connection (`test`) | 30s | 45s |
+| Operation Type            | Local Connection | Remote Connection |
+| ------------------------- | ---------------- | ----------------- |
+| Service Check (`check`)   | 3s               | 10s               |
+| API Call (`api_call`)     | 60s              | 90s               |
+| Test Connection (`test`)  | 30s              | 45s               |
 
 #### Usage Example
 
@@ -434,11 +560,45 @@ $is_remote = mpu_is_remote_endpoint($endpoint);
 $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
 ```
 
+### diary-functions.php (v2.5.0)
+
+AI Diary functions module, responsible for auto-generating and publishing character diaries.
+
+#### diary-functions.php Main Functions
+
+```php
+/**
+ * Get diary title prefix
+ * @param string|null $personality_id Personality ID
+ * @return string Prefix (e.g., "[Frieren's Diary] ")
+ */
+function mpu_get_diary_title_prefix($personality_id = null): string
+
+/**
+ * Check if diary should be triggered (Based on probability and daily limit)
+ * @return bool Should trigger
+ */
+function mpu_should_trigger_diary(): bool
+
+/**
+ * Generate diary content
+ * @return array|WP_Error Diary data or error
+ */
+function mpu_generate_diary_content()
+
+/**
+ * Publish diary post
+ * @param array $diary_data Diary data
+ * @return int|WP_Error Post ID or error
+ */
+function mpu_publish_diary_post($diary_data)
+```
+
 ### ukagaka-functions.php
 
 Ukagaka management module, handling character operations and dialogue management.
 
-#### Main Functions
+#### ukagaka-functions.php Main Functions
 
 ```php
 /**
@@ -548,7 +708,7 @@ function mpu_get_msg_from_file($filename_base): array
 
 AJAX handlers module, handling all AJAX requests.
 
-#### Main Functions
+#### ajax-handlers.php Main Functions
 
 ```php
 /**
@@ -603,7 +763,7 @@ function mpu_ajax_test_ollama_connection()
 
 Frontend functions module, responsible for page display and resource loading.
 
-#### Main Functions
+#### frontend-functions.php Main Functions
 
 ```php
 /**
@@ -651,7 +811,7 @@ function mpu_head(): void
 
 Admin functions module, handling settings saving and admin interface.
 
-#### Main Functions
+#### admin-functions.php Main Functions
 
 ```php
 /**
@@ -723,7 +883,7 @@ $mpu_opt = [
     'ai_api_key' => '',                 // Gemini API Key (Encrypted)
     'gemini_model' => 'gemini-2.5-flash', // Gemini Model
     'openai_api_key' => '',             // OpenAI API Key (Encrypted)
-    'openai_model' => 'gpt-4o-mini',    // OpenAI Model
+    'openai_model' => 'gpt-4.1-mini-2025-04-14',    // OpenAI Model
     'claude_api_key' => '',             // Claude API Key (Encrypted)
     'claude_model' => 'claude-sonnet-4-5-20250929', // Claude Model
     'ai_language' => 'zh-TW',           // AI Response Language
@@ -1121,8 +1281,6 @@ window.mpuCanvasManager = {
 };
 ```
 
-```
-
 ---
 
 ## Extension Development
@@ -1142,14 +1300,14 @@ function mpu_call_newprovider_api($prompt, $system_prompt) {
 }
 ```
 
-2. Add case in `mpu_call_ai_api()`:
+2\. Add case in `mpu_call_ai_api()`:
 
 ```php
 case 'newprovider':
     return mpu_call_newprovider_api($prompt, $system_prompt);
 ```
 
-3. Add corresponding options in the admin settings page.
+3\. Add corresponding options in the admin settings page.
 
 ### Adding New Message Codes
 
@@ -1351,4 +1509,4 @@ sprintf(__('Welcome %s', 'mp-ukagaka'), $name)
 
 ---
 
-**Happy Coding! 🎉**
+### Happy Coding! 🎉

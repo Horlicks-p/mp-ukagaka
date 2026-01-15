@@ -2,8 +2,8 @@
 /*
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
-Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Gemini、OpenAI、Claude）。本機 LLM 支援（Ollama，測試階段）。API Key 加密存儲、安全文件操作、可配置打字速度。Claude 風格後台管理介面。
-Version: 2.2.0
+Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Gemini、OpenAI、Claude）。本機 LLM 支援（Ollama，測試階段）。API Key 加密存儲、安全文件操作、可配置打字速度。Claude 風格後台管理介面。JSON 人格系統。
+Version: 2.5.6
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 */
@@ -13,7 +13,7 @@ if (!defined("ABSPATH")) {
 }
 
 // 定義常量
-define("MPU_VERSION", "2.2.0");
+define("MPU_VERSION", "2.5.6");
 define("MPU_MAIN_FILE", __FILE__);
 
 /**
@@ -51,18 +51,32 @@ function mpu_load_modules()
 
     // 核心模組：前端和後台都需要
     $core_modules = [
-        'core-functions.php',      // 核心功能（設定管理）
-        'utility-functions.php',   // 工具函數
-        'ai-functions.php',        // AI 功能（雲端 API：Gemini, OpenAI, Claude）
-        'prompt-categories.php',   // Prompt 類別指令管理（需在 llm-functions.php 之前載入）
-        'llm-functions.php',       // LLM 功能（本機 LLM：Ollama）
-        'ukagaka-functions.php',   // 春菜管理
-        'ajax-handlers.php',       // AJAX 處理器（前端和後台都可能使用）
+        'core/core-functions.php',      // 核心功能（設定管理）
+        'core/utility-functions.php',   // 工具函數
+        'personality/personality-loader.php',  // 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
+        'personality/personality-prompts.php', // 人格提示詞模組（動態提示詞、變數替換）
+        'personality/personality-decorations.php', // 裝飾物系統
+        'personality/personality-emoji.php',   // 表情系統
+        'llm/api-cache.php',           // API 快取系統（需在 ai-functions.php 之前載入）
+        'llm/ai-functions.php',        // AI 功能（雲端 API：Gemini, OpenAI, Claude）
+        'llm/prompt-categories.php',   // Prompt 類別指令管理（需在 llm-functions.php 之前載入）
+        'llm/llm-slimstat.php',       // LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
+        'llm/llm-context-builder.php', // LLM 上下文建構（需在 llm-functions.php 之前載入）
+        'llm/weather-functions.php',   // 天氣功能（Open-Meteo API）
+        'llm/diary-functions.php',     // 自動日記功能（フリーレン手記）
+        'llm/llm-functions.php',       // LLM 功能（本機 LLM：Ollama）
+        'personality/emoji-mapper.php',        // 表情映射與情緒分析（需在 AJAX 處理器之前載入）
+        'core/ukagaka-functions.php',   // 偽春菜管理
+        'ajax/ajax-handlers.php',       // AJAX 處理器（核心功能）
+        'ajax/ajax-chat-handlers-llm.php',      // LLM 相關 AJAX 處理器（對話相關）
+        'ajax/ajax-touch-handlers-llm.php',     // LLM 相關 AJAX 處理器（觸摸相關）
+        'ajax/ajax-handlers-test.php',  // API 連線測試處理器
+        'ajax/chat-api-handlers.php',   // 對話模式 API 處理器（多輪對話）
     ];
 
     // 前端專用模組
     $frontend_modules = [
-        'frontend-functions.php',  // 前端功能
+        'core/frontend-functions.php',  // 前端功能
     ];
 
     // 後台專用模組

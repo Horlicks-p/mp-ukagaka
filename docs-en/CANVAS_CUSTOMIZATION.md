@@ -8,9 +8,10 @@
 
 1. [Canvas Animation Features Introduction](#canvas-animation-features-introduction)
 2. [Animation Setup](#animation-setup)
-3. [Technical Implementation Details](#technical-implementation-details)
-4. [CSS Position Adjustment](#css-position-adjustment)
-5. [FAQ](#faq)
+3. [Frieren's Exclusive Decorations System](#frierens-exclusive-decorations-system)
+4. [Technical Implementation Details](#technical-implementation-details)
+5. [CSS Position Adjustment](#css-position-adjustment)
+6. [FAQ](#faq)
 
 ---
 
@@ -68,6 +69,298 @@ The system will automatically:
 - Folder path must end with `/`.
 - Supported image formats: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`.
 - Image filenames are recommended to use numeric sequences for correct sorting.
+
+---
+
+## Frieren's Exclusive Decorations System
+
+> 🎨 **v2.2.1+ New Feature**: Default character Frieren (`default_1`) has an exclusive decorations system
+
+### Decorations Overview
+
+Frieren character automatically loads three exclusive decorations (アクセサリー) without manual configuration:
+
+| Decoration | Filename | Position | Z-Index | Purpose |
+|------|---------|------|-----|------|
+| Suitcase | `suitcase.png` | Right front | `z-index: 10` | Frieren's travel suitcase |
+| Giant Skull | `evil_horns.png` | Left back | `z-index: -1` | Don't know what it's useful for |
+| Magic Book | `magic_book.png` | Right back top | `z-index: -1` | Frieren's spellbook |
+| Magic Staff | `magic_staff.png` | Right back bottom | `z-index: -1` | Frieren's magic staff |
+
+> 🖌️ **Interactive Feature**: Click on any decoration and Frieren will introduce the item!
+
+### Decoration Position & Size
+
+#### 1. Suitcase
+
+```javascript
+{
+    type: 'suitcase',
+    src: decorationsBaseUrl + 'suitcase.png',
+    top: '82%',        // Vertical position: 82% from top
+    right: '-62px',    // Horizontal position: 62px to the right outside
+    width: '90px',     // Width
+    height: 'auto',    // Height auto
+    transform: 'translateY(-50%)', // Vertical center
+    zIndex: 10         // In front of character image
+}
+```
+
+#### 2. Giant Skull
+
+```javascript
+{
+    type: 'evil_horns',
+    src: decorationsBaseUrl + 'evil_horns.png',
+    top: '42%',        // Vertical position: 42% from top
+    left: '-65px',     // Horizontal position: 65px to the left outside
+    width: '135px',    // Width
+    height: 'auto',    // Height auto
+    transform: 'translateY(-50%)', // Vertical center
+    zIndex: -1         // Behind character image
+}
+```
+
+#### 3. Books & Staff
+
+```javascript
+{
+    type: 'books_staff',
+    src: decorationsBaseUrl + 'books_staff.png',
+    top: '25%',        // Vertical position: 25% from top
+    right: '-60px',    // Horizontal position: 60px to the right outside
+    width: '135px',    // Width
+    height: 'auto',    // Height auto
+    transform: 'translateY(-50%)', // Vertical center
+    zIndex: -1         // Behind character image
+}
+```
+
+### Decoration File Path
+
+Decoration images are stored by default in:
+
+```
+images/decorations/
+├── suitcase.png       # Suitcase
+├── evil_horns.png     # Giant skull
+├── magic_book.png     # Magic Book
+└── magic_staff.png    # Magic Staff
+```
+
+System automatically derives decoration paths from the following sources:
+
+1. **PHP Global Variable** (Priority): `window.mpuDecorationsBaseUrl`
+2. **Shell Path Derivation**: Derive from `shell/Frieren/` to `decorations/`
+3. **Script Path Derivation** (Fallback): Derive from `js/ukagaka-anime.js`
+
+### Enable/Disable Decorations
+
+**Method 1: Using Backend Settings (Recommended)**
+
+1. Go to **Settings** → **MP Ukagaka** → **Ukagaka Management**
+2. Find the Frieren character (`default_1`)
+3. Check or uncheck the "**Show Exclusive Decorations**" option
+4. Save settings
+
+**Method 2: Hide Specific Decorations with CSS (Advanced)**
+
+```css
+/* Hide all decorations */
+.frieren-decoration {
+    display: none !important;
+}
+
+/* Or hide specific decoration */
+.frieren-decoration.suitcase {
+    display: none !important;
+}
+```
+
+> 💡 **Tip**: CSS method is suitable when you need to hide some decorations but keep others.
+
+### Adjusting Decoration Position
+
+#### Adjust Suitcase Position
+
+```css
+.frieren-decoration.suitcase {
+    top: 85% !important;    /* Move down */
+    right: -55px !important; /* Move left (reduce negative value) */
+    width: 100px !important; /* Enlarge */
+}
+```
+
+#### Adjust Giant Skull Position
+
+```css
+.frieren-decoration.evil_horns {
+    top: 40% !important;    /* Move up */
+    left: -70px !important; /* Move left (increase negative value) */
+    width: 120px !important; /* Shrink */
+}
+```
+
+#### Adjust Books & Staff Position
+
+```css
+.frieren-decoration.books_staff {
+    top: 30% !important;    /* Move down */
+    right: -50px !important; /* Move left (reduce negative value) */
+    opacity: 0.8;           /* Adjust opacity */
+}
+```
+
+### Technical Implementation Details
+
+#### Decoration Loading Flow
+
+1. **Check Character**: `mpuCanvasManager.isFrieren(num, name)`
+   - Check `num === 'default_1'`
+   - Check `name` contains 'フリーレン' or 'Frieren'
+
+2. **Initialize Frieren Mode**: `initFrierenMode()`
+   - Set container to relative positioning
+   - Call `loadFrierenDecorations()`
+
+3. **Load Decorations**: `loadFrierenDecorations()`
+   - Check if `window.mpuShowDecorations` is enabled
+   - Derive decoration image base URL
+   - Add decoration elements one by one
+
+4. **Add Decoration**: `addFrierenDecoration(config)`
+   - Create `<img>` element
+   - Set `frieren-decoration` CSS class
+   - Apply absolute positioning styles
+   - Append to `#ukagaka_img` container
+
+#### Decoration HTML Structure
+
+```html
+<div id="ukagaka_img" style="position: relative;">
+    <!-- Ukagaka Canvas or img -->
+    <canvas id="cur_ukagaka">...</canvas>
+    
+    <!-- Decoration elements (automatically added) -->
+    <img class="frieren-decoration suitcase" 
+         src=".../decorations/suitcase.png"
+         style="position: absolute; top: 82%; right: -62px; ...">
+    
+    <img class="frieren-decoration evil_horns" 
+         src=".../decorations/evil_horns.png"
+         style="position: absolute; top: 42%; left: -65px; ...">
+    
+    <img class="frieren-decoration books_staff" 
+         src=".../decorations/books_staff.png"
+         style="position: absolute; top: 25%; right: -60px; ...">
+</div>
+```
+
+#### JavaScript API
+
+```javascript
+// Check if it's Frieren
+mpuCanvasManager.isFrieren(num, name);
+
+// Manually add decoration (advanced usage)
+mpuCanvasManager.addFrierenDecoration({
+    type: 'custom_accessory',
+    src: 'path/to/accessory.png',
+    top: '50%',
+    right: '-40px',
+    width: '80px',
+    zIndex: 5
+});
+
+// Remove specific decoration
+mpuCanvasManager.removeFrierenDecoration('suitcase');
+
+// Clear all decorations
+mpuCanvasManager.clearFrierenDecorations();
+```
+
+### Custom Decoration Examples
+
+#### Adding New Decoration
+
+```javascript
+// Add in loadFrierenDecorations() function in ukagaka-anime.js
+mpuCanvasManager.addFrierenDecoration({
+    type: 'custom_hat',
+    src: decorationsBaseUrl + 'custom_hat.png',
+    top: '10%',
+    left: '50%',
+    width: '60px',
+    transform: 'translateX(-50%)', // Horizontal center
+    zIndex: 20
+});
+```
+
+#### Dynamic Decoration Control
+
+```javascript
+// Add decoration on specific event
+document.addEventListener('someEvent', function() {
+    if (mpuCanvasManager.isFrierenMode) {
+        mpuCanvasManager.addFrierenDecoration({
+            type: 'special_effect',
+            src: '/path/to/effect.png',
+            top: '30%',
+            left: '30%',
+            width: '50px',
+            zIndex: 15
+        });
+        
+        // Remove after 5 seconds
+        setTimeout(function() {
+            mpuCanvasManager.removeFrierenDecoration('special_effect');
+        }, 5000);
+    }
+});
+```
+
+### Decoration Compatibility
+
+- ✅ **Character Switching Support**: Decorations automatically clear when switching to other characters
+- ✅ **Responsive Support**: Decorations use percentage positioning to adapt to different screen sizes
+- ✅ **Opacity Support**: Decoration opacity adjustable via CSS `opacity`
+- ✅ **Z-index Support**: Freely adjust decoration layers (foreground/background)
+
+### Common Customization Needs
+
+#### 1. Hide Suitcase, Keep Other Decorations
+
+```css
+.frieren-decoration.suitcase {
+    display: none !important;
+}
+```
+
+#### 2. Put All Decorations in Background
+
+```css
+.frieren-decoration {
+    z-index: -1 !important;
+}
+```
+
+#### 3. Adjust Opacity of All Decorations
+
+```css
+.frieren-decoration {
+    opacity: 0.7 !important;
+}
+```
+
+#### 4. Hide Decorations on Small Screens
+
+```css
+@media (max-width: 768px) {
+    .frieren-decoration {
+        display: none !important;
+    }
+}
+```
 
 ---
 

@@ -47,11 +47,22 @@ wp-config.php
 *.temp
 
 # Ollama model files (personal configuration)
-# Note: frieren_modelfile.example.txt is tracked as a template
+frieren_modelfile.txt
 *_modelfile.txt
-!*_modelfile.example.txt
 
 # User-generated content
 images/
 dialogs/
 .cursor-config.md
+
+# Custom character files (personal)
+Asuna/
+Sakura_Laurel/
+
+# Node.js files
+node_modules/
+package.json
+package-lock.json
+build.js
+js/dist/ukagaka-bundle.js
+

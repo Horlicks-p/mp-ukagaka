@@ -1,0 +1,386 @@
+{
+  "_comment": "Frieren Personality - Category Weights Configuration",
+  "_format_version": "1.1",
+
+  "base_weights": {
+    "_comment": "Base probability weights for each category (higher = more likely)",
+    
+    "casual": 15,
+    "observation": 15,
+    "magic_collection": 15,
+    "time_aware": 10,
+
+    "party_memories": 14,
+    "human_observation": 10,
+    "magic_research": 12,
+    "memory": 8,
+    "emotional_density": 8,
+
+    "greeting": 6,
+    "greeting_long_absence": 0,
+    "greeting_regular": 0,
+    "admin_comment": 6,
+    "tech_observation": 6,
+    "statistics": 6,
+    "magic_metaphor": 6,
+    "article_recommendation": 6,
+
+    "food_preference": 4,
+    "frieren_humor": 4,
+    "philosophical": 3,
+    "silence": 4,
+    "unexpected": 4,
+    "curiosity": 3,
+
+    "demon_related": 2,
+    "mentors_seniors": 8,
+    "journey_adventure": 3,
+    "mimic_obsession": 4,
+    "dungeon_expert": 3,
+    "self_awareness": 3,
+    "comparison": 2,
+    "weather_nature": 2,
+    "daily_life": 3,
+    "current_action": 2,
+    "weather_specific": 3,
+    "weather": 5,
+    "weather_report": 4,
+    "programming_code": 4,
+    "lesson_learned": 2,
+    "bot_detection": 1,
+    "error_problem": 1,
+    "success_achievement": 2,
+    "future_plans": 2,
+    "seasonal_events": 1,
+    "holiday": 2,
+    "sleeping": 1,
+    "discovery": 4,
+
+    "_comment_time": "Time-specific categories (boosted by time_adjustments)",
+    "time_morning": 2,
+    "time_afternoon": 2,
+    "time_evening": 2,
+    "time_night": 2,
+
+    "_comment_touch": "Touch zone categories (triggered by clicking character)",
+    "touch_head": 1,
+    "touch_face": 1,
+    "touch_chest": 1,
+    "touch_book": 1,
+    "touch_legs": 1,
+
+    "_comment_holidays": "Holiday-specific categories (triggered by calendar.json)",
+    "holiday_new_year": 1,
+    "holiday_valentine": 1,
+    "holiday_whiteday": 1,
+    "holiday_aprilfool": 1,
+    "holiday_tanabata": 1,
+    "holiday_halloween": 1,
+    "holiday_christmas": 1,
+    "holiday_golden_week": 1,
+
+    "_comment_anniversaries": "Anniversary categories (triggered by calendar.json)",
+    "anniversary_anime": 0,
+    "anniversary_anime_s2": 0,
+    "anniversary_admin_birthday": 0
+  },
+
+  "time_adjustments": {
+    "_comment": "Weight adjustments based on time of day (merged with base_weights)",
+    
+    "深夜": {
+      "time_night": 28,
+      "silence": 15,
+      "philosophical": 15,
+      "party_memories": 18,
+      "time_aware": 15,
+      "memory": 15,
+      "emotional_density": 12,
+      "mentors_seniors": 10
+    },
+
+    "睡眠時間帯": {
+      "_comment": "00:00~06:00: Enhanced sleep-related dialogues",
+      "sleeping": 35,
+      "silence": 20,
+      "daily_life": 15,
+      "philosophical": 10,
+      "party_memories": 8,
+      "casual": 5,
+      "observation": 3
+    },
+
+    "朝": {
+      "time_morning": 25,
+      "daily_life": 20,
+      "observation": 15,
+      "magic_research": 12,
+      "weather_nature": 8,
+      "weather_specific": 10,
+      "weather": 12,
+      "weather_report": 15,
+      "current_action": 8
+    },
+
+    "清晨": {
+      "time_morning": 25,
+      "daily_life": 20,
+      "observation": 15,
+      "magic_research": 12,
+      "weather_nature": 8,
+      "current_action": 8
+    },
+
+    "昼": {
+      "time_afternoon": 22,
+      "casual": 18,
+      "food_preference": 15,
+      "magic_collection": 12,
+      "programming_code": 8,
+      "dungeon_expert": 8
+    },
+
+    "中午": {
+      "time_afternoon": 22,
+      "casual": 18,
+      "food_preference": 15,
+      "magic_collection": 12,
+      "dungeon_expert": 8
+    },
+
+    "午後": {
+      "time_afternoon": 20,
+      "casual": 15,
+      "magic_research": 15,
+      "programming_code": 10,
+      "mimic_obsession": 10,
+      "journey_adventure": 10
+    },
+
+    "夜": {
+      "time_evening": 22,
+      "time_night": 15,
+      "party_memories": 18,
+      "memory": 15,
+      "human_observation": 12,
+      "programming_code": 8,
+      "mentors_seniors": 10,
+      "emotional_density": 10
+    },
+
+    "傍晚": {
+      "time_evening": 25,
+      "party_memories": 15,
+      "memory": 12,
+      "human_observation": 12,
+      "philosophical": 8
+    }
+  },
+
+  "context_adjustments": {
+    "_comment": "Weight adjustments based on visitor context",
+    
+    "is_first_visit": {
+      "greeting": 15,
+      "observation": 18,
+      "curiosity": 10,
+      "human_observation": 12
+    },
+
+    "is_frequent_visitor": {
+      "admin_comment": 15,
+      "casual": 18,
+      "human_observation": 12,
+      "frieren_humor": 10
+    },
+
+    "is_weekend": {
+      "casual": 18,
+      "frieren_humor": 10,
+      "daily_life": 8,
+      "food_preference": 10,
+      "mimic_obsession": 8
+    },
+
+    "long_session": {
+      "dungeon_expert": 12,
+      "mimic_obsession": 10,
+      "journey_adventure": 10
+    },
+
+    "is_bot": {
+      "bot_detection": 25,
+      "demon_related": 15,
+      "observation": 10
+    }
+  },
+
+  "seasonal_adjustments": {
+    "_comment": "Weight adjustments based on season",
+    
+    "春": {
+      "weather_nature": 8,
+      "weather": 10,
+      "party_memories": 12
+    },
+
+    "夏": {
+      "weather": 12,
+      "weather_nature": 10,
+      "daily_life": 8
+    },
+
+    "秋": {
+      "weather_nature": 10,
+      "weather": 8,
+      "philosophical": 8
+    },
+
+    "冬": {
+      "silence": 10,
+      "philosophical": 10,
+      "weather": 10,
+      "memory": 12
+    }
+  },
+
+  "weather_adjustments": {
+    "_comment": "Weight adjustments based on current weather conditions",
+    
+    "晴": {
+      "weather": 18,
+      "weather_report": 12,
+      "daily_life": 10,
+      "journey_adventure": 8
+    },
+
+    "曇": {
+      "weather": 15,
+      "weather_report": 12,
+      "philosophical": 8,
+      "silence": 6
+    },
+
+    "雨": {
+      "weather": 20,
+      "weather_report": 18,
+      "party_memories": 10,
+      "memory": 8,
+      "silence": 8
+    },
+
+    "雪": {
+      "weather": 22,
+      "weather_report": 15,
+      "party_memories": 12,
+      "memory": 10,
+      "philosophical": 8
+    },
+
+    "雷": {
+      "weather": 18,
+      "demon_related": 8,
+      "silence": 10
+    }
+  },
+
+  "holiday_adjustments": {
+    "_comment": "Weight adjustments when holidays are detected (from calendar.json)",
+    
+    "default": {
+      "holiday": 25,
+      "seasonal_events": 15
+    },
+
+    "元日": {
+      "holiday_new_year": 30,
+      "memory": 12,
+      "philosophical": 10
+    },
+
+    "正月二日": {
+      "holiday_new_year": 30,
+      "memory": 12
+    },
+
+    "正月三日": {
+      "holiday_new_year": 30,
+      "memory": 12
+    },
+
+    "大晦日": {
+      "holiday_new_year": 25,
+      "philosophical": 15,
+      "memory": 12
+    },
+
+    "クリスマス": {
+      "holiday_christmas": 30,
+      "party_memories": 15,
+      "emotional_density": 12
+    },
+
+    "クリスマスイブ": {
+      "holiday_christmas": 30,
+      "party_memories": 15,
+      "emotional_density": 12
+    },
+
+    "七夕": {
+      "holiday_tanabata": 30,
+      "party_memories": 18,
+      "weather_nature": 10
+    },
+
+    "バレンタインデー": {
+      "holiday_valentine": 30,
+      "human_observation": 15,
+      "curiosity": 10
+    },
+
+    "ホワイトデー": {
+      "holiday_whiteday": 30,
+      "human_observation": 15,
+      "curiosity": 10
+    },
+
+    "エイプリルフール": {
+      "holiday_aprilfool": 30,
+      "frieren_humor": 15,
+      "unexpected": 12
+    },
+
+    "ハロウィン": {
+      "holiday_halloween": 30,
+      "demon_related": 10,
+      "curiosity": 8
+    },
+
+    "葬送のフリーレン放送開始日": {
+      "anniversary_anime": 35,
+      "self_awareness": 15,
+      "memory": 12
+    },
+
+    "葬送のフリーレン二期放送開始日": {
+      "anniversary_anime_s2": 35,
+      "self_awareness": 15,
+      "journey_adventure": 12
+    },
+
+    "管理人の誕生日": {
+      "anniversary_admin_birthday": 35,
+      "admin_comment": 20,
+      "frieren_humor": 15
+    },
+
+    "ゴールデンウィーク": {
+      "holiday_golden_week": 30,
+      "journey_adventure": 15,
+      "daily_life": 12,
+      "party_memories": 10
+    }
+  }
+}
+
+
