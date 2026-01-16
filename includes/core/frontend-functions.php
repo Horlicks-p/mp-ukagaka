@@ -148,7 +148,8 @@ function mpu_is_show_page()
     }
 
     // 檢查登入/註冊頁面
-    if (in_array($GLOBALS["pagenow"], ["wp-login.php", "wp-register.php"])) {
+    $pagenow = $GLOBALS["pagenow"] ?? "";
+    if (in_array($pagenow, ["wp-login.php", "wp-register.php"], true)) {
         return false;
     }
 

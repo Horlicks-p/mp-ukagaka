@@ -29,16 +29,12 @@ if (!defined('MPU_CACHE_DEFAULT')) {
  */
 function mpu_array2str($arr = [])
 {
-    $str = "";
-    if (!empty($arr)) {
-        $n = 0;
-        $len = count($arr);
-        foreach ($arr as $value) {
-            // 使用 PHP_EOL 代替硬編碼的 \n\n 增強跨平台相容性
-            $str .= $n++ == $len - 1 ? $value : $value . PHP_EOL . PHP_EOL;
-        }
+    if (empty($arr)) {
+        return "";
     }
-    return $str;
+
+    // 使用 PHP_EOL 代替硬編碼的 \n\n 增強跨平台相容性
+    return implode(PHP_EOL . PHP_EOL, $arr);
 }
 
 /**
