@@ -71,11 +71,8 @@ function mpu_ajax_nextmsg()
             $total = count($msgs);
 
             if ($total > 0) {
-                $msg = $msgs[mt_rand(0, $total - 1)];
-                $msgnum = array_search($msg, $msgs, true);
-                if ($msgnum === false) {
-                    $msgnum = 0;
-                }
+                $msgnum = mt_rand(0, $total - 1);
+                $msg = $msgs[$msgnum];
 
                 if (defined('WP_DEBUG') && WP_DEBUG) {
                     $reason = $llm_msg === 'MPU_USE_FALLBACK' ? '重複檢測' : ($llm_msg === 'MPU_OLLAMA_BUSY' ? 'Ollama 忙碌' : '生成失敗');
@@ -116,9 +113,11 @@ function mpu_ajax_nextmsg()
                 $msgnum = 0;
             }
         } else {
-            $msg = $total > 0 ? $msgs[mt_rand(0, $total - 1)] : __("無對話內容", "mp-ukagaka");
-            $msgnum = array_search($msg, $msgs, true);
-            if ($msgnum === false) {
+            if ($total > 0) {
+                $msgnum = mt_rand(0, $total - 1);
+                $msg = $msgs[$msgnum];
+            } else {
+                $msg = __("無對話內容", "mp-ukagaka");
                 $msgnum = 0;
             }
         }

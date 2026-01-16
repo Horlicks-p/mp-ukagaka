@@ -548,6 +548,12 @@ function mpu_count_total_msg()
  */
 function mpu_get_msg_from_file($filename_base)
 {
+    // 單次請求內快取（避免同一請求重複讀取相同對話檔案）
+    static $cache = [];
+    if (isset($cache[$filename_base])) {
+        return $cache[$filename_base];
+    }
+
     $mpu_opt = mpu_get_option();
     $ext = $mpu_opt["external_file_format"] ?? "txt";
 
@@ -579,10 +585,12 @@ function mpu_get_msg_from_file($filename_base)
             json_last_error() === JSON_ERROR_NONE &&
             !empty($json["messages"])
         ) {
-            return $json["messages"];
+            $cache[$filename_base] = $json["messages"];
+            return $cache[$filename_base];
         }
         return [__("JSON 檔案格式錯誤", "mp-ukagaka")];
     }
 
-    return mpu_str2array($content);
+    $cache[$filename_base] = mpu_str2array($content);
+    return $cache[$filename_base];
 }

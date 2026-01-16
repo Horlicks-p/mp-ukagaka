@@ -29,16 +29,12 @@ if (!defined('MPU_CACHE_DEFAULT')) {
  */
 function mpu_array2str($arr = [])
 {
-    $str = "";
-    if (!empty($arr)) {
-        $n = 0;
-        $len = count($arr);
-        foreach ($arr as $value) {
-            // 使用 PHP_EOL 代替硬編碼的 \n\n 增強跨平台相容性
-            $str .= $n++ == $len - 1 ? $value : $value . PHP_EOL . PHP_EOL;
-        }
+    if (empty($arr)) {
+        return "";
     }
-    return $str;
+
+    // 使用 PHP_EOL 代替硬編碼的 \n\n 增強跨平台相容性
+    return implode(PHP_EOL . PHP_EOL, $arr);
 }
 
 /**
@@ -121,6 +117,21 @@ function mpu_is_browser($target = "")
 // ========================================
 
 /**
+ * 檢查路徑是否位於允許的目錄內（防止目錄遍歷）
+ *
+ * @param string $path 檔案或目錄路徑
+ * @param string $allowed_dir 允許的根目錄
+ * @return bool
+ */
+function mpu_is_path_within_allowed_dir($path, $allowed_dir)
+{
+    $normalized_path = wp_normalize_path($path);
+    $normalized_allowed_dir = trailingslashit(wp_normalize_path($allowed_dir));
+
+    return strpos($normalized_path, $normalized_allowed_dir) === 0;
+}
+
+/**
  * 安全文件讀取
  * 使用 WordPress Filesystem API 或帶有安全檢查的原生函數
  * 
@@ -140,7 +151,7 @@ function mpu_secure_file_read($file_path)
     }
 
     // 確保文件在允許的目錄內（防止目錄遍歷攻擊）
-    if ($real_allowed_dir !== false && strpos($real_path, $real_allowed_dir) !== 0) {
+    if ($real_allowed_dir !== false && !mpu_is_path_within_allowed_dir($real_path, $real_allowed_dir)) {
         error_log('MP Ukagaka 安全警告：嘗試讀取不允許的路徑: ' . $file_path);
         return new WP_Error('path_not_allowed', __('不允許讀取該路徑', 'mp-ukagaka'));
     }
@@ -201,7 +212,7 @@ function mpu_secure_file_write($file_path, $content)
 
     // 確保目標目錄在允許的範圍內
     if ($real_allowed_dir !== false && $real_file_dir !== false) {
-        if (strpos($real_file_dir, $real_allowed_dir) !== 0) {
+        if (!mpu_is_path_within_allowed_dir($real_file_dir, $real_allowed_dir)) {
             error_log('MP Ukagaka 安全警告：嘗試寫入不允許的路徑: ' . $file_path);
             return new WP_Error('path_not_allowed', __('不允許寫入該路徑', 'mp-ukagaka'));
         }
@@ -838,11 +849,6 @@ function mpu_fetch_external_api($cache_key, $url, $cache_duration = MPU_CACHE_DE
         }
 
         $result = $decoded;
-    }
-
-    // 寫入快取
-    if ($cache_duration > 0) {
-        set_transient($cache_key, $result, $cache_duration);
     }
 
     // 寫入快取

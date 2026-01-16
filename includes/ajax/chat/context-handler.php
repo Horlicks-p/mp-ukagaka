@@ -75,9 +75,9 @@ function mpu_ajax_chat_context()
     }
 
     // 獲取頁面內容
-    $page_title = isset($_POST["page_title"]) ? sanitize_text_field($_POST["page_title"]) : "";
-    $page_content = isset($_POST["page_content"]) ? sanitize_textarea_field($_POST["page_content"]) : "";
-    $publish_date = isset($_POST["publish_date"]) ? sanitize_text_field($_POST["publish_date"]) : "";
+    $page_title = isset($_POST["page_title"]) ? sanitize_text_field(wp_unslash($_POST["page_title"])) : "";
+    $page_content = isset($_POST["page_content"]) ? sanitize_textarea_field(wp_unslash($_POST["page_content"])) : "";
+    $publish_date = isset($_POST["publish_date"]) ? sanitize_text_field(wp_unslash($_POST["publish_date"])) : "";
 
     // 限制內容長度，防止過大請求（使用多位元組函數避免 UTF-8 亂碼）
     if (mb_strlen($page_title, 'UTF-8') > 500) {

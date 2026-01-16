@@ -41,7 +41,7 @@ function mpu_ajax_user_chat()
     $mpu_opt = mpu_get_option();
 
     // 獲取用戶訊息
-    $user_message = isset($_POST['message']) ? sanitize_text_field($_POST['message']) : '';
+    $user_message = isset($_POST['message']) ? sanitize_text_field(wp_unslash($_POST['message'])) : '';
     if (empty($user_message)) {
         wp_send_json(["error" => __("訊息不能為空", "mp-ukagaka")]);
         return;
@@ -212,8 +212,8 @@ function mpu_ajax_user_chat()
     $chat_history = $valid_history;
 
     // 獲取頁面內容（可選，用於上下文）
-    $page_title = isset($_POST['page_title']) ? sanitize_text_field($_POST['page_title']) : '';
-    $page_content = isset($_POST['page_content']) ? sanitize_textarea_field($_POST['page_content']) : '';
+    $page_title = isset($_POST['page_title']) ? sanitize_text_field(wp_unslash($_POST['page_title'])) : '';
+    $page_content = isset($_POST['page_content']) ? sanitize_textarea_field(wp_unslash($_POST['page_content'])) : '';
 
     // 限制長度
     if (mb_strlen($page_title, 'UTF-8') > 200) {

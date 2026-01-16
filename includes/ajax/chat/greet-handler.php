@@ -77,12 +77,12 @@ function mpu_ajax_chat_greet()
     }
 
     // 獲取訪客資訊
-    $referrer = isset($_POST["referrer"]) ? esc_url_raw($_POST["referrer"]) : "";
-    $referrer_host = isset($_POST["referrer_host"]) ? sanitize_text_field($_POST["referrer_host"]) : "";
-    $search_engine = isset($_POST["search_engine"]) ? sanitize_text_field($_POST["search_engine"]) : "";
+    $referrer = isset($_POST["referrer"]) ? esc_url_raw(wp_unslash($_POST["referrer"])) : "";
+    $referrer_host = isset($_POST["referrer_host"]) ? sanitize_text_field(wp_unslash($_POST["referrer_host"])) : "";
+    $search_engine = isset($_POST["search_engine"]) ? sanitize_text_field(wp_unslash($_POST["search_engine"])) : "";
     $is_direct = isset($_POST["is_direct"]) && $_POST["is_direct"] === "true";
-    $country = isset($_POST["country"]) ? sanitize_text_field($_POST["country"]) : "";
-    $city = isset($_POST["city"]) ? sanitize_text_field($_POST["city"]) : "";
+    $country = isset($_POST["country"]) ? sanitize_text_field(wp_unslash($_POST["country"])) : "";
+    $city = isset($_POST["city"]) ? sanitize_text_field(wp_unslash($_POST["city"])) : "";
 
     if (mb_strlen($referrer, 'UTF-8') > 500) {
         $referrer = mb_substr($referrer, 0, 500, 'UTF-8');
