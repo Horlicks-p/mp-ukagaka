@@ -2,8 +2,7 @@
 
 /**
  * AI 功能：API 調用
- * 
- * @package MP_Ukagaka
+ * * @package MP_Ukagaka
  * @subpackage AI
  */
 
@@ -679,8 +678,15 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
 }
 
 /**
- * 過濾 AI 回應中的思考內容標籤（<think>、<thinking>、<reflection>）
- * @param string $response AI 原始回應
+ * 過濾 AI 回應中的思考內容標籤
+ * 支援多種推理模型的標籤變體：
+ * - <think>, <thinking>: DeepSeek-R1, Qwen3
+ * - <reflection>: 某些模型的反思過程
+ * - <chain_of_thought>: 思維鏈標籤
+ * - <reasoning>: 推理過程標籤
+ * - <inner_monologue>: 內心獨白標籤
+ * - <redacted_reasoning>: DeepSeek API 的已編輯推理
+ * * @param string $response AI 原始回應
  * @return string 過濾後的回應
  */
 function mpu_filter_thinking_content($response)
@@ -691,22 +697,47 @@ function mpu_filter_thinking_content($response)
 
     $original_response = $response;
 
-    // 移除完整標籤
-    $response = preg_replace('/<think>.*?<\/think>/is', '', $response);
-    $response = preg_replace('/<thinking>.*?<\/thinking>/is', '', $response);
-    $response = preg_replace('/<reflection>.*?<\/reflection>/is', '', $response);
+    // 完整標籤過濾（有開始和結束標籤）
+    $complete_tags = [
+        'think',
+        'thinking',
+        'reflection',
+        'chain_of_thought',
+        'reasoning',
+        'inner_monologue',
+        'redacted_reasoning',
+    ];
+    
+    foreach ($complete_tags as $tag) {
+        $response = preg_replace('/<' . $tag . '>.*?<\/' . $tag . '>/is', '', $response);
+    }
 
-    // 移除不完整標籤
-    $response = preg_replace('/<think>.*$/is', '', $response);
-    $response = preg_replace('/<thinking>.*$/is', '', $response);
-    $response = preg_replace('/<reflection>.*$/is', '', $response);
+    // 不完整標籤過濾（只有開始標籤，內容延伸到字串結尾）
+    // 這處理模型輸出被截斷的情況
+    $incomplete_tags = [
+        'think',
+        'thinking',
+        'reflection',
+        'chain_of_thought',
+        'reasoning',
+        'inner_monologue',
+    ];
+    
+    foreach ($incomplete_tags as $tag) {
+        $response = preg_replace('/<' . $tag . '>.*$/is', '', $response);
+    }
 
-    // 清理空白
+    // 清理多餘空白
     $response = preg_replace('/\n\s*\n\s*\n/s', "\n\n", $response);
     $response = trim($response);
 
+    // 調試記錄
     if (defined('WP_DEBUG') && WP_DEBUG && $response !== $original_response) {
-        error_log('mpu_filter_thinking_content: filtered');
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log('mpu_filter_thinking_content: filtered thinking tags');
+        } else {
+            error_log('mpu_filter_thinking_content: filtered thinking tags');
+        }
     }
 
     return $response;
@@ -733,8 +764,7 @@ function mpu_get_language_instruction($language)
 
 /**
  * 獲取允許的 WordPress 條件標籤白名單
- * 
- * @return array 允許的條件標籤列表
+ * * @return array 允許的條件標籤列表
  */
 function mpu_get_allowed_conditional_tags()
 {

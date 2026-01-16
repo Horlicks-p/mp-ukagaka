@@ -2,8 +2,7 @@
 
 /**
  * LLM 功能：本機 LLM (Ollama) 對話生成
- * 
- * @package MP_Ukagaka
+ * * @package MP_Ukagaka
  * @subpackage LLM
  */
 
@@ -13,8 +12,7 @@ if (!defined('ABSPATH')) {
 
 /**
  * 檢測 Ollama 端點是否為遠程連接
- * 
- * @param string $endpoint Ollama 端點 URL
+ * * @param string $endpoint Ollama 端點 URL
  * @return bool 是否為遠程連接（true = 遠程，false = 本地）
  */
 function mpu_is_remote_endpoint($endpoint)
@@ -51,8 +49,7 @@ function mpu_is_remote_endpoint($endpoint)
 
 /**
  * 檢查 Ollama 是否正在處理請求
- * 
- * @param string $endpoint Ollama 端點
+ * * @param string $endpoint Ollama 端點
  * @param string $model 模型名稱
  * @return bool 是否正在忙碌
  */
@@ -64,8 +61,7 @@ function mpu_is_ollama_busy($endpoint, $model)
 
 /**
  * 設定 Ollama 忙碌狀態
- * 
- * @param string $endpoint Ollama 端點
+ * * @param string $endpoint Ollama 端點
  * @param string $model 模型名稱
  * @param int $duration 鎖定持續時間（秒），默認 90 秒
  */
@@ -77,8 +73,7 @@ function mpu_set_ollama_busy($endpoint, $model, $duration = 90)
 
 /**
  * 釋放 Ollama 鎖定
- * 
- * @param string $endpoint Ollama 端點
+ * * @param string $endpoint Ollama 端點
  * @param string $model 模型名稱
  */
 function mpu_release_ollama_lock($endpoint, $model)
@@ -89,8 +84,7 @@ function mpu_release_ollama_lock($endpoint, $model)
 
 /**
  * 根據端點類型和操作類型獲取適當的超時時間
- * 
- * @param string $endpoint Ollama 端點 URL
+ * * @param string $endpoint Ollama 端點 URL
  * @param string $operation_type 操作類型：'check'（服務檢查）、'api_call'（API 調用）、'test'（測試連接）
  * @return int 超時時間（秒）
  */
@@ -115,8 +109,7 @@ function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
 
 /**
  * 驗證和標準化 Ollama 端點 URL
- * 
- * @param string $endpoint 原始端點 URL
+ * * @param string $endpoint 原始端點 URL
  * @return string|WP_Error 標準化後的 URL 或錯誤
  */
 function mpu_validate_ollama_endpoint($endpoint)
@@ -149,8 +142,7 @@ function mpu_validate_ollama_endpoint($endpoint)
 
 /**
  * 檢查 Ollama 服務是否可用（快速檢查，使用緩存）
- * 
- * @param string $endpoint Ollama 端點
+ * * @param string $endpoint Ollama 端點
  * @param string $model 模型名稱
  * @return bool 服務是否可用
  */
@@ -236,8 +228,7 @@ function mpu_check_ollama_available($endpoint, $model)
 /**
  * 使用 LLM 生成隨機對話（取代內建對話）
  * 此函數用於當啟用「使用 LLM 取代內建對話」時，生成不依賴頁面內容的隨機對話
- * 
- * @param string $ukagaka_name 偽春菜名稱
+ * * @param string $ukagaka_name 偽春菜名稱
  * @param string $last_response 上一次 AI 的回應（用於避免重複對話）
  * @param array $response_history 回應歷史陣列（最近幾次回應，用於更嚴格的重複檢測）
  * @param int $last_visit_hours 距離上次訪問的小時數（-1 = 首次訪問）
@@ -564,10 +555,16 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     }
 
     // ★★★ 過濾推理模型的思考過程標籤（DeepSeek-R1 等）★★★
+    // 使用專用函數過濾思考內容，支援完整標籤與截斷標籤
     if (!empty($result) && is_string($result)) {
-        $result = preg_replace('/<think>.*?<\/think>/s', '', $result);
-        $result = preg_replace('/<think>.*?<\/redacted_reasoning>/s', '', $result);
-        $result = trim($result);
+        if (function_exists('mpu_filter_thinking_content')) {
+            $result = mpu_filter_thinking_content($result);
+        } else {
+            // 後備方案
+            $result = preg_replace('/<think>.*?<\/think>/s', '', $result);
+            $result = preg_replace('/<think>.*?<\/redacted_reasoning>/s', '', $result);
+            $result = trim($result);
+        }
 
         if (empty($result)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -621,8 +618,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 /**
  * 計算兩個文字的相似度
  * 使用 PHP 內建的 similar_text() 函數（C 語言實作，效能優於純 PHP 算法）
- * 
- * @param string $text1 第一個文字
+ * * @param string $text1 第一個文字
  * @param string $text2 第二個文字
  * @return float 相似度（0.0 到 1.0，1.0 表示完全相同）
  */
@@ -700,8 +696,7 @@ function mpu_is_llm_replace_dialogue_enabled()
 
 /**
  * 獲取 Ollama 設定
- * 
- * @return array|false 設定陣列，未啟用時返回 false
+ * * @return array|false 設定陣列，未啟用時返回 false
  */
 function mpu_get_ollama_settings()
 {
@@ -721,8 +716,7 @@ function mpu_get_ollama_settings()
 /**
  * Debug 工具：輸出 System Prompt 供檢查
  * 使用方式：在 WordPress Debug 模式下會自動記錄到日誌
- * 
- * @param string $system_prompt System prompt 內容
+ * * @param string $system_prompt System prompt 內容
  */
 function mpu_debug_system_prompt($system_prompt)
 {
