@@ -34,6 +34,9 @@
   - `greet-handler.php`：首訪問候
   - `user-chat-handler.php`：互動對話
   - 原檔案從 1036 行精簡至 18 行載入器
+- **表單處理架構統一**：整合分散的處理器至 `admin-functions.php`
+  - 將 LLM 設定和日記設定處理邏輯整合至 `mpu_handle_options_save()`
+  - 單一入口點，符合 WordPress 最佳實踐
 
 ### 📝 文檔更新
 

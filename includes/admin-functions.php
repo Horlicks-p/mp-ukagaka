@@ -73,6 +73,7 @@ function mpu_handle_options_save()
         || isset($_POST['submit5'])     // 會話
         || isset($_POST['submit_ai'])   // AI 設定
         || isset($_POST['submit_llm'])  // LLM 設定
+        || isset($_POST['submit_diary']) // 日記設定
         || isset($_POST['submit_reset']) // 重置設定
         || isset($_POST['submit_upload_zip']); // ZIP 上傳
 
@@ -333,6 +334,131 @@ function mpu_handle_options_save()
         // 用戶可以同時啟用或單獨啟用任一功能
 
         $text = '<div class="updated"><p><strong>' . __('AI 設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
+    } elseif (isset($_POST['submit_llm'])) {
+        // 處理 LLM 設定
+        $current_opt = mpu_get_option();
+
+        // 保存頁面感知開關
+        $mpu_opt['ai_enabled'] = isset($_POST['ai_enabled']) && $_POST['ai_enabled'] ? true : false;
+
+        // 保存提供商選擇（統一使用 llm_provider，同時保持 ai_provider 向後兼容）
+        if (isset($_POST['llm_provider'])) {
+            $provider = sanitize_text_field($_POST['llm_provider']);
+            $mpu_opt['llm_provider'] = $provider;
+            $mpu_opt['ai_provider'] = $provider; // 向後兼容
+        }
+
+        // 處理各提供商的 API Key（加密存儲）
+        $gemini_key = isset($_POST['llm_gemini_api_key']) ? sanitize_text_field($_POST['llm_gemini_api_key']) : '';
+        $openai_key = isset($_POST['llm_openai_api_key']) ? sanitize_text_field($_POST['llm_openai_api_key']) : '';
+        $claude_key = isset($_POST['llm_claude_api_key']) ? sanitize_text_field($_POST['llm_claude_api_key']) : '';
+
+        if (!empty($gemini_key) && !mpu_is_api_key_encrypted($gemini_key)) {
+            $mpu_opt['llm_gemini_api_key'] = mpu_encrypt_api_key($gemini_key);
+            $mpu_opt['ai_api_key'] = $mpu_opt['llm_gemini_api_key']; // 向後兼容
+        }
+        if (!empty($openai_key) && !mpu_is_api_key_encrypted($openai_key)) {
+            $mpu_opt['llm_openai_api_key'] = mpu_encrypt_api_key($openai_key);
+            $mpu_opt['openai_api_key'] = $mpu_opt['llm_openai_api_key']; // 向後兼容
+        }
+        if (!empty($claude_key) && !mpu_is_api_key_encrypted($claude_key)) {
+            $mpu_opt['llm_claude_api_key'] = mpu_encrypt_api_key($claude_key);
+            $mpu_opt['claude_api_key'] = $mpu_opt['llm_claude_api_key']; // 向後兼容
+        }
+
+        // 保存各提供商的模型選擇
+        if (isset($_POST['llm_gemini_model'])) {
+            $mpu_opt['llm_gemini_model'] = sanitize_text_field($_POST['llm_gemini_model']);
+            $mpu_opt['gemini_model'] = $mpu_opt['llm_gemini_model']; // 向後兼容
+        }
+        if (isset($_POST['llm_openai_model'])) {
+            $mpu_opt['llm_openai_model'] = sanitize_text_field($_POST['llm_openai_model']);
+            $mpu_opt['openai_model'] = $mpu_opt['llm_openai_model']; // 向後兼容
+        }
+        if (isset($_POST['llm_claude_model'])) {
+            $mpu_opt['llm_claude_model'] = sanitize_text_field($_POST['llm_claude_model']);
+            $mpu_opt['claude_model'] = $mpu_opt['llm_claude_model']; // 向後兼容
+        }
+
+        // 保存 Ollama 設定
+        if (isset($_POST['ollama_endpoint'])) {
+            $mpu_opt['ollama_endpoint'] = sanitize_text_field($_POST['ollama_endpoint']);
+        }
+        if (isset($_POST['ollama_model'])) {
+            $mpu_opt['ollama_model'] = sanitize_text_field($_POST['ollama_model']);
+        }
+        $mpu_opt['ollama_disable_thinking'] = isset($_POST['ollama_disable_thinking']) && $_POST['ollama_disable_thinking'] ? true : false;
+
+        // 保存「使用 LLM 取代內建對話」設定
+        $mpu_opt['llm_replace_dialogue'] = isset($_POST['llm_replace_dialogue']) && $_POST['llm_replace_dialogue'] ? true : false;
+        if ($mpu_opt['llm_replace_dialogue'] && isset($mpu_opt['llm_provider']) && $mpu_opt['llm_provider'] === 'ollama') {
+            $mpu_opt['ollama_replace_dialogue'] = true;
+        }
+
+        // 保存「啟用互動對話功能」設定
+        $mpu_opt['enable_chat_mode'] = isset($_POST['enable_chat_mode']) && $_POST['enable_chat_mode'] ? true : false;
+
+        // 保存天氣設定
+        $mpu_opt['weather_enabled'] = isset($_POST['weather_enabled']) && $_POST['weather_enabled'] ? true : false;
+        $mpu_opt['weather_latitude'] = isset($_POST['weather_latitude']) ? floatval($_POST['weather_latitude']) : 25.0330;
+        $mpu_opt['weather_longitude'] = isset($_POST['weather_longitude']) ? floatval($_POST['weather_longitude']) : 121.5654;
+
+        // 保存 API 快取設定
+        $mpu_opt['api_cache_enabled'] = isset($_POST['api_cache_enabled']) && $_POST['api_cache_enabled'] ? true : false;
+        $mpu_opt['api_cache_ttl'] = isset($_POST['api_cache_ttl']) ? intval($_POST['api_cache_ttl']) : 3600;
+
+        $text = '<div class="updated"><p><strong>' . __('LLM 設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
+    } elseif (isset($_POST['submit_diary'])) {
+        // 處理日記設定
+        $current_opt = mpu_get_option();
+
+        // 保存基本設定
+        $mpu_opt['diary_enabled'] = isset($_POST['diary_enabled']) && $_POST['diary_enabled'] ? true : false;
+        $mpu_opt['diary_category'] = isset($_POST['diary_category']) ? intval($_POST['diary_category']) : 0;
+        $mpu_opt['diary_author'] = isset($_POST['diary_author']) ? intval($_POST['diary_author']) : get_current_user_id();
+        $mpu_opt['diary_trigger_rate'] = isset($_POST['diary_trigger_rate']) ? max(1, min(10, intval($_POST['diary_trigger_rate']))) : 2;
+        $mpu_opt['diary_signature'] = isset($_POST['diary_signature']) ? sanitize_text_field($_POST['diary_signature']) : '';
+
+        // 保存 AI 供應商設定
+        if (isset($_POST['diary_provider'])) {
+            $mpu_opt['diary_provider'] = sanitize_text_field($_POST['diary_provider']);
+        }
+
+        // 處理各提供商的 API Key（加密存儲）
+        $diary_gemini_key = isset($_POST['diary_gemini_api_key']) ? sanitize_text_field($_POST['diary_gemini_api_key']) : '';
+        $diary_openai_key = isset($_POST['diary_openai_api_key']) ? sanitize_text_field($_POST['diary_openai_api_key']) : '';
+        $diary_claude_key = isset($_POST['diary_claude_api_key']) ? sanitize_text_field($_POST['diary_claude_api_key']) : '';
+
+        if (!empty($diary_gemini_key) && !mpu_is_api_key_encrypted($diary_gemini_key)) {
+            $mpu_opt['diary_gemini_api_key'] = mpu_encrypt_api_key($diary_gemini_key);
+        }
+        if (!empty($diary_openai_key) && !mpu_is_api_key_encrypted($diary_openai_key)) {
+            $mpu_opt['diary_openai_api_key'] = mpu_encrypt_api_key($diary_openai_key);
+        }
+        if (!empty($diary_claude_key) && !mpu_is_api_key_encrypted($diary_claude_key)) {
+            $mpu_opt['diary_claude_api_key'] = mpu_encrypt_api_key($diary_claude_key);
+        }
+
+        // 保存模型選擇
+        if (isset($_POST['diary_gemini_model'])) {
+            $mpu_opt['diary_gemini_model'] = sanitize_text_field($_POST['diary_gemini_model']);
+        }
+        if (isset($_POST['diary_openai_model'])) {
+            $mpu_opt['diary_openai_model'] = sanitize_text_field($_POST['diary_openai_model']);
+        }
+        if (isset($_POST['diary_claude_model'])) {
+            $mpu_opt['diary_claude_model'] = sanitize_text_field($_POST['diary_claude_model']);
+        }
+
+        // 保存 Ollama 設定
+        if (isset($_POST['diary_ollama_endpoint'])) {
+            $mpu_opt['diary_ollama_endpoint'] = sanitize_text_field($_POST['diary_ollama_endpoint']);
+        }
+        if (isset($_POST['diary_ollama_model'])) {
+            $mpu_opt['diary_ollama_model'] = sanitize_text_field($_POST['diary_ollama_model']);
+        }
+
+        $text = '<div class="updated"><p><strong>' . __('日記設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
     } elseif (isset($_POST['submit_reset'])) {
         // 處理重置設定
         if (isset($_POST['reset_mpu'])) {
@@ -356,7 +482,7 @@ function mpu_handle_options_save()
         // 保存後重定向，確保頁面顯示最新值
         // 獲取當前頁面編號，用於重定向
         $cur_page = isset($_GET['cur_page']) ? intval($_GET['cur_page']) : 0;
-        if ($cur_page < 0 || $cur_page > 6) {
+        if ($cur_page < 0 || $cur_page > 7) {
             $cur_page = 0;
         }
 

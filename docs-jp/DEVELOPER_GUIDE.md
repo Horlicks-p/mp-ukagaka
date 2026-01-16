@@ -77,7 +77,8 @@ mp-ukagaka/
 │   ├── options_extend.php      # 拡張設定ページ
 │   ├── options_dialog.php      # 会話設定ページ
 │   ├── options_page_ai.php     # AI 機能設定ページ
-│   └── options_page_llm.php    # LLM 機能設定ページ（BETA）
+│   ├── options_page_llm.php    # LLM 機能設定ページ（BETA）
+│   └── options_page_diary.php  # 日記機能設定ページ
 ├── js/                     # フロントエンド JavaScript モジュール
 │   ├── dist/                   # ビルド出力ディレクトリ（本番用）
 │   │   ├── ukagaka-bundle.min.js   # 結合・圧縮されたコアバンドル

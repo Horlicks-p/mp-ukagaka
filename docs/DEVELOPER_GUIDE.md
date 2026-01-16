@@ -82,12 +82,6 @@
 ├── languages/              # 語言檔案
 ├── docs/                   # 文檔
 ├── options/                # 後台設定頁面
-│   ├── handlers/               # 表單處理器模組
-│   │   ├── handler-llm.php         # LLM + AI 設定處理器
-│   │   ├── handler-ukagaka.php     # 偽春菜管理處理器
-│   │   ├── handler-general.php     # 擴展 + 會話設定處理器
-│   │   ├── handler-diary.php       # 日記設定處理器
-│   │   └── handler-reset.php       # 重置設定處理器
 │   ├── options.php             # 後台頁面框架
 │   ├── options_general.php     # 通用設定頁面
 │   ├── options_ukagakas.php    # 偽春菜管理頁面

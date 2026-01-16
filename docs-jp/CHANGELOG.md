@@ -34,6 +34,9 @@
   - `greet-handler.php`：初訪問者への挨拶
   - `user-chat-handler.php`：インタラクティブチャット
   - 元ファイルは 1036 行から 18 行のローダーに簡素化
+- **フォームハンドラーアーキテクチャ統一**：分散したハンドラーを `admin-functions.php` に統合
+  - LLM 設定と日記設定ロジックを `mpu_handle_options_save()` に統合
+  - シングルエントリーポイント、WordPress ベストプラクティスに準拠
 
 ### 📝 ドキュメント更新
 

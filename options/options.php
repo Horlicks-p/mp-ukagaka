@@ -6,15 +6,11 @@ $base_name = 'mp-ukagaka/options.php';
 $base_page = 'options-general.php?page=' . $base_name;
 $text = '';
 
-// 從 transient 獲取 admin-functions.php 處理的訊息（避免重複處理）
+// 從 transient 獲取 admin-functions.php 處理的訊息
 $admin_message = get_transient('mpu_admin_message');
 if ($admin_message !== false) {
     $text = $admin_message;
     delete_transient('mpu_admin_message');
-    // 如果已經有訊息，跳過後續的表單處理（避免重複）
-    $skip_form_processing = true;
-} else {
-    $skip_form_processing = false;
 }
 
 // 獲取當前頁面編號，預設為 0
@@ -23,21 +19,8 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 7) || $cur_page == '
     $cur_page = 0;
 }
 
-// 載入 handlers
-require_once __DIR__ . '/handlers/handler-ukagaka.php';
-require_once __DIR__ . '/handlers/handler-llm.php';
-require_once __DIR__ . '/handlers/handler-general.php';
-require_once __DIR__ . '/handlers/handler-diary.php';
-require_once __DIR__ . '/handlers/handler-reset.php';
-
-// 處理表單提交（不受 skip_form_processing 影響的刪除操作也在 handler 內處理）
-if (!$skip_form_processing) {
-    $text = mpu_handle_ukagaka($mpu_opt);
-    if (empty($text)) $text = mpu_handle_llm($mpu_opt);
-    if (empty($text)) $text = mpu_handle_general($mpu_opt);
-    if (empty($text)) $text = mpu_handle_diary($mpu_opt);
-    if (empty($text)) $text = mpu_handle_reset($mpu_opt);
-}
+// 注意：表單處理已統一由 admin-functions.php 的 mpu_handle_options_save() 函數處理
+// 在 admin_init hook 中執行，確保在頁面渲染前完成處理
 ?>
 
 <!-- 引入 TextAreaResizer 插件 -->

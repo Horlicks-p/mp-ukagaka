@@ -77,7 +77,8 @@ mp-ukagaka/
 │   ├── options_extend.php      # Extension settings page
 │   ├── options_dialog.php      # Dialogue settings page
 │   ├── options_page_ai.php     # AI settings page
-│   └── options_page_llm.php    # LLM settings page (BETA)
+│   ├── options_page_llm.php    # LLM settings page (BETA)
+│   └── options_page_diary.php  # Diary settings page
 ├── js/                     # Frontend JavaScript Modules
 │   ├── dist/                   # Build output directory (Production)
 │   │   ├── ukagaka-bundle.min.js   # Merged and minified core bundle

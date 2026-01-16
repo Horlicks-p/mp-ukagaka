@@ -34,6 +34,9 @@
   - `greet-handler.php`: First-visit greeting
   - `user-chat-handler.php`: Interactive chat
   - Original file reduced from 1036 lines to 18-line loader
+- **Form Handler Architecture Unification**: Consolidated handlers into `admin-functions.php`
+  - Integrated LLM and Diary settings logic into `mpu_handle_options_save()`
+  - Single entry point, follows WordPress best practices
 
 ### 📝 Documentation Updates
 
