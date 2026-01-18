@@ -23,7 +23,7 @@
 ### 目錄結構
 
 ```text
-6mp-ukagaka/
+mp-ukagaka/
 ├── mp-ukagaka.php          # 主程式進入點
 ├── css/                    # 樣式表
 │   ├── mpu_style.css           # 前端樣式表
@@ -1875,6 +1875,70 @@ sprintf(__('歡迎 %s', 'mp-ukagaka'), $name)
 3. 測試多種 AI 提供商
 4. 測試多語言環境
 5. 檢查瀏覽器控制台無錯誤
+
+---
+
+## SPA（單頁應用程式）整合
+
+MP Ukagaka 支援 SPA 導航。當佈景主題使用 AJAX 載入頁面內容而非完整頁面刷新時，需要通知插件重新初始化。
+
+### 事件觸發
+
+佈景主題應在 SPA 導航完成後觸發 `mpu:spaReady` 事件：
+
+```javascript
+// 在 SPA 導航完成後觸發
+document.dispatchEvent(new CustomEvent('mpu:spaReady', {
+    detail: {
+        url: window.location.href,    // 可選：當前 URL
+        title: document.title         // 可選：頁面標題
+    }
+}));
+```
+
+### 插件回應
+
+插件會監聽此事件並執行：
+
+1. 停止並重新啟動自動對話計時器
+2. 重新觸發頁面感知 AI（如果啟用）
+3. 更新頁面上下文資訊
+
+### 整合範例（佈景主題）
+
+```javascript
+// 使用 History API 的 SPA 導航範例
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('a');
+    if (!link || link.target === '_blank') return;
+    
+    e.preventDefault();
+    
+    // 執行 AJAX 載入...
+    fetch(link.href)
+        .then(response => response.text())
+        .then(html => {
+            // 更新頁面內容
+            document.getElementById('content').innerHTML = html;
+            history.pushState({}, '', link.href);
+            
+            // 通知 MP Ukagaka
+            document.dispatchEvent(new CustomEvent('mpu:spaReady'));
+        });
+});
+
+// 處理瀏覽器返回/前進
+window.addEventListener('popstate', function() {
+    // 載入對應頁面內容後...
+    document.dispatchEvent(new CustomEvent('mpu:spaReady'));
+});
+```
+
+### 注意事項
+
+- 事件應在 DOM 更新完成後觸發
+- 插件會自動處理對話狀態的保持
+- 對話歷史記錄會在同一 session 中保留
 
 ---
 

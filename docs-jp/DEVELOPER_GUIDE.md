@@ -743,4 +743,68 @@ add_action('wp_ajax_nopriv_mpu_custom_action', 'mpu_ajax_custom_action');
 
 ---
 
+## SPA（シングルページアプリケーション）統合
+
+MP Ukagaka は SPA ナビゲーションをサポートしています。テーマが完全なページリフレッシュではなく AJAX でページコンテンツを読み込む場合、プラグインに再初期化を通知する必要があります。
+
+### イベントトリガー
+
+テーマは SPA ナビゲーション完了後に `mpu:spaReady` イベントをディスパッチする必要があります：
+
+```javascript
+// SPA ナビゲーション完了後にディスパッチ
+document.dispatchEvent(new CustomEvent('mpu:spaReady', {
+    detail: {
+        url: window.location.href,    // オプション：現在の URL
+        title: document.title         // オプション：ページタイトル
+    }
+}));
+```
+
+### プラグインの応答
+
+プラグインはこのイベントをリッスンし、以下を実行します：
+
+1. 自動対話タイマーを停止して再起動
+2. ページ感知 AI を再トリガー（有効な場合）
+3. ページコンテキスト情報を更新
+
+### テーマ統合例
+
+```javascript
+// History API を使用した SPA ナビゲーション例
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('a');
+    if (!link || link.target === '_blank') return;
+    
+    e.preventDefault();
+    
+    // AJAX 読み込みを実行...
+    fetch(link.href)
+        .then(response => response.text())
+        .then(html => {
+            // ページコンテンツを更新
+            document.getElementById('content').innerHTML = html;
+            history.pushState({}, '', link.href);
+            
+            // MP Ukagaka に通知
+            document.dispatchEvent(new CustomEvent('mpu:spaReady'));
+        });
+});
+
+// ブラウザの戻る/進むを処理
+window.addEventListener('popstate', function() {
+    // ページコンテンツ読み込み後...
+    document.dispatchEvent(new CustomEvent('mpu:spaReady'));
+});
+```
+
+### 注意事項
+
+- DOM 更新が完了した後にイベントをディスパッチしてください
+- プラグインは自動的に対話状態を維持します
+- チャット履歴は同じセッション内で保持されます
+
+---
+
 ### Made with ❤ for WordPress

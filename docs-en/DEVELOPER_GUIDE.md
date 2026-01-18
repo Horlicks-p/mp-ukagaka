@@ -1500,6 +1500,70 @@ sprintf(__('Welcome %s', 'mp-ukagaka'), $name)
 
 ---
 
+## SPA (Single Page Application) Integration
+
+MP Ukagaka supports SPA navigation. When your theme uses AJAX to load page content instead of full page refresh, you need to notify the plugin to reinitialize.
+
+### Event Trigger
+
+Your theme should dispatch the `mpu:spaReady` event after SPA navigation completes:
+
+```javascript
+// Dispatch after SPA navigation completes
+document.dispatchEvent(new CustomEvent('mpu:spaReady', {
+    detail: {
+        url: window.location.href,    // Optional: Current URL
+        title: document.title         // Optional: Page title
+    }
+}));
+```
+
+### Plugin Response
+
+The plugin listens for this event and will:
+
+1. Stop and restart the auto-talk timer
+2. Re-trigger page-aware AI (if enabled)
+3. Update page context information
+
+### Theme Integration Example
+
+```javascript
+// SPA navigation example using History API
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('a');
+    if (!link || link.target === '_blank') return;
+    
+    e.preventDefault();
+    
+    // Perform AJAX loading...
+    fetch(link.href)
+        .then(response => response.text())
+        .then(html => {
+            // Update page content
+            document.getElementById('content').innerHTML = html;
+            history.pushState({}, '', link.href);
+            
+            // Notify MP Ukagaka
+            document.dispatchEvent(new CustomEvent('mpu:spaReady'));
+        });
+});
+
+// Handle browser back/forward
+window.addEventListener('popstate', function() {
+    // After loading page content...
+    document.dispatchEvent(new CustomEvent('mpu:spaReady'));
+});
+```
+
+### Notes
+
+- Dispatch the event after DOM updates are complete
+- The plugin automatically maintains dialogue state
+- Chat history is preserved within the same session
+
+---
+
 ## Related Resources
 
 - [WordPress Plugin Handbook](https://developer.wordpress.org/plugins/)
