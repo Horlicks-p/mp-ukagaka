@@ -271,11 +271,16 @@ function mpu_get_dynamic_category_weights($time_context, $visitor_info, $context
         }
     }
 
-    // BOT 檢測調整：魔族に例える
+    // BOT 檢測調整：魔族に例える（★ 高優先度：幾乎確定會觸發 BOT 對話）
     if (!empty($visitor_info['is_bot']) && $visitor_info['is_bot'] === true) {
-        $weights['bot_detection'] = 25;
-        $weights['demon_related'] = 15;
-        $weights['observation'] = 10;
+        // 先把所有權重壓低，確保 BOT 對話優先
+        foreach ($weights as $key => $value) {
+            $weights[$key] = max(1, intval($value * 0.1)); // 降到原本的 10%
+        }
+        // 設定 BOT 相關類別的高權重
+        $weights['bot_detection'] = 80;  // 主要優先
+        $weights['demon_related'] = 15;  // 次要
+        $weights['observation'] = 5;     // 最低
     }
 
     // 季節調整（從 JSON 載入 seasonal_adjustments）

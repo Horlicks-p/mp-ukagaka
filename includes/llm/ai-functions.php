@@ -727,6 +727,10 @@ function mpu_filter_thinking_content($response)
         $response = preg_replace('/<' . $tag . '>.*$/is', '', $response);
     }
 
+    // 過濾 LLM 特殊 token（常見於 Mistral、Llama、ChatML 格式模型）
+    // 使用正則表達式匹配 <|xxx|> 格式的 token
+    $response = preg_replace('/\<\|[a-z_]+\|\>/i', '', $response);
+
     // 清理多餘空白
     $response = preg_replace('/\n\s*\n\s*\n/s', "\n\n", $response);
     $response = trim($response);
