@@ -24,38 +24,54 @@ function mpu_check_page_trigger(triggerPages) {
     // is_single: 單篇文章頁面
     if (condition === "is_single") {
       // 排除首頁和歸檔頁面（優先檢查）
-      const isHomePage = path === '/' || path === '' || path === '/wordpress' || path === '/wordpress/';
+      // 只排除明確的首頁路徑，不排除可能是單篇文章的路徑
+      const isRootPath = path === "/" || path === "";
+      const normalizedPath = path.endsWith("/") ? path.slice(0, -1) : path;
+      const pathParts = normalizedPath.split("/").filter(p => p.length > 0);
+      const firstPathPart = pathParts[0] || "";
+      const isUrlEncoded = firstPathPart.includes("%");
+      const hasHyphen = firstPathPart.includes("-");
+
+      // 只有當路徑段只有一個，且不包含 URL 編碼，且不包含連字符，且不是日期格式或特殊頁面時，才視為首頁
+      const isSubdirectoryHome = pathParts.length === 1 &&
+        !isUrlEncoded &&
+        !hasHyphen &&
+        !path.match(/\/\d{4}\/\d{2}\/\d{2}\//) &&
+        !path.match(/^\/(category|tag|author|search|archive|feed)/);
+
+      const isHomePage = isRootPath || isSubdirectoryHome;
       const isSpecialPage = path.match(/^\/(category|tag|author|page|search|archive|feed|$)/);
       const isPagination = path.match(/\/page\/\d+/);
-      
+
       if (isHomePage || isSpecialPage || isPagination) {
         mpuLogger.log("mpu_check_page_trigger: is_single 檢查 - 排除首頁/歸檔頁面", {
           path,
           isHomePage,
+          isSubdirectoryHome,
           isSpecialPage,
           isPagination,
           shouldTrigger: false
         });
         continue; // 跳過此條件，檢查下一個
       }
-      
+
       // 檢查是否為單篇文章：
       // 1. URL 有日期格式 /YYYY/MM/DD/
       // 2. 或者 DOM 中有實際的文章內容（entry-title + entry-content）
       // 3. 或者 DOM 中有 article、main、.entry-content 等容器元素（適用於 single page）
       const hasDatePath = path.match(/\/\d{4}\/\d{2}\/\d{2}\//);
-      const hasArticleContent = 
+      const hasArticleContent =
         document.querySelector('article .entry-title, article .entry-content') ||
         document.querySelector('.hentry .entry-title') ||
         document.querySelector('.single .entry-title');
       // 放寬條件：只要有 article、main 或 .entry-content 容器
-      const hasContentContainer = 
+      const hasContentContainer =
         document.querySelector('article') ||
         document.querySelector('main') ||
         document.querySelector('.entry-content');
-      
+
       const shouldTrigger = hasDatePath || hasArticleContent || hasContentContainer;
-      
+
       mpuLogger.log("mpu_check_page_trigger: is_single 檢查", {
         path,
         hasDatePath,
@@ -63,7 +79,7 @@ function mpu_check_page_trigger(triggerPages) {
         hasContentContainer,
         shouldTrigger
       });
-      
+
       if (shouldTrigger) {
         return true;
       }
@@ -72,43 +88,92 @@ function mpu_check_page_trigger(triggerPages) {
     else if (condition === "is_page") {
       // 簡單檢查：頁面通常沒有日期格式，且不是分類/標籤等
       const isNotSpecial = path.length > 1 &&
-                          !path.match(/^\/(category|tag|author|search|archive|feed)/) &&
-                          !path.match(/\/\d{4}\/\d{2}\/\d{2}\//);
-      
+        !path.match(/^\/(category|tag|author|search|archive|feed)/) &&
+        !path.match(/\/\d{4}\/\d{2}\/\d{2}\//);
+
       mpuLogger.log("mpu_check_page_trigger: is_page 檢查", {
         path,
         pathLength: path.length,
         isNotSpecial,
         shouldTrigger: isNotSpecial
       });
-      
+
       if (isNotSpecial) {
         return true;
       }
     }
     // is_home: 首頁
     else if (condition === "is_home" || condition === "is_front_page") {
-      const isHome = path === "/" || path.match(/^\/page\/\d+$/);
-      
+      const isRootPath = path === "/" || path === "";
+      const normalizedPath = path.endsWith("/") ? path.slice(0, -1) : path;
+      const pathParts = normalizedPath.split("/").filter(p => p.length > 0);
+      const isSubdirectoryHome = pathParts.length === 1 &&
+        !path.match(/\/\d{4}\/\d{2}\/\d{2}\//) &&
+        !path.match(/^\/(category|tag|author|search|archive|feed)/);
+
+      const isHomePagination = path.match(/^(\/[^\/]+)?\/page\/\d+$/);
+      const hasMultipleArticles = document.querySelectorAll('article').length > 1;
+      const hasSinglePostFeatures = document.querySelector('article.single') ||
+        document.querySelector('.single article') ||
+        path.match(/\/\d{4}\/\d{2}\/\d{2}\//);
+
+      const isHome = isRootPath ||
+        isSubdirectoryHome ||
+        isHomePagination ||
+        (hasMultipleArticles && !hasSinglePostFeatures);
+
       mpuLogger.log("mpu_check_page_trigger: is_home/is_front_page 檢查", {
         path,
+        normalizedPath,
+        pathParts,
+        isRootPath,
+        isSubdirectoryHome,
+        isHomePagination,
+        hasMultipleArticles,
+        hasSinglePostFeatures,
         isHome
       });
-      
+
       if (isHome) {
         return true;
       }
     }
-    // is_archive: 歸檔頁面
+    // is_archive: 歸檔頁面（包含 category、tag、author、date 等所有歸檔）
     else if (condition === "is_archive") {
       const isArchive = path.match(/^\/(category|tag|author|date)/);
-      
+
       mpuLogger.log("mpu_check_page_trigger: is_archive 檢查", {
         path,
         isArchive
       });
-      
+
       if (isArchive) {
+        return true;
+      }
+    }
+    // is_category: 分類頁面
+    else if (condition === "is_category") {
+      const isCategory = path.match(/^\/category\//);
+
+      mpuLogger.log("mpu_check_page_trigger: is_category 檢查", {
+        path,
+        isCategory
+      });
+
+      if (isCategory) {
+        return true;
+      }
+    }
+    // is_tag: 標籤頁面
+    else if (condition === "is_tag") {
+      const isTag = path.match(/^\/tag\//);
+
+      mpuLogger.log("mpu_check_page_trigger: is_tag 檢查", {
+        path,
+        isTag
+      });
+
+      if (isTag) {
         return true;
       }
     }
@@ -122,34 +187,30 @@ function mpu_check_page_trigger(triggerPages) {
  * @returns {{title: string, content: string, publishDate: string}} 包含頁面標題、內容和發布日期的物件
  */
 function mpu_get_page_context() {
-  // 優先從文章標題元素取得標題（避免 document.title 只顯示網站名稱的問題）
-  // 注意：某些主題使用 h2 作為文章標題，h1 用於網站名稱
   let title = '';
   const titleElement = document.querySelector('article h1.entry-title') ||
-                       document.querySelector('article h2.entry-title') ||
-                       document.querySelector('article .entry-title') ||
-                       document.querySelector('.entry-title') ||
-                       document.querySelector('article h1:not(.site-title)') ||
-                       document.querySelector('article h2') ||
-                       document.querySelector('main h1:not(.site-title)') ||
-                       document.querySelector('main h2') ||
-                       document.querySelector('#content h1:not(.site-title)') ||
-                       document.querySelector('#content h2') ||
-                       document.querySelector('h1.post-title') ||
-                       document.querySelector('h2.post-title') ||
-                       document.querySelector('h1:not(.site-title)');
-  
+    document.querySelector('article h2.entry-title') ||
+    document.querySelector('article .entry-title') ||
+    document.querySelector('.entry-title') ||
+    document.querySelector('article h1:not(.site-title)') ||
+    document.querySelector('article h2') ||
+    document.querySelector('main h1:not(.site-title)') ||
+    document.querySelector('main h2') ||
+    document.querySelector('#content h1:not(.site-title)') ||
+    document.querySelector('#content h2') ||
+    document.querySelector('h1.post-title') ||
+    document.querySelector('h2.post-title') ||
+    document.querySelector('h1:not(.site-title)');
+
   if (titleElement && titleElement.textContent) {
     title = titleElement.textContent.trim();
   }
-  
+
   // Fallback: 如果找不到文章標題元素，使用 document.title
   if (!title) {
     title = document.title;
   }
 
-  // 從 article, main, 或 .entry-content 提取內容
-  // 注意：不包含 document.body 以避免抓到導航列和頁尾雜訊
   let content = "";
   let publishDate = "";
 
@@ -167,9 +228,9 @@ function mpu_get_page_context() {
   // 嘗試獲取文章發布日期（多種來源）
   // 1. WordPress 標準 <time> 元素（帶 datetime 屬性）
   const timeElement = document.querySelector("article time[datetime]") ||
-                      document.querySelector("time.entry-date[datetime]") ||
-                      document.querySelector("time.published[datetime]") ||
-                      document.querySelector("time[datetime]");
+    document.querySelector("time.entry-date[datetime]") ||
+    document.querySelector("time.published[datetime]") ||
+    document.querySelector("time[datetime]");
   if (timeElement && timeElement.getAttribute("datetime")) {
     publishDate = timeElement.getAttribute("datetime");
   }
@@ -182,8 +243,8 @@ function mpu_get_page_context() {
   // 3. 嘗試從 meta 標籤獲取
   if (!publishDate) {
     const metaDate = document.querySelector("meta[property='article:published_time']") ||
-                     document.querySelector("meta[name='pubdate']") ||
-                     document.querySelector("meta[name='date']");
+      document.querySelector("meta[name='pubdate']") ||
+      document.querySelector("meta[name='date']");
     if (metaDate && metaDate.content) {
       publishDate = metaDate.content;
     }
@@ -192,9 +253,9 @@ function mpu_get_page_context() {
   // 4. 嘗試從常見的日期選擇器獲取
   if (!publishDate) {
     const dateElement = document.querySelector(".entry-date") ||
-                        document.querySelector(".post-date") ||
-                        document.querySelector(".date") ||
-                        document.querySelector(".posted-on");
+      document.querySelector(".post-date") ||
+      document.querySelector(".date") ||
+      document.querySelector(".posted-on");
     if (dateElement && dateElement.textContent) {
       publishDate = dateElement.textContent.trim();
     }
@@ -212,13 +273,13 @@ function mpu_chat_context() {
     mpuLogger.log('mpu_chat_context: 對話模式中，跳過頁面感知 AI');
     return;
   }
-  
+
   // 🔧 如果頁面感知 AI 正在進行中（包含打字），跳過新的觸發
   if (mpuAiContextInProgress) {
     mpuLogger.log('mpu_chat_context: 頁面感知進行中，跳過新觸發');
     return;
   }
-  
+
   // 睡眠模式檢查：優先使用伺服器端時間（避免客戶端/伺服器時區差異）
   let isDeepSleep = false;
   if (typeof window.mpuInfo !== 'undefined' && typeof window.mpuInfo.isDeepSleepTime !== 'undefined') {
@@ -233,7 +294,7 @@ function mpu_chat_context() {
     mpuLogger.log('🌙 睡眠模式（00:00-06:00）：跳過頁面感知 AI，讓角色好好休息');
     return;
   }
-  
+
   const context = mpu_get_page_context();
   const contentLength = context.content ? context.content.length : 0;
 
@@ -272,18 +333,18 @@ function mpu_chat_context() {
   mpuMessageBlocking = true;
 
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
-  
+
   // 檢測是否為自己的日記（根據標題前綴）
   let loadingMessage;
   const diaryPrefix = (typeof mpuL10n !== 'undefined' && mpuL10n.diaryTitlePrefix) ? mpuL10n.diaryTitlePrefix : '';
   const isOwnDiary = diaryPrefix && context.title && context.title.includes(diaryPrefix);
-  
+
   if (isOwnDiary && typeof mpuL10n !== 'undefined' && mpuL10n.loadingOwnDiary) {
     loadingMessage = mpuL10n.loadingOwnDiary;
   } else {
     loadingMessage = (typeof mpuL10n !== 'undefined' && mpuL10n.loadingArticle) ? mpuL10n.loadingArticle : "（…ああ、記事か。どれどれ…）";
   }
-  
+
   mpu_typewriter(
     `<span style="color: ${mpuAiTextColor};">${loadingMessage}</span>`,
     "#ukagaka_msg"
@@ -733,22 +794,22 @@ function loadExternalDialog(file, skipFirstMessage = false) {
         throw new Error(resp.error || "Expected JSON response from server.");
       }
 
-        if (resp && !resp.error && Array.isArray(resp.msg)) {
-          if (resp.msg.length === 0) {
+      if (resp && !resp.error && Array.isArray(resp.msg)) {
+        if (resp.msg.length === 0) {
           mpuLogger.warn('loadExternalDialog: 對話文件為空');
-            window.mpuMsgList = {
-              msg: [],
-              auto_msg: resp.auto_msg || "",
-              next_msg: resp.next_msg || 0,
-              default_msg: resp.default_msg || 0
-            };
-            if (skipFirstMessage) {
-              mpuLogger.log('loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成');
-              jQuery("#ukagaka").stop(true, true).fadeIn(200);
-              document.body.style.cursor = "auto";
-              return;
-            }
-            mpu_typewriter("對話文件為空，請檢查對話文件內容", "#ukagaka_msg");
+          window.mpuMsgList = {
+            msg: [],
+            auto_msg: resp.auto_msg || "",
+            next_msg: resp.next_msg || 0,
+            default_msg: resp.default_msg || 0
+          };
+          if (skipFirstMessage) {
+            mpuLogger.log('loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成');
+            jQuery("#ukagaka").stop(true, true).fadeIn(200);
+            document.body.style.cursor = "auto";
+            return;
+          }
+          mpu_typewriter("對話文件為空，請檢查對話文件內容", "#ukagaka_msg");
           mpu_showmsg(400);
           jQuery("#ukagaka").stop(true, true).fadeIn(200);
           document.body.style.cursor = "auto";
@@ -785,7 +846,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
               mpuLogger.log('loadExternalDialog: 嘗試重複顯示第一句對話，已阻止');
               return;
             }
-            
+
             // 睡眠模式檢查：如果在未喚醒的睡眠模式下，跳過第一句對話
             if (typeof mpu_isUnawokenSleepMode === 'function' && mpu_isUnawokenSleepMode()) {
               mpuLogger.log('🌙 睡眠模式且尚未被喚醒：跳過第一句內建對話，保持睡眠訊息');
@@ -793,7 +854,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
               // 睡眠模式下不啟動自動對話
               return;
             }
-            
+
             firstMessageShown = true;
 
             let first = 0;
@@ -808,14 +869,14 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
             // 等待第一句對話打字完成後啟動自動對話
             if (mpuAutoTalk) {
-              mpu_waitForTypewriterComplete(function() {
+              mpu_waitForTypewriterComplete(function () {
                 startAutoTalk();
               });
             }
           };
 
           // 使用通用函數等待當前打字效果完成
-          mpu_waitForTypewriterComplete(function() {
+          mpu_waitForTypewriterComplete(function () {
             if (!firstMessageShown) {
               firstMessageTimer = setTimeout(showFirstMessage, 1000);
             }
@@ -829,20 +890,20 @@ function loadExternalDialog(file, skipFirstMessage = false) {
                 : "處理對話數據時出錯，請稍後再試。",
           });
         }
-        } else {
-          const errorMsg = resp && resp.error ? resp.error : "無法取得對話資料";
-          jQuery("#ukagaka_msg").html(errorMsg);
+      } else {
+        const errorMsg = resp && resp.error ? resp.error : "無法取得對話資料";
+        jQuery("#ukagaka_msg").html(errorMsg);
 
-          if (!window.mpuMsgList) {
+        if (!window.mpuMsgList) {
           window.mpuMsgList = {
             msg: [],
             auto_msg: "",
             next_msg: 0,
             default_msg: 0
           };
-            mpuLogger.warn('loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 -', errorMsg);
-          }
+          mpuLogger.warn('loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 -', errorMsg);
         }
+      }
       jQuery("#ukagaka").stop(true, true).fadeIn(200);
       document.body.style.cursor = "auto";
     })
@@ -883,32 +944,32 @@ const MPU_MAX_CHAT_HISTORY = 20;
  * 從 localStorage 載入對話歷史
  */
 function mpu_loadChatHistory() {
-    // 使用通用存儲函數，支援多層後備機制
-    const stored = mpu_getLocal(MPU_CHAT_HISTORY_KEY);
-    if (stored && Array.isArray(stored)) {
-        mpuChatHistory = stored.slice(-MPU_MAX_CHAT_HISTORY);
-        return true;
-    }
-    mpuChatHistory = [];
-    return false;
+  // 使用通用存儲函數，支援多層後備機制
+  const stored = mpu_getLocal(MPU_CHAT_HISTORY_KEY);
+  if (stored && Array.isArray(stored)) {
+    mpuChatHistory = stored.slice(-MPU_MAX_CHAT_HISTORY);
+    return true;
+  }
+  mpuChatHistory = [];
+  return false;
 }
 
 /**
  * 儲存對話歷史到 localStorage
  */
 function mpu_saveChatHistory() {
-    // 使用通用存儲函數，支援多層後備機制
-    const toSave = mpuChatHistory.slice(-MPU_MAX_CHAT_HISTORY);
-    mpu_setLocal(MPU_CHAT_HISTORY_KEY, toSave);
+  // 使用通用存儲函數，支援多層後備機制
+  const toSave = mpuChatHistory.slice(-MPU_MAX_CHAT_HISTORY);
+  mpu_setLocal(MPU_CHAT_HISTORY_KEY, toSave);
 }
 
 /**
  * 清除對話歷史
  */
 function mpu_clearChatHistory() {
-    mpuChatHistory = [];
-    // 使用通用存儲函數刪除
-    mpu_delLocal(MPU_CHAT_HISTORY_KEY);
+  mpuChatHistory = [];
+  // 使用通用存儲函數刪除
+  mpu_delLocal(MPU_CHAT_HISTORY_KEY);
 }
 
 /**
@@ -916,128 +977,128 @@ function mpu_clearChatHistory() {
  * @param {boolean} enable - 是否啟用對話模式
  */
 function mpu_toggleChatMode(enable) {
-    const $msgbox = jQuery('#ukagaka_msgbox');
-    const $chatInput = jQuery('#ukagaka_chat_input');
-    const $input = jQuery('#mpu_user_input');
-    
-    if (typeof enable === 'undefined') {
-        enable = !mpuChatModeActive;
+  const $msgbox = jQuery('#ukagaka_msgbox');
+  const $chatInput = jQuery('#ukagaka_chat_input');
+  const $input = jQuery('#mpu_user_input');
+
+  if (typeof enable === 'undefined') {
+    enable = !mpuChatModeActive;
+  }
+
+  mpuChatModeActive = enable;
+
+  if (enable) {
+    // 進入對話模式
+    mpuLogger.log('進入互動對話模式');
+
+    // 暫停自動對話
+    if (mpuAutoTalkTimer !== null) {
+      stopAutoTalk();
     }
-    
-    mpuChatModeActive = enable;
-    
-    if (enable) {
-        // 進入對話模式
-        mpuLogger.log('進入互動對話模式');
-        
-        // 暫停自動對話
-        if (mpuAutoTalkTimer !== null) {
-            stopAutoTalk();
-        }
-        
-        // 載入對話歷史（用於上下文，但不顯示）
-        mpu_loadChatHistory();
-        
-        // 觸發角色喚醒動畫（睡眠模式時會先喚醒）
-        if (typeof window.mpuCanvasManager !== 'undefined' && window.mpuCanvasManager.isCharacterMode) {
-            // 檢查是否為睡眠模式（需要喚醒動畫）- 使用通用函數
-            const needsWakeUp = typeof mpu_isUnawokenSleepMode === 'function' && mpu_isUnawokenSleepMode();
-            
-            if (needsWakeUp) {
-                // 檢查是否有喚醒動畫文件（通用方法，支援各種角色管理器）
-                const hasWakeUpAnimation = typeof window.mpuCanvasManager !== 'undefined' &&
-                                          typeof window.mpuCanvasManager.hasWakeUpAnimation === 'function' &&
-                                          window.mpuCanvasManager.hasWakeUpAnimation();
-                
-                if (hasWakeUpAnimation) {
-                    // 有喚醒動畫：先淡出對話框（隱藏 ZZZ），等待喚醒動畫完成後再顯示
-                    $msgbox.fadeOut(1000, function() {
-                        // 在對話框隱藏後，開始喚醒動畫（skipBookFlip = true：不翻書）
-                        window.mpuCanvasManager.triggerCharacterAnimation(true, function() {
-                            // 喚醒動畫完成後，顯示輸入框和歡迎訊息
-                            $msgbox.addClass('chat-mode');
-                            $chatInput.slideDown(400, function() {
-                                showWelcome();
-                            });
-                        }, true); // skipBookFlip = true：開啟對話時不翻書
-                    });
-                } else {
-                    // 沒有喚醒動畫：直接顯示輸入框（跳過淡出步驟）
-                    $msgbox.addClass('chat-mode');
-                    $chatInput.slideDown(400, function() {
-                        showWelcome();
-                    });
-                }
-            } else {
-                // 非睡眠模式：正常流程（不觸發動畫，只在回答問題時播放）
-                $chatInput.slideDown(400);
-                $msgbox.addClass('chat-mode');
-                
-                // 直接顯示歡迎訊息，不播放動畫
+
+    // 載入對話歷史（用於上下文，但不顯示）
+    mpu_loadChatHistory();
+
+    // 觸發角色喚醒動畫（睡眠模式時會先喚醒）
+    if (typeof window.mpuCanvasManager !== 'undefined' && window.mpuCanvasManager.isCharacterMode) {
+      // 檢查是否為睡眠模式（需要喚醒動畫）- 使用通用函數
+      const needsWakeUp = typeof mpu_isUnawokenSleepMode === 'function' && mpu_isUnawokenSleepMode();
+
+      if (needsWakeUp) {
+        // 檢查是否有喚醒動畫文件（通用方法，支援各種角色管理器）
+        const hasWakeUpAnimation = typeof window.mpuCanvasManager !== 'undefined' &&
+          typeof window.mpuCanvasManager.hasWakeUpAnimation === 'function' &&
+          window.mpuCanvasManager.hasWakeUpAnimation();
+
+        if (hasWakeUpAnimation) {
+          // 有喚醒動畫：先淡出對話框（隱藏 ZZZ），等待喚醒動畫完成後再顯示
+          $msgbox.fadeOut(1000, function () {
+            // 在對話框隱藏後，開始喚醒動畫（skipBookFlip = true：不翻書）
+            window.mpuCanvasManager.triggerCharacterAnimation(true, function () {
+              // 喚醒動畫完成後，顯示輸入框和歡迎訊息
+              $msgbox.addClass('chat-mode');
+              $chatInput.slideDown(400, function () {
                 showWelcome();
-            }
+              });
+            }, true); // skipBookFlip = true：開啟對話時不翻書
+          });
         } else {
-            // 非角色動畫模式：顯示輸入框並直接顯示歡迎訊息
-            $chatInput.slideDown(400);
-            $msgbox.addClass('chat-mode');
+          // 沒有喚醒動畫：直接顯示輸入框（跳過淡出步驟）
+          $msgbox.addClass('chat-mode');
+          $chatInput.slideDown(400, function () {
             showWelcome();
+          });
         }
-        
-        function showWelcome() {
-            // 顯示歡迎訊息（不觸發動畫，只在回答問題時播放）
-            const welcomeMsg = (typeof mpuL10n !== 'undefined' && mpuL10n.chatWelcome) 
-                ? mpuL10n.chatWelcome 
-                : '有什麼想聊的嗎？';
-            mpu_typewriter(welcomeMsg, '#ukagaka_msg', null, true); // true = skipCharacterAnimation
-            
-            // 確保對話框可見
-            if ($msgbox.is(':hidden')) {
-                mpu_showmsg(400);
-            }
-            
-            // 聚焦輸入框
-            setTimeout(() => $input.focus(), 250);
-        }
-        
+      } else {
+        // 非睡眠模式：正常流程（不觸發動畫，只在回答問題時播放）
+        $chatInput.slideDown(400);
+        $msgbox.addClass('chat-mode');
+
+        // 直接顯示歡迎訊息，不播放動畫
+        showWelcome();
+      }
     } else {
-        // 退出對話模式
-        mpuLogger.log('退出互動對話模式');
-        
-        // 隱藏輸入框
-        $chatInput.slideUp(400);
-        $msgbox.removeClass('chat-mode');
-        
-        // 設置訊息阻擋，防止退出後立即說話
-        mpuMessageBlocking = true;
-        
-        // 顯示「結束對話」的訊息（不觸發動畫，只在回答問題時播放）
-        const exitMsg = (typeof mpuL10n !== 'undefined' && mpuL10n.chatExit) 
-            ? mpuL10n.chatExit 
-            : '……';
-        // 使用 skipAnimation 參數來跳過動畫
-        mpu_typewriter(exitMsg, '#ukagaka_msg', null, true); // true = skipCharacterAnimation
-        
-        // 延遲 5 秒後恢復正常狀態
-        setTimeout(() => {
-            // 再次確認還沒重新進入對話模式
-            if (!mpuChatModeActive) {
-                mpuMessageBlocking = false;
-                
-                // 顯示一條隨機對話
-                if (window.mpuMsgList && Array.isArray(window.mpuMsgList.msg) && window.mpuMsgList.msg.length > 0) {
-                    const msgArr = window.mpuMsgList.msg;
-                    const auto = window.mpuMsgList.auto_msg || '';
-                    const randomIdx = Math.floor(Math.random() * msgArr.length);
-                    mpu_typewriter(mpu_unescapeHTML(msgArr[randomIdx] + auto), '#ukagaka_msg');
-                }
-                
-                // 恢復自動對話
-                if (mpuAutoTalk) {
-                    startAutoTalk();
-                }
-            }
-        }, 5000);
+      // 非角色動畫模式：顯示輸入框並直接顯示歡迎訊息
+      $chatInput.slideDown(400);
+      $msgbox.addClass('chat-mode');
+      showWelcome();
     }
+
+    function showWelcome() {
+      // 顯示歡迎訊息（不觸發動畫，只在回答問題時播放）
+      const welcomeMsg = (typeof mpuL10n !== 'undefined' && mpuL10n.chatWelcome)
+        ? mpuL10n.chatWelcome
+        : '有什麼想聊的嗎？';
+      mpu_typewriter(welcomeMsg, '#ukagaka_msg', null, true); // true = skipCharacterAnimation
+
+      // 確保對話框可見
+      if ($msgbox.is(':hidden')) {
+        mpu_showmsg(400);
+      }
+
+      // 聚焦輸入框
+      setTimeout(() => $input.focus(), 250);
+    }
+
+  } else {
+    // 退出對話模式
+    mpuLogger.log('退出互動對話模式');
+
+    // 隱藏輸入框
+    $chatInput.slideUp(400);
+    $msgbox.removeClass('chat-mode');
+
+    // 設置訊息阻擋，防止退出後立即說話
+    mpuMessageBlocking = true;
+
+    // 顯示「結束對話」的訊息（不觸發動畫，只在回答問題時播放）
+    const exitMsg = (typeof mpuL10n !== 'undefined' && mpuL10n.chatExit)
+      ? mpuL10n.chatExit
+      : '……';
+    // 使用 skipAnimation 參數來跳過動畫
+    mpu_typewriter(exitMsg, '#ukagaka_msg', null, true); // true = skipCharacterAnimation
+
+    // 延遲 5 秒後恢復正常狀態
+    setTimeout(() => {
+      // 再次確認還沒重新進入對話模式
+      if (!mpuChatModeActive) {
+        mpuMessageBlocking = false;
+
+        // 顯示一條隨機對話
+        if (window.mpuMsgList && Array.isArray(window.mpuMsgList.msg) && window.mpuMsgList.msg.length > 0) {
+          const msgArr = window.mpuMsgList.msg;
+          const auto = window.mpuMsgList.auto_msg || '';
+          const randomIdx = Math.floor(Math.random() * msgArr.length);
+          mpu_typewriter(mpu_unescapeHTML(msgArr[randomIdx] + auto), '#ukagaka_msg');
+        }
+
+        // 恢復自動對話
+        if (mpuAutoTalk) {
+          startAutoTalk();
+        }
+      }
+    }, 5000);
+  }
 }
 
 /**
@@ -1049,146 +1110,146 @@ function mpu_toggleChatMode(enable) {
  * @returns {string} 轉換後的 HTML
  */
 function mpu_parseMarkdown(text) {
-    if (!text || typeof text !== 'string') return text;
-    
-    return text
-        // 處理粗體 **text** 或 __text__
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/__(.+?)__/g, '<strong>$1</strong>')
-        // 處理斜體 *text* 或 _text_（排除已處理的粗體）
-        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-        .replace(/\b_([^_]+)_\b/g, '<em>$1</em>')
-        // 處理行內代碼 `code`
-        .replace(/`([^`]+)`/g, '<code style="background:#f0f0f0;padding:1px 4px;border-radius:3px;font-family:monospace;font-size:0.9em;">$1</code>');
+  if (!text || typeof text !== 'string') return text;
+
+  return text
+    // 處理粗體 **text** 或 __text__
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.+?)__/g, '<strong>$1</strong>')
+    // 處理斜體 *text* 或 _text_（排除已處理的粗體）
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\b_([^_]+)_\b/g, '<em>$1</em>')
+    // 處理行內代碼 `code`
+    .replace(/`([^`]+)`/g, '<code style="background:#f0f0f0;padding:1px 4px;border-radius:3px;font-family:monospace;font-size:0.9em;">$1</code>');
 }
 
 /**
  * 發送用戶訊息（簡化版：只顯示春菜回覆）
  */
 function mpu_sendUserMessage() {
-    const $input = jQuery('#mpu_user_input');
-    const message = $input.val().trim();
-    
-    if (!message || mpuChatRequesting) {
-        if (mpuChatRequesting) {
-            mpuLogger.log('正在等待回應，請稍候');
-        }
-        return;
-    }
-    
-    // 指令攔截：/reset 或 /clear 清除對話歷史
-    if (message === '/reset' || message === '/clear') {
-        mpu_clearChatHistory();
-        $input.val('');
-        mpu_typewriter('（記憶を消去しました...）對話歷史已清除。', '#ukagaka_msg');
-        mpuLogger.log('對話歷史已清除');
-        return;
-    }
-    
-    // 指令攔截：/help 顯示可用指令
-    if (message === '/help') {
-        $input.val('');
-        const helpText = '【可用指令】\n/reset - 清除對話歷史\n/clear - 同上\n/help - 顯示此說明';
-        mpu_typewriter(helpText, '#ukagaka_msg');
-        return;
-    }
-    
-    mpuLogger.log('發送用戶訊息:', message);
-    
-    // 1. UI 防呆：清空並鎖定輸入框
-    $input.val('').prop('disabled', true);
-    mpuChatRequesting = true;
-    
-    // 添加用戶訊息到歷史（用於上下文，但不顯示）
-    mpuChatHistory.push({
-        role: 'user',
-        content: message,
-        timestamp: Date.now()
-    });
-    
-    // 顯示思考中
-    jQuery('#ukagaka_msg').html('（…えっと<span class="mpu-thinking"></span>）');
-    
-    // 獲取頁面上下文（複用現有函數）
-    const pageContext = mpu_get_page_context();
-    
-    // 發送 AJAX 請求
-    const formData = new FormData();
-    formData.append('action', 'mpu_user_chat');
-    if (typeof mpuNonce !== 'undefined' && mpuNonce) {
-        formData.append('mpu_nonce', mpuNonce);
-    }
-    formData.append('message', message);
-    formData.append('history', JSON.stringify(mpuChatHistory.slice(-10)));
-    // 新增：傳送頁面資訊
-    formData.append('page_title', pageContext.title || '');
-    formData.append('page_content', (pageContext.content || '').substring(0, 2000)); // 裁切節省 Token
-    
-    mpuFetch(mpuurl, {
-        method: 'POST',
-        body: formData,
-        timeout: 60000,
-        retries: 1,
-        requestId: 'mpu_user_chat',
-        cancelPrevious: true
-    })
-    .then(res => {
-        // 2. 幽靈說話檢查：如果對話模式已關閉，捨棄回應
-        if (!mpuChatModeActive) {
-            mpuLogger.log('對話模式已關閉，捨棄本次 AI 回應');
-            return;
-        }
-        
-        if (res && res.msg && !res.error) {
-            const aiResponse = res.msg;
-            
-            // 添加 AI 回應到歷史
-            mpuChatHistory.push({
-                role: 'assistant',
-                content: aiResponse,
-                timestamp: Date.now()
-            });
-            
-            // 3. 記憶功能：儲存對話歷史到 localStorage
-            mpu_saveChatHistory();
-            
-            // 使用打字效果顯示春菜回覆（先解析 Markdown）
-            mpu_typewriter(mpu_parseMarkdown(aiResponse), '#ukagaka_msg');
-            
-            // 觸發角色動畫（使用者發送訊息，強制播放）
-            if (typeof window.mpuCanvasManager !== 'undefined' && window.mpuCanvasManager.isCharacterMode) {
-                window.mpuCanvasManager.triggerCharacterAnimation(true);
-            }
+  const $input = jQuery('#mpu_user_input');
+  const message = $input.val().trim();
 
-            // 顯示表情（如果有的話）
-            if (res.emoji && typeof window.mpuEmojiManager !== 'undefined') {
-                window.mpuEmojiManager.showEmoji(res.emoji);
-            }
-        } else {
-            const errorMsg = res && res.error ? res.error : '抱歉，無法取得回應';
-            mpu_typewriter(errorMsg, '#ukagaka_msg');
+  if (!message || mpuChatRequesting) {
+    if (mpuChatRequesting) {
+      mpuLogger.log('正在等待回應，請稍候');
+    }
+    return;
+  }
+
+  // 指令攔截：/reset 或 /clear 清除對話歷史
+  if (message === '/reset' || message === '/clear') {
+    mpu_clearChatHistory();
+    $input.val('');
+    mpu_typewriter('（記憶を消去しました...）對話歷史已清除。', '#ukagaka_msg');
+    mpuLogger.log('對話歷史已清除');
+    return;
+  }
+
+  // 指令攔截：/help 顯示可用指令
+  if (message === '/help') {
+    $input.val('');
+    const helpText = '【可用指令】\n/reset - 清除對話歷史\n/clear - 同上\n/help - 顯示此說明';
+    mpu_typewriter(helpText, '#ukagaka_msg');
+    return;
+  }
+
+  mpuLogger.log('發送用戶訊息:', message);
+
+  // 1. UI 防呆：清空並鎖定輸入框
+  $input.val('').prop('disabled', true);
+  mpuChatRequesting = true;
+
+  // 添加用戶訊息到歷史（用於上下文，但不顯示）
+  mpuChatHistory.push({
+    role: 'user',
+    content: message,
+    timestamp: Date.now()
+  });
+
+  // 顯示思考中
+  jQuery('#ukagaka_msg').html('（…えっと<span class="mpu-thinking"></span>）');
+
+  // 獲取頁面上下文（複用現有函數）
+  const pageContext = mpu_get_page_context();
+
+  // 發送 AJAX 請求
+  const formData = new FormData();
+  formData.append('action', 'mpu_user_chat');
+  if (typeof mpuNonce !== 'undefined' && mpuNonce) {
+    formData.append('mpu_nonce', mpuNonce);
+  }
+  formData.append('message', message);
+  formData.append('history', JSON.stringify(mpuChatHistory.slice(-10)));
+  // 新增：傳送頁面資訊
+  formData.append('page_title', pageContext.title || '');
+  formData.append('page_content', (pageContext.content || '').substring(0, 2000)); // 裁切節省 Token
+
+  mpuFetch(mpuurl, {
+    method: 'POST',
+    body: formData,
+    timeout: 60000,
+    retries: 1,
+    requestId: 'mpu_user_chat',
+    cancelPrevious: true
+  })
+    .then(res => {
+      // 2. 幽靈說話檢查：如果對話模式已關閉，捨棄回應
+      if (!mpuChatModeActive) {
+        mpuLogger.log('對話模式已關閉，捨棄本次 AI 回應');
+        return;
+      }
+
+      if (res && res.msg && !res.error) {
+        const aiResponse = res.msg;
+
+        // 添加 AI 回應到歷史
+        mpuChatHistory.push({
+          role: 'assistant',
+          content: aiResponse,
+          timestamp: Date.now()
+        });
+
+        // 3. 記憶功能：儲存對話歷史到 localStorage
+        mpu_saveChatHistory();
+
+        // 使用打字效果顯示春菜回覆（先解析 Markdown）
+        mpu_typewriter(mpu_parseMarkdown(aiResponse), '#ukagaka_msg');
+
+        // 觸發角色動畫（使用者發送訊息，強制播放）
+        if (typeof window.mpuCanvasManager !== 'undefined' && window.mpuCanvasManager.isCharacterMode) {
+          window.mpuCanvasManager.triggerCharacterAnimation(true);
         }
+
+        // 顯示表情（如果有的話）
+        if (res.emoji && typeof window.mpuEmojiManager !== 'undefined') {
+          window.mpuEmojiManager.showEmoji(res.emoji);
+        }
+      } else {
+        const errorMsg = res && res.error ? res.error : '抱歉，無法取得回應';
+        mpu_typewriter(errorMsg, '#ukagaka_msg');
+      }
     })
     .catch(error => {
-        // 幽靈說話檢查
-        if (!mpuChatModeActive) {
-            mpuLogger.log('對話模式已關閉，捨棄錯誤訊息');
-            return;
-        }
-        
-        mpu_handle_error(error, 'mpu_sendUserMessage', {
-            showToUser: false
-        });
-        mpu_typewriter('（…連線好像有點問題…）', '#ukagaka_msg');
+      // 幽靈說話檢查
+      if (!mpuChatModeActive) {
+        mpuLogger.log('對話模式已關閉，捨棄錯誤訊息');
+        return;
+      }
+
+      mpu_handle_error(error, 'mpu_sendUserMessage', {
+        showToUser: false
+      });
+      mpu_typewriter('（…連線好像有點問題…）', '#ukagaka_msg');
     })
     .finally(() => {
-        mpuChatRequesting = false;
-        // 1. UI 防呆：解鎖輸入框
-        $input.prop('disabled', false);
-        // 只有在對話模式中才聚焦
-        if (mpuChatModeActive) {
-            $input.focus();
-        }
+      mpuChatRequesting = false;
+      // 1. UI 防呆：解鎖輸入框
+      $input.prop('disabled', false);
+      // 只有在對話模式中才聚焦
+      if (mpuChatModeActive) {
+        $input.focus();
+      }
     });
 }
 
@@ -1196,109 +1257,109 @@ function mpu_sendUserMessage() {
  * HTML 轉義
  */
 function mpu_escapeHTML(str) {
-    if (!str) return '';
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 // 綁定對話模式事件
-jQuery(document).ready(function() {
-    // 第三個按鈕點擊事件：根據設定決定是對話還是切換春菜
-    jQuery('#mpu_chat_toggle').on('click', function(e) {
-        e.preventDefault();
-        if (mpuEnableChatMode) {
-            // 啟用互動對話模式
-            mpu_toggleChatMode();
-        } else {
-            // 執行原本的角色切換功能
-            if (typeof mpuChange === 'function') {
-                mpuChange('');
-            }
-        }
-    });
-    
-    // 輸入框 Enter 鍵發送
-    jQuery('#mpu_user_input').on('keypress', function(e) {
-        if (e.which === 13 && !e.shiftKey) {
-            e.preventDefault();
-            mpu_sendUserMessage();
-        }
-    });
-    
-    // OK 按鈕（✅）：對話模式中送出訊息，一般模式下一句
-    jQuery('#mpu_ok_btn').on('click', function(e) {
-        e.preventDefault();
-        
-        // 檢查是否正在處理裝飾物對話
-        if (typeof window.mpuCanvasManager !== 'undefined' && window.mpuCanvasManager.decorationChatInProgress) {
-            mpuLogger.log('裝飾物對話進行中，忽略按鈕點擊');
-            return;
-        }
-        
-        // 檢查訊息是否被阻擋
-        if (mpuMessageBlocking) {
-            mpuLogger.log('訊息被阻擋，忽略按鈕點擊');
-            return;
-        }
-        
-        // 賴床功能：如果是睡眠模式被喚醒，記錄 IP
-        if (typeof window.mpuInfo !== 'undefined' && window.mpuInfo.isDeepSleepTime) {
-            mpuLogger.log('🌅 喚醒角色！正在記錄 IP...');
-            
-            // 發送喚醒請求
-            var wakeParams = new URLSearchParams({ action: 'mpu_wake_ghost' });
-            if (typeof mpuNonce !== 'undefined') {
-                wakeParams.append('mpu_nonce', mpuNonce);
-            }
-            var wakeUrl = mpuurl + '?' + wakeParams.toString();
-            
-            mpuFetch(wakeUrl, { timeout: 5000 })
-                .then(function(res) {
-                    mpuLogger.log('喚醒成功:', res);
-                    // 更新本地狀態，避免重複喚醒請求
-                    window.mpuInfo.isDeepSleepTime = false;
-                })
-                .catch(function(err) {
-                    mpuLogger.warn('喚醒請求失敗，但不影響正常操作:', err);
-                });
-        }
-        
-        if (mpuChatModeActive) {
-            mpu_sendUserMessage();
-        } else {
-            mpu_nextmsg('');
-        }
-    });
-    
-    // Cancel 按鈕（❌）：對話模式中退出對話，一般模式隱藏對話框
-    jQuery('#mpu_cancel_btn').on('click', function(e) {
-        e.preventDefault();
-        
-        // 檢查是否正在處理裝飾物對話
-        if (typeof window.mpuCanvasManager !== 'undefined' && window.mpuCanvasManager.decorationChatInProgress) {
-            mpuLogger.log('裝飾物對話進行中，忽略按鈕點擊');
-            return;
-        }
-        
-        // 檢查訊息是否被阻擋
-        if (mpuMessageBlocking) {
-            mpuLogger.log('訊息被阻擋，忽略按鈕點擊');
-            return;
-        }
-        
-        if (mpuChatModeActive) {
-            // 退出對話模式，回到自言自語模式
-            mpu_toggleChatMode(false);
-            mpuLogger.log('退出對話模式');
-        } else {
-            mpu_hidemsg('');
-        }
-    });
-    
-    mpuLogger.log('互動對話模式已初始化');
+jQuery(document).ready(function () {
+  // 第三個按鈕點擊事件：根據設定決定是對話還是切換春菜
+  jQuery('#mpu_chat_toggle').on('click', function (e) {
+    e.preventDefault();
+    if (mpuEnableChatMode) {
+      // 啟用互動對話模式
+      mpu_toggleChatMode();
+    } else {
+      // 執行原本的角色切換功能
+      if (typeof mpuChange === 'function') {
+        mpuChange('');
+      }
+    }
+  });
+
+  // 輸入框 Enter 鍵發送
+  jQuery('#mpu_user_input').on('keypress', function (e) {
+    if (e.which === 13 && !e.shiftKey) {
+      e.preventDefault();
+      mpu_sendUserMessage();
+    }
+  });
+
+  // OK 按鈕（✅）：對話模式中送出訊息，一般模式下一句
+  jQuery('#mpu_ok_btn').on('click', function (e) {
+    e.preventDefault();
+
+    // 檢查是否正在處理裝飾物對話
+    if (typeof window.mpuCanvasManager !== 'undefined' && window.mpuCanvasManager.decorationChatInProgress) {
+      mpuLogger.log('裝飾物對話進行中，忽略按鈕點擊');
+      return;
+    }
+
+    // 檢查訊息是否被阻擋
+    if (mpuMessageBlocking) {
+      mpuLogger.log('訊息被阻擋，忽略按鈕點擊');
+      return;
+    }
+
+    // 賴床功能：如果是睡眠模式被喚醒，記錄 IP
+    if (typeof window.mpuInfo !== 'undefined' && window.mpuInfo.isDeepSleepTime) {
+      mpuLogger.log('🌅 喚醒角色！正在記錄 IP...');
+
+      // 發送喚醒請求
+      var wakeParams = new URLSearchParams({ action: 'mpu_wake_ghost' });
+      if (typeof mpuNonce !== 'undefined') {
+        wakeParams.append('mpu_nonce', mpuNonce);
+      }
+      var wakeUrl = mpuurl + '?' + wakeParams.toString();
+
+      mpuFetch(wakeUrl, { timeout: 5000 })
+        .then(function (res) {
+          mpuLogger.log('喚醒成功:', res);
+          // 更新本地狀態，避免重複喚醒請求
+          window.mpuInfo.isDeepSleepTime = false;
+        })
+        .catch(function (err) {
+          mpuLogger.warn('喚醒請求失敗，但不影響正常操作:', err);
+        });
+    }
+
+    if (mpuChatModeActive) {
+      mpu_sendUserMessage();
+    } else {
+      mpu_nextmsg('');
+    }
+  });
+
+  // Cancel 按鈕（❌）：對話模式中退出對話，一般模式隱藏對話框
+  jQuery('#mpu_cancel_btn').on('click', function (e) {
+    e.preventDefault();
+
+    // 檢查是否正在處理裝飾物對話
+    if (typeof window.mpuCanvasManager !== 'undefined' && window.mpuCanvasManager.decorationChatInProgress) {
+      mpuLogger.log('裝飾物對話進行中，忽略按鈕點擊');
+      return;
+    }
+
+    // 檢查訊息是否被阻擋
+    if (mpuMessageBlocking) {
+      mpuLogger.log('訊息被阻擋，忽略按鈕點擊');
+      return;
+    }
+
+    if (mpuChatModeActive) {
+      // 退出對話模式，回到自言自語模式
+      mpu_toggleChatMode(false);
+      mpuLogger.log('退出對話模式');
+    } else {
+      mpu_hidemsg('');
+    }
+  });
+
+  mpuLogger.log('互動對話模式已初始化');
 });
 

@@ -129,17 +129,18 @@ MP Ukagaka - AI 挨拶プロンプト:
 ## テスト手順
 
 1. **初回訪問者 Cookie をクリア**：
+
    - ブラウザコンソールで入力：`document.cookie.split(";").forEach(c => { if(c.includes("mpu_first_visit")) document.cookie = c.split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/"; });`
-
 2. **デバッグモードを有効化**：
-   - 入力：`window.mpuDebugMode = true`
 
+   - 入力：`window.mpuDebugMode = true`
 3. **異なるソースからのアクセスをシミュレート**：
+
    - 直接アクセス：URL を直接入力
    - 検索エンジン：Google 検索結果からクリック
    - 外部サイト：他のサイトのリンクからアクセス
-
 4. **デバッグ情報を確認**：
+
    - コンソール出力を確認
    - AI 挨拶内容にソース情報が含まれているか確認
 
