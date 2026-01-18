@@ -580,14 +580,47 @@ function mpu_nextmsg(trigger) {
               content: res.msg,
               timestamp: Date.now(),
             });
+            mpuLogger.log(
+              "mpu_nextmsg: 自發對話已加入對話歷史，當前歷史長度:",
+              mpuChatHistory.length
+            );
             // 限制最多保留 3 條自發對話（避免佔用太多上下文）
+            // 只刪除最舊的 assistant 記錄，保留所有 user 記錄
             const maxAutoTalkHistory = 3;
-            while (mpuChatHistory.length > maxAutoTalkHistory) {
-              mpuChatHistory.shift();
+            const assistantMessages = mpuChatHistory.filter(
+              (msg) => msg.role === "assistant"
+            );
+            if (assistantMessages.length > maxAutoTalkHistory) {
+              // 找到需要刪除的最舊的 assistant 記錄
+              let removed = 0;
+              const toRemove = assistantMessages.length - maxAutoTalkHistory;
+              for (let i = 0; i < mpuChatHistory.length && removed < toRemove; i++) {
+                if (mpuChatHistory[i].role === "assistant") {
+                  mpuChatHistory.splice(i, 1);
+                  removed++;
+                  i--; // 因為刪除了元素，索引需要減 1
+                }
+              }
+              mpuLogger.log(
+                "mpu_nextmsg: 刪除了",
+                removed,
+                "條舊的自發對話，保留",
+                maxAutoTalkHistory,
+                "條"
+              );
             }
             if (typeof mpu_saveChatHistory === "function") {
               mpu_saveChatHistory();
+              mpuLogger.log("mpu_nextmsg: 對話歷史已儲存");
+            } else {
+              mpuLogger.warn(
+                "mpu_nextmsg: mpu_saveChatHistory 函數不存在，無法儲存對話歷史"
+              );
             }
+          } else {
+            mpuLogger.warn(
+              "mpu_nextmsg: mpuChatHistory 未初始化或不是陣列，無法加入對話歷史"
+            );
           }
 
           if (res.msgnum !== undefined) {

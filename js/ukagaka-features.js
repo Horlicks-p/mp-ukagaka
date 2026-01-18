@@ -237,19 +237,38 @@ jQuery(document).ready(function () {
     }
 
     if (res.ai_enabled === true) {
+      mpuLogger.log("頁面感知 AI 已啟用，觸發頁面條件 =", res.ai_trigger_pages);
       const shouldTrigger = mpu_check_page_trigger(res.ai_trigger_pages);
+
+      mpuLogger.log("頁面感知檢查結果: shouldTrigger =", shouldTrigger);
 
       if (shouldTrigger) {
         const probability = parseInt(res.ai_probability || 10, 10);
         const roll = Math.floor(Math.random() * 100) + 1;
 
+        mpuLogger.log(
+          "頁面感知機率檢查: 設定機率 =",
+          probability,
+          "%, 骰子 =",
+          roll,
+          ", 觸發 =",
+          roll <= probability
+        );
+
         if (roll <= probability) {
+          mpuLogger.log("頁面感知 AI 將在 3 秒後觸發");
           setTimeout(function () {
             mpu_chat_context();
           }, 3000);
           return;
+        } else {
+          mpuLogger.log("頁面感知 AI 未通過機率檢查，不觸發");
         }
+      } else {
+        mpuLogger.log("頁面感知 AI 未通過頁面類型檢查，不觸發");
       }
+    } else {
+      mpuLogger.log("頁面感知 AI 未啟用（ai_enabled =", res.ai_enabled, "）");
     }
   }
 

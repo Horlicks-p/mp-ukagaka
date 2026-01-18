@@ -5,11 +5,16 @@
  * @returns {boolean} 是否符合觸發條件
  */
 function mpu_check_page_trigger(triggerPages) {
-  if (!triggerPages) return false;
+  if (!triggerPages) {
+    mpuLogger.log("mpu_check_page_trigger: triggerPages 為空，返回 false");
+    return false;
+  }
 
   const conditions = triggerPages.split(",").map((s) => s.trim().toLowerCase());
   const path = window.location.pathname;
   const url = window.location.href;
+
+  mpuLogger.log("mpu_check_page_trigger: 檢查條件 =", conditions, ", path =", path);
 
   // 檢查各種 WordPress 條件
   for (let condition of conditions) {
@@ -18,37 +23,92 @@ function mpu_check_page_trigger(triggerPages) {
 
     // is_single: 單篇文章頁面
     if (condition === "is_single") {
-      // 檢查是否為單篇文章：通常有日期格式 /YYYY/MM/DD/ 或直接是文章 slug
-      // 排除分類、標籤、作者、頁面等特殊頁面
-      if (
-        path.match(/\/\d{4}\/\d{2}\/\d{2}\//) ||
-        (path.length > 1 &&
-          !path.match(/^\/(category|tag|author|page|search|archive|feed)/) &&
-          !path.match(/\/page\/\d+/))
-      ) {
+      // 排除首頁和歸檔頁面（優先檢查）
+      const isHomePage = path === '/' || path === '' || path === '/wordpress' || path === '/wordpress/';
+      const isSpecialPage = path.match(/^\/(category|tag|author|page|search|archive|feed|$)/);
+      const isPagination = path.match(/\/page\/\d+/);
+      
+      if (isHomePage || isSpecialPage || isPagination) {
+        mpuLogger.log("mpu_check_page_trigger: is_single 檢查 - 排除首頁/歸檔頁面", {
+          path,
+          isHomePage,
+          isSpecialPage,
+          isPagination,
+          shouldTrigger: false
+        });
+        continue; // 跳過此條件，檢查下一個
+      }
+      
+      // 檢查是否為單篇文章：
+      // 1. URL 有日期格式 /YYYY/MM/DD/
+      // 2. 或者 DOM 中有實際的文章內容（entry-title + entry-content）
+      // 3. 或者 DOM 中有 article、main、.entry-content 等容器元素（適用於 single page）
+      const hasDatePath = path.match(/\/\d{4}\/\d{2}\/\d{2}\//);
+      const hasArticleContent = 
+        document.querySelector('article .entry-title, article .entry-content') ||
+        document.querySelector('.hentry .entry-title') ||
+        document.querySelector('.single .entry-title');
+      // 放寬條件：只要有 article、main 或 .entry-content 容器
+      const hasContentContainer = 
+        document.querySelector('article') ||
+        document.querySelector('main') ||
+        document.querySelector('.entry-content');
+      
+      const shouldTrigger = hasDatePath || hasArticleContent || hasContentContainer;
+      
+      mpuLogger.log("mpu_check_page_trigger: is_single 檢查", {
+        path,
+        hasDatePath,
+        hasArticleContent,
+        hasContentContainer,
+        shouldTrigger
+      });
+      
+      if (shouldTrigger) {
         return true;
       }
     }
     // is_page: 頁面
     else if (condition === "is_page") {
       // 簡單檢查：頁面通常沒有日期格式，且不是分類/標籤等
-      if (
-        path.length > 1 &&
-        !path.match(/^\/(category|tag|author|search|archive|feed)/) &&
-        !path.match(/\/\d{4}\/\d{2}\/\d{2}\//)
-      ) {
+      const isNotSpecial = path.length > 1 &&
+                          !path.match(/^\/(category|tag|author|search|archive|feed)/) &&
+                          !path.match(/\/\d{4}\/\d{2}\/\d{2}\//);
+      
+      mpuLogger.log("mpu_check_page_trigger: is_page 檢查", {
+        path,
+        pathLength: path.length,
+        isNotSpecial,
+        shouldTrigger: isNotSpecial
+      });
+      
+      if (isNotSpecial) {
         return true;
       }
     }
     // is_home: 首頁
     else if (condition === "is_home" || condition === "is_front_page") {
-      if (path === "/" || path.match(/^\/page\/\d+$/)) {
+      const isHome = path === "/" || path.match(/^\/page\/\d+$/);
+      
+      mpuLogger.log("mpu_check_page_trigger: is_home/is_front_page 檢查", {
+        path,
+        isHome
+      });
+      
+      if (isHome) {
         return true;
       }
     }
     // is_archive: 歸檔頁面
     else if (condition === "is_archive") {
-      if (path.match(/^\/(category|tag|author|date)/)) {
+      const isArchive = path.match(/^\/(category|tag|author|date)/);
+      
+      mpuLogger.log("mpu_check_page_trigger: is_archive 檢查", {
+        path,
+        isArchive
+      });
+      
+      if (isArchive) {
         return true;
       }
     }
@@ -177,16 +237,26 @@ function mpu_chat_context() {
   const context = mpu_get_page_context();
   const contentLength = context.content ? context.content.length : 0;
 
+  mpuLogger.log("mpu_chat_context: 頁面上下文檢查", {
+    hasTitle: !!context.title,
+    title: context.title,
+    contentLength,
+    hasContent: !!context.content
+  });
+
   if (!context.title && !context.content) {
+    mpuLogger.log("mpu_chat_context: 沒有標題和內容，跳過");
     return;
   }
 
   // 如果首次訪客打招呼正在進行中，跳過頁面感知 AI
   if (mpuGreetInProgress) {
+    mpuLogger.log("mpu_chat_context: 首次訪客打招呼進行中，跳過");
     return;
   }
 
   if (contentLength < 300) {
+    mpuLogger.log("mpu_chat_context: 內容長度不足 300 字（當前:", contentLength, "），跳過");
     return;
   }
 
