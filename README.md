@@ -1,4 +1,4 @@
-# MP Ukagaka
+# MP Ukagaka with Frieren
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
