@@ -1,4 +1,4 @@
-# MP Ukagaka
+# MP Ukagaka with 芙莉蓮
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
