@@ -379,6 +379,107 @@ function mpu_call_ollama_api(
 
 ---
 
+### API キャッシュ関数 (api-cache.php)
+
+> 💡 **v2.5.6 新規**：API キャッシュシステム。WordPress Transient API を使用して AI API 応答をキャッシュし、重複リクエストとコストを削減。
+
+#### mpu_is_api_cache_enabled()
+
+API キャッシュが有効か確認。
+
+```php
+/**
+ * @return bool
+ */
+function mpu_is_api_cache_enabled(): bool
+```
+
+---
+
+#### mpu_get_api_cache_ttl()
+
+キャッシュ TTL（秒）を取得。
+
+```php
+/**
+ * @return int デフォルト 3600 秒（1 時間）、範囲 300-86400 秒
+ */
+function mpu_get_api_cache_ttl(): int
+```
+
+---
+
+#### mpu_generate_cache_key()
+
+キャッシュキーを生成。
+
+```php
+/**
+ * @param string $provider プロバイダー
+ * @param string $system_prompt システムプロンプト
+ * @param string $user_prompt ユーザープロンプト
+ * @return string キャッシュキー
+ */
+function mpu_generate_cache_key(string $provider, string $system_prompt, string $user_prompt): string
+```
+
+---
+
+#### mpu_get_cached_api_response()
+
+キャッシュから API 応答を取得。
+
+```php
+/**
+ * @param string $cache_key キャッシュキー
+ * @return string|false キャッシュされた応答または false
+ */
+function mpu_get_cached_api_response(string $cache_key)
+```
+
+---
+
+#### mpu_set_cached_api_response()
+
+API 応答をキャッシュに保存。
+
+```php
+/**
+ * @param string $cache_key キャッシュキー
+ * @param string $response API 応答
+ * @return bool
+ */
+function mpu_set_cached_api_response(string $cache_key, string $response): bool
+```
+
+---
+
+#### mpu_clear_all_api_cache()
+
+すべての LLM API キャッシュをクリア。
+
+```php
+/**
+ * @return int クリアされたキャッシュ数
+ */
+function mpu_clear_all_api_cache(): int
+```
+
+---
+
+#### mpu_get_api_cache_stats()
+
+API キャッシュ統計を取得。
+
+```php
+/**
+ * @return array ['count' => int, 'ttl' => int, 'enabled' => bool]
+ */
+function mpu_get_api_cache_stats(): array
+```
+
+---
+
 ### LLM 機能関数 (llm-functions.php)
 
 > 💡 **2.2.0 更新**：LLM 機能が**汎用 LLM インターフェース**にアップグレードされ、Ollama、Gemini、OpenAI、Claude の 4 大 AI サービスをサポート。
@@ -443,12 +544,14 @@ LLM を使用してランダムダイアログを生成（内蔵ダイアログ�
  * @param string $ukagaka_name 伺か名
  * @param string $last_response 前回の AI 応答（重複ダイアログ回避用）
  * @param array $response_history 応答履歴配列
+ * @param int $last_visit_hours 最後の訪問からの時間（デフォルト -1 はデータなし、v2.5.6 新規）
  * @return string|false 生成されたダイアログ内容、失敗時は false
  */
 function mpu_generate_llm_dialogue(
     string $ukagaka_name = 'default_1',
     string $last_response = '',
-    array $response_history = []
+    array $response_history = [],
+    int $last_visit_hours = -1
 )
 ```
 
@@ -458,6 +561,25 @@ function mpu_generate_llm_dialogue(
 - 重複ダイアログ防止機構をサポート（類似度検出）
 - WordPress 情報、ユーザー情報、訪問者情報を自動統合
 - 70+ のフリーレン風ダイアログ例をサポート
+
+**利用可能な Filter Hooks（v2.5.7）：**
+
+| Filter | 説明 | パラメータ |
+|--------|------|------------|
+| `mpu_llm_system_prompt` | System Prompt を変更 | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
+| `mpu_llm_user_prompt` | 会話指示の前に追加コンテキストを注入 | `$prompt`, `$ukagaka_name`, `$personality_id` |
+
+**使用例（セキュリティアラート統合）：**
+
+```php
+add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
+    $attack_info = get_transient('mpu_llar_attack_info');
+    if ($attack_info) {
+        return $prompt . "\n【セキュリティアラート】\n" . $attack_info;
+    }
+    return $prompt;
+}, 10, 3);
+```
 
 ---
 

@@ -26,6 +26,9 @@ function mpu_ajax_nextmsg()
         }
     }
 
+    // 速率限制（防止濫用）- 20次/分鐘
+    mpu_enforce_rate_limit('nextmsg', 20, 60);
+
     $mpu_opt = mpu_get_option();
 
     $cur_num = isset($request_data["cur_num"])
@@ -167,6 +170,9 @@ function mpu_ajax_extend()
         }
     }
 
+    // 速率限制 - 10次/分鐘
+    mpu_enforce_rate_limit('extend', 10, 60);
+
     echo '<a onclick="mpuChange(\'\')" href="javascript:void(0);">' .
         __("更換偽春菜", "mp-ukagaka") .
         "</a>";
@@ -188,6 +194,9 @@ function mpu_ajax_change()
             return;
         }
     }
+
+    // 速率限制 - 10次/分鐘
+    mpu_enforce_rate_limit('change', 10, 60);
 
     $mpu_opt = mpu_get_option();
 
@@ -243,6 +252,9 @@ add_action('wp_ajax_nopriv_mpu_change', 'mpu_ajax_change');
  */
 function mpu_ajax_get_settings()
 {
+    // 速率限制 - 30次/分鐘
+    mpu_enforce_rate_limit('get_settings', 30, 60);
+
     $mpu_opt = mpu_get_option();
 
     // 獲取當前人格 ID
@@ -290,6 +302,9 @@ function mpu_ajax_load_dialog()
             return;
         }
     }
+
+    // 速率限制 - 30次/分鐘
+    mpu_enforce_rate_limit('load_dialog', 30, 60);
 
     $mpu_opt = mpu_get_option();
     $file = isset($_GET["file"])
@@ -361,6 +376,9 @@ add_action('wp_ajax_nopriv_mpu_load_dialog', 'mpu_ajax_load_dialog');
 
 function mpu_ajax_get_visitor_info()
 {
+    // 速率限制 - 30次/分鐘
+    mpu_enforce_rate_limit('get_visitor_info', 30, 60);
+
     global $wpdb;
 
     $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw($_SERVER['HTTP_REFERER']) : "";
@@ -461,6 +479,9 @@ function mpu_ajax_get_decoration_prompts()
         }
     }
 
+    // 速率限制 - 20次/分鐘
+    mpu_enforce_rate_limit('get_decoration_prompts', 20, 60);
+
     // 獲取當前人格 ID
     $personality_id = function_exists('mpu_get_current_personality_id')
         ? mpu_get_current_personality_id()
@@ -528,6 +549,9 @@ function mpu_ajax_wake_ghost()
         }
     }
 
+    // 速率限制 - 10次/分鐘
+    mpu_enforce_rate_limit('wake_ghost', 10, 60);
+
     // ★ 從請求中獲取 personality_id（必須）
     $personality_id = isset($request_data['personality_id'])
         ? sanitize_text_field($request_data['personality_id'])
@@ -588,6 +612,9 @@ function mpu_ajax_get_shell_info()
         }
     }
 
+    // 速率限制 - 30次/分鐘
+    mpu_enforce_rate_limit('get_shell_info', 30, 60);
+
     // 獲取 ukagaka_num 參數
     $mpu_opt = mpu_get_option();
     $ukagaka_num = isset($request_data['ukagaka_num'])
@@ -629,6 +656,9 @@ function mpu_ajax_get_decoration_config()
             return;
         }
     }
+
+    // 速率限制 - 30次/分鐘
+    mpu_enforce_rate_limit('get_decoration_config', 30, 60);
 
     // 獲取當前人格 ID
     $personality_id = function_exists('mpu_get_current_personality_id')
@@ -688,6 +718,9 @@ function mpu_ajax_get_emoji_config()
         }
     }
 
+    // 速率限制 - 30次/分鐘
+    mpu_enforce_rate_limit('get_emoji_config', 30, 60);
+
     // 獲取當前人格 ID
     $personality_id = function_exists('mpu_get_current_personality_id')
         ? mpu_get_current_personality_id()
@@ -737,6 +770,9 @@ function mpu_ajax_init()
             return;
         }
     }
+
+    // 速率限制 - 30次/分鐘
+    mpu_enforce_rate_limit('init', 30, 60);
 
     $mpu_opt = mpu_get_option();
 

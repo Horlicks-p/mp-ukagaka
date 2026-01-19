@@ -35,11 +35,15 @@ mp-ukagaka/
 │   │   ├── ukagaka-functions.php   # Ukagaka management
 │   │   └── frontend-functions.php  # Frontend functions
 │   ├── ajax/                   # AJAX handler modules
+│   │   ├── chat/                   # Chat handler subdirectory (v2.5.6)
+│   │   │   ├── context-handler.php     # Page awareness chat
+│   │   │   ├── greet-handler.php       # First visit greeting
+│   │   │   └── user-chat-handler.php   # Interactive chat
 │   │   ├── ajax-handlers.php       # AJAX handlers (Core)
-│   │   ├── ajax-chat-handlers-llm.php  # LLM chat AJAX handlers (v2.5.0)
-│   │   ├── ajax-touch-handlers-llm.php # LLM touch AJAX handlers (v2.5.0)
-│   │   ├── ajax-handlers-test.php  # API connection test handlers (v2.3.0)
-│   │   └── chat-api-handlers.php   # Multi-turn dialogue API handlers (v2.3.0)
+│   │   ├── ajax-chat-handlers-llm.php  # LLM chat loader (v2.5.6, loads chat/ subdirectory)
+│   │   ├── ajax-touch-handlers-llm.php # LLM touch AJAX handlers
+│   │   ├── ajax-handlers-test.php  # API connection test handlers
+│   │   └── chat-api-handlers.php   # Multi-turn dialogue API handlers
 │   ├── personality/            # Personality system modules
 │   │   ├── personality-loader.php  # Personality system (JSON loader, v2.4.0)
 │   │   ├── personality-prompts.php # Personality prompt module
@@ -111,14 +115,15 @@ $core_modules = [
     'personality/personality-prompts.php', // 4. Personality prompt module
     'personality/personality-decorations.php', // 5. Decoration system
     'personality/personality-emoji.php',   // 6. Emoji system
-    'llm/ai-functions.php',        // 7. AI functions (Cloud API: Gemini, OpenAI, Claude)
-    'llm/prompt-categories.php',   // 8. Prompt category management (Load before llm-functions.php)
-    'llm/llm-slimstat.php',        // 9. LLM Slimstat integration (Load before llm-context-builder.php)
-    'llm/llm-context-builder.php', // 10. LLM context builder (Load before llm-functions.php)
-    'llm/weather-functions.php',   // 11. Weather functions (Open-Meteo API)
-    'llm/diary-functions.php',     // 12. AI Diary functions (v2.5.0)
-    'llm/llm-functions.php',       // 13. LLM functions (Local LLM: Ollama)
-    'personality/emoji-mapper.php',        // 13. Emoji mapping (Load before AJAX handlers)
+    'llm/api-cache.php',           // 7. API cache system (v2.5.6, load before ai-functions.php)
+    'llm/ai-functions.php',        // 8. AI functions (Cloud API: Gemini, OpenAI, Claude)
+    'llm/prompt-categories.php',   // 9. Prompt category management (Load before llm-functions.php)
+    'llm/llm-slimstat.php',        // 10. LLM Slimstat integration (Load before llm-context-builder.php)
+    'llm/llm-context-builder.php', // 11. LLM context builder (Load before llm-functions.php)
+    'llm/weather-functions.php',   // 12. Weather functions (Open-Meteo API)
+    'llm/diary-functions.php',     // 13. AI Diary functions (v2.5.0)
+    'llm/llm-functions.php',       // 14. LLM functions (Local LLM: Ollama)
+    'personality/emoji-mapper.php',        // 15. Emoji mapping (Load before AJAX handlers)
     'core/ukagaka-functions.php',   // 14. Ukagaka management
     'ajax/ajax-handlers.php',       // 15. AJAX handlers (Core)
     'ajax/ajax-chat-handlers-llm.php',      // 16. LLM chat AJAX handlers
@@ -148,7 +153,7 @@ $admin_modules = [
 
 | Constant        | Description      | Value     |
 | --------------- | ---------------- | --------- |
-| `MPU_VERSION`   | Plugin Version   | `"2.3.0"` |
+| `MPU_VERSION`   | Plugin Version   | `"2.5.6"` |
 | `MPU_MAIN_FILE` | Main File Path   | `__FILE__`|
 
 ---

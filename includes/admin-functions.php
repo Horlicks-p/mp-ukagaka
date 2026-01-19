@@ -516,7 +516,11 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
 
     // 確保對話目錄存在
     if (!mpu_ensure_dialogs_dir()) {
-        error_log('MP Ukagaka: 無法創建對話目錄');
+        if (function_exists('mpu_log_error')) {
+            mpu_log_error('無法創建對話目錄', 'dialog_gen');
+        } else {
+             error_log('MP Ukagaka: 無法創建對話目錄');
+        }
         return false;
     }
 
@@ -536,7 +540,11 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
     $result = mpu_secure_file_write($file_path, $content);
 
     if (is_wp_error($result)) {
-        error_log('MP Ukagaka: 文件寫入失敗 - ' . $result->get_error_message());
+        if (function_exists('mpu_log_error')) {
+            mpu_log_error('文件寫入失敗 - ' . $result->get_error_message(), 'dialog_gen');
+        } else {
+            error_log('MP Ukagaka: 文件寫入失敗 - ' . $result->get_error_message());
+        }
         return false;
     }
 

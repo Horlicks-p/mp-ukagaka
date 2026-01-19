@@ -541,6 +541,107 @@ function mpu_call_ollama_api(
 
 ---
 
+### API 快取函數 (api-cache.php)
+
+> 💡 **v2.5.6 新增**：API 快取系統，使用 WordPress Transient API 快取 AI API 回應，減少重複請求和費用。
+
+#### mpu_is_api_cache_enabled()
+
+檢查 API 快取是否啟用。
+
+```php
+/**
+ * @return bool
+ */
+function mpu_is_api_cache_enabled(): bool
+```
+
+---
+
+#### mpu_get_api_cache_ttl()
+
+取得快取 TTL（秒）。
+
+```php
+/**
+ * @return int 預設 3600 秒（1 小時），範圍 300-86400 秒
+ */
+function mpu_get_api_cache_ttl(): int
+```
+
+---
+
+#### mpu_generate_cache_key()
+
+生成快取鍵。
+
+```php
+/**
+ * @param string $provider 提供商
+ * @param string $system_prompt 系統提示詞
+ * @param string $user_prompt 用戶提示詞
+ * @return string 快取鍵
+ */
+function mpu_generate_cache_key(string $provider, string $system_prompt, string $user_prompt): string
+```
+
+---
+
+#### mpu_get_cached_api_response()
+
+從快取取得 API 回應。
+
+```php
+/**
+ * @param string $cache_key 快取鍵
+ * @return string|false 快取的回應或 false
+ */
+function mpu_get_cached_api_response(string $cache_key)
+```
+
+---
+
+#### mpu_set_cached_api_response()
+
+將 API 回應存入快取。
+
+```php
+/**
+ * @param string $cache_key 快取鍵
+ * @param string $response API 回應
+ * @return bool
+ */
+function mpu_set_cached_api_response(string $cache_key, string $response): bool
+```
+
+---
+
+#### mpu_clear_all_api_cache()
+
+清除所有 LLM API 快取。
+
+```php
+/**
+ * @return int 清除的快取數量
+ */
+function mpu_clear_all_api_cache(): int
+```
+
+---
+
+#### mpu_get_api_cache_stats()
+
+取得 API 快取統計。
+
+```php
+/**
+ * @return array ['count' => int, 'ttl' => int, 'enabled' => bool]
+ */
+function mpu_get_api_cache_stats(): array
+```
+
+---
+
 ### LLM 功能函數 (llm-functions.php)
 
 > 💡 **2.2.0 更新**：LLM 功能已升級為**通用 LLM 接口**，支援 Ollama、Gemini、OpenAI、Claude 四大 AI 服務。
@@ -645,9 +746,10 @@ if (mpu_check_ollama_available('https://your-domain.com', 'qwen3:8b')) {
  * @param string $ukagaka_name 春菜名稱
  * @param string $last_response 上一次 AI 的回應（用於避免重複對話）
  * @param array $response_history 回應歷史陣列（最近幾次回應，用於更嚴格的重複檢測）
+ * @param int $last_visit_hours 最後訪問距今的小時數（預設 -1 表示無資料，v2.5.6 新增）
  * @return string|false 生成的對話內容，失敗時返回 false
  */
-function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1', string $last_response = '', array $response_history = [])
+function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1', string $last_response = '', array $response_history = [], int $last_visit_hours = -1)
 ```
 
 **範例：**
@@ -668,6 +770,25 @@ $dialogue = mpu_generate_llm_dialogue('frieren', '上次的回應', ['回應1', 
 - 支援防止重複對話機制（相似度檢測）
 - 自動整合 WordPress 資訊、用戶資訊、訪客資訊
 - 支援 70+ 個芙莉蓮風格對話範例
+
+**可用的 Filter Hooks（v2.5.7）：**
+
+| Filter | 說明 | 參數 |
+|--------|------|------|
+| `mpu_llm_system_prompt` | 修改 System Prompt | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
+| `mpu_llm_user_prompt` | 在會話指示前注入額外上下文 | `$prompt`, `$ukagaka_name`, `$personality_id` |
+
+**使用範例（安全警報整合）：**
+
+```php
+add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
+    $attack_info = get_transient('mpu_llar_attack_info');
+    if ($attack_info) {
+        return $prompt . "\n【安全警報】\n" . $attack_info;
+    }
+    return $prompt;
+}, 10, 3);
+```
 
 ---
 

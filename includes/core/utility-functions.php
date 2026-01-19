@@ -152,7 +152,7 @@ function mpu_secure_file_read($file_path)
 
     // 確保文件在允許的目錄內（防止目錄遍歷攻擊）
     if ($real_allowed_dir !== false && !mpu_is_path_within_allowed_dir($real_path, $real_allowed_dir)) {
-        error_log('MP Ukagaka 安全警告：嘗試讀取不允許的路徑: ' . $file_path);
+        mpu_log_warning('安全警告：嘗試讀取不允許的路徑: ' . $file_path);
         return new WP_Error('path_not_allowed', __('不允許讀取該路徑', 'mp-ukagaka'));
     }
 
@@ -213,7 +213,7 @@ function mpu_secure_file_write($file_path, $content)
     // 確保目標目錄在允許的範圍內
     if ($real_allowed_dir !== false && $real_file_dir !== false) {
         if (!mpu_is_path_within_allowed_dir($real_file_dir, $real_allowed_dir)) {
-            error_log('MP Ukagaka 安全警告：嘗試寫入不允許的路徑: ' . $file_path);
+            mpu_log_warning('安全警告：嘗試寫入不允許的路徑: ' . $file_path);
             return new WP_Error('path_not_allowed', __('不允許寫入該路徑', 'mp-ukagaka'));
         }
     }
@@ -360,7 +360,7 @@ function mpu_decrypt_api_key($encrypted_key)
         }
 
         // 解密失敗，返回空
-        error_log('MP Ukagaka: API Key 解密失敗');
+        mpu_log_error('API Key 解密失敗');
         return '';
     }
 
@@ -803,7 +803,7 @@ function mpu_fetch_external_api($cache_key, $url, $cache_duration = MPU_CACHE_DE
 
     // 錯誤處理
     if (is_wp_error($response)) {
-        error_log($options['log_prefix'] . ': Request failed - ' . $response->get_error_message());
+        mpu_log_error($options['log_prefix'] . ': Request failed - ' . $response->get_error_message());
         return null;
     }
 
@@ -814,7 +814,7 @@ function mpu_fetch_external_api($cache_key, $url, $cache_duration = MPU_CACHE_DE
 
     // 檢查狀態碼（在解析 JSON 前，避免不必要的解析）
     if ($status_code !== 200) {
-        error_log($options['log_prefix'] . ': API returned status ' . $status_code);
+        mpu_log_warning($options['log_prefix'] . ': API returned status ' . $status_code);
 
         // 如果是 JSON 錯誤響應，嘗試解析以便調用者檢查
         if ($options['parse_json'] && !empty($body)) {
@@ -832,19 +832,19 @@ function mpu_fetch_external_api($cache_key, $url, $cache_duration = MPU_CACHE_DE
     if ($options['parse_json']) {
         // 檢查空響應
         if (empty($body)) {
-            error_log($options['log_prefix'] . ': Empty response body');
+            mpu_log_warning($options['log_prefix'] . ': Empty response body');
             return null;
         }
 
         $decoded = json_decode($body, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log($options['log_prefix'] . ': JSON parse error - ' . json_last_error_msg());
+            mpu_log_error($options['log_prefix'] . ': JSON parse error - ' . json_last_error_msg());
             return null;
         }
 
         // 檢查解析結果是否為 null（空字串會被解析為 null）
         if ($decoded === null) {
-            error_log($options['log_prefix'] . ': JSON decoded to null (possibly empty string)');
+            mpu_log_warning($options['log_prefix'] . ': JSON decoded to null (possibly empty string)');
             return null;
         }
 
@@ -868,4 +868,123 @@ function mpu_fetch_external_api($cache_key, $url, $cache_duration = MPU_CACHE_DE
 function mpu_clear_api_cache($cache_key)
 {
     return delete_transient($cache_key);
+}
+
+// ========================================
+// Rate Limiting 函數
+// ========================================
+
+/**
+ * 速率限制檢查
+ * 
+ * 檢查指定動作的請求次數是否超過限制。
+ * 使用 WordPress Transient API 儲存計數器。
+ * 
+ * @since 2.5.7
+ * @param string $action 動作標識（如 'chat_context', 'user_chat'）
+ * @param int $max_requests 時間週期內最大請求數
+ * @param int $period 時間週期（秒）
+ * @return array [
+ *   'allowed' => bool,      // 是否允許此次請求
+ *   'remaining' => int,     // 剩餘可用請求數
+ *   'reset_in' => int,      // 重置倒計時（秒）
+ *   'count' => int,         // 當前已使用次數
+ * ]
+ */
+function mpu_check_rate_limit($action, $max_requests = 10, $period = 60)
+{
+    $ip = mpu_get_client_ip();
+    $transient_key = 'mpu_rl_' . sanitize_key($action) . '_' . md5($ip);
+    
+    $data = get_transient($transient_key);
+    if ($data === false) {
+        $data = ['count' => 0, 'first_request' => time()];
+    }
+    
+    $elapsed = time() - $data['first_request'];
+    
+    // 如果超過週期，重置計數
+    if ($elapsed >= $period) {
+        $data = ['count' => 0, 'first_request' => time()];
+        $elapsed = 0;
+    }
+    
+    // 增加計數
+    $data['count']++;
+    
+    // 更新 transient
+    set_transient($transient_key, $data, $period);
+    
+    return [
+        'allowed' => $data['count'] <= $max_requests,
+        'remaining' => max(0, $max_requests - $data['count']),
+        'reset_in' => max(0, $period - $elapsed),
+        'count' => $data['count'],
+    ];
+}
+
+/**
+ * 執行速率限制
+ * 
+ * 檢查請求是否超過限制，如果超過則直接返回 429 錯誤並終止。
+ * 適用於 AJAX 處理器，簡化限制檢查流程。
+ * 
+ * @since 2.5.7
+ * @param string $action 動作標識
+ * @param int $max_requests 時間週期內最大請求數
+ * @param int $period 時間週期（秒）
+ * @return array Rate limit 結果（僅在允許時返回）
+ */
+function mpu_enforce_rate_limit($action, $max_requests = 10, $period = 60)
+{
+    $result = mpu_check_rate_limit($action, $max_requests, $period);
+    
+    if (!$result['allowed']) {
+        // 記錄日誌（可選）
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log(sprintf(
+                'Rate limit exceeded: action=%s, ip=%s, count=%d, max=%d',
+                $action,
+                mpu_get_client_ip(),
+                $result['count'],
+                $max_requests
+            ));
+        }
+        
+        // 設置 HTTP 429 狀態碼和 Retry-After header
+        status_header(429);
+        header('Retry-After: ' . $result['reset_in']);
+        
+        wp_send_json_error([
+            'code' => 'rate_limit_exceeded',
+            'message' => sprintf(
+                __('請求過於頻繁，請 %d 秒後再試', 'mp-ukagaka'),
+                $result['reset_in']
+            ),
+            'retry_after' => $result['reset_in'],
+        ], 429);
+        
+        // 不應該到達這裡，但以防萬一
+        exit;
+    }
+    
+    return $result;
+}
+
+/**
+ * 重置指定動作的速率限制
+ * 
+ * @since 2.5.7
+ * @param string $action 動作標識
+ * @param string|null $ip IP 地址，null 則使用當前客戶端 IP
+ * @return bool 是否成功重置
+ */
+function mpu_reset_rate_limit($action, $ip = null)
+{
+    if ($ip === null) {
+        $ip = mpu_get_client_ip();
+    }
+    
+    $transient_key = 'mpu_rl_' . sanitize_key($action) . '_' . md5($ip);
+    return delete_transient($transient_key);
 }

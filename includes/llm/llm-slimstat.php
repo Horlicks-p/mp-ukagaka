@@ -139,10 +139,10 @@ function mpu_fetch_slimstat_stats()
     // 記錄調試資訊（僅在 WP_DEBUG 模式下）
     if (defined('WP_DEBUG') && WP_DEBUG) {
         if (is_wp_error($count_response)) {
-            error_log('MP Ukagaka - Slimstat REST API 錯誤（count）: ' . $count_response->get_error_message());
+            mpu_debug_log('Slimstat REST API 錯誤（count）: ' . $count_response->get_error_message());
         }
         if (is_wp_error($top_response)) {
-            error_log('MP Ukagaka - Slimstat REST API 錯誤（top）: ' . $top_response->get_error_message());
+            mpu_debug_log('Slimstat REST API 錯誤（top）: ' . $top_response->get_error_message());
         }
     }
 

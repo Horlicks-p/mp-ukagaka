@@ -24,15 +24,8 @@ function mpu_ajax_chat_greet()
         }
     }
 
-    // 速率限制（防止濫用）
-    $ip = mpu_get_client_ip();
-    $transient_key = 'mpu_ai_greet_rate_limit_' . md5($ip);
-    $rate_limit = get_transient($transient_key);
-
-    if ($rate_limit !== false && $rate_limit >= 5) {
-        wp_send_json(["error" => "請求過於頻繁，請稍後再試"]);
-        return;
-    }
+    // 速率限制（防止濫用）- 10次/分鐘
+    mpu_enforce_rate_limit('chat_greet', 10, 60);
 
     $mpu_opt = mpu_get_option();
 
@@ -201,9 +194,7 @@ function mpu_ajax_chat_greet()
         return;
     }
 
-
-    $current_count = ($rate_limit !== false) ? intval($rate_limit) : 0;
-    set_transient($transient_key, $current_count + 1, 300);
+    // Rate limiting 現在由 mpu_enforce_rate_limit 自動處理
 
     // 限制回應長度（從 manifest.json 的 settings.max_response_length 讀取，預設 500）
     $max_length = 500;

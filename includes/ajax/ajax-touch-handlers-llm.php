@@ -33,15 +33,8 @@ function mpu_ajax_decoration_chat()
         return;
     }
 
-    // 速率限制（防止濫用）
-    $ip = mpu_get_client_ip();
-    $transient_key = 'mpu_decoration_chat_rate_' . md5($ip);
-    $rate_limit = get_transient($transient_key);
-
-    if ($rate_limit !== false && $rate_limit >= 20) {
-        wp_send_json(['error' => __('請求過於頻繁，請稍後再試', 'mp-ukagaka')]);
-        return;
-    }
+    // 速率限制（防止濫用）- 20次/分鐘
+    mpu_enforce_rate_limit('decoration_chat', 20, 60);
 
     // 獲取裝飾物類型
     $decoration_type = isset($_POST['decoration_type'])
@@ -198,15 +191,8 @@ function mpu_ajax_touch_zone_chat()
         return;
     }
 
-    // 速率限制（防止濫用）
-    $ip = mpu_get_client_ip();
-    $transient_key = 'mpu_touch_zone_rate_' . md5($ip);
-    $rate_limit = get_transient($transient_key);
-
-    if ($rate_limit !== false && $rate_limit >= 20) {
-        wp_send_json(['error' => __('請求過於頻繁，請稍後再試', 'mp-ukagaka')]);
-        return;
-    }
+    // 速率限制（防止濫用）- 20次/分鐘
+    mpu_enforce_rate_limit('touch_zone_chat', 20, 60);
 
     // 獲取觸摸區域
     $touch_zone = isset($_POST['touch_zone'])

@@ -35,11 +35,15 @@ mp-ukagaka/
 │   │   ├── ukagaka-functions.php   # 偽春菜管理
 │   │   └── frontend-functions.php  # 前端功能
 │   ├── ajax/                   # AJAX 處理模組
+│   │   ├── chat/                   # 對話處理器子目錄（v2.5.6）
+│   │   │   ├── context-handler.php     # 頁面感知對話
+│   │   │   ├── greet-handler.php       # 首訪問候
+│   │   │   └── user-chat-handler.php   # 互動對話
 │   │   ├── ajax-handlers.php       # AJAX 處理（核心功能）
-│   │   ├── ajax-chat-handlers-llm.php  # LLM 對話相關 AJAX 處理（v2.5.0）
-│   │   ├── ajax-touch-handlers-llm.php # LLM 觸摸相關 AJAX 處理（v2.5.0）
-│   │   ├── ajax-handlers-test.php  # API 連線測試處理器（v2.3.0）
-│   │   └── chat-api-handlers.php   # 多輪對話 API 處理（v2.3.0）
+│   │   ├── ajax-chat-handlers-llm.php  # LLM 對話載入器（v2.5.6，載入 chat/ 子目錄）
+│   │   ├── ajax-touch-handlers-llm.php # LLM 觸摸相關 AJAX 處理
+│   │   ├── ajax-handlers-test.php  # API 連線測試處理器
+│   │   └── chat-api-handlers.php   # 多輪對話 API 處理
 │   ├── personality/            # 人格系統模組
 │   │   ├── personality-loader.php  # 人格系統（JSON 載入器，v2.4.0）
 │   │   ├── personality-prompts.php # 人格提示詞模組
@@ -123,14 +127,15 @@ $core_modules = [
     'personality/personality-prompts.php', // 4. 人格提示詞模組（動態提示詞、變數替換）
     'personality/personality-decorations.php', // 5. 裝飾物系統
     'personality/personality-emoji.php',   // 6. 表情系統
-    'llm/ai-functions.php',        // 7. AI 功能（雲端 API：Gemini, OpenAI, Claude）
-    'llm/prompt-categories.php',   // 8. Prompt 類別指令管理（需在 llm-functions.php 之前載入）
-    'llm/llm-slimstat.php',        // 9. LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
-    'llm/llm-context-builder.php', // 10. LLM 上下文建構（需在 llm-functions.php 之前載入）
-    'llm/weather-functions.php',   // 11. 天氣功能（Open-Meteo API）
-    'llm/diary-functions.php',     // 12. AI 日記功能（v2.5.0）
-    'llm/llm-functions.php',       // 13. LLM 功能（本機 LLM：Ollama）
-    'personality/emoji-mapper.php',        // 13. 表情映射與情緒分析（需在 AJAX 處理器之前載入）
+    'llm/api-cache.php',           // 7. API 快取系統（v2.5.6，需在 ai-functions.php 之前載入）
+    'llm/ai-functions.php',        // 8. AI 功能（雲端 API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 9. Prompt 類別指令管理（需在 llm-functions.php 之前載入）
+    'llm/llm-slimstat.php',        // 10. LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
+    'llm/llm-context-builder.php', // 11. LLM 上下文建構（需在 llm-functions.php 之前載入）
+    'llm/weather-functions.php',   // 12. 天氣功能（Open-Meteo API）
+    'llm/diary-functions.php',     // 13. AI 日記功能（v2.5.0）
+    'llm/llm-functions.php',       // 14. LLM 功能（本機 LLM：Ollama）
+    'personality/emoji-mapper.php',        // 15. 表情映射與情緒分析（需在 AJAX 處理器之前載入）
     'core/ukagaka-functions.php',   // 14. 偽春菜管理
     'ajax/ajax-handlers.php',       // 15. AJAX 處理器（核心功能）
     'ajax/ajax-chat-handlers-llm.php',      // 16. LLM 相關 AJAX 處理器（對話相關）
@@ -160,7 +165,7 @@ $admin_modules = [
 
 | 常數              | 說明       | 值           |
 | ----------------- | ---------- | ------------ |
-| `MPU_VERSION`   | 外掛版本   | `"2.5.0"`  |
+| `MPU_VERSION`   | 外掛版本   | `"2.5.6"`  |
 | `MPU_MAIN_FILE` | 主檔案路徑 | `__FILE__` |
 
 ---
@@ -1681,7 +1686,7 @@ function mpu_handle_custom_action() {
 
 ### 自訂對話類別權重
 
-系統使用加權隨機選擇來決定生成哪種類型的對話。你可以在 `includes/llm-functions.php` 的 `mpu_generate_llm_dialogue()` 函數中修改權重：
+系統使用加權隨機選擇來決定生成哪種類型的對話。你可以在 `includes/llm/llm-functions.php` 的 `mpu_generate_llm_dialogue()` 函數中修改權重：
 
 ```php
 // 類別權重設定（數值越高，被選中的機率越大）

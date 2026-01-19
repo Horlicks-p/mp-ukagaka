@@ -51,6 +51,7 @@ function mpu_load_modules()
 
     // 核心模組：前端和後台都需要
     $core_modules = [
+        'core/debug-functions.php',     // 日誌系統（必須最先載入）
         'core/core-functions.php',      // 核心功能（設定管理）
         'core/utility-functions.php',   // 工具函數
         'personality/personality-loader.php',  // 人格系統（JSON 載入器，需在其他 personality 模組之前載入）

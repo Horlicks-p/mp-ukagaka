@@ -68,7 +68,7 @@ function mpu_get_cached_api_response($cache_key)
     if ($cached !== false) {
         // 記錄快取命中（可選，用於除錯）
         if (defined('MPU_DEBUG') && MPU_DEBUG) {
-            error_log("MP Ukagaka: API 快取命中 - {$cache_key}");
+            mpu_debug_log("API 快取命中 - {$cache_key}");
         }
     }
     

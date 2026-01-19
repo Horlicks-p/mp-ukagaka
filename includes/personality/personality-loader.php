@@ -228,7 +228,7 @@ function mpu_load_json_file($file_path)
 
     $file_size = filesize($file_path);
     if ($file_size > 1024 * 1024) {
-        error_log('[MP Ukagaka] JSON file too large: ' . $file_path);
+        mpu_log_error('JSON file too large: ' . $file_path);
         $cache[$file_path] = null;
         return null;
     }
@@ -241,7 +241,7 @@ function mpu_load_json_file($file_path)
 
     $data = json_decode($content, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        error_log('[MP Ukagaka] JSON parse error in ' . $file_path . ': ' . json_last_error_msg());
+        mpu_log_error('JSON parse error in ' . $file_path . ': ' . json_last_error_msg());
         $cache[$file_path] = null;
         return null;
     }

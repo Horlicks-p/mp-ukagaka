@@ -491,7 +491,7 @@ function mpu_get_daily_oversleep_end($personality_id = null)
 
     // 設定合理性檢查
     if ($oversleep_max_hour <= $deep_sleep_end) {
-        error_log('MP Ukagaka: 睡眠設定錯誤：oversleep_max_hour 必須大於 deep_sleep_end');
+        mpu_log_warning('睡眠設定錯誤：oversleep_max_hour 必須大於 deep_sleep_end');
         $oversleep_end = $deep_sleep_end;
         // 也用「到午夜」過期，確保每天一致
         set_transient($cache_key, $oversleep_end, $seconds_until_midnight);

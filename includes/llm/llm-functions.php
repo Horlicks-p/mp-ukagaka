@@ -152,11 +152,7 @@ function mpu_check_ollama_available($endpoint, $model)
     $validated_endpoint = mpu_validate_ollama_endpoint($endpoint);
     if (is_wp_error($validated_endpoint)) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            if (function_exists('mpu_debug_log')) {
-                mpu_debug_log('MP Ukagaka - Ollama 端點驗證失敗: ' . $validated_endpoint->get_error_message());
-            } else {
-                error_log('MP Ukagaka - Ollama 端點驗證失敗: ' . $validated_endpoint->get_error_message());
-            }
+            mpu_debug_log('MP Ukagaka - Ollama 端點驗證失敗: ' . $validated_endpoint->get_error_message());
         }
         return false;
     }
@@ -209,16 +205,9 @@ function mpu_check_ollama_available($endpoint, $model)
 
     if (defined('WP_DEBUG') && WP_DEBUG) {
         $connection_type = $is_remote ? '遠程' : '本地';
-        if (function_exists('mpu_debug_log')) {
-            mpu_debug_log("MP Ukagaka - Ollama 服務檢查: " . ($is_available ? '可用' : '不可用') . " ({$connection_type}連接, 端點: {$endpoint}, 模型: {$model}, 超時: {$timeout}秒)");
-            if (!$is_available && $last_error !== null) {
-                mpu_debug_log('MP Ukagaka - Ollama 連接錯誤: ' . $last_error->get_error_message());
-            }
-        } else {
-            error_log("MP Ukagaka - Ollama 服務檢查: " . ($is_available ? '可用' : '不可用') . " ({$connection_type}連接, 端點: {$endpoint}, 模型: {$model}, 超時: {$timeout}秒)");
-            if (!$is_available && $last_error !== null) {
-                error_log('MP Ukagaka - Ollama 連接錯誤: ' . $last_error->get_error_message());
-            }
+        mpu_debug_log("MP Ukagaka - Ollama 服務檢查: " . ($is_available ? '可用' : '不可用') . " ({$connection_type}連接, 端點: {$endpoint}, 模型: {$model}, 超時: {$timeout}秒)");
+        if (!$is_available && $last_error !== null) {
+            mpu_debug_log('MP Ukagaka - Ollama 連接錯誤: ' . $last_error->get_error_message());
         }
     }
 
@@ -258,13 +247,8 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         if ($cached_result === false || $cached_result === 0) {
             if (!mpu_check_ollama_available($endpoint, $model)) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    if (function_exists('mpu_debug_log')) {
-                        mpu_debug_log('MP Ukagaka - Ollama 服務不可用，返回錯誤提示');
-                        mpu_debug_log('MP Ukagaka - 端點: ' . $endpoint . ', 模型: ' . $model);
-                    } else {
-                        error_log('MP Ukagaka - Ollama 服務不可用，返回錯誤提示');
-                        error_log('MP Ukagaka - 端點: ' . $endpoint . ', 模型: ' . $model);
-                    }
+                    mpu_debug_log('MP Ukagaka - Ollama 服務不可用，返回錯誤提示');
+                    mpu_debug_log('MP Ukagaka - 端點: ' . $endpoint . ', 模型: ' . $model);
                 }
                 return 'MPU_OLLAMA_NOT_AVAILABLE';
             }
@@ -296,6 +280,24 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $language,
         $personality_id // 傳遞已解析的 ID，避免函數內部重複解析
     );
+
+    /**
+     * Filter: mpu_llm_system_prompt
+     * 允許第三方程式碼修改 LLM System Prompt
+     * 
+     * @since 2.5.7
+     * @param string $system_prompt 原始 System Prompt
+     * @param string $ukagaka_name 角色名稱 key
+     * @param string|null $personality_id 人格 ID
+     * @param array $context 上下文資訊（wp_info, user_info, visitor_info, time_context）
+     */
+    $system_prompt = apply_filters('mpu_llm_system_prompt', $system_prompt, $ukagaka_name, $personality_id, [
+        'wp_info' => $wp_info,
+        'user_info' => $user_info,
+        'visitor_info' => $visitor_info,
+        'time_context' => $time_context,
+        'language' => $language,
+    ]);
 
     // System Prompt 會在 mpu_call_ai_api() 中記錄，這裡不需要重複記錄
     // mpu_debug_system_prompt($system_prompt);
@@ -467,6 +469,26 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $user_prompt .= $articles_info;
     }
 
+    /**
+     * Filter: mpu_llm_user_prompt
+     * 允許第三方程式碼在會話指示之前注入額外上下文
+     * 
+     * 使用範例（安全警報）：
+     * add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
+     *     $attack_info = get_transient('mpu_llar_attack_info');
+     *     if ($attack_info) {
+     *         return $prompt . "\n【安全警報】\n" . $attack_info;
+     *     }
+     *     return $prompt;
+     * }, 10, 3);
+     * 
+     * @since 2.5.7
+     * @param string $user_prompt 原始 User Prompt（包含用戶、訪客、統計資訊）
+     * @param string $ukagaka_name 角色名稱 key
+     * @param string|null $personality_id 人格 ID
+     */
+    $user_prompt = apply_filters('mpu_llm_user_prompt', $user_prompt, $ukagaka_name, $personality_id);
+
     $user_prompt .= "\n【会話指示】\n";
     $user_prompt .= $category_instruction;
     
@@ -513,11 +535,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 
         if (mpu_is_ollama_busy($endpoint, $model)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                if (function_exists('mpu_debug_log')) {
-                    mpu_debug_log('MP Ukagaka - Ollama 正在處理其他請求，此請求將被跳過');
-                } else {
-                    error_log('MP Ukagaka - Ollama 正在處理其他請求，此請求將被跳過');
-                }
+                mpu_debug_log('MP Ukagaka - Ollama 正在處理其他請求，此請求將被跳過');
             }
             return 'MPU_OLLAMA_BUSY';
         }
@@ -548,7 +566,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     if (is_wp_error($result)) {
         // 如果 LLM 調用失敗，返回 false，讓系統使用後備對話
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('LLM Dialogue Generation Failed: ' . $result->get_error_message());
+            mpu_log_error('LLM Dialogue Generation Failed: ' . $result->get_error_message());
         }
 
         return false;
@@ -568,11 +586,9 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 
         if (empty($result)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                if (function_exists('mpu_debug_log')) {
-                    mpu_debug_log('MP Ukagaka - LLM 回應僅包含思考過程，無實際內容');
-                } else {
-                    error_log('MP Ukagaka - LLM 回應僅包含思考過程，無實際內容');
-                }
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                mpu_debug_log('MP Ukagaka - LLM 回應僅包含思考過程，無實際內容');
+            }
             }
             return false;
         }
@@ -585,11 +601,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
             $similarity = mpu_calculate_text_similarity($result, $last_response);
             if ($similarity >= $similarity_threshold) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    if (function_exists('mpu_debug_log')) {
-                        mpu_debug_log("MP Ukagaka - 檢測到重複回應（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
-                    } else {
-                        error_log("MP Ukagaka - 檢測到重複回應（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
-                    }
+                    mpu_debug_log("MP Ukagaka - 檢測到重複回應（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
                 }
                 return 'MPU_USE_FALLBACK';
             }
@@ -600,11 +612,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
                 $similarity = mpu_calculate_text_similarity($result, $hist_response);
                 if ($similarity >= $similarity_threshold) {
                     if (defined('WP_DEBUG') && WP_DEBUG) {
-                        if (function_exists('mpu_debug_log')) {
-                            mpu_debug_log("MP Ukagaka - 檢測到與歷史回應重複（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
-                        } else {
-                            error_log("MP Ukagaka - 檢測到與歷史回應重複（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
-                        }
+                        mpu_debug_log("MP Ukagaka - 檢測到與歷史回應重複（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
                     }
                     return 'MPU_USE_FALLBACK';
                 }
@@ -731,21 +739,11 @@ function mpu_debug_system_prompt($system_prompt)
         $estimated_tokens = ($chinese_count / 2) + ($english_count / 4);
 
         // 使用 mpu_debug_log 確保 UTF-8 文字正確顯示
-        if (function_exists('mpu_debug_log')) {
-            mpu_debug_log('=== MP Ukagaka - System Prompt Debug ===');
-            mpu_debug_log('估算 Token 數: ' . (int)ceil($estimated_tokens));
-            mpu_debug_log('字符長度: ' . $char_count);
-            mpu_debug_log('--- Prompt 內容 ---');
-            mpu_debug_log($system_prompt);
-            mpu_debug_log('=== End Debug ===');
-        } else {
-            // 後備方案：如果 mpu_debug_log 不存在，使用標準 error_log
-            error_log('=== MP Ukagaka - System Prompt Debug ===');
-            error_log('估算 Token 數: ' . (int)ceil($estimated_tokens));
-            error_log('字符長度: ' . $char_count);
-            error_log('--- Prompt 內容 ---');
-            error_log($system_prompt);
-            error_log('=== End Debug ===');
-        }
+        mpu_debug_log('=== MP Ukagaka - System Prompt Debug ===');
+        mpu_debug_log('估算 Token 數: ' . (int)ceil($estimated_tokens));
+        mpu_debug_log('字符長度: ' . $char_count);
+        mpu_debug_log('--- Prompt 內容 ---');
+        mpu_debug_log($system_prompt);
+        mpu_debug_log('=== End Debug ===');
     }
 }

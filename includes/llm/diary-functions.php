@@ -168,7 +168,7 @@ function mpu_load_diary_config($personality_id = null)
 
     $data = json_decode($content, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        error_log('[MP Ukagaka Diary] JSON parse error in ' . $diary_path . ': ' . json_last_error_msg());
+        mpu_log_error('[Diary] JSON parse error in ' . $diary_path . ': ' . json_last_error_msg());
         $cache[$personality_id] = null;
         return null;
     }
@@ -442,7 +442,7 @@ function mpu_parse_diary_json($response)
 
     // 最後的 Fallback：使用原始回應作為內容
     if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log('[MP Ukagaka Diary] JSON 解析失敗，使用 fallback');
+        mpu_debug_log('[Diary] JSON 解析失敗，使用 fallback');
     }
 
     return [
@@ -599,7 +599,7 @@ function mpu_publish_diary_post($diary_data)
 
         // 記錄到日誌
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('MP Ukagaka Diary: Published diary post ID ' . $post_id . ' (category: ' . ($diary_category_key ?? 'default') . ')');
+            mpu_debug_log('Diary: Published diary post ID ' . $post_id . ' (category: ' . ($diary_category_key ?? 'default') . ')');
         }
     }
 
@@ -621,7 +621,7 @@ function mpu_auto_diary_cron_handler()
 
     if (is_wp_error($diary_data)) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('MP Ukagaka Diary: Failed to generate content - ' . $diary_data->get_error_message());
+            mpu_log_error('Diary: Failed to generate content - ' . $diary_data->get_error_message());
         }
         return;
     }
@@ -631,7 +631,7 @@ function mpu_auto_diary_cron_handler()
 
     if (is_wp_error($result)) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('MP Ukagaka Diary: Failed to publish - ' . $result->get_error_message());
+            mpu_log_error('Diary: Failed to publish - ' . $result->get_error_message());
         }
     }
 }

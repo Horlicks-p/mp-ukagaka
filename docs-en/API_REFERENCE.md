@@ -384,6 +384,107 @@ function mpu_call_claude_api(string $prompt, string $system_prompt): ?string
 
 ---
 
+### API Cache Functions (api-cache.php)
+
+> 💡 **v2.5.6 New**: API cache system uses WordPress Transient API to cache AI API responses, reducing duplicate requests and costs.
+
+#### mpu_is_api_cache_enabled()
+
+Check if API cache is enabled.
+
+```php
+/**
+ * @return bool
+ */
+function mpu_is_api_cache_enabled(): bool
+```
+
+---
+
+#### mpu_get_api_cache_ttl()
+
+Get cache TTL (seconds).
+
+```php
+/**
+ * @return int Default 3600 seconds (1 hour), range 300-86400 seconds
+ */
+function mpu_get_api_cache_ttl(): int
+```
+
+---
+
+#### mpu_generate_cache_key()
+
+Generate cache key.
+
+```php
+/**
+ * @param string $provider Provider
+ * @param string $system_prompt System prompt
+ * @param string $user_prompt User prompt
+ * @return string Cache key
+ */
+function mpu_generate_cache_key(string $provider, string $system_prompt, string $user_prompt): string
+```
+
+---
+
+#### mpu_get_cached_api_response()
+
+Get API response from cache.
+
+```php
+/**
+ * @param string $cache_key Cache key
+ * @return string|false Cached response or false
+ */
+function mpu_get_cached_api_response(string $cache_key)
+```
+
+---
+
+#### mpu_set_cached_api_response()
+
+Store API response in cache.
+
+```php
+/**
+ * @param string $cache_key Cache key
+ * @param string $response API response
+ * @return bool
+ */
+function mpu_set_cached_api_response(string $cache_key, string $response): bool
+```
+
+---
+
+#### mpu_clear_all_api_cache()
+
+Clear all LLM API cache.
+
+```php
+/**
+ * @return int Number of cache entries cleared
+ */
+function mpu_clear_all_api_cache(): int
+```
+
+---
+
+#### mpu_get_api_cache_stats()
+
+Get API cache statistics.
+
+```php
+/**
+ * @return array ['count' => int, 'ttl' => int, 'enabled' => bool]
+ */
+function mpu_get_api_cache_stats(): array
+```
+
+---
+
 ### LLM Functions (llm-functions.php)
 
 > 💡 **v2.2.0 Update**: LLM functionality has been upgraded to a **Universal LLM Interface**, supporting four major AI services: Ollama, Gemini, OpenAI, and Claude.
@@ -488,9 +589,10 @@ Generate random dialogue using LLM (Replace built-in dialogue). Supports all AI 
  * @param string $ukagaka_name Ukagaka name
  * @param string $last_response Last AI response (for avoiding repetitive dialogue)
  * @param array $response_history Response history array (recent responses for stricter repetition detection)
+ * @param int $last_visit_hours Hours since last visit (default -1 means no data, v2.5.6 new)
  * @return string|false Generated dialogue content, or false on failure
  */
-function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1', string $last_response = '', array $response_history = [])
+function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1', string $last_response = '', array $response_history = [], int $last_visit_hours = -1)
 ```
 
 **Example:**
@@ -511,6 +613,25 @@ $dialogue = mpu_generate_llm_dialogue('frieren', 'Last response', ['Response 1',
 - Supports anti-repetition mechanism (similarity detection)
 - Automatically integrates WordPress info, user info, visitor info
 - Supports 70+ Frieren-style dialogue examples
+
+**Available Filter Hooks (v2.5.7):**
+
+| Filter | Description | Parameters |
+|--------|-------------|------------|
+| `mpu_llm_system_prompt` | Modify System Prompt | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
+| `mpu_llm_user_prompt` | Inject additional context before conversation instructions | `$prompt`, `$ukagaka_name`, `$personality_id` |
+
+**Usage Example (Security Alert Integration):**
+
+```php
+add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
+    $attack_info = get_transient('mpu_llar_attack_info');
+    if ($attack_info) {
+        return $prompt . "\n【Security Alert】\n" . $attack_info;
+    }
+    return $prompt;
+}, 10, 3);
+```
 
 ---
 

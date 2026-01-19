@@ -642,21 +642,60 @@ function mpu_nextmsg(trigger) {
             });
           }
         } else {
-          mpuLogger.warn("mpu_nextmsg: LLM 回應沒有 msg，使用後備對話");
-          mpuLastLLMResponse = "";
-          mpuLLMResponseHistory = [];
-          mpu_nextmsg_fallback();
+          mpuLogger.warn("mpu_nextmsg: LLM 回應沒有 msg", res);
 
-          // ⚠️ 即使 fallback，也等待打字完成再啟動自動對話
-          if (mpuAutoTalk && !mpuAutoTalkTimer) {
-            mpuLogger.log(
-              "mpu_nextmsg: fallback 完成，等待打字完成後啟動計時器"
+          // 檢查是否為速率限制錯誤（請求過於頻繁）
+          const isRateLimit =
+            res && res.error && res.error.includes("請求過於頻繁");
+
+          if (isRateLimit) {
+            const rateLimitMessage =
+              typeof mpuL10n !== "undefined" && mpuL10n.apiMagicInsufficient
+                ? mpuL10n.apiMagicInsufficient
+                : "…ちょっと待って。API魔力が足りない";
+
+            mpuLastLLMResponse = "";
+            mpuLLMResponseHistory = [];
+
+            // 顯示 API 魔力不足提示，暫時阻擋自發對話
+            mpu_showMsgText();
+            mpu_typewriter(
+              `<span style="color: ${mpuAiTextColor};">${rateLimitMessage}</span>`,
+              "#ukagaka_msg"
             );
-            mpu_waitForTypewriterComplete(function () {
+            mpu_showmsg(400);
+
+            mpuMessageBlocking = true;
+            const waitTime = (mpuAiDisplayDuration || 8) * 1000;
+
+            setTimeout(function () {
+              mpuMessageBlocking = false;
+
+              // 顯示一條內建對話作為後備，避免角色一直沉默
+              mpu_nextmsg_fallback();
+
+              // 若原本有自動對話，則在冷卻後恢復
               if (mpuAutoTalk && !mpuAutoTalkTimer) {
                 startAutoTalk();
               }
-            });
+            }, waitTime);
+          } else {
+            mpuLogger.warn("mpu_nextmsg: LLM 回應沒有 msg，使用後備對話");
+            mpuLastLLMResponse = "";
+            mpuLLMResponseHistory = [];
+            mpu_nextmsg_fallback();
+
+            // ⚠️ 即使 fallback，也等待打字完成再啟動自動對話
+            if (mpuAutoTalk && !mpuAutoTalkTimer) {
+              mpuLogger.log(
+                "mpu_nextmsg: fallback 完成，等待打字完成後啟動計時器"
+              );
+              mpu_waitForTypewriterComplete(function () {
+                if (mpuAutoTalk && !mpuAutoTalkTimer) {
+                  startAutoTalk();
+                }
+              });
+            }
           }
         }
 

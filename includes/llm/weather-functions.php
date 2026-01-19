@@ -100,7 +100,7 @@ function mpu_get_weather_forecast($latitude = 25.0330, $longitude = 121.5654)
     if (empty($data) || !isset($data['current_weather']) || !isset($data['daily'])) {
         // API 請求成功但資料結構不符合預期
         if ($data !== null) {
-            error_log('MP Ukagaka Weather: Invalid API response structure');
+            mpu_log_error('Weather: Invalid API response structure');
             // 清除可能被快取的無效資料
             mpu_clear_api_cache($cache_key);
         }

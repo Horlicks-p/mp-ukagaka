@@ -40,26 +40,14 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
 
     // 如果 WP_DEBUG 或 WP_DEBUG_LOG 啟用，則記錄調用資訊
     if ($wp_debug_enabled || $wp_debug_log_enabled) {
-        if (function_exists('mpu_debug_log')) {
-            mpu_debug_log('=== MP Ukagaka - AI API 調用 ===');
-            mpu_debug_log('提供商: ' . $provider);
-            mpu_debug_log('語言: ' . $language);
-            mpu_debug_log('--- System Prompt ---');
-            mpu_debug_log($system_prompt);
-            mpu_debug_log('--- User Prompt ---');
-            mpu_debug_log($user_prompt);
-            mpu_debug_log('=== End AI API 調用 ===');
-        } else {
-            // 後備方案：使用標準 error_log
-            error_log('=== MP Ukagaka - AI API 調用 ===');
-            error_log('提供商: ' . $provider);
-            error_log('語言: ' . $language);
-            error_log('--- System Prompt ---');
-            error_log($system_prompt);
-            error_log('--- User Prompt ---');
-            error_log($user_prompt);
-            error_log('=== End AI API 調用 ===');
-        }
+        mpu_debug_log('=== MP Ukagaka - AI API 調用 ===');
+        mpu_debug_log('提供商: ' . $provider);
+        mpu_debug_log('語言: ' . $language);
+        mpu_debug_log('--- System Prompt ---');
+        mpu_debug_log($system_prompt);
+        mpu_debug_log('--- User Prompt ---');
+        mpu_debug_log($user_prompt);
+        mpu_debug_log('=== End AI API 調用 ===');
     }
 
     $result = null;
@@ -479,13 +467,8 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
     if (json_last_error() !== JSON_ERROR_NONE) {
         $error_msg = json_last_error_msg();
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            if (function_exists('mpu_debug_log')) {
-                mpu_debug_log('Ollama API JSON 解析失敗: ' . $error_msg);
-                mpu_debug_log('Ollama API 原始響應: ' . mb_substr($response_body, 0, 500, 'UTF-8'));
-            } else {
-                error_log('Ollama API JSON 解析失敗: ' . $error_msg);
-                error_log('Ollama API 原始響應: ' . mb_substr($response_body, 0, 500, 'UTF-8'));
-            }
+            mpu_debug_log('Ollama API JSON 解析失敗: ' . $error_msg);
+            mpu_debug_log('Ollama API 原始響應: ' . mb_substr($response_body, 0, 500, 'UTF-8'));
         }
         return new WP_Error("json_decode_error", sprintf(__('Ollama API 回應 JSON 解析失敗: %s', 'mp-ukagaka'), $error_msg));
     }
@@ -493,22 +476,14 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
     // 驗證響應數據是否為數組
     if (!is_array($data)) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            if (function_exists('mpu_debug_log')) {
-                mpu_debug_log('Ollama API 響應格式錯誤: 期望數組，得到 ' . gettype($data));
-            } else {
-                error_log('Ollama API 響應格式錯誤: 期望數組，得到 ' . gettype($data));
-            }
+            mpu_debug_log('Ollama API 響應格式錯誤: 期望數組，得到 ' . gettype($data));
         }
         return new WP_Error("invalid_response_type", __('Ollama API 回應格式錯誤：期望數組格式', 'mp-ukagaka'));
     }
 
     // 調試：記錄響應結構（僅在 WP_DEBUG 模式下）
     if (defined('WP_DEBUG') && WP_DEBUG) {
-        if (function_exists('mpu_debug_log')) {
-            mpu_debug_log('Ollama API Response: ' . print_r($data, true));
-        } else {
-            error_log('Ollama API Response: ' . print_r($data, true));
-        }
+        mpu_debug_log('Ollama API Response: ' . print_r($data, true));
     }
 
     // 改進的響應解析邏輯
@@ -559,13 +534,8 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
 
     // 調試輸出（僅在 WP_DEBUG 模式下）
     if (defined('WP_DEBUG') && WP_DEBUG) {
-        if (function_exists('mpu_debug_log')) {
-            mpu_debug_log('Ollama Extracted Content: ' . ($content !== null ? ('"' . mb_substr($content, 0, 100, 'UTF-8') . '"') : '(null)'));
-            mpu_debug_log('Ollama Extracted Thinking: ' . ($thinking !== null ? ('"' . mb_substr($thinking, 0, 100, 'UTF-8') . '"') : '(null)'));
-        } else {
-            error_log('Ollama Extracted Content: ' . ($content !== null ? ('"' . mb_substr($content, 0, 100, 'UTF-8') . '"') : '(null)'));
-            error_log('Ollama Extracted Thinking: ' . ($thinking !== null ? ('"' . mb_substr($thinking, 0, 100, 'UTF-8') . '"') : '(null)'));
-        }
+        mpu_debug_log('Ollama Extracted Content: ' . ($content !== null ? ('"' . mb_substr($content, 0, 100, 'UTF-8') . '"') : '(null)'));
+        mpu_debug_log('Ollama Extracted Thinking: ' . ($thinking !== null ? ('"' . mb_substr($thinking, 0, 100, 'UTF-8') . '"') : '(null)'));
     }
 
     // 優先使用 content，只有在 content 完全不存在時才使用 thinking
@@ -607,11 +577,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
                 if (preg_match($pattern, $trimmed_content)) {
                     $is_thinking_content = true;
                     if (defined('WP_DEBUG') && WP_DEBUG) {
-                        if (function_exists('mpu_debug_log')) {
                             mpu_debug_log('Ollama: Thinking content detected and filtered (pattern matched)');
-                        } else {
-                            error_log('Ollama: Thinking content detected and filtered (pattern matched)');
-                        }
                     }
                     break;
                 }
@@ -624,11 +590,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         } else if ($is_thinking_content) {
             // 思考內容被檢測到，記錄警告
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                if (function_exists('mpu_debug_log')) {
                     mpu_debug_log('Ollama Warning: Content appears to be thinking/reasoning, not dialogue');
-                } else {
-                    error_log('Ollama Warning: Content appears to be thinking/reasoning, not dialogue');
-                }
             }
         }
     }
@@ -640,11 +602,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         if ($trimmed_thinking !== '') {
             // Content 不存在或為空，但 thinking 存在，作為後備使用
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                if (function_exists('mpu_debug_log')) {
                     mpu_debug_log('Ollama Warning: Using thinking as fallback because content is empty or missing');
-                } else {
-                    error_log('Ollama Warning: Using thinking as fallback because content is empty or missing');
-                }
             }
             $final_response = mpu_filter_thinking_content($trimmed_thinking);
         }
@@ -661,11 +619,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         }
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Ollama API 響應解析失敗: ' . $debug_info);
-            } else {
-                error_log('Ollama API 響應解析失敗: ' . $debug_info);
-            }
         }
 
         return new WP_Error(
@@ -737,11 +691,7 @@ function mpu_filter_thinking_content($response)
 
     // 調試記錄
     if (defined('WP_DEBUG') && WP_DEBUG && $response !== $original_response) {
-        if (function_exists('mpu_debug_log')) {
             mpu_debug_log('mpu_filter_thinking_content: filtered thinking tags');
-        } else {
-            error_log('mpu_filter_thinking_content: filtered thinking tags');
-        }
     }
 
     return $response;
@@ -848,7 +798,11 @@ function mpu_should_trigger_ai()
         if (!in_array($condition, $allowed_tags, true)) {
             // 記錄安全警告
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("MP Ukagaka 安全警告：嘗試使用未授權的條件標籤: {$condition}");
+                if (function_exists('mpu_log_warning')) {
+                    mpu_log_warning("嘗試使用未授權的條件標籤: {$condition}");
+                } else {
+                    error_log("MP Ukagaka 安全警告：嘗試使用未授權的條件標籤: {$condition}");
+                }
             }
             continue; // 跳過未授權的條件標籤
         }
@@ -863,7 +817,11 @@ function mpu_should_trigger_ai()
             } catch (Exception $e) {
                 // 如果調用失敗，記錄錯誤但繼續處理其他條件
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log("MP Ukagaka 錯誤：條件標籤 {$condition} 調用失敗: " . $e->getMessage());
+                    if (function_exists('mpu_log_error')) {
+                        mpu_log_error("條件標籤 {$condition} 調用失敗: " . $e->getMessage());
+                    } else {
+                        error_log("MP Ukagaka 錯誤：條件標籤 {$condition} 調用失敗: " . $e->getMessage());
+                    }
                 }
             }
         }

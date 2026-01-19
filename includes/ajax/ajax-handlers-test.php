@@ -15,6 +15,11 @@ function mpu_ajax_test_ollama_connection()
 {
     check_ajax_referer('mpu_test_connection', 'nonce');
 
+    // Rate Limiting
+    if (function_exists('mpu_enforce_rate_limit')) {
+        mpu_enforce_rate_limit('test_ollama_connection', 10, 60);
+    }
+
     $endpoint = sanitize_text_field($_POST['endpoint'] ?? 'http://localhost:11434');
     $model = sanitize_text_field($_POST['model'] ?? 'qwen3:8b');
 
@@ -94,7 +99,11 @@ function mpu_ajax_test_ollama_connection()
         $data = json_decode($response_body, true);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('Ollama Test Response: ' . print_r($data, true));
+            if (function_exists('mpu_debug_log')) {
+                mpu_debug_log('Ollama Test Response: ' . print_r($data, true));
+            } else {
+                error_log('Ollama Test Response: ' . print_r($data, true));
+            }
         }
 
         $content = null;
@@ -153,6 +162,11 @@ add_action('wp_ajax_mpu_test_ollama_connection', 'mpu_ajax_test_ollama_connectio
 function mpu_ajax_test_gemini_connection()
 {
     check_ajax_referer('mpu_test_connection', 'nonce');
+
+    // Rate Limiting
+    if (function_exists('mpu_enforce_rate_limit')) {
+        mpu_enforce_rate_limit('test_gemini_connection', 10, 60);
+    }
 
     $api_key = sanitize_text_field($_POST['api_key'] ?? '');
     $model = sanitize_text_field($_POST['model'] ?? 'gemini-2.5-flash');
@@ -232,6 +246,11 @@ function mpu_ajax_test_openai_connection()
 {
     check_ajax_referer('mpu_test_connection', 'nonce');
 
+    // Rate Limiting
+    if (function_exists('mpu_enforce_rate_limit')) {
+        mpu_enforce_rate_limit('test_openai_connection', 10, 60);
+    }
+
     $api_key = sanitize_text_field($_POST['api_key'] ?? '');
     $model = sanitize_text_field($_POST['model'] ?? 'gpt-4o-mini');
 
@@ -304,6 +323,11 @@ add_action('wp_ajax_mpu_test_openai_connection', 'mpu_ajax_test_openai_connectio
 function mpu_ajax_test_claude_connection()
 {
     check_ajax_referer('mpu_test_connection', 'nonce');
+
+    // Rate Limiting
+    if (function_exists('mpu_enforce_rate_limit')) {
+        mpu_enforce_rate_limit('test_claude_connection', 10, 60);
+    }
 
     $api_key = sanitize_text_field($_POST['api_key'] ?? '');
     $model = sanitize_text_field($_POST['model'] ?? 'claude-sonnet-4-5-20250929');
@@ -382,6 +406,11 @@ function mpu_ajax_test_weather_api()
 {
     check_ajax_referer('mpu_test_weather', 'nonce');
 
+    // Rate Limiting
+    if (function_exists('mpu_enforce_rate_limit')) {
+        mpu_enforce_rate_limit('test_weather_api', 10, 60);
+    }
+
     $latitude = isset($_POST['latitude']) ? floatval($_POST['latitude']) : 25.0330;
     $longitude = isset($_POST['longitude']) ? floatval($_POST['longitude']) : 121.5654;
 
@@ -459,6 +488,11 @@ add_action('wp_ajax_mpu_test_weather_api', 'mpu_ajax_test_weather_api');
 function mpu_ajax_clear_api_cache()
 {
     check_ajax_referer('mpu_clear_cache', 'nonce');
+    
+    // Rate Limiting
+    if (function_exists('mpu_enforce_rate_limit')) {
+        mpu_enforce_rate_limit('clear_api_cache', 10, 60);
+    }
     
     // 檢查權限
     if (!current_user_can('manage_options')) {

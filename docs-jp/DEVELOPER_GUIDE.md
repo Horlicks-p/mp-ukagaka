@@ -35,11 +35,15 @@ mp-ukagaka/
 │   │   ├── ukagaka-functions.php   # 伺か管理
 │   │   └── frontend-functions.php  # フロントエンド機能
 │   ├── ajax/                   # AJAX ハンドラーモジュール
+│   │   ├── chat/                   # チャットハンドラーサブディレクトリ（v2.5.6）
+│   │   │   ├── context-handler.php     # ページ感知チャット
+│   │   │   ├── greet-handler.php       # 初回訪問挨拶
+│   │   │   └── user-chat-handler.php   # インタラクティブチャット
 │   │   ├── ajax-handlers.php       # AJAX 処理（コア）
-│   │   ├── ajax-chat-handlers-llm.php  # LLM 対話 AJAX 処理（v2.5.0）
-│   │   ├── ajax-touch-handlers-llm.php # LLM タッチ AJAX 処理（v2.5.0）
-│   │   ├── ajax-handlers-test.php  # API 接続テストハンドラー（v2.3.0）
-│   │   └── chat-api-handlers.php   # マルチターンダイアログ API ハンドラー（v2.3.0）
+│   │   ├── ajax-chat-handlers-llm.php  # LLM チャットローダー（v2.5.6，chat/ サブディレクトリを読み込み）
+│   │   ├── ajax-touch-handlers-llm.php # LLM タッチ AJAX 処理
+│   │   ├── ajax-handlers-test.php  # API 接続テストハンドラー
+│   │   └── chat-api-handlers.php   # マルチターンダイアログ API ハンドラー
 │   ├── personality/            # パーソナリティシステムモジュール
 │   │   ├── personality-loader.php  # パーソナリティシステム（JSON ローダー，v2.4.0）
 │   │   ├── personality-prompts.php # パーソナリティプロンプトモジュール
@@ -47,6 +51,7 @@ mp-ukagaka/
 │   │   ├── personality-emoji.php   # 表情システム
 │   │   └── emoji-mapper.php        # 表情マッピングと感情分析（v2.4.0）
 │   ├── llm/                    # LLM/AI 機能モジュール
+│   │   ├── api-cache.php           # API キャッシュシステム（v2.5.6）
 │   │   ├── ai-functions.php        # AI 機能（クラウド API + Ollama）
 │   │   ├── llm-functions.php       # LLM 機能（Ollama 専用）- BETA
 │   │   ├── llm-context-builder.php # LLM コンテキスト構築
@@ -111,14 +116,15 @@ $core_modules = [
     'personality/personality-prompts.php', // 4. パーソナリティプロンプトモジュール
     'personality/personality-decorations.php', // 5. 装飾品システム
     'personality/personality-emoji.php',   // 6. 表情システム
-    'llm/ai-functions.php',        // 7. AI 機能（クラウド API：Gemini, OpenAI, Claude）
-    'llm/prompt-categories.php',   // 8. Prompt カテゴリ指示管理（llm-functions.php より前に読み込み）
-    'llm/llm-slimstat.php',        // 9. LLM Slimstat 統合（llm-context-builder.php より前に読み込み）
-    'llm/llm-context-builder.php', // 10. LLM コンテキスト構築（llm-functions.php より前に読み込み）
-    'llm/weather-functions.php',   // 11. 天気機能（Open-Meteo API）
-    'llm/diary-functions.php',     // 12. AI 日記機能（v2.5.0）
-    'llm/llm-functions.php',       // 13. LLM 機能（ローカル LLM：Ollama）
-    'personality/emoji-mapper.php',        // 13. 表情マッピング（AJAX 処理より前に読み込み）
+    'llm/api-cache.php',           // 7. API キャッシュシステム（v2.5.6，ai-functions.php より前に読み込み）
+    'llm/ai-functions.php',        // 8. AI 機能（クラウド API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 9. Prompt カテゴリ指示管理（llm-functions.php より前に読み込み）
+    'llm/llm-slimstat.php',        // 10. LLM Slimstat 統合（llm-context-builder.php より前に読み込み）
+    'llm/llm-context-builder.php', // 11. LLM コンテキスト構築（llm-functions.php より前に読み込み）
+    'llm/weather-functions.php',   // 12. 天気機能（Open-Meteo API）
+    'llm/diary-functions.php',     // 13. AI 日記機能（v2.5.0）
+    'llm/llm-functions.php',       // 14. LLM 機能（ローカル LLM：Ollama）
+    'personality/emoji-mapper.php',        // 15. 表情マッピング（AJAX 処理より前に読み込み）
     'core/ukagaka-functions.php',   // 14. 伺か管理
     'ajax/ajax-handlers.php',       // 15. AJAX 処理（コア）
     'ajax/ajax-chat-handlers-llm.php',      // 16. LLM 対話 AJAX 処理
@@ -148,7 +154,7 @@ $admin_modules = [
 
 | 定数            | 説明                 | 値         |
 | --------------- | -------------------- | ---------- |
-| `MPU_VERSION`   | プラグインバージョン   | `"2.3.0"`  |
+| `MPU_VERSION`   | プラグインバージョン   | `"2.5.6"`  |
 | `MPU_MAIN_FILE` | メインファイルパス   | `__FILE__` |
 
 ---

@@ -45,7 +45,7 @@ function mpu_get_static_prompt_categories($personality_id = null)
         if (function_exists('mpu_debug_log')) {
             mpu_debug_log('[MP Ukagaka] 無法從 JSON 載入人格提示詞 (personality_id: ' . $personality_id . ')，請檢查 ghost/ 資料夾');
         } else {
-            error_log('[MP Ukagaka] 無法從 JSON 載入人格提示詞 (personality_id: ' . $personality_id . ')，請檢查 ghost/ 資料夾');
+            mpu_log_error('無法從 JSON 載入人格提示詞 (personality_id: ' . $personality_id . ')，請檢查 ghost/ 資料夾');
         }
         return [];
     }
@@ -71,7 +71,7 @@ function mpu_get_static_prompt_categories($personality_id = null)
     if (function_exists('mpu_debug_log')) {
         mpu_debug_log('[MP Ukagaka] 無法從 JSON 載入人格提示詞，請檢查 ghost/ 資料夾');
     } else {
-        error_log('[MP Ukagaka] 無法從 JSON 載入人格提示詞，請檢查 ghost/ 資料夾');
+        mpu_log_error('無法從 JSON 載入人格提示詞，請檢查 ghost/ 資料夾');
     }
     $static_categories = [];
     return $static_categories;
@@ -94,7 +94,7 @@ function mpu_add_statistics_prompts(&$categories, $wp_info, $personality_id = nu
     }
 
     // 如果 personality-loader 不可用，則不添加任何統計提示
-    error_log('[MP Ukagaka] mpu_apply_personality_statistics function not available');
+    mpu_log_error('mpu_apply_personality_statistics function not available');
 }
 
 /**
@@ -191,7 +191,7 @@ function mpu_get_dynamic_category_weights($time_context, $visitor_info, $context
         if (function_exists('mpu_debug_log')) {
             mpu_debug_log('[MP Ukagaka] 無法從 JSON 載入權重配置');
         } else {
-            error_log('[MP Ukagaka] 無法從 JSON 載入權重配置');
+            mpu_log_error('無法從 JSON 載入權重配置');
         }
         return [];
     }
@@ -395,7 +395,7 @@ function mpu_get_decoration_prompt($decoration_type, $personality_id = null)
     if (function_exists('mpu_debug_log')) {
         mpu_debug_log('[MP Ukagaka] Decoration prompt not found for type: ' . $decoration_type);
     } else {
-        error_log('[MP Ukagaka] Decoration prompt not found for type: ' . $decoration_type);
+        mpu_log_warning('Decoration prompt not found for type: ' . $decoration_type);
     }
     return false;
 }

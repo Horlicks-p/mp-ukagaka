@@ -266,7 +266,7 @@ function mpu_get_msg_arr($num = false)
 
     // 防止遞迴超過 3 層
     if ($depth > 3) {
-        error_log("MPU: mpu_get_msg_arr 遞迴深度超過限制!");
+        mpu_log_error("mpu_get_msg_arr 遞迴深度超過限制!");
         return [
             "msgall" => 0,
             "auto_msg" => "",
@@ -322,7 +322,7 @@ function mpu_get_msg_arr($num = false)
         $depth--;
         return $arr;
     } catch (Exception $e) {
-        error_log("MPU mpu_get_msg_arr 錯誤: " . $e->getMessage());
+        mpu_log_error("mpu_get_msg_arr 錯誤: " . $e->getMessage());
         $depth--;
         return [
             "msgall" => 0,
@@ -357,7 +357,7 @@ function mpu_msg_code($msglist = [])
 
     // 防止無限遞迴
     if ($depth > 5) {
-        error_log("MPU: mpu_msg_code 遞迴深度超過限制!");
+        mpu_log_error("mpu_msg_code 遞迴深度超過限制!");
         return $msglist;
     }
 
@@ -559,7 +559,7 @@ function mpu_get_msg_from_file($filename_base)
 
     // 驗證文件名（只允許字母、數字、下劃線、連字符）
     if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $filename_base)) {
-        error_log('MP Ukagaka: 不合法的對話文件名: ' . $filename_base);
+        mpu_log_error('不合法的對話文件名: ' . $filename_base);
         return [__("不合法的對話文件名", "mp-ukagaka")];
     }
 
