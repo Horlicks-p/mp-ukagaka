@@ -66,3 +66,7 @@ package-lock.json
 build.js
 js/dist/ukagaka-bundle.js
 
+#environment
+.agent/
+.agent/environment.md
+
