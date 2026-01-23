@@ -159,6 +159,11 @@ function mpu_ajax_decoration_chat()
         $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
     }
 
+    // ===== 統計：記錄裝飾品反應 =====
+    if (function_exists('mpu_record_conversation')) {
+        mpu_record_conversation('decoration');
+    }
+
     wp_send_json([
         'msg' => $result,
         'emoji' => $emoji  // 表情文件名，如 'happy.png' 或 null
@@ -344,6 +349,11 @@ function mpu_ajax_touch_zone_chat()
             $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
         }
         $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
+    }
+
+    // ===== 統計：記錄觸摸反應 =====
+    if (function_exists('mpu_record_conversation')) {
+        mpu_record_conversation('touch');
     }
 
     wp_send_json([

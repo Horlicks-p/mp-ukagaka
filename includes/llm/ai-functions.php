@@ -23,12 +23,19 @@ if (!defined('ABSPATH')) {
  */
 function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt = null, $max_tokens = null)
 {
+    // ===== 統計：記錄開始時間 =====
+    $start_time = microtime(true);
+
     // ===== API 快取檢查 =====
     $cache_key = null;
     if (function_exists('mpu_is_api_cache_enabled') && mpu_is_api_cache_enabled()) {
         $cache_key = mpu_generate_cache_key($provider, $system_prompt, $user_prompt);
         $cached_response = mpu_get_cached_api_response($cache_key);
         if ($cached_response !== false) {
+            // ===== 統計：記錄快取命中 =====
+            if (function_exists('mpu_record_api_call')) {
+                mpu_record_api_call($provider, 'cached', 0);
+            }
             return $cached_response;
         }
     }
@@ -71,6 +78,13 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
             break;
         default:
             return new WP_Error("unsupported_provider", sprintf(__('不支援的 AI 提供商：%s', 'mp-ukagaka'), $provider));
+    }
+
+    // ===== 統計：記錄 API 調用結果 =====
+    if (function_exists('mpu_record_api_call')) {
+        $elapsed_time = (microtime(true) - $start_time) * 1000; // 毫秒
+        $status = is_wp_error($result) ? 'error' : 'success';
+        mpu_record_api_call($provider, $status, $elapsed_time);
     }
 
     // ===== 快取成功的 API 回應 =====

@@ -517,7 +517,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                         <strong><?php echo esc_html($cache_stats['count']); ?></strong> <?php _e('筆快取', 'mp-ukagaka'); ?>
                     </span>
                     <span>
-                        <strong><?php echo esc_html(number_format($cache_stats['size_kb'], 1)); ?></strong> KB
+                        <strong><?php echo esc_html(number_format($cache_stats['size_kb'] ?? 0, 1)); ?></strong> KB
                     </span>
                     <button type="button" id="clear_api_cache" class="button" style="margin-left: auto;">
                         <?php _e('清除所有快取', 'mp-ukagaka'); ?>

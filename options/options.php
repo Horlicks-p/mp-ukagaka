@@ -15,7 +15,7 @@ if ($admin_message !== false) {
 
 // 獲取當前頁面編號，預設為 0
 $cur_page = $_GET['cur_page'] ?? 0;
-if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 7) || $cur_page == '') {
+if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '') {
     $cur_page = 0;
 }
 
@@ -287,6 +287,7 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 7) || $cur_page == '
         <a class="<?php echo $cur_page == 1 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=1'); ?>"><?php _e('偽春菜們', 'mp-ukagaka'); ?></a>
         <a class="<?php echo $cur_page == 2 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=2'); ?>"><?php _e('創建新偽春菜', 'mp-ukagaka'); ?></a>
         <a class="<?php echo $cur_page == 3 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=3'); ?>"><?php _e('擴展', 'mp-ukagaka'); ?></a>
+        <a class="<?php echo $cur_page == 8 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=8'); ?>"><?php _e('統計', 'mp-ukagaka'); ?></a>
     </div>
 
     <div class="mp-ukagaka-main-layout">
@@ -301,7 +302,8 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 7) || $cur_page == '
                 4 => 'options_dialog.php',
                 5 => 'options_page_ai.php',
                 6 => 'options_page_llm.php',
-                7 => 'options_page_diary.php'
+                7 => 'options_page_diary.php',
+                8 => 'options_page_stats.php'
             );
 
             if (isset($page_files[$cur_page])) {

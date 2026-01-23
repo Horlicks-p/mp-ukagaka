@@ -216,6 +216,11 @@ function mpu_ajax_chat_greet()
         $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
     }
 
+    // ===== 統計：記錄問候語對話 =====
+    if (function_exists('mpu_record_conversation')) {
+        mpu_record_conversation('greeting');
+    }
+
     wp_send_json([
         "msg" => $result,
         "emoji" => $emoji  // 表情文件名，如 'happy.png' 或 null

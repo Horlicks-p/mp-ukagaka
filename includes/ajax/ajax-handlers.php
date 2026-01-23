@@ -68,6 +68,11 @@ function mpu_ajax_nextmsg()
         if ($llm_msg !== false && $llm_msg !== 'MPU_OLLAMA_NOT_AVAILABLE' && !$use_fallback) {
             $msg = $llm_msg;
             $msgnum = 0;
+
+            // ===== 統計：記錄自言自語對話（LLM 生成） =====
+            if (function_exists('mpu_record_conversation')) {
+                mpu_record_conversation('auto_talk');
+            }
         } elseif ($use_fallback || $llm_msg === false) {
             $msg_array = mpu_get_msg_arr($cur_num);
             $msgs = $msg_array["msg"] ?? [];

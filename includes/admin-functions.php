@@ -65,6 +65,18 @@ function mpu_handle_options_save()
         return;
     }
 
+    // 處理統計資料清除請求（獨立處理，不需要表單提交）
+    if (isset($_POST['mpu_action']) && $_POST['mpu_action'] === 'clear_stats') {
+        if (isset($_POST['mpu_clear_stats_nonce']) && wp_verify_nonce($_POST['mpu_clear_stats_nonce'], 'mpu_clear_stats')) {
+            if (function_exists('mpu_clear_all_stats')) {
+                $cleared = mpu_clear_all_stats();
+                set_transient('mpu_admin_message', '<div class="updated"><p><strong>' . sprintf(__('已清除 %d 筆統計資料', 'mp-ukagaka'), $cleared) . '</strong></p></div>', 30);
+            }
+            wp_redirect(admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=8'));
+            exit;
+        }
+    }
+
     // 檢查是否為本外掛的表單提交
     $is_our_submit = isset($_POST['submit1'])     // 通用設定
         || isset($_POST['submit2'])     // 偽春菜們
@@ -482,7 +494,7 @@ function mpu_handle_options_save()
         // 保存後重定向，確保頁面顯示最新值
         // 獲取當前頁面編號，用於重定向
         $cur_page = isset($_GET['cur_page']) ? intval($_GET['cur_page']) : 0;
-        if ($cur_page < 0 || $cur_page > 7) {
+        if ($cur_page < 0 || $cur_page > 8) {
             $cur_page = 0;
         }
 

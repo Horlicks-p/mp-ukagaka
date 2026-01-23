@@ -3,7 +3,7 @@
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Gemini、OpenAI、Claude）。本機 LLM 支援（Ollama，測試階段）。API Key 加密存儲、安全文件操作、可配置打字速度。Claude 風格後台管理介面。JSON 人格系統。
-Version: 2.5.6
+Version: 2.6.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 */
@@ -13,7 +13,7 @@ if (!defined("ABSPATH")) {
 }
 
 // 定義常量
-define("MPU_VERSION", "2.5.6");
+define("MPU_VERSION", "2.6.0");
 define("MPU_MAIN_FILE", __FILE__);
 
 /**
@@ -38,6 +38,17 @@ register_activation_hook(__FILE__, function () {
     if (!file_exists($dialog_dir)) {
         wp_mkdir_p($dialog_dir);
     }
+    // 排程統計清理事件
+    if (!wp_next_scheduled('mpu_daily_stats_cleanup')) {
+        wp_schedule_event(time(), 'daily', 'mpu_daily_stats_cleanup');
+    }
+});
+
+/**
+ * 停用時清除排程
+ */
+register_deactivation_hook(__FILE__, function () {
+    wp_clear_scheduled_hook('mpu_daily_stats_cleanup');
 });
 
 /**
@@ -58,6 +69,8 @@ function mpu_load_modules()
         'personality/personality-prompts.php', // 人格提示詞模組（動態提示詞、變數替換）
         'personality/personality-decorations.php', // 裝飾物系統
         'personality/personality-emoji.php',   // 表情系統
+        'stats/stats-collector.php',   // 統計收集器（需在 ai-functions.php 之前載入）
+        'stats/stats-analyzer.php',    // 統計分析器
         'llm/api-cache.php',           // API 快取系統（需在 ai-functions.php 之前載入）
         'llm/ai-functions.php',        // AI 功能（雲端 API：Gemini, OpenAI, Claude）
         'llm/prompt-categories.php',   // Prompt 類別指令管理（需在 llm-functions.php 之前載入）
