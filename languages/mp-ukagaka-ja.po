@@ -1172,3 +1172,106 @@ msgstr "キャッシュモジュールが読み込まれていません"
 
 msgid "清除失敗"
 msgstr "クリア失敗"
+
+# ========================================
+# 統計ダッシュボードページ
+# ========================================
+
+msgid "📊 統計儀表板"
+msgstr "📊 統計ダッシュボード"
+
+msgid "7 天"
+msgstr "7日間"
+
+msgid "30 天"
+msgstr "30日間"
+
+msgid "今日 API 調用"
+msgstr "今日のAPI呼び出し"
+
+msgid "錯誤: %d"
+msgstr "エラー: %d"
+
+msgid "本週對話 (%d天)"
+msgstr "今週の会話（%d日間）"
+
+msgid "今日: %d"
+msgstr "今日: %d"
+
+msgid "快取命中率"
+msgstr "キャッシュヒット率"
+
+msgid "命中: %d"
+msgstr "ヒット: %d"
+
+msgid "平均回應時間 (ms)"
+msgstr "平均応答時間（ms）"
+
+msgid "今日平均"
+msgstr "今日の平均"
+
+msgid "API 調用趨勢 (%d天)"
+msgstr "API呼び出し傾向（%d日間）"
+
+msgid "對話類型分佈"
+msgstr "会話タイプ分布"
+
+msgid "供應商使用分佈"
+msgstr "プロバイダー使用分布"
+
+msgid "熱門話題 (Top 10 / %d天)"
+msgstr "人気トピック（Top 10 / %d日間）"
+
+msgid "尚無話題資料"
+msgstr "トピックデータがありません"
+
+msgid "統計設定"
+msgstr "統計設定"
+
+msgid "統計資料會自動保留 30 天，超過的資料會自動清除。"
+msgstr "統計データは30日間自動的に保持されます。古いデータは自動的に削除されます。"
+
+msgid "確定要清除所有統計資料嗎？此操作無法復原。"
+msgstr "すべての統計データをクリアしてもよろしいですか？この操作は元に戻せません。"
+
+msgid "🗑️ 清除所有統計資料"
+msgstr "🗑️ すべての統計データをクリア"
+
+msgid "資料更新時間: %s"
+msgstr "データ更新時刻: %s"
+
+msgid "API 調用"
+msgstr "API呼び出し"
+
+msgid "快取命中"
+msgstr "キャッシュヒット"
+
+msgid "對話次數"
+msgstr "会話数"
+
+msgid "無資料"
+msgstr "データなし"
+
+msgid "頁面感知"
+msgstr "ページ認識"
+
+msgid "互動對話"
+msgstr "インタラクティブ会話"
+
+msgid "首次問候"
+msgstr "初回挨拶"
+
+msgid "觸摸反應"
+msgstr "タッチ反応"
+
+msgid "自言自語"
+msgstr "独り言"
+
+msgid "裝飾品反應"
+msgstr "アクセサリー反応"
+
+msgid "統計資料已清除"
+msgstr "統計データをクリアしました"
+
+msgid "統計"
+msgstr "統計"

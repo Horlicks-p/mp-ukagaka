@@ -1145,3 +1145,106 @@ msgstr "查詢座標（右鍵點擊地圖即可複製座標）。"
 #: options_page_llm.php:480
 msgid "測試天氣 API"
 msgstr "測試天氣 API"
+
+# ========================================
+# 統計儀表板頁面
+# ========================================
+
+msgid "📊 統計儀表板"
+msgstr "📊 統計儀表板"
+
+msgid "7 天"
+msgstr "7 天"
+
+msgid "30 天"
+msgstr "30 天"
+
+msgid "今日 API 調用"
+msgstr "今日 API 調用"
+
+msgid "錯誤: %d"
+msgstr "錯誤: %d"
+
+msgid "本週對話 (%d天)"
+msgstr "本週對話（%d天）"
+
+msgid "今日: %d"
+msgstr "今日: %d"
+
+msgid "快取命中率"
+msgstr "快取命中率"
+
+msgid "命中: %d"
+msgstr "命中: %d"
+
+msgid "平均回應時間 (ms)"
+msgstr "平均回應時間（ms）"
+
+msgid "今日平均"
+msgstr "今日平均"
+
+msgid "API 調用趨勢 (%d天)"
+msgstr "API 調用趨勢（%d天）"
+
+msgid "對話類型分佈"
+msgstr "對話類型分佈"
+
+msgid "供應商使用分佈"
+msgstr "供應商使用分佈"
+
+msgid "熱門話題 (Top 10 / %d天)"
+msgstr "熱門話題（Top 10 / %d天）"
+
+msgid "尚無話題資料"
+msgstr "尚無話題資料"
+
+msgid "統計設定"
+msgstr "統計設定"
+
+msgid "統計資料會自動保留 30 天，超過的資料會自動清除。"
+msgstr "統計資料會自動保留 30 天，超過的資料會自動清除。"
+
+msgid "確定要清除所有統計資料嗎？此操作無法復原。"
+msgstr "確定要清除所有統計資料嗎？此操作無法復原。"
+
+msgid "🗑️ 清除所有統計資料"
+msgstr "🗑️ 清除所有統計資料"
+
+msgid "資料更新時間: %s"
+msgstr "資料更新時間: %s"
+
+msgid "API 調用"
+msgstr "API 調用"
+
+msgid "快取命中"
+msgstr "快取命中"
+
+msgid "對話次數"
+msgstr "對話次數"
+
+msgid "無資料"
+msgstr "無資料"
+
+msgid "頁面感知"
+msgstr "頁面感知"
+
+msgid "互動對話"
+msgstr "互動對話"
+
+msgid "首次問候"
+msgstr "首次問候"
+
+msgid "觸摸反應"
+msgstr "觸摸反應"
+
+msgid "自言自語"
+msgstr "自言自語"
+
+msgid "裝飾品反應"
+msgstr "裝飾品反應"
+
+msgid "統計資料已清除"
+msgstr "統計資料已清除"
+
+msgid "統計"
+msgstr "統計"

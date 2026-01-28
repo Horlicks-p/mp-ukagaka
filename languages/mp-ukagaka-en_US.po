@@ -1177,3 +1177,106 @@ msgstr "Cache module not loaded"
 
 msgid "清除失敗"
 msgstr "Clear failed"
+
+# ========================================
+# Statistics Dashboard Page
+# ========================================
+
+msgid "📊 統計儀表板"
+msgstr "📊 Statistics Dashboard"
+
+msgid "7 天"
+msgstr "7 Days"
+
+msgid "30 天"
+msgstr "30 Days"
+
+msgid "今日 API 調用"
+msgstr "Today's API Calls"
+
+msgid "錯誤: %d"
+msgstr "Errors: %d"
+
+msgid "本週對話 (%d天)"
+msgstr "Weekly Conversations (%d days)"
+
+msgid "今日: %d"
+msgstr "Today: %d"
+
+msgid "快取命中率"
+msgstr "Cache Hit Rate"
+
+msgid "命中: %d"
+msgstr "Hits: %d"
+
+msgid "平均回應時間 (ms)"
+msgstr "Avg Response Time (ms)"
+
+msgid "今日平均"
+msgstr "Today's Average"
+
+msgid "API 調用趨勢 (%d天)"
+msgstr "API Call Trend (%d days)"
+
+msgid "對話類型分佈"
+msgstr "Conversation Type Distribution"
+
+msgid "供應商使用分佈"
+msgstr "Provider Usage Distribution"
+
+msgid "熱門話題 (Top 10 / %d天)"
+msgstr "Hot Topics (Top 10 / %d days)"
+
+msgid "尚無話題資料"
+msgstr "No topic data yet"
+
+msgid "統計設定"
+msgstr "Statistics Settings"
+
+msgid "統計資料會自動保留 30 天，超過的資料會自動清除。"
+msgstr "Statistics data is automatically retained for 30 days. Older data will be automatically cleared."
+
+msgid "確定要清除所有統計資料嗎？此操作無法復原。"
+msgstr "Are you sure you want to clear all statistics? This action cannot be undone."
+
+msgid "🗑️ 清除所有統計資料"
+msgstr "🗑️ Clear All Statistics"
+
+msgid "資料更新時間: %s"
+msgstr "Data updated: %s"
+
+msgid "API 調用"
+msgstr "API Calls"
+
+msgid "快取命中"
+msgstr "Cache Hits"
+
+msgid "對話次數"
+msgstr "Conversations"
+
+msgid "無資料"
+msgstr "No Data"
+
+msgid "頁面感知"
+msgstr "Page Awareness"
+
+msgid "互動對話"
+msgstr "Interactive Chat"
+
+msgid "首次問候"
+msgstr "First Greeting"
+
+msgid "觸摸反應"
+msgstr "Touch Response"
+
+msgid "自言自語"
+msgstr "Self Talk"
+
+msgid "裝飾品反應"
+msgstr "Accessory Response"
+
+msgid "統計資料已清除"
+msgstr "Statistics cleared"
+
+msgid "統計"
+msgstr "Statistics"
