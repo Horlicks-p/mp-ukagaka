@@ -18,7 +18,7 @@ This plugin is an extensively expanded version based on the original WordPress p
 
 ### About Character Personality Creation
 
-While this plugin provides the **Create New Character Personality** feature (see [GHOST_CREATE_GUIDE.md](docs/GHOST_CREATE_GUIDE.md)), development efforts have primarily focused on the default character "Frieren". Therefore, this feature has not been fully tested. Your understanding is appreciated.
+While this plugin provides the **Create New Character Personality** feature (see [GHOST_CREATE_GUIDE.md](docs-en/GHOST_CREATE_GUIDE.md)), development efforts have primarily focused on the default character "Frieren". Therefore, this feature has not been fully tested. Your understanding is appreciated.
 
 ### AI Model Recommendations
 
