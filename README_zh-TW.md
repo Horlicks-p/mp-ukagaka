@@ -20,6 +20,8 @@
 
 本外掛雖提供 **創建新角色人格** 的功能（詳見 [GHOST_CREATE_GUIDE.md](docs/GHOST_CREATE_GUIDE.md)），但由於開發精力主要投注在預設角色「芙莉蓮」的製作上，因此該功能尚未經過完整測試，敬請見諒。
 
+如果您只是想使用預設角色「芙莉蓮」，基本台詞已內建於外掛中，開箱即用。若想獲得更豐富、更具互動性的對話體驗，建議設定 AI 模型的 API Key。此外，角色記憶設定檔 [system_prompt.md](ghost/Frieren/system_prompt.md)（包含動畫第一期的劇情記憶）也已內建，但請記得將其中的 `{{admin_nickname}}` 與 `{{admin_name}}` 替換為您的暱稱，並將誕生日修改為符合您的設定。
+
 ### AI 模型推薦
 
 本外掛內建支援 Gemini、OpenAI、Claude 及 Ollama 等多種 AI 提供商。根據實際測試，**GPT-4o Mini** 在對話生成品質與 API 成本之間取得了極佳的平衡，是非常推薦的選擇，供您參考。
