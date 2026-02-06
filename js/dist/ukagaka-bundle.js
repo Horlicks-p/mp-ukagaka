@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-01-20T12:28:24.242Z
+ * Generated: 2026-02-06T11:59:55.850Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-chat.js, ukagaka-features.js
  */

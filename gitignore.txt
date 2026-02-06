@@ -1,0 +1,72 @@
+# Backup files
+*.backup
+*.bak
+*.swp
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.cursor/
+
+# Build files
+node_modules/
+vendor/
+composer.lock
+package-lock.json
+
+# Logs
+*.log
+debug.log
+error.log
+
+# Original design files
+*.psd
+*.ai
+*.sketch
+
+# Local development
+.env
+.env.local
+wp-config.php
+
+# Temporary files
+*.tmp
+*.temp
+
+# Ollama model files (personal configuration)
+frieren_modelfile.txt
+*_modelfile.txt
+
+# User-generated content
+images/
+dialogs/
+.cursor-config.md
+
+# Custom character files (personal)
+Asuna/
+Sakura_Laurel/
+
+# Node.js files
+node_modules/
+package.json
+package-lock.json
+build.js
+js/dist/ukagaka-bundle.js
+
+#environment
+.agent/
+.agent/environment.md
+

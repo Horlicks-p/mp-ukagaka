@@ -2,15 +2,27 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.5.6-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.6.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
 🌍 **他の言語**: [English](README.md) | [繁體中文](README_zh-TW.md)
 
-## 🎉 特別告知
+## 📢 はじめに（必読）
 
-**『葬送のフリーレン』第2期** の **2026年1月16日** 放送開始を記念して、デフォルトキャラクターを **フリーレン** に変更しました。
+本プラグインは、10 年以上前に Ariagle 氏が公開した WordPress プラグイン「MP Ukagaka」をベースに、大幅に拡張・派生させたバージョンです。
+
+> ⚠️ **重要なお知らせ**：本プラグインのコードの約 90% は AI 支援開発（バイブコーディング）で作成されています。数え切れないほどのデバッグと改良を経ていますが、未知のバグや不完全なコード構造が存在する可能性があります。ご使用前にこのリスクをご理解ください。
+
+📺 **デモサイト**：[https://www.moelog.com](https://www.moelog.com/)
+
+### キャラクター人格作成について
+
+本プラグインには **新しい人格を作成する** 機能があります（[GHOST_CREATE_GUIDE.md](docs-jp/GHOST_CREATE_GUIDE.md) を参照）。ただし、開発の重点はデフォルトキャラクター「フリーレン」の制作に注がれているため、この機能は十分にテストされていません。ご了承ください。
+
+### AI モデルの推奨
+
+本プラグインは Gemini、OpenAI、Claude、Ollama など複数の AI プロバイダーをサポートしています。テスト結果に基づくと、**GPT-4o Mini** は対話生成品質と API コストのバランスが非常に優れており、強くおすすめできる選択肢です。
 
 ## 📸 スクリーンショット
 
@@ -80,7 +92,7 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.5.6 の新機能
+## 🎉 v2.6.0 の新機能
 
 **フロントエンド JS 最適化**：本番環境向けにフロントエンド JavaScript をバンドルと圧縮。
   - HTTP リクエスト 87.5% 削減（8 ファイル → 1 バンドル）

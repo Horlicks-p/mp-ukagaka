@@ -2,15 +2,27 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.5.6-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.6.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
 🌍 **其他語言**: [English](README.md) | [日本語](README_ja.md)
 
-## 🎉 特別公告
+## 📢 前言（必讀）
 
-為慶祝 **『葬送のフリーレン』第2期** 於 **2026年1月16日** 開始放送，預設角色已從初音變更為 **芙莉蓮（フリーレン）**。
+本外掛以 10 多年前 Ariagle 氏所發布之 WordPress 外掛「MP Ukagaka」為基礎，進行大幅擴展與衍生的版本。
+
+> ⚠️ **重要提示**：本外掛約 90% 的程式碼是透過 AI 輔助開發（Vibe Coding）完成的，雖已經過不計其數的調試與改良，但仍可能存在未知的 BUG 或不夠完善的程式碼結構，使用前請務必理解此風險。  
+
+📺 **演示網站**：[https://www.moelog.com](https://www.moelog.com/)
+
+### 關於角色人格創建
+
+本外掛雖提供 **創建新角色人格** 的功能（詳見 [GHOST_CREATE_GUIDE.md](docs/GHOST_CREATE_GUIDE.md)），但由於開發精力主要投注在預設角色「芙莉蓮」的製作上，因此該功能尚未經過完整測試，敬請見諒。
+
+### AI 模型推薦
+
+本外掛內建支援 Gemini、OpenAI、Claude 及 Ollama 等多種 AI 提供商。根據實際測試，**GPT-4o Mini** 在對話生成品質與 API 成本之間取得了極佳的平衡，是非常推薦的選擇，供您參考。
 
 ## 📸 預覽截圖
 
@@ -80,7 +92,7 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.5.6 新功能
+## 🎉 v2.6.0 新功能
 
 **前端 JS 優化**：打包並壓縮前端 JavaScript 以用於生產環境。
 - HTTP 請求減少 87.5%（8 個檔案 → 1 個 bundle）

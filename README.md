@@ -2,15 +2,27 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.5.6-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.6.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
 🌍 **Other Languages**: [繁體中文](README_zh-TW.md) | [日本語](README_ja.md)
 
-## 🎉 Special Announcement
+## 📢 Preface (Please Read)
 
-To celebrate **"Sousou no Frieren" Season 2** premiere on **January 16, 2026**, the default character is now **Frieren (フリーレン)**.
+This plugin is an extensively expanded version based on the original WordPress plugin "MP Ukagaka" released by Ariagle over 10 years ago.
+
+> ⚠️ **Important Notice**: Approximately 90% of this plugin's code was developed using AI-assisted development (Vibe Coding). Although it has undergone countless rounds of debugging and improvements, there may still be unknown bugs or imperfect code structures. Please understand this risk before use.
+
+📺 **Demo Site**: [https://www.moelog.com](https://www.moelog.com/)
+
+### About Character Personality Creation
+
+While this plugin provides the **Create New Character Personality** feature (see [GHOST_CREATE_GUIDE.md](docs-en/GHOST_CREATE_GUIDE.md)), development efforts have primarily focused on the default character "Frieren". Therefore, this feature has not been fully tested. Your understanding is appreciated.
+
+### AI Model Recommendations
+
+This plugin supports multiple AI providers including Gemini, OpenAI, Claude, and Ollama. Based on testing, **GPT-4o Mini** offers an excellent balance between dialogue generation quality and API costs, making it a highly recommended choice.
 
 ## 📸 Screenshot
 
@@ -80,7 +92,7 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.5.6
+## 🎉 What's New in v2.6.0
 
 **Frontend JS Optimization**: Bundled and minified frontend JavaScript for production.
   - 87.5% reduction in HTTP requests (8 files → 1 bundle)
