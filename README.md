@@ -12,7 +12,7 @@ A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-
 
 This plugin is an extensively expanded version based on the original WordPress plugin "MP Ukagaka" released by Ariagle over 10 years ago.
 
-> ⚠️ **Important Notice**: Approximately 90% of this plugin's code was developed using AI-assisted development (Vibe Coding). As a result, there may be unknown bugs or imperfect code structures. Please understand this risk before use.
+> ⚠️ **Important Notice**: Approximately 90% of this plugin's code was developed using AI-assisted development (Vibe Coding). Although it has undergone countless rounds of debugging and improvements, there may still be unknown bugs or imperfect code structures. Please understand this risk before use.
 
 📺 **Demo Site**: [https://www.moelog.com](https://www.moelog.com/)
 
