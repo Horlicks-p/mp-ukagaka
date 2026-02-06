@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.5.6
+Stable tag: 2.6.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -17,7 +17,7 @@ Tags: ukagaka, ai, context awareness, llm, ollama, gemini, openai, claude
 
 This plugin is an extensively expanded version based on the original WordPress plugin "MP Ukagaka" released by Ariagle over 10 years ago.
 
-**Important Notice**: Approximately 90% of this plugin's code was developed using AI-assisted development (Vibe Coding). As a result, there may be unknown bugs or imperfect code structures. Please understand this risk before use.
+**Important Notice**: Approximately 90% of this plugin's code was developed using AI-assisted development (Vibe Coding). Although it has undergone countless rounds of debugging and improvements, there may still be unknown bugs or imperfect code structures. Please understand this risk before use.
 
 **Demo Site**: https://www.moelog.com/
 
