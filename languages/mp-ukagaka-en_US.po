@@ -771,6 +771,18 @@ msgstr "🚫 Page Exclusion Settings"
 msgid "⚙️ HTML 生成位置"
 msgstr "⚙️ HTML Output Position"
 
+msgid "使用自訂樣式"
+msgstr "Use Custom Style"
+
+msgid "勾選此項將停用插件內建的 CSS 樣式。"
+msgstr "Check this to disable the plugin's built-in CSS styles."
+
+msgid "自訂樣式連結"
+msgstr "Custom Style Link"
+
+msgid "輸入要載入的 CSS 樣式連結，例如："
+msgstr "Enter the CSS stylesheet link to load, for example:"
+
 # ========================================
 # Character Management Page - New Strings
 # ========================================
