@@ -386,6 +386,40 @@ function mpu_chat_context() {
           window.mpuEmojiManager.showEmoji(res.emoji);
         }
 
+        // 記憶功能：將頁面感知對話存入對話歷史
+        // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話
+        if (typeof mpuChatHistory !== 'undefined' && Array.isArray(mpuChatHistory)) {
+          mpuChatHistory.push({
+            role: "assistant",
+            content: res.msg,
+            timestamp: Date.now(),
+          });
+          
+          // 限制最多保留 3 條自發對話（避免佔用太多上下文）
+          // 只刪除最舊的 assistant 記錄，保留所有 user 記錄
+          const maxAutoTalkHistory = 3;
+          const assistantMessages = mpuChatHistory.filter(
+            (msg) => msg.role === "assistant"
+          );
+          if (assistantMessages.length > maxAutoTalkHistory) {
+            // 找到需要刪除的最舊的 assistant 記錄
+            let removed = 0;
+            const toRemove = assistantMessages.length - maxAutoTalkHistory;
+            for (let i = 0; i < mpuChatHistory.length && removed < toRemove; i++) {
+              if (mpuChatHistory[i].role === "assistant") {
+                mpuChatHistory.splice(i, 1);
+                removed++;
+                i--; // 因為刪除了元素，索引需要減 1
+              }
+            }
+          }
+
+          if (typeof mpu_saveChatHistory === "function") {
+            mpu_saveChatHistory();
+            mpuLogger.log("mpu_chat_context: 對話已加入歷史並儲存");
+          }
+        }
+
         // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
         // 這樣用戶可以自由設定 AI 回應的顯示時間
         if (mpuAiDisplayTimer !== null) {
@@ -620,9 +654,89 @@ function mpu_greet_first_visitor(settings) {
           if (res.emoji && typeof window.mpuEmojiManager !== 'undefined') {
             window.mpuEmojiManager.showEmoji(res.emoji);
           }
+            if (res && res.msg && !res.error) {
+              let greetingMessage = mpu_unescapeHTML(res.msg);
+              greetingMessage = mpu_linkifyUrls(greetingMessage);
 
-          // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
-          if (mpuAiDisplayTimer !== null) {
+              mpu_typewriter(
+                `<span style="color: ${mpuAiTextColor};">${greetingMessage}</span>`,
+                "#ukagaka_msg"
+              );
+
+              // 觸發角色動畫（訪客問候是使用者觸發，強制播放動畫）
+              if (typeof window.mpuCanvasManager !== 'undefined' && window.mpuCanvasManager.isCharacterMode) {
+                window.mpuCanvasManager.triggerCharacterAnimation(true);
+              }
+
+              // 顯示表情（如果有的話）
+              if (res.emoji && typeof window.mpuEmojiManager !== 'undefined') {
+                window.mpuEmojiManager.showEmoji(res.emoji);
+              }
+
+              // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
+              if (
+                typeof mpuChatHistory !== "undefined" &&
+                Array.isArray(mpuChatHistory)
+              ) {
+                mpuChatHistory.push({
+                  role: "assistant",
+                  content: res.msg,
+                  timestamp: Date.now(),
+                });
+
+                // 限制最多保留 3 條自發對話
+                const maxAutoTalkHistory = 3;
+                const assistantMessages = mpuChatHistory.filter(
+                  (msg) => msg.role === "assistant"
+                );
+                if (assistantMessages.length > maxAutoTalkHistory) {
+                  let removed = 0;
+                  const toRemove = assistantMessages.length - maxAutoTalkHistory;
+                  for (let i = 0; i < mpuChatHistory.length && removed < toRemove; i++) {
+                    if (mpuChatHistory[i].role === "assistant") {
+                      mpuChatHistory.splice(i, 1);
+                      removed++;
+                      i--; // Adjust index after removal
+                    }
+                  }
+                }
+
+                if (typeof mpu_saveChatHistory === "function") {
+                  mpu_saveChatHistory();
+                  mpuLogger.log("mpu_greet_first_visitor: 問候已加入歷史並儲存");
+                } else {
+                  mpuLogger.warn(
+                    "mpu_greet_first_visitor: mpu_saveChatHistory 函數不存在，無法儲存對話歷史"
+                  );
+                }
+              } else {
+                mpuLogger.warn(
+                  "mpu_greet_first_visitor: mpuChatHistory 未初始化或不是陣列，無法加入對話歷史"
+                );
+              }
+
+              // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
+              if (mpuAiDisplayTimer !== null) {
+                clearTimeout(mpuAiDisplayTimer);
+                mpuAiDisplayTimer = null;
+              }
+
+              mpu_waitForTypewriterComplete(function () {
+                // 打字完成後，開始 displayDuration 計時
+                const displayDurationMs = mpuAiDisplayDuration * 1000;
+                mpuAiDisplayTimer = setTimeout(function () {
+                  mpuAiDisplayTimer = null;
+                  if (
+                    wasAutoTalkRunning &&
+                    settings.auto_talk === true &&
+                    mpuAutoTalk
+                  ) {
+                    startAutoTalk();
+                  }
+                  resolve();
+                }, displayDurationMs);
+              });
+            } else {
             clearTimeout(mpuAiDisplayTimer);
             mpuAiDisplayTimer = null;
           }
@@ -1268,6 +1382,12 @@ function mpu_escapeHTML(str) {
 
 // 綁定對話模式事件
 jQuery(document).ready(function () {
+  // 初始化：載入對話歷史
+  if (typeof mpu_loadChatHistory === 'function') {
+    mpu_loadChatHistory();
+    mpuLogger.log('頁面載入：對話歷史已載入，當前記錄數:', mpuChatHistory.length);
+  }
+
   // 第三個按鈕點擊事件：根據設定決定是對話還是切換春菜
   jQuery('#mpu_chat_toggle').on('click', function (e) {
     e.preventDefault();
