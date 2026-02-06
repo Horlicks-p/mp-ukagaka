@@ -1,0 +1,1277 @@
+# MP Ukagaka 日本語翻訳ファイル
+# Copyright (C) 2025 Ariagle (patched by Horlicks)
+# This file is distributed under the same license as the MP Ukagaka plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: MP Ukagaka 2.4.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-03 12:00+0800\n"
+"PO-Revision-Date: 2026-01-03 12:00+0800\n"
+"Last-Translator: Horlicks <https://www.moelog.com>\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: MP Ukagaka\n"
+
+# ========================================
+# コア機能
+# ========================================
+
+msgid "初音"
+msgstr "初音ミク"
+
+msgid "歡迎光臨～"
+msgstr "ようこそ！"
+
+msgid "更換春菜"
+msgstr "ゴースト変更"
+
+msgid "春菜们"
+msgstr "ゴースト一覧"
+
+msgid "沒有可供選擇的春菜"
+msgstr "他のゴーストはありません"
+
+msgid "隱藏春菜 ▼"
+msgstr "ゴーストを隠す ▼"
+
+msgid "隱藏會話 ▼"
+msgstr "メッセージを隠す ▼"
+
+msgid "顯示春菜 ▲"
+msgstr "ゴーストを表示 ▲"
+
+msgid "顯示會話 ▲"
+msgstr "メッセージを表示 ▲"
+
+msgid "擴展"
+msgstr "拡張"
+
+msgid "(思考中...)"
+msgstr "(考え中...)"
+
+msgid "（えっと…何話せばいいかな…）"
+msgstr "（えっと…何話せばいいかな…）"
+
+msgid "回到頂部 ▼"
+msgstr "トップへ ▼"
+
+# ========================================
+# 管理画面 - ナビゲーション
+# ========================================
+
+msgid "MP Ukagaka 選項"
+msgstr "MP Ukagaka 設定"
+
+msgid "通用設定"
+msgstr "一般設定"
+
+msgid "AI 設定"
+msgstr "AI 設定"
+
+msgid "LLM 設定"
+msgstr "LLM 設定"
+
+msgid "會話"
+msgstr "メッセージ"
+
+msgid "春菜們"
+msgstr "ゴースト"
+
+msgid "創建新春菜"
+msgstr "ゴースト作成"
+
+# ========================================
+# 管理画面 - メッセージ
+# ========================================
+
+msgid "春菜"
+msgstr "伺か"
+
+msgid "已離你而去…"
+msgstr "を削除しました"
+
+msgid "不存在此春菜喲"
+msgstr "ゴーストが存在しません"
+
+msgid "不允許趕走預設春菜喲"
+msgstr "デフォルトゴーストは削除できません"
+
+msgid "安全性檢查失敗。"
+msgstr "セキュリティチェックに失敗しました。"
+
+msgid "設定已儲存"
+msgstr "設定を保存しました"
+
+msgid "春菜們已經煥然一新啦"
+msgstr "ゴーストの設定を更新しました"
+
+msgid "，對話檔案已生成"
+msgstr "、ダイアログファイルを生成しました"
+
+msgid "春菜創建成功～"
+msgstr "ゴーストを作成しました"
+
+msgid "AI 設定已儲存"
+msgstr "AI設定を保存しました"
+
+msgid "LLM 設定已儲存"
+msgstr "LLM設定を保存しました"
+
+msgid "設定已重置"
+msgstr "設定を初期化しました"
+
+msgid "設定未被重置"
+msgstr "設定は初期化されませんでした"
+
+# ========================================
+# 一般設定ページ
+# ========================================
+
+msgid "預設春菜："
+msgstr "デフォルトゴースト："
+
+msgid "預設顯示春菜"
+msgstr "ゴーストをデフォルトで表示"
+
+msgid "預設顯示對話框"
+msgstr "ダイアログをデフォルトで表示"
+
+msgid "預設會話："
+msgstr "デフォルトメッセージ："
+
+msgid "隨機吐槽"
+msgstr "ランダム表示"
+
+msgid "第一條吐槽"
+msgstr "最初のメッセージ"
+
+msgid "會話順序："
+msgstr "メッセージの順序："
+
+msgid "順序吐槽"
+msgstr "順番に表示"
+
+msgid "點擊春菜："
+msgstr "ゴーストをクリック："
+
+msgid "下一條吐槽"
+msgstr "次のメッセージ"
+
+msgid "無操作"
+msgstr "何もしない"
+
+msgid "自動對話："
+msgstr "自動会話："
+
+msgid "啟用自動對話功能"
+msgstr "自動会話を有効にする"
+
+msgid "自動對話間隔時間（秒）："
+msgstr "自動会話の間隔（秒）："
+
+msgid "打字效果速度（毫秒/字）："
+msgstr "タイプライター速度（ミリ秒/文字）："
+
+msgid "數值越小打字越快，建議範圍 20-80，預設 40"
+msgstr "数値が小さいほど速くなります。推奨範囲 20-80、デフォルト 40"
+
+msgid "外部對話文件格式："
+msgstr "外部ダイアログファイル形式："
+
+msgid "純文字格式 (TXT)"
+msgstr "テキスト形式 (TXT)"
+
+msgid "JSON 格式"
+msgstr "JSON 形式"
+
+msgid "使用外部對話文件"
+msgstr "外部ダイアログファイルを使用"
+
+msgid "使用自訂樣式"
+msgstr "カスタムスタイルを使用"
+
+msgid "HTML 生成位置："
+msgstr "HTML生成位置："
+
+msgid "一般情況下請勿更改"
+msgstr "通常は変更しないでください"
+
+msgid "在</body>前"
+msgstr "</body>タグ直前"
+
+msgid "當春菜無法顯示（主題尾部無 wp_footer() 函數）或 wp_footer() 位置導致樣式異常時，請勾選此項"
+msgstr "ゴーストが表示されない場合や、スタイルに問題がある場合はこれを選択してください"
+
+msgid "在 wp_footer() 處"
+msgstr "wp_footer()内"
+
+msgid "這是 WordPress 常用方式，但若主題尾部無 wp_footer() 函數，春菜將無法顯示"
+msgstr "WordPress標準の方法ですが、テーマにwp_footer()がない場合は表示されません"
+
+msgid "不在以下頁面顯示春菜"
+msgstr "以下のページでゴーストを非表示"
+
+msgid "輸入不顯示春菜的頁面 URL，每行一條。"
+msgstr "非表示にするページのURLを1行ずつ入力してください。"
+
+msgid "在地址尾部加入 (*) 可進行模糊匹配。"
+msgstr "URLの末尾に(*)を追加するとワイルドカード検索ができます。"
+
+msgid " 儲 存 "
+msgstr " 保存 "
+
+msgid "插件資訊"
+msgstr "プラグイン情報"
+
+msgid "版本："
+msgstr "バージョン："
+
+msgid "春菜數量："
+msgstr "ゴースト数："
+
+msgid "平均會話數："
+msgstr "平均メッセージ数："
+
+msgid "維護者網站："
+msgstr "メンテナーサイト："
+
+msgid "前往維護者網站"
+msgstr "メンテナーサイトへ"
+
+msgid "重置設定"
+msgstr "設定の初期化"
+
+msgid "確認重置"
+msgstr "初期化を確認"
+
+msgid "重置設定將還原插件的所有配置為預設值，所有設定及春菜將被刪除。此操作無法撤銷，請謹慎操作。"
+msgstr "設定を初期化すると、すべてのゴーストと設定が削除されます。この操作は取り消せません。"
+
+msgid " 重 置 "
+msgstr " 初期化 "
+
+# ========================================
+# AI設定ページ
+# ========================================
+
+msgid "AI 設定 (Context Awareness)"
+msgstr "AI 設定（コンテキスト認識）"
+
+msgid "啟用頁面感知功能（需要 AI API Key）"
+msgstr "ページ認識機能を有効にする（AI API Keyが必要）"
+
+msgid "AI 提供商："
+msgstr "AIプロバイダー："
+
+msgid "Google Gemini"
+msgstr "Google Gemini"
+
+msgid "OpenAI"
+msgstr "OpenAI"
+
+msgid "Claude (Anthropic)"
+msgstr "Claude (Anthropic)"
+
+msgid "Gemini API Key："
+msgstr "Gemini API Key："
+
+msgid "請輸入 Google Gemini API Key"
+msgstr "Google Gemini API Keyを入力"
+
+msgid "請前往 <a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a> 取得 API Key"
+msgstr "<a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a>でAPI Keyを取得"
+
+msgid "已設定"
+msgstr "設定済み"
+
+msgid "OpenAI API Key："
+msgstr "OpenAI API Key："
+
+msgid "請輸入 OpenAI API Key"
+msgstr "OpenAI API Keyを入力"
+
+msgid "請前往 <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a> 取得 API Key"
+msgstr "<a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a>でAPI Keyを取得"
+
+msgid "OpenAI 模型："
+msgstr "OpenAI モデル："
+
+msgid "Claude API Key："
+msgstr "Claude API Key："
+
+msgid "請輸入 Claude API Key"
+msgstr "Claude API Keyを入力"
+
+msgid "請前往 <a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a> 取得 API Key"
+msgstr "<a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a>でAPI Keyを取得"
+
+msgid "Claude 模型："
+msgstr "Claude モデル："
+
+msgid "語言設定："
+msgstr "言語設定："
+
+msgid "繁體中文"
+msgstr "繁體中文"
+
+msgid "日本語"
+msgstr "日本語"
+
+msgid "English"
+msgstr "English"
+
+msgid "人格設定 (System Prompt)："
+msgstr "キャラクター設定（System Prompt）："
+
+msgid "AI 回應機率 (%)："
+msgstr "AI応答確率（%）："
+
+msgid "設定使用 AI 的機率（1-100%）。建議 10% 以控制成本。"
+msgstr "AIを使用する確率（1-100%）。コスト管理のため10%推奨。"
+
+msgid "觸發頁面："
+msgstr "トリガーページ："
+
+msgid "WordPress 條件標籤，逗號分隔（如：is_single,is_page）"
+msgstr "WordPress条件タグをカンマ区切り（例：is_single,is_page）"
+
+msgid "AI 對話文字顏色："
+msgstr "AI会話の文字色："
+
+msgid "設定 AI 對話載入訊息（…ふむ。この記事か。どれ…）的文字顏色"
+msgstr "AI会話の読み込みメッセージの文字色を設定"
+
+msgid "AI 對話顯示時間（秒）："
+msgstr "AI会話の表示時間（秒）："
+
+msgid "設定 AI 對話顯示的時間長度。在此期間，自動對話會暫停，避免 AI 對話被覆蓋（建議 5-10 秒）"
+msgstr "AI会話の表示時間。この間、自動会話は一時停止します（5-10秒推奨）"
+
+msgid "啟用首次訪客打招呼"
+msgstr "初回訪問者への挨拶を有効化"
+
+msgid "當訪客第一次訪問網站時，根據訪客來源（使用 Slimstat API）用 AI 生成個性化打招呼訊息。每個訪客只會看到一次。"
+msgstr "初回訪問者にAIが参照元に基づいてパーソナライズされた挨拶を生成します。各訪問者に1回のみ表示。"
+
+msgid "首次訪客打招呼提示詞："
+msgstr "初回訪問者挨拶プロンプト："
+
+msgid "定義春菜對首次訪客的打招呼風格和語氣"
+msgstr "初回訪問者への挨拶のスタイルとトーンを定義"
+
+msgid "Ollama (本機 LLM，無需 API Key)"
+msgstr "Ollama (ローカルLLM、APIキー不要)"
+
+msgid "(已隱藏以確保安全)"
+msgstr "(セキュリティのため非表示)"
+
+msgid "注意：本機 LLM (Ollama) 設定已移至「LLM 設定」頁面。"
+msgstr "注意：ローカルLLM (Ollama) の設定は「LLM設定」ページに移動しました。"
+
+# ========================================
+# LLM設定ページ
+# ========================================
+
+msgid "LLM 設定 (Ollama)"
+msgstr "LLM設定 (Ollama)"
+
+msgid "啟用 LLM (Ollama)"
+msgstr "LLM (Ollama) を有効にする"
+
+msgid "啟用後將使用 Ollama LLM 生成對話，支援本地或遠程連接，無需 API Key，完全免費。"
+msgstr "有効にすると、Ollama LLMを使用してダイアログを生成します。ローカルまたはリモート接続をサポートし、APIキー不要で完全無料です。"
+
+msgid "🔌 連接設定"
+msgstr "🔌 接続設定"
+
+msgid "Ollama 端點："
+msgstr "Ollama エンドポイント："
+
+msgid "本地："
+msgstr "ローカル："
+
+msgid "｜ 遠程："
+msgstr "｜ リモート："
+
+msgid "模型名稱："
+msgstr "モデル名："
+
+msgid "例如：gemma3:12b, qwen3:8b"
+msgstr "例：gemma3:12b, qwen3:8b"
+
+msgid "使用"
+msgstr "使用"
+
+msgid "查看已下載的模型"
+msgstr "でダウンロード済みモデルを確認"
+
+msgid "測試連接"
+msgstr "接続テスト"
+
+msgid "💬 對話設定"
+msgstr "💬 ダイアログ設定"
+
+msgid "使用 LLM 取代內建對話"
+msgstr "LLMを使用して組み込みダイアログを置き換える"
+
+msgid "啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。"
+msgstr "有効にすると、ゴーストのダイアログはLLMによってリアルタイムで生成され、静的ダイアログリストは使用されません。"
+
+msgid "關閉思考模式（Qwen3、DeepSeek 等模型）"
+msgstr "思考モードを無効にする（Qwen3、DeepSeekなどのモデル）"
+
+msgid "部分模型會輸出「思考過程」而非實際對話。啟用此選項可避免此問題。建議啟用。"
+msgstr "一部のモデルは実際のダイアログではなく「思考プロセス」を出力します。このオプションを有効にすると、この問題を回避できます。有効にすることをお勧めします。"
+
+msgid "使用 Modelfile 角色設定"
+msgstr "Modelfile キャラクター設定を使用"
+
+msgid "如果您的 Ollama 模型是透過 Modelfile 建立的自定義角色（例如：Frieren），請啟用此選項。啟用後，插件將完全不傳送任何 System Message，讓 Modelfile 中的 SYSTEM 提示詞完全生效。這確保角色設定（包括語言、語氣、人格等）完全由 Modelfile 控制。"
+msgstr "Ollama モデルが Modelfile を使用して作成されたカスタムキャラクター（例：Frieren）の場合、このオプションを有効にしてください。有効にすると、プラグインは System Message を一切送信せず、Modelfile の SYSTEM プロンプトを完全に有効にします。これにより、キャラクター設定（言語、トーン、人格など）が Modelfile によって完全に制御されます。"
+
+msgid "測試中..."
+msgstr "テスト中..."
+
+msgid "測試失敗，請檢查網絡連接"
+msgstr "テスト失敗、ネットワーク接続を確認してください"
+
+msgid "本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。"
+msgstr "ローカルのOllamaプログラムが起動していません。Ollamaサービスが実行中か確認してください。"
+
+msgid "無對話內容"
+msgstr "ダイアログコンテンツなし"
+
+# ========================================
+# ゴースト管理ページ
+# ========================================
+
+msgid "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。"
+msgstr "画像URLはhttp://から入力してください。"
+
+msgid "吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "メッセージは1行ずつ入力してください。HTMLは使用できません。"
+
+msgid "每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "1行につき1つのメッセージを入力してください。HTMLは使用できません。"
+
+msgid "刪除"
+msgstr "削除"
+
+msgid "可顯示"
+msgstr "表示"
+
+msgid "名稱："
+msgstr "名前："
+
+msgid "圖片："
+msgstr "画像："
+
+msgid "吐槽："
+msgstr "メッセージ："
+
+msgid "對話檔案名稱："
+msgstr "ダイアログファイル名："
+
+msgid "此名稱將用於外部對話檔案，例如：asuna.txt 或 asuna.json"
+msgstr "この名前は外部ダイアログファイル名として使用されます（例：asuna.txt、asuna.json）"
+
+msgid "生成對話檔案"
+msgstr "ダイアログファイルを生成"
+
+msgid "勾選此項將使用上方吐槽內容生成對應的對話檔案"
+msgstr "チェックすると上記メッセージからダイアログファイルを生成します"
+
+msgid "每行一條吐槽，不可使用 HTML 代碼。"
+msgstr "1行に1メッセージ。HTMLは使用できません。"
+
+msgid " 創 建 "
+msgstr " 作成 "
+
+# ========================================
+# 拡張ページ
+# ========================================
+
+msgid "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
+msgstr "よく分からない場合はこのページを変更しないでください。"
+
+msgid "JS 區"
+msgstr "JavaScript"
+
+msgid "可在此填寫 JavaScript 代碼，為春菜自訂更多的回應事件。"
+msgstr "ゴーストのカスタムイベントをJavaScriptで定義できます。"
+
+msgid "無需使用 &lt;script&gt; 標籤，代碼將寫入到 &lt;head&gt; 部分。"
+msgstr "&lt;script&gt;タグは不要です。コードは&lt;head&gt;に出力されます。"
+
+msgid "代碼擴展"
+msgstr "拡張コード"
+
+msgid "您可以在春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"
+msgstr "メッセージに拡張コードを追加して、記事一覧などを表示できます。"
+
+msgid "更多擴展代碼資訊請參閱："
+msgstr "拡張コードの詳細はこちら："
+
+# ========================================
+# メッセージページ
+# ========================================
+
+msgid "固定資訊："
+msgstr "固定メッセージ："
+
+msgid "此資訊將顯示在每條會話的後面，不可使用 HTML 代碼。"
+msgstr "各メッセージの後に表示されます。HTMLは使用できません。"
+
+msgid "通用會話："
+msgstr "共通メッセージ："
+
+msgid "所有春菜共用的會話內容。"
+msgstr "すべてのゴーストで共通のメッセージ。"
+
+msgid "一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
+msgstr "入力すると、各ゴーストのカスタムメッセージの代わりに使用されます。空にすると各ゴーストのデフォルトメッセージを使用。"
+
+# ========================================
+# セキュリティとファイル操作
+# ========================================
+
+msgid "找不到指定的文件"
+msgstr "ファイルが見つかりません"
+
+msgid "不允許讀取該路徑"
+msgstr "このパスの読み取りは許可されていません"
+
+msgid "文件過大，無法讀取"
+msgstr "ファイルが大きすぎて読み取れません"
+
+msgid "無法讀取文件"
+msgstr "ファイルを読み取れません"
+
+msgid "無法創建目錄"
+msgstr "ディレクトリを作成できません"
+
+msgid "不允許寫入該路徑"
+msgstr "このパスへの書き込みは許可されていません"
+
+msgid "不合法的文件名"
+msgstr "無効なファイル名です"
+
+msgid "無法寫入文件"
+msgstr "ファイルを書き込めません"
+
+msgid "不合法的對話文件名"
+msgstr "無効なダイアログファイル名です"
+
+msgid "找不到對話文件"
+msgstr "ダイアログファイルが見つかりません"
+
+msgid "對話文件過大，載入失敗"
+msgstr "ダイアログファイルが大きすぎます"
+
+msgid "無法讀取對話文件"
+msgstr "ダイアログファイルを読み取れません"
+
+msgid "JSON 檔案格式錯誤"
+msgstr "JSONファイル形式エラー"
+
+# ========================================
+# LLM設定ページ - 新規文字列
+# ========================================
+
+msgid "此頁面用於設定 AI 提供商、模型選擇和 LLM 功能。頁面感知 AI 的行為參數請前往「AI 設定」頁面。"
+msgstr "このページはAIプロバイダー、モデル選択、LLM機能の設定に使用します。ページ認識AIの動作パラメータは「AI設定」ページで設定してください。"
+
+msgid "🤖 AI 提供商"
+msgstr "🤖 AIプロバイダー"
+
+msgid "Gemini 模型："
+msgstr "Gemini モデル："
+
+msgid "啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。支援所有 AI 提供商（Gemini、OpenAI、Claude、Ollama）。"
+msgstr "有効にすると、ゴーストのダイアログはLLMによってリアルタイムで生成され、静的ダイアログリストは使用されません。すべてのAIプロバイダー（Gemini、OpenAI、Claude、Ollama）をサポートします。"
+
+msgid "📄 頁面感知功能"
+msgstr "📄 ページ認識機能"
+
+msgid "啟用頁面感知功能"
+msgstr "ページ認識機能を有効にする"
+
+msgid "啟用後，AI 會根據頁面內容生成相關對話。此功能的行為參數（語言、角色、機率等）請在「AI 設定」頁面配置。"
+msgstr "有効にすると、AIはページ内容に基づいて関連するダイアログを生成します。この機能の動作パラメータ（言語、キャラクター、確率など）は「AI設定」ページで設定してください。"
+
+# ========================================
+# ゴースト作成ページ - 新規文字列
+# ========================================
+
+msgid "創建一個新的春菜角色。圖片請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭。"
+msgstr "新しいゴーストキャラクターを作成します。画像URLはhttp://またはhttps://から入力してください。"
+
+msgid "➕ 新增春菜"
+msgstr "➕ ゴースト追加"
+
+msgid "請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭"
+msgstr "URLはhttp://またはhttps://から入力してください"
+
+# ========================================
+# 拡張ページ - 新規文字列
+# ========================================
+
+msgid "⚠️ 警告："
+msgstr "⚠️ 警告："
+
+msgid "📜 JS 區"
+msgstr "📜 JavaScript"
+
+msgid "🔧 代碼擴展"
+msgstr "🔧 拡張コード"
+
+# ========================================
+# メッセージページ - 新規文字列
+# ========================================
+
+msgid "設定所有春菜共用的固定資訊和通用會話內容。"
+msgstr "すべてのゴーストで共通の固定情報と共通メッセージを設定します。"
+
+msgid "📌 固定資訊"
+msgstr "📌 固定情報"
+
+msgid "所有春菜共用的會話內容。一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
+msgstr "すべてのゴーストで共通のメッセージ。入力すると、各ゴーストのカスタムメッセージの代わりに使用されます。空にすると各ゴーストのデフォルトメッセージを使用。"
+
+# ========================================
+# AJAXハンドラー - 新規文字列
+# ========================================
+
+msgid "未指定或不合法的檔名"
+msgstr "ファイル名が指定されていないか無効です"
+
+msgid "JSON 檔案格式錯誤："
+msgstr "JSONファイル形式エラー："
+
+msgid "對話文件為空，請檢查對話文件內容"
+msgstr "ダイアログファイルが空です。ダイアログファイルの内容を確認してください"
+
+msgid "安全性驗證失敗"
+msgstr "セキュリティ検証に失敗しました"
+
+msgid "請求過於頻繁，請稍後再試"
+msgstr "リクエストが頻繁すぎます。しばらくしてから再試行してください"
+
+msgid "AI 功能未啟用"
+msgstr "AI機能が有効になっていません"
+
+msgid "首次訪客打招呼功能未啟用"
+msgstr "初回訪問者への挨拶機能が有効になっていません"
+
+msgid "頁面內容為空"
+msgstr "ページ内容が空です"
+
+msgid "連接成功，模型響應正常（預覽：%s...）"
+msgstr "接続成功、モデル応答正常（プレビュー：%s...）"
+
+msgid "連接成功（%s連接），模型響應正常（預覽：%s...）"
+msgstr "接続成功（%s接続）、モデル応答正常（プレビュー：%s...）"
+
+msgid "API 回應為空，請檢查模型是否正確"
+msgstr "API応答が空です。モデルが正しいか確認してください"
+
+msgid "HTTP %s 錯誤"
+msgstr "HTTP %s エラー"
+
+msgid "API 認證失敗：%s。請檢查 API Key 是否正確。"
+msgstr "API認証失敗：%s。API Keyが正しいか確認してください。"
+
+msgid "模型「%s」不存在。請在設定中選擇正確的模型。"
+msgstr "モデル「%s」が存在しません。設定で正しいモデルを選択してください。"
+
+msgid "API 錯誤（HTTP %s）：%s"
+msgstr "APIエラー（HTTP %s）：%s"
+
+msgid "連接失敗（%s連接）：%s"
+msgstr "接続失敗（%s接続）：%s"
+
+msgid "連接失敗：%s"
+msgstr "接続失敗：%s"
+
+msgid "請輸入 Gemini API Key"
+msgstr "Gemini API Keyを入力してください"
+
+msgid "請輸入 OpenAI API Key"
+msgstr "OpenAI API Keyを入力してください"
+
+msgid "請輸入 Claude API Key"
+msgstr "Claude API Keyを入力してください"
+
+# ========================================
+# AI設定ページ - 新規文字列
+# ========================================
+
+msgid "此頁面用於設定「頁面感知 AI」功能的行為參數。AI 提供商選擇和模型設定請前往「LLM 設定」頁面。"
+msgstr "このページは「ページ認識AI」機能の動作パラメータを設定するために使用します。AIプロバイダー選択とモデル設定は「LLM設定」ページで行ってください。"
+
+msgid "🌐 語言與角色設定"
+msgstr "🌐 言語とキャラクター設定"
+
+msgid "⚙️ 觸發與機率設定"
+msgstr "⚙️ トリガーと確率設定"
+
+msgid "👋 首次訪客打招呼"
+msgstr "👋 初回訪問者への挨拶"
+
+msgid "頁面感知確率 (%)："
+msgstr "ページ認識確率（%）："
+
+msgid "頁面感知時 AI 對話文字顏色："
+msgstr "ページ認識時のAI会話の文字色："
+
+msgid "🎨 顯示設定"
+msgstr "🎨 表示設定"
+
+# ========================================
+# 一般設定ページ - 新規文字列
+# ========================================
+
+msgid "此頁面用於設定春菜的基本顯示和行為選項。"
+msgstr "このページはゴーストの基本表示と動作オプションを設定するために使用します。"
+
+msgid "👤 基本顯示設定"
+msgstr "👤 基本表示設定"
+
+msgid "💬 對話行為設定"
+msgstr "💬 ダイアログ動作設定"
+
+msgid "⏰ 自動對話設定"
+msgstr "⏰ 自動会話設定"
+
+msgid "📄 對話文件設定"
+msgstr "📄 ダイアログファイル設定"
+
+msgid "注意：系統已固定使用外部對話文件，對話將從 dialogs/ 資料夾讀取。"
+msgstr "注意：システムは外部ダイアログファイルを使用するように設定されています。ダイアログは dialogs/ フォルダから読み取られます。"
+
+msgid "輸入不顯示春菜的頁面 URL，每行一條。在地址尾部加入 (*) 可進行模糊匹配。"
+msgstr "非表示にするページのURLを1行ずつ入力してください。URLの末尾に(*)を追加するとワイルドカード検索ができます。"
+
+msgid "ℹ️ 插件資訊"
+msgstr "ℹ️ プラグイン情報"
+
+msgid "⚠️ 重置設定"
+msgstr "⚠️ 設定の初期化"
+
+msgid "🎨 樣式設定"
+msgstr "🎨 スタイル設定"
+
+msgid "🚫 頁面排除設定"
+msgstr "🚫 ページ除外設定"
+
+msgid "⚙️ HTML 生成位置"
+msgstr "⚙️ HTML生成位置"
+
+# ========================================
+# ゴースト管理ページ - 新規文字列
+# ========================================
+
+msgid "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "画像URLはhttp://から入力してください。メッセージは1行ずつ入力してください。HTMLは使用できません。"
+
+# ========================================
+# モデル選択 - 新規文字列
+# ========================================
+
+msgid "Gemini 2.5 Flash (推薦)"
+msgstr "Gemini 2.5 Flash (推奨)"
+
+msgid "Gemini 2.5 Pro (更聰明，適合複雜推理)"
+msgstr "Gemini 2.5 Pro (より賢い、複雑な推論に適している)"
+
+msgid "GPT-4.1 Mini (推薦，速度快成本低)"
+msgstr "GPT-4.1 Mini (推奨、高速でコストが低い)"
+
+msgid "GPT-4o Mini (快速且經濟)"
+msgstr "GPT-4o Mini (高速で経済的)"
+
+msgid "GPT-4o (更聰明)"
+msgstr "GPT-4o (より賢い)"
+
+msgid "Claude Sonnet 4.5 (推薦)"
+msgstr "Claude Sonnet 4.5 (推奨)"
+
+msgid "Claude Haiku 4.5 (快速)"
+msgstr "Claude Haiku 4.5 (高速)"
+
+msgid "Claude Opus 4.5 (進階)"
+msgstr "Claude Opus 4.5 (上級)"
+
+msgid "提示：支援 Markdown 和 XML 標籤格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
+msgstr "ヒント：Markdown と XML タグ形式をサポートしており、構造化形式を直接使用してモデルの理解を強化できます。<br>{{変数名}} を使用して変数を置換できます（例：{{ukagaka_display_name}}、{{time_context}}、{{language}} など）。"
+
+# ========================================
+# チャットモード API エラーメッセージ
+# ========================================
+
+msgid "Ollama API 錯誤（HTTP %s）"
+msgstr "Ollama API エラー（HTTP %s）"
+
+msgid "Ollama 未返回有效回應。%s。請檢查模型響應格式或嘗試啟用思考模式。"
+msgstr "Ollama が有効な応答を返しませんでした。%s。モデルの応答形式を確認するか、思考モードを有効にしてみてください。"
+
+msgid "OpenAI 未返回有效回應"
+msgstr "OpenAI が有効な応答を返しませんでした"
+
+msgid "Claude 未返回有效回應"
+msgstr "Claude が有効な応答を返しませんでした"
+
+msgid "Gemini 未返回有效回應"
+msgstr "Gemini が有効な応答を返しませんでした"
+
+# ========================================
+# チャットモード UI 文字列
+# ========================================
+
+msgid "輸入訊息..."
+msgstr "メッセージを入力..."
+
+msgid "有什麼想聊的嗎？"
+msgstr "何か話したいことある？"
+
+msgid "預設啟用思考模式，AI 會先思考再回答，提高回答品質。勾選此選項可關閉思考、加快回應速度。"
+msgstr "思考モードはデフォルトで有効になっており、AIは回答前に思考することで回答の質を向上させます。このオプションをオンにすると、思考をオフにして応答速度を上げることができます。"
+
+msgid "啟用後，前台的「更換春菜」按鈕將變為「對話」按鈕，讓訪客可以直接與春菜對話。關閉則顯示原本的角色切換選單。"
+msgstr "有効にすると、フロントエンドの「伺か切り替え」ボタンが「対話」ボタンに変わり、訪問者が伺かと直接対話できるようになります。無効にすると、通常のキャラクター選択メニューが表示されます。"
+
+msgid "アクセサリー表示"
+msgstr "アクセサリー表示"
+
+msgid "（スーツケース、巨大な頭蓋骨、魔法の杖と魔法の本）"
+msgstr "（スーツケース、巨大な頭蓋骨、魔法の杖と魔法の本）"
+
+msgid "啟用互動對話功能"
+msgstr "インタラクティブ対話機能を有効にする"
+
+
+#: options_page0.php:121
+msgid "選擇角色的行為模式和對話風格。人格資料儲存於 ghost/ 資料夾中。"
+msgstr "キャラクターの行動パターンと対話スタイルを選択。人格データは ghost/ フォルダに保存されます。"
+
+#: options_page0.php:84
+msgid "此頁面用於設定偽春菜的基本顯示和行為選項。"
+msgstr "このページはゴーストの基本表示と行動オプションを設定するために使用されます。"
+
+#: options_page0.php:274
+msgid "重置設定將還原插件的所有配置為預設值，所有設定及偽春菜將被刪除。此操作無法撤銷，請謹慎操作。"
+msgstr "設定をリセットすると、プラグインのすべての設定がデフォルト値に戻り、すべての設定とゴーストが削除されます。この操作は取り消せません。注意して操作してください。"
+
+#: options_page0.php:230
+msgid "輸入不顯示偽春菜的頁面 URL，每行一條。在地址尾部加入 (*) 可進行模糊匹配。"
+msgstr "ゴーストを表示しないページの URL を入力してください。1 行に 1 つ。アドレスの末尾に (*) を追加すると、あいまい検索が可能です。"
+
+#: options_page_ai.php:100
+msgid "提示：支援 Markdown 格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
+msgstr "ヒント：Markdown 形式をサポート。構造化形式を直接使用してモデルの理解を向上させることができます。<br>{{変数名}} を使用して変数置換が可能です（例：{{ukagaka_display_name}}、{{time_context}}、{{language}} など）。"
+
+#: options_page_llm.php:420
+msgid "啟用後，偽春菜對話將由 LLM 實時生成，不使用靜態對話列表。支援所有 AI 提供商（Gemini、OpenAI、Claude、Ollama）。"
+msgstr "有効にすると、ゴーストの対話は LLM によってリアルタイムで生成され、静的対話リストは使用されません。すべての AI プロバイダー（Gemini、OpenAI、Claude、Ollama）をサポート。"
+
+#: options_page_llm.php:428
+msgid "啟用後，前台的「更換偽春菜」按鈕將變為「對話」按鈕，讓訪客可以直接與偽春菜對話。關閉則顯示原本的角色切換選單。"
+msgstr "有効にすると、フロントエンドの「ゴースト変更」ボタンが「対話」ボタンに変わり、訪問者が直接ゴーストと対話できるようになります。オフにすると、元のキャラクター切り替えメニューが表示されます。"
+
+#: options_page4.php:74
+msgid "設定所有偽春菜共用的固定資訊和通用會話內容。"
+msgstr "すべてのゴーストで共有する固定情報と共通会話コンテンツを設定します。"
+
+#: options_page4.php:93
+msgid "所有偽春菜共用的會話內容。一旦填寫此欄，通用會話將取代每個偽春菜的自訂會話。清空此欄則使用各偽春菜的預設自訂會話。"
+msgstr "すべてのゴーストで共有する会話コンテンツ。この欄に記入すると、共通会話が各ゴーストのカスタム会話を置き換えます。この欄を空にすると、各ゴーストのデフォルトカスタム会話が使用されます。"
+
+#: options_page2.php:72
+msgid "創建新偽春菜"
+msgstr "新しいゴーストを作成"
+
+#: options_page2.php:89
+msgid "上傳包含 manifest.json、shell/ 等文件的 ZIP 壓縮包，系統會自動解壓並驗證。"
+msgstr "manifest.json、shell/ などのファイルを含む ZIP アーカイブをアップロードすると、システムが自動的に解凍して検証します。"
+
+#: options_page2.php:95
+msgid "📦 ZIP 文件上傳"
+msgstr "📦 ZIP ファイルアップロード"
+
+#: options_page2.php:98
+msgid "選擇 ZIP 文件："
+msgstr "ZIP ファイルを選択："
+
+#: options_page2.php:100
+msgid "ZIP 文件應包含：manifest.json（必需）、shell/ 文件夾（必需，包含圖片文件）、prompts.json、weights.json 等（可選）"
+msgstr "ZIP ファイルには以下を含める必要があります：manifest.json（必須）、shell/ フォルダ（必須、画像ファイルを含む）、prompts.json、weights.json など（オプション）"
+
+#: options_page2.php:104
+msgid "上傳並驗證"
+msgstr "アップロードして検証"
+
+#: options_page2.php:111
+msgid "或使用傳統方式創建（僅支援內建對話系統，無法使用 LLM 對話功能）：圖片請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭。"
+msgstr "または従来の方法で作成（内蔵対話システムのみサポート、LLM 対話機能は使用不可）：画像には完全な URL を入力してください。http:// または https:// で始めることを忘れないでください。"
+
+#: options_page2.php:117
+msgid "✅ ZIP 文件上傳成功！請確認以下資訊："
+msgstr "✅ ZIP ファイルのアップロードに成功しました！以下の情報を確認してください："
+
+#: options_page2.php:127
+msgid "📋 預覽資訊"
+msgstr "📋 プレビュー情報"
+
+#: options_page2.php:179
+msgid "➕ 新增偽春菜（手動方式）"
+msgstr "➕ 新しいゴーストを追加（手動方式）"
+
+#: options_page2.php:183
+msgid "⚠️ 重要提示："
+msgstr "⚠️ 重要なお知らせ："
+
+#: options_page2.php:184
+msgid "傳統手動方式創建的偽春菜只能使用內建對話系統（從對話檔案讀取），無法使用 LLM 對話功能。\\n如需使用 LLM 對話功能（AI 生成對話），請使用上方的 ZIP 上傳方式創建，並確保 ZIP 文件包含 manifest.json、prompts.json、weights.json 等必要文件。"
+msgstr "従来の手動作成方法で作成されたゴーストは、組み込み会話システム（会話ファイルから読み込み）のみ使用でき、LLM会話機能は使用できません。\\nLLM会話機能（AI生成会話）を使用する場合は、上記のZIPアップロード方式を使用して作成し、ZIPファイルに manifest.json、prompts.json、weights.json などの必須ファイルが含まれていることを確認してください。"
+
+#: options_page3.php:103
+msgid "可在此填寫 JavaScript 代碼，為偽春菜自訂更多的回應事件。"
+msgstr "ここに JavaScript コードを記述して、ゴーストの応答イベントをカスタマイズできます。"
+
+#: options_page3.php:112
+msgid "您可以在偽春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"
+msgstr "ゴーストの情報ボックスで特殊コードを使用して、ログリストなどの特定の情報を表示できます。"
+
+#: options_page3.php:114
+msgid "MP Ukagaka 文檔中心"
+msgstr "MP Ukagaka ドキュメントセンター"
+
+msgid "偽春菜們"
+msgstr "ゴースト"
+
+msgid "不在以下頁面顯示偽春菜"
+msgstr "以下のページでゴーストを非表示"
+
+#: options_page2.php:184
+msgid "傳統手動方式創建的偽春菜只能使用內建對話系統（從對話檔案讀取），無法使用 LLM 對話功能。"
+msgstr "従来の手動作成方法で作成されたゴーストは、組み込み会話システム（会話ファイルから読み込み）のみ使用でき、LLM会話機能は使用できません。"
+
+#: options_page2.php:185
+msgid "如需使用 LLM 對話功能（AI 生成對話），請使用上方的 ZIP 上傳方式創建，並確保 ZIP 文件包含 manifest.json、prompts.json、weights.json 等必要文件。"
+msgstr "LLM会話機能（AI生成会話）を使用する場合は、上記のZIPアップロード方式を使用して作成し、ZIPファイルに manifest.json、prompts.json、weights.json などの必須ファイルが含まれていることを確認してください。"
+
+#: options_page0.php:93
+msgid "預設偽春菜："
+msgstr "デフォルトゴースト："
+
+#: options_page0.php:129
+msgid "預設顯示偽春菜"
+msgstr "デフォルトでゴーストを表示"
+
+#: options_page0.php:164
+msgid "點擊偽春菜："
+msgstr "ゴーストをクリック："
+
+#: options_page0.php:262
+msgid "偽春菜數量："
+msgstr "ゴースト数："
+
+#: options_page_llm.php:452
+msgid "🌤️ 天氣設定"
+msgstr "🌤️ 天気設定"
+
+#: options_page_llm.php:456
+msgid "啟用天氣感知功能"
+msgstr "天気感知機能を有効化"
+
+#: options_page_llm.php:459
+msgid "讓角色知道當地天氣，並根據天氣發表看法。使用 Open-Meteo 免費 API，無需 API Key。"
+msgstr "キャラクターが現地の天気を知り、天気に基づいて意見を述べるようにします。Open-Meteo 無料 API を使用し、API Key は不要です。"
+
+#: options_page_llm.php:462
+msgid "位置座標："
+msgstr "位置座標："
+
+#: options_page_llm.php:465
+msgid "緯度："
+msgstr "緯度："
+
+#: options_page_llm.php:469
+msgid "經度："
+msgstr "経度："
+
+#: options_page_llm.php:474
+msgid "預設為台北（25.0330, 121.5654）。可使用"
+msgstr "デフォルトは台北（25.0330, 121.5654）です。"
+
+#: options_page_llm.php:476
+msgid "查詢座標（右鍵點擊地圖即可複製座標）。"
+msgstr "で座標を検索できます（地図を右クリックすると座標をコピーできます）。"
+
+#: options_page_llm.php:480
+msgid "測試天氣 API"
+msgstr "天気 API をテスト"
+
+# ========================================
+# 日記設定ページ
+# ========================================
+
+msgid "📓 日記設定"
+msgstr "📓 日記設定"
+
+msgid "設定自動日記功能（フリーレン手記）。角色會以極低機率自動發表日記文章。"
+msgstr "自動日記機能（フリーレン手記）を設定。キャラクターは非常に低い確率で自動的に日記記事を投稿します。"
+
+msgid "📝 基本設定"
+msgstr "📝 基本設定"
+
+msgid "啟用自動日記功能"
+msgstr "自動日記機能を有効化"
+
+msgid "啟用後，角色會以極低機率（由下方設定）自動發表日記文章到指定分類。"
+msgstr "有効にすると、キャラクターは非常に低い確率（以下で設定）で指定されたカテゴリに日記記事を自動投稿します。"
+
+msgid "發文分類："
+msgstr "投稿カテゴリ："
+
+msgid "-- 請選擇分類 --"
+msgstr "-- カテゴリを選択 --"
+
+msgid "建議先建立「フリーレン手記」分類（slug: frieren-notes）再選擇。"
+msgstr "先に「フリーレン手記」カテゴリ（スラッグ：frieren-notes）を作成してから選択することをお勧めします。"
+
+msgid "發文作者："
+msgstr "投稿者："
+
+msgid "日記將以此使用者身份發表。"
+msgstr "日記はこのユーザーとして投稿されます。"
+
+msgid "觸發機率："
+msgstr "トリガー確率："
+
+msgid "每日觸發機率。2% 約等於每月 0~1 篇，5% 約等於每月 1~2 篇。"
+msgstr "毎日のトリガー確率。2%は月に約0~1記事、5%は月に約1~2記事に相当します。"
+
+msgid "文章簽名："
+msgstr "記事署名："
+
+msgid "將附加於每篇日記的末尾。留空則不附加。"
+msgstr "各日記の末尾に追加されます。空欄の場合は追加されません。"
+
+msgid "🤖 日記 AI 供應商"
+msgstr "🤖 日記 AI プロバイダー"
+
+msgid "日記功能使用獨立的 AI 設定，可與對話功能使用不同的模型以節省成本。"
+msgstr "日記機能は独立した AI 設定を使用し、コスト削減のため会話機能とは異なるモデルを使用できます。"
+
+msgid "Gemini API Key："
+msgstr "Gemini API Key："
+
+msgid "請輸入 API Key（或留空使用 LLM 設定頁的 Key）"
+msgstr "API Key を入力（または空欄で LLM 設定ページの Key を使用）"
+
+msgid "留空則使用 LLM 設定頁面的 API Key。"
+msgstr "空欄の場合は LLM 設定ページの API Key を使用します。"
+
+msgid "已設定專用 Key"
+msgstr "専用 Key 設定済み"
+
+msgid "OpenAI API Key："
+msgstr "OpenAI API Key："
+
+msgid "Claude API Key："
+msgstr "Claude API Key："
+
+msgid "Ollama 端點："
+msgstr "Ollama エンドポイント："
+
+msgid "留空則使用 LLM 設定頁面的端點。"
+msgstr "空欄の場合は LLM 設定ページのエンドポイントを使用します。"
+
+msgid "🧪 測試"
+msgstr "🧪 テスト"
+
+msgid "立即生成一篇日記（測試）"
+msgstr "今すぐ日記を生成（テスト）"
+
+msgid "點擊後會使用上方設定立即生成並發表一篇日記，用於測試功能是否正常。"
+msgstr "クリックすると、上記の設定を使用してすぐに日記を生成・投稿し、機能が正常に動作しているかテストします。"
+
+msgid "日記設定已儲存"
+msgstr "日記設定を保存しました"
+
+msgid "日記生成成功！文章 ID："
+msgstr "日記生成成功！記事 ID："
+
+msgid "日記生成失敗："
+msgstr "日記生成失敗："
+
+msgid "日記設定"
+msgstr "日記設定"
+
+# ========================================
+# API キャッシュ設定
+# ========================================
+
+msgid "💾 API 快取設定"
+msgstr "💾 APIキャッシュ設定"
+
+msgid "啟用 API 回應快取"
+msgstr "API応答キャッシュを有効にする"
+
+msgid "啟用後，相同的 AI 請求將使用快取回應，減少 API 費用和響應延遲。適合訪客流量大的網站。"
+msgstr "有効にすると、同じAIリクエストはキャッシュされた応答を使用し、API費用と応答遅延を削減します。トラフィックの多いサイトに適しています。"
+
+msgid "快取有效期（TTL）："
+msgstr "キャッシュ有効期限（TTL）："
+
+msgid "30 分鐘"
+msgstr "30分"
+
+msgid "1 小時（推薦）"
+msgstr "1時間（推奨）"
+
+msgid "2 小時"
+msgstr "2時間"
+
+msgid "6 小時"
+msgstr "6時間"
+
+msgid "24 小時"
+msgstr "24時間"
+
+msgid "快取過期後，下次相同請求將重新呼叫 API。"
+msgstr "キャッシュ期限切れ後、次回の同じリクエストはAPIを再度呼び出します。"
+
+msgid "快取狀態："
+msgstr "キャッシュ状態："
+
+msgid "筆快取"
+msgstr "件のキャッシュ"
+
+msgid "清除所有快取"
+msgstr "すべてのキャッシュをクリア"
+
+msgid "確定要清除所有 API 快取嗎？"
+msgstr "すべてのAPIキャッシュをクリアしてもよろしいですか？"
+
+msgid "清除中..."
+msgstr "クリア中..."
+
+msgid "已清除 %d 筆快取"
+msgstr "%d件のキャッシュをクリアしました"
+
+msgid "權限不足"
+msgstr "権限が不足しています"
+
+msgid "快取模組未載入"
+msgstr "キャッシュモジュールが読み込まれていません"
+
+msgid "清除失敗"
+msgstr "クリア失敗"
+
+# ========================================
+# 統計ダッシュボードページ
+# ========================================
+
+msgid "📊 統計儀表板"
+msgstr "📊 統計ダッシュボード"
+
+msgid "7 天"
+msgstr "7日間"
+
+msgid "30 天"
+msgstr "30日間"
+
+msgid "今日 API 調用"
+msgstr "今日のAPI呼び出し"
+
+msgid "錯誤: %d"
+msgstr "エラー: %d"
+
+msgid "本週對話 (%d天)"
+msgstr "今週の会話（%d日間）"
+
+msgid "今日: %d"
+msgstr "今日: %d"
+
+msgid "快取命中率"
+msgstr "キャッシュヒット率"
+
+msgid "命中: %d"
+msgstr "ヒット: %d"
+
+msgid "平均回應時間 (ms)"
+msgstr "平均応答時間（ms）"
+
+msgid "今日平均"
+msgstr "今日の平均"
+
+msgid "API 調用趨勢 (%d天)"
+msgstr "API呼び出し傾向（%d日間）"
+
+msgid "對話類型分佈"
+msgstr "会話タイプ分布"
+
+msgid "供應商使用分佈"
+msgstr "プロバイダー使用分布"
+
+msgid "熱門話題 (Top 10 / %d天)"
+msgstr "人気トピック（Top 10 / %d日間）"
+
+msgid "尚無話題資料"
+msgstr "トピックデータがありません"
+
+msgid "統計設定"
+msgstr "統計設定"
+
+msgid "統計資料會自動保留 30 天，超過的資料會自動清除。"
+msgstr "統計データは30日間自動的に保持されます。古いデータは自動的に削除されます。"
+
+msgid "確定要清除所有統計資料嗎？此操作無法復原。"
+msgstr "すべての統計データをクリアしてもよろしいですか？この操作は元に戻せません。"
+
+msgid "🗑️ 清除所有統計資料"
+msgstr "🗑️ すべての統計データをクリア"
+
+msgid "資料更新時間: %s"
+msgstr "データ更新時刻: %s"
+
+msgid "API 調用"
+msgstr "API呼び出し"
+
+msgid "快取命中"
+msgstr "キャッシュヒット"
+
+msgid "對話次數"
+msgstr "会話数"
+
+msgid "無資料"
+msgstr "データなし"
+
+msgid "頁面感知"
+msgstr "ページ認識"
+
+msgid "互動對話"
+msgstr "インタラクティブ会話"
+
+msgid "首次問候"
+msgstr "初回挨拶"
+
+msgid "觸摸反應"
+msgstr "タッチ反応"
+
+msgid "自言自語"
+msgstr "独り言"
+
+msgid "裝飾品反應"
+msgstr "アクセサリー反応"
+
+msgid "統計資料已清除"
+msgstr "統計データをクリアしました"
+
+msgid "統計"
+msgstr "統計"

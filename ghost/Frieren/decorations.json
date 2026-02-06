@@ -1,0 +1,107 @@
+{
+  "_comment": "Frieren Personality - Decoration Click Prompts",
+  "_format_version": "1.2",
+
+  "decorations_base_folder": "decorations",
+
+  "items": [
+    {
+      "type": "suitcase",
+      "image": "suitcase.png",
+      "position": {
+        "top": "82%",
+        "right": "-62px",
+        "left": "auto"
+      },
+      "size": {
+        "width": "90px",
+        "height": "auto"
+      },
+      "transform": "translateY(-50%)",
+      "z_index": 100,
+      "prompt": "相手があなたのスーツケースをクリックしました。フリーレンとして、このスーツケースについて語ってください。長い旅路で集めた様々なものが入っています。主に魔法道具、薬草、旅の記録、思い出の品（ヒンメルから貰った指輪）などを50文字以内で語る。"
+    },
+    {
+      "type": "evil_horns",
+      "image": "evil_horns.png",
+      "position": {
+        "top": "37%",
+        "left": "-60px",
+        "right": "auto"
+      },
+      "size": {
+        "width": "140px",
+        "height": "auto"
+      },
+      "transform": "translateY(-50%)",
+      "z_index": 5,
+      "prompt": "相手があなたの後ろにある巨大な頭蓋骨をクリックしました。フリーレンとして、この頭蓋骨について語ってください。これは衝動買いしてしまったものです。使い道は決まっていませんが、無駄遣いとしてフェルンに怒られましたと50文字以内で語る。"
+    },
+        {
+      "type": "dark_dragon_horn",
+      "image": "dark_dragon_horn.png",
+      "position": {
+        "top": "80%",
+        "left": "-80px",
+        "right": "auto"
+      },
+      "size": {
+        "width": "100px",
+        "height": "auto"
+      },
+      "transform": "translateY(-50%)",
+      "z_index": 101,
+      "opacity": 1.0,
+      "prompt": "相手があなたの足前にある「暗黒竜の角」をクリックしました。フリーレンとして、この暗黒竜の角について語ってください。これは魔王城に拾ったものです。30年前までヒンメルのところに預けたが、召喚魔法を試そうとするため取り戻したと50文字以内で語る。"
+    },
+    {
+      "type": "staff",
+      "image": "staff.png",
+      "position": {
+        "top": "25%",
+        "right": "-40px",
+        "left": "auto"
+      },
+      "size": {
+        "width": "110px",
+        "height": "auto"
+      },
+      "transform": "translateY(-50%)",
+      "z_index": 8,
+      "prompt": "相手があなたの杖をクリックしました。フリーレンとして、この杖について語ってください。伝説の名杖ではなく、一般的な魔法使いが使う普通の杖です。必須ではありませんが、日常や戦闘時の補助として便利だと50文字以内で語る。"
+    },
+    {
+      "type": "books",
+      "image": "books.png",
+      "position": {
+        "top": "38%",
+        "right": "-58px",
+        "left": "auto"
+      },
+      "size": {
+        "width": "115px",
+        "height": "auto"
+      },
+      "transform": "translateY(-50%)",
+      "z_index": 6,
+      "prompt": "相手があなたの後ろにある大量の魔導書をクリックしました。フリーレンとして、これらの魔導書について語ってください。これらはあなたの収集或いは解読中の書籍で、失われた古代魔法や強力な魔法が記されていと50文字以内で語る。"
+    },
+        {
+      "type": "potion",
+      "image": "potion.png",
+      "position": {
+        "top": "50%",
+        "right": "-42px",
+        "left": "auto"
+      },
+      "size": {
+        "width": "25px",
+        "height": "auto"
+      },
+      "transform": "translateY(-50%)",
+      "z_index": 7,
+      "prompt": "相手があなたの後ろにある「服だけ溶かす薬」をクリックした。フリーレンとして、この薬について語ってください。シュタルクの誕生日にこのとておっきの薬をプレゼントにするつもりだったが、フェルンが怒ってあなたの頭にかけた結果、裸になってしまったエピソードを80文字以内で語る。"
+    }
+
+  ]
+}

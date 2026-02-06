@@ -1,0 +1,13 @@
+{
+  "_comment": "Sakura_Laurel Personality - Placeholder Prompts",
+  "_format_version": "1.0",
+  "_status": "placeholder",
+
+  "greeting": [
+    "【佔位】サクラローレルとして挨拶する"
+  ],
+
+  "casual": [
+    "【佔位】日常的な話題について話す"
+  ]
+}

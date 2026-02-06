@@ -1,0 +1,404 @@
+#mp_ukagaka .mpu-clear {
+  clear: both;
+  color: #fff;
+}
+
+#mp_ukagaka a {
+  color: #000;
+}
+
+#ukagaka_shell {
+  font-size: 13px;
+  position: fixed;
+  right: 0;
+  bottom: 20px;
+  float: right;
+  display: block;
+  z-index: 10000;
+  margin: 0 50px 0 0;
+  padding: 0;
+}
+
+#ukagaka_img {
+  margin-bottom: 0px;
+  position: relative;
+  visibility: hidden; /* 初始隱藏，等 JavaScript 完成定位後再顯示，避免載入時的位移閃爍 */
+}
+
+#ukagaka_img .frieren-decoration {
+  position: absolute;
+  pointer-events: auto; /* 改為 auto，允許點擊 */
+  cursor: pointer; /* 添加指針游標 */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  opacity: 0.9;
+  transition: opacity 0.2s ease; /* 添加過渡效果 */
+}
+
+/* 行李箱不透明 */
+#ukagaka_img .frieren-decoration[src*="suitcase"] {
+  opacity: 1 !important;
+}
+
+#ukagaka_img .frieren-decoration:hover {
+  opacity: 1; /* 懸停時完全不透明 */
+}
+
+#ukagaka_img canvas {
+  opacity: 0.95;
+  position: relative;
+  z-index: 99; /* Canvas 層級調整為 99，讓前方裝飾物（如行李箱 z-100）能蓋過它 */
+}
+
+#ukagaka_img #frieren_idle_apng {
+  position: relative;
+  z-index: 99; /* APNG 層級調整為 99 */
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+}
+
+#ukagaka_img canvas:hover {
+  cursor: pointer;
+}
+
+/* 表情圖案樣式 */
+#ukagaka_img .frieren-emoji {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+  max-width: 80px;
+  max-height: 80px;
+  /* 無淡入淡出效果，直接顯示 */
+}
+
+#ukagaka {
+  position: relative;
+  float: right;
+  padding-right: 65px;
+}
+
+.ukagaka-msgbox-top {
+  height: 51px;
+  background: transparent url(../images/msgbox_top.png) no-repeat scroll right 0;
+  margin: 0;
+  padding: 0;
+  display: block;
+  line-height: 0;
+  font-size: 0;
+}
+
+#ukagaka_msgbox {
+  position: absolute;
+  font-family: "Noto Sans TC", "Noto Sans JP", serif;
+  color: #1e3a8a;
+  top: 50%;
+  left: -220px;
+  transform: translateY(-50%);
+  width: 250px;
+  min-height: 50px;
+  max-height: 80vh;
+  z-index: 10001;
+  box-sizing: border-box;
+  visibility: hidden; /* 初始隱藏，等人物載入完成後再顯示，避免定位錯誤 */
+}
+
+.ukagaka-msgbox-border {
+  height: 54px;
+  background: transparent url(../images/msgbox_bottom.png) no-repeat scroll
+    right 0;
+  margin: 0;
+  padding: 0;
+  display: block;
+  line-height: 0;
+  font-size: 0;
+}
+
+#mp_ukagaka .ukagaka-msgbox-border a,
+#mp_ukagaka .ukagaka-msgbox-border a:link,
+#mp_ukagaka .ukagaka-msgbox-border a:visited,
+#mp_ukagaka .ukagaka-msgbox-border a:hover,
+#mp_ukagaka .ukagaka-msgbox-border a:focus,
+#mp_ukagaka .ukagaka-msgbox-border a:active {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  -moz-outline-style: none !important;
+}
+
+#mp_ukagaka .ukagaka-msgbox-border a img {
+  outline: none !important;
+  border: none !important;
+}
+
+.nextmsg {
+  width: 28px;
+  height: 28px;
+  background: transparent url(../images/ok_hover.png) no-repeat scroll right 0;
+  display: block;
+}
+
+#ukagaka_msg {
+  background: transparent url(../images/msgbox_bg.png) repeat-y scroll right 0;
+  border: 0 solid;
+  padding: 10px 15px;
+  max-height: 400px; /* 超過 400px 時出現滾動條 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  box-sizing: border-box;
+  margin: 0;
+  display: block;
+  /* 自訂滾動條樣式（Firefox） */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(30, 58, 138, 0.5) rgba(200, 200, 200, 0.3);
+}
+
+/* 自訂滾動條樣式（Chrome/Safari/Edge） */
+#ukagaka_msg::-webkit-scrollbar {
+  width: 6px;
+}
+
+#ukagaka_msg::-webkit-scrollbar-track {
+  background: rgba(200, 200, 200, 0.3);
+  border-radius: 3px;
+}
+
+#ukagaka_msg::-webkit-scrollbar-thumb {
+  background: rgba(30, 58, 138, 0.5);
+  border-radius: 3px;
+}
+
+#ukagaka_msg::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 58, 138, 0.7);
+}
+
+#ukagaka_msgbox.chat-mode {
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh;
+  overflow: hidden;
+}
+
+#ukagaka_msgbox.chat-mode .ukagaka-msgbox-top,
+#ukagaka_msgbox.chat-mode .ukagaka-msgbox-border {
+  flex-shrink: 0;
+}
+
+#ukagaka_msgbox.chat-mode #ukagaka_msg {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 200px;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(30, 58, 138, 0.5) rgba(200, 200, 200, 0.3);
+}
+
+#ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar {
+  width: 8px;
+}
+
+#ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar-track {
+  background: rgba(200, 200, 200, 0.3);
+  border-radius: 4px;
+}
+
+#ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar-thumb {
+  background: rgba(30, 58, 138, 0.5);
+  border-radius: 4px;
+}
+
+#ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 58, 138, 0.7);
+}
+
+#ukagaka_msgbox.chat-mode #ukagaka_chat_input {
+  flex-shrink: 0;
+}
+
+#ukagaka_msg a {
+  color: #1d8ac3;
+  text-decoration: none;
+}
+
+#ukagaka_msg a:hover {
+  text-decoration: none;
+  color: #6d6d6d;
+}
+
+#mp_ukagaka #ukagaka-dock {
+  width: 250px !important;
+  height: 45px !important;
+  color: transparent !important;
+  float: right !important;
+  padding: 0 0 30px 0 !important;
+  margin: 0 !important;
+  text-align: center !important;
+  background: url(../images/menu.png) no-repeat center !important;
+  border: none !important;
+  box-sizing: border-box !important;
+}
+
+#mp_ukagaka #ukagaka-dock ul {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 0 0 64px !important;
+  border: none !important;
+  background: none !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 45px !important;
+  gap: 19px !important;
+}
+
+#mp_ukagaka #ukagaka-dock ul li {
+  list-style-type: none !important;
+  list-style: none !important;
+  float: none !important;
+  font-size: 0px !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+}
+
+#mp_ukagaka #ukagaka-dock ul li a,
+#mp_ukagaka #ukagaka-dock ul li a:link,
+#mp_ukagaka #ukagaka-dock ul li a:visited {
+  display: block !important;
+  width: 45px !important;
+  height: 45px !important;
+  color: transparent !important;
+  background: none !important;
+  background-image: none !important;
+  border: none !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  transition: none !important;
+}
+
+#mp_ukagaka #ukagaka-dock ul li.gotop a:hover,
+#mp_ukagaka #ukagaka-dock ul li.gotop a:focus,
+#mp_ukagaka #ukagaka-dock ul li.gotop a:active {
+  background: url(../images/top.png) no-repeat center center !important;
+  background-image: url(../images/top.png) !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+}
+
+#mp_ukagaka #ukagaka-dock ul li.hide a:hover,
+#mp_ukagaka #ukagaka-dock ul li.hide a:focus,
+#mp_ukagaka #ukagaka-dock ul li.hide a:active {
+  background: url(../images/hide.png) no-repeat center center !important;
+  background-image: url(../images/hide.png) !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+}
+
+#mp_ukagaka #ukagaka-dock ul li.change a:hover,
+#mp_ukagaka #ukagaka-dock ul li.change a:focus,
+#mp_ukagaka #ukagaka-dock ul li.change a:active {
+  background: url(../images/change.png) no-repeat center center !important;
+  background-image: url(../images/change.png) !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+}
+
+#ukagaka_chat_input {
+  background: transparent url(../images/msgbox_bg.png) repeat-y scroll right 0;
+  padding: 8px 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#mpu_user_input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid rgba(30, 58, 138, 0.3);
+  border-radius: 16px;
+  font-size: 13px;
+  font-family: "Noto Sans TC", "Noto Sans JP", serif;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e3a8a;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#mpu_user_input:focus {
+  border-color: #1d8ac3;
+  box-shadow: 0 0 0 2px rgba(29, 138, 195, 0.2);
+}
+
+#mpu_user_input::placeholder {
+  color: #9ca3af;
+}
+
+.mpu-chat-message {
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  max-width: 90%;
+  word-wrap: break-word;
+  animation: mpu-msg-fade-in 0.3s ease-out;
+}
+
+.mpu-chat-message.user {
+  background: rgba(29, 138, 195, 0.15);
+  margin-left: auto;
+  text-align: right;
+  color: #1e3a8a;
+}
+
+.mpu-chat-message.assistant {
+  background: rgba(30, 58, 138, 0.08);
+  margin-right: auto;
+  color: #1e3a8a;
+}
+
+.mpu-chat-message .mpu-msg-role {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+@keyframes mpu-msg-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mpu-thinking {
+  display: inline-block;
+}
+
+.mpu-thinking::after {
+  content: "...";
+  animation: mpu-thinking-dots 1.5s infinite;
+}
+
+@keyframes mpu-thinking-dots {
+  0%,
+  100% {
+    content: "…";
+    opacity: 0.3;
+  }
+  50% {
+    content: "…";
+    opacity: 1;
+  }
+}

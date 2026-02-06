@@ -1,0 +1,1282 @@
+# MP Ukagaka English Translation
+# Copyright (C) 2025 Ariagle (patched by Horlicks)
+# This file is distributed under the same license as the MP Ukagaka plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: MP Ukagaka 2.4.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/mp-ukagaka\n"
+"Last-Translator: Horlicks <https://www.moelog.com/>\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-01-03 12:00+0800\n"
+"PO-Revision-Date: 2026-01-03 12:00+0800\n"
+"X-Generator: MP Ukagaka\n"
+"X-Domain: mp-ukagaka\n"
+
+# ========================================
+# Core Functions
+# ========================================
+
+msgid "初音"
+msgstr "Miku"
+
+msgid "歡迎光臨～"
+msgstr "Welcome~"
+
+msgid "更換春菜"
+msgstr "Change Character"
+
+msgid "春菜们"
+msgstr "Characters"
+
+msgid "沒有可供選擇的春菜"
+msgstr "No characters available"
+
+msgid "隱藏春菜 ▼"
+msgstr "Hide Character ▼"
+
+msgid "隱藏會話 ▼"
+msgstr "Hide Dialog ▼"
+
+msgid "顯示春菜 ▲"
+msgstr "Show Character ▲"
+
+msgid "顯示會話 ▲"
+msgstr "Show Dialog ▲"
+
+msgid "擴展"
+msgstr "Extensions"
+
+msgid "(思考中...)"
+msgstr "(Thinking...)"
+
+msgid "（えっと…何話せばいいかな…）"
+msgstr "(Hmm... what should I talk about...)"
+
+msgid "回到頂部 ▼"
+msgstr "Back to Top ▼"
+
+# ========================================
+# Admin Pages - Navigation
+# ========================================
+
+msgid "MP Ukagaka 選項"
+msgstr "MP Ukagaka Options"
+
+msgid "通用設定"
+msgstr "General Settings"
+
+msgid "AI 設定"
+msgstr "AI Settings"
+
+msgid "LLM 設定"
+msgstr "LLM Settings"
+
+msgid "會話"
+msgstr "Messages"
+
+msgid "春菜們"
+msgstr "Characters"
+
+msgid "創建新春菜"
+msgstr "Create New Character"
+
+# ========================================
+# Admin Pages - Messages
+# ========================================
+
+msgid "春菜"
+msgstr "Character"
+
+msgid "已離你而去…"
+msgstr "has been deleted..."
+
+msgid "不存在此春菜喲"
+msgstr "This character does not exist"
+
+msgid "不允許趕走預設春菜喲"
+msgstr "Cannot delete the default character"
+
+msgid "安全性檢查失敗。"
+msgstr "Security check failed."
+
+msgid "設定已儲存"
+msgstr "Settings saved"
+
+msgid "春菜們已經煥然一新啦"
+msgstr "Characters have been updated"
+
+msgid "，對話檔案已生成"
+msgstr ", dialog file generated"
+
+msgid "春菜創建成功～"
+msgstr "Character created successfully~"
+
+msgid "AI 設定已儲存"
+msgstr "AI settings saved"
+
+msgid "LLM 設定已儲存"
+msgstr "LLM settings saved"
+
+msgid "設定已重置"
+msgstr "Settings have been reset"
+
+msgid "設定未被重置"
+msgstr "Settings were not reset"
+
+# ========================================
+# General Settings Page
+# ========================================
+
+msgid "預設春菜："
+msgstr "Default Character:"
+
+msgid "預設顯示春菜"
+msgstr "Show character by default"
+
+msgid "預設顯示對話框"
+msgstr "Show dialog by default"
+
+msgid "預設會話："
+msgstr "Default Message:"
+
+msgid "隨機吐槽"
+msgstr "Random message"
+
+msgid "第一條吐槽"
+msgstr "First message"
+
+msgid "會話順序："
+msgstr "Message Order:"
+
+msgid "順序吐槽"
+msgstr "Sequential messages"
+
+msgid "點擊春菜："
+msgstr "On Character Click:"
+
+msgid "下一條吐槽"
+msgstr "Next message"
+
+msgid "無操作"
+msgstr "No action"
+
+msgid "自動對話："
+msgstr "Auto Talk:"
+
+msgid "啟用自動對話功能"
+msgstr "Enable auto talk"
+
+msgid "自動對話間隔時間（秒）："
+msgstr "Auto talk interval (seconds):"
+
+msgid "打字效果速度（毫秒/字）："
+msgstr "Typewriter speed (ms/char):"
+
+msgid "數值越小打字越快，建議範圍 20-80，預設 40"
+msgstr "Lower = faster. Recommended: 20-80, default: 40"
+
+msgid "外部對話文件格式："
+msgstr "External dialog file format:"
+
+msgid "純文字格式 (TXT)"
+msgstr "Plain text (TXT)"
+
+msgid "JSON 格式"
+msgstr "JSON format"
+
+msgid "使用外部對話文件"
+msgstr "Use external dialog files"
+
+msgid "使用自訂樣式"
+msgstr "Use custom styles"
+
+msgid "HTML 生成位置："
+msgstr "HTML output position:"
+
+msgid "一般情況下請勿更改"
+msgstr "Do not change unless necessary"
+
+msgid "在</body>前"
+msgstr "Before </body>"
+
+msgid "當春菜無法顯示（主題尾部無 wp_footer() 函數）或 wp_footer() 位置導致樣式異常時，請勾選此項"
+msgstr "Check this if character doesn't display (theme footer lacks wp_footer()) or styles appear broken"
+
+msgid "在 wp_footer() 處"
+msgstr "At wp_footer()"
+
+msgid "這是 WordPress 常用方式，但若主題尾部無 wp_footer() 函數，春菜將無法顯示"
+msgstr "Standard WordPress method. Character won't display if theme lacks wp_footer()"
+
+msgid "不在以下頁面顯示春菜"
+msgstr "Hide character on these pages"
+
+msgid "輸入不顯示春菜的頁面 URL，每行一條。"
+msgstr "Enter page URLs where character should not appear, one per line."
+
+msgid "在地址尾部加入 (*) 可進行模糊匹配。"
+msgstr "Add (*) at the end for wildcard matching."
+
+msgid " 儲 存 "
+msgstr " Save "
+
+msgid "插件資訊"
+msgstr "Plugin Info"
+
+msgid "版本："
+msgstr "Version:"
+
+msgid "春菜數量："
+msgstr "Character Count:"
+
+msgid "平均會話數："
+msgstr "Average Messages:"
+
+msgid "維護者網站："
+msgstr "Maintainer's Site:"
+
+msgid "前往維護者網站"
+msgstr "Visit Maintainer's Site"
+
+msgid "重置設定"
+msgstr "Reset Settings"
+
+msgid "確認重置"
+msgstr "Confirm Reset"
+
+msgid "重置設定將還原插件的所有配置為預設值，所有設定及春菜將被刪除。此操作無法撤銷，請謹慎操作。"
+msgstr "Resetting will restore all plugin settings to defaults. All settings and characters will be deleted. This cannot be undone."
+
+msgid " 重 置 "
+msgstr " Reset "
+
+# ========================================
+# AI Settings Page
+# ========================================
+
+msgid "AI 設定 (Context Awareness)"
+msgstr "AI Settings (Context Awareness)"
+
+msgid "啟用頁面感知功能（需要 AI API Key）"
+msgstr "Enable context awareness (requires AI API Key)"
+
+msgid "AI 提供商："
+msgstr "AI Provider:"
+
+msgid "Google Gemini"
+msgstr "Google Gemini"
+
+msgid "OpenAI"
+msgstr "OpenAI"
+
+msgid "Claude (Anthropic)"
+msgstr "Claude (Anthropic)"
+
+msgid "Gemini API Key："
+msgstr "Gemini API Key:"
+
+msgid "請輸入 Google Gemini API Key"
+msgstr "Enter your Google Gemini API Key"
+
+msgid "請前往 <a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a> 取得 API Key"
+msgstr "Get your API Key from <a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a>"
+
+msgid "已設定"
+msgstr "Configured"
+
+msgid "OpenAI API Key："
+msgstr "OpenAI API Key:"
+
+msgid "請輸入 OpenAI API Key"
+msgstr "Enter your OpenAI API Key"
+
+msgid "請前往 <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a> 取得 API Key"
+msgstr "Get your API Key from <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a>"
+
+msgid "OpenAI 模型："
+msgstr "OpenAI Model:"
+
+msgid "Claude API Key："
+msgstr "Claude API Key:"
+
+msgid "請輸入 Claude API Key"
+msgstr "Enter your Claude API Key"
+
+msgid "請前往 <a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a> 取得 API Key"
+msgstr "Get your API Key from <a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a>"
+
+msgid "Claude 模型："
+msgstr "Claude Model:"
+
+msgid "語言設定："
+msgstr "Language:"
+
+msgid "繁體中文"
+msgstr "Traditional Chinese"
+
+msgid "日本語"
+msgstr "Japanese"
+
+msgid "English"
+msgstr "English"
+
+msgid "人格設定 (System Prompt)："
+msgstr "Personality (System Prompt):"
+
+msgid "AI 回應機率 (%)："
+msgstr "AI Response Probability (%):"
+
+msgid "設定使用 AI 的機率（1-100%）。建議 10% 以控制成本。"
+msgstr "Set the probability of using AI (1-100%). Recommended: 10% to control costs."
+
+msgid "觸發頁面："
+msgstr "Trigger Pages:"
+
+msgid "WordPress 條件標籤，逗號分隔（如：is_single,is_page）"
+msgstr "WordPress conditional tags, comma-separated (e.g., is_single,is_page)"
+
+msgid "AI 對話文字顏色："
+msgstr "AI Dialog Text Color:"
+
+msgid "設定 AI 對話載入訊息（…ふむ。この記事か。どれ…）的文字顏色"
+msgstr "Set the text color for AI loading message"
+
+msgid "AI 對話顯示時間（秒）："
+msgstr "AI Dialog Display Time (seconds):"
+
+msgid "設定 AI 對話顯示的時間長度。在此期間，自動對話會暫停，避免 AI 對話被覆蓋（建議 5-10 秒）"
+msgstr "Set how long AI dialog displays. Auto talk pauses during this time to prevent AI dialog from being overwritten (recommended: 5-10 seconds)"
+
+msgid "啟用首次訪客打招呼"
+msgstr "Enable first-time visitor greeting"
+
+msgid "當訪客第一次訪問網站時，根據訪客來源（使用 Slimstat API）用 AI 生成個性化打招呼訊息。每個訪客只會看到一次。"
+msgstr "When a visitor comes for the first time, generate a personalized greeting using AI based on visitor origin (via Slimstat API). Each visitor sees this only once."
+
+msgid "首次訪客打招呼提示詞："
+msgstr "First-time Visitor Greeting Prompt:"
+
+msgid "定義春菜對首次訪客的打招呼風格和語氣"
+msgstr "Define the greeting style and tone for first-time visitors"
+
+msgid "Ollama (本機 LLM，無需 API Key)"
+msgstr "Ollama (Local LLM, No API Key Required)"
+
+msgid "(已隱藏以確保安全)"
+msgstr "(Hidden for security)"
+
+msgid "注意：本機 LLM (Ollama) 設定已移至「LLM 設定」頁面。"
+msgstr "Note: Local LLM (Ollama) settings have been moved to the \"LLM Settings\" page."
+
+# ========================================
+# LLM Settings Page
+# ========================================
+
+msgid "LLM 設定 (Ollama)"
+msgstr "LLM Settings (Ollama)"
+
+msgid "啟用 LLM (Ollama)"
+msgstr "Enable LLM (Ollama)"
+
+msgid "啟用後將使用 Ollama LLM 生成對話，支援本地或遠程連接，無需 API Key，完全免費。"
+msgstr "When enabled, Ollama LLM will be used to generate dialogues. Supports local or remote connections, no API Key required, completely free."
+
+msgid "🔌 連接設定"
+msgstr "🔌 Connection Settings"
+
+msgid "Ollama 端點："
+msgstr "Ollama Endpoint:"
+
+msgid "本地："
+msgstr "Local:"
+
+msgid "｜ 遠程："
+msgstr "｜ Remote:"
+
+msgid "模型名稱："
+msgstr "Model Name:"
+
+msgid "例如：gemma3:12b, qwen3:8b"
+msgstr "e.g., gemma3:12b, qwen3:8b"
+
+msgid "使用"
+msgstr "Use"
+
+msgid "查看已下載的模型"
+msgstr "to view downloaded models"
+
+msgid "測試連接"
+msgstr "Test Connection"
+
+msgid "💬 對話設定"
+msgstr "💬 Dialogue Settings"
+
+msgid "使用 LLM 取代內建對話"
+msgstr "Use LLM to replace built-in dialogues"
+
+msgid "啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。"
+msgstr "When enabled, character dialogues will be generated in real-time by LLM, not using static dialogue lists."
+
+msgid "關閉思考模式（Qwen3、DeepSeek 等模型）"
+msgstr "Disable thinking mode (for Qwen3, DeepSeek, etc.)"
+
+msgid "部分模型會輸出「思考過程」而非實際對話。啟用此選項可避免此問題。建議啟用。"
+msgstr "Some models output \"thinking process\" instead of actual dialogue. Enable this option to avoid this issue. Recommended to enable."
+
+msgid "使用 Modelfile 角色設定"
+msgstr "Use Modelfile Character Settings"
+
+msgid "如果您的 Ollama 模型是透過 Modelfile 建立的自定義角色（例如：Frieren），請啟用此選項。啟用後，插件將完全不傳送任何 System Message，讓 Modelfile 中的 SYSTEM 提示詞完全生效。這確保角色設定（包括語言、語氣、人格等）完全由 Modelfile 控制。"
+msgstr "If your Ollama model is a custom character created using Modelfile (e.g., Frieren), please enable this option. When enabled, the plugin will not send any System Message at all, allowing the SYSTEM prompt in Modelfile to take full effect. This ensures that character settings (including language, tone, personality, etc.) are completely controlled by Modelfile."
+
+msgid "測試中..."
+msgstr "Testing..."
+
+msgid "測試失敗，請檢查網絡連接"
+msgstr "Test failed, please check network connection"
+
+msgid "本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。"
+msgstr "Local Ollama program is not running. Please check if the Ollama service is running."
+
+msgid "無對話內容"
+msgstr "No dialogue content"
+
+# ========================================
+# Ukagaka Management Page
+# ========================================
+
+msgid "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。"
+msgstr "Enter the full image URL, starting with http://"
+
+msgid "吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "Each line is a message. HTML is not allowed."
+
+msgid "每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "Each line represents one message. HTML code is not allowed."
+
+msgid "刪除"
+msgstr "Delete"
+
+msgid "可顯示"
+msgstr "Visible"
+
+msgid "名稱："
+msgstr "Name:"
+
+msgid "圖片："
+msgstr "Image:"
+
+msgid "吐槽："
+msgstr "Messages:"
+
+msgid "對話檔案名稱："
+msgstr "Dialog Filename:"
+
+msgid "此名稱將用於外部對話檔案，例如：asuna.txt 或 asuna.json"
+msgstr "This name is used for external dialog files, e.g., asuna.txt or asuna.json"
+
+msgid "生成對話檔案"
+msgstr "Generate Dialog File"
+
+msgid "勾選此項將使用上方吐槽內容生成對應的對話檔案"
+msgstr "Check to generate a dialog file from the messages above"
+
+msgid "每行一條吐槽，不可使用 HTML 代碼。"
+msgstr "One message per line. HTML is not allowed."
+
+msgid " 創 建 "
+msgstr " Create "
+
+# ========================================
+# Extension Page
+# ========================================
+
+msgid "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
+msgstr "Do not modify this page unless you know what you're doing."
+
+msgid "JS 區"
+msgstr "JavaScript"
+
+msgid "可在此填寫 JavaScript 代碼，為春菜自訂更多的回應事件。"
+msgstr "Add custom JavaScript code for additional character events."
+
+msgid "無需使用 &lt;script&gt; 標籤，代碼將寫入到 &lt;head&gt; 部分。"
+msgstr "No &lt;script&gt; tags needed. Code is added to the &lt;head&gt; section."
+
+msgid "代碼擴展"
+msgstr "Code Extensions"
+
+msgid "您可以在春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"
+msgstr "You can use special codes in the character's message box to display specific information, such as post lists."
+
+msgid "更多擴展代碼資訊請參閱："
+msgstr "For more extension codes, visit:"
+
+# ========================================
+# Message Page
+# ========================================
+
+msgid "固定資訊："
+msgstr "Fixed Message:"
+
+msgid "此資訊將顯示在每條會話的後面，不可使用 HTML 代碼。"
+msgstr "This message appears after every dialog. HTML is not allowed."
+
+msgid "通用會話："
+msgstr "Common Messages:"
+
+msgid "所有春菜共用的會話內容。"
+msgstr "Messages shared by all characters."
+
+msgid "一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
+msgstr "If filled, these messages replace each character's custom messages. Leave empty to use each character's own messages."
+
+# ========================================
+# Security & File Operations
+# ========================================
+
+msgid "找不到指定的文件"
+msgstr "File not found"
+
+msgid "不允許讀取該路徑"
+msgstr "Read access denied for this path"
+
+msgid "文件過大，無法讀取"
+msgstr "File too large to read"
+
+msgid "無法讀取文件"
+msgstr "Unable to read file"
+
+msgid "無法創建目錄"
+msgstr "Unable to create directory"
+
+msgid "不允許寫入該路徑"
+msgstr "Write access denied for this path"
+
+msgid "不合法的文件名"
+msgstr "Invalid filename"
+
+msgid "無法寫入文件"
+msgstr "Unable to write file"
+
+msgid "不合法的對話文件名"
+msgstr "Invalid dialog filename"
+
+msgid "找不到對話文件"
+msgstr "Dialog file not found"
+
+msgid "對話文件過大，載入失敗"
+msgstr "Dialog file too large to load"
+
+msgid "無法讀取對話文件"
+msgstr "Unable to read dialog file"
+
+msgid "JSON 檔案格式錯誤"
+msgstr "Invalid JSON file format"
+
+# ========================================
+# LLM Settings Page - New Strings
+# ========================================
+
+msgid "此頁面用於設定 AI 提供商、模型選擇和 LLM 功能。頁面感知 AI 的行為參數請前往「AI 設定」頁面。"
+msgstr "This page is for configuring AI providers, model selection, and LLM features. For context awareness AI behavior parameters, please go to the \"AI Settings\" page."
+
+msgid "🤖 AI 提供商"
+msgstr "🤖 AI Provider"
+
+msgid "Gemini 模型："
+msgstr "Gemini Model:"
+
+msgid "啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。支援所有 AI 提供商（Gemini、OpenAI、Claude、Ollama）。"
+msgstr "When enabled, character dialogues will be generated in real-time by LLM, not using static dialogue lists. Supports all AI providers (Gemini, OpenAI, Claude, Ollama)."
+
+msgid "📄 頁面感知功能"
+msgstr "📄 Context Awareness"
+
+msgid "啟用頁面感知功能"
+msgstr "Enable context awareness"
+
+msgid "啟用後，AI 會根據頁面內容生成相關對話。此功能的行為參數（語言、角色、機率等）請在「AI 設定」頁面配置。"
+msgstr "When enabled, AI will generate relevant dialogues based on page content. Behavior parameters (language, character, probability, etc.) for this feature should be configured in the \"AI Settings\" page."
+
+# ========================================
+# Create New Character Page - New Strings
+# ========================================
+
+msgid "創建一個新的春菜角色。圖片請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭。"
+msgstr "Create a new character. Enter the full image URL, starting with http:// or https://"
+
+msgid "➕ 新增春菜"
+msgstr "➕ Add Character"
+
+msgid "請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭"
+msgstr "Enter the full URL, starting with http:// or https://"
+
+# ========================================
+# Extensions Page - New Strings
+# ========================================
+
+msgid "⚠️ 警告："
+msgstr "⚠️ Warning:"
+
+msgid "📜 JS 區"
+msgstr "📜 JavaScript"
+
+msgid "🔧 代碼擴展"
+msgstr "🔧 Code Extensions"
+
+# ========================================
+# Messages Page - New Strings
+# ========================================
+
+msgid "設定所有春菜共用的固定資訊和通用會話內容。"
+msgstr "Configure fixed information and common messages shared by all characters."
+
+msgid "📌 固定資訊"
+msgstr "📌 Fixed Information"
+
+msgid "所有春菜共用的會話內容。一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
+msgstr "Messages shared by all characters. If filled, these messages replace each character's custom messages. Leave empty to use each character's own messages."
+
+# ========================================
+# AJAX Handlers - New Strings
+# ========================================
+
+msgid "未指定或不合法的檔名"
+msgstr "Filename not specified or invalid"
+
+msgid "JSON 檔案格式錯誤："
+msgstr "Invalid JSON file format:"
+
+msgid "對話文件為空，請檢查對話文件內容"
+msgstr "Dialog file is empty, please check the dialog file content"
+
+msgid "安全性驗證失敗"
+msgstr "Security verification failed"
+
+msgid "請求過於頻繁，請稍後再試"
+msgstr "Request too frequent, please try again later"
+
+msgid "AI 功能未啟用"
+msgstr "AI feature is not enabled"
+
+msgid "首次訪客打招呼功能未啟用"
+msgstr "First-time visitor greeting feature is not enabled"
+
+msgid "頁面內容為空"
+msgstr "Page content is empty"
+
+msgid "連接成功，模型響應正常（預覽：%s...）"
+msgstr "Connection successful, model response normal (preview: %s...)"
+
+msgid "連接成功（%s連接），模型響應正常（預覽：%s...）"
+msgstr "Connection successful (%s connection), model response normal (preview: %s...)"
+
+msgid "API 回應為空，請檢查模型是否正確"
+msgstr "API response is empty, please check if the model is correct"
+
+msgid "HTTP %s 錯誤"
+msgstr "HTTP %s error"
+
+msgid "API 認證失敗：%s。請檢查 API Key 是否正確。"
+msgstr "API authentication failed: %s. Please check if the API Key is correct."
+
+msgid "模型「%s」不存在。請在設定中選擇正確的模型。"
+msgstr "Model \"%s\" does not exist. Please select the correct model in settings."
+
+msgid "API 錯誤（HTTP %s）：%s"
+msgstr "API error (HTTP %s): %s"
+
+msgid "連接失敗（%s連接）：%s"
+msgstr "Connection failed (%s connection): %s"
+
+msgid "連接失敗：%s"
+msgstr "Connection failed: %s"
+
+msgid "請輸入 Gemini API Key"
+msgstr "Please enter Gemini API Key"
+
+msgid "請輸入 OpenAI API Key"
+msgstr "Please enter OpenAI API Key"
+
+msgid "請輸入 Claude API Key"
+msgstr "Please enter Claude API Key"
+
+# ========================================
+# AI Settings Page - New Strings
+# ========================================
+
+msgid "此頁面用於設定「頁面感知 AI」功能的行為參數。AI 提供商選擇和模型設定請前往「LLM 設定」頁面。"
+msgstr "This page is for configuring behavior parameters of the \"Context Awareness AI\" feature. For AI provider selection and model settings, please go to the \"LLM Settings\" page."
+
+msgid "🌐 語言與角色設定"
+msgstr "🌐 Language & Character Settings"
+
+msgid "⚙️ 觸發與機率設定"
+msgstr "⚙️ Trigger & Probability Settings"
+
+msgid "👋 首次訪客打招呼"
+msgstr "👋 First-time Visitor Greeting"
+
+msgid "頁面感知確率 (%)："
+msgstr "Context Awareness Probability (%):"
+
+msgid "頁面感知時 AI 對話文字顏色："
+msgstr "AI Dialog Text Color (Context Awareness):"
+
+msgid "🎨 顯示設定"
+msgstr "🎨 Display Settings"
+
+# ========================================
+# General Settings Page - New Strings
+# ========================================
+
+msgid "此頁面用於設定春菜的基本顯示和行為選項。"
+msgstr "This page is for configuring basic display and behavior options for characters."
+
+msgid "👤 基本顯示設定"
+msgstr "👤 Basic Display Settings"
+
+msgid "💬 對話行為設定"
+msgstr "💬 Dialogue Behavior Settings"
+
+msgid "⏰ 自動對話設定"
+msgstr "⏰ Auto Talk Settings"
+
+msgid "📄 對話文件設定"
+msgstr "📄 Dialog File Settings"
+
+msgid "注意：系統已固定使用外部對話文件，對話將從 dialogs/ 資料夾讀取。"
+msgstr "Note: The system is configured to use external dialog files. Dialogues will be read from the dialogs/ folder."
+
+msgid "輸入不顯示春菜的頁面 URL，每行一條。在地址尾部加入 (*) 可進行模糊匹配。"
+msgstr "Enter page URLs where character should not appear, one per line. Add (*) at the end for wildcard matching."
+
+msgid "ℹ️ 插件資訊"
+msgstr "ℹ️ Plugin Info"
+
+msgid "⚠️ 重置設定"
+msgstr "⚠️ Reset Settings"
+
+msgid "🎨 樣式設定"
+msgstr "🎨 Style Settings"
+
+msgid "🚫 頁面排除設定"
+msgstr "🚫 Page Exclusion Settings"
+
+msgid "⚙️ HTML 生成位置"
+msgstr "⚙️ HTML Output Position"
+
+# ========================================
+# Character Management Page - New Strings
+# ========================================
+
+msgid "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
+msgstr "Enter the full image URL starting with http://. Each line in the messages field represents one message. HTML is not allowed."
+
+# ========================================
+# Model Selection - New Strings
+# ========================================
+
+msgid "Gemini 2.5 Flash (推薦)"
+msgstr "Gemini 2.5 Flash (Recommended)"
+
+msgid "Gemini 2.5 Pro (更聰明，適合複雜推理)"
+msgstr "Gemini 2.5 Pro (Smarter, suitable for complex reasoning)"
+
+msgid "GPT-4.1 Mini (推薦，速度快成本低)"
+msgstr "GPT-4.1 Mini (Recommended, fast and cost-effective)"
+
+msgid "GPT-4o Mini (快速且經濟)"
+msgstr "GPT-4o Mini (Fast and economical)"
+
+msgid "GPT-4o (更聰明)"
+msgstr "GPT-4o (Smarter)"
+
+msgid "Claude Sonnet 4.5 (推薦)"
+msgstr "Claude Sonnet 4.5 (Recommended)"
+
+msgid "Claude Haiku 4.5 (快速)"
+msgstr "Claude Haiku 4.5 (Fast)"
+
+msgid "Claude Opus 4.5 (進階)"
+msgstr "Claude Opus 4.5 (Advanced)"
+
+msgid "提示：支援 Markdown 和 XML 標籤格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
+msgstr "Tip: Supports Markdown and XML tag formats. You can directly use structured formats to enhance model understanding.<br>You can use {{variable_name}} for variable substitution (e.g., {{ukagaka_display_name}}, {{time_context}}, {{language}}, etc.)."
+
+# ========================================
+# Chat Mode API Error Messages
+# ========================================
+
+msgid "Ollama API 錯誤（HTTP %s）"
+msgstr "Ollama API Error (HTTP %s)"
+
+msgid "Ollama 未返回有效回應。%s。請檢查模型響應格式或嘗試啟用思考模式。"
+msgstr "Ollama did not return a valid response. %s. Please check the model response format or try enabling thinking mode."
+
+msgid "OpenAI 未返回有效回應"
+msgstr "OpenAI did not return a valid response"
+
+msgid "Claude 未返回有效回應"
+msgstr "Claude did not return a valid response"
+
+msgid "Gemini 未返回有效回應"
+msgstr "Gemini did not return a valid response"
+
+# ========================================
+# Chat Mode UI Strings
+# ========================================
+
+msgid "輸入訊息..."
+msgstr "Enter message..."
+
+msgid "有什麼想聊的嗎？"
+msgstr "What would you like to chat about?"
+
+msgid "預設啟用思考模式，AI 會先思考再回答，提高回答品質。勾選此選項可關閉思考、加快回應速度。"
+msgstr "Thinking mode is enabled by default. The AI will think before responding to improve answer quality. Check this option to disable thinking and speed up responses."
+
+msgid "啟用後，前台的「更換春菜」按鈕將變為「對話」按鈕，讓訪客可以直接與春菜對話。關閉則顯示原本的角色切換選單。"
+msgstr "When enabled, the \"Change Ukagaka\" button on the frontend will become a \"Chat\" button, allowing visitors to chat directly with her. When disabled, the original character selection menu is shown."
+
+msgid "アクセサリー表示"
+msgstr "Show Accessories"
+
+msgid "（スーツケース、巨大な頭蓋骨、魔法の杖と魔法の本）"
+msgstr "(Suitcase, Giant Skull, Magic Wand and Magic Book)"
+
+msgid "啟用互動對話功能"
+msgstr "Enable interactive chat feature"
+
+
+
+
+#: options_page0.php:121
+msgid "選擇角色的行為模式和對話風格。人格資料儲存於 ghost/ 資料夾中。"
+msgstr "Select character behavior patterns and dialogue styles. Personality data is stored in the ghost/ folder."
+
+#: options_page0.php:84
+msgid "此頁面用於設定偽春菜的基本顯示和行為選項。"
+msgstr "This page is used to configure the basic display and behavior options for ukagakas."
+
+#: options_page0.php:274
+msgid "重置設定將還原插件的所有配置為預設值，所有設定及偽春菜將被刪除。此操作無法撤銷，請謹慎操作。"
+msgstr "Resetting settings will restore all plugin configurations to default values, and all settings and ukagakas will be deleted. This operation cannot be undone. Please proceed with caution."
+
+#: options_page0.php:230
+msgid "輸入不顯示偽春菜的頁面 URL，每行一條。在地址尾部加入 (*) 可進行模糊匹配。"
+msgstr "Enter URLs of pages where ukagakas should not be displayed, one per line. Add (*) at the end of the address for fuzzy matching."
+
+#: options_page_ai.php:100
+msgid "提示：支援 Markdown 格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
+msgstr "Tip: Markdown format is supported. You can directly use structured formats to enhance model understanding.<br>You can use {{variable_name}} for variable substitution (e.g., {{ukagaka_display_name}}, {{time_context}}, {{language}}, etc.)."
+
+#: options_page_llm.php:420
+msgid "啟用後，偽春菜對話將由 LLM 實時生成，不使用靜態對話列表。支援所有 AI 提供商（Gemini、OpenAI、Claude、Ollama）。"
+msgstr "When enabled, ukagaka dialogues will be generated in real-time by LLM instead of using static dialogue lists. Supports all AI providers (Gemini, OpenAI, Claude, Ollama)."
+
+#: options_page_llm.php:428
+msgid "啟用後，前台的「更換偽春菜」按鈕將變為「對話」按鈕，讓訪客可以直接與偽春菜對話。關閉則顯示原本的角色切換選單。"
+msgstr "When enabled, the \"Change Ukagaka\" button on the frontend will become a \"Chat\" button, allowing visitors to chat directly with the ukagaka. When disabled, the original character switching menu will be displayed."
+
+#: options_page4.php:74
+msgid "設定所有偽春菜共用的固定資訊和通用會話內容。"
+msgstr "Configure fixed information and common conversation content shared by all ukagakas."
+
+#: options_page4.php:93
+msgid "所有偽春菜共用的會話內容。一旦填寫此欄，通用會話將取代每個偽春菜的自訂會話。清空此欄則使用各偽春菜的預設自訂會話。"
+msgstr "Conversation content shared by all ukagakas. Once this field is filled, common conversations will replace each ukagaka's custom conversations. Clearing this field will use each ukagaka's default custom conversations."
+
+#: options_page2.php:72
+msgid "創建新偽春菜"
+msgstr "Create New Ukagaka"
+
+#: options_page2.php:89
+msgid "上傳包含 manifest.json、shell/ 等文件的 ZIP 壓縮包，系統會自動解壓並驗證。"
+msgstr "Upload a ZIP archive containing manifest.json, shell/, and other files. The system will automatically extract and validate it."
+
+#: options_page2.php:95
+msgid "📦 ZIP 文件上傳"
+msgstr "📦 ZIP File Upload"
+
+#: options_page2.php:98
+msgid "選擇 ZIP 文件："
+msgstr "Select ZIP File:"
+
+#: options_page2.php:100
+msgid "ZIP 文件應包含：manifest.json（必需）、shell/ 文件夾（必需，包含圖片文件）、prompts.json、weights.json 等（可選）"
+msgstr "ZIP file should contain: manifest.json (required), shell/ folder (required, containing image files), prompts.json, weights.json, etc. (optional)"
+
+#: options_page2.php:104
+msgid "上傳並驗證"
+msgstr "Upload and Validate"
+
+#: options_page2.php:111
+msgid "或使用傳統方式創建（僅支援內建對話系統，無法使用 LLM 對話功能）：圖片請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭。"
+msgstr "Or create using the traditional method (only supports built-in dialogue system, LLM dialogue function is not available): Please enter the full URL for images, and don't forget to start with http:// or https://."
+
+#: options_page2.php:117
+msgid "✅ ZIP 文件上傳成功！請確認以下資訊："
+msgstr "✅ ZIP file uploaded successfully! Please confirm the following information:"
+
+#: options_page2.php:127
+msgid "📋 預覽資訊"
+msgstr "📋 Preview Information"
+
+#: options_page2.php:179
+msgid "➕ 新增偽春菜（手動方式）"
+msgstr "➕ Add New Ukagaka (Manual Method)"
+
+#: options_page2.php:183
+msgid "⚠️ 重要提示："
+msgstr "⚠️ Important Notice:"
+
+#: options_page2.php:184
+msgid "傳統手動方式創建的偽春菜只能使用內建對話系統（從對話檔案讀取），無法使用 LLM 對話功能。\\n如需使用 LLM 對話功能（AI 生成對話），請使用上方的 ZIP 上傳方式創建，並確保 ZIP 文件包含 manifest.json、prompts.json、weights.json 等必要文件。"
+msgstr "Ukagakas created using the traditional manual method can only use the built-in dialogue system (read from dialogue files) and cannot use the LLM dialogue function.\\nTo use the LLM dialogue function (AI-generated dialogues), please create using the ZIP upload method above and ensure the ZIP file contains necessary files such as manifest.json, prompts.json, weights.json, etc."
+
+#: options_page3.php:103
+msgid "可在此填寫 JavaScript 代碼，為偽春菜自訂更多的回應事件。"
+msgstr "You can write JavaScript code here to customize more response events for ukagakas."
+
+#: options_page3.php:112
+msgid "您可以在偽春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"
+msgstr "You can use special codes in the ukagaka information box to display specific information, such as log lists."
+
+#: options_page3.php:114
+msgid "MP Ukagaka 文檔中心"
+msgstr "MP Ukagaka Documentation Center"
+
+#: options_page2.php:184
+msgid "傳統手動方式創建的偽春菜只能使用內建對話系統（從對話檔案讀取），無法使用 LLM 對話功能。"
+msgstr "Ukagakas created using the traditional manual method can only use the built-in dialogue system (read from dialogue files) and cannot use the LLM dialogue function."
+
+#: options_page2.php:185
+msgid "如需使用 LLM 對話功能（AI 生成對話），請使用上方的 ZIP 上傳方式創建，並確保 ZIP 文件包含 manifest.json、prompts.json、weights.json 等必要文件。"
+msgstr "To use the LLM dialogue function (AI-generated dialogues), please create using the ZIP upload method above and ensure the ZIP file contains necessary files such as manifest.json, prompts.json, weights.json, etc."
+
+#: options.php:488
+msgid "偽春菜們"
+msgstr "Ukagakas"
+
+#: options_page0.php:93
+msgid "預設偽春菜："
+msgstr "Default Ukagaka:"
+
+#: options_page0.php:129
+msgid "預設顯示偽春菜"
+msgstr "Show Ukagaka by Default"
+
+#: options_page0.php:164
+msgid "點擊偽春菜："
+msgstr "Click Ukagaka:"
+
+#: options_page0.php:228
+msgid "不在以下頁面顯示偽春菜"
+msgstr "Hide Ukagaka on the Following Pages"
+
+#: options_page0.php:262
+msgid "偽春菜數量："
+msgstr "Number of Ukagakas:"
+
+#: options_page_llm.php:452
+msgid "🌤️ 天氣設定"
+msgstr "🌤️ Weather Settings"
+
+#: options_page_llm.php:456
+msgid "啟用天氣感知功能"
+msgstr "Enable Weather Awareness"
+
+#: options_page_llm.php:459
+msgid "讓角色知道當地天氣，並根據天氣發表看法。使用 Open-Meteo 免費 API，無需 API Key。"
+msgstr "Let the character know the local weather and comment on it. Uses Open-Meteo free API, no API Key required."
+
+#: options_page_llm.php:462
+msgid "位置座標："
+msgstr "Location Coordinates:"
+
+#: options_page_llm.php:465
+msgid "緯度："
+msgstr "Latitude:"
+
+#: options_page_llm.php:469
+msgid "經度："
+msgstr "Longitude:"
+
+#: options_page_llm.php:474
+msgid "預設為台北（25.0330, 121.5654）。可使用"
+msgstr "Default is Taipei (25.0330, 121.5654). You can use"
+
+#: options_page_llm.php:476
+msgid "查詢座標（右鍵點擊地圖即可複製座標）。"
+msgstr "to look up coordinates (right-click on the map to copy coordinates)."
+
+#: options_page_llm.php:480
+msgid "測試天氣 API"
+msgstr "Test Weather API"
+
+# ========================================
+# Diary Settings Page
+# ========================================
+
+msgid "📓 日記設定"
+msgstr "📓 Diary Settings"
+
+msgid "設定自動日記功能（フリーレン手記）。角色會以極低機率自動發表日記文章。"
+msgstr "Configure the automatic diary feature. The character will automatically post diary entries at a very low probability."
+
+msgid "📝 基本設定"
+msgstr "📝 Basic Settings"
+
+msgid "啟用自動日記功能"
+msgstr "Enable automatic diary"
+
+msgid "啟用後，角色會以極低機率（由下方設定）自動發表日記文章到指定分類。"
+msgstr "When enabled, the character will automatically post diary entries to the specified category at a very low probability (configured below)."
+
+msgid "發文分類："
+msgstr "Post Category:"
+
+msgid "-- 請選擇分類 --"
+msgstr "-- Select Category --"
+
+msgid "建議先建立「フリーレン手記」分類（slug: frieren-notes）再選擇。"
+msgstr "It's recommended to create a dedicated category (e.g., slug: frieren-notes) first, then select it here."
+
+msgid "發文作者："
+msgstr "Post Author:"
+
+msgid "日記將以此使用者身份發表。"
+msgstr "Diary entries will be posted as this user."
+
+msgid "觸發機率："
+msgstr "Trigger Probability:"
+
+msgid "每日觸發機率。2% 約等於每月 0~1 篇，5% 約等於每月 1~2 篇。"
+msgstr "Daily trigger probability. 2% is about 0-1 posts per month, 5% is about 1-2 posts per month."
+
+msgid "文章簽名："
+msgstr "Post Signature:"
+
+msgid "將附加於每篇日記的末尾。留空則不附加。"
+msgstr "Will be appended to the end of each diary entry. Leave empty to skip."
+
+msgid "🤖 日記 AI 供應商"
+msgstr "🤖 Diary AI Provider"
+
+msgid "日記功能使用獨立的 AI 設定，可與對話功能使用不同的模型以節省成本。"
+msgstr "The diary feature uses independent AI settings, allowing you to use a different model than the chat feature to save costs."
+
+msgid "Gemini API Key："
+msgstr "Gemini API Key:"
+
+msgid "請輸入 API Key（或留空使用 LLM 設定頁的 Key）"
+msgstr "Enter API Key (or leave empty to use the key from LLM Settings page)"
+
+msgid "留空則使用 LLM 設定頁面的 API Key。"
+msgstr "Leave empty to use the API Key from LLM Settings page."
+
+msgid "已設定專用 Key"
+msgstr "Dedicated key configured"
+
+msgid "OpenAI API Key："
+msgstr "OpenAI API Key:"
+
+msgid "Claude API Key："
+msgstr "Claude API Key:"
+
+msgid "Ollama 端點："
+msgstr "Ollama Endpoint:"
+
+msgid "留空則使用 LLM 設定頁面的端點。"
+msgstr "Leave empty to use the endpoint from LLM Settings page."
+
+msgid "🧪 測試"
+msgstr "🧪 Test"
+
+msgid "立即生成一篇日記（測試）"
+msgstr "Generate Diary Now (Test)"
+
+msgid "點擊後會使用上方設定立即生成並發表一篇日記，用於測試功能是否正常。"
+msgstr "Click to immediately generate and publish a diary entry using the above settings to test if the feature works correctly."
+
+msgid "日記設定已儲存"
+msgstr "Diary settings saved"
+
+msgid "日記生成成功！文章 ID："
+msgstr "Diary generated successfully! Post ID:"
+
+msgid "日記生成失敗："
+msgstr "Diary generation failed:"
+
+msgid "日記設定"
+msgstr "Diary Settings"
+
+# ========================================
+# API Cache Settings
+# ========================================
+
+msgid "💾 API 快取設定"
+msgstr "💾 API Cache Settings"
+
+msgid "啟用 API 回應快取"
+msgstr "Enable API response caching"
+
+msgid "啟用後，相同的 AI 請求將使用快取回應，減少 API 費用和響應延遲。適合訪客流量大的網站。"
+msgstr "When enabled, identical AI requests will use cached responses, reducing API costs and response latency. Ideal for high-traffic sites."
+
+msgid "快取有效期（TTL）："
+msgstr "Cache Expiry (TTL):"
+
+msgid "30 分鐘"
+msgstr "30 minutes"
+
+msgid "1 小時（推薦）"
+msgstr "1 hour (Recommended)"
+
+msgid "2 小時"
+msgstr "2 hours"
+
+msgid "6 小時"
+msgstr "6 hours"
+
+msgid "24 小時"
+msgstr "24 hours"
+
+msgid "快取過期後，下次相同請求將重新呼叫 API。"
+msgstr "After cache expires, the next identical request will call the API again."
+
+msgid "快取狀態："
+msgstr "Cache Status:"
+
+msgid "筆快取"
+msgstr "cached entries"
+
+msgid "清除所有快取"
+msgstr "Clear All Cache"
+
+msgid "確定要清除所有 API 快取嗎？"
+msgstr "Are you sure you want to clear all API cache?"
+
+msgid "清除中..."
+msgstr "Clearing..."
+
+msgid "已清除 %d 筆快取"
+msgstr "Cleared %d cache entries"
+
+msgid "權限不足"
+msgstr "Insufficient permissions"
+
+msgid "快取模組未載入"
+msgstr "Cache module not loaded"
+
+msgid "清除失敗"
+msgstr "Clear failed"
+
+# ========================================
+# Statistics Dashboard Page
+# ========================================
+
+msgid "📊 統計儀表板"
+msgstr "📊 Statistics Dashboard"
+
+msgid "7 天"
+msgstr "7 Days"
+
+msgid "30 天"
+msgstr "30 Days"
+
+msgid "今日 API 調用"
+msgstr "Today's API Calls"
+
+msgid "錯誤: %d"
+msgstr "Errors: %d"
+
+msgid "本週對話 (%d天)"
+msgstr "Weekly Conversations (%d days)"
+
+msgid "今日: %d"
+msgstr "Today: %d"
+
+msgid "快取命中率"
+msgstr "Cache Hit Rate"
+
+msgid "命中: %d"
+msgstr "Hits: %d"
+
+msgid "平均回應時間 (ms)"
+msgstr "Avg Response Time (ms)"
+
+msgid "今日平均"
+msgstr "Today's Average"
+
+msgid "API 調用趨勢 (%d天)"
+msgstr "API Call Trend (%d days)"
+
+msgid "對話類型分佈"
+msgstr "Conversation Type Distribution"
+
+msgid "供應商使用分佈"
+msgstr "Provider Usage Distribution"
+
+msgid "熱門話題 (Top 10 / %d天)"
+msgstr "Hot Topics (Top 10 / %d days)"
+
+msgid "尚無話題資料"
+msgstr "No topic data yet"
+
+msgid "統計設定"
+msgstr "Statistics Settings"
+
+msgid "統計資料會自動保留 30 天，超過的資料會自動清除。"
+msgstr "Statistics data is automatically retained for 30 days. Older data will be automatically cleared."
+
+msgid "確定要清除所有統計資料嗎？此操作無法復原。"
+msgstr "Are you sure you want to clear all statistics? This action cannot be undone."
+
+msgid "🗑️ 清除所有統計資料"
+msgstr "🗑️ Clear All Statistics"
+
+msgid "資料更新時間: %s"
+msgstr "Data updated: %s"
+
+msgid "API 調用"
+msgstr "API Calls"
+
+msgid "快取命中"
+msgstr "Cache Hits"
+
+msgid "對話次數"
+msgstr "Conversations"
+
+msgid "無資料"
+msgstr "No Data"
+
+msgid "頁面感知"
+msgstr "Page Awareness"
+
+msgid "互動對話"
+msgstr "Interactive Chat"
+
+msgid "首次問候"
+msgstr "First Greeting"
+
+msgid "觸摸反應"
+msgstr "Touch Response"
+
+msgid "自言自語"
+msgstr "Self Talk"
+
+msgid "裝飾品反應"
+msgstr "Accessory Response"
+
+msgid "統計資料已清除"
+msgstr "Statistics cleared"
+
+msgid "統計"
+msgstr "Statistics"
