@@ -218,8 +218,25 @@
                 <label><input type="checkbox" id="no_style" name="no_style" value="true" <?php if ($mpu_opt['no_style']) {
                                                                                                 echo ' checked="checked"';
                                                                                             } ?> /><?php _e('使用自訂樣式', 'mp-ukagaka'); ?></label>
+                <small><?php _e('勾選此項將停用插件內建的 CSS 樣式。', 'mp-ukagaka'); ?></small>
+            </div>
+            <div class="mpu-field-group" id="custom_style_link_container" style="<?php echo $mpu_opt['no_style'] ? '' : 'display:none;'; ?>margin-top: 12px;">
+                <label for="custom_style_link"><?php _e('自訂樣式連結', 'mp-ukagaka'); ?></label>
+                <textarea cols="60" rows="3" id="custom_style_link" name="custom_style_link" class="resizable" style="line-height:130%; width: 100%; max-width: 700px; font-family: 'Courier New', Consolas, monospace;"><?php echo isset($mpu_opt['custom_style_link']) ? esc_textarea($mpu_opt['custom_style_link']) : ''; ?></textarea>
+                <small><?php _e('輸入要載入的 CSS 樣式連結，例如：', 'mp-ukagaka'); ?><br><code>&lt;link rel="stylesheet" href="https://example.com/custom-ukagaka.css" type="text/css" /&gt;</code></small>
             </div>
         </div>
+        <script>
+        jQuery(document).ready(function($) {
+            $('#no_style').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#custom_style_link_container').slideDown(200);
+                } else {
+                    $('#custom_style_link_container').slideUp(200);
+                }
+            });
+        });
+        </script>
 
         <!-- 頁面排除設定 -->
         <div class="mpu-settings-card">

@@ -132,6 +132,21 @@ MP Ukagaka 是一個 WordPress 外掛，讓你在網站上顯示互動式的桌�
 /private-page/
 ```
 
+### 樣式設定
+
+| 設定項目     | 說明                                                         |
+| ------------ | ------------------------------------------------------------ |
+| 使用自訂樣式 | 勾選後，插件將不載入內建 CSS，讓你可以自行控制外觀           |
+| 自訂樣式連結 | 可填入 `<link>` 標籤，載入你的自訂 CSS 樣式表               |
+
+> 💡 **提示**：此選項適合進階使用者。勾選後，你需要在**主題的 CSS** 或透過「自訂樣式連結」欄位載入自己的樣式表。如果你沒有要自訂 CSS，請保持未勾選狀態，使用插件內建的樣式即可。
+
+**自訂樣式連結範例：**
+
+```html
+<link rel="stylesheet" href="https://example.com/custom-ukagaka.css" type="text/css" />
+```
+
 ---
 
 ## 偽春菜管理
@@ -171,6 +186,8 @@ MP Ukagaka 支援透過上傳 ZIP 檔案來安裝或更新偽春菜。
 6. 安裝完成後，新角色會出現在列表中
 
 ### 創建新偽春菜
+
+> 📘 **進階指南**：如需創建包含完整 LLM 支援的角色人格，請參閱 [人格製作指南 (GHOST_CREATE_GUIDE.md)](GHOST_CREATE_GUIDE.md)。
 
 前往 **設定** → **MP Ukagaka** → **創建新偽春菜**
 
@@ -333,6 +350,7 @@ MP Ukagaka v2.4.0 引入了動態表情系統，讓每個角色都能擁有自�
 
 - **純文字格式**（基本）：直接輸入文字描述
 - **Markdown 格式**（推薦）：使用標題、列表、強調等結構化格式，讓模型更好理解
+- **XML 標籤格式**（進階）：使用 XML 標籤標記結構，提供更精細的控制
 
 **純文字範例：**
 
@@ -511,12 +529,12 @@ _LLM 設定頁面：統一的 AI 提供商設定介面_
 **OpenAI：**
 
 - 需要 API Key（從 [OpenAI Platform](https://platform.openai.com/api-keys) 取得）
-- 支援多種模型：GPT-4.1 Mini、GPT-4o 等
+- 支援多種模型：GPT-4.1 Mini（推薦）、GPT-4o Mini、GPT-4o 等
 
 **Claude (Anthropic)：**
 
 - 需要 API Key（從 [Anthropic Console](https://console.anthropic.com/) 取得）
-- 支援多種模型：Claude Sonnet 4.5、Claude Haiku 4.5、Claude Opus 4.5 等
+- 支援多種模型：Claude Sonnet 4.5（推薦）、Claude Haiku 4.5（快速）、Claude Opus 4.5（進階）等
 
 #### 2. 設定 API Key（Gemini、OpenAI、Claude）
 
@@ -530,9 +548,9 @@ _LLM 設定頁面：統一的 AI 提供商設定介面_
 
 根據你選擇的 AI 提供商，從下拉選單中選擇合適的模型：
 
-- **Gemini**：Gemini 2.5 Flash（推薦，速度快成本低）
-- **OpenAI**：GPT-4.1 Mini（推薦，速度快成本低）、GPT-4o（更聰明）
-- **Claude**：Claude Sonnet 4.5（推薦）、Claude Haiku 4.5（快速）、Claude Opus 4.5（最強）
+- **Gemini**：Gemini 2.5 Flash（推薦，速度快成本低）、Gemini 2.5 Pro（更聰明，適合複雜推理）
+- **OpenAI**：GPT-4.1 Mini（推薦，速度快成本低）、GPT-4o Mini（快速且經濟）、GPT-4o（更聰明）
+- **Claude**：Claude Sonnet 4.5（推薦）、Claude Haiku 4.5（快速）、Claude Opus 4.5（進階）
 
 > 🌍 **多語言支援**：模型選擇下拉選單的說明文字會根據 WordPress 的語言設定自動顯示對應語言（繁體中文、英文、日文）。這讓不同語言的用戶都能清楚了解每個模型的特性。
 
@@ -664,13 +682,15 @@ PARAMETER repeat_last_n 64     # 重複檢查視窗
 
 ##### 參數調整建議
 
-| 參數               | 說明              | 建議值                              |
-| ------------------ | ----------------- | ----------------------------------- |
-| `num_predict`    | 最大輸出 token 數 | 80（約 40 字日文）                  |
-| `num_ctx`        | 上下文長度        | 8192（確保 System Prompt 完整讀取） |
-| `temperature`    | 溫度（創造力）    | 0.7（平衡一致性與多樣性）           |
-| `top_p`          | Top-p 採樣        | 0.9（適度多樣性）                   |
-| `repeat_penalty` | 重複懲罰          | 1.3（減少重複）                     |
+| 參數               | 說明              | 建議值                                                   |
+| ------------------ | ----------------- | -------------------------------------------------------- |
+| `num_predict`    | 最大輸出 token 數 | 80（自言自語）、200（對話模式）                          |
+| `num_ctx`        | 上下文長度        | 8192（確保 System Prompt 完整讀取）                       |
+| `temperature`    | 溫度（創造力）    | 0.7（平衡一致性與多樣性）                               |
+| `top_p`          | Top-p 採樣        | 0.9（適度多樣性）                                       |
+| `repeat_penalty` | 重複懲罰          | 1.3（減少重複）                                         |
+
+> 📝 **說明**：`num_predict` 的建議值取決於使用場景。自言自語模式需要簡短回應（80 token ≈ 40 字日文）；對話模式需要更長的回應空間（200 token ≈ 100 字）。這與 `manifest.json` 中的 `max_tokens: 600` 設定是不同的——後者適用於雲端 API，而 Modelfile 參數僅適用於 Ollama。
 
 ##### Modelfile vs 後台 System Prompt
 

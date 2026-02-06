@@ -133,6 +133,21 @@ Supports wildcard matching: add `(*)` at the end of the URL to match all subpage
 /private-page/
 ```
 
+### Style Settings
+
+| Setting Item       | Description                                                                                     |
+| ------------------ | ----------------------------------------------------------------------------------------------- |
+| Use Custom Style   | When enabled, the plugin will not load built-in CSS, allowing you to control the appearance    |
+| Custom Style Link  | You can enter `<link>` tags to load your own custom CSS stylesheet                             |
+
+> 💡 **Tip**: This option is for advanced users. When enabled, you need to write your own styles for the Ukagaka in your **theme's CSS** or load them via the "Custom Style Link" field. If you don't plan to customize the CSS, leave this unchecked to use the plugin's built-in styles.
+
+**Custom Style Link Example:**
+
+```html
+<link rel="stylesheet" href="https://example.com/custom-ukagaka.css" type="text/css" />
+```
+
 ---
 
 ## Ukagaka Management
@@ -149,6 +164,8 @@ On this page, you can:
 - Set visibility (via checkbox).
 
 ### Create New Ukagaka
+
+> 📘 **Advanced Guide**: For creating character personalities with full LLM support, please refer to [Character Creation Guide (GHOST_CREATE_GUIDE.md)](GHOST_CREATE_GUIDE.md).
 
 Go to **Settings** → **MP Ukagaka** → **Create New Ukagaka**
 
@@ -291,8 +308,8 @@ Page Awareness allows Ukagaka to automatically generate AI comments related to a
 1. Select AI provider (Gemini, OpenAI, Claude, or Ollama)
 2. Set API Key (except for Ollama)
 3. Select model
-   - **Gemini**: Gemini 2.5 Flash (Recommended, fast and cost-effective)
-   - **OpenAI**: GPT-4.1 Mini (Recommended, fast and cost-effective), GPT-4o (Smarter)
+   - **Gemini**: Gemini 2.5 Flash (Recommended, fast and cost-effective), Gemini 2.5 Pro (Smarter, for complex reasoning)
+   - **OpenAI**: GPT-4.1 Mini (Recommended, fast and cost-effective), GPT-4o Mini (Fast and economical), GPT-4o (Smarter)
    - **Claude**: Claude Sonnet 4.5 (Recommended), Claude Haiku 4.5 (Fast), Claude Opus 4.5 (Advanced)
    
    > 🌍 **Multi-Language Support**: The model selection dropdown descriptions automatically display in the corresponding language (Traditional Chinese, English, Japanese) based on WordPress language settings. This helps users in different languages clearly understand each model's characteristics.
@@ -636,11 +653,13 @@ PARAMETER repeat_last_n 64     # Repeat check window
 
 | Parameter | Description | Recommended |
 |-----------|-------------|-------------|
-| `num_predict` | Max output tokens | 80 (~40 Japanese chars) |
+| `num_predict` | Max output tokens | 80 (auto-talk), 200 (chat mode) |
 | `num_ctx` | Context length | 8192 (ensures full System Prompt) |
 | `temperature` | Creativity | 0.7 (balance consistency & variety) |
 | `top_p` | Top-p sampling | 0.9 (moderate variety) |
 | `repeat_penalty` | Repeat penalty | 1.3 (reduce repetition) |
+
+> 📝 **Note**: The `num_predict` value depends on use case. Auto-talk mode needs shorter responses (80 tokens ≈ 40 Japanese chars); chat mode needs more space (200 tokens ≈ 100 chars). This differs from the `max_tokens: 600` setting in `manifest.json`, which applies to cloud APIs, not Ollama.
 
 ##### Modelfile vs Backend System Prompt
 

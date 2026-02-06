@@ -319,6 +319,14 @@ function mpu_enqueue_frontend_assets()
             array(),
             MPU_VERSION
         );
+    } else {
+        // 使用自訂樣式：如果有設定自訂樣式連結，在 wp_head 輸出
+        if (!empty($mpu_opt['custom_style_link'])) {
+            add_action('wp_head', function () use ($mpu_opt) {
+                // 直接輸出已由 wp_kses 過濾的 link 標籤
+                echo $mpu_opt['custom_style_link'] . "\n";
+            }, 5);
+        }
     }
 
     // 載入 JavaScript

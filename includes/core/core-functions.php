@@ -25,6 +25,7 @@ function mpu_default_opt()
         "next_msg" => 0,
         "click_ukagaka" => 0,
         "no_style" => false,
+        "custom_style_link" => "",
         "insert_html" => 0,
         "auto_msg" => "",
         "common_msg" => "",

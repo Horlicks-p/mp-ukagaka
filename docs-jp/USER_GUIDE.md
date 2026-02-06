@@ -131,6 +131,21 @@ MP Ukagaka は WordPress プラグインで、サイトにインタラクティ�
 /private-page/
 ```
 
+### スタイル設定
+
+| 設定項目                   | 説明                                                                       |
+| -------------------------- | -------------------------------------------------------------------------- |
+| カスタムスタイルを使用     | 有効にすると、プラグインは内蔵 CSS を読み込まず、外観を自分で制御可能     |
+| カスタムスタイルリンク     | `<link>` タグを入力して、独自の CSS スタイルシートを読み込むことができます |
+
+> 💡 **ヒント**：このオプションは上級ユーザー向けです。有効にした場合、**テーマの CSS** または「カスタムスタイルリンク」フィールドから独自のスタイルシートを読み込む必要があります。CSS をカスタマイズする予定がない場合は、このオプションをオフのままにして、プラグイン内蔵のスタイルを使用してください。
+
+**カスタムスタイルリンクの例：**
+
+```html
+<link rel="stylesheet" href="https://example.com/custom-ukagaka.css" type="text/css" />
+```
+
 ---
 
 ## 伺か管理
@@ -147,6 +162,8 @@ MP Ukagaka は WordPress プラグインで、サイトにインタラクティ�
 - 表示するかどうかを設定（表示チェックボックス）
 
 ### 新しい伺かを作成
+
+> 📘 **上級ガイド**：完全な LLM サポートを含むキャラクター人格を作成する場合は、[人格作成ガイド (GHOST_CREATE_GUIDE.md)](GHOST_CREATE_GUIDE.md) を参照してください。
 
 **設定** → **MP Ukagaka** → **新しい伺かを作成** に移動
 
@@ -444,12 +461,12 @@ LLM（Large Language Model）機能により、複数の AI サービスを使�
 **OpenAI：**
 
 - API Key が必要（[OpenAI Platform](https://platform.openai.com/api-keys) から取得）
-- 複数モデルをサポート：GPT-4.1 Mini、GPT-4o など
+- 複数モデルをサポート：GPT-4.1 Mini（推奨）、GPT-4o Mini、GPT-4o など
 
 **Claude (Anthropic)：**
 
 - API Key が必要（[Anthropic Console](https://console.anthropic.com/) から取得）
-- 複数モデルをサポート：Claude Sonnet 4.5、Claude Haiku 4.5、Claude Opus 4.5 など
+- 複数モデルをサポート：Claude Sonnet 4.5（推奨）、Claude Haiku 4.5（高速）、Claude Opus 4.5（進階）など
 
 #### 2. API Key を設定（Gemini、OpenAI、Claude）
 
@@ -463,9 +480,9 @@ LLM（Large Language Model）機能により、複数の AI サービスを使�
 
 選択した AI プロバイダーに応じて、ドロップダウンから適切なモデルを選択：
 
-- **Gemini**：Gemini 2.5 Flash（推奨、高速で低コスト）
-- **OpenAI**：GPT-4.1 Mini（推奨、高速で低コスト）、GPT-4o（より賢い）
-- **Claude**：Claude Sonnet 4.5（推奨）、Claude Haiku 4.5（高速）、Claude Opus 4.5（最強）
+- **Gemini**：Gemini 2.5 Flash（推奨、高速で低コスト）、Gemini 2.5 Pro（より賢い、複雑な推理向け）
+- **OpenAI**：GPT-4.1 Mini（推奨、高速で低コスト）、GPT-4o Mini（高速で経済的）、GPT-4o（より賢い）
+- **Claude**：Claude Sonnet 4.5（推奨）、Claude Haiku 4.5（高速）、Claude Opus 4.5（進階）
 
 #### 4. Ollama 専用設定
 
@@ -592,13 +609,15 @@ PARAMETER repeat_last_n 64     # 繰り返しチェック範囲
 
 ##### パラメータ推奨値
 
-| パラメータ         | 説明               | 推奨値                                     |
-| ------------------ | ------------------ | ------------------------------------------ |
-| `num_predict`    | 最大出力トークン数 | 80（約 40 字の日本語）                     |
-| `num_ctx`        | コンテキスト長     | 8192（System Prompt の完全読み取りを確保） |
-| `temperature`    | 創造性             | 0.7（一貫性と多様性のバランス）            |
-| `top_p`          | Top-p サンプリング | 0.9（適度な多様性）                        |
-| `repeat_penalty` | 繰り返しペナルティ | 1.3（繰り返し削減）                        |
+| パラメータ         | 説明               | 推奨値                                                   |
+| ------------------ | ------------------ | -------------------------------------------------------- |
+| `num_predict`    | 最大出力トークン数 | 80（ひとりごと）、200（チャットモード）                    |
+| `num_ctx`        | コンテキスト長     | 8192（System Prompt の完全読み取りを確保）             |
+| `temperature`    | 創造性             | 0.7（一貫性と多様性のバランス）                         |
+| `top_p`          | Top-p サンプリング | 0.9（適度な多様性）                                     |
+| `repeat_penalty` | 繰り返しペナルティ | 1.3（繰り返し削減）                                     |
+
+> 📝 **説明**：`num_predict` の推奨値は使用場面によって異なります。ひとりごとモードは短い応答が必要（80 token ≈ 40 字の日本語）、チャットモードはより長い応答スペースが必要です（200 token ≈ 100 字）。これは `manifest.json` の `max_tokens: 600` とは異なります——後者はクラウド API 用で、Ollama には適用されません。
 
 ##### Modelfile vs バックエンド System Prompt
 

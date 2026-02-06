@@ -114,6 +114,15 @@ function mpu_handle_options_save()
         $mpu_opt['click_ukagaka'] = isset($_POST['click_ukagaka'][0]) ? intval($_POST['click_ukagaka'][0]) : 0;
         $mpu_opt['cur_ukagaka'] = isset($_POST['cur_ukagaka']) ? sanitize_text_field($_POST['cur_ukagaka']) : 'default_1';
         $mpu_opt['no_style'] = isset($_POST['no_style']);
+        $mpu_opt['custom_style_link'] = isset($_POST['custom_style_link']) ? wp_kses($_POST['custom_style_link'], [
+            'link' => [
+                'rel' => true,
+                'href' => true,
+                'type' => true,
+                'media' => true,
+                'id' => true,
+            ],
+        ]) : '';
         $mpu_opt['no_page'] = isset($_POST['no_page']) ? sanitize_textarea_field($_POST['no_page']) : '';
         // 系統已固定使用外部對話文件
         $mpu_opt['use_external_file'] = true;
