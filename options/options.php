@@ -80,24 +80,32 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '
         align-items: flex-start;
         width: 100%;
         box-sizing: border-box;
+        /* 防止在放大時溢出 */
+        max-width: calc(100vw - 200px);
     }
 
     .mp-ukagaka-section {
-        flex: 0 0 55%;
-        /* 縮小45%，即55%寬度 */
-        max-width: 55%;
+        /* 使用彈性寬度，自動填滿剩餘空間 */
+        flex: 1 1 auto;
+        min-width: 0;  /* 防止 flex 子元素溢出 */
         box-sizing: border-box;
     }
 
     .mp-ukagaka-sidebar {
-        flex: 0 0 300px;
-        /* 固定寬度300px */
-        width: 300px;
+        /* 彈性收縮的側邊欄 */
+        flex: 0 0 280px;
+        width: 280px;
+        min-width: 200px;
         max-width: 300px;
         position: sticky;
         top: 32px;
         /* WordPress admin bar height */
         box-sizing: border-box;
+    }
+
+    /* WordPress 側邊欄收合時有更多空間 */
+    .folded .mp-ukagaka-main-layout {
+        max-width: calc(100vw - 80px);
     }
 
     /* 動漫風格：主背景漸變 */
@@ -254,16 +262,20 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '
     @media (max-width: 1200px) {
         .mp-ukagaka-main-layout {
             flex-direction: column;
+            max-width: 100%;
         }
 
         .mp-ukagaka-section {
             flex: 1;
             max-width: 100%;
+            width: 100%;
         }
 
         .mp-ukagaka-sidebar {
             flex: 1;
+            width: 100%;
             min-width: 100%;
+            max-width: 100%;
             position: static;
         }
     }

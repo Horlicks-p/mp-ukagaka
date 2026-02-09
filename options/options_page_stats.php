@@ -54,7 +54,22 @@ $chart_data = [
 <style>
     /* 統計儀表板樣式 */
     .mpu-stats-dashboard {
-        max-width: 1200px;
+        /* 使用 calc() 確保不超出可視區域，預留 WordPress 側邊欄空間 */
+        max-width: min(1400px, calc(100vw - 200px));
+        box-sizing: border-box;
+        overflow-x: auto;  /* 如果還是太窄，允許水平捲動 */
+    }
+
+    /* 確保內容在放大時不會被裁切 */
+    @media screen and (max-width: 1600px) {
+        .mpu-stats-dashboard {
+            max-width: calc(100vw - 220px);
+        }
+    }
+
+    /* WordPress 側邊欄收合時 */
+    .folded .mpu-stats-dashboard {
+        max-width: calc(100vw - 80px);
     }
 
     .mpu-stats-header {
@@ -150,10 +165,20 @@ $chart_data = [
     }
 
     .mpu-charts-row-three {
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: repeat(3, minmax(280px, 1fr));
     }
 
-    @media (max-width: 1024px) {
+    .mpu-charts-row-three > * {
+        min-width: 0;  /* 防止 Grid 子元素溢出 */
+    }
+
+    @media (max-width: 1200px) {
+        .mpu-charts-row-three {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
         .mpu-charts-row,
         .mpu-charts-row-three {
             grid-template-columns: 1fr;
