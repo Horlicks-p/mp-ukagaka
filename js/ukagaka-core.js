@@ -251,10 +251,20 @@ function startAutoTalk() {
       return;
     }
 
-    if (mpuAutoTalk) mpu_nextmsg("auto");
-    // 無論是否觸發了 mpu_nextmsg，只要 mpuAutoTalk 為 true，就重新啟動計時器
+    // Akismet 垃圾留言連動：在自動對話前檢查是否有待處理的垃圾留言事件
     if (mpuAutoTalk) {
-      startAutoTalk();
+      mpu_checkSpamEvent(function (spamHandled) {
+        if (!spamHandled) {
+          // 沒有垃圾留言事件，執行正常的自動對話
+          mpu_nextmsg("auto");
+        }
+        // 重新啟動計時器
+        if (mpuAutoTalk) {
+          startAutoTalk();
+        } else {
+          stopAutoTalk();
+        }
+      });
     } else {
       stopAutoTalk();
     }
@@ -330,6 +340,102 @@ function mpuMoe(command) {
       mpu_typewriter(mpu_unescapeHTML(command + auto), "#ukagaka_msg");
     }, 510);
   }
+}
+
+// ====== Akismet 垃圾留言連動 ======
+
+/**
+ * 檢查是否有 Akismet 攔截的垃圾留言事件
+ * 如果有，顯示芙莉蓮的得意反應取代正常的自動對話
+ * 
+ * @param {Function} callback - 回調函數，參數為 boolean（是否已處理垃圾留言事件）
+ */
+function mpu_checkSpamEvent(callback) {
+  const formData = new FormData();
+  formData.append("action", "mpu_check_spam_event");
+
+  mpuFetch(mpuurl, {
+    method: "POST",
+    body: formData,
+    timeout: 15000,
+    retries: 0,
+    requestId: "mpu_check_spam_event",
+    cancelPrevious: true,
+  })
+    .then(function (res) {
+      if (res && res.has_event && res.msg) {
+        if (res.action === "bot_alert") {
+            mpuLogger.log(
+                "🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱:",
+                res.bot_name
+            );
+        } else {
+            mpuLogger.log(
+                "🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量:",
+                res.spam_count
+            );
+        }
+
+        // 停止當前的自動對話計時器
+        stopAutoTalk();
+
+        // 隱藏當前訊息
+        mpu_hidemsg(600);
+
+        setTimeout(function () {
+          // 顯示垃圾留言反應台詞
+          const aiColor = typeof mpuAiTextColor !== "undefined" ? mpuAiTextColor : "#4a6fa5";
+          const msg = '<span style="color: ' + aiColor + ';">' + res.msg + "</span>";
+
+          mpu_showMsgText();
+          mpu_typewriter(msg, "#ukagaka_msg");
+          mpu_showmsg(400);
+
+          // 顯示表情（smirk 或 alert）
+          if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
+            if (
+              typeof window.mpuEmojiConfig === "undefined" ||
+              !window.mpuEmojiConfig.baseUrl
+            ) {
+              if (typeof window.loadEmojiConfig === "function") {
+                window
+                  .loadEmojiConfig()
+                  .then(function () {
+                    window.mpuEmojiManager.showEmoji(res.emoji);
+                  })
+                  .catch(function (error) {
+                    mpuLogger.warn("Akismet: Failed to load emoji config:", error);
+                  });
+              }
+            } else {
+              window.mpuEmojiManager.showEmoji(res.emoji);
+            }
+          }
+
+          // 觸發角色動畫
+          if (
+            typeof window.mpuCanvasManager !== "undefined" &&
+            window.mpuCanvasManager.isCharacterMode
+          ) {
+            window.mpuCanvasManager.triggerCharacterAnimation();
+          }
+
+          // 等待打字完成後，通過回調告知已處理
+          mpu_waitForTypewriterComplete(function () {
+            callback(true);
+          });
+        }, 700);
+      } else {
+        // 沒有垃圾留言事件
+        mpuLogger.log("🛡️ Akismet/Bot Check: 無事件");
+        callback(false);
+      }
+    })
+    .catch(function (error) {
+      mpuLogger.warn("Akismet: 垃圾留言事件檢查失敗:", error);
+      // 出錯時不阻擋正常的自動對話
+      callback(false);
+    });
 }
 
 // ====== 下一句對話 ======

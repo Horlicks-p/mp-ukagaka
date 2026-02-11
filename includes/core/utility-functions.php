@@ -536,6 +536,7 @@ function mpu_get_wordpress_info()
     // 最大傷害（留言數量）
     $comment_counts = wp_count_comments();
     $info['comment_count'] = isset($comment_counts->approved) ? (int) $comment_counts->approved : 0;
+    $info['spam_count'] = isset($comment_counts->spam) ? (int) $comment_counts->spam : 0;
 
     // 習得スキル總數（分類數量）
     $category_count = wp_count_terms([

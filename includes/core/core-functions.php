@@ -38,7 +38,7 @@ function mpu_default_opt()
         "ukagakas" => [
             "default_1" => [
                 "name" => "フリーレン",
-                "shell" => plugins_url("ghost/Frieren/shell/Frieren/", defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(dirname(__FILE__))) . '/mp-ukagaka.php'),
+                "shell" => plugins_url("ghost/Frieren/shell/", defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(dirname(__FILE__))) . '/mp-ukagaka.php'),
                 "msg" => ["フリレーンだ。千年以上生きた魔法使いだ。"],
                 "dialog_filename" => "Frieren",
                 "show" => true,
@@ -126,7 +126,7 @@ function mpu_get_option()
                         // 如果當前路徑不包含新的路徑結構，則更新
                         // 檢查是否包含舊的路徑格式：images/Frieren/ 或 personalities/Frieren/
                         $needs_path_update = (
-                            strpos($current_shell, 'ghost/Frieren/shell/Frieren/') === false &&
+                            strpos($current_shell, 'ghost/Frieren/shell/') === false &&
                             (
                                 strpos($current_shell, 'images/Frieren/') !== false ||
                                 strpos($current_shell, 'personalities/Frieren/') !== false ||

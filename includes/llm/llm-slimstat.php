@@ -152,3 +152,50 @@ function mpu_fetch_slimstat_stats()
     return $stats;
 }
 
+/**
+ * 檢查最近是否有 BOT 訪問（用於即時反應）
+ * 
+ * 直接查詢 Slimstat 資料庫，尋找過去幾秒內的 BOT 訪問記錄。
+ * 
+ * @param int $seconds 檢查過去多少秒內的記錄（預設 60 秒）
+ * @return string|false 如果有 BOT 訪問，返回 BOT 名稱（browser），否則返回 false
+ */
+function mpu_check_recent_bot_visit($seconds = 60)
+{
+    // 檢查 Slimstat 是否啟用
+    if (!class_exists('wp_slimstat')) {
+        return false;
+    }
+
+    global $wpdb;
+    $slimstat_table = $wpdb->prefix . 'slim_stats';
+
+    // 檢查資料表是否存在
+    $table_exists = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $slimstat_table));
+    if ($table_exists != $slimstat_table) {
+        return false;
+    }
+
+    // 計算時間閾值
+    $threshold = time() - $seconds;
+
+    // 查詢最近的 BOT 訪問（browser_type = 1）
+    // dt 是 Slimstat 的 timestamp 欄位
+    $query = $wpdb->prepare(
+        "SELECT browser FROM {$slimstat_table} 
+         WHERE browser_type = 1 
+         AND dt > %d 
+         ORDER BY dt DESC 
+         LIMIT 1",
+        $threshold
+    );
+
+    $bot_name = $wpdb->get_var($query);
+
+    if (!empty($bot_name)) {
+        return sanitize_text_field($bot_name);
+    }
+
+    return false;
+}
+

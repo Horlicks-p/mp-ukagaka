@@ -86,6 +86,7 @@ function mpu_load_modules()
         'ajax/ajax-touch-handlers-llm.php',     // LLM 相關 AJAX 處理器（觸摸相關）
         'ajax/ajax-handlers-test.php',  // API 連線測試處理器
         'ajax/chat-api-handlers.php',   // 對話模式 API 處理器（多輪對話）
+        'integrations/akismet-integration.php', // Akismet 垃圾留言連動
     ];
 
     // 前端專用模組

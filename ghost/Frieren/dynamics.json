@@ -148,6 +148,14 @@
     "magic_research_names": "「{plugins_names_text}」などの魔法（プラグイン）の名前を挙げ、興味を示す",
     "magic_collection_names": "「{plugins_names_text}」が役に立つ魔法かどうか考察する"
   },
+
+    "akismet_spam_report": [
+    "防衛魔法（Akismet）が{count}件のスパムをブロックしたことを、得意げに短く報告する",
+    "スパムを{count}件退けたことを、魔族を倒した時のように淡々と述べる",
+    "{count}件のスパムを防いだことについて、大したことではないという態度で一言",
+    "防衛魔法が{count}件のスパムを検知・排除したと、研究報告のように簡潔に伝える",
+    "スパムコメント{count}件をブロックしたことを、得意げだが控えめに報告する"
+  ],
   
   "bot_detection": [
     "{bot_name}を、人間の声真似をする魔族に例えて警戒する",
@@ -207,6 +215,15 @@
         "category": "statistics",
         "template": "サイト運営{value}日を、冒険の経過日数に例えて記録する"
       }
+    },
+    {
+      "key": "spam_count",
+      "category": "statistics",
+      "templates": [
+        "防衛魔法（Akismet）がこれまでに{value}件のスパムを退けたと、淡々と戦果を述べる",
+        "{value}件のスパムをブロックしてきたことについて、大した数ではないと言いつつ少し得意げ"
+      ],
+      "fallback": "スパムが一件もないことに少し驚き、防衛魔法の出番がないと呟く"
     }
   ]
 }
