@@ -112,32 +112,32 @@ mp-ukagaka/
 
 // コアモジュール：フロントエンドと管理画面の両方で必要
 $core_modules = [
+    'core/debug-functions.php',     // 0. ログシステム（最初に読み込む必要あり）
     'core/core-functions.php',      // 1. コア機能（設定管理）
     'core/utility-functions.php',   // 2. ユーティリティ関数
     'personality/personality-loader.php',  // 3. パーソナリティシステム（JSON ローダー）
     'personality/personality-prompts.php', // 4. パーソナリティプロンプトモジュール
     'personality/personality-decorations.php', // 5. 装飾品システム
     'personality/personality-emoji.php',   // 6. 表情システム
-    'llm/api-cache.php',           // 7. API キャッシュシステム（v2.5.6，ai-functions.php より前に読み込み）
-    'llm/ai-functions.php',        // 8. AI 機能（クラウド API：Gemini, OpenAI, Claude）
-    'llm/prompt-categories.php',   // 9. Prompt カテゴリ指示管理（llm-functions.php より前に読み込み）
-    'llm/llm-slimstat.php',        // 10. LLM Slimstat 統合（llm-context-builder.php より前に読み込み）
-    'llm/llm-context-builder.php', // 11. LLM コンテキスト構築（llm-functions.php より前に読み込み）
-    'llm/weather-functions.php',   // 12. 天気機能（Open-Meteo API）
-    'llm/diary-functions.php',     // 13. AI 日記機能（v2.5.0）
-    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
-    │   │   ├── akismet-integration.php # Akismet スパムブロック統合
-    │   │   └── turnstile-integration.php # Turnstile 統合
-    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
-    │   │   └── akismet-integration.php # Akismet スパムブロック統合
-    'llm/llm-functions.php',       // 14. LLM 機能（ローカル LLM：Ollama）
-    'personality/emoji-mapper.php',        // 15. 表情マッピング（AJAX 処理より前に読み込み）
-    'core/ukagaka-functions.php',   // 14. 伺か管理
-    'ajax/ajax-handlers.php',       // 15. AJAX 処理（コア）
-    'ajax/ajax-chat-handlers-llm.php',      // 16. LLM 対話 AJAX 処理
-    'ajax/ajax-touch-handlers-llm.php',     // 17. LLM タッチ AJAX 処理
-    'ajax/ajax-handlers-test.php',  // 18. API 接続テストハンドラー
-    'ajax/chat-api-handlers.php',   // 19. マルチターンダイアログ API ハンドラー
+    'stats/stats-collector.php',   // 7. 統計コレクター（ai-functions.php より前に読み込み）
+    'stats/stats-analyzer.php',    // 8. 統計アナライザー
+    'llm/api-cache.php',           // 9. API キャッシュシステム（v2.5.6，ai-functions.php より前に読み込み）
+    'llm/ai-functions.php',        // 10. AI 機能（クラウド API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 11. Prompt カテゴリ指示管理（llm-functions.php より前に読み込み）
+    'llm/llm-slimstat.php',        // 12. LLM Slimstat 統合（llm-context-builder.php より前に読み込み）
+    'llm/llm-context-builder.php', // 13. LLM コンテキスト構築（llm-functions.php より前に読み込み）
+    'llm/weather-functions.php',   // 14. 天気機能（Open-Meteo API）
+    'llm/diary-functions.php',     // 15. AI 日記機能（v2.5.0）
+    'llm/llm-functions.php',       // 16. LLM 機能（ローカル LLM：Ollama）
+    'personality/emoji-mapper.php',        // 17. 表情マッピング（AJAX 処理より前に読み込み）
+    'core/ukagaka-functions.php',   // 18. 伺か管理
+    'ajax/ajax-handlers.php',       // 19. AJAX 処理（コア）
+    'ajax/ajax-chat-handlers-llm.php',      // 20. LLM 対話 AJAX 処理
+    'ajax/ajax-touch-handlers-llm.php',     // 21. LLM タッチ AJAX 処理
+    'ajax/ajax-handlers-test.php',  // 22. API 接続テストハンドラー
+    'ajax/chat-api-handlers.php',   // 23. マルチターンダイアログ API ハンドラー
+    'integrations/akismet-integration.php', // 24. Akismet スパムブロック統合
+    'integrations/turnstile-integration.php', // 25. Turnstile 統合
 ];
 
 // フロントエンド専用モジュール（非管理画面環境でのみ読み込み）

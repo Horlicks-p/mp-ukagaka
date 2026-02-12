@@ -111,32 +111,32 @@ The plugin uses conditional loading mechanisms to load modules based on the exec
 
 // Core modules: Required by both frontend and admin
 $core_modules = [
+    'core/debug-functions.php',     // 0. Logging system (Must be loaded first)
     'core/core-functions.php',      // 1. Core functions (Settings)
     'core/utility-functions.php',   // 2. Utility functions
     'personality/personality-loader.php',  // 3. Personality system (JSON loader)
     'personality/personality-prompts.php', // 4. Personality prompt module
     'personality/personality-decorations.php', // 5. Decoration system
     'personality/personality-emoji.php',   // 6. Emoji system
-    'llm/api-cache.php',           // 7. API cache system (v2.5.6, load before ai-functions.php)
-    'llm/ai-functions.php',        // 8. AI functions (Cloud API: Gemini, OpenAI, Claude)
-    'llm/prompt-categories.php',   // 9. Prompt category management (Load before llm-functions.php)
-    'llm/llm-slimstat.php',        // 10. LLM Slimstat integration (Load before llm-context-builder.php)
-    'llm/llm-context-builder.php', // 11. LLM context builder (Load before llm-functions.php)
-    'llm/weather-functions.php',   // 12. Weather functions (Open-Meteo API)
-    'llm/diary-functions.php',     // 13. AI Diary functions (v2.5.0)
-    │   ├── integrations/           # Integration modules (v2.7.0)
-    │   │   ├── akismet-integration.php # Akismet spam protection integration
-    │   │   └── turnstile-integration.php # Turnstile integration
-    │   ├── integrations/           # Integration modules (v2.7.0)
-    │   │   └── akismet-integration.php # Akismet spam protection integration
-    'llm/llm-functions.php',       // 14. LLM functions (Local LLM: Ollama)
-    'personality/emoji-mapper.php',        // 15. Emoji mapping (Load before AJAX handlers)
-    'core/ukagaka-functions.php',   // 14. Ukagaka management
-    'ajax/ajax-handlers.php',       // 15. AJAX handlers (Core)
-    'ajax/ajax-chat-handlers-llm.php',      // 16. LLM chat AJAX handlers
-    'ajax/ajax-touch-handlers-llm.php',     // 17. LLM touch AJAX handlers
-    'ajax/ajax-handlers-test.php',  // 18. API connection test handlers
-    'ajax/chat-api-handlers.php',   // 19. Multi-turn dialogue API handlers
+    'stats/stats-collector.php',   // 7. Statistics collector (Load before ai-functions.php)
+    'stats/stats-analyzer.php',    // 8. Statistics analyzer
+    'llm/api-cache.php',           // 9. API cache system (v2.5.6, load before ai-functions.php)
+    'llm/ai-functions.php',        // 10. AI functions (Cloud API: Gemini, OpenAI, Claude)
+    'llm/prompt-categories.php',   // 11. Prompt category management (Load before llm-functions.php)
+    'llm/llm-slimstat.php',        // 12. LLM Slimstat integration (Load before llm-context-builder.php)
+    'llm/llm-context-builder.php', // 13. LLM context builder (Load before llm-functions.php)
+    'llm/weather-functions.php',   // 14. Weather functions (Open-Meteo API)
+    'llm/diary-functions.php',     // 15. AI Diary functions (v2.5.0)
+    'llm/llm-functions.php',       // 16. LLM functions (Local LLM: Ollama)
+    'personality/emoji-mapper.php',        // 17. Emoji mapping (Load before AJAX handlers)
+    'core/ukagaka-functions.php',   // 18. Ukagaka management
+    'ajax/ajax-handlers.php',       // 19. AJAX handlers (Core)
+    'ajax/ajax-chat-handlers-llm.php',      // 20. LLM chat AJAX handlers
+    'ajax/ajax-touch-handlers-llm.php',     // 21. LLM touch AJAX handlers
+    'ajax/ajax-handlers-test.php',  // 22. API connection test handlers
+    'ajax/chat-api-handlers.php',   // 23. Multi-turn dialogue API handlers
+    'integrations/akismet-integration.php', // 24. Akismet spam protection integration
+    'integrations/turnstile-integration.php', // 25. Turnstile integration
 ];
 
 // Frontend modules (Loaded only in non-admin environment)

@@ -238,6 +238,7 @@ function mpu_generate_spam_reaction_llm($count = 1)
     // 組合：dynamics.json 的指令 + prompts.json 的参考台詞
     $user_prompt = "【指示】\n{$instruction}\n";
     $user_prompt .= "\n【参考セリフ】\n「{$category_instruction}」";
+    $user_prompt .= "【制約】50字以内・淡々とした口調で";
 
     // 取得 API Key
     $api_key = '';
@@ -380,10 +381,9 @@ function mpu_generate_bot_alert_llm($bot_name)
         $instruction = "{$bot_name}というボットがアクセスしていることを報告する";
     }
 
-    $user_prompt = "【状況】\nサイトに Bot（{$bot_name}）がアクセスしています。\n\n";
+    $user_prompt = "【状況】\nサイトに Bot（{$bot_name}）がアクセスしている。\n\n";
     $user_prompt .= "【指示】\n{$instruction}\n";
-    $user_prompt .= "- 管理者（ユーザー）に即座に報告してください。\n";
-    $user_prompt .= "- 短い一言（20〜50文字程度）でお願いします。";
+    $user_prompt .= "【制約】50字以内で淡々と。魔族の侵入を見逃さない姿勢で、冷静に述べること";
 
     // 取得 API Key
     $api_key = '';

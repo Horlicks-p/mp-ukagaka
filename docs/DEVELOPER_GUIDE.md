@@ -121,30 +121,32 @@ mp-ukagaka/
 
 // 核心模組：前端和後台都需要
 $core_modules = [
+    'core/debug-functions.php',     // 0. 日誌系統（必須最先載入）
     'core/core-functions.php',      // 1. 核心功能（設定管理）
     'core/utility-functions.php',   // 2. 工具函數
     'personality/personality-loader.php',  // 3. 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
     'personality/personality-prompts.php', // 4. 人格提示詞模組（動態提示詞、變數替換）
     'personality/personality-decorations.php', // 5. 裝飾物系統
     'personality/personality-emoji.php',   // 6. 表情系統
-    'llm/api-cache.php',           // 7. API 快取系統（v2.5.6，需在 ai-functions.php 之前載入）
-    'llm/ai-functions.php',        // 8. AI 功能（雲端 API：Gemini, OpenAI, Claude）
-    'llm/prompt-categories.php',   // 9. Prompt 類別指令管理（需在 llm-functions.php 之前載入）
-    'llm/llm-slimstat.php',        // 10. LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
-    'llm/llm-context-builder.php', // 11. LLM 上下文建構（需在 llm-functions.php 之前載入）
-    'llm/weather-functions.php',   // 12. 天氣功能（Open-Meteo API）
-    'llm/diary-functions.php',     // 13. AI 日記功能（v2.5.0）
-    │   ├── integrations/           # 整合功能模組（v2.7.0）
-    │   │   ├── akismet-integration.php # Akismet 垃圾留言攔截整合
-    │   │   └── turnstile-integration.php # Turnstile 驗證整合
-    'llm/llm-functions.php',       // 14. LLM 功能（本機 LLM：Ollama）
-    'personality/emoji-mapper.php',        // 15. 表情映射與情緒分析（需在 AJAX 處理器之前載入）
-    'core/ukagaka-functions.php',   // 14. 偽春菜管理
-    'ajax/ajax-handlers.php',       // 15. AJAX 處理器（核心功能）
-    'ajax/ajax-chat-handlers-llm.php',      // 16. LLM 相關 AJAX 處理器（對話相關）
-    'ajax/ajax-touch-handlers-llm.php',     // 17. LLM 相關 AJAX 處理器（觸摸相關）
-    'ajax/ajax-handlers-test.php',  // 18. API 連線測試處理器
-    'ajax/chat-api-handlers.php',   // 19. 對話模式 API 處理器（多輪對話）
+    'stats/stats-collector.php',   // 7. 統計收集器（需在 ai-functions.php 之前載入）
+    'stats/stats-analyzer.php',    // 8. 統計分析器
+    'llm/api-cache.php',           // 9. API 快取系統（v2.5.6，需在 ai-functions.php 之前載入）
+    'llm/ai-functions.php',        // 10. AI 功能（雲端 API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 11. Prompt 類別指令管理（需在 llm-functions.php 之前載入）
+    'llm/llm-slimstat.php',        // 12. LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
+    'llm/llm-context-builder.php', // 13. LLM 上下文建構（需在 llm-functions.php 之前載入）
+    'llm/weather-functions.php',   // 14. 天氣功能（Open-Meteo API）
+    'llm/diary-functions.php',     // 15. AI 日記功能（v2.5.0）
+    'llm/llm-functions.php',       // 16. LLM 功能（本機 LLM：Ollama）
+    'personality/emoji-mapper.php',        // 17. 表情映射與情緒分析（需在 AJAX 處理器之前載入）
+    'core/ukagaka-functions.php',   // 18. 偽春菜管理
+    'ajax/ajax-handlers.php',       // 19. AJAX 處理器（核心功能）
+    'ajax/ajax-chat-handlers-llm.php',      // 20. LLM 相關 AJAX 處理器（對話相關）
+    'ajax/ajax-touch-handlers-llm.php',     // 21. LLM 相關 AJAX 處理器（觸摸相關）
+    'ajax/ajax-handlers-test.php',  // 22. API 連線測試處理器
+    'ajax/chat-api-handlers.php',   // 23. 對話模式 API 處理器（多輪對話）
+    'integrations/akismet-integration.php', // 24. Akismet 垃圾留言連動
+    'integrations/turnstile-integration.php', // 25. Turnstile 垃圾留言連動
 ];
 
 // 前端專用模組（僅在非後台環境載入）
