@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.6.0
+Stable tag: 2.7.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -177,6 +177,21 @@ This plugin uses a modular architecture for better maintainability:
 
 == Changelog ==
 
+= 2026-02-12 =
+* v2.7.0
+* [NEW] BOT Detection: Real-time bot monitoring and reaction system
+  * Deep integration with personality system (bot_detection)
+  * Triggers unique alert dialogues for search engines and malicious bots
+  * Improved detection logic based on Slimstat data
+* [IMPROVE] Auto-Talk Priority: Refined priority logic for spam and bot events
+* [IMPROVE] LLM Prompt Expansion: Added dedicated spam and bot detection prompts
+
+= 2026-02-01 =
+* v2.6.0
+* [NEW] Plugin Integrations: Akismet & Turnstile support
+  * Triggers reaction dialogues when these plugins detect spam or blocks
+  * Implemented cooldown mechanism (30 mins) to prevent flooding
+
 = 2026-01-15 =
 * v2.5.6
 * [IMPROVE] Frontend JS Optimization: Bundled and minified frontend JavaScript
@@ -197,113 +212,6 @@ This plugin uses a modular architecture for better maintainability:
   * Split ajax-chat-handlers-llm.php into context, greet, and user-chat handlers
   * Improved code organization and maintainability
 * [DOCS] Updated DEVELOPER_GUIDE with new JS directory structure
-
-= 2026-01-11 =
-* v2.5.2
-* [NEW] Weather Awareness: Characters can now perceive weather conditions using Open-Meteo API
-  * Uses free Open-Meteo API, no API Key required
-  * Weather settings can be configured in the admin panel
-  * Supports dialogue adjustments based on weather conditions
-* [NEW] Sleep Mode: Added sleep functionality
-  * Characters can enter sleep mode during specified hours
-  * Sleep time can be configured via `sleep_settings` in `manifest.json`
-  * Supports deep sleep time and oversleep settings
-* [IMPROVE] Enhanced Frieren Personality: Improved `system_prompt.md` and `prompts.json` for the default Frieren character
-  * Expanded prompts.json for more diverse dialogue
-  * Enhanced dialogue diversity and role-playing quality
-* [NEW] Touch Interaction: Added touch zones functionality
-  * Characters can respond to touches on different body parts (head, face, chest, legs, etc.)
-  * Configured via `touchzones.json`
-  * Each zone can define independent reaction dialogues
-* [NEW] Expanded Emoji System: Added more emoji types for richer character expressions
-* [NEW] New Decorations: Added two new decorations for Frieren
-  * "Dark Dragon Horn" (暗黒竜の角)
-  * "Clothes-Dissolving Potion" (服だけ溶かす薬)
-  * Clicking decorations triggers related dialogues
-* [IMPROVE] Code Refactoring: Improved code structure and maintainability, optimized module organization
-
-= 2026-01-03 =
-* v2.4.0
-* [MAJOR] JSON Personality System: Complete character configuration system based on JSON files
-  * Added `ghost/` folder structure (similar to traditional Ukagaka's ghost folder)
-  * Each character can have independent configuration files (manifest.json, prompts.json, weights.json, decorations.json, etc.)
-  * Characters can include custom JavaScript files (e.g., frieren.js)
-  * Similar to traditional Ukagaka's SHIORI DLL architecture - define character personalities without modifying PHP code
-* [NEW] Personality Loader Module: New `personality-loader.php` module for loading JSON files and caching mechanisms
-* [NEW] Emoji Mapper Module: New `emoji-mapper.php` module for emotion analysis and emoji mapping based on dialogue content
-* [NEW] Dynamic Emoji System: Character-specific emoji support with custom keywords and scripts
-* [NEW] ZIP Upload Feature: Upload new characters as ZIP files for easy installation
-* [NEW] Personality Creation Guide: New documentation (GHOST_CREATE_GUIDE.md) explaining how to create new personalities
-* [IMPROVE] Architecture improvements: prompt-categories.php fully integrated with Personality system
-* [IMPROVE] Dynamic prompts, weights, and statistics mappings can now be loaded from JSON files
-* [IMPROVE] Backward compatibility: Automatically falls back to old behavior if Personality system is unavailable
-* [IMPROVE] Module loading order optimization: personality-loader.php loads before prompt-categories.php (required)
-* [IMPROVE] Code cleanup: Removed unnecessary comments from PHP files in includes/ directory
-
-= 2025-12-27 =
-* v2.3.0
-* [MAJOR] Interactive Chat Mode: Transformed "Change Ukagaka" button into a real-time chat interface
-  * Visitors can now directly chat with your character
-  * Maintains conversation history for contextual responses
-  * Scrollable chat area with automatic scrolling for long conversations
-  * Input field stays fixed at bottom while messages scroll above
-* [MAJOR] Dynamic Context Injection: Smart token optimization
-  * WordPress statistics are only added to System Prompt when relevant keywords are detected
-  * Significantly reduces token usage for most conversations
-  * Supports keywords in Traditional Chinese, Japanese, and English
-* [IMPROVE] Thinking Mode (Default Enabled): Enhanced AI response quality
-  * Default behavior: Thinking mode is now enabled by default for supported models (Qwen3, DeepSeek)
-  * Monologue mode: AI thinks before responding, improving accuracy
-  * Chat mode: Thinking enabled with expanded context window (8192 tokens) for better conversation quality
-  * Separation: Thinking process and response are separated - only the response is shown to users
-  * Quality improvement: More accurate responses, especially in chat mode
-  * Configurable: Can be disabled via "Disable Thinking Mode" option in LLM settings
-* [IMPROVE] Character Personality Consistency: Improved role-playing
-  * Fixed System Prompt variable rendering ({{ukagaka_display_name}})
-  * Default System Prompt now explicitly emphasizes role-playing
-  * Chat mode uses the same backend System Prompt as monologue mode
-* [IMPROVE] Code Refactoring: Better organization
-  * Split ajax-handlers.php into ajax-handlers.php and chat-api-handlers.php
-  * Moved multi-turn conversation API functions to dedicated module
-* [IMPROVE] Response Length Control: Optimized AI responses
-  * Increased AI response token limit from 200 to 300 tokens
-  * Applied to all AI providers (Ollama, Gemini, OpenAI, Claude)
-* [FIX] Fixed ollama_disable_thinking key mismatch between monologue and chat mode
-* [FIX] Fixed page awareness AI conflict with chat mode
-* [FIX] Fixed welcome message translation in chat mode
-* [MISC] Removed excessive code comments for cleaner codebase
-
-= 2025-12-19 =
-* v2.2.0
-* [MISC] Changed default character from Hatsune Miku to Frieren (フリーレン) to celebrate "Sousou no Frieren" Season 2 premiere on January 16, 2026
-* [MAJOR] Universal LLM Interface: Unified interface supporting four major AI services (Ollama, Gemini, OpenAI, Claude)
-  * All providers use a unified settings interface, switchable at any time
-  * API Keys automatically encrypted for secure storage
-  * Added connection test buttons for all AI providers
-* [MAJOR] System Prompt Optimization: XML-structured design to improve LLM comprehension efficiency
-  * XML tag organization: character, knowledge_base, behavior_rules, response_style_examples, current_context
-  * Context compression mechanism: automatically compresses WordPress, user, and visitor information to reduce token usage
-  * Frieren-style example system: built-in 70+ actual dialogue examples covering 12 categories
-  * Dual-layer architecture: System Prompt defines style, User Prompt provides task instructions
-* [MAJOR] Complete UI/UX Upgrade: Unified card-based design with anime-style color scheme
-  * All settings pages use consistent card-based layout
-  * Inspired by Frieren website design with soft gradient backgrounds
-  * Two-column layout: main content + sidebar design (main content 55%, sidebar 300px)
-  * Custom scrollbar styles: added beautiful scrollbars for long text areas
-* [MAJOR] Page Awareness Feature Integration: Moved "Page Awareness" settings to LLM settings page
-  * Unified management of all LLM-related settings
-  * Integrated with "Use LLM to replace built-in dialogue" feature
-* [IMPROVE] AI Settings Page Simplification: Focus on "Page Awareness" functionality
-  * Retained: Language settings, Character settings, Page awareness probability, Trigger pages, AI conversation display time, First-time visitor greeting
-  * Removed: AI provider selection, API Key settings, Model selection (moved to LLM settings page)
-* [IMPROVE] Statistics Metaphor Optimization: Restored and optimized gamified statistics metaphors
-  * Demon encounters = Post count, Maximum damage = Comment count, Skills learned = Category count, Items used = Tag count, Adventure days = Days since launch
-* [NEW] New functions: mpu_build_optimized_system_prompt, mpu_build_frieren_style_examples, mpu_build_prompt_categories, mpu_compress_context_info, mpu_get_visitor_status_text, mpu_calculate_text_similarity, mpu_debug_system_prompt
-* [IMPROVE] Function refactoring: mpu_generate_llm_dialogue now uses the new optimized System Prompt system
-* [IMPROVE] Backward compatibility: Maintains support for old settings, automatically migrates setting keys
-* [FIX] Fixed statistics metaphor mappings, text area width settings, main menu bottom line alignment issues, scrollbar style issues
-
-
 
 == Screenshots ==
 
