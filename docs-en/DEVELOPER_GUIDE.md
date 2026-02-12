@@ -58,6 +58,11 @@ mp-ukagaka/
 │   │   ├── prompt-categories.php   # Prompt category management
 │   │   ├── weather-functions.php   # Weather functions (Open-Meteo API)
 │   │   └── diary-functions.php     # AI Diary functions (v2.5.0)
+    │   ├── integrations/           # Integration modules (v2.7.0)
+    │   │   ├── akismet-integration.php # Akismet spam protection integration
+    │   │   └── turnstile-integration.php # Turnstile integration
+    │   ├── integrations/           # Integration modules (v2.7.0)
+    │   │   └── akismet-integration.php # Akismet spam protection integration
 │   └── admin-functions.php     # Admin functions
 ├── ghost/                  # Character personality configuration (v2.4.0)
 │   ├── Frieren/
@@ -93,10 +98,7 @@ mp-ukagaka/
 │   ├── ukagaka-anime.js        # Canvas Animation Manager (Image Sequence Playback)
 │   ├── ukagaka-chat.js         # Chat functionality frontend (v2.3.0)
 │   ├── ukagaka-emoji.js        # Emoji config loader
-│   ├── ukagaka-cookie.js       # Cookie utility (Visitor tracking)
 │   └── ukagaka-textarearesizer.js  # Admin textarea resizer
-├── build.js                # JS bundling script (Terser)
-├── package.json            # npm config (dev dependencies)
 └── readme.txt              # WordPress plugin directory readme
 ```
 
@@ -122,6 +124,11 @@ $core_modules = [
     'llm/llm-context-builder.php', // 11. LLM context builder (Load before llm-functions.php)
     'llm/weather-functions.php',   // 12. Weather functions (Open-Meteo API)
     'llm/diary-functions.php',     // 13. AI Diary functions (v2.5.0)
+    │   ├── integrations/           # Integration modules (v2.7.0)
+    │   │   ├── akismet-integration.php # Akismet spam protection integration
+    │   │   └── turnstile-integration.php # Turnstile integration
+    │   ├── integrations/           # Integration modules (v2.7.0)
+    │   │   └── akismet-integration.php # Akismet spam protection integration
     'llm/llm-functions.php',       // 14. LLM functions (Local LLM: Ollama)
     'personality/emoji-mapper.php',        // 15. Emoji mapping (Load before AJAX handlers)
     'core/ukagaka-functions.php',   // 14. Ukagaka management
@@ -567,10 +574,20 @@ $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
 ```
 
 ### diary-functions.php (v2.5.0)
+    │   ├── integrations/           # Integration modules (v2.7.0)
+    │   │   ├── akismet-integration.php # Akismet spam protection integration
+    │   │   └── turnstile-integration.php # Turnstile integration
+    │   ├── integrations/           # Integration modules (v2.7.0)
+    │   │   └── akismet-integration.php # Akismet spam protection integration
 
 AI Diary functions module, responsible for auto-generating and publishing character diaries.
 
 #### diary-functions.php Main Functions
+    │   ├── integrations/           # Integration modules (v2.7.0)
+    │   │   ├── akismet-integration.php # Akismet spam protection integration
+    │   │   └── turnstile-integration.php # Turnstile integration
+    │   ├── integrations/           # Integration modules (v2.7.0)
+    │   │   └── akismet-integration.php # Akismet spam protection integration
 
 ```php
 /**

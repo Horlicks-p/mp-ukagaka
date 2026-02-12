@@ -59,6 +59,11 @@ mp-ukagaka/
 │   │   ├── prompt-categories.php   # Prompt カテゴリ指示管理
 │   │   ├── weather-functions.php   # 天気機能（Open-Meteo API）
 │   │   └── diary-functions.php     # AI 日記機能（v2.5.0）
+    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
+    │   │   ├── akismet-integration.php # Akismet スパムブロック統合
+    │   │   └── turnstile-integration.php # Turnstile 統合
+    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
+    │   │   └── akismet-integration.php # Akismet スパムブロック統合
 │   └── admin-functions.php     # 管理画面機能
 ├── ghost/                  # キャラクターパーソナリティ設定（v2.4.0）
 │   ├── Frieren/
@@ -94,10 +99,7 @@ mp-ukagaka/
 │   ├── ukagaka-anime.js        # Canvas アニメーションマネージャー（画像シーケンス再生）
 │   ├── ukagaka-chat.js         # チャット機能フロントエンド（v2.3.0）
 │   ├── ukagaka-emoji.js        # 表情設定ローダー
-│   ├── ukagaka-cookie.js       # Cookie ユーティリティ（訪問者追跡）
 │   └── ukagaka-textarearesizer.js  # 管理画面テキストエリアリサイザー
-├── build.js                # JS バンドルスクリプト（Terser）
-├── package.json            # npm 設定（開発依存）
 └── readme.txt              # WordPress プラグインディレクトリ説明ファイル
 ```
 
@@ -123,6 +125,11 @@ $core_modules = [
     'llm/llm-context-builder.php', // 11. LLM コンテキスト構築（llm-functions.php より前に読み込み）
     'llm/weather-functions.php',   // 12. 天気機能（Open-Meteo API）
     'llm/diary-functions.php',     // 13. AI 日記機能（v2.5.0）
+    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
+    │   │   ├── akismet-integration.php # Akismet スパムブロック統合
+    │   │   └── turnstile-integration.php # Turnstile 統合
+    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
+    │   │   └── akismet-integration.php # Akismet スパムブロック統合
     'llm/llm-functions.php',       // 14. LLM 機能（ローカル LLM：Ollama）
     'personality/emoji-mapper.php',        // 15. 表情マッピング（AJAX 処理より前に読み込み）
     'core/ukagaka-functions.php',   // 14. 伺か管理
@@ -436,10 +443,20 @@ LLM 機能モジュール、Ollama ローカル LLM 統合を専門に処理。
 | 接続テスト (`test`)         | 30 秒        | 45 秒        |
 
 ### diary-functions.php (v2.5.0)
+    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
+    │   │   ├── akismet-integration.php # Akismet スパムブロック統合
+    │   │   └── turnstile-integration.php # Turnstile 統合
+    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
+    │   │   └── akismet-integration.php # Akismet スパムブロック統合
 
 AI 日記機能モジュール、キャラクター日記の自動生成と投稿を担当。
 
 #### diary-functions.php 主要関数
+    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
+    │   │   ├── akismet-integration.php # Akismet スパムブロック統合
+    │   │   └── turnstile-integration.php # Turnstile 統合
+    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
+    │   │   └── akismet-integration.php # Akismet スパムブロック統合
 
 ```php
 /**

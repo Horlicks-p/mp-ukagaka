@@ -59,6 +59,9 @@ mp-ukagaka/
 │   │   ├── prompt-categories.php   # Prompt 類別指令管理
 │   │   ├── weather-functions.php   # 天氣功能（Open-Meteo API）
 │   │   └── diary-functions.php     # AI 日記功能（v2.5.0）
+    │   ├── integrations/           # 整合功能模組（v2.7.0）
+    │   │   ├── akismet-integration.php # Akismet 垃圾留言攔截整合
+    │   │   └── turnstile-integration.php # Turnstile 驗證整合
 │   └── admin-functions.php     # 後台功能
 ├── ghost/                  # 角色人格配置（v2.4.0，類似偽春菜的 ghost 資料夾）
 │   ├── Frieren/
@@ -105,10 +108,7 @@ mp-ukagaka/
 │   ├── ukagaka-anime.js        # Canvas 動畫管理器（圖片序列播放）
 │   ├── ukagaka-chat.js         # 聊天功能前端（v2.3.0）
 │   ├── ukagaka-emoji.js        # 表情配置載入器
-│   ├── ukagaka-cookie.js       # Cookie 工具（訪客追蹤）
 │   └── ukagaka-textarearesizer.js  # 後台文字區域調整器
-├── build.js                # JS 打包腳本（Terser）
-├── package.json            # npm 設定（開發依賴）
 └── readme.txt              # WordPress 外掛目錄說明檔
 ```
 
@@ -134,6 +134,9 @@ $core_modules = [
     'llm/llm-context-builder.php', // 11. LLM 上下文建構（需在 llm-functions.php 之前載入）
     'llm/weather-functions.php',   // 12. 天氣功能（Open-Meteo API）
     'llm/diary-functions.php',     // 13. AI 日記功能（v2.5.0）
+    │   ├── integrations/           # 整合功能模組（v2.7.0）
+    │   │   ├── akismet-integration.php # Akismet 垃圾留言攔截整合
+    │   │   └── turnstile-integration.php # Turnstile 驗證整合
     'llm/llm-functions.php',       // 14. LLM 功能（本機 LLM：Ollama）
     'personality/emoji-mapper.php',        // 15. 表情映射與情緒分析（需在 AJAX 處理器之前載入）
     'core/ukagaka-functions.php',   // 14. 偽春菜管理
@@ -648,10 +651,16 @@ $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
 ```
 
 ### diary-functions.php (v2.5.0)
+    │   ├── integrations/           # 整合功能模組（v2.7.0）
+    │   │   ├── akismet-integration.php # Akismet 垃圾留言攔截整合
+    │   │   └── turnstile-integration.php # Turnstile 驗證整合
 
 AI 日記功能模組，負責自動生成和發佈角色日記。
 
 #### diary-functions.php 主要函數
+    │   ├── integrations/           # 整合功能模組（v2.7.0）
+    │   │   ├── akismet-integration.php # Akismet 垃圾留言攔截整合
+    │   │   └── turnstile-integration.php # Turnstile 驗證整合
 
 ```php
 /**

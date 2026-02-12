@@ -12,7 +12,7 @@
 
 本外掛以 10 多年前 Ariagle 氏所發布之 WordPress 外掛「MP Ukagaka」為基礎，進行大幅擴展與衍生的版本。
 
-> ⚠️ **重要提示**：本外掛約 90% 的程式碼是透過 AI 輔助開發（Vibe Coding）完成的，雖已經過不計其數的調試與改良，但仍可能存在未知的 BUG 或不夠完善的程式碼結構，使用前請務必理解此風險。  
+> ⚠️ **重要提示**：本外掛約 90% 的程式碼是透過 AI 輔助開發（Vibe Coding）完成的，雖已經過不計其數的調試與改良，但仍可能存在未知的 BUG 或不夠完善的程式碼結構，使用前請務必理解此風險。
 
 📺 **演示網站**：[https://www.moelog.com](https://www.moelog.com/)
 
@@ -33,6 +33,7 @@
 _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 
 > 💡 **更多截圖**：
+>
 > - `screenshot2.PNG` - 通用設定與 LLM 設定頁面
 > - `screenshot3.PNG` - 互動對話模式展示（v2.3.0 新功能）
 
@@ -63,27 +64,30 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 ### 啟用 AI 功能（可選）
 
 **LLM 設定**：
+
 - 選擇提供商：Ollama（免費）、Gemini、OpenAI 或 Claude
 - 輸入 API Key（自動加密）或配置 Ollama 端點
 - 啟用「使用 LLM 取代內建對話」
 
 **AI 設定**：
+
 - 啟用「頁面感知功能」
 - 設定觸發機率（建議 10-30% 以控制成本）
 - 在 System Prompt 中自訂角色人格
 
 **對話模式**：
+
 - 在通用設定中啟用「互動對話功能」
 - 「更換春菜」按鈕將變為對話介面
 
 ## 🤖 AI 提供商
 
-| 提供商 | 費用 | 設定 |
-|-------|------|------|
-| **Ollama** | 免費 | 本地安裝或連接遠程伺服器 |
+| 提供商     | 費用     | 設定                                                                         |
+| ---------- | -------- | ---------------------------------------------------------------------------- |
+| **Ollama** | 免費     | 本地安裝或連接遠程伺服器                                                     |
 | **Gemini** | 付費 API | 從 [Google AI Studio](https://makersuite.google.com/app/apikey) 取得 API Key |
-| **OpenAI** | 付費 API | 從 [OpenAI Platform](https://platform.openai.com/api-keys) 取得 API Key |
-| **Claude** | 付費 API | 從 [Anthropic Console](https://console.anthropic.com/) 取得 API Key |
+| **OpenAI** | 付費 API | 從 [OpenAI Platform](https://platform.openai.com/api-keys) 取得 API Key      |
+| **Claude** | 付費 API | 從 [Anthropic Console](https://console.anthropic.com/) 取得 API Key          |
 
 ## 📚 完整文件
 
@@ -96,17 +100,18 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 
 ## 🎉 v2.6.0 新功能
 
-**前端 JS 優化**：打包並壓縮前端 JavaScript 以用於生產環境。
-- HTTP 請求減少 87.5%（8 個檔案 → 1 個 bundle）
-- 檔案大小減少 64.5%（Terser 壓縮）
-- 透過 `SCRIPT_DEBUG` 支援開發模式
+**外部外掛連動**：若已安裝 Akismet 或 Turnstile，當外掛執行攔截動作時，偽春菜將會觸發對應的反應對話。
+
+- **冷卻機制**：實作獨立的反應冷卻時間（30 分鐘），避免對話過於頻繁。
 
 **API 快取系統**：透過智慧快取減少 API 費用。
+
 - 使用 WordPress Transient API
 - 可設定 TTL（30分鐘 - 24小時）
 - 後台 UI 顯示快取統計與清除功能
 
 **自動日記功能**：AI 根據瀏覽資料自動創建日記文章。
+
 - 自動產生標題，與人格系統整合
 - 可設定發佈權限與簽名
 
@@ -114,20 +119,40 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 
+## 🎉 v2.7.0 新功能
+
+**雙層感知系統**：外層 Turnstile 結界防禦 + 內層 Akismet 垃圾過濾。
+
+- **Turnstile 結界防禦**：偵測試圖繞過 CAPTCHA 的腳本攻擊，觸發芙莉蓮的嘲諷反應。
+- **Akismet 垃圾過濾**：自動攔截垃圾留言時，觸發芙莉蓮的得意反應。
+- **冷卻機制**：設有獨立的反應冷卻時間（30 分鐘），避免對話過於頻繁。
+
+**BOT 檢知功能**：即時偵測搜尋引擎爬蟲或惡意機器人的訪問。
+
+- 與人格系統（`bot_detection`）深度整合，觸發專屬的警報對話。
+- 基於 Slimstat 數據，提供更精準的檢測。
+
+**自動對話優化**：優化了垃圾留言與 BOT 檢測的優先權處理邏輯。
+
+[查看完整更新日誌](docs/CHANGELOG.md)
+
 ## ❓ 常見問題
 
 **為什麼 AI 沒有觸發？**
+
 - 檢查 API Key 是否有效
 - 確認頁面符合觸發條件（例如 `is_single`）
 - 確保機率有設定（測試時可設為 100%）
 - 檢查內容長度（需 \>500 字元）
 
 **如何控制 API 成本？**
+
 - 將機率設為 10-20%
 - 使用較便宜的模型（gemini-2.5-flash、gpt-4o-mini）
 - 限制觸發頁面為 `is_single`
 
 **LLM 連接失敗？**
+
 - Ollama：確保服務在 11434 端口運行
 - 遠程連接：檢查 Cloudflare Tunnel 或網絡連接
 - 使用設定中的測試按鈕驗證連接

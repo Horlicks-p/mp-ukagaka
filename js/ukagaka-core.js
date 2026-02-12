@@ -342,11 +342,10 @@ function mpuMoe(command) {
   }
 }
 
-// ====== Akismet 垃圾留言連動 ======
+
 
 /**
  * 檢查是否有 Akismet 攔截的垃圾留言事件
- * 如果有，顯示芙莉蓮的得意反應取代正常的自動對話
  * 
  * @param {Function} callback - 回調函數，參數為 boolean（是否已處理垃圾留言事件）
  */
@@ -368,6 +367,11 @@ function mpu_checkSpamEvent(callback) {
             mpuLogger.log(
                 "🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱:",
                 res.bot_name
+            );
+        } else if (res.action === "turnstile_block") {
+            mpuLogger.log(
+                "🛡️ Turnstile 結界防禦：偵測到結界撞擊事件，攔截次數:",
+                res.block_count
             );
         } else {
             mpuLogger.log(
@@ -427,12 +431,12 @@ function mpu_checkSpamEvent(callback) {
         }, 700);
       } else {
         // 沒有垃圾留言事件
-        mpuLogger.log("🛡️ Akismet/Bot Check: 無事件");
+        mpuLogger.log("🛡️ Turnstile/Akismet/Bot Check: 無事件");
         callback(false);
       }
     })
     .catch(function (error) {
-      mpuLogger.warn("Akismet: 垃圾留言事件檢查失敗:", error);
+      mpuLogger.warn("Security Check: 安全檢查失敗:", error);
       // 出錯時不阻擋正常的自動對話
       callback(false);
     });
@@ -548,12 +552,8 @@ function mpu_nextmsg(trigger) {
   }
 
   // 手動點擊時不再立即重置計時器，改由打字完成後統一啟動
-  // 這確保了「打字完成後才開始讀秒」的邏輯適用於所有情況（自動、手動、啟動）
 
   // 🌙 睡眠模式喚醒時：讓整個對話框（包括 ZZZ 夢話文字）一起淡出
-  // 這樣視覺上更自然，不會出現 TOP/BOTTOM 邊框在淡出但中間文字突然消失的問題
-  // 使用較長的淡出時間（600ms），讓夢話文字消失得更緩慢自然
-  // ⚠️ startup 觸發時不淡出，讓初始訊息自然過渡到 LLM 對話（避免「講到一半消失」問題）
   if (!isStartup) {
     mpu_hidemsg(600);
   }
@@ -734,8 +734,6 @@ function mpu_nextmsg(trigger) {
           }
 
           // ⚠️ LLM 回應成功後，等待打字效果完成再啟動自動對話計時器
-          // 這確保計時器在「對話完整顯示後」才開始倒數，避免長文字被覆蓋
-          // 適用於所有觸發類型（startup, auto, manual）
           if (mpuAutoTalk && !mpuAutoTalkTimer) {
             mpuLogger.log(
               "mpu_nextmsg: LLM 回應完成，等待打字完成後啟動自動對話計時器"

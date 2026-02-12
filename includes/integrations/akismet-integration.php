@@ -72,13 +72,43 @@ function mpu_ajax_check_spam_event()
         return;
     }
 
-    // ========================================
-    // 第一關：Spam 檢查（優先）
-    // ========================================
+    // Turnstile 結界檢查（最優先）
+    $turnstile_event = get_transient('mpu_turnstile_block_event');
+
+    if ($turnstile_event !== false && get_transient('mpu_turnstile_reaction_cooldown') === false) {
+        delete_transient('mpu_turnstile_block_event');
+        set_transient('mpu_turnstile_reaction_cooldown', true, 30 * MINUTE_IN_SECONDS);
+
+        $count = intval($turnstile_event['count']);
+        $message = function_exists('mpu_generate_turnstile_reaction_llm')
+            ? mpu_generate_turnstile_reaction_llm($count)
+            : false;
+
+        if ($message !== false) {
+            if (function_exists('mpu_record_conversation')) {
+                mpu_record_conversation('auto_talk');
+            }
+            if (function_exists('mpu_debug_log')) {
+                mpu_debug_log('Turnstile Integration: 結界防禦反應觸發，撞擊數量: ' . $count . '（冷卻 30 分鐘）');
+            }
+            wp_send_json([
+                'has_event' => true,
+                'msg' => $message,
+                'action' => 'turnstile_block',
+                'block_count' => $count,
+            ]);
+            return;
+        }
+        // LLM 生成失敗 → 不阻擋，繼續往下檢查
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log('Turnstile Integration: LLM 生成失敗，跳過結界反應');
+        }
+    }
+
+    // Spam 檢查（優先）
     $event = get_transient('mpu_akismet_spam_event');
 
     if ($event !== false && get_transient('mpu_spam_reaction_cooldown') === false) {
-        // 有 Spam 事件且不在冷卻中 → 觸發 Spam 反應
         delete_transient('mpu_akismet_spam_event');
         set_transient('mpu_spam_reaction_cooldown', true, 30 * MINUTE_IN_SECONDS);
 
@@ -95,7 +125,6 @@ function mpu_ajax_check_spam_event()
             wp_send_json([
                 'has_event' => true,
                 'msg' => $message,
-                'emoji' => 'smirk.png',
                 'action' => 'spam_alert',
                 'spam_count' => $count,
             ]);
@@ -107,13 +136,10 @@ function mpu_ajax_check_spam_event()
         }
     }
 
-    // ========================================
-    // 第二關：Bot 檢查（獨立冷卻）
-    // ========================================
+    // Bot 檢查（獨立冷卻）
     $bot_name = function_exists('mpu_check_recent_bot_visit') ? mpu_check_recent_bot_visit(60) : false;
 
     if ($bot_name !== false && get_transient('mpu_bot_alert_cooldown') === false) {
-        // 有 Bot 且不在冷卻中 → 觸發 Bot 警報
         set_transient('mpu_bot_alert_cooldown', true, 30 * MINUTE_IN_SECONDS);
 
         $message = mpu_generate_bot_alert_llm($bot_name);
@@ -128,7 +154,6 @@ function mpu_ajax_check_spam_event()
             wp_send_json([
                 'has_event' => true,
                 'msg' => $message,
-                'emoji' => 'surprised.png',
                 'action' => 'bot_alert',
                 'bot_name' => $bot_name,
             ]);
@@ -136,9 +161,7 @@ function mpu_ajax_check_spam_event()
         }
     }
 
-    // ========================================
-    // 無事件
-    // ========================================
+
     wp_send_json([
         'has_event' => false
     ]);
@@ -148,7 +171,6 @@ add_action('wp_ajax_nopriv_mpu_check_spam_event', 'mpu_ajax_check_spam_event');
 
 /**
  * 使用 LLM 生成垃圾留言反應台詞
- * 複用既有的 LLM 架構（system prompt + user prompt + mpu_call_ai_api()）。
  * 
  * @param int $count 累積的垃圾留言數量
  * @return string|false 生成的台詞，失敗時回傳 false
@@ -177,7 +199,7 @@ function mpu_generate_spam_reaction_llm($count = 1)
         return false;
     }
 
-    // 建構 System Prompt（複用既有架構）
+    // 建構 System Prompt
     $wp_info = function_exists('mpu_get_wordpress_info') ? mpu_get_wordpress_info() : [];
     $user_info = function_exists('mpu_get_current_user_info') ? mpu_get_current_user_info() : [];
     $visitor_info = function_exists('mpu_get_visitor_info_for_llm') ? mpu_get_visitor_info_for_llm() : [];
@@ -197,7 +219,7 @@ function mpu_generate_spam_reaction_llm($count = 1)
         );
     }
 
-    // 建構 User Prompt（從 dynamics.json 載入模板，不硬編碼台詞）
+    // 建構 User Prompt
     $dynamics = function_exists('mpu_load_personality_dynamic_prompts')
         ? mpu_load_personality_dynamic_prompts($personality_id)
         : [];
@@ -343,7 +365,7 @@ function mpu_generate_bot_alert_llm($bot_name)
         );
     }
 
-    // 建構 User Prompt（從 dynamics.json 載入 bot_detection 模板）
+    // 建構 User Prompt
     $dynamics = function_exists('mpu_load_personality_dynamic_prompts')
         ? mpu_load_personality_dynamic_prompts($personality_id)
         : [];
@@ -354,15 +376,14 @@ function mpu_generate_bot_alert_llm($bot_name)
         $vars = ['bot_name' => $bot_name];
         $instruction = mpu_replace_single_prompt_variables($template, $vars);
     } else {
-        // fallback - 通用的描述（不提及魔族）
+        // fallback - 通用的描述
         $instruction = "{$bot_name}というボットがアクセスしていることを報告する";
     }
 
     $user_prompt = "【状況】\nサイトに Bot（{$bot_name}）がアクセスしています。\n\n";
     $user_prompt .= "【指示】\n{$instruction}\n";
     $user_prompt .= "- 管理者（ユーザー）に即座に報告してください。\n";
-    // 移除特定性格的指示，讓 System Prompt 發揮作用
-    $user_prompt .= "- 短い一言（10〜30文字程度）でお願いします。";
+    $user_prompt .= "- 短い一言（20〜50文字程度）でお願いします。";
 
     // 取得 API Key
     $api_key = '';
