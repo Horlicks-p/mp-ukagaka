@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.6.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.7.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,30 +98,9 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.6.0 新功能
-
-**外部外掛連動**：若已安裝 Akismet 或 Turnstile，當外掛執行攔截動作時，偽春菜將會觸發對應的反應對話。
-
-- **冷卻機制**：實作獨立的反應冷卻時間（30 分鐘），避免對話過於頻繁。
-
-**API 快取系統**：透過智慧快取減少 API 費用。
-
-- 使用 WordPress Transient API
-- 可設定 TTL（30分鐘 - 24小時）
-- 後台 UI 顯示快取統計與清除功能
-
-**自動日記功能**：AI 根據瀏覽資料自動創建日記文章。
-
-- 自動產生標題，與人格系統整合
-- 可設定發佈權限與簽名
-
-**程式碼重構**：模組化 AJAX 聊天處理程式以提高可維護性。
-
-[查看完整更新日誌](docs/CHANGELOG.md)
-
 ## 🎉 v2.7.0 新功能
 
-**雙層感知系統**：外層 Turnstile 結界防禦 + 內層 Akismet 垃圾過濾。
+**雙層感知系統**：深度整合 Akismet 與 Turnstile 外掛。
 
 - **Turnstile 結界防禦**：偵測試圖繞過 CAPTCHA 的腳本攻擊，觸發芙莉蓮的嘲諷反應。
 - **Akismet 垃圾過濾**：自動攔截垃圾留言時，觸發芙莉蓮的得意反應。
@@ -133,6 +112,13 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - 基於 Slimstat 數據，提供更精準的檢測。
 
 **自動對話優化**：優化了垃圾留言與 BOT 檢測的優先權處理邏輯。
+
+**API 快取系統**：透過智慧快取減少 API 費用。
+
+- 使用 WordPress Transient API
+- 可設定 TTL（30分鐘 - 24小時）
+
+**自動日記功能**：AI 根據瀏覽資料自動創建日記文章。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 
