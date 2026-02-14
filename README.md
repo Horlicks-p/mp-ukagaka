@@ -121,7 +121,7 @@ For detailed information, please refer to:
 - Check API key is valid
 - Verify page matches trigger conditions (e.g., `is_single`)
 - Ensure probability is set (try 100% for testing)
-- Check content length (\>500 characters required)
+- Check content length (\>300 characters required)
 
 **How to control API costs?**
 
