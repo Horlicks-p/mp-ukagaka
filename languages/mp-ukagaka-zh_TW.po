@@ -1260,3 +1260,15 @@ msgstr "統計資料已清除"
 
 msgid "統計"
 msgstr "統計"
+
+msgid "最大輸出 Token (Max Output Tokens)："
+msgstr "最大輸出 Token (Max Output Tokens)："
+
+msgid "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"
+msgstr "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"
+
+msgid "最大輸出 Token (Max Output Tokens)："
+msgstr "最大輸出 Token (Max Output Tokens)："
+
+msgid "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"
+msgstr "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"

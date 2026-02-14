@@ -1287,3 +1287,15 @@ msgstr "統計データをクリアしました"
 
 msgid "統計"
 msgstr "統計"
+
+msgid "最大輸出 Token (Max Output Tokens)："
+msgstr "最大出力トークン (Max Output Tokens)："
+
+msgid "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"
+msgstr "AI応答の最大長（トークン数）を設定します。デフォルトは1000です。値を増やすと応答の途切れを防げますが、APIコストが増加する場合があります。"
+
+msgid "最大輸出 Token (Max Output Tokens)："
+msgstr "最大出力トークン (Max Output Tokens)："
+
+msgid "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"
+msgstr "AI応答の最大長（トークン数）を設定します。デフォルトは1000です。値を増やすと応答の途切れを防げますが、APIコストが増加する場合があります。"

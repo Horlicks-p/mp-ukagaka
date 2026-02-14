@@ -653,16 +653,10 @@ $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
 ```
 
 ### diary-functions.php (v2.5.0)
-    │   ├── integrations/           # 整合功能模組（v2.7.0）
-    │   │   ├── akismet-integration.php # Akismet 垃圾留言攔截整合
-    │   │   └── turnstile-integration.php # Turnstile 驗證整合
 
 AI 日記功能模組，負責自動生成和發佈角色日記。
 
 #### diary-functions.php 主要函數
-    │   ├── integrations/           # 整合功能模組（v2.7.0）
-    │   │   ├── akismet-integration.php # Akismet 垃圾留言攔截整合
-    │   │   └── turnstile-integration.php # Turnstile 驗證整合
 
 ```php
 /**

@@ -127,7 +127,7 @@ function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
         'messages' => $ollama_messages,
         'stream' => false,
         'options' => [
-            'num_predict' => 300,
+            'num_predict' => isset($options['max_tokens']) ? intval($options['max_tokens']) : 1000,
             'temperature' => 0.8
         ]
     ];
@@ -301,7 +301,7 @@ function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $opt
     $request_body = [
         'model' => $model,
         'messages' => $openai_messages,
-        'max_tokens' => 300,
+        'max_tokens' => isset($options['max_tokens']) ? intval($options['max_tokens']) : 1000,
         'temperature' => 0.8
     ];
 
@@ -354,7 +354,7 @@ function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $opt
 
     $request_body = [
         'model' => $model,
-        'max_tokens' => 300,
+        'max_tokens' => isset($options['max_tokens']) ? intval($options['max_tokens']) : 1000,
         'system' => $system_prompt,
         'messages' => $claude_messages
     ];
@@ -415,7 +415,7 @@ function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $opt
         ],
         'contents' => $contents,
         'generationConfig' => [
-            'maxOutputTokens' => 300,
+            'maxOutputTokens' => isset($options['max_tokens']) ? intval($options['max_tokens']) : 1000,
             'temperature' => 0.8
         ]
     ];

@@ -69,6 +69,7 @@ function mpu_default_opt()
         "ai_system_prompt" => "你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。",
         "ai_probability" => 10,
         "ai_trigger_pages" => "is_single",
+        "ai_max_tokens" => 1000,
         "ai_text_color" => "#000000",
         "ai_display_duration" => 8,
         "ai_greet_first_visit" => false,

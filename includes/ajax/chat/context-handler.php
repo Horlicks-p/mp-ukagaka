@@ -247,17 +247,30 @@ function mpu_ajax_chat_context()
         }
 
         // 選擇會話指示的優先順序：
-        // 0. 如果是自己的日記 → 使用 page_aware_own_diary
-        // 1. 20% 機率使用吐槽模式（page_aware_tsukkomi）- 如果存在
-        // 2. 否則使用一般評論模式（page_aware）
-        if ($is_own_diary && !empty($dynamic_prompts['page_aware_own_diary']) && is_array($dynamic_prompts['page_aware_own_diary'])) {
-            $page_aware_instruction = $dynamic_prompts['page_aware_own_diary'][array_rand($dynamic_prompts['page_aware_own_diary'])];
-            // 添加提示讓 AI 知道這是自己的日記
-            $user_prompt .= "\n\n【特別情報】この記事はあなた自身が以前書いた日記です。";
-        } elseif (wp_rand(1, 100) <= 20 && !empty($dynamic_prompts['page_aware_tsukkomi']) && is_array($dynamic_prompts['page_aware_tsukkomi'])) {
-            $page_aware_instruction = $dynamic_prompts['page_aware_tsukkomi'][array_rand($dynamic_prompts['page_aware_tsukkomi'])];
-        } elseif (!empty($dynamic_prompts['page_aware']) && is_array($dynamic_prompts['page_aware'])) {
-            $page_aware_instruction = $dynamic_prompts['page_aware'][array_rand($dynamic_prompts['page_aware'])];}
+        // 0. 如果是自己的日記 → 判斷是近期(30天內)還是過去
+        if ($is_own_diary) {
+            // $age_days 在前面已經計算過 (需確保 publish_date 存在)
+            $is_recent = (isset($age_days) && $age_days <= 30);
+            
+            if ($is_recent && !empty($dynamic_prompts['page_aware_own_diary_recent']) && is_array($dynamic_prompts['page_aware_own_diary_recent'])) {
+                $page_aware_instruction = $dynamic_prompts['page_aware_own_diary_recent'][array_rand($dynamic_prompts['page_aware_own_diary_recent'])];
+                // 添加提示讓 AI 知道這是最近的日記
+                $user_prompt .= "\n\n【特別情報】この記事はあなた自身がつい最近書いた日記です。";
+            } elseif (!empty($dynamic_prompts['page_aware_own_diary_past']) && is_array($dynamic_prompts['page_aware_own_diary_past'])) {
+                $page_aware_instruction = $dynamic_prompts['page_aware_own_diary_past'][array_rand($dynamic_prompts['page_aware_own_diary_past'])];
+                // 添加提示讓 AI 知道這是過去的日記
+                $user_prompt .= "\n\n【特別情報】この記事はあなた自身が以前書いた日記です。";
+            }
+        }
+        
+        // 1. 如果沒有設定日記特殊的指示（或不是日記），則進入一般流程
+        if (empty($page_aware_instruction)) {
+            if (wp_rand(1, 100) <= 20 && !empty($dynamic_prompts['page_aware_tsukkomi']) && is_array($dynamic_prompts['page_aware_tsukkomi'])) {
+                $page_aware_instruction = $dynamic_prompts['page_aware_tsukkomi'][array_rand($dynamic_prompts['page_aware_tsukkomi'])];
+            } elseif (!empty($dynamic_prompts['page_aware']) && is_array($dynamic_prompts['page_aware'])) {
+                $page_aware_instruction = $dynamic_prompts['page_aware'][array_rand($dynamic_prompts['page_aware'])];
+            }
+        }
     }
 
     // 添加會話指示到 User Prompt
@@ -266,10 +279,25 @@ function mpu_ajax_chat_context()
     }
 
     // 頁面感知 AI 需要更長的回應來完整表達對文章的看法
-    // 從 manifest.json 的 settings.max_tokens 讀取（預設 800）
-    $max_tokens = 800;
-    if (function_exists('mpu_get_personality_max_tokens')) {
-        $max_tokens = mpu_get_personality_max_tokens(null, $ukagaka_name);
+    // 獲取最大 Token 數（優先順序：Manifest > 全域設定 > 預設 1000）
+    $max_tokens = 1000;
+    $global_max_tokens = isset($mpu_opt['ai_max_tokens']) ? intval($mpu_opt['ai_max_tokens']) : 1000;
+    
+    // 1. 嘗試從 Manifest 獲取
+    if (function_exists('mpu_load_personality_manifest')) {
+         // 先取得 ID
+         $pid = null;
+         if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
+             $pid = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
+         }
+         $manifest = mpu_load_personality_manifest($pid);
+         if (isset($manifest['settings']['max_tokens'])) {
+             $max_tokens = intval($manifest['settings']['max_tokens']);
+         } else {
+             $max_tokens = $global_max_tokens;
+         }
+    } else {
+        $max_tokens = $global_max_tokens;
     }
     $result = mpu_call_ai_api(
         $provider,

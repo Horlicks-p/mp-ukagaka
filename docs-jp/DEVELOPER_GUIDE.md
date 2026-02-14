@@ -443,20 +443,10 @@ LLM 機能モジュール、Ollama ローカル LLM 統合を専門に処理。
 | 接続テスト (`test`)         | 30 秒        | 45 秒        |
 
 ### diary-functions.php (v2.5.0)
-    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
-    │   │   ├── akismet-integration.php # Akismet スパムブロック統合
-    │   │   └── turnstile-integration.php # Turnstile 統合
-    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
-    │   │   └── akismet-integration.php # Akismet スパムブロック統合
 
 AI 日記機能モジュール、キャラクター日記の自動生成と投稿を担当。
 
 #### diary-functions.php 主要関数
-    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
-    │   │   ├── akismet-integration.php # Akismet スパムブロック統合
-    │   │   └── turnstile-integration.php # Turnstile 統合
-    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
-    │   │   └── akismet-integration.php # Akismet スパムブロック統合
 
 ```php
 /**
@@ -490,17 +480,207 @@ function mpu_publish_diary_post($diary_data)
 
 伺か管理モジュール、キャラクター関連操作とダイアログ管理を処理。
 
+#### ukagaka-functions.php 主要関数
+
+```php
+/**
+ * 伺かリストの HTML を取得
+ * @return string HTML 文字列
+ */
+function mpu_ukagaka_list(): string
+
+/**
+ * 伺かデータを取得
+ * @param string|false $num 伺かキー（false は現在の伺か）
+ * @return array|false 伺かデータまたは false
+ */
+function mpu_get_ukagaka($num = false)
+
+/**
+ * 伺かのシェル画像 URL を取得
+ * @param string|false $num 伺かキー（false は現在の伺か）
+ * @param bool $echo 直接出力するかどうか
+ * @return string 画像 URL
+ */
+function mpu_get_shell($num = false, $echo = false): string
+
+/**
+ * 指定したメッセージを取得
+ * @param int $msgnum メッセージインデックス
+ * @param string|false $num 伺かキー
+ * @param bool $echo 直接出力するかどうか
+ * @return string メッセージ内容
+ */
+function mpu_get_msg($msgnum = 0, $num = false, $echo = false): string
+
+/**
+ * ランダムなメッセージを取得
+ * @param string|false $num 伺かキー
+ * @param bool $echo 直接出力するかどうか
+ * @return string メッセージ内容
+ */
+function mpu_get_random_msg($num = false, $echo = false): string
+
+/**
+ * デフォルトメッセージを取得
+ * @param string|false $num 伺かキー
+ * @param bool $echo 直接出力するかどうか
+ * @return string メッセージ内容
+ */
+function mpu_get_default_msg($num = false, $echo = false): string
+
+/**
+ * 共通メッセージを取得
+ * @return string 共通メッセージ内容
+ */
+function mpu_common_msg(): string
+
+/**
+ * メッセージ配列を取得
+ * @param string|false $num 伺かキー
+ * @return array メッセージ配列
+ */
+function mpu_get_msg_arr($num = false): array
+
+/**
+ * 次のメッセージを取得
+ * @param string|false $num 伺かキー
+ * @param int $msgnum 現在のメッセージインデックス
+ * @return array メッセージとインデックスを含む配列
+ */
+function mpu_get_next_msg($num = false, $msgnum = 0): array
+
+/**
+ * メッセージ内の特殊コードを処理
+ * @param array $msglist メッセージ配列
+ * @return array 処理後のメッセージ配列
+ */
+function mpu_msg_code($msglist = []): array
+```
+
 ### ajax-handlers.php
 
 AJAX 処理モジュール、すべての AJAX リクエストを処理。
+
+#### ajax-handlers.php 主要関数
+
+```php
+/**
+ * 次のメッセージリクエストを処理
+ */
+function mpu_ajax_nextmsg()
+
+/**
+ * 拡張機能リクエストを処理
+ */
+function mpu_ajax_extend()
+
+/**
+ * 伺か切り替えリクエストを処理
+ */
+function mpu_ajax_change()
+
+/**
+ * 設定取得リクエストを処理
+ */
+function mpu_ajax_get_settings()
+
+/**
+ * ダイアログ読み込みリクエストを処理
+ */
+function mpu_ajax_load_dialog()
+
+/**
+ * 訪問者情報取得リクエストを処理（Slimstat が必要）
+ */
+function mpu_ajax_get_visitor_info()
+```
 
 ### frontend-functions.php
 
 フロントエンド機能モジュール、ページ表示とリソース読み込みを担当。
 
+#### frontend-functions.php 主要関数
+
+```php
+/**
+ * 現在のページに表示すべきか確認
+ * @return bool 表示すべきか
+ */
+function mpu_is_show_page(): bool
+
+/**
+ * 出力バッファコールバック（HTML 挿入用）
+ * @param string $buffer ページ内容
+ * @return string 処理後の内容
+ */
+function mpu_ob_callback($buffer): string
+
+/**
+ * シャットダウン時のコールバック（HTML 挿入を保証）
+ */
+function mpu_shutdown_callback(): void
+
+/**
+ * 伺か HTML を生成
+ * @param string|false $num 伺かキー
+ * @return string HTML 文字列
+ */
+function mpu_html($num = false): string
+
+/**
+ * 伺か HTML を出力
+ */
+function mpu_echo_html(): void
+
+/**
+ * フロントエンドリソース（CSS/JS）を読み込み
+ */
+function mpu_enqueue_frontend_assets(): void
+
+/**
+ * head 内に設定（JavaScript 変数）を出力
+ */
+function mpu_head(): void
+```
+
 ### admin-functions.php
 
 管理画面機能モジュール、設定保存と管理画面インターフェースを処理。
+
+#### admin-functions.php 主要関数
+
+```php
+/**
+ * 管理画面リソース（CSS/JS）を読み込み
+ * @param string $hook_suffix 現在のページフック
+ */
+function mpu_admin_enqueue_scripts($hook_suffix): void
+
+/**
+ * 設定保存を処理
+ */
+function mpu_handle_options_save(): void
+
+/**
+ * ダイアログファイルを生成（TXT または JSON）
+ * @param string $filename ファイル名（拡張子なし）
+ * @param array $msg_array メッセージ配列
+ * @param string $ext 拡張子（txt または json）
+ * @return bool 成功したか
+ */
+function mpu_generate_dialog_file($filename, $msg_array, $ext): bool
+
+/**
+ * 設定ページ HTML を表示
+ */
+function mpu_options_page_html(): void
+
+/**
+ * 管理メニューを登録
+ */
+function mpu_options(): void
+```
 
 ---
 

@@ -172,7 +172,7 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-core.js` - Core functionality (ui + dialogue + character switching)
 * `js/ukagaka-features.js` - Feature modules (ai + external + events)
 * `js/ukagaka-anime.js` - Canvas animation manager (single image & multi-frame animation)
-* `js/ukagaka-cookie.js` - Cookie utilities
+
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==

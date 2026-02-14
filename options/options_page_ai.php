@@ -111,6 +111,11 @@
                 <small><?php _e('設定使用 AI 的機率（1-100%）。建議 10% 以控制成本。', 'mp-ukagaka'); ?></small>
             </div>
             <div class="mpu-field-group">
+                <label for="ai_max_tokens"><?php _e('最大輸出 Token (Max Output Tokens)：', 'mp-ukagaka'); ?></label>
+                <input type="number" id="ai_max_tokens" name="ai_max_tokens" value="<?php echo isset($mpu_opt['ai_max_tokens']) ? intval($mpu_opt['ai_max_tokens']) : 1000; ?>" min="100" max="8192" style="width: 80px;" />
+                <small><?php _e('設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。', 'mp-ukagaka'); ?></small>
+            </div>
+            <div class="mpu-field-group">
                 <label for="ai_trigger_pages"><?php _e('觸發頁面：', 'mp-ukagaka'); ?></label>
                 <input type="text" id="ai_trigger_pages" name="ai_trigger_pages" value="<?php echo isset($mpu_opt['ai_trigger_pages']) ? esc_attr($mpu_opt['ai_trigger_pages']) : 'is_single'; ?>" style="width: 100%; max-width: 400px;" />
                 <small><?php _e('WordPress 條件標籤，逗號分隔（如：is_single,is_page）', 'mp-ukagaka'); ?></small>

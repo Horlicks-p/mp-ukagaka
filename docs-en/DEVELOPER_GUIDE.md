@@ -448,6 +448,7 @@ Each personality folder should contain:
 - **emoji-keywords.json** (Optional, v2.4.0): Emoji trigger keywords
   - `mappings`: Mapping of emoji types to keywords
   - Format example:
+
     ```json
     {
       "mappings": {
@@ -463,6 +464,7 @@ Each personality folder should contain:
     - **diary.json** (Optional, v2.5.0): AI Diary settings
       - `categories`: Diary category configuration
       - Format example:
+
         ```json
         {
           "categories": {
@@ -574,20 +576,10 @@ $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
 ```
 
 ### diary-functions.php (v2.5.0)
-    │   ├── integrations/           # Integration modules (v2.7.0)
-    │   │   ├── akismet-integration.php # Akismet spam protection integration
-    │   │   └── turnstile-integration.php # Turnstile integration
-    │   ├── integrations/           # Integration modules (v2.7.0)
-    │   │   └── akismet-integration.php # Akismet spam protection integration
 
 AI Diary functions module, responsible for auto-generating and publishing character diaries.
 
 #### diary-functions.php Main Functions
-    │   ├── integrations/           # Integration modules (v2.7.0)
-    │   │   ├── akismet-integration.php # Akismet spam protection integration
-    │   │   └── turnstile-integration.php # Turnstile integration
-    │   ├── integrations/           # Integration modules (v2.7.0)
-    │   │   └── akismet-integration.php # Akismet spam protection integration
 
 ```php
 /**

@@ -321,10 +321,11 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $context_vars['last_visit_hours'] = $last_visit_hours;
         
         // 根據訪問間隔設定上下文標記
-        if ($last_visit_hours > 24) {
-            $context_vars['is_long_absence'] = true; // 超過 24 小時未訪問
+        // 改為 7 天 (168 小時)
+        if ($last_visit_hours > 168) {
+            $context_vars['is_long_absence'] = true; // 超過 7 天未訪問
         } else {
-            $context_vars['is_recent_visit'] = true; // 24 小時內有訪問
+            $context_vars['is_recent_visit'] = true; // 7 天內有訪問
         }
     }
 
