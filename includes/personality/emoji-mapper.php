@@ -50,7 +50,7 @@ function mpu_get_default_emoji_mappings()
     return [
         'notice' => [
             'keywords' => [
-                '發現到', '注意到', '気づいた', 'notice', '気づく', '察覺到', '感知到',
+                '發現到', '注意到', '気づいた', 'notice', '気づく', '察覺到', '知らない人間', '感知到',
                 'BOT', 'クローラー',
             ],
             'file' => 'notice.png',
@@ -144,7 +144,7 @@ function mpu_get_default_emoji_mappings()
         ],
         'scared' => [
             'keywords' => [
-                '害怕', '恐懼', '恐怖', '可怕', '嚇人',
+                '害怕', '恐懼', '恐怖', '可怕', '嚇人', 'フェルンの怒り顔',
                 '怖い', 'こわい', '恐ろしい', 'やばい', 'ひぃ',
                 'scared', 'frightened', 'scary', 'scared_to_death',
             ],
@@ -169,7 +169,7 @@ function mpu_get_default_emoji_mappings()
             'keywords' => [
                 '困', '睏', '想睡', '累', '疲',
                 '眠い', 'ねむい', '眠たい', 'うとうと', 'zzz', 'むにゃ', 'すぅ',
-                'sleepy', 'tired', 'drowsy',
+                'sleepy', 'tired', 'drowsy', 'exhausted',
             ],
             'file' => 'sleepy.png',
             'weight' => 9,
@@ -185,8 +185,8 @@ function mpu_get_default_emoji_mappings()
         ],
         'smirk' => [
             'keywords' => [
-                '驕傲', '自豪', '厲害', '得意な顔',
-                '誇り', 'すごい', 'やった', 'できた',
+                '驕傲', '自豪', '厲害', '得意な顔', '服だけ溶かす薬',
+                '誇り', 'すごい', 'やった', 'できた', '自慢する',
                 'proud', 'pride', 'amazing', 'accomplished',
             ],
             'file' => 'smirk.png',
@@ -197,7 +197,7 @@ function mpu_get_default_emoji_mappings()
                 '求誇獎', '點頭', '厲害吧', '好喔', 'OK', '當然', 'of course',
                 'どや', 'どや顔', 'ほめて', '褒めて', 'ふふん', 'えっへん',
                 '了解した', '当然でしょ', 'もちろん',
-                'smug', 'smug_nod', 'praise me', 'right?',
+                'smug', 'smug_nod', 'praise me', 'right?', 'of course',
             ],
             'file' => 'smug_nod.png',
             'weight' => 6,
@@ -223,7 +223,7 @@ function mpu_get_default_emoji_mappings()
             'keywords' => [
                 '聳肩', '傻眼', '尷尬', '想說點什麼但還是算了',
                 '無言以對', 'ジレンマ', '気まずい', 'shrug',
-                '無語', '不知說什麼', '言葉が出ない', '何も言えない', 'dunno', 'whatever', 'meh',
+                '無語', '不知說什麼', '言葉が出難い', '何も言えない', 'dunno', 'whatever', 'meh',
             ],
             'file' => 'speechless.png',
             'weight' => 6,
@@ -240,7 +240,7 @@ function mpu_get_default_emoji_mappings()
         'drooling' => [
             'keywords' => [
                 '流口水', '垂涎', '好吃', '美味', '想吃想到流口水', '食べたい',
-                '美味しい', 'おいしい', 'うまい',
+                '美味しい', 'おいしい', 'うまい', 'メルクーアプリン',
                 'drooling', 'drool', 'yummy', 'delicious',
             ],
             'file' => 'drooling.png',
@@ -248,7 +248,7 @@ function mpu_get_default_emoji_mappings()
         ],
         'money' => [
             'keywords' => [
-                '錢', '金錢', '金', '報酬',
+                '錢', '金錢', '金', '報酬', '巨大な頭蓋骨',
                 'お金', 'ゴールド', '買い物', '無駄遣い',
                 'money', 'gold', 'reward', 'pay',
             ],
@@ -258,7 +258,7 @@ function mpu_get_default_emoji_mappings()
         'vomit' => [
             'keywords' => [
                 '喝掛', '爛醉', '吐了', '喝醉', '宿醉', '廢掉', '廢了', '吃壞肚子',
-                '酔っ払い', 'お酒',
+                '酔っ払い', '生臭坊主', 'お酒', '二日酔',
                 'drunk', 'intoxicated', 'wasted', 'hangover',
             ],
             'file' => 'vomit.png',
@@ -267,7 +267,7 @@ function mpu_get_default_emoji_mappings()
         'thank' => [
             'keywords' => [
                 'ありがとう', '感謝', '謝謝', '世話になった',
-                'thank', 'thanks', 'thank you', 'ご苦労様',
+                'thank', 'thanks', 'thank you', 'ご苦勞様',
                 '多謝', '感激', '感恩', 'お礼', 'gratitude', 'grateful', 'appreciate', '助かった',
             ],
             'file' => 'thank.png',
@@ -293,7 +293,7 @@ function mpu_get_default_emoji_mappings()
             'keywords' => [
                 '悲しい', '悲傷', '難過', '哭泣', '泣きそう', '眼淚', '涙そう',
                 'sad', 'sorrow', 'melancholy', '傷心', '心痛', '寂しい', 'さみしい',
-                'crying', 'tearful', 'unhappy', 'blue', 'gloomy',
+                'crying', 'tearful', 'upset', 'unhappy', 'blue', 'gloomy',
             ],
             'file' => 'sad.png',
             'weight' => 8,
