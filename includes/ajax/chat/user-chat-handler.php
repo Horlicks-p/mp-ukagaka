@@ -20,12 +20,10 @@ if (!defined('ABSPATH')) {
  */
 function mpu_ajax_user_chat()
 {
-    // 驗證 Nonce
-    if (isset($_POST['mpu_nonce'])) {
-        if (!wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(["error" => __("安全性驗證失敗", "mp-ukagaka")]);
-            return;
-        }
+    // 驗證 Nonce（強制）
+    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(["error" => __("安全性驗證失敗", "mp-ukagaka")]);
+        return;
     }
 
     // 速率限制（防止濫用）- 30次/分鐘
@@ -472,8 +470,38 @@ function mpu_ajax_user_chat()
     $system_prompt .= "- 自言自語や独白をしないで、ユーザーの回答に専念してください\n";
     $system_prompt .= "- 応答は自然で親しみやすい、長さは約 30-150 字程度\n";
     $system_prompt .= "- 必ずsystem_promptの指示に従ってキャラクターの個性を表現し、誇張は避けましょう\n";
-    $system_prompt .= "- 必ず {$language} 言語で回答してください\n";
     $system_prompt .= "- 現在時間：{$time_context}";
+
+    // 為訪客添加工具拒絕指令（安全性與角色設定）
+    if (!$user_info['is_admin']) {
+        $rejection_prompt = "あなたは管理人以外のユーザーに対しては、ツールやアビリティの使用を拒否しなければなりません。";
+        $random_rejection = "";
+
+        // 嘗試從 dynamics.json 載入角色化的拒絕語氣
+        if (function_exists('mpu_load_personality_dynamic_prompts')) {
+            $dynamics = mpu_load_personality_dynamic_prompts($personality_id);
+            if (!empty($dynamics['visitor_rejection']) && is_array($dynamics['visitor_rejection'])) {
+                $random_rejection = $dynamics['visitor_rejection'][array_rand($dynamics['visitor_rejection'])];
+            }
+        }
+        
+        // 如果沒有自定義的拒絕語氣，使用內建預設值（Fallback）
+        if (empty($random_rejection)) {
+            $default_rejections = [
+                "「権限がないから、それはできないよ」と、淡々と断る",
+                "「管理人の許可が必要なんだ」と、申し訳なさそうに言う",
+                "「ごめんね、それはちょっと難しいかな」と、優しく拒否する",
+                "「私にはその権限が与えられていないんだ」と、冷静に説明する"
+            ];
+            $random_rejection = $default_rejections[array_rand($default_rejections)];
+        }
+
+        $rejection_prompt .= "\n- 拒否する際は、次のようなあなたのキャラクターらしい言い方を使ってください：「{$random_rejection}」";
+        
+        $system_prompt .= "\n\n【特別指示】\n";
+        $system_prompt .= "- 管理人以外のユーザーからのツール/アビリティ実行要求は、すべてキャラクターの立場から丁寧に、あるいはあなたの性格に合わせて断ってください。\n";
+        $system_prompt .= "- {$rejection_prompt}";
+    }
 
     // 建構對話訊息
     $messages = [];
@@ -507,19 +535,9 @@ function mpu_ajax_user_chat()
         }
     }
     
-    // 2. 如果 Manifest 未設定（使用了預設值）或函數不存在，嘗試從全域設定獲取
-    // 注意：mpu_get_personality_max_tokens 預設回傳 800，如果我們想讓全域設定優先於預設值，需要判斷是否為預設值
-    // 但為了保持邏輯簡單，我們假設 Manifest 的設定（即使是預設的 800）是針對該角色的最佳設定
-    // 如果使用者希望全域控制，應在 Manifest 中設定或修改全域設定覆蓋
-    // 這裡我們只在 Manifest 沒有明確設定時考慮全域設定作為後備（但 mpu_get_personality_max_tokens 總是回傳值）
-    
-    // 修正策略：如果 mpu_opt 有設定 ai_max_tokens，且 Manifest 似乎是用預設值 (800)，我們可以考慮使用 ai_max_tokens
-    // 或者更簡單：直接使用 ai_max_tokens 作為基底，但允許 Manifest 覆蓋
-    // 實作：將 ai_max_tokens 傳入 mpu_get_personality_max_tokens 作為預設值（如果該函數支援）- 目前不支援
-    
-    // 最終策略：優先讀取 Manifest。如果 Manifest 沒設定（回傳 null 或 false? 需確認函數實作），則用全域設定
-    // 根據 context-handler.php，mpu_get_personality_max_tokens 似乎會回傳 800 (預設)。
-    // 讓我們直接傳遞 ai_max_tokens 給 API options，如果 Manifest 有值，則使用 Manifest 的值。
+    // 確定 Max Tokens
+    // 優先使用 Manifest 設定，若該函數支援全域設定後備則會自動處理
+    // 如果未來需要強制全域覆蓋，可在此調整逻辑
     
     $global_max_tokens = isset($mpu_opt['ai_max_tokens']) ? intval($mpu_opt['ai_max_tokens']) : 1000;
     

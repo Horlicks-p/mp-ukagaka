@@ -17,11 +17,10 @@ if (!defined('ABSPATH')) {
 function mpu_ajax_chat_greet()
 {
 
-    if (isset($_POST['mpu_nonce'])) {
-        if (!wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(["error" => "安全性驗證失敗"]);
-            return;
-        }
+    // 驗證 Nonce（強制）
+    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(["error" => __("安全性驗證失敗", "mp-ukagaka")]);
+        return;
     }
 
     // 速率限制（防止濫用）- 10次/分鐘

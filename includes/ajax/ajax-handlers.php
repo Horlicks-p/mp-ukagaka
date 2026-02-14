@@ -17,13 +17,11 @@ if (!defined('ABSPATH')) {
  */
 function mpu_ajax_nextmsg()
 {
-    // 可選的 Nonce 驗證（向後兼容：未提供時記錄警告但不阻止）
+    // 驗證 Nonce（強制）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (isset($request_data['mpu_nonce'])) {
-        if (!wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     // 速率限制（防止濫用）- 20次/分鐘
@@ -166,13 +164,11 @@ add_action('wp_ajax_nopriv_mpu_nextmsg', 'mpu_ajax_nextmsg');
  */
 function mpu_ajax_extend()
 {
-    // 可選的 Nonce 驗證
+    // 驗證 Nonce（強制）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (isset($request_data['mpu_nonce'])) {
-        if (!wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     // 速率限制 - 10次/分鐘
@@ -191,13 +187,11 @@ add_action('wp_ajax_nopriv_mpu_extend', 'mpu_ajax_extend');
  */
 function mpu_ajax_change()
 {
-    // 可選的 Nonce 驗證
+    // 驗證 Nonce（強制）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (isset($request_data['mpu_nonce'])) {
-        if (!wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     // 速率限制 - 10次/分鐘
@@ -299,13 +293,11 @@ add_action('wp_ajax_nopriv_mpu_get_settings', 'mpu_ajax_get_settings');
  */
 function mpu_ajax_load_dialog()
 {
-    // 可選的 Nonce 驗證
+    // 驗證 Nonce（強制）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (isset($request_data['mpu_nonce'])) {
-        if (!wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     // 速率限制 - 30次/分鐘
@@ -475,13 +467,11 @@ add_action('wp_ajax_nopriv_mpu_get_visitor_info', 'mpu_ajax_get_visitor_info');
 
 function mpu_ajax_get_decoration_prompts()
 {
-    // 驗證 Nonce（可選，因為這是只讀操作）
-    if (isset($_POST['mpu_nonce']) || isset($_GET['mpu_nonce'])) {
-        $nonce = isset($_POST['mpu_nonce']) ? $_POST['mpu_nonce'] : $_GET['mpu_nonce'];
-        if (!wp_verify_nonce($nonce, 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    // 驗證 Nonce（強制）
+    $nonce = isset($_POST['mpu_nonce']) ? $_POST['mpu_nonce'] : (isset($_GET['mpu_nonce']) ? $_GET['mpu_nonce'] : '');
+    if (empty($nonce) || !wp_verify_nonce($nonce, 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     // 速率限制 - 20次/分鐘
@@ -542,16 +532,14 @@ add_action('wp_ajax_nopriv_mpu_get_decoration_prompts', 'mpu_ajax_get_decoration
  */
 function mpu_ajax_wake_ghost()
 {
-    // 可選的 Nonce 驗證
+    // 驗證 Nonce（強制）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (isset($request_data['mpu_nonce'])) {
-        if (!wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json([
-                'success' => false,
-                'error' => __('安全性驗證失敗', 'mp-ukagaka')
-            ]);
-            return;
-        }
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json([
+            'success' => false,
+            'error' => __('安全性驗證失敗', 'mp-ukagaka')
+        ]);
+        return;
     }
 
     // 速率限制 - 10次/分鐘
@@ -608,13 +596,11 @@ add_action('wp_ajax_nopriv_mpu_wake_ghost', 'mpu_ajax_wake_ghost');
  */
 function mpu_ajax_get_shell_info()
 {
-    // 可選的 Nonce 驗證
+    // 驗證 Nonce（強制）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (isset($request_data['mpu_nonce'])) {
-        if (!wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     // 速率限制 - 30次/分鐘
@@ -653,13 +639,11 @@ add_action('wp_ajax_nopriv_mpu_get_shell_info', 'mpu_ajax_get_shell_info');
  */
 function mpu_ajax_get_decoration_config()
 {
-    // 可選的 Nonce 驗證
+    // 驗證 Nonce（強制）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (isset($request_data['mpu_nonce'])) {
-        if (!wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     // 速率限制 - 30次/分鐘
@@ -714,13 +698,11 @@ add_action('wp_ajax_nopriv_mpu_get_decoration_config', 'mpu_ajax_get_decoration_
  */
 function mpu_ajax_get_emoji_config()
 {
-    // 可選的 Nonce 驗證
+    // 驗證 Nonce（強制）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (isset($request_data['mpu_nonce'])) {
-        if (!wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     // 速率限制 - 30次/分鐘
@@ -767,13 +749,11 @@ add_action('wp_ajax_nopriv_mpu_get_emoji_config', 'mpu_ajax_get_emoji_config');
  */
 function mpu_ajax_init()
 {
-    // 可選的 Nonce 驗證
+    // 驗證 Nonce（強制）
     $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (isset($request_data['mpu_nonce'])) {
-        if (!wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     // 速率限制 - 30次/分鐘

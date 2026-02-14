@@ -150,6 +150,11 @@ function mpu_execute_mcp_tool($tool_name, $arguments)
         return new WP_Error('mcp_inactive', 'Abilities API is not active.');
     }
 
+    // 權限檢查：僅限管理員執行工具
+    if (!current_user_can('manage_options')) {
+        return new WP_Error('permission_denied', 'Only administrators are allowed to use tools.');
+    }
+
     // Sanitize name: convert __ back to /
     $lookup_name = $tool_name;
     if (strpos($tool_name, '__') !== false) {

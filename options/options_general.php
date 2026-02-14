@@ -93,7 +93,7 @@
                 <label for="cur_ukagaka"><?php _e('預設偽春菜：', 'mp-ukagaka'); ?></label>
                 <select id="cur_ukagaka" name="cur_ukagaka" style="width: 100%; max-width: 300px;">
                     <?php foreach ($mpu_opt['ukagakas'] as $key => $value) { ?>
-                        <option value="<?php echo $key; ?>" <?php if ($key == $mpu_opt['cur_ukagaka']) {
+                        <option value="<?php echo esc_attr($key); ?>" <?php if ($key == $mpu_opt['cur_ukagaka']) {
                                                                 echo ' selected="selected"';
                                                             } ?>><?php echo mpu_output_filter($value['name']); ?></option>
                     <?php } ?>

@@ -264,7 +264,10 @@ function mpu_clear_all_stats()
     global $wpdb;
     
     $deleted = $wpdb->query(
-        "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'mpu_stats_%'"
+        $wpdb->prepare(
+            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+            'mpu_stats_%'
+        )
     );
     
     return intval($deleted);

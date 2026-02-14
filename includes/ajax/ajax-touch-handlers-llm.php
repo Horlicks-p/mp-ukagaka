@@ -17,12 +17,10 @@ if (!defined('ABSPATH')) {
  */
 function mpu_ajax_decoration_chat()
 {
-    // 驗證 Nonce
-    if (isset($_POST['mpu_nonce'])) {
-        if (!wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    // 驗證 Nonce（強制）
+    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     $mpu_opt = mpu_get_option();
@@ -180,12 +178,10 @@ add_action('wp_ajax_nopriv_mpu_decoration_chat', 'mpu_ajax_decoration_chat');
  */
 function mpu_ajax_touch_zone_chat()
 {
-    // 驗證 Nonce
-    if (isset($_POST['mpu_nonce'])) {
-        if (!wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
-            wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-            return;
-        }
+    // 驗證 Nonce（強制）
+    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return;
     }
 
     $mpu_opt = mpu_get_option();

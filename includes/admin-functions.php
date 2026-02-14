@@ -72,7 +72,7 @@ function mpu_handle_options_save()
                 $cleared = mpu_clear_all_stats();
                 set_transient('mpu_admin_message', '<div class="updated"><p><strong>' . sprintf(__('已清除 %d 筆統計資料', 'mp-ukagaka'), $cleared) . '</strong></p></div>', 30);
             }
-            wp_redirect(admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=8'));
+            wp_safe_redirect(admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=8'));
             exit;
         }
     }
@@ -511,7 +511,7 @@ function mpu_handle_options_save()
         $redirect_url = admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=' . $cur_page . '&settings-updated=true');
 
         // 執行重定向
-        wp_redirect($redirect_url);
+        wp_safe_redirect($redirect_url);
         exit;
     }
 }
