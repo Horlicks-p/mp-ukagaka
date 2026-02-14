@@ -185,13 +185,27 @@ function mpu_execute_mcp_tool($tool_name, $arguments)
 /**
  * Initialize MCP Tools Manager
  */
+/**
+ * Initialize MCP Tools Manager
+ */
 function mpu_init_mcp_tools()
 {
+    static $initialized = false;
+    if ($initialized) {
+        return;
+    }
+
     require_once plugin_dir_path(__FILE__) . '../mcp-tools/manager.php';
     if (class_exists('\MP_Ukagaka\McpTools\Manager')) {
         \MP_Ukagaka\McpTools\Manager::init();
+        $initialized = true;
     }
 }
-add_action('plugins_loaded', 'mpu_init_mcp_tools');
+
+if (did_action('plugins_loaded')) {
+    mpu_init_mcp_tools();
+} else {
+    add_action('plugins_loaded', 'mpu_init_mcp_tools');
+}
 
 
