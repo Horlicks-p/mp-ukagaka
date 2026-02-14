@@ -575,6 +575,20 @@ function mpu_publish_diary_post($diary_data)
         $title = $prefix . '日記';
     }
 
+    // 嘗試獲取分類圖片並插入到內容開頭
+    if (!empty($diary_category_key)) {
+        $image_url = mpu_get_random_diary_image($diary_category_key);
+        if ($image_url !== false) {
+            // 插入圖片 HTML
+            $image_html = sprintf(
+                '<p><img src="%s" alt="%s" class="mpu-diary-image" style="max-width: 100%%; height: auto; display: block; margin: 0 auto 15px auto;" /></p>',
+                esc_url($image_url),
+                esc_attr($title)
+            );
+            $content = $image_html . $content;
+        }
+    }
+
     // 準備文章資料
     $post_data = [
         'post_title' => $title,
@@ -598,12 +612,76 @@ function mpu_publish_diary_post($diary_data)
         update_option('mpu_last_diary_post_id', $post_id);
 
         // 記錄到日誌
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            mpu_debug_log('Diary: Published diary post ID ' . $post_id . ' (category: ' . ($diary_category_key ?? 'default') . ')');
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log('Diary: 發表成功 (ID: ' . $post_id . ')');
+        }
+
+        return $post_id;
+    }
+
+    return new WP_Error('insert_failed', '無法插入文章');
+}
+
+/**
+ * 獲取隨機日記圖片
+ * 
+ * 根據日記分類，從對應的資料夾中隨機選擇一張圖片
+ * 
+ * @param string $category_key 日記分類鍵名
+ * @param string|null $personality_id 人格 ID
+ * @return string|false 圖片 URL (相對於網站根目錄)，如果找不到圖片則返回 false
+ */
+function mpu_get_random_diary_image($category_key, $personality_id = null)
+{
+    if (empty($category_key)) {
+        return false;
+    }
+
+    if ($personality_id === null && function_exists('mpu_get_current_personality_id')) {
+        $personality_id = mpu_get_current_personality_id();
+    }
+
+    // 圖片目錄路徑
+    $base_dir = function_exists('mpu_get_personalities_dir') 
+        ? mpu_get_personalities_dir() 
+        : plugin_dir_path(dirname(dirname(__FILE__))) . 'ghost';
+    
+    $image_dir = $base_dir . '/' . $personality_id . '/diary_images/' . $category_key;
+
+    if (!file_exists($image_dir) || !is_dir($image_dir)) {
+        return false;
+    }
+
+    // 掃描圖片檔案
+    $files = scandir($image_dir);
+    $images = [];
+    $valid_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+    foreach ($files as $file) {
+        if ($file === '.' || $file === '..') {
+            continue;
+        }
+
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        if (in_array($ext, $valid_extensions)) {
+            $images[] = $file;
         }
     }
 
-    return $post_id;
+    if (empty($images)) {
+        return false;
+    }
+
+    // 隨機選擇一張
+    $selected_image = $images[array_rand($images)];
+
+    // 建構 URL
+    // 注意：這裡需要返回對於前端可訪問的 URL
+    // 假設 ghost 目錄在 wp-content/plugins/mp-ukagaka/ghost/
+    $plugin_url = plugins_url('', dirname(dirname(dirname(__FILE__)))) . '/mp-ukagaka.php';
+    $plugin_dir_url = plugin_dir_url(dirname(dirname(dirname(__FILE__))) . '/mp-ukagaka.php');
+    
+    return $plugin_dir_url . 'ghost/' . $personality_id . '/diary_images/' . $category_key . '/' . $selected_image;
 }
 
 /**

@@ -398,15 +398,15 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
             $articles_info = "\n【記事情報】\n";
             $article_num = 1;
             foreach ($articles as $article) {
-                // get_permalink() 已經返回正確編碼的 URL，直接使用
-                $article_url = $article['url'];
+                // get_permalink() 已經返回正確編碼的 URL，但為了節省 token 和可讀性，我們進行解碼
+                $article_url = urldecode($article['url']);
                 $articles_info .= "記事{$article_num}：{$article['title']} - {$article_url}\n";
                 $article_num++;
             }
-            // 明確指示 AI：URL 已經正確編碼，不要再次編碼
-            $example_url = !empty($articles[0]['url']) ? $articles[0]['url'] : '';
+            // 明確指示 AI：URL 已經解碼，保持原樣
+            $example_url = !empty($articles[0]['url']) ? urldecode($articles[0]['url']) : '';
             $articles_info .= "\n【重要】記事を紹介する際は、HTML形式の<a>タグを使用してリンクを生成してください。\n";
-            $articles_info .= "URLは既に正しくエンコードされているため、そのまま使用してください（追加のエンコードは不要です）。\n";
+            $articles_info .= "URLはデコード済みです。日本語が含まれていても、そのまま使用してください（再エンコード不要）。\n";
             $articles_info .= "例：<a href=\"{$example_url}\">記事のタイトル</a>\n";
         }
     }
@@ -451,6 +451,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     $user_prompt .= "コメント数：{$wp_info['comment_count']}\n";
     $user_prompt .= "カテゴリ数：{$wp_info['category_count']}\n";
     $user_prompt .= "タグ数：{$wp_info['tag_count']}\n";
+    $user_prompt .= "スパム数：{$wp_info['spam_count']}\n";
     $user_prompt .= "運営日数：{$wp_info['days_operating']}\n";
     if (!empty($wp_info['theme_name'])) {
         $user_prompt .= "テーマ：{$wp_info['theme_name']} v{$wp_info['theme_version']}\n";

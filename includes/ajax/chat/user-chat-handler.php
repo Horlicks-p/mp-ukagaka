@@ -45,6 +45,52 @@ function mpu_ajax_user_chat()
         $user_message = mb_substr($user_message, 0, 500, 'UTF-8');
     }
 
+    // [Debug] MCP Tool Diagnostics
+    if (trim($user_message) === '/debug_mcp') {
+        if (!current_user_can('manage_options')) {
+            wp_send_json(["msg" => "權限不足：僅管理員可用此指令。"]);
+            return;
+        }
+
+        $report = "=== MCP Diagnostics ===\n";
+        
+        // Check integration file
+        $report .= "Integration active: " . (function_exists('mpu_get_mcp_tools_for_llm') ? 'Yes' : 'No') . "\n";
+        
+        // Check Core Abilities API
+        $report .= "wp_register_ability function: " . (function_exists('wp_register_ability') ? 'Yes' : 'No') . "\n";
+
+        // Check Ability Registration
+        $ability_name = 'mp-ukagaka/get-popular-posts';
+        $is_registered = function_exists('wp_has_ability') && wp_has_ability($ability_name);
+        $report .= "Ability '{$ability_name}' registered: " . ($is_registered ? 'Yes' : 'No') . "\n";
+
+        // Check Manager class
+        $report .= "McpTools Manager class: " . (class_exists('\MP_Ukagaka\McpTools\Manager') ? 'Yes' : 'No') . "\n";
+
+        // Check Ability Class (New Location)
+        $report .= "Wp_PostViews_Ability class: " . (class_exists('\MP_Ukagaka\McpTools\Abilities\Wp_PostViews_Ability') ? 'Yes' : 'No') . "\n";
+
+        // Get Tools
+        if (function_exists('mpu_get_mcp_tools_for_llm')) {
+            $tools = mpu_get_mcp_tools_for_llm('gemini');
+            $report .= "Tool count: " . count($tools) . "\n";
+            $report .= "Tools found:\n";
+            foreach ($tools as $t) {
+                $name = $t['name'] ?? $t['function']['name'] ?? 'unknown';
+                $report .= "- " . $name . "\n";
+            }
+        } else {
+             $report .= "Cannot fetch tools (function missing).\n";
+        }
+
+        // Check WP-PostViews function
+        $report .= "WP-PostViews function (get_most_viewed): " . (function_exists('get_most_viewed') ? 'Exists' : 'Missing') . "\n";
+
+        wp_send_json(["msg" => $report]);
+        return;
+    }
+
     // 檢測用戶問題是否需要系統資訊（動態添加，節省 Token）
     $needs_stats = false;
     $needs_system_info = false;
@@ -514,12 +560,17 @@ function mpu_ajax_user_chat()
     // Rate limiting 現在由 mpu_enforce_rate_limit 自動處理
 
     // 限制回應長度（從 manifest.json 的 settings.max_response_length 讀取，預設 500）
-    $max_length = 500;
-    if (function_exists('mpu_get_personality_max_response_length')) {
-        $max_length = mpu_get_personality_max_response_length(null, $ukagaka_name);
-    }
-    if (mb_strlen($result, 'UTF-8') > $max_length) {
-        $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
+    // 如果執行了 MCP 工具，則跳過限制
+    global $mpu_mcp_tool_executed;
+
+    if (empty($mpu_mcp_tool_executed)) {
+        $max_length = 500;
+        if (function_exists('mpu_get_personality_max_response_length')) {
+            $max_length = mpu_get_personality_max_response_length(null, $ukagaka_name);
+        }
+        if (mb_strlen($result, 'UTF-8') > $max_length) {
+            $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
+        }
     }
 
     // 分析對話內容的情緒，獲取對應的表情

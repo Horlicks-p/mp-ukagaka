@@ -88,6 +88,7 @@ function mpu_load_modules()
         'ajax/chat-api-handlers.php',   // 對話模式 API 處理器（多輪對話）
         'integrations/akismet-integration.php', // Akismet 垃圾留言連動
         'integrations/turnstile-integration.php', // Turnstile 垃圾留言連動
+        'integrations/abilities-integration.php', // Abilities API Integration (formerly MCP)
     ];
 
     // 前端專用模組

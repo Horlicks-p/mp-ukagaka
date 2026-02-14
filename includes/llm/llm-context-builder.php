@@ -788,9 +788,10 @@ function mpu_compress_context_info($wp_info, $user_info, $visitor_info)
 
     // 2. 統計資訊（單行，使用簡寫）
     $stats_info = sprintf(
-        "文章:%d 留言:%d 分類:%d 標籤:%d 運營:%d天",
+        "文章:%d 留言:%d 垃圾:%d 分類:%d 標籤:%d 運營:%d天",
         $wp_info['post_count'],
         $wp_info['comment_count'],
+        $wp_info['spam_count'] ?? 0,
         $wp_info['category_count'],
         $wp_info['tag_count'],
         $wp_info['days_operating']
@@ -941,6 +942,7 @@ function mpu_build_optimized_system_prompt(
         'theme_name' => $wp_info['theme_name'] ?? '',
         'theme_version' => $wp_info['theme_version'] ?? '',
         'theme_author' => $wp_info['theme_author'] ?? '',
+        'spam_count' => $wp_info['spam_count'] ?? 0, // 新增垃圾留言統計
     ];
 
     // 添加 Slimstat 統計數據變數

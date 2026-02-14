@@ -1195,6 +1195,8 @@ function mpu_parseMarkdown(text) {
     // 處理斜體 *text* 或 _text_（排除已處理的粗體）
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
     .replace(/\b_([^_]+)_\b/g, '<em>$1</em>')
+    // 處理連結 [text](url)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     // 處理行內代碼 `code`
     .replace(/`([^`]+)`/g, '<code style="background:#f0f0f0;padding:1px 4px;border-radius:3px;font-family:monospace;font-size:0.9em;">$1</code>');
 }
