@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.7.0
+Stable tag: 2.8.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -177,6 +177,14 @@ This plugin uses a modular architecture for better maintainability:
 
 == Changelog ==
 
+= 2026-02-15 =
+* v2.8.0
+* [NEW] Abilities API (Tool Calling): Integrated WordPress Core Abilities API
+  * Admin Only: Tool execution restricted to administrators
+  * Visitor Optimization: Non-admin visitors save tokens by filtering tool definitions
+  * Character Rejection: AI refuses unauthorized requests in character
+* [SECURITY] Global Nonce Verification: Strengthened frontend AJAX security
+
 = 2026-02-12 =
 * v2.7.0
 * [NEW] BOT Detection: Real-time bot monitoring and reaction system
@@ -192,26 +200,7 @@ This plugin uses a modular architecture for better maintainability:
   * Triggers reaction dialogues when these plugins detect spam or blocks
   * Implemented cooldown mechanism (30 mins) to prevent flooding
 
-= 2026-01-15 =
-* v2.5.6
-* [IMPROVE] Frontend JS Optimization: Bundled and minified frontend JavaScript
-  * 87.5% reduction in HTTP requests (8 files → 1 bundle)
-  * 64.5% reduction in file size using Terser minification
-  * Development mode supported via `SCRIPT_DEBUG` constant
-  * Use `npm run build` to rebuild the bundle
-* [NEW] API Cache System: Intelligent response caching to reduce API costs
-  * Uses WordPress Transient API for reliable caching
-  * Configurable TTL options (30min, 1hr, 2hr, 6hr, 24hr)
-  * Admin UI with cache statistics and manual clear function
-  * Cache key based on provider + system prompt + user prompt hash
-* [NEW] Auto Diary Feature: AI-generated diary posts based on browsing data
-  * Automatic title generation with personality integration
-  * Configurable publish settings, author, and signature
-  * Independent AI provider settings for cost optimization
-* [IMPROVE] Code Refactoring: Modularized AJAX chat handlers
-  * Split ajax-chat-handlers-llm.php into context, greet, and user-chat handlers
-  * Improved code organization and maintainability
-* [DOCS] Updated DEVELOPER_GUIDE with new JS directory structure
+
 
 == Screenshots ==
 
