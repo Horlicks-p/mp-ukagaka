@@ -825,6 +825,11 @@ function loadExternalDialog(file, skipFirstMessage = false) {
     action: "mpu_load_dialog",
     file: pure,
   });
+
+  if (typeof mpuNonce !== "undefined") {
+    params.append("mpu_nonce", mpuNonce);
+  }
+  
   const url = `${mpuurl}?${params.toString()}`;
 
   document.body.style.cursor = "wait";

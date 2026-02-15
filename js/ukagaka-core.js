@@ -574,6 +574,11 @@ function mpu_nextmsg(trigger) {
     formData.append("cur_num", curNum);
     formData.append("cur_msgnum", curMsgnum);
 
+    // Add nonce for security
+    if (typeof mpuNonce !== "undefined") {
+      formData.append("mpu_nonce", mpuNonce);
+    }
+
     // 傳送上次訪問時間（用於問候語選擇）
     const lastVisitHours =
       typeof mpu_getHoursSinceLastVisit === "function"
@@ -1046,6 +1051,10 @@ function mpuChange(num) {
   const params = new URLSearchParams({ action: "mpu_change" });
   if (hasNum) {
     params.append("mpu_num", num);
+  }
+  // Add nonce for security
+  if (typeof mpuNonce !== "undefined") {
+    params.append("mpu_nonce", mpuNonce);
   }
   const url = `${mpuurl}?${params.toString()}`;
 

@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-02-14T17:33:43.621Z
+ * Generated: 2026-02-15T04:15:21.055Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -1469,6 +1469,11 @@ function mpu_nextmsg(trigger) {
     formData.append("cur_num", curNum);
     formData.append("cur_msgnum", curMsgnum);
 
+    // Add nonce for security
+    if (typeof mpuNonce !== "undefined") {
+      formData.append("mpu_nonce", mpuNonce);
+    }
+
     // 傳送上次訪問時間（用於問候語選擇）
     const lastVisitHours =
       typeof mpu_getHoursSinceLastVisit === "function"
@@ -1941,6 +1946,10 @@ function mpuChange(num) {
   const params = new URLSearchParams({ action: "mpu_change" });
   if (hasNum) {
     params.append("mpu_num", num);
+  }
+  // Add nonce for security
+  if (typeof mpuNonce !== "undefined") {
+    params.append("mpu_nonce", mpuNonce);
   }
   const url = `${mpuurl}?${params.toString()}`;
 
@@ -3680,6 +3689,11 @@ function loadExternalDialog(file, skipFirstMessage = false) {
     action: "mpu_load_dialog",
     file: pure,
   });
+
+  if (typeof mpuNonce !== "undefined") {
+    params.append("mpu_nonce", mpuNonce);
+  }
+  
   const url = `${mpuurl}?${params.toString()}`;
 
   document.body.style.cursor = "wait";
@@ -4596,6 +4610,9 @@ jQuery(document).ready(function () {
       if (!window.mpuSettings && !window.mpuSettingsLoaded) {
         mpuLogger.log("Fallback: 發送獨立 mpu_get_settings AJAX");
         const settingsParams = new URLSearchParams({ action: "mpu_get_settings" });
+        if (typeof mpuNonce !== "undefined") {
+          settingsParams.append("mpu_nonce", mpuNonce);
+        }
         const settingsUrl = `${mpuurl}?${settingsParams.toString()}`;
         
         mpuFetch(settingsUrl, {
@@ -4649,6 +4666,9 @@ jQuery(document).ready(function () {
 
   jQuery("#mpu_extend").on("click", function () {
     const extendParams = new URLSearchParams({ action: "mpu_extend" });
+    if (typeof mpuNonce !== "undefined") {
+      extendParams.append("mpu_nonce", mpuNonce);
+    }
     const extendUrl = `${mpuurl}?${extendParams.toString()}`;
 
     document.body.style.cursor = "wait";

@@ -290,6 +290,9 @@ jQuery(document).ready(function () {
       if (!window.mpuSettings && !window.mpuSettingsLoaded) {
         mpuLogger.log("Fallback: 發送獨立 mpu_get_settings AJAX");
         const settingsParams = new URLSearchParams({ action: "mpu_get_settings" });
+        if (typeof mpuNonce !== "undefined") {
+          settingsParams.append("mpu_nonce", mpuNonce);
+        }
         const settingsUrl = `${mpuurl}?${settingsParams.toString()}`;
         
         mpuFetch(settingsUrl, {
@@ -343,6 +346,9 @@ jQuery(document).ready(function () {
 
   jQuery("#mpu_extend").on("click", function () {
     const extendParams = new URLSearchParams({ action: "mpu_extend" });
+    if (typeof mpuNonce !== "undefined") {
+      extendParams.append("mpu_nonce", mpuNonce);
+    }
     const extendUrl = `${mpuurl}?${extendParams.toString()}`;
 
     document.body.style.cursor = "wait";

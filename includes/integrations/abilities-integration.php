@@ -36,6 +36,11 @@ function mpu_get_mcp_tools_for_llm($provider = 'openai')
         return [];
     }
 
+    // 工具僅對管理員可用：非管理員不送工具定義給 LLM
+    if (!current_user_can('manage_options')) {
+        return [];
+    }
+
     // Get all registered abilities from Core
     $abilities = wp_get_abilities();
     $formatted_tools = [];
