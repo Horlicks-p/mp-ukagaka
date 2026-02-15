@@ -4,6 +4,31 @@
 
 ---
 
+---
+
+## [2.8.0] - 2026-02-15
+
+### 🚀 重大更新：Abilities API (工具调用)
+
+- **核心集成**：整合 WordPress Core Abilities API，賦予 AI 角色執行後端操作的能力。
+  - 目前實作了 `get_popular_posts` 工具，AI 可查詢網站人氣文章。
+  - **權限控制**：嚴格限制僅有管理員權限 (`manage_options`) 的使用者可觸發工具調用。
+  - **訪客優化**：對於非管理員訪客，系統自動過濾工具定義，節省 Token 並提升安全性。
+
+- **角色化拒絕回應**：
+  - 當訪客嘗試請求執行特權操作（如查詢數據）時，AI 不會報錯，而是以角色口吻拒絕。
+  - 在 `dynamics.json` 中新增 `visitor_rejection` 行為指導，確保拒絕方式多樣且符合人設（如芙莉蓮會說是「管理人的秘密」）。
+
+### 🔒 安全性強化
+
+- **全域 Nonce 驗證**：強化所有前端 AJAX 請求的安全性。
+  - 修復了 `mpu_nextmsg`, `mpu_change`, `mpu_get_settings`, `mpu_extend`, `mpu_load_dialog` 等請求缺失 `mpu_nonce` 的問題。
+  - 確保所有與後端的交互都經過嚴格的 Nonce 驗證，防止 CSRF 攻擊。
+
+- **Token 節省與優化**：
+  - 對於無法使用工具的訪客，系統不會將大量工具描述發送給 LLM，顯著減少 Token 消耗。
+  - 避免 LLM 嘗試調用工具後被後端攔截的無效交互迴圈。
+
 ## [2.7.0] - 2026-02-12
 
 ### 🛡️ 外部外掛連動 (Plugin Integrations)

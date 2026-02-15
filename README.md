@@ -98,19 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.7.0
+## 🎉 What's New in v2.8.0
 
-**Plugin Integrations**: Integrates with Akismet and Turnstile plugins.
+**Abilities API (Tool Calling)**: Integrated WordPress Core Abilities API, empowering AI characters to perform backend operations.
 
-- When these plugins detect spam or block scripts, the ukagaka will trigger corresponding reaction dialogues.
-- **Cooldown Mechanism**: Independent reaction cooldowns (30 minutes) to prevent chatter flooding.
+- **Admin Only**: Tool execution is strictly restricted to administrators.
+- **Visitor Optimization**: Non-admin visitors won't see tool definitions, saving tokens.
+- **Character Rejection**: AI refuses unauthorized requests in character (e.g., "It's a secret").
 
-**BOT Detection**: Real-time detection of search engine crawlers and malicious bots.
-
-- Deep integration with the personality system (`bot_detection`), triggering unique alert dialogues.
-- Precise detection based on Slimstat data.
-
-**Auto-Talk Optimization**: Improved priority logic for spam and bot detection events.
+**Security Enhancements**: Global Nonce verification for all frontend AJAX requests.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

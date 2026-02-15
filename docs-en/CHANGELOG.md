@@ -4,6 +4,31 @@
 
 ---
 
+---
+
+## [2.8.0] - 2026-02-15
+
+### 🚀 Major Update: Abilities API (Tool Calling)
+
+- **Core Integration**: Integrated WordPress Core Abilities API, empowering AI characters to perform backend operations.
+  - Currently implemented `get_popular_posts` tool, allowing AI to query popular articles on the site.
+  - **Permission Control**: Strictly restricted tool execution to users with administrator privileges (`manage_options`).
+  - **Visitor Optimization**: For non-admin visitors, the system automatically filters out tool definitions, saving tokens and improving security.
+
+- **Character Rejection Responses**:
+  - When visitors attempt to request privileged operations (e.g., querying data), the AI will not error out but instead refuse in character.
+  - Added `visitor_rejection` behavioral guidelines in `dynamics.json` to ensure diverse and personality-consistent refusals (e.g., Frieren might say "It's a secret between me and the master").
+
+### 🔒 Security Enhancements
+
+- **Global Nonce Verification**: Strengthened security for all frontend AJAX requests.
+  - Fixed missing `mpu_nonce` in `mpu_nextmsg`, `mpu_change`, `mpu_get_settings`, `mpu_extend`, `mpu_load_dialog` requests.
+  - Ensures all backend interactions undergo strict Nonce verification to prevent CSRF attacks.
+
+- **Token Saving & Optimization**:
+  - For visitors who cannot use tools, the system avoids sending large tool descriptions to the LLM, significantly reducing token consumption.
+  - Prevents invalid interaction loops where the LLM attempts to call a tool only to be intercepted by the backend.
+
 ## [2.7.0] - 2026-02-12
 
 ### 🛡️ Plugin Integrations
