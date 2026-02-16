@@ -233,7 +233,7 @@ function mpu_build_prompt_variables($wp_info, $visitor_info, $time_context, $the
         'theme_version' => $theme_version,
         'theme_author' => $theme_author,
         'time_context' => $time_context,
-        'visitor_country' => $visitor_info['slimstat_country'] ?? '',
+        'visitor_country' => !empty($visitor_info['slimstat_country']) && function_exists('mpu_country_code_to_name') ? mpu_country_code_to_name($visitor_info['slimstat_country']) : ($visitor_info['slimstat_country'] ?? ''),
         'visitor_city' => $visitor_info['slimstat_city'] ?? '',
         'bot_name' => $visitor_info['browser_name'] ?? '',
     ];

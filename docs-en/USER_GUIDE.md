@@ -67,16 +67,13 @@ After activation, go to **Settings** → **MP Ukagaka** to configure.
 ### 5-Minute Quick Setup
 
 1. **Go to Settings Page**
-
    - WordPress Admin → Settings → MP Ukagaka
 
 2. **Confirm Default Ukagaka**
-
    - In the "General Settings" page, ensure "Default Ukagaka" is selected.
    - Check "Default Show Ukagaka" and "Default Show Balloon".
 
 3. **Save Settings**
-
    - Click the "Save" button.
 
 4. **Check the Result**
@@ -90,34 +87,34 @@ Go to **Settings** → **MP Ukagaka** → **General Settings**
 
 ### Display Settings
 
-| Setting Item | Description |
-| -------------- | -------------------- |
-| Default Ukagaka | Select the character to display by default. |
-| Default Show Ukagaka | Whether to show the character image by default. |
+| Setting Item         | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| Default Ukagaka      | Select the character to display by default.      |
+| Default Show Ukagaka | Whether to show the character image by default.  |
 | Default Show Balloon | Whether to show the dialogue balloon by default. |
 
 ### Dialogue Settings
 
-| Setting Item | Description |
-| -------- | ---------------------------------------- |
-| Default Session | "Random Talk" or "First Talk". |
-| Session Order | Whether the next dialogue upon clicking is "Sequential" or "Random". |
-| Click Ukagaka | Action when clicking the character (Show next dialogue or No action). |
+| Setting Item    | Description                                                           |
+| --------------- | --------------------------------------------------------------------- |
+| Default Session | "Random Talk" or "First Talk".                                        |
+| Session Order   | Whether the next dialogue upon clicking is "Sequential" or "Random".  |
+| Click Ukagaka   | Action when clicking the character (Show next dialogue or No action). |
 
 ### Auto Dialogue
 
-| Setting Item | Description |
-| ---------------- | ---------------------------------- |
-| Enable Auto Dialogue | Whether to automatically rotate dialogue. |
+| Setting Item           | Description                                            |
+| ---------------------- | ------------------------------------------------------ |
+| Enable Auto Dialogue   | Whether to automatically rotate dialogue.              |
 | Auto Dialogue Interval | Interval for automatic dialogue change (3-30 seconds). |
-| Typing Effect Speed | Dialogue typing animation speed (10-200 ms/char). |
+| Typing Effect Speed    | Dialogue typing animation speed (10-200 ms/char).      |
 
 ### External Dialogue Files
 
-| Setting Item | Description |
-| ---------------- | -------------------------------- |
-| External File Format | Select TXT or JSON format. |
-| Use External File | Whether to read dialogue from the `dialogs/` folder. |
+| Setting Item         | Description                                          |
+| -------------------- | ---------------------------------------------------- |
+| External File Format | Select TXT or JSON format.                           |
+| Use External File    | Whether to read dialogue from the `dialogs/` folder. |
 
 ### Page Exclusion
 
@@ -135,17 +132,21 @@ Supports wildcard matching: add `(*)` at the end of the URL to match all subpage
 
 ### Style Settings
 
-| Setting Item       | Description                                                                                     |
-| ------------------ | ----------------------------------------------------------------------------------------------- |
-| Use Custom Style   | When enabled, the plugin will not load built-in CSS, allowing you to control the appearance    |
-| Custom Style Link  | You can enter `<link>` tags to load your own custom CSS stylesheet                             |
+| Setting Item      | Description                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| Use Custom Style  | When enabled, the plugin will not load built-in CSS, allowing you to control the appearance |
+| Custom Style Link | You can enter `<link>` tags to load your own custom CSS stylesheet                          |
 
 > 💡 **Tip**: This option is for advanced users. When enabled, you need to write your own styles for the Ukagaka in your **theme's CSS** or load them via the "Custom Style Link" field. If you don't plan to customize the CSS, leave this unchecked to use the plugin's built-in styles.
 
 **Custom Style Link Example:**
 
 ```html
-<link rel="stylesheet" href="https://example.com/custom-ukagaka.css" type="text/css" />
+<link
+  rel="stylesheet"
+  href="https://example.com/custom-ukagaka.css"
+  type="text/css"
+/>
 ```
 
 ---
@@ -171,11 +172,11 @@ Go to **Settings** → **MP Ukagaka** → **Create New Ukagaka**
 
 #### Required Fields
 
-| Field | Description | Example |
-| ---- | ------------------ | --------------------------------- |
-| Name | Name of the Ukagaka | `Frieren` |
-| Image URL | Full URL of the Ukagaka image | `https://example.com/ukagaka.png` |
-| Dialogue | Dialogue content, one per line | See example below |
+| Field     | Description                    | Example                           |
+| --------- | ------------------------------ | --------------------------------- |
+| Name      | Name of the Ukagaka            | `Frieren`                         |
+| Image URL | Full URL of the Ukagaka image  | `https://example.com/ukagaka.png` |
+| Dialogue  | Dialogue content, one per line | See example below                 |
 
 #### Dialogue Content Example
 
@@ -188,10 +189,10 @@ Magic requires time to study slowly.
 
 #### Optional Fields
 
-| Field | Description |
-| ------------ | -------------------------------- |
-| Dialogue Filename | Name of the external dialogue file (without extension). |
-| Generate File | Checking this will automatically generate the corresponding dialogue file. |
+| Field             | Description                                                                |
+| ----------------- | -------------------------------------------------------------------------- |
+| Dialogue Filename | Name of the external dialogue file (without extension).                    |
+| Generate File     | Checking this will automatically generate the corresponding dialogue file. |
 
 ### External Dialogue File Format
 
@@ -311,8 +312,9 @@ Page Awareness allows Ukagaka to automatically generate AI comments related to a
    - **Gemini**: Gemini 2.5 Flash (Recommended, fast and cost-effective), Gemini 2.5 Pro (Smarter, for complex reasoning)
    - **OpenAI**: GPT-4.1 Mini (Recommended, fast and cost-effective), GPT-4o Mini (Fast and economical), GPT-4o (Smarter)
    - **Claude**: Claude Sonnet 4.5 (Recommended), Claude Haiku 4.5 (Fast), Claude Opus 4.5 (Advanced)
-   
+
    > 🌍 **Multi-Language Support**: The model selection dropdown descriptions automatically display in the corresponding language (Traditional Chinese, English, Japanese) based on WordPress language settings. This helps users in different languages clearly understand each model's characteristics.
+
 4. **Enable "Page Awareness Feature"**
 
 ### Basic Settings
@@ -345,14 +347,17 @@ You are the mage Frieren, speaking in a calm, slightly cold tone, showing more i
 
 ```markdown
 ## Role
+
 You are the mage Frieren.
 
 ## Personality
+
 - Speaking in a calm, slightly cold tone
 - Showing more interest in magic-related topics
 - Time perception differs from humans
 
 ## Dialogue Rules
+
 - Keep responses under 50 words
 - Use casual tone (no honorifics)
 ```
@@ -374,6 +379,7 @@ You are the mage Frieren.
 **Variable Support:**
 
 You can use `{{variable_name}}` for dynamic replacement, for example:
+
 - `{{ukagaka_display_name}}`: Character name
 - `{{language}}`: Response language
 - `{{time_context}}`: Time context (e.g., "Spring Morning")
@@ -381,6 +387,7 @@ You can use `{{variable_name}}` for dynamic replacement, for example:
 **See the "Prompt System Architecture" section below for the complete variable list.**
 
 > 💡 **Tip**:
+>
 > - This setting integrates with the System Prompt optimization system in the LLM Settings page
 > - Modern LLMs (OpenAI, Claude, Gemini) can understand Markdown and XML formats directly
 > - Using structured formats helps models better understand character settings; Markdown format is recommended
@@ -454,11 +461,20 @@ Greet first-time visitors and briefly introduce this website.
 - Lightly mention visitor source or geographic info if available
 
 ### Conversation Examples
+
 - "Nice to meet you. What brought you here?"
 - "You came from Google, didn't you?"
 ```
 
 > 💡 **Tip**: Supports `{{variable_name}}` variable replacement, same as System Prompt.
+
+#### 8. Bot Detection
+
+The system automatically detects crawler bots. When a bot visit is detected, it can trigger specific dialogue reactions, such as "Intruder detected" or "Friendly greeting".
+
+![Bot Dialogue Example](../screenshot5.PNG)
+
+_Bot Detection Dialogue Example: AI reacting specifically to bot visits_
 
 ### Page Awareness Workflow
 
@@ -503,7 +519,6 @@ All providers use a unified settings interface, and you can switch between diffe
 ### Prerequisites
 
 1. **Install Ollama**
-
    - Go to [Ollama Official Website](https://ollama.ai/) to download and install.
    - Start the Ollama service.
    - Download a model: Run `ollama pull qwen3:8b` (or your preferred model) in the terminal.
@@ -651,22 +666,22 @@ PARAMETER repeat_last_n 64     # Repeat check window
 
 ##### Parameter Recommendations
 
-| Parameter | Description | Recommended |
-|-----------|-------------|-------------|
-| `num_predict` | Max output tokens | 80 (auto-talk), 200 (chat mode) |
-| `num_ctx` | Context length | 8192 (ensures full System Prompt) |
-| `temperature` | Creativity | 0.7 (balance consistency & variety) |
-| `top_p` | Top-p sampling | 0.9 (moderate variety) |
-| `repeat_penalty` | Repeat penalty | 1.3 (reduce repetition) |
+| Parameter        | Description       | Recommended                         |
+| ---------------- | ----------------- | ----------------------------------- |
+| `num_predict`    | Max output tokens | 80 (auto-talk), 200 (chat mode)     |
+| `num_ctx`        | Context length    | 8192 (ensures full System Prompt)   |
+| `temperature`    | Creativity        | 0.7 (balance consistency & variety) |
+| `top_p`          | Top-p sampling    | 0.9 (moderate variety)              |
+| `repeat_penalty` | Repeat penalty    | 1.3 (reduce repetition)             |
 
 > 📝 **Note**: The `num_predict` value depends on use case. Auto-talk mode needs shorter responses (80 tokens ≈ 40 Japanese chars); chat mode needs more space (200 tokens ≈ 100 chars). This differs from the `max_tokens: 600` setting in `manifest.json`, which applies to cloud APIs, not Ollama.
 
 ##### Modelfile vs Backend System Prompt
 
-| Method | Pros | Cons |
-|--------|------|------|
-| **Modelfile** | No token cost, consistent responses | Need to rebuild model to change |
-| **Backend Settings** | Easy to modify, flexible | Costs tokens each time |
+| Method               | Pros                                | Cons                            |
+| -------------------- | ----------------------------------- | ------------------------------- |
+| **Modelfile**        | No token cost, consistent responses | Need to rebuild model to change |
+| **Backend Settings** | Easy to modify, flexible            | Costs tokens each time          |
 
 > 💡 **Recommendation**: Use Modelfile if your character settings are stable. Use backend settings while still tuning the character.
 
@@ -730,19 +745,18 @@ This design makes character style more consistent while maintaining dialogue div
 1. **Backend System Prompt Settings**
 
    System Prompt is now completely controlled by **backend settings**, with the code only performing `{{variable}}` variable replacement.
-
    - **Setting Location**: **Settings** → **MP Ukagaka** → **LLM Settings** → **Personality (System Prompt)**
    - **Format Support**: Supports **Plain Text**, **Markdown**, and **XML Tag** formats
    - **Variable Support**: You can use variables like `{{ukagaka_display_name}}`, `{{language}}`, `{{time_context}}` in System Prompt
    - **Design Philosophy**: Backend System Prompt is the single source of truth. All character styles, behavior rules, and dialogue examples should be defined here
 
    **Format Description:**
-
    - **Plain Text Format**: The simplest and most direct way, suitable for simple settings
    - **Markdown Format** (Recommended): Use headings, lists, emphasis, etc., making settings more structured and readable; models can also understand better
    - **XML Tag Format** (Advanced): Provides the finest control, suitable for complex character settings
 
    > 💡 **Tip**:
+   >
    > - Modern LLMs (OpenAI GPT, Claude, Gemini) can directly understand Markdown and XML formats without additional processing
    > - Markdown format is recommended for a balance between readability and structure
    > - The input box uses monospace font for easier format structure viewing
@@ -900,14 +914,14 @@ This design makes character style more consistent while maintaining dialogue div
 
    The system uses "demon battle" metaphors to describe site statistics. The mapping is as follows:
 
-   | Site Statistics | Gamified Metaphor | Variable |
-   |----------------|-------------------|----------|
-   | Post Count | Demon Encounters | `{$post_count}` |
-   | Comment Count | Max Damage | `{$comment_count}` |
-   | Category Count | Skills Learned | `{$category_count}` |
-   | Tag Count | Items Used | `{$tag_count}` |
-   | Days Operating | Adventure Days | `{$days_operating}` |
-   | Plugin Count | Magic Learned | `{$plugins_count}` |
+   | Site Statistics | Gamified Metaphor | Variable            |
+   | --------------- | ----------------- | ------------------- |
+   | Post Count      | Demon Encounters  | `{$post_count}`     |
+   | Comment Count   | Max Damage        | `{$comment_count}`  |
+   | Category Count  | Skills Learned    | `{$category_count}` |
+   | Tag Count       | Items Used        | `{$tag_count}`      |
+   | Days Operating  | Adventure Days    | `{$days_operating}` |
+   | Plugin Count    | Magic Learned     | `{$plugins_count}`  |
 
    These metaphors are automatically integrated into User Prompt, making dialogues more consistent with the character's worldview.
 
@@ -926,13 +940,12 @@ This design makes character style more consistent while maintaining dialogue div
            ],
            // ... more categories (35 total)
        ];
-       
+
        return $prompt_categories;
    }
    ```
 
    **Instruction Design Points:**
-
    - ✅ **Concise and Clear**: Instructions should be concise and directly tell the LLM what type of dialogue to generate
    - ✅ **Task-Oriented**: Instructions should clearly tell the LLM "what type of dialogue to generate this time"
    - ✅ **Category-Appropriate**: Instructions should match the theme and style of the category
@@ -947,10 +960,9 @@ This design makes character style more consistent while maintaining dialogue div
 
    > ⚠️ **Note**: Time logic uses Taiwan Time Zone (Asia/Taipei). It will display Taiwan time correctly even if the server is in another timezone.
 
-7. **Anti-Repetition Mechanism**
+9. **Anti-Repetition Mechanism**
 
    The system automatically tracks the last response generated by the LLM to prevent repeating the same content in auto-dialogue:
-
    - When LLM generates dialogue, the system records this response.
    - Next time auto-dialogue triggers, the last response is passed to LLM.
    - LLM will generate different content based on the prompt or remain silent.
@@ -958,23 +970,21 @@ This design makes character style more consistent while maintaining dialogue div
 
    > 💡 This mechanism is handled automatically in the backend, no extra setup needed.
 
-8. **Idle Detection**
+10. **Idle Detection**
 
-   The system automatically detects user activity status and pauses auto-dialogue when the user is idle:
+    The system automatically detects user activity status and pauses auto-dialogue when the user is idle:
+    - **Idle Threshold**: 60 seconds (1 minute).
+    - **Activity Detection**: Mouse movement, keyboard input, page scroll, clicks.
+    - **Auto Resume**: Auto-dialogue resumes automatically when user becomes active.
+    - **Resource Saving**: Avoids wasting GPU and network resources in background tabs or when user is away.
 
-   - **Idle Threshold**: 60 seconds (1 minute).
-   - **Activity Detection**: Mouse movement, keyboard input, page scroll, clicks.
-   - **Auto Resume**: Auto-dialogue resumes automatically when user becomes active.
-   - **Resource Saving**: Avoids wasting GPU and network resources in background tabs or when user is away.
+    > 💡 Idle threshold can be adjusted in `ukagaka-core.js` via the `mpuIdleThreshold` constant (default 60000ms).
 
-   > 💡 Idle threshold can be adjusted in `ukagaka-core.js` via the `mpuIdleThreshold` constant (default 60000ms).
-
-9. **Notes After Modification**
-
-   - Clear WordPress cache after modification (if applicable).
-   - Recommend testing a few dialogues to ensure style meets expectations.
-   - Adjust the number of prompts in different categories based on character personality.
-   - More specific prompts lead to more consistent dialogue styles.
+11. **Notes After Modification**
+    - Clear WordPress cache after modification (if applicable).
+    - Recommend testing a few dialogues to ensure style meets expectations.
+    - Adjust the number of prompts in different categories based on character personality.
+    - More specific prompts lead to more consistent dialogue styles.
 
 **Prompt Design Suggestions:**
 
@@ -1024,7 +1034,6 @@ After enabling this option:
    ```
 
 2. **Verify Service Running**
-
    - Check Cloudflare Tunnel service status.
    - Confirm tunnel URL (e.g., `https://your-domain.com`).
 
@@ -1044,7 +1053,6 @@ The plugin also supports other tunnel services:
 #### LLM Connection Failed
 
 1. **Local Connection Issues**
-
    - Confirm Ollama service is running.
    - Check if port is 11434.
    - Try visiting `http://localhost:11434` in browser.
@@ -1058,7 +1066,6 @@ The plugin also supports other tunnel services:
 #### Slow Response Speed
 
 1. **Local Connection**
-
    - Use a faster model (e.g., `qwen3:8b`).
    - Enable "Disable Thinking Mode".
    - Check local resource usage.
@@ -1095,24 +1102,24 @@ The plugin also supports other tunnel services:
 
 Three AI services are supported:
 
-| Provider | Features | Get API Key |
-| ------------- | ---------------- | ------------------------------------------------------------ |
+| Provider      | Features             | Get API Key                                                  |
+| ------------- | -------------------- | ------------------------------------------------------------ |
 | Google Gemini | Fast, high free tier | [Google AI Studio](https://makersuite.google.com/app/apikey) |
-| OpenAI | GPT series models | [OpenAI Platform](https://platform.openai.com/api-keys) |
-| Claude | Advanced reasoning | [Anthropic Console](https://console.anthropic.com/) |
+| OpenAI        | GPT series models    | [OpenAI Platform](https://platform.openai.com/api-keys)      |
+| Claude        | Advanced reasoning   | [Anthropic Console](https://console.anthropic.com/)          |
 
 ### AI Setting Items
 
-| Setting Item | Description | Suggested Value |
-| --------------- | ------------------------------ | ----------- |
-| API Key | Key for the corresponding AI service | — |
-| Model | AI Model Version | Select as needed |
-| Language | Language for AI response | Traditional Chinese |
-| Personality | AI Personality Description (System Prompt) | See example below |
-| AI Response Rate | Probability of triggering AI (1-100%) | 10-30% |
-| Trigger Pages | Pages where AI triggers | `is_single` |
-| AI Text Color | Text color of AI response | `#ff6b6b` |
-| AI Display Time | How long AI response shows | 5-10 seconds |
+| Setting Item     | Description                                | Suggested Value     |
+| ---------------- | ------------------------------------------ | ------------------- |
+| API Key          | Key for the corresponding AI service       | —                   |
+| Model            | AI Model Version                           | Select as needed    |
+| Language         | Language for AI response                   | Traditional Chinese |
+| Personality      | AI Personality Description (System Prompt) | See example below   |
+| AI Response Rate | Probability of triggering AI (1-100%)      | 10-30%              |
+| Trigger Pages    | Pages where AI triggers                    | `is_single`         |
+| AI Text Color    | Text color of AI response                  | `#ff6b6b`           |
+| AI Display Time  | How long AI response shows                 | 5-10 seconds        |
 
 ### Personality Setting Example
 
@@ -1138,14 +1145,14 @@ You are the mage Frieren, speak in a calm, slightly cold tone, showing more inte
 
 Use WordPress conditional tags, multiple conditions separated by commas:
 
-| Tag | Description |
-| --------------- | ------------ |
-| `is_single` | Single Post Page |
-| `is_page` | Static Page |
-| `is_home` | Blog Home |
-| `is_front_page` | Site Home |
-| `is_category` | Category Page |
-| `is_tag` | Tag Page |
+| Tag             | Description      |
+| --------------- | ---------------- |
+| `is_single`     | Single Post Page |
+| `is_page`       | Static Page      |
+| `is_home`       | Blog Home        |
+| `is_front_page` | Site Home        |
+| `is_category`   | Category Page    |
+| `is_tag`        | Tag Page         |
 
 **Example:** `is_single,is_page` triggers on both posts and pages.
 
@@ -1179,11 +1186,11 @@ document
 
 Use special codes in dialogue to display dynamic content:
 
-| Code | Description |
-| ----------------- | --------------------- |
+| Code              | Description                 |
+| ----------------- | --------------------------- |
 | `:recentpost[5]:` | Show list of recent 5 posts |
-| `:randompost[3]:` | Show 3 random posts |
-| `:commenters[5]:` | Show recent 5 commenters |
+| `:randompost[3]:` | Show 3 random posts         |
+| `:commenters[5]:` | Show recent 5 commenters    |
 
 **Dialogue Example:**
 
@@ -1226,7 +1233,6 @@ Recent posts: :recentpost[3]:
 ### LLM Connection Failed
 
 1. **Local Connection**
-
    - Confirm Ollama service is running.
    - Check if port is 11434.
    - Try visiting `http://localhost:11434` in browser.
@@ -1312,15 +1318,15 @@ _Interactive Chat Mode: Visitors can directly engage in multi-turn conversations
 
 ### Chat Mode vs Page Awareness
 
-| Feature | Interactive Chat Mode | Page Awareness Mode |
-|---------|----------------------|---------------------|
-| **Trigger Method** | Visitor actively clicks "Chat" button | Auto-trigger (probability-based) |
-| **Interactivity** | Bidirectional multi-turn dialogue | One-way comments |
-| **Context** | Maintains complete conversation history | Only analyzes current page content |
-| **Use Case** | Visitor actively asks questions, consults | Auto-comments on article content |
-| **Response Frequency** | Responds to every input | Based on probability settings |
-| **Token Consumption** | Accumulates per conversation turn | Single comment |
-| **Enable Location** | General Settings → Dialogue Settings | AI Settings → Page Awareness |
+| Feature                | Interactive Chat Mode                     | Page Awareness Mode                |
+| ---------------------- | ----------------------------------------- | ---------------------------------- |
+| **Trigger Method**     | Visitor actively clicks "Chat" button     | Auto-trigger (probability-based)   |
+| **Interactivity**      | Bidirectional multi-turn dialogue         | One-way comments                   |
+| **Context**            | Maintains complete conversation history   | Only analyzes current page content |
+| **Use Case**           | Visitor actively asks questions, consults | Auto-comments on article content   |
+| **Response Frequency** | Responds to every input                   | Based on probability settings      |
+| **Token Consumption**  | Accumulates per conversation turn         | Single comment                     |
+| **Enable Location**    | General Settings → Dialogue Settings      | AI Settings → Page Awareness       |
 
 ### Technical Details
 
@@ -1329,6 +1335,7 @@ _Interactive Chat Mode: Visitors can directly engage in multi-turn conversations
 System uses keyword detection to decide whether to add WordPress statistics:
 
 **Supported Keywords (Traditional Chinese/Japanese/English)**:
+
 - Posts related: 文章, 記事, article, post
 - Comments related: 留言, コメント, comment
 - Site related: 網站, サイト, site, website
@@ -1336,6 +1343,7 @@ System uses keyword detection to decide whether to add WordPress statistics:
 - Theme related: 主題, テーマ, theme
 
 **Benefits**:
+
 - Most conversations don't include statistics, saving 70%+ tokens
 - Only adds when visitors ask relevant questions
 - Reduces API costs and response times
@@ -1363,9 +1371,10 @@ A: All LLM providers: Ollama, Gemini, OpenAI, Claude.
 
 **Q: How to control token consumption in conversations?**
 A: Conversation history accumulates tokens, suggestions:
-   - Use cheaper models (gemini-2.5-flash, gpt-4o-mini)
-   - Use Ollama (runs locally, completely free)
-   - Limit conversation turns (recommend restarting after 10 turns)
+
+- Use cheaper models (gemini-2.5-flash, gpt-4o-mini)
+- Use Ollama (runs locally, completely free)
+- Limit conversation turns (recommend restarting after 10 turns)
 
 **Q: Can chat box styling be customized?**
 A: Currently chat box styling is fixed, future versions may open customization options.
@@ -1383,11 +1392,13 @@ Thinking Mode lets supported AI models (like Qwen3, DeepSeek) perform internal r
 ### Default Behavior Change (v2.3.0)
 
 **Before (v2.2.0 and earlier)**:
+
 - ❌ Thinking Mode default **disabled** (`think = false`)
 - ❌ Configuration note: "Recommended to enable"
 - Behavior: AI answers directly, may be less accurate, thinking content may mix into response
 
 **Now (v2.3.0 onwards)**:
+
 - ✅ Thinking Mode default **enabled** (`think = true`)
 - ✅ Configuration note: "Enabled by default, optional disable"
 - Behavior: AI thinks first then answers, thinking separated from response, only shows response
@@ -1407,6 +1418,7 @@ Thinking Mode supports the following Ollama models:
 #### 1. Improves Answer Accuracy
 
 AI analyzes questions and thinks about strategy before generating answers, rather than responding directly. Especially suitable for:
+
 - Questions requiring reasoning
 - Complex multi-turn conversations
 - Responses considering context
@@ -1416,6 +1428,7 @@ AI analyzes questions and thinks about strategy before generating answers, rathe
 System automatically filters thinking process, ensuring visitors only see final response:
 
 **Thinking Content Detection Mechanisms**:
+
 - Detects `<think>...</think>` XML tags
 - Detects `<thinking>...</thinking>` XML tags
 - Detects thinking mode text patterns (like "I need", "User is", "Let me think")
@@ -1424,6 +1437,7 @@ System automatically filters thinking process, ensuring visitors only see final 
 #### 3. Advantages in Chat Mode
 
 When enabling thinking in Interactive Chat Mode:
+
 - Context window automatically expands to **8192 tokens**
 - Better multi-turn conversation context understanding
 - More coherent character personality maintenance
@@ -1466,27 +1480,29 @@ If you want faster responses (sacrificing some accuracy):
 4. Click "Save" button
 
 **Effects**:
+
 - ✅ Faster response speed (about 1-2 seconds faster)
 - ⚠️ Answer accuracy may decrease
 - ⚠️ Thinking content may mix into response (requires additional filtering)
 
 ### Thinking Mode vs Non-Thinking Mode
 
-| Feature | Thinking Mode (Default) | Non-Thinking Mode |
-|---------|------------------------|-------------------|
-| **Response Quality** | ⭐⭐⭐⭐⭐ High accuracy | ⭐⭐⭐ Faster but may be less accurate |
-| **Response Speed** | 🐌 Slightly slower (+1-2s) | 🚀 Faster |
-| **Context Window** | 8192 tokens (Chat Mode) | 4096 tokens (Chat Mode) |
-| **Thinking & Response** | ✅ Completely separated | ⚠️ May mix together |
-| **Use Cases** | Complex reasoning, long conversations | Simple chat, quick responses |
+| Feature                 | Thinking Mode (Default)               | Non-Thinking Mode                      |
+| ----------------------- | ------------------------------------- | -------------------------------------- |
+| **Response Quality**    | ⭐⭐⭐⭐⭐ High accuracy              | ⭐⭐⭐ Faster but may be less accurate |
+| **Response Speed**      | 🐌 Slightly slower (+1-2s)            | 🚀 Faster                              |
+| **Context Window**      | 8192 tokens (Chat Mode)               | 4096 tokens (Chat Mode)                |
+| **Thinking & Response** | ✅ Completely separated               | ⚠️ May mix together                    |
+| **Use Cases**           | Complex reasoning, long conversations | Simple chat, quick responses           |
 
 ### Common Questions
 
 **Q: How much response time does Thinking Mode add?**
 A: Usually adds 1-2 seconds, depending on:
-   - Model size (8B faster than 14B)
-   - Question complexity (simple questions think faster)
-   - Hardware configuration (GPU performance)
+
+- Model size (8B faster than 14B)
+- Question complexity (simple questions think faster)
+- Hardware configuration (GPU performance)
 
 **Q: Do cloud AI (Gemini/OpenAI/Claude) have Thinking Mode?**
 A: These services have built-in optimization, don't need or support manual thinking mode control.
@@ -1528,6 +1544,7 @@ Check this option to turn on the feature. When enabled, the system will check on
 #### 2. Post Category
 
 Select which category to publish diary posts to.
+
 > 💡 **Recommendation**: Create a dedicated category in WordPress Posts first, e.g., "Frieren's Notes" (slug: `frieren-notes`), and then select it here.
 
 #### 3. Post Author
@@ -1537,6 +1554,7 @@ Select which WordPress user to publish the diary as. It is usually recommended t
 #### 4. Trigger Probability
 
 Set the daily probability of triggering a diary (1% - 10%).
+
 - **2%**: About 0~1 posts per month (Rare)
 - **5%**: About 1~2 posts per month (Occasional)
 - **10%**: About 3 posts per month (Frequent)
@@ -1551,12 +1569,14 @@ Example: `*This entry was written by Frieren, the mage who has lived for over a 
 ### Diary AI Provider
 
 The diary feature uses **independent AI settings**, which means you can:
+
 - Use Ollama (Free) for chat functions
 - Use Gemini 2.5 Flash (High quality and cheap) for diary functions
 
 This ensures response speed for daily conversations while guaranteeing literary quality for diary content.
 
 Supported providers are the same as LLM settings:
+
 - **Gemini**: Recommended `Gemini 2.5 Flash`
 - **OpenAI**: Recommended `GPT-4.1 Mini`
 - **Claude**: Recommended `Claude Sonnet 4.5`
@@ -1574,21 +1594,21 @@ Each category has a `weight` value. The higher the weight, the more likely that 
 
 **Default Character (Frieren) Category Examples:**
 
-| Category | Weight | Description |
-|----------|--------|-------------|
-| `daily_observation` | 20 | Daily observations, street scenes |
-| `magic_research` | 18 | Magic research, experiment notes |
-| `memories` | 16 | Past journey memories |
-| `companions` | 15 | Interactions with companions |
-| `time_awareness` | 12 | Sense of time, millennial perspective |
-| `emotional_growth` | 10 | Emotional growth, self-discovery |
-| `first_class_exam` | 8 | First-class mage exam |
-| `demon_encounters` | 5 | Demon encounter records |
-| `mimic_adventures` | 4 | Treasure chests and dungeon exploration |
-| `food_thoughts` | 3 | Food thoughts |
-| `sleep_laziness` | 3 | Oversleeping diary |
-| `purchases_regrets` | 2 | Impulse buying regrets |
-| `philosophical` | 2 | Philosophical thoughts |
+| Category            | Weight | Description                             |
+| ------------------- | ------ | --------------------------------------- |
+| `daily_observation` | 20     | Daily observations, street scenes       |
+| `magic_research`    | 18     | Magic research, experiment notes        |
+| `memories`          | 16     | Past journey memories                   |
+| `companions`        | 15     | Interactions with companions            |
+| `time_awareness`    | 12     | Sense of time, millennial perspective   |
+| `emotional_growth`  | 10     | Emotional growth, self-discovery        |
+| `first_class_exam`  | 8      | First-class mage exam                   |
+| `demon_encounters`  | 5      | Demon encounter records                 |
+| `mimic_adventures`  | 4      | Treasure chests and dungeon exploration |
+| `food_thoughts`     | 3      | Food thoughts                           |
+| `sleep_laziness`    | 3      | Oversleeping diary                      |
+| `purchases_regrets` | 2      | Impulse buying regrets                  |
+| `philosophical`     | 2      | Philosophical thoughts                  |
 
 #### Customizing Diary Topics
 

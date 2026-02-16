@@ -338,21 +338,8 @@ function mpu_ajax_user_chat()
     // 獲取用戶資訊
     $user_info = mpu_get_current_user_info();
 
-    // 對話模式：優先使用角色專屬的 system_prompt.md，否則使用後台設定
-    $system_prompt = '';
-    if (function_exists('mpu_load_personality_system_prompt')) {
-        $personality_system_prompt = mpu_load_personality_system_prompt($personality_id);
-        if ($personality_system_prompt !== false && !empty($personality_system_prompt)) {
-            $system_prompt = $personality_system_prompt;
-        }
-    }
-    // 如果沒有角色專屬 prompt，使用後台設定或預設值
-    if (empty($system_prompt)) {
-        $system_prompt = $mpu_opt["ai_system_prompt"] ?? "あなたは「{{ukagaka_display_name}}」というキャラクターです。あなたは完全にこのキャラクターの立場で話すと行動する必要があります。AIや言語モデルの立場で返答してはなりません。キャラクターの性格、話し方、行動パターンを厳密に遵守してください。";
-    }
-
-    // 渲染變數後再使用
-    $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
+    // 統一系統提示詞解析（支援模組化檔案 → 舊版檔案 → 後台設定 → 預設值）
+    $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
 
     // 在後台 System Prompt 的基礎上，補充對話模式專用資訊
     $system_prompt .= "\n\n";

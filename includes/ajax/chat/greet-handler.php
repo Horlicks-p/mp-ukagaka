@@ -116,11 +116,8 @@ function mpu_ajax_chat_greet()
         'theme_author' => $wp_info['theme_author'] ?? '',
     ];
 
-    // 獲取打招呼提示詞（如果未設定，使用針對芙莉蓮的預設值）
-    $default_greet_prompt = "あなたは「{{ukagaka_display_name}}」。初回訪問者に対して挨拶する際は、以下のルールに従うこと。\n\n### 基本的な挨拶ルール\n\n1. **会話長度**：必ず**30文字**以内で収まること。\n2. **口調**：敬語（です・ます）は厳禁。「〜だよ」「〜だね」などの常体のみ使用。\n3. **淡々とした態度**：過度に熱心にならず、冷静に挨拶すること。\n\n### 訪問者の情報に基づく対応\n\n#### 直接訪問（referrer なし）\n\n- 直接訪問の場合：「初めまして。こちらに来たんだね。」と淡々と。\n\n#### 検索エンジン経由\n\n- Google 経由：「Google から来たのか。何か探しているのかな。」\n- その他の検索エンジン：同様に淡々と対応。\n\n#### 外部サイト経由\n\n- 特定のサイトから来た場合：「[サイト名]から来たんだね。」と一言。\n- 興味を示す必要はないが、気づいたことは口にする。\n\n#### 地理的情報（Slimstat が有効な場合）\n\n- 国・都市情報がある場合：「[国名/都市名]から来たんだね。」と軽く言及。\n- 地理的な話題は避け、単なる観察として述べる。\n\n### 会話例\n\n- 「初めまして。何か用事があったのかな。」\n- 「Google から来たんだね。何か探しているのかな。」\n- 「[サイト名]から来たのか。興味深いね。」\n- 「[国名]から来たんだね。」\n- 「初めて来たのか。まあ、ゆっくりしていくといいよ。」\n\n### 重要な注意事項\n\n- **からかわない**：初回訪問者なので、まだからかう段階ではない。\n- **魔法や冒険の話題は出さない**：初回は基本的な挨拶のみ。\n- **簡潔に**：長々と説明しない。一言で終わること。";
-
-    $system_prompt = $mpu_opt["ai_greet_prompt"] ?? $default_greet_prompt;
-    $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
+    // 統一系統提示詞解析（吃到 personality 檔案：instructions.md + personality.md 等）
+    $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
 
     $user_info = mpu_get_current_user_info();
 
@@ -164,13 +161,36 @@ function mpu_ajax_chat_greet()
     }
 
     if (!empty($country)) {
-        $user_prompt .= "訪問者は「{$country}」から来ました";
+        $country_name = function_exists('mpu_country_code_to_name') ? mpu_country_code_to_name($country) : $country;
+        $user_prompt .= "訪問者は「{$country_name}」から来ました";
         if (!empty($city)) {
             $user_prompt .= "の「{$city}」";
         }
         $user_prompt .= "。";
     }
 
+    // ===== 初回訪問挨拶專用：會話指示選擇 =====
+    // 優先順序：dynamics.json greet_first_visit → 後台 ai_greet_prompt → hardcoded 預設
+    $greet_instruction = '';
+
+    if (function_exists('mpu_load_personality_dynamic_prompts')) {
+        $dynamic_prompts = mpu_load_personality_dynamic_prompts($personality_id);
+        if (!empty($dynamic_prompts['greet_first_visit']) && is_array($dynamic_prompts['greet_first_visit'])) {
+            $greet_instruction = $dynamic_prompts['greet_first_visit'][array_rand($dynamic_prompts['greet_first_visit'])];
+        }
+    }
+
+    // Fallback：後台設定的打招呼提示詞
+    if (empty($greet_instruction) && !empty($mpu_opt['ai_greet_prompt'])) {
+        $greet_instruction = mpu_render_prompt_template($mpu_opt['ai_greet_prompt'], $variables);
+    }
+
+    // Fallback：hardcoded 預設
+    if (empty($greet_instruction)) {
+        $greet_instruction = '初回訪問者のアクセス元に軽く触れながら、淡々と短く挨拶する。敬語は使わず常体で話す';
+    }
+
+    $user_prompt .= "\n\n【会話指示】\n" . $greet_instruction;
     $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で挨拶すること。";
 
     // 從 manifest.json 的 settings.max_tokens 讀取（預設 800）

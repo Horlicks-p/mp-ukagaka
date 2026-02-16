@@ -95,7 +95,59 @@
             </div>
             <div class="mpu-field-group">
                 <label for="ai_system_prompt"><?php _e('人格設定 (System Prompt)：', 'mp-ukagaka'); ?></label>
-                <textarea cols="60" rows="10" id="ai_system_prompt" name="ai_system_prompt" class="resizable" style="line-height:130%; width: 100%; max-width: 850px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace;"><?php echo isset($mpu_opt['ai_system_prompt']) ? esc_textarea($mpu_opt['ai_system_prompt']) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。必ずこのキャラクターとして振る舞い、一人称は「私」を使用してください。回答は日本語で、50文字以内の短い一言で返してください。自分が AI や Qwen だと言わないでください。'; ?></textarea>
+                <?php
+                // 偵測目前系統提示詞的來源並顯示指示器
+                $current_personality_id = function_exists('mpu_get_current_personality_id') ? mpu_get_current_personality_id() : null;
+                $prompt_source = function_exists('mpu_detect_prompt_source') ? mpu_detect_prompt_source($current_personality_id, $mpu_opt) : 'backend';
+                $source_configs = [
+                    'modular' => [
+                        'color' => '#46b450',
+                        'bg' => '#ecf7ed',
+                        'icon' => '🧩',
+                        'label' => __('模組化檔案使用中', 'mp-ukagaka'),
+                        'desc' => __('instructions.md + personality.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。', 'mp-ukagaka'),
+                        'readonly' => true,
+                    ],
+                    'system_prompt_md' => [
+                        'color' => '#0073aa',
+                        'bg' => '#e8f4fd',
+                        'icon' => '📄',
+                        'label' => __('Legacy 檔案使用中', 'mp-ukagaka'),
+                        'desc' => __('system_prompt.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。', 'mp-ukagaka'),
+                        'readonly' => true,
+                    ],
+                    'manifest' => [
+                        'color' => '#826eb4',
+                        'bg' => '#f3f0f8',
+                        'icon' => '📋',
+                        'label' => __('manifest.json 使用中', 'mp-ukagaka'),
+                        'desc' => __('manifest.json 的 system_prompt 欄位將作為 System Prompt。下方 textarea 的內容不會被使用。', 'mp-ukagaka'),
+                        'readonly' => true,
+                    ],
+                    'backend' => [
+                        'color' => '#dba617',
+                        'bg' => '#fef8e8',
+                        'icon' => '✏️',
+                        'label' => __('Textarea 使用中', 'mp-ukagaka'),
+                        'desc' => __('下方 textarea 的內容將作為 System Prompt。', 'mp-ukagaka'),
+                        'readonly' => false,
+                    ],
+                    'default' => [
+                        'color' => '#dc3232',
+                        'bg' => '#fbeaea',
+                        'icon' => '⚠️',
+                        'label' => __('未設定（內建預設值）', 'mp-ukagaka'),
+                        'desc' => __('沒有找到任何設定，將使用內建的預設 System Prompt。', 'mp-ukagaka'),
+                        'readonly' => false,
+                    ],
+                ];
+                $cfg = $source_configs[$prompt_source] ?? $source_configs['default'];
+                ?>
+                <div style="margin: 6px 0 8px; padding: 8px 12px; border-left: 4px solid <?php echo esc_attr($cfg['color']); ?>; background: <?php echo esc_attr($cfg['bg']); ?>; max-width: 850px;">
+                    <strong><?php echo esc_html($cfg['icon'] . ' ' . $cfg['label']); ?></strong>
+                    <span style="margin-left: 6px; color: #555;"><?php echo esc_html($cfg['desc']); ?></span>
+                </div>
+                <textarea cols="60" rows="10" id="ai_system_prompt" name="ai_system_prompt" class="resizable" style="line-height:130%; width: 100%; max-width: 850px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace;<?php echo $cfg['readonly'] ? ' opacity: 0.6;' : ''; ?>"<?php echo $cfg['readonly'] ? ' readonly' : ''; ?>><?php echo isset($mpu_opt['ai_system_prompt']) ? esc_textarea($mpu_opt['ai_system_prompt']) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。必ずこのキャラクターとして振る舞い、一人称は「私」を使用してください。回答は日本語で、50文字以内の短い一言で返してください。自分が AI や Qwen だと言わないでください。'; ?></textarea>
                 <small>
                     <?php _e('提示：支援 Markdown 格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。', 'mp-ukagaka'); ?>
                 </small>
@@ -151,10 +203,10 @@
                 <small><?php _e('當訪客第一次訪問網站時，根據訪客來源（使用 Slimstat API）用 AI 生成個性化打招呼訊息。每個訪客只會看到一次。', 'mp-ukagaka'); ?></small>
             </div>
             <div class="mpu-field-group" id="ai_greet_prompt_container" style="<?php echo (isset($mpu_opt['ai_greet_first_visit']) && $mpu_opt['ai_greet_first_visit']) ? '' : 'display:none;'; ?>">
-                <label for="ai_greet_prompt"><?php _e('首次訪客打招呼提示詞：', 'mp-ukagaka'); ?></label>
+                <label for="ai_greet_prompt"><?php _e('首次訪客打招呼提示詞（後備）：', 'mp-ukagaka'); ?></label>
                 <textarea cols="60" rows="8" id="ai_greet_prompt" name="ai_greet_prompt" class="resizable" style="line-height:130%; width: 100%; max-width: 850px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace;"><?php echo isset($mpu_opt['ai_greet_prompt']) ? esc_textarea($mpu_opt['ai_greet_prompt']) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。'; ?></textarea>
                 <small>
-                    <?php _e('提示：支援 Markdown 格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。', 'mp-ukagaka'); ?>
+                    <?php _e('角色的 <code>dynamics.json</code> 中有 <code>greet_first_visit</code> 設定時，會優先使用該設定作為會話指示。此欄位僅在角色無 dynamics.json 設定時作為後備使用。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。', 'mp-ukagaka'); ?>
                 </small>
             </div>
         </div>

@@ -6,6 +6,27 @@
 
 ---
 
+## [2.8.2] - 2026-02-16
+
+- 新增：`mpu_country_code_to_name` 工具函數，用於將 ISO 3166-1 國碼轉換為完整國家名稱（優先使用 PHP intl 擴展）。
+- 優化：在 LLM 上下文（打招呼、對話上下文、Prompt 變數）中，將訪客的國家代碼轉換為完整名稱（如 "JP" -> "日本"），提升 AI 回應的自然度。
+
+## [2.8.1] - 2026-02-16
+
+### 📝 System Prompt 載入機制重構
+
+- **統一載入邏輯**：重構了所有 AJAX 處理器（`mpu_ajax_chat_context`, `mpu_ajax_user_chat`, `mpu_ajax_touch_zone_chat`, `mpu_ajax_decoration_chat`）的 System Prompt 載入方式，確保行為一致。
+- **支援模組化 Personality 檔案**：
+  - 新增支援將 `system_prompt.md` 拆分為 `personality.md`（角色背景）與 `instructions.md`（行為規範）。
+  - 提供更靈活的角色設定管理方式。
+- **UI 來源指示器**：
+  - 在後台 AI 設定頁面的 System Prompt 區域新增來源指示器。
+  - 明確顯示目前使用的是模組化檔案、Legacy 檔案、Manifest 設定還是後台 Textarea 內容。
+
+### 🐛 錯誤修復
+
+- **觸摸反應 System Prompt 修復**：修正了 `ajax-touch-handlers-llm.php` 中的函數名稱錯誤，解決了觸摸與裝飾品互動時無法正確載入角色專屬 System Prompt 的問題。
+
 ## [2.8.0] - 2026-02-15
 
 ### 🚀 重大更新：Abilities API (工具调用)

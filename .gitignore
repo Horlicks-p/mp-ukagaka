@@ -15,6 +15,8 @@ Thumbs.db
 desktop.ini
 future-plan.md
 CLAUDE.md
+claude.sh
+claude.bat
 
 # IDE files
 .idea/
@@ -22,6 +24,7 @@ CLAUDE.md
 *.sublime-project
 *.sublime-workspace
 .cursor/
+.claude
 
 # Build files
 node_modules/
@@ -43,6 +46,8 @@ error.log
 .env
 .env.local
 wp-config.php
+FUTURE_PLAN.md
+PROMPT_MARKDOWN_FEASIBILITY_PLAN.md
 
 # Temporary files
 *.tmp

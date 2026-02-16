@@ -31,6 +31,14 @@ The following AI models currently support tool calling in this plugin:
 - **OpenAI**: GPT-4o, GPT-4o-mini, etc.
 - **Ollama**: Qwen 2.5, Llama 3.1, etc. (Models supporting Tool Calling).
 
+## Permissions and Security
+
+Core abilities involving sensitive operations (File operations, Delete posts, etc.) are automatically restricted. If triggered by non-admin users, the system will intercept the request and return an "Insufficient Permissions" notice to ensure security.
+
+![Permission Block Example](../screenshot6.PNG)
+
+_Permission Control: System reaction when non-admin users trigger sensitive MCP commands_
+
 ## How to Add Abilities (Developer Guide)
 
 MP Ukagaka automatically detects and uses all Abilities registered to the WordPress core. You can add abilities using two methods:

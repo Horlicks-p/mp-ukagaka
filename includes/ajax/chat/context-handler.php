@@ -112,8 +112,8 @@ function mpu_ajax_chat_context()
         'theme_author' => $wp_info['theme_author'] ?? '',
     ];
 
-    $system_prompt = $mpu_opt["ai_system_prompt"] ?? "あなたは「{{ukagaka_display_name}}」というキャラクターです。必ずこのキャラクターとして振る舞い、一人称は「私」を使用してください。回答は日本語で、50文字以内の短い一言で返してください。自分が AI や Qwen だと言わないでください。";
-    $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
+    // 統一系統提示詞解析（修正：原先忽略了 personality 檔案，現在支援模組化 → 舊版 → 後台 → 預設值）
+    $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
 
     $user_info = mpu_get_current_user_info();
     $visitor_info = mpu_get_visitor_info_for_llm();
@@ -152,7 +152,8 @@ function mpu_ajax_chat_context()
         $user_prompt .= "BOT検出：{$bot_name}\n";
     }
     if (!empty($visitor_info['slimstat_country'])) {
-        $user_prompt .= "アクセス元地域：{$visitor_info['slimstat_country']}";
+        $country_name = function_exists('mpu_country_code_to_name') ? mpu_country_code_to_name($visitor_info['slimstat_country']) : $visitor_info['slimstat_country'];
+        $user_prompt .= "アクセス元地域：{$country_name}";
         if (!empty($visitor_info['slimstat_city'])) {
             $user_prompt .= " {$visitor_info['slimstat_city']}";
         }

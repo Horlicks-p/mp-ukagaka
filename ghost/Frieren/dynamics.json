@@ -1,9 +1,17 @@
 {
   "_format_version": "1.5",
-  "_description": "動態提示詞模板。天氣類別：weather_sunny, weather_cloudy, weather_rainy, weather_snowy, weather_hot, weather_cold, weather_report。weather_report 專用變數：{tomorrow_weather}, {umbrella_advice}, {precipitation_probability}, {precipitation_text}。訪問時間類別：greeting_long_absence, greeting_regular。訪問時間變數：{hours_since_visit}。日記類別：diary_prompts。diary_title_prefix 用於頁面感知檢測自己的日記。",
+  "_description": "動態提示詞模板。天氣類別：weather_sunny, weather_cloudy, weather_rainy, weather_snowy, weather_hot, weather_cold, weather_report。weather_report 專用變數：{tomorrow_weather}, {umbrella_advice}, {precipitation_probability}, {precipitation_text}。訪問時間類別：greeting_long_absence, greeting_regular。訪問時間變數：{hours_since_visit}。日記類別：diary_prompts。diary_title_prefix 用於頁面感知檢測自己的日記。初回訪問挨拶類別：greet_first_visit（Slimstat 訪客資訊由 user_prompt 注入，此處為會話指示）。",
   
   "diary_title_prefix": "[フリーレン手記]",
-  
+
+  "greet_first_visit": [
+    "初回訪問者のアクセス元（検索エンジン名、参照サイト名、直接訪問など）に軽く触れながら、淡々と短く挨拶する。地域情報があればさりげなく言及する。敬語は使わず常体で話す",
+    "どこから来たのか（検索エンジン、参照サイト、直接訪問）を一言で触れつつ、初めての訪問者に淡々と声をかける。地域情報は分かれば軽く口にする。敬語は使わず常体で話す",
+    "訪問者がどこから辿り着いたかに気づいたことをさりげなく口にしながら、初回訪問を淡々と認識する。からかわず、短く。敬語は使わず常体で話す",
+    "初回訪問者のアクセス経路を自然に織り込みながら一言挨拶する。地域情報があれば軽く言及してもよい。敬語は使わず常体で話す",
+    "初めて来た訪問者を認識し、アクセス元の情報（検索エンジンやリファラー）を自然に交えて短く声をかける。敬語は使わず常体で話す"
+  ],
+
   "page_aware_own_diary_past": [
     "これは自分が以前書いた日記だと気づき、150文字以内で淡々と感想を述べる。敬語は使わず「〜だよ」「〜だね」などの常体で話す",
     "自分の日記を見つけたことに気づき、何を書いたか少し思い出しながら150文字以内でコメントする。敬語は使わず常体で話す",

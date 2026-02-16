@@ -720,7 +720,7 @@ function mpu_get_visitor_status_text($visitor_info)
 
     // 地理位置資訊
     if (!empty($visitor_info['slimstat_country'])) {
-        $location = $visitor_info['slimstat_country'];
+        $location = function_exists('mpu_country_code_to_name') ? mpu_country_code_to_name($visitor_info['slimstat_country']) : $visitor_info['slimstat_country'];
         if (!empty($visitor_info['slimstat_city'])) {
             $location .= " / {$visitor_info['slimstat_city']}";
         }
@@ -909,22 +909,9 @@ function mpu_build_optimized_system_prompt(
 ) {
     $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
 
-    // 優先級：1. system_prompt.md 檔案 2. manifest.json 中的 system_prompt 欄位 3. 後台全域設定
+    // 解析 personality_id（如果未提供）
     if ($personality_id === null && function_exists('mpu_get_personality_id_from_ukagaka_name')) {
         $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-    }
-
-    $system_prompt = null;
-    if ($personality_id !== null && function_exists('mpu_load_personality_system_prompt')) {
-        $prompt = mpu_load_personality_system_prompt($personality_id);
-        if ($prompt !== false) {
-            $system_prompt = $prompt;
-        }
-    }
-
-    if ($system_prompt === null) {
-        $system_prompt = $mpu_opt['ai_system_prompt'] ??
-            "你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。";
     }
 
     // 準備變數陣列
@@ -971,8 +958,8 @@ function mpu_build_optimized_system_prompt(
     }
     $variables['slimstat_top_resources'] = $top_resources_text;
 
-    // 使用模板渲染函數進行變數替換
-    $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
+    // 統一系統提示詞解析（支援模組化檔案 → 舊版檔案 → 後台設定 → 預設值）
+    $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
 
     return $system_prompt;
 }

@@ -6,6 +6,27 @@
 
 ---
 
+## [2.8.2] - 2026-02-16
+
+- 追加：ISO 3166-1 国コードを完全な国名に変換する `mpu_country_code_to_name` ユーティリティ関数を追加（PHP intl 拡張を優先使用）。
+- 改善：LLM コンテキスト（挨拶、チャットコンテキスト、プロンプト変数）において、訪問者の国コードを完全な名前（例："JP" -> "日本"）に変換し、AI の応答の自然さを向上させました。
+
+## [2.8.1] - 2026-02-16
+
+### 📝 System Prompt 読み込みメカニズムのリファクタリング
+
+- **読み込みロジックの統一**：すべての AJAX ハンドラー（`mpu_ajax_chat_context`, `mpu_ajax_user_chat`, `mpu_ajax_touch_zone_chat`, `mpu_ajax_decoration_chat`）における System Prompt 読み込み方法を統一し、一貫性を確保しました。
+- **モジュラー Personality ファイルのサポート**：
+  - `system_prompt.md` を `personality.md`（キャラクター背景）と `instructions.md`（行動指針）に分割する機能をサポートしました。
+  - より柔軟なキャラクター設定管理が可能になります。
+- **UI ソースインジケーター**：
+  - 管理画面の AI 設定ページの System Prompt エリアにソースインジケーターを追加しました。
+  - 現在使用されているのがモジュラーファイル、レガシーファイル、Manifest 設定、またはバックエンド Textarea のいずれであるかを明確に表示します。
+
+### 🐛 バグ修正
+
+- **タッチ反応 System Prompt の修正**：`ajax-touch-handlers-llm.php` 内の関数名の誤りを修正し、タッチや装飾品インタラクション時にキャラクター固有の System Prompt が正しく読み込まれない問題を解決しました。
+
 ## [2.8.0] - 2026-02-15
 
 ### 🚀 メジャーアップデート：Abilities API (ツール呼び出し)

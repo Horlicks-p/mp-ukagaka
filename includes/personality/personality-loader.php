@@ -312,6 +312,169 @@ function mpu_load_personality_system_prompt($personality_id = null)
 }
 
 /**
+ * Load modular personality prompt (instructions.md + personality.md)
+ *
+ * Priority:
+ * 1. Modular files: instructions.md + personality.md (either or both)
+ * 2. Legacy: system_prompt.md → manifest.json (via mpu_load_personality_system_prompt)
+ *
+ * @param string|null $personality_id Personality ID, or null for current
+ * @return string|false Combined prompt string, or false if no modular files found
+ */
+function mpu_load_personality_full_prompt($personality_id = null)
+{
+    if ($personality_id === null) {
+        $personality_id = mpu_get_current_personality_id();
+    } else {
+        $personality_id = mpu_sanitize_personality_id($personality_id);
+        if (empty($personality_id)) {
+            return false;
+        }
+    }
+
+    $dir = mpu_get_personalities_dir() . '/' . $personality_id;
+    $instructions_path = $dir . '/instructions.md';
+    $personality_path = $dir . '/personality.md';
+
+    $instructions = '';
+    $personality = '';
+
+    if (file_exists($instructions_path) && is_readable($instructions_path)) {
+        $content = file_get_contents($instructions_path);
+        if ($content !== false) {
+            $instructions = $content;
+        }
+    }
+
+    if (file_exists($personality_path) && is_readable($personality_path)) {
+        $content = file_get_contents($personality_path);
+        if ($content !== false) {
+            $personality = $content;
+        }
+    }
+
+    // At least one modular file must exist
+    if (empty($instructions) && empty($personality)) {
+        return false;
+    }
+
+    // Instructions first (LLM sees protocol before personality)
+    $parts = [];
+    if (!empty($instructions)) {
+        $parts[] = $instructions;
+    }
+    if (!empty($personality)) {
+        $parts[] = $personality;
+    }
+
+    return implode("\n\n", $parts);
+}
+
+/**
+ * Resolve system prompt with unified fallback chain
+ *
+ * Priority:
+ * 1. Modular files (instructions.md + personality.md)
+ * 2. Legacy files (system_prompt.md → manifest.json)
+ * 3. Backend setting ($mpu_opt['ai_system_prompt'])
+ * 4. Hardcoded default (zh-TW, same as core-functions.php)
+ *
+ * Always returns a non-empty string with {{variables}} rendered.
+ *
+ * @param string|null $personality_id Personality ID
+ * @param array $mpu_opt Plugin options
+ * @param string $ukagaka_name Ukagaka display name (for {{ukagaka_display_name}})
+ * @param array $variables Template variables for {{}} substitution
+ * @return string Resolved system prompt (never empty)
+ */
+function mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name, $variables = [])
+{
+    // Ensure ukagaka_display_name is always available
+    if (!isset($variables['ukagaka_display_name'])) {
+        $variables['ukagaka_display_name'] = $ukagaka_name;
+    }
+
+    $system_prompt = null;
+
+    // Priority 1: Modular files (instructions.md + personality.md)
+    if ($personality_id !== null) {
+        $modular = mpu_load_personality_full_prompt($personality_id);
+        if ($modular !== false) {
+            $system_prompt = $modular;
+        }
+    }
+
+    // Priority 2: Legacy files (system_prompt.md → manifest.json)
+    if ($system_prompt === null && $personality_id !== null) {
+        $legacy = mpu_load_personality_system_prompt($personality_id);
+        if ($legacy !== false) {
+            $system_prompt = $legacy;
+        }
+    }
+
+    // Priority 3: Backend setting
+    if ($system_prompt === null && !empty($mpu_opt['ai_system_prompt'])) {
+        $system_prompt = $mpu_opt['ai_system_prompt'];
+    }
+
+    // Priority 4: Hardcoded default (same as core-functions.php)
+    if ($system_prompt === null) {
+        $system_prompt = "你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。";
+    }
+
+    // Render template variables
+    if (function_exists('mpu_render_prompt_template')) {
+        $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
+    }
+
+    return $system_prompt;
+}
+
+/**
+ * Detect the current system prompt source for admin UI display
+ *
+ * @param string|null $personality_id Personality ID
+ * @param array $mpu_opt Plugin options
+ * @return string Source identifier: 'modular', 'system_prompt_md', 'manifest', 'backend', 'default'
+ */
+function mpu_detect_prompt_source($personality_id, $mpu_opt)
+{
+    if ($personality_id !== null) {
+        $personality_id = mpu_sanitize_personality_id($personality_id);
+    }
+
+    // Check modular files
+    if (!empty($personality_id)) {
+        $dir = mpu_get_personalities_dir() . '/' . $personality_id;
+        $has_instructions = file_exists($dir . '/instructions.md') && is_readable($dir . '/instructions.md');
+        $has_personality = file_exists($dir . '/personality.md') && is_readable($dir . '/personality.md');
+
+        if ($has_instructions || $has_personality) {
+            return 'modular';
+        }
+
+        // Check legacy system_prompt.md
+        if (file_exists($dir . '/system_prompt.md') && is_readable($dir . '/system_prompt.md')) {
+            return 'system_prompt_md';
+        }
+
+        // Check manifest.json system_prompt field
+        $manifest = mpu_load_personality_manifest($personality_id);
+        if (!empty($manifest['system_prompt'])) {
+            return 'manifest';
+        }
+    }
+
+    // Backend textarea
+    if (!empty($mpu_opt['ai_system_prompt'])) {
+        return 'backend';
+    }
+
+    // Nothing set
+    return 'default';
+}
+
+/**
  * Load personality weights
  * 
  * @param string|null $personality_id Personality ID, or null for current

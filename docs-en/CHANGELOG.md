@@ -6,6 +6,27 @@
 
 ---
 
+## [2.8.2] - 2026-02-16
+
+- New: Added `mpu_country_code_to_name` utility function to convert ISO 3166-1 country codes to full country names (prioritizing PHP intl extension).
+- Improvement: Converted visitor country codes to full names (e.g., "JP" -> "Japan") in LLM contexts (Greeting, Chat Context, Prompt Variables) to improve AI response naturalness.
+
+## [2.8.1] - 2026-02-16
+
+### 📝 System Prompt Loading Refactor
+
+- **Unified Loading Logic**: Refactored the System Prompt loading mechanism across all AJAX handlers (`mpu_ajax_chat_context`, `mpu_ajax_user_chat`, `mpu_ajax_touch_zone_chat`, `mpu_ajax_decoration_chat`) to ensure consistency.
+- **Modular Personality File Support**:
+  - Added support for splitting `system_prompt.md` into `personality.md` (Character Background) and `instructions.md` (Behavioral Guidelines).
+  - Provides more flexible character configuration management.
+- **UI Source Indicator**:
+  - Added a source indicator to the System Prompt section in the admin AI settings page.
+  - Clearly displays whether the current source is Modular Files, Legacy File, Manifest Settings, or Backend Textarea.
+
+### 🐛 Bug Fixes
+
+- **Touch Reaction System Prompt Fix**: Resolved a function name typo in `ajax-touch-handlers-llm.php`, ensuring character-specific System Prompts are correctly loaded during touch and decoration interactions.
+
 ## [2.8.0] - 2026-02-15
 
 ### 🚀 Major Update: Abilities API (Tool Calling)

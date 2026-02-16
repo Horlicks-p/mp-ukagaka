@@ -702,6 +702,50 @@ function mpu_render_prompt_template($template, $variables = [])
 }
 
 // ========================================
+// 國碼轉換
+// ========================================
+
+/**
+ * 將 ISO 3166-1 alpha-2 國碼轉換為日語國名
+ *
+ * 優先使用 PHP intl 擴展（Locale::getDisplayRegion），
+ * 若不可用則使用內建的常見國碼對照表。
+ *
+ * @param string $code ISO 3166-1 alpha-2 國碼（如 "JP"、"TW"）
+ * @param string $locale 顯示語言（預設 'ja'）
+ * @return string 國名（如 "日本"、"台湾"），無法轉換時原樣返回國碼
+ */
+function mpu_country_code_to_name($code, $locale = 'ja')
+{
+    if (empty($code)) {
+        return '';
+    }
+    $code = strtoupper(trim($code));
+
+    // 優先使用 intl 擴展
+    if (class_exists('Locale')) {
+        $name = Locale::getDisplayRegion('-' . $code, $locale);
+        if (!empty($name) && $name !== '-' . $code && $name !== $code) {
+            return $name;
+        }
+    }
+
+    // Fallback：常見國碼對照（日語）
+    $map = [
+        'JP' => '日本', 'TW' => '台湾', 'CN' => '中国', 'HK' => '香港',
+        'KR' => '韓国', 'US' => 'アメリカ', 'GB' => 'イギリス', 'DE' => 'ドイツ',
+        'FR' => 'フランス', 'CA' => 'カナダ', 'AU' => 'オーストラリア',
+        'SG' => 'シンガポール', 'TH' => 'タイ', 'VN' => 'ベトナム',
+        'PH' => 'フィリピン', 'MY' => 'マレーシア', 'ID' => 'インドネシア',
+        'IN' => 'インド', 'RU' => 'ロシア', 'BR' => 'ブラジル',
+        'IT' => 'イタリア', 'ES' => 'スペイン', 'NL' => 'オランダ',
+        'SE' => 'スウェーデン', 'NZ' => 'ニュージーランド', 'MX' => 'メキシコ',
+    ];
+
+    return isset($map[$code]) ? $map[$code] : $code;
+}
+
+// ========================================
 // 網路工具函數
 // ========================================
 

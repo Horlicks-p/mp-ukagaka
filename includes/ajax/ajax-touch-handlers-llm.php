@@ -65,22 +65,8 @@ function mpu_ajax_decoration_chat()
 
     $language = $mpu_opt['ai_language'] ?? 'ja';
 
-    // 獲取系統提示詞（優先使用角色專屬的 system_prompt.md）
-    
-    // 嘗試加載角色專屬的 system_prompt.md
-    $system_prompt = '';
-    if (function_exists('mpu_get_personality_system_prompt')) {
-        $system_prompt = mpu_get_personality_system_prompt($personality_id);
-    }
-    
-    // 如果沒有角色專屬 prompt，使用後台設定
-    if (empty($system_prompt)) {
-        $system_prompt = str_replace(
-            '{{ukagaka_display_name}}',
-            $ukagaka_name,
-            $mpu_opt['ai_system_prompt'] ?? 'あなたは「{{ukagaka_display_name}}」というキャラクターです。あなたは完全にこのキャラクターの立場で話すと行動する必要があります。'
-        );
-    }
+    // 統一系統提示詞解析（修正：原先使用不存在的函數名 mpu_get_personality_system_prompt）
+    $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name);
 
     // 獲取提供商和 API Key
     $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
@@ -149,11 +135,6 @@ function mpu_ajax_decoration_chat()
     // 分析對話內容的情緒，獲取對應的表情
     $emoji = null;
     if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-        // 獲取 personality_id 以載入角色專屬的表情關鍵字
-        $personality_id = null;
-        if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-            $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-        }
         $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
     }
 
@@ -205,10 +186,17 @@ function mpu_ajax_touch_zone_chat()
         return;
     }
 
-    // 獲取 personality_id
+    // 獲取角色名稱（修正：原先在此之後才定義 $ukagaka_name，導致 undefined variable）
+    $ukagaka_name = $mpu_opt['ukagakas'][$mpu_opt['cur_ukagaka']]['name'] ?? 'キャラクター';
+
+    // 獲取 personality_id（修正：使用 cur_ukagaka config key 而非顯示名稱）
     $personality_id = null;
     if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-        $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
+        $personality_id = mpu_get_personality_id_from_ukagaka_name($mpu_opt['cur_ukagaka']);
+    }
+    // Fallback: 如果無法從 ukagaka_name 獲取，使用當前 personality
+    if ($personality_id === null && function_exists('mpu_get_current_personality_id')) {
+        $personality_id = mpu_get_current_personality_id();
     }
 
     // 從 touchzones.json 獲取區域配置
@@ -247,30 +235,13 @@ function mpu_ajax_touch_zone_chat()
     }
 
 
-    // 獲取角色名稱
-    $ukagaka_name = $mpu_opt['ukagakas'][$mpu_opt['cur_ukagaka']]['name'] ?? 'キャラクター';
-
     // 在 user_prompt 中添加字數限制（確保回應簡潔）
     $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で{$ukagaka_name}として直接反応すること。第三者視点の描写は禁止。";
 
     $language = $mpu_opt['ai_language'] ?? 'ja';
 
-    // 獲取系統提示詞（優先使用角色專屬的 system_prompt.md）
-    
-    // 嘗試加載角色專屬的 system_prompt.md
-    $system_prompt = '';
-    if (function_exists('mpu_get_personality_system_prompt')) {
-        $system_prompt = mpu_get_personality_system_prompt($personality_id);
-    }
-    
-    // 如果沒有角色專屬 prompt，使用後台設定
-    if (empty($system_prompt)) {
-        $system_prompt = str_replace(
-            '{{ukagaka_display_name}}',
-            $ukagaka_name,
-            $mpu_opt['ai_system_prompt'] ?? 'あなたは「{{ukagaka_display_name}}」というキャラクターです。あなたは完全にこのキャラクターの立場で話すと行動する必要があります。'
-        );
-    }
+    // 統一系統提示詞解析（修正：原先使用不存在的函數名 + $ukagaka_name 未定義）
+    $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name);
 
     // 獲取提供商和 API Key
     $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
@@ -336,14 +307,9 @@ function mpu_ajax_touch_zone_chat()
         $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
     }
 
-    // 分析對話內容的情緒，獲取對應的表情
+    // 分析對話內容的情緒，獲取對應的表情（$personality_id 已在上方解析）
     $emoji = null;
     if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-        // 獲取 personality_id 以載入角色專屬的表情關鍵字
-        $personality_id = null;
-        if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-            $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-        }
         $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
     }
 

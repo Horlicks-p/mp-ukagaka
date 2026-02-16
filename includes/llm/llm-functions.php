@@ -439,7 +439,8 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $user_prompt .= "BOT を検出しました：{$bot_name}\n";
     }
     if (!empty($visitor_info['slimstat_country'])) {
-        $user_prompt .= "国：{$visitor_info['slimstat_country']}";
+        $country_name = function_exists('mpu_country_code_to_name') ? mpu_country_code_to_name($visitor_info['slimstat_country']) : $visitor_info['slimstat_country'];
+        $user_prompt .= "国：{$country_name}";
         if (!empty($visitor_info['slimstat_city'])) {
             $user_prompt .= " {$visitor_info['slimstat_city']}";
         }

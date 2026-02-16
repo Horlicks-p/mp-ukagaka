@@ -64,6 +64,14 @@ function mpu_get_initial_message($ukagaka_name = null)
                 $visitor_info = function_exists('mpu_get_visitor_info_for_llm') ? mpu_get_visitor_info_for_llm() : [];
                 $is_bot_detected = !empty($visitor_info['is_bot']) && $visitor_info['is_bot'] === true;
 
+                // 檢查過去 30 分鐘內是否有 BOT 訪問（即使當前訪問者不是 BOT）
+                if (!$is_bot_detected && function_exists('mpu_check_recent_bot_visit')) {
+                    $recent_bot = mpu_check_recent_bot_visit(1800); // 30 分鐘
+                    if ($recent_bot !== false) {
+                        $is_bot_detected = true;
+                    }
+                }
+
                 if ($is_bot_detected && !empty($sleep_config['bot_dreams'])) {
                     // 將 BOT 相關夢話加入選項池（增加被選中的機率）
                     $sleeping_messages = array_merge($sleeping_messages, $sleep_config['bot_dreams'], $sleep_config['bot_dreams']);
