@@ -130,8 +130,8 @@
       "weight": 8,
       "scale": 1.5,
       "position": {
-        "offsetX": -120,
-        "offsetY": -50,
+        "offsetX": -110,
+        "offsetY": -15,
         "headRatio": 0.0
       }
     },

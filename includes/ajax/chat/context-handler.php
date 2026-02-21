@@ -18,10 +18,7 @@ if (!defined('ABSPATH')) {
 function mpu_ajax_chat_context()
 {
     // 驗證 Nonce（強制）
-    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
-        wp_send_json(["error" => __("安全性驗證失敗", "mp-ukagaka")]);
-        return;
-    }
+    if (!mpu_verify_ajax_nonce()) return;
 
     // 速率限制（防止濫用）- 5次/分鐘（頁面感知消耗較多 Token）
     mpu_enforce_rate_limit('chat_context', 5, 60);
@@ -34,34 +31,12 @@ function mpu_ajax_chat_context()
         return;
     }
 
-    // 獲取提供商（向後兼容：優先使用 llm_provider，否則使用 ai_provider）
-    $provider = isset($mpu_opt["llm_provider"]) ? $mpu_opt["llm_provider"] : (isset($mpu_opt["ai_provider"]) ? $mpu_opt["ai_provider"] : "gemini");
-    $api_key_encrypted = "";
-    $api_key = "";
-
-    // Ollama 不需要 API Key
-    if ($provider !== "ollama") {
-        switch ($provider) {
-            case "openai":
-                // 向後兼容：優先使用新設定鍵，否則使用舊設定鍵
-                $api_key_encrypted = $mpu_opt["llm_openai_api_key"] ?? $mpu_opt["openai_api_key"] ?? "";
-                break;
-            case "claude":
-                $api_key_encrypted = $mpu_opt["llm_claude_api_key"] ?? $mpu_opt["claude_api_key"] ?? "";
-                break;
-            case "gemini":
-            default:
-                $api_key_encrypted = $mpu_opt["llm_gemini_api_key"] ?? $mpu_opt["ai_api_key"] ?? "";
-                break;
-        }
-
-        // 解密 API Key（安全性強化）
-        $api_key = mpu_decrypt_api_key($api_key_encrypted);
-
-        if (empty($api_key)) {
-            wp_send_json(["error" => ucfirst($provider) . " API Key 未設定"]);
-            return;
-        }
+    // 獲取提供商和 API Key
+    $provider = mpu_get_current_provider($mpu_opt);
+    $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
+    if ($provider !== 'ollama' && empty($api_key)) {
+        wp_send_json(["error" => ucfirst($provider) . " API Key 未設定"]);
+        return;
     }
 
     // 獲取頁面內容
@@ -91,10 +66,8 @@ function mpu_ajax_chat_context()
     $language = $mpu_opt["ai_language"] ?? "zh-TW";
 
     // 獲取時間情境（傳入 personality_id 以讀取該角色的專屬日曆）
-    $personality_id = function_exists('mpu_get_personality_id_from_ukagaka_name')
-        ? mpu_get_personality_id_from_ukagaka_name($ukagaka_name)
-        : null;
-    $time_context = mpu_get_time_context($personality_id);
+    $personality_id = mpu_resolve_personality_id($ukagaka_name);
+    $time_context   = mpu_get_time_context($personality_id);
 
     $variables = [
         'ukagaka_display_name' => $ukagaka_display_name,
@@ -121,27 +94,7 @@ function mpu_ajax_chat_context()
     // 判斷是否為日語（用於決定文案語言）
     $is_japanese = (strpos(strtolower($language), 'ja') === 0 || $language === 'ja');
 
-    $user_prompt = "【現在のユーザー情報】\n";
-    if ($user_info['is_logged_in']) {
-        $role_labels = [
-            'administrator' => '管理人',
-            'editor' => '編集者',
-            'author' => '作者',
-            'contributor' => '貢献者',
-            'subscriber' => '購読者',
-        ];
-        $role_label = isset($role_labels[$user_info['primary_role']])
-            ? $role_labels[$user_info['primary_role']]
-            : $user_info['primary_role'];
-
-        $user_prompt .= "ユーザーがログインしています：{$user_info['display_name']} ({$user_info['username']})\n";
-        $user_prompt .= "役割：{$role_label}\n";
-        if ($user_info['is_admin']) {
-            $user_prompt .= "このユーザーはサイト管理人です。\n";
-        }
-    } else {
-        $user_prompt .= "ユーザーがログインしていません（訪問者）。\n";
-    }
+    $user_prompt = mpu_build_user_info_prompt($user_info);
 
     $user_prompt .= "\n【訪問者情報】\n";
     if (!empty($visitor_info['is_bot']) && $visitor_info['is_bot']) {
@@ -214,19 +167,6 @@ function mpu_ajax_chat_context()
     $user_prompt .= "\n內容摘要：{$page_content}";
 
     // ===== 頁面感知專用：會話指示選擇 =====
-    // 獲取 personality_id（如果還沒有獲取）
-    if (empty($personality_id)) {
-        if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-            $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-        }
-
-        // 如果無法從 ukagaka_name 獲取，嘗試使用當前 personality_id
-        if (empty($personality_id) && function_exists('mpu_get_current_personality_id')) {
-            $personality_id = mpu_get_current_personality_id();
-        }
-    }
-
-    // ===== 頁面感知專用：會話指示選擇 =====
     // 從 dynamics.json 載入角色專屬的 page_aware 提示詞
     // 提示詞會引導 AI 如何評論文章內容（聚焦於管理人的文章本身）
     $page_aware_instruction = '';
@@ -283,12 +223,7 @@ function mpu_ajax_chat_context()
     
     // 1. 嘗試從 Manifest 獲取
     if (function_exists('mpu_load_personality_manifest')) {
-         // 先取得 ID
-         $pid = null;
-         if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-             $pid = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-         }
-         $manifest = mpu_load_personality_manifest($pid);
+         $manifest = mpu_load_personality_manifest($personality_id);
          if (isset($manifest['settings']['max_tokens'])) {
              $max_tokens = intval($manifest['settings']['max_tokens']);
          } else {
@@ -326,11 +261,6 @@ function mpu_ajax_chat_context()
     // 分析對話內容的情緒，獲取對應的表情
     $emoji = null;
     if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-        // 獲取 personality_id 以載入角色專屬的表情關鍵字
-        $personality_id = null;
-        if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-            $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-        }
         $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
     }
 

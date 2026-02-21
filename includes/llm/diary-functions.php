@@ -126,7 +126,7 @@ function mpu_should_trigger_diary()
     $trigger_rate = max(1, min(10, $trigger_rate));
 
     // 隨機判斷是否觸發
-    $random = mt_rand(1, 100);
+    $random = wp_rand(1, 100);
 
     return $random <= $trigger_rate;
 }
@@ -256,7 +256,7 @@ function mpu_select_diary_category_by_weight($categories)
     }
 
     // 加權隨機選擇
-    $random = mt_rand(1, $total_weight);
+    $random = wp_rand(1, $total_weight);
     $cumulative = 0;
 
     foreach ($categories as $key => $category) {

@@ -695,6 +695,12 @@ function mpu_validate_ghost_zip($zip_path)
     // 允許的 shell 圖片副檔名
     $shell_img_extensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
 
+    // 防護：拒絕超大 ZIP（避免記憶體耗盡）
+    if ($zip->numFiles > 1000) {
+        $zip->close();
+        return new WP_Error('too_many_files', __('ZIP 文件包含過多檔案（超過 1,000 個），請檢查 ZIP 內容。', 'mp-ukagaka'));
+    }
+
     for ($i = 0; $i < $zip->numFiles; $i++) {
         $filename = $zip->getNameIndex($i);
         $basename = basename($filename);
@@ -815,8 +821,28 @@ function mpu_extract_ghost_zip($zip_path, $target_dir)
 }
 
 /**
+ * 遞歸刪除目錄及其所有內容
+ * 作為 WP_Filesystem 的備用方法使用
+ *
+ * @param string $dir 要刪除的目錄路徑
+ * @return bool 成功返回 true，目錄不存在返回 false
+ */
+function mpu_recursive_rmdir($dir)
+{
+    if (!is_dir($dir)) {
+        return false;
+    }
+    $files = array_diff(scandir($dir), array('.', '..'));
+    foreach ($files as $file) {
+        $path = $dir . '/' . $file;
+        is_dir($path) ? mpu_recursive_rmdir($path) : unlink($path);
+    }
+    return rmdir($dir);
+}
+
+/**
  * 處理 Ghost ZIP 文件上傳
- * 
+ *
  * @return array|WP_Error 成功返回預覽數據數組，失敗返回錯誤
  */
 function mpu_handle_ghost_zip_upload()
@@ -888,18 +914,6 @@ function mpu_handle_ghost_zip_upload()
             $wp_filesystem->rmdir($target_dir, true);
         } else {
             // 備用方法：使用 PHP 遞歸刪除
-            function mpu_recursive_rmdir($dir)
-            {
-                if (!is_dir($dir)) {
-                    return false;
-                }
-                $files = array_diff(scandir($dir), array('.', '..'));
-                foreach ($files as $file) {
-                    $path = $dir . '/' . $file;
-                    is_dir($path) ? mpu_recursive_rmdir($path) : unlink($path);
-                }
-                return rmdir($dir);
-            }
             mpu_recursive_rmdir($target_dir);
         }
     }

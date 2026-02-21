@@ -6,6 +6,35 @@
 
 ---
 
+## [2.8.3] - 2026-02-21
+
+### 🚀 效能優化與架構重構 (Performance & Refactoring)
+
+- **PHP 後端效能與結構優化**：
+  - **O(1) 查表優化**：在 `personality-loader.php` 實作靜態反向對照表 (`static $name_map`)，將遍歷陣列的 O(n) 複雜度降為 O(1) 的 `isset()` 查表。
+  - **請求層級快取**：在 `llm-slimstat.php` 實作 `$post_id_cache` 陣列，避免對同一 URL 重複進行高成本的 `url_to_postid()` 查詢。
+  - **靜態資源快取合併**：優化 `prompt-categories.php` 的快取機制，使用 `$personality_id ?? '__default__'` 讓所有伺か人格都能受惠於靜態快取，減少跨請求的重複計算。
+  - **字串處理優化**：提取 `mpu_normalize_for_similarity`，在迴圈前預先執行正規化，避免重複的 `preg_replace`；並在 `personality-prompts.php` 將多次對同一字串的天氣 Regex (`preg_match`) 合併為單次執行。
+  - **迴圈合併**：在 `user-chat-handler.php` 將 4 個分開的 `foreach` 巧妙合併為 1 個單一迴圈，運用動態變數 (`$$flag`) 大幅減少重複代碼。
+
+- **JS 前端效能優化**：
+  - **O(n²) → O(n)**：將 `ukagaka-context.js` 和 `ukagaka-greeting.js` 中會造成陣列不斷移位的 `splice` 刪除迴圈，改寫為高效率的 `filter()` 配合數量計數器，大幅解決歷史紀錄很長時的運算效能瓶頸。
+  - **jQuery 選擇器快取**：於 `ukagaka-core.js` 的 `mpu_nextmsg` 與 fallback 加入 `const $msgnum` 緩存 DOM 查詢，減少佈局抖動。
+
+### 🛡️ 安全性與穩定性強化 (Security & Stability)
+
+- **ZIP 上傳防護 (ZIP Bomb Mitigation)**：在 `admin-functions.php` 的 ZIP 處理流程中加入檔案數上限 (`1000` 個檔案) 的提早終止機制，有效防止惡意上傳超大數量小檔案導致伺服器記憶體耗盡 (DoS)。
+- **安全的隨機數產生器**：使用 WordPress 內建且更安全的 `wp_rand()` 全面取代舊有的 `mt_rand()`。
+- **避免遞迴當機 (Fatal Error)**：將 `mpu_recursive_rmdir` 抽取至全域範圍，不再與其他功能產生可能引發 Fatal Error 的巢狀包含衝突。
+
+### 🔧 代碼清理與共用化 (Code Cleanup)
+
+- **大量減少重複代碼**：大幅抽取散落的共用邏輯為獨立 Utility 函數，減少了數百行的重複程式碼：
+  - PHP: `mpu_verify_ajax_nonce()`、`mpu_get_current_provider()`、`mpu_get_provider_api_key()`、`mpu_build_user_info_prompt()`。
+  - JS: `mpu_isDeepSleepTime()`、`mpu_selectNextMessage()`、統整的 `_isDebug()` 條件。
+- **Ollama 思考模型偵測**：改用靈活的 `array_filter + stripos`，取代原本又冗長又難維護的 `strpos(strtolower())` 鏈條。
+- **目錄掃描簡化**：`personality-loader.php` 中使用 `glob()` 直接鎖定 `manifest.json`，省去了 `scandir` 附帶的 `.` / `..` 過濾與 `file_exists` 的檢查，邏輯更簡潔。
+
 ## [2.8.2] - 2026-02-16
 
 - 新增：`mpu_country_code_to_name` 工具函數，用於將 ISO 3166-1 國碼轉換為完整國家名稱（優先使用 PHP intl 擴展）。

@@ -304,18 +304,7 @@ function mpu_chat_context() {
   }
 
   // 睡眠模式檢查：優先使用伺服器端時間（避免客戶端/伺服器時區差異）
-  let isDeepSleep = false;
-  if (
-    typeof window.mpuInfo !== "undefined" &&
-    typeof window.mpuInfo.isDeepSleepTime !== "undefined"
-  ) {
-    isDeepSleep = window.mpuInfo.isDeepSleepTime;
-  } else {
-    // 備用：使用客戶端時間（向後兼容）
-    const now = new Date();
-    const hour = now.getHours();
-    isDeepSleep = hour >= 0 && hour < 6;
-  }
+  const isDeepSleep = mpu_isDeepSleepTime();
   if (isDeepSleep) {
     mpuLogger.log(
       "🌙 睡眠模式（00:00-06:00）：跳過頁面感知 AI，讓角色好好休息",
@@ -447,20 +436,15 @@ function mpu_chat_context() {
             (msg) => msg.role === "assistant",
           );
           if (assistantMessages.length > maxAutoTalkHistory) {
-            // 找到需要刪除的最舊的 assistant 記錄
-            let removed = 0;
             const toRemove = assistantMessages.length - maxAutoTalkHistory;
-            for (
-              let i = 0;
-              i < mpuChatHistory.length && removed < toRemove;
-              i++
-            ) {
-              if (mpuChatHistory[i].role === "assistant") {
-                mpuChatHistory.splice(i, 1);
+            let removed = 0;
+            mpuChatHistory = mpuChatHistory.filter((msg) => {
+              if (msg.role === "assistant" && removed < toRemove) {
                 removed++;
-                i--; // 因為刪除了元素，索引需要減 1
+                return false;
               }
-            }
+              return true;
+            });
           }
 
           if (typeof mpu_saveChatHistory === "function") {

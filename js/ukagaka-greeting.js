@@ -7,17 +7,7 @@
 function mpu_greet_first_visitor(settings) {
   return new Promise((resolve, reject) => {
     // 🌙 睡眠模式檢查：讓芙莉蓮好好睡覺，不打擾訪客
-    let isDeepSleep = false;
-    if (
-      typeof window.mpuInfo !== "undefined" &&
-      typeof window.mpuInfo.isDeepSleepTime !== "undefined"
-    ) {
-      isDeepSleep = window.mpuInfo.isDeepSleepTime;
-    } else {
-      const now = new Date();
-      const hour = now.getHours();
-      isDeepSleep = hour >= 0 && hour < 6;
-    }
+    const isDeepSleep = mpu_isDeepSleepTime();
     if (isDeepSleep) {
       mpuLogger.log("🌙 睡眠模式：跳過初次訪客打招呼，讓角色好好休息");
       resolve();
@@ -130,19 +120,15 @@ function mpu_greet_first_visitor(settings) {
               (msg) => msg.role === "assistant",
             );
             if (assistantMessages.length > maxAutoTalkHistory) {
-              let removed = 0;
               const toRemove = assistantMessages.length - maxAutoTalkHistory;
-              for (
-                let i = 0;
-                i < mpuChatHistory.length && removed < toRemove;
-                i++
-              ) {
-                if (mpuChatHistory[i].role === "assistant") {
-                  mpuChatHistory.splice(i, 1);
+              let removed = 0;
+              mpuChatHistory = mpuChatHistory.filter((msg) => {
+                if (msg.role === "assistant" && removed < toRemove) {
                   removed++;
-                  i--; // Adjust index after removal
+                  return false;
                 }
-              }
+                return true;
+              });
             }
 
             if (typeof mpu_saveChatHistory === "function") {

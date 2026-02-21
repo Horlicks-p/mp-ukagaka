@@ -319,7 +319,7 @@ function mpu_get_spam_prompt_from_json($personality_id = null)
     $spam_prompts = $all_prompts['akismet_spam_reactions'];
 
     // 隨機選取一條提示詞
-    $index = mt_rand(0, count($spam_prompts) - 1);
+    $index = wp_rand(0, count($spam_prompts) - 1);
     return $spam_prompts[$index];
 }
 

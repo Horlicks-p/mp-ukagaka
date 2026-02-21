@@ -95,9 +95,11 @@ function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
     $language = $options['language'] ?? 'ja';
 
     // 支援思考模式的模型
-    $is_thinking_model = (strpos(strtolower($model), 'qwen3') !== false)
-        || (strpos(strtolower($model), 'frieren') !== false)
-        || (strpos(strtolower($model), 'deepseek') !== false);
+    $thinking_keywords = ['qwen3', 'frieren', 'deepseek'];
+    $is_thinking_model = (bool) array_filter(
+        $thinking_keywords,
+        fn($kw) => stripos($model, $kw) !== false
+    );
 
     // 預設啟用思考模式
     $enable_thinking = $is_thinking_model && !(isset($options['ollama_disable_thinking']) && $options['ollama_disable_thinking']);

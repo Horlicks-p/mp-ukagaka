@@ -112,12 +112,16 @@ function mpu_fetch_slimstat_stats()
             $top_resources = array_slice($top_body['data'], 0, 5);
 
             // 格式化資源列表
+            $post_id_cache = []; // 請求層級快取，避免同一 URL 重複查詢 DB
             foreach ($top_resources as $resource) {
                 if (isset($resource['resource'])) {
                     $resource_url = esc_url($resource['resource']);
 
-                    // 嘗試從 URL 獲取文章標題
-                    $post_id = url_to_postid($resource_url);
+                    // 嘗試從 URL 獲取文章標題（使用請求層級快取）
+                    if (!isset($post_id_cache[$resource_url])) {
+                        $post_id_cache[$resource_url] = url_to_postid($resource_url);
+                    }
+                    $post_id = $post_id_cache[$resource_url];
                     $title = '';
                     if ($post_id) {
                         $post = get_post($post_id);

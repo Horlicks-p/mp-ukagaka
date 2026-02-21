@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-02-21T07:20:33.270Z
+ * Generated: 2026-02-21T15:15:09.328Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -55,49 +55,58 @@ window.mpuMsgList = null;
  * 在生產環境中自動過濾調試訊息，只保留錯誤訊息
  */
 const mpuLogger = {
-    /**
-     * 記錄調試訊息（只在調試模式下顯示）
-     * @param {...any} args - 要記錄的參數
-     */
+    _isDebug: function () {
+        return debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true);
+    },
     log: function (...args) {
-        if (debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true)) {
-            console.log('[MP Ukagaka]', ...args);
-        }
+        if (this._isDebug()) { console.log('[MP Ukagaka]', ...args); }
     },
-
-    /**
-     * 記錄警告訊息（只在調試模式下顯示）
-     * @param {...any} args - 要記錄的參數
-     */
     warn: function (...args) {
-        if (debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true)) {
-            console.warn('[MP Ukagaka]', ...args);
-        }
+        if (this._isDebug()) { console.warn('[MP Ukagaka]', ...args); }
     },
-
-    /**
-     * 記錄錯誤訊息（始終記錄，但格式統一）
-     * @param {...any} args - 要記錄的參數
-     */
     error: function (...args) {
-        // 錯誤始終記錄，但使用統一格式
         console.error('[MP Ukagaka ERROR]', ...args);
     },
-
-    /**
-     * 記錄資訊訊息（只在調試模式下顯示）
-     * @param {...any} args - 要記錄的參數
-     */
     info: function (...args) {
-        if (debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true)) {
-            console.info('[MP Ukagaka]', ...args);
-        }
+        if (this._isDebug()) { console.info('[MP Ukagaka]', ...args); }
     }
 };
 
 // 向後兼容：保留 debugLog 函數
 function debugLog() {
     mpuLogger.log.apply(mpuLogger, arguments);
+}
+
+/**
+ * 判斷目前是否為深度睡眠時段
+ * 優先使用伺服器端時間（避免客戶端/伺服器時區差異）
+ * @returns {boolean}
+ */
+function mpu_isDeepSleepTime() {
+    if (typeof window.mpuInfo !== 'undefined' && typeof window.mpuInfo.isDeepSleepTime !== 'undefined') {
+        return window.mpuInfo.isDeepSleepTime;
+    }
+    const hour = new Date().getHours();
+    return hour >= 0 && hour < 6;
+}
+
+/**
+ * 選取下一條對話訊息（隨機或循序）
+ * @param {Object} store - 訊息列表物件（含 msg 陣列）
+ * @param {number} currentNum - 目前顯示的訊息索引
+ * @returns {number} 下一條訊息的索引
+ */
+function mpu_selectNextMessage(store, currentNum) {
+    const msgCount = store.msg.length;
+    if (mpuNextMode === "random") {
+        let newIdx;
+        do {
+            newIdx = Math.floor(Math.random() * msgCount);
+        } while (newIdx === currentNum && msgCount > 1);
+        return newIdx;
+    } else {
+        return currentNum + 1 >= msgCount ? 0 : currentNum + 1;
+    }
 }
 
 /**
@@ -968,19 +977,7 @@ function mpu_beforemsg(speed = 400) {
  * @returns {boolean} 是否為睡眠模式且尚未被喚醒
  */
 function mpu_isUnawokenSleepMode() {
-  // 優先使用伺服器端時間判定（避免客戶端/伺服器時區差異）
-  let isDeepSleep = false;
-  if (
-    typeof window.mpuInfo !== "undefined" &&
-    typeof window.mpuInfo.isDeepSleepTime !== "undefined"
-  ) {
-    isDeepSleep = window.mpuInfo.isDeepSleepTime;
-  } else {
-    // 備用：使用客戶端時間（向後兼容）
-    const now = new Date();
-    const hour = now.getHours();
-    isDeepSleep = hour >= 0 && hour < 6;
-  }
+  const isDeepSleep = mpu_isDeepSleepTime();
 
   if (!isDeepSleep) {
     return false;
@@ -1045,19 +1042,7 @@ function startAutoTalk() {
 
   // 動態檢查睡眠模式（優先使用伺服器端時間）
   const checkSleepMode = function () {
-    // 優先使用伺服器端時間判定（避免客戶端/伺服器時區差異）
-    let isDeepSleep = false;
-    if (
-      typeof window.mpuInfo !== "undefined" &&
-      typeof window.mpuInfo.isDeepSleepTime !== "undefined"
-    ) {
-      isDeepSleep = window.mpuInfo.isDeepSleepTime;
-    } else {
-      // 備用：使用客戶端時間（向後兼容）
-      const now = new Date();
-      const hour = now.getHours();
-      isDeepSleep = hour >= 0 && hour < 6;
-    }
+    const isDeepSleep = mpu_isDeepSleepTime();
 
     // 獲取基礎間隔（從全域變數或當前設定）
     const baseInterval =
@@ -1789,20 +1774,9 @@ function mpu_nextmsg(trigger) {
       return;
     }
 
-    let msgNum =
-      parseInt(document.getElementById("ukagaka_msgnum").innerHTML, 10) || 0;
-    const msgCount = store.msg.length;
-
-    if (mpuNextMode === "random") {
-      let newIdx;
-      do {
-        newIdx = Math.floor(Math.random() * msgCount);
-      } while (newIdx === msgNum && msgCount > 1);
-      msgNum = newIdx;
-    } else {
-      // sequential
-      msgNum = msgNum + 1 >= msgCount ? 0 : msgNum + 1;
-    }
+    const $msgnum = jQuery("#ukagaka_msgnum");
+    let msgNum = parseInt($msgnum.html(), 10) || 0;
+    msgNum = mpu_selectNextMessage(store, msgNum);
 
     const auto = store.auto_msg || "";
     const out = store.msg[msgNum] ? store.msg[msgNum] + auto : "";
@@ -1820,7 +1794,7 @@ function mpu_nextmsg(trigger) {
           jQuery("#ukagaka_msg").html("");
           mpu_showMsgText();
           mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-          jQuery("#ukagaka_msgnum").html(msgNum);
+          $msgnum.html(msgNum);
           mpu_showmsg(400);
         }
       );
@@ -1828,13 +1802,13 @@ function mpu_nextmsg(trigger) {
       if (!isWakingUp) {
         mpu_showMsgText();
         mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-        jQuery("#ukagaka_msgnum").html(msgNum);
+        $msgnum.html(msgNum);
         mpu_showmsg(400);
       }
     } else {
       mpu_showMsgText();
       mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-      jQuery("#ukagaka_msgnum").html(msgNum);
+      $msgnum.html(msgNum);
       mpu_showmsg(400);
     }
 
@@ -1899,20 +1873,9 @@ function mpu_nextmsg_fallback() {
       return;
     }
 
-    let msgNum =
-      parseInt(document.getElementById("ukagaka_msgnum").innerHTML, 10) || 0;
-    const msgCount = store.msg.length;
-
-    if (mpuNextMode === "random") {
-      let newIdx;
-      do {
-        newIdx = Math.floor(Math.random() * msgCount);
-      } while (newIdx === msgNum && msgCount > 1);
-      msgNum = newIdx;
-    } else {
-      // sequential
-      msgNum = msgNum + 1 >= msgCount ? 0 : msgNum + 1;
-    }
+    const $msgnum = jQuery("#ukagaka_msgnum");
+    let msgNum = parseInt($msgnum.html(), 10) || 0;
+    msgNum = mpu_selectNextMessage(store, msgNum);
 
     const auto = store.auto_msg || "";
     const out = store.msg[msgNum] ? store.msg[msgNum] + auto : "";
@@ -1927,7 +1890,7 @@ function mpu_nextmsg_fallback() {
       window.mpuCanvasManager.triggerCharacterAnimation();
     }
 
-    jQuery("#ukagaka_msgnum").html(msgNum);
+    $msgnum.html(msgNum);
     mpu_showmsg(400);
   }, 400);
 }
@@ -3168,18 +3131,7 @@ function mpu_chat_context() {
   }
 
   // 睡眠模式檢查：優先使用伺服器端時間（避免客戶端/伺服器時區差異）
-  let isDeepSleep = false;
-  if (
-    typeof window.mpuInfo !== "undefined" &&
-    typeof window.mpuInfo.isDeepSleepTime !== "undefined"
-  ) {
-    isDeepSleep = window.mpuInfo.isDeepSleepTime;
-  } else {
-    // 備用：使用客戶端時間（向後兼容）
-    const now = new Date();
-    const hour = now.getHours();
-    isDeepSleep = hour >= 0 && hour < 6;
-  }
+  const isDeepSleep = mpu_isDeepSleepTime();
   if (isDeepSleep) {
     mpuLogger.log(
       "🌙 睡眠模式（00:00-06:00）：跳過頁面感知 AI，讓角色好好休息",
@@ -3311,20 +3263,15 @@ function mpu_chat_context() {
             (msg) => msg.role === "assistant",
           );
           if (assistantMessages.length > maxAutoTalkHistory) {
-            // 找到需要刪除的最舊的 assistant 記錄
-            let removed = 0;
             const toRemove = assistantMessages.length - maxAutoTalkHistory;
-            for (
-              let i = 0;
-              i < mpuChatHistory.length && removed < toRemove;
-              i++
-            ) {
-              if (mpuChatHistory[i].role === "assistant") {
-                mpuChatHistory.splice(i, 1);
+            let removed = 0;
+            mpuChatHistory = mpuChatHistory.filter((msg) => {
+              if (msg.role === "assistant" && removed < toRemove) {
                 removed++;
-                i--; // 因為刪除了元素，索引需要減 1
+                return false;
               }
-            }
+              return true;
+            });
           }
 
           if (typeof mpu_saveChatHistory === "function") {
@@ -3476,17 +3423,7 @@ function mpu_test_visitor_info() {
 function mpu_greet_first_visitor(settings) {
   return new Promise((resolve, reject) => {
     // 🌙 睡眠模式檢查：讓芙莉蓮好好睡覺，不打擾訪客
-    let isDeepSleep = false;
-    if (
-      typeof window.mpuInfo !== "undefined" &&
-      typeof window.mpuInfo.isDeepSleepTime !== "undefined"
-    ) {
-      isDeepSleep = window.mpuInfo.isDeepSleepTime;
-    } else {
-      const now = new Date();
-      const hour = now.getHours();
-      isDeepSleep = hour >= 0 && hour < 6;
-    }
+    const isDeepSleep = mpu_isDeepSleepTime();
     if (isDeepSleep) {
       mpuLogger.log("🌙 睡眠模式：跳過初次訪客打招呼，讓角色好好休息");
       resolve();
@@ -3599,19 +3536,15 @@ function mpu_greet_first_visitor(settings) {
               (msg) => msg.role === "assistant",
             );
             if (assistantMessages.length > maxAutoTalkHistory) {
-              let removed = 0;
               const toRemove = assistantMessages.length - maxAutoTalkHistory;
-              for (
-                let i = 0;
-                i < mpuChatHistory.length && removed < toRemove;
-                i++
-              ) {
-                if (mpuChatHistory[i].role === "assistant") {
-                  mpuChatHistory.splice(i, 1);
+              let removed = 0;
+              mpuChatHistory = mpuChatHistory.filter((msg) => {
+                if (msg.role === "assistant" && removed < toRemove) {
                   removed++;
-                  i--; // Adjust index after removal
+                  return false;
                 }
-              }
+                return true;
+              });
             }
 
             if (typeof mpu_saveChatHistory === "function") {
@@ -4449,7 +4382,15 @@ jQuery(document).ready(function () {
   jQuery("#mpu_cancel_btn").on("click", function (e) {
     e.preventDefault();
 
-    // 檢查是否正在處理裝飾物對話
+    // 對話模式中：cancel 直接退出，不受 mpuMessageBlocking 阻擋
+    // （mpuMessageBlocking 是阻擋自動對話切換用，不應阻擋使用者主動退出）
+    if (mpuChatModeActive) {
+      mpu_toggleChatMode(false);
+      mpuLogger.log("退出對話模式");
+      return;
+    }
+
+    // 非對話模式：檢查是否正在處理裝飾物對話
     if (
       typeof window.mpuCanvasManager !== "undefined" &&
       window.mpuCanvasManager.decorationChatInProgress
@@ -4458,19 +4399,13 @@ jQuery(document).ready(function () {
       return;
     }
 
-    // 檢查訊息是否被阻擋
+    // 非對話模式：檢查訊息是否被阻擋
     if (mpuMessageBlocking) {
       mpuLogger.log("訊息被阻擋，忽略按鈕點擊");
       return;
     }
 
-    if (mpuChatModeActive) {
-      // 退出對話模式，回到自言自語模式
-      mpu_toggleChatMode(false);
-      mpuLogger.log("退出對話模式");
-    } else {
-      mpu_hidemsg("");
-    }
+    mpu_hidemsg("");
   });
 
   mpuLogger.log("互動對話模式已初始化");
@@ -4695,15 +4630,7 @@ jQuery(document).ready(function () {
     );
 
     // 睡眠模式檢測（移到外面以便後續判斷使用）
-    let isDeepSleep = false;
-    if (typeof window.mpuInfo !== 'undefined' && typeof window.mpuInfo.isDeepSleepTime !== 'undefined') {
-      isDeepSleep = window.mpuInfo.isDeepSleepTime;
-    } else {
-      // 備用：使用客戶端時間（向後兼容）
-      const now = new Date();
-      const hour = now.getHours();
-      isDeepSleep = hour >= 0 && hour < 6;
-    }
+    const isDeepSleep = mpu_isDeepSleepTime();
     
     // 檢查初始訊息是否為睡眠相關
     const msgElement = jQuery("#ukagaka_msg");

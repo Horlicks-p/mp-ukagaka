@@ -380,9 +380,10 @@ function mpu_apply_dynamic_prompts(&$prompt_categories, $variables, $personality
 
     // 從 time_context 中解析天氣資訊
     // 格式範例：【天気：晴れ 18°C / 明日：曇り 15~20°C】
+    // 合併兩次 preg_match：同時捕捉天氣描述與當前溫度，減少對同一字串的重複匹配
     $weather_match = [];
-    if (preg_match('/【天気：(.+?)[\s\d°C]+/', $time_context, $weather_match)) {
-        $current_weather = $weather_match[1] ?? '';
+    if (preg_match('/【天気：(.+?)(\d+)°C/', $time_context, $weather_match)) {
+        $current_weather = trim($weather_match[1] ?? '');
 
         // 晴天系列（快晴、晴れ）
         if (
@@ -433,10 +434,9 @@ function mpu_apply_dynamic_prompts(&$prompt_categories, $variables, $personality
         }
     }
 
-    // 溫度相關提示詞（從 time_context 解析溫度）
-    $temp_match = [];
-    if (preg_match('/【天気：.+?(\d+)°C/', $time_context, $temp_match)) {
-        $current_temp = intval($temp_match[1]);
+    // 溫度相關提示詞（重用上方合併匹配的第 2 個捕捉群組，不再對同一字串執行第二次 preg_match）
+    if (!empty($weather_match[2])) {
+        $current_temp = intval($weather_match[2]);
 
         // 高溫（>= 30°C）
         if (!empty($dynamic['weather_hot']) && is_array($dynamic['weather_hot']) && $current_temp >= 30) {

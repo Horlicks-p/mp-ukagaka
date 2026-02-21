@@ -73,19 +73,7 @@ function mpu_beforemsg(speed = 400) {
  * @returns {boolean} 是否為睡眠模式且尚未被喚醒
  */
 function mpu_isUnawokenSleepMode() {
-  // 優先使用伺服器端時間判定（避免客戶端/伺服器時區差異）
-  let isDeepSleep = false;
-  if (
-    typeof window.mpuInfo !== "undefined" &&
-    typeof window.mpuInfo.isDeepSleepTime !== "undefined"
-  ) {
-    isDeepSleep = window.mpuInfo.isDeepSleepTime;
-  } else {
-    // 備用：使用客戶端時間（向後兼容）
-    const now = new Date();
-    const hour = now.getHours();
-    isDeepSleep = hour >= 0 && hour < 6;
-  }
+  const isDeepSleep = mpu_isDeepSleepTime();
 
   if (!isDeepSleep) {
     return false;
@@ -150,19 +138,7 @@ function startAutoTalk() {
 
   // 動態檢查睡眠模式（優先使用伺服器端時間）
   const checkSleepMode = function () {
-    // 優先使用伺服器端時間判定（避免客戶端/伺服器時區差異）
-    let isDeepSleep = false;
-    if (
-      typeof window.mpuInfo !== "undefined" &&
-      typeof window.mpuInfo.isDeepSleepTime !== "undefined"
-    ) {
-      isDeepSleep = window.mpuInfo.isDeepSleepTime;
-    } else {
-      // 備用：使用客戶端時間（向後兼容）
-      const now = new Date();
-      const hour = now.getHours();
-      isDeepSleep = hour >= 0 && hour < 6;
-    }
+    const isDeepSleep = mpu_isDeepSleepTime();
 
     // 獲取基礎間隔（從全域變數或當前設定）
     const baseInterval =
@@ -894,20 +870,9 @@ function mpu_nextmsg(trigger) {
       return;
     }
 
-    let msgNum =
-      parseInt(document.getElementById("ukagaka_msgnum").innerHTML, 10) || 0;
-    const msgCount = store.msg.length;
-
-    if (mpuNextMode === "random") {
-      let newIdx;
-      do {
-        newIdx = Math.floor(Math.random() * msgCount);
-      } while (newIdx === msgNum && msgCount > 1);
-      msgNum = newIdx;
-    } else {
-      // sequential
-      msgNum = msgNum + 1 >= msgCount ? 0 : msgNum + 1;
-    }
+    const $msgnum = jQuery("#ukagaka_msgnum");
+    let msgNum = parseInt($msgnum.html(), 10) || 0;
+    msgNum = mpu_selectNextMessage(store, msgNum);
 
     const auto = store.auto_msg || "";
     const out = store.msg[msgNum] ? store.msg[msgNum] + auto : "";
@@ -925,7 +890,7 @@ function mpu_nextmsg(trigger) {
           jQuery("#ukagaka_msg").html("");
           mpu_showMsgText();
           mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-          jQuery("#ukagaka_msgnum").html(msgNum);
+          $msgnum.html(msgNum);
           mpu_showmsg(400);
         }
       );
@@ -933,13 +898,13 @@ function mpu_nextmsg(trigger) {
       if (!isWakingUp) {
         mpu_showMsgText();
         mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-        jQuery("#ukagaka_msgnum").html(msgNum);
+        $msgnum.html(msgNum);
         mpu_showmsg(400);
       }
     } else {
       mpu_showMsgText();
       mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-      jQuery("#ukagaka_msgnum").html(msgNum);
+      $msgnum.html(msgNum);
       mpu_showmsg(400);
     }
 
@@ -1004,20 +969,9 @@ function mpu_nextmsg_fallback() {
       return;
     }
 
-    let msgNum =
-      parseInt(document.getElementById("ukagaka_msgnum").innerHTML, 10) || 0;
-    const msgCount = store.msg.length;
-
-    if (mpuNextMode === "random") {
-      let newIdx;
-      do {
-        newIdx = Math.floor(Math.random() * msgCount);
-      } while (newIdx === msgNum && msgCount > 1);
-      msgNum = newIdx;
-    } else {
-      // sequential
-      msgNum = msgNum + 1 >= msgCount ? 0 : msgNum + 1;
-    }
+    const $msgnum = jQuery("#ukagaka_msgnum");
+    let msgNum = parseInt($msgnum.html(), 10) || 0;
+    msgNum = mpu_selectNextMessage(store, msgNum);
 
     const auto = store.auto_msg || "";
     const out = store.msg[msgNum] ? store.msg[msgNum] + auto : "";
@@ -1032,7 +986,7 @@ function mpu_nextmsg_fallback() {
       window.mpuCanvasManager.triggerCharacterAnimation();
     }
 
-    jQuery("#ukagaka_msgnum").html(msgNum);
+    $msgnum.html(msgNum);
     mpu_showmsg(400);
   }, 400);
 }

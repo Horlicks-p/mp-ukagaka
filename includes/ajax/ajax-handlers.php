@@ -77,7 +77,7 @@ function mpu_ajax_nextmsg()
             $total = count($msgs);
 
             if ($total > 0) {
-                $msgnum = mt_rand(0, $total - 1);
+                $msgnum = wp_rand(0, $total - 1);
                 $msg = $msgs[$msgnum];
 
                 if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -120,7 +120,7 @@ function mpu_ajax_nextmsg()
             }
         } else {
             if ($total > 0) {
-                $msgnum = mt_rand(0, $total - 1);
+                $msgnum = wp_rand(0, $total - 1);
                 $msg = $msgs[$msgnum];
             } else {
                 $msg = __("無對話內容", "mp-ukagaka");

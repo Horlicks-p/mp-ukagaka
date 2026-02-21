@@ -161,46 +161,54 @@
       const self = this;
 
       if (!this.frierenIdleImgElement) {
-        this.frierenIdleImgElement = document.createElement("img");
-        this.frierenIdleImgElement.id = "frieren_idle_apng";
-        this.frierenIdleImgElement.style.display = "none";
-        this.frierenIdleImgElement.style.opacity = String(
-          this.frierenIdleOpacity
-        );
-        this.frierenIdleImgElement.style.cursor = "pointer";
-        this.frierenIdleImgElement.style.maxWidth = "none";
-        this.frierenIdleImgElement.style.width = "auto";
-        this.frierenIdleImgElement.style.height = "auto";
+        // 先嘗試從 DOM 中獲取，避免 SPA 重載時建立重複元素
+        const existingImg = document.getElementById("frieren_idle_apng");
 
-        if (!this.frierenIdleImgElement.dataset.mpuSizeLocked) {
-          this.frierenIdleImgElement.addEventListener("load", () => {
-            const w = this.frierenIdleImgElement.naturalWidth;
-            const h = this.frierenIdleImgElement.naturalHeight;
-            if (w && h) {
-              this.frierenIdleImgElement.style.width = w + "px";
-              this.frierenIdleImgElement.style.height = h + "px";
-              this.frierenIdleImgElement.style.maxWidth = "none";
-            }
-          });
-          this.frierenIdleImgElement.dataset.mpuSizeLocked = "1";
-        }
-
-        // 設置 title 和 alt
-        if (
-          window.mpuCanvasManager &&
-          window.mpuCanvasManager.currentCharacterName
-        ) {
-          this.frierenIdleImgElement.setAttribute(
-            "title",
-            window.mpuCanvasManager.currentCharacterName
+        if (existingImg) {
+          this.frierenIdleImgElement = existingImg;
+        } else {
+          this.frierenIdleImgElement = document.createElement("img");
+          this.frierenIdleImgElement.id = "frieren_idle_apng";
+          this.frierenIdleImgElement.style.display = "none";
+          this.frierenIdleImgElement.style.opacity = String(
+            this.frierenIdleOpacity
           );
-          this.frierenIdleImgElement.setAttribute(
-            "alt",
-            window.mpuCanvasManager.currentCharacterName
-          );
-        }
+          this.frierenIdleImgElement.style.cursor = "pointer";
+          this.frierenIdleImgElement.style.maxWidth = "none";
+          this.frierenIdleImgElement.style.width = "auto";
+          this.frierenIdleImgElement.style.height = "auto";
 
-        imgContainer.appendChild(this.frierenIdleImgElement);
+          if (!this.frierenIdleImgElement.dataset.mpuSizeLocked) {
+            this.frierenIdleImgElement.addEventListener("load", () => {
+              const w = this.frierenIdleImgElement.naturalWidth;
+              const h = this.frierenIdleImgElement.naturalHeight;
+              if (w && h) {
+                this.frierenIdleImgElement.style.width = w + "px";
+                this.frierenIdleImgElement.style.height = h + "px";
+                this.frierenIdleImgElement.style.maxWidth = "none";
+              }
+            });
+            this.frierenIdleImgElement.dataset.mpuSizeLocked = "1";
+          }
+
+          // 設置 title 和 alt
+          if (
+            window.mpuCanvasManager &&
+            window.mpuCanvasManager.currentCharacterName
+          ) {
+            this.frierenIdleImgElement.setAttribute(
+              "title",
+              window.mpuCanvasManager.currentCharacterName
+            );
+            this.frierenIdleImgElement.setAttribute(
+              "alt",
+              window.mpuCanvasManager.currentCharacterName
+            );
+          }
+
+          // 如果舊元素不存在，才掛載新元素
+          imgContainer.appendChild(this.frierenIdleImgElement);
+        }
       }
 
       const shouldShowSleep = this.isSleepMessage() && !this.sleepModeAwoken;
@@ -406,6 +414,14 @@
         );
         this.frierenIdleImgElement = null;
       }
+
+      // 防止 DOM 裡面有殘留未被綁定的重複元素
+      const strayImgs = document.querySelectorAll("#frieren_idle_apng");
+      strayImgs.forEach(img => {
+        if (img.parentNode) {
+          img.parentNode.removeChild(img);
+        }
+      });
 
       this.clearFrierenDecorations();
       this._decorationsLoaded = false; // 重置標誌，允許重新載入

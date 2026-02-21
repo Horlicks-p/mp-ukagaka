@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.7.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.8.3-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.8.0 新功能
+## 🎉 v2.8.3 新功能
 
-**Abilities API (工具調用)**：整合 WordPress Core Abilities API，賦予 AI 角色執行後端操作的能力。
+**效能與架構優化**：透過導入 O(1) 查表快取、請求層級快取機制以及 O(n) 的 JS 前端陣列重構，大幅提升了插件整體的執行速度與記憶體使用效率。
 
-- **權限控制**：嚴格限制僅有管理員權限的使用者可觸發工具調用。
-- **訪客優化**：對於非管理員訪客，系統自動過濾工具描述，節省 Token 並提升安全性。
-- **角色化拒絕**：AI 會以角色口吻拒絕未授權的工具請求（例如：「這是秘密」）。
-
-**安全性強化**：強化所有前端 AJAX 請求的 Nonce 驗證，防止 CSRF 攻擊。
+**安全性與穩定性增強**：新增了防範 ZIP Bomb 記憶體耗盡的提早拒絕機制，採用更安全的隨機數產生器，並藉由抽取共用 Utility 徹底解決重複載入導致的遞迴異常錯誤。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

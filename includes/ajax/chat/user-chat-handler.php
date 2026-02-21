@@ -21,10 +21,7 @@ if (!defined('ABSPATH')) {
 function mpu_ajax_user_chat()
 {
     // 驗證 Nonce（強制）
-    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
-        wp_send_json(["error" => __("安全性驗證失敗", "mp-ukagaka")]);
-        return;
-    }
+    if (!mpu_verify_ajax_nonce()) return;
 
     // 速率限制（防止濫用）- 30次/分鐘
     mpu_enforce_rate_limit('user_chat', 30, 60);
@@ -183,35 +180,18 @@ function mpu_ajax_user_chat()
 
     $user_message_lower = mb_strtolower($user_message, 'UTF-8');
 
-    // 檢測統計資訊關鍵字
-    foreach ($stats_keywords as $keyword => $type) {
-        if (mb_strpos($user_message_lower, mb_strtolower($keyword, 'UTF-8')) !== false) {
-            $needs_stats = true;
-            break;
-        }
-    }
-
-    // 檢測系統資訊關鍵字
-    foreach ($system_keywords as $keyword => $type) {
-        if (mb_strpos($user_message_lower, mb_strtolower($keyword, 'UTF-8')) !== false) {
-            $needs_system_info = true;
-            break;
-        }
-    }
-
-    // 檢測外掛資訊關鍵字
-    foreach ($plugin_keywords as $keyword => $type) {
-        if (mb_strpos($user_message_lower, mb_strtolower($keyword, 'UTF-8')) !== false) {
-            $needs_plugin_info = true;
-            break;
-        }
-    }
-
-    // 檢測主題資訊關鍵字
-    foreach ($theme_keywords as $keyword => $type) {
-        if (mb_strpos($user_message_lower, mb_strtolower($keyword, 'UTF-8')) !== false) {
-            $needs_theme_info = true;
-            break;
+    // 合併關鍵字偵測：單次外迴圈處理所有類別，避免重複程式碼
+    foreach ([
+        'needs_stats'       => $stats_keywords,
+        'needs_system_info' => $system_keywords,
+        'needs_plugin_info' => $plugin_keywords,
+        'needs_theme_info'  => $theme_keywords,
+    ] as $flag => $keywords) {
+        foreach ($keywords as $keyword => $type) {
+            if (mb_strpos($user_message_lower, mb_strtolower($keyword, 'UTF-8')) !== false) {
+                $$flag = true;
+                break;
+            }
         }
     }
 
@@ -261,45 +241,19 @@ function mpu_ajax_user_chat()
     }
 
     // 獲取 AI 提供商和 API Key
-    $provider = isset($mpu_opt["llm_provider"]) ? $mpu_opt["llm_provider"] : (isset($mpu_opt["ai_provider"]) ? $mpu_opt["ai_provider"] : "gemini");
-    $api_key = "";
-
-    // Ollama 不需要 API Key
-    if ($provider !== "ollama") {
-        $api_key_encrypted = "";
-        switch ($provider) {
-            case "openai":
-                $api_key_encrypted = $mpu_opt["llm_openai_api_key"] ?? $mpu_opt["openai_api_key"] ?? "";
-                break;
-            case "claude":
-                $api_key_encrypted = $mpu_opt["llm_claude_api_key"] ?? $mpu_opt["claude_api_key"] ?? "";
-                break;
-            case "gemini":
-            default:
-                $api_key_encrypted = $mpu_opt["llm_gemini_api_key"] ?? $mpu_opt["ai_api_key"] ?? "";
-                break;
-        }
-        $api_key = mpu_decrypt_api_key($api_key_encrypted);
-
-        if (empty($api_key)) {
-            wp_send_json(["error" => sprintf(__("%s API Key 未設定，請先在設定中配置", "mp-ukagaka"), ucfirst($provider))]);
-            return;
-        }
+    $provider = mpu_get_current_provider($mpu_opt);
+    $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
+    if ($provider !== 'ollama' && empty($api_key)) {
+        wp_send_json(["error" => sprintf(__("%s API Key 未設定，請先在設定中配置", "mp-ukagaka"), ucfirst($provider))]);
+        return;
     }
 
     // 建構系統提示（對話模式專用，不使用 prompt-categories.php）
     $ukagaka_name = $mpu_opt['cur_ukagaka'] ?? 'default_1';
     $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
     $language = $mpu_opt["ai_language"] ?? "zh-TW";
-    // ★ 先獲取 personality_id，再用於時間情境
-    $personality_id = null;
-    if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-        $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-    }
-    // Fallback: 如果無法從 ukagaka_name 獲取，使用當前 personality
-    if ($personality_id === null && function_exists('mpu_get_current_personality_id')) {
-        $personality_id = mpu_get_current_personality_id();
-    }
+    // 獲取 personality_id（含 fallback 邏輯）
+    $personality_id = mpu_resolve_personality_id($ukagaka_name);
     $time_context = mpu_get_time_context($personality_id);
 
     // 準備變數陣列（參考 mpu_ajax_chat_context 的實作）
@@ -530,12 +484,7 @@ function mpu_ajax_user_chat()
     
     // 嘗試取得 Manifest 的設定
     if (function_exists('mpu_load_personality_manifest')) {
-         // 先取得 ID
-         $pid = null;
-         if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-             $pid = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-         }
-         $manifest = mpu_load_personality_manifest($pid);
+         $manifest = mpu_load_personality_manifest($personality_id);
          if (isset($manifest['settings']['max_tokens'])) {
              $max_tokens = intval($manifest['settings']['max_tokens']);
          } else {
@@ -581,11 +530,6 @@ function mpu_ajax_user_chat()
     // 分析對話內容的情緒，獲取對應的表情
     $emoji = null;
     if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-        // 獲取 personality_id 以載入角色專屬的表情關鍵字
-        $personality_id = null;
-        if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-            $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-        }
         $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
     }
 

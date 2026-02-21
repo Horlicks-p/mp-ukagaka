@@ -18,10 +18,7 @@ if (!defined('ABSPATH')) {
 function mpu_ajax_decoration_chat()
 {
     // 驗證 Nonce（強制）
-    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
-        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-        return;
-    }
+    if (!mpu_verify_ajax_nonce()) return;
 
     $mpu_opt = mpu_get_option();
 
@@ -69,32 +66,11 @@ function mpu_ajax_decoration_chat()
     $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name);
 
     // 獲取提供商和 API Key
-    $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
-    $api_key_encrypted = "";
-    $api_key = "";
-
-    // Ollama 不需要 API Key
-    if ($provider !== "ollama") {
-        switch ($provider) {
-            case "openai":
-                $api_key_encrypted = $mpu_opt["llm_openai_api_key"] ?? $mpu_opt["openai_api_key"] ?? "";
-                break;
-            case "claude":
-                $api_key_encrypted = $mpu_opt["llm_claude_api_key"] ?? $mpu_opt["claude_api_key"] ?? "";
-                break;
-            case "gemini":
-            default:
-                $api_key_encrypted = $mpu_opt["llm_gemini_api_key"] ?? $mpu_opt["ai_api_key"] ?? "";
-                break;
-        }
-
-        // 解密 API Key
-        $api_key = mpu_decrypt_api_key($api_key_encrypted);
-
-        if (empty($api_key)) {
-            wp_send_json(['error' => ucfirst($provider) . ' API Key 未設定']);
-            return;
-        }
+    $provider = mpu_get_current_provider($mpu_opt);
+    $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
+    if ($provider !== 'ollama' && empty($api_key)) {
+        wp_send_json(['error' => ucfirst($provider) . ' API Key 未設定']);
+        return;
     }
 
     // 從 manifest.json 的 settings.max_tokens 讀取（預設 800）
@@ -118,10 +94,6 @@ function mpu_ajax_decoration_chat()
         wp_send_json(['error' => $result->get_error_message()]);
         return;
     }
-
-    // 更新速率限制計數
-    $current_count = ($rate_limit !== false) ? intval($rate_limit) : 0;
-    set_transient($transient_key, $current_count + 1, 60); // 60 秒內限制
 
     // 限制回應長度（從 manifest.json 的 settings.max_response_length 讀取，預設 500）
     $max_length = 500;
@@ -160,10 +132,7 @@ add_action('wp_ajax_nopriv_mpu_decoration_chat', 'mpu_ajax_decoration_chat');
 function mpu_ajax_touch_zone_chat()
 {
     // 驗證 Nonce（強制）
-    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
-        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
-        return;
-    }
+    if (!mpu_verify_ajax_nonce()) return;
 
     $mpu_opt = mpu_get_option();
 
@@ -244,32 +213,11 @@ function mpu_ajax_touch_zone_chat()
     $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name);
 
     // 獲取提供商和 API Key
-    $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
-    $api_key_encrypted = "";
-    $api_key = "";
-
-    // Ollama 不需要 API Key
-    if ($provider !== "ollama") {
-        switch ($provider) {
-            case "openai":
-                $api_key_encrypted = $mpu_opt["llm_openai_api_key"] ?? $mpu_opt["openai_api_key"] ?? "";
-                break;
-            case "claude":
-                $api_key_encrypted = $mpu_opt["llm_claude_api_key"] ?? $mpu_opt["claude_api_key"] ?? "";
-                break;
-            case "gemini":
-            default:
-                $api_key_encrypted = $mpu_opt["llm_gemini_api_key"] ?? $mpu_opt["ai_api_key"] ?? "";
-                break;
-        }
-
-        // 解密 API Key
-        $api_key = mpu_decrypt_api_key($api_key_encrypted);
-
-        if (empty($api_key)) {
-            wp_send_json(['error' => ucfirst($provider) . ' API Key 未設定']);
-            return;
-        }
+    $provider = mpu_get_current_provider($mpu_opt);
+    $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
+    if ($provider !== 'ollama' && empty($api_key)) {
+        wp_send_json(['error' => ucfirst($provider) . ' API Key 未設定']);
+        return;
     }
 
     // 從 manifest.json 的 settings.max_tokens 讀取（預設 800）
@@ -294,10 +242,6 @@ function mpu_ajax_touch_zone_chat()
         return;
     }
 
-    // 更新速率限制計數
-    $current_count = ($rate_limit !== false) ? intval($rate_limit) : 0;
-    set_transient($transient_key, $current_count + 1, 60); // 60 秒內限制
-
     // 限制回應長度（從 manifest.json 的 settings.max_response_length 讀取，預設 500）
     $max_length = 500;
     if (function_exists('mpu_get_personality_max_response_length')) {
@@ -307,7 +251,7 @@ function mpu_ajax_touch_zone_chat()
         $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
     }
 
-    // 分析對話內容的情緒，獲取對應的表情（$personality_id 已在上方解析）
+    // 分析對話內容的情緒，獲取對應的表情
     $emoji = null;
     if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
         $emoji = mpu_analyze_emoji_from_text($result, $personality_id);

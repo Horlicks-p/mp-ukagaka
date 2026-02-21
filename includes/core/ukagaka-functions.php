@@ -226,7 +226,7 @@ function mpu_get_random_msg($num = false, $echo = false)
     $name = $num === false ? $mpu_opt["cur_ukagaka"] ?? "default_1" : $num;
     $msgs = $mpu_opt["ukagakas"][$name]["msg"] ?? [];
     $total = count($msgs);
-    $msg = $total > 0 ? $msgs[mt_rand(0, $total - 1)] : "";
+    $msg = $total > 0 ? $msgs[wp_rand(0, $total - 1)] : "";
     if ($echo) {
         echo $msg;
     } else {

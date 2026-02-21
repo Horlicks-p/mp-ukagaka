@@ -6,6 +6,35 @@
 
 ---
 
+## [2.8.3] - 2026-02-21
+
+### 🚀 パフォーマンス最適化とリファクタリング
+
+- **PHP バックエンドのパフォーマンスと構造の最適化**:
+  - **O(1) テーブルルックアップ最適化**: `personality-loader.php` に静的な逆引きマップ (`static $name_map`) を実装し、配列走査の O(n) の複雑さを O(1) の `isset()` 検索に改善しました。
+  - **リクエストレベルのキャッシュ**: 同一 URL に対する高コストな `url_to_postid()` クエリの繰り返しを防ぐため、`llm-slimstat.php` に `$post_id_cache` 配列を実装しました。
+  - **静的リソースキャッシュの統合**: `prompt-categories.php` のキャッシュを最適化し、`$personality_id ?? '__default__'` を使用することで、すべての伺か（Ukagaka）人格がリクエスト間で静的キャッシュの恩恵を受けられるようにしました。
+  - **文字列処理の改善**: `mpu_normalize_for_similarity()` を抽出し、ループ前に正規化を実行することで `preg_replace` の重複を回避しました。また、`personality-prompts.php` で同一文字列に対する複数回の天候 Regex (`preg_match`) 操作を 1 回の効率的なマッチングに統合しました。
+  - **ループの統合**: `user-chat-handler.php` の 4 つの独立した `foreach` 反復を、可変変数 (`$$flag`) を使って 1 つのループにまとめ、重複コードを大幅に削減しました。
+
+- **JS フロントエンドのパフォーマンス最適化**:
+  - **O(n²) → O(n)**: `ukagaka-context.js` および `ukagaka-greeting.js` 内の、配列を絶えずシフトさせる `splice` ループを廃止し、カウンターを用いた `filter()` 処理に書き換えました。これにより、長いチャット履歴配列を処理する際の計算ボトルネックが大幅に解消されました。
+  - **jQuery セレクターのキャッシュ**: DOM のクエリ回数を減らすため、`ukagaka-core.js` の `mpu_nextmsg` と fallback 処理内に `const $msgnum` のキャッシュを追加しました。
+
+### 🛡️ セキュリティと安定性の強化
+
+- **ZIP 爆弾対策 (ZIP Bomb Mitigation)**: 極端に多くの小ファイルを含む ZIP ファイルのアップロードによるサーバーのメモリ枯渇 (DoS) を防ぐため、`admin-functions.php` の処理フローにファイル上限 (`1000` 件) の早期拒否メカニズムを導入しました。
+- **安全な乱数生成器**: セキュリティ向上のため、古い `mt_rand()` をすべて WordPress 標準のより安全な `wp_rand()` に置き換えました。
+- **致命的エラー (Fatal Error) の防止**: `mpu_recursive_rmdir` 関数をグローバルスコープに抽出し、ネストによるインクルード競合で発生する可能性のある致命的エラーを排除しました。
+
+### 🔧 コードのクリーンアップと共通化
+
+- **重複コードの大幅な削減**: 分散したロジックを抽出し、以下の通り独立したユーティリティ関数として統一しました（コード数百行を削減）:
+  - PHP: `mpu_verify_ajax_nonce()`, `mpu_get_current_provider()`, `mpu_get_provider_api_key()`, `mpu_build_user_info_prompt()`。
+  - JS: `mpu_isDeepSleepTime()`, `mpu_selectNextMessage()`, 一元化された `_isDebug()` 条件。
+- **Ollama 思考モデル (Thinking Model) 検出**: 長くてメンテナンスしづらい `strpos(strtolower())` チェーンから、柔軟な `array_filter` + `stripos` メカニズムにアップグレードしました。
+- **ディレクトリスキャンの簡素化**: `personality-loader.php` で冗長な `scandir()` ループを `glob()` に置き換え、単調な `.` / `..` のフィルタリングや `file_exists` チェック処理を省略し、ロジックをスッキリさせました。
+
 ## [2.8.2] - 2026-02-16
 
 - 追加：ISO 3166-1 国コードを完全な国名に変換する `mpu_country_code_to_name` ユーティリティ関数を追加（PHP intl 拡張を優先使用）。

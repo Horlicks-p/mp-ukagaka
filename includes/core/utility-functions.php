@@ -1018,7 +1018,7 @@ function mpu_enforce_rate_limit($action, $max_requests = 10, $period = 60)
 
 /**
  * 重置指定動作的速率限制
- * 
+ *
  * @since 2.5.7
  * @param string $action 動作標識
  * @param string|null $ip IP 地址，null 則使用當前客戶端 IP
@@ -1029,7 +1029,80 @@ function mpu_reset_rate_limit($action, $ip = null)
     if ($ip === null) {
         $ip = mpu_get_client_ip();
     }
-    
+
     $transient_key = 'mpu_rl_' . sanitize_key($action) . '_' . md5($ip);
     return delete_transient($transient_key);
+}
+
+// ========================================
+// AJAX 共用輔助函數
+// ========================================
+
+/**
+ * 解析 Personality ID（含 fallback 邏輯）
+ * 統一各 AJAX handler 中重複的 personality_id 取得流程：
+ * 1. 優先從 ukagaka_name 查找
+ * 2. fallback 至當前 personality
+ *
+ * @param string|null $ukagaka_name 角色 config key，null 則直接使用當前 personality
+ * @return string|null Personality ID，無法解析時返回 null
+ */
+function mpu_resolve_personality_id($ukagaka_name = null): ?string
+{
+    if ($ukagaka_name !== null && function_exists('mpu_get_personality_id_from_ukagaka_name')) {
+        $id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
+        if ($id !== null) {
+            return $id;
+        }
+    }
+    if (function_exists('mpu_get_current_personality_id')) {
+        return mpu_get_current_personality_id();
+    }
+    return null;
+}
+
+/**
+ * 驗證 AJAX Nonce（POST 請求專用）
+ * 失敗時自動送出錯誤回應，呼叫方只需檢查回傳值即可
+ *
+ * @return bool 驗證成功返回 true，失敗返回 false（已送出錯誤回應）
+ */
+function mpu_verify_ajax_nonce(): bool
+{
+    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
+        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * 建構用戶資訊的 User Prompt 區塊
+ * 格式化登入狀態、角色、管理員身份為 LLM 可讀的文字
+ *
+ * @param array $user_info mpu_get_current_user_info() 的返回值
+ * @return string 格式化的用戶資訊提示詞（含尾部換行）
+ */
+function mpu_build_user_info_prompt(array $user_info): string
+{
+    $role_labels = [
+        'administrator' => '管理人',
+        'editor'        => '編集者',
+        'author'        => '作者',
+        'contributor'   => '貢献者',
+        'subscriber'    => '購読者',
+    ];
+
+    $prompt = "【現在のユーザー情報】\n";
+    if ($user_info['is_logged_in']) {
+        $role_label = $role_labels[$user_info['primary_role']] ?? $user_info['primary_role'];
+        $prompt .= "ユーザーがログインしています：{$user_info['display_name']} ({$user_info['username']})\n";
+        $prompt .= "役割：{$role_label}\n";
+        if ($user_info['is_admin']) {
+            $prompt .= "このユーザーはサイト管理人です。\n";
+        }
+    } else {
+        $prompt .= "ユーザーがログインしていません（訪問者）。\n";
+    }
+    return $prompt;
 }

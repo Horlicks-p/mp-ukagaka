@@ -474,7 +474,15 @@ jQuery(document).ready(function () {
   jQuery("#mpu_cancel_btn").on("click", function (e) {
     e.preventDefault();
 
-    // 檢查是否正在處理裝飾物對話
+    // 對話模式中：cancel 直接退出，不受 mpuMessageBlocking 阻擋
+    // （mpuMessageBlocking 是阻擋自動對話切換用，不應阻擋使用者主動退出）
+    if (mpuChatModeActive) {
+      mpu_toggleChatMode(false);
+      mpuLogger.log("退出對話模式");
+      return;
+    }
+
+    // 非對話模式：檢查是否正在處理裝飾物對話
     if (
       typeof window.mpuCanvasManager !== "undefined" &&
       window.mpuCanvasManager.decorationChatInProgress
@@ -483,19 +491,13 @@ jQuery(document).ready(function () {
       return;
     }
 
-    // 檢查訊息是否被阻擋
+    // 非對話模式：檢查訊息是否被阻擋
     if (mpuMessageBlocking) {
       mpuLogger.log("訊息被阻擋，忽略按鈕點擊");
       return;
     }
 
-    if (mpuChatModeActive) {
-      // 退出對話模式，回到自言自語模式
-      mpu_toggleChatMode(false);
-      mpuLogger.log("退出對話模式");
-    } else {
-      mpu_hidemsg("");
-    }
+    mpu_hidemsg("");
   });
 
   mpuLogger.log("互動對話模式已初始化");

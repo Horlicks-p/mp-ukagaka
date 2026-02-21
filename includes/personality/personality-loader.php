@@ -116,16 +116,20 @@ function mpu_get_current_personality_id()
     $ukagaka_name = $ukagaka_data['name'] ?? '';
 
     if (!empty($ukagaka_name)) {
-        $personalities = mpu_get_available_personalities();
-        foreach ($personalities as $id => $manifest) {
-            if (
-                $ukagaka_name === ($manifest['name'] ?? '') ||
-                $ukagaka_name === ($manifest['name_en'] ?? '') ||
-                $ukagaka_name === ($manifest['name_zh'] ?? '')
-            ) {
-                $personality_id = $id;
-                return $personality_id;
+        // 靜態反向映射快取：name/name_en/name_zh → personality_id，避免每次請求 O(n) 線性搜尋
+        static $name_map = null;
+        if ($name_map === null) {
+            $name_map = [];
+            foreach (mpu_get_available_personalities() as $id => $manifest) {
+                foreach (['name', 'name_en', 'name_zh'] as $key) {
+                    if (!empty($manifest[$key])) {
+                        $name_map[$manifest[$key]] = $id;
+                    }
+                }
             }
+        }
+        if (isset($name_map[$ukagaka_name])) {
+            return $name_map[$ukagaka_name];
         }
     }
 
@@ -175,16 +179,14 @@ function mpu_get_available_personalities($include_placeholders = false)
         return $personalities;
     }
 
-    $folders = scandir($dir);
-    foreach ($folders as $folder) {
-        if ($folder === '.' || $folder === '..') {
-            continue;
-        }
+    // glob 直接只回傳存在的 manifest.json，省略 . / .. 過濾與 file_exists 檢查
+    $manifest_files = glob($dir . '/*/manifest.json');
+    if ($manifest_files === false) {
+        $manifest_files = [];
+    }
 
-        $manifest_path = $dir . '/' . $folder . '/manifest.json';
-        if (!file_exists($manifest_path)) {
-            continue;
-        }
+    foreach ($manifest_files as $manifest_path) {
+        $folder = basename(dirname($manifest_path));
 
         $manifest = mpu_load_json_file($manifest_path);
         if ($manifest === null) {

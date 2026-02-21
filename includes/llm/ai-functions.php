@@ -557,10 +557,11 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
     $mpu_opt = mpu_get_option();
 
     // 支援思考模式的模型 (Qwen3, DeepSeek, Frieren, R1 等)
-    $is_thinking_model = (strpos(strtolower($model), 'qwen3') !== false)
-        || (strpos(strtolower($model), 'frieren') !== false)
-        || (strpos(strtolower($model), 'deepseek') !== false)
-        || (strpos(strtolower($model), 'r1') !== false);
+    $thinking_keywords = ['qwen3', 'frieren', 'deepseek', 'r1'];
+    $is_thinking_model = (bool) array_filter(
+        $thinking_keywords,
+        fn($kw) => stripos($model, $kw) !== false
+    );
 
     // 預設啟用思考模式
     $enable_thinking = $is_thinking_model && !(isset($mpu_opt['ollama_disable_thinking']) && $mpu_opt['ollama_disable_thinking']);

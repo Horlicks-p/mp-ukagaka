@@ -133,15 +133,7 @@ jQuery(document).ready(function () {
     );
 
     // 睡眠模式檢測（移到外面以便後續判斷使用）
-    let isDeepSleep = false;
-    if (typeof window.mpuInfo !== 'undefined' && typeof window.mpuInfo.isDeepSleepTime !== 'undefined') {
-      isDeepSleep = window.mpuInfo.isDeepSleepTime;
-    } else {
-      // 備用：使用客戶端時間（向後兼容）
-      const now = new Date();
-      const hour = now.getHours();
-      isDeepSleep = hour >= 0 && hour < 6;
-    }
+    const isDeepSleep = mpu_isDeepSleepTime();
     
     // 檢查初始訊息是否為睡眠相關
     const msgElement = jQuery("#ukagaka_msg");

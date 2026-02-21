@@ -47,49 +47,58 @@ window.mpuMsgList = null;
  * 在生產環境中自動過濾調試訊息，只保留錯誤訊息
  */
 const mpuLogger = {
-    /**
-     * 記錄調試訊息（只在調試模式下顯示）
-     * @param {...any} args - 要記錄的參數
-     */
+    _isDebug: function () {
+        return debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true);
+    },
     log: function (...args) {
-        if (debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true)) {
-            console.log('[MP Ukagaka]', ...args);
-        }
+        if (this._isDebug()) { console.log('[MP Ukagaka]', ...args); }
     },
-
-    /**
-     * 記錄警告訊息（只在調試模式下顯示）
-     * @param {...any} args - 要記錄的參數
-     */
     warn: function (...args) {
-        if (debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true)) {
-            console.warn('[MP Ukagaka]', ...args);
-        }
+        if (this._isDebug()) { console.warn('[MP Ukagaka]', ...args); }
     },
-
-    /**
-     * 記錄錯誤訊息（始終記錄，但格式統一）
-     * @param {...any} args - 要記錄的參數
-     */
     error: function (...args) {
-        // 錯誤始終記錄，但使用統一格式
         console.error('[MP Ukagaka ERROR]', ...args);
     },
-
-    /**
-     * 記錄資訊訊息（只在調試模式下顯示）
-     * @param {...any} args - 要記錄的參數
-     */
     info: function (...args) {
-        if (debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true)) {
-            console.info('[MP Ukagaka]', ...args);
-        }
+        if (this._isDebug()) { console.info('[MP Ukagaka]', ...args); }
     }
 };
 
 // 向後兼容：保留 debugLog 函數
 function debugLog() {
     mpuLogger.log.apply(mpuLogger, arguments);
+}
+
+/**
+ * 判斷目前是否為深度睡眠時段
+ * 優先使用伺服器端時間（避免客戶端/伺服器時區差異）
+ * @returns {boolean}
+ */
+function mpu_isDeepSleepTime() {
+    if (typeof window.mpuInfo !== 'undefined' && typeof window.mpuInfo.isDeepSleepTime !== 'undefined') {
+        return window.mpuInfo.isDeepSleepTime;
+    }
+    const hour = new Date().getHours();
+    return hour >= 0 && hour < 6;
+}
+
+/**
+ * 選取下一條對話訊息（隨機或循序）
+ * @param {Object} store - 訊息列表物件（含 msg 陣列）
+ * @param {number} currentNum - 目前顯示的訊息索引
+ * @returns {number} 下一條訊息的索引
+ */
+function mpu_selectNextMessage(store, currentNum) {
+    const msgCount = store.msg.length;
+    if (mpuNextMode === "random") {
+        let newIdx;
+        do {
+            newIdx = Math.floor(Math.random() * msgCount);
+        } while (newIdx === currentNum && msgCount > 1);
+        return newIdx;
+    } else {
+        return currentNum + 1 >= msgCount ? 0 : currentNum + 1;
+    }
 }
 
 /**

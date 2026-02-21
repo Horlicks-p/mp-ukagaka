@@ -599,9 +599,11 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 
     if (!empty($result) && (!empty($last_response) || !empty($response_history))) {
         $similarity_threshold = 0.7;
+        // 預先正規化 $result，避免在迴圈中對同一文字重複執行 preg_replace + mb_strtolower
+        $norm_result = mpu_normalize_for_similarity($result);
 
         if (!empty($last_response)) {
-            $similarity = mpu_calculate_text_similarity($result, $last_response);
+            $similarity = mpu_calculate_text_similarity($norm_result, $last_response, true);
             if ($similarity >= $similarity_threshold) {
                 if (defined('WP_DEBUG') && WP_DEBUG) {
                     mpu_debug_log("MP Ukagaka - 檢測到重複回應（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
@@ -612,7 +614,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 
         if (!empty($response_history) && is_array($response_history)) {
             foreach ($response_history as $hist_response) {
-                $similarity = mpu_calculate_text_similarity($result, $hist_response);
+                $similarity = mpu_calculate_text_similarity($norm_result, $hist_response, true);
                 if ($similarity >= $similarity_threshold) {
                     if (defined('WP_DEBUG') && WP_DEBUG) {
                         mpu_debug_log("MP Ukagaka - 檢測到與歷史回應重複（相似度: " . round($similarity * 100, 1) . "%），改用內建對話");
@@ -627,27 +629,34 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 }
 
 /**
+ * 正規化文字以供相似度比較（移除標點、空白，轉為小寫）
+ *
+ * @param string $text 輸入文字
+ * @return string 正規化後的文字
+ */
+function mpu_normalize_for_similarity($text)
+{
+    $text = preg_replace('/[^\p{L}\p{N}]/u', '', $text);
+    return mb_strtolower($text, 'UTF-8');
+}
+
+/**
  * 計算兩個文字的相似度
  * 使用 PHP 內建的 similar_text() 函數（C 語言實作，效能優於純 PHP 算法）
- * * @param string $text1 第一個文字
- * @param string $text2 第二個文字
+ *
+ * @param string $text1           第一個文字
+ * @param string $text2           第二個文字
+ * @param bool   $text1_normalized 若為 true，$text1 已預先正規化（避免迴圈中重複計算）
  * @return float 相似度（0.0 到 1.0，1.0 表示完全相同）
  */
-function mpu_calculate_text_similarity($text1, $text2)
+function mpu_calculate_text_similarity($text1, $text2, $text1_normalized = false)
 {
     if (empty($text1) || empty($text2)) {
         return 0.0;
     }
 
-    // 正規化：移除標點符號和空白，轉為小寫
-    $normalize = function ($text) {
-        $text = preg_replace('/[^\p{L}\p{N}]/u', '', $text);
-        $text = mb_strtolower($text, 'UTF-8');
-        return $text;
-    };
-
-    $norm1 = $normalize($text1);
-    $norm2 = $normalize($text2);
+    $norm1 = $text1_normalized ? $text1 : mpu_normalize_for_similarity($text1);
+    $norm2 = mpu_normalize_for_similarity($text2);
 
     if (empty($norm1) || empty($norm2)) {
         return 0.0;

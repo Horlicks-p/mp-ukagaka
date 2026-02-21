@@ -30,51 +30,35 @@ if (!defined('ABSPATH')) {
  */
 function mpu_get_static_prompt_categories($personality_id = null)
 {
-    // 如果指定了 personality_id，不使用靜態快取（因為不同 personality 需要不同的提示詞）
-    if ($personality_id !== null) {
-        // 從 JSON 載入（personality-loader.php）
-        if (function_exists('mpu_load_personality_prompts')) {
-            $json_prompts = mpu_load_personality_prompts($personality_id);
+    // 以 personality_id 為 key 的靜態快取，支援多人格且避免同一請求重複載入
+    static $cache = [];
+    $cache_key = $personality_id ?? '__default__';
 
-            if (!empty($json_prompts)) {
-                return $json_prompts;
-            }
-        }
-
-        // JSON 載入失敗：記錄錯誤並返回空陣列
-        if (function_exists('mpu_debug_log')) {
-            mpu_debug_log('[MP Ukagaka] 無法從 JSON 載入人格提示詞 (personality_id: ' . $personality_id . ')，請檢查 ghost/ 資料夾');
-        } else {
-            mpu_log_error('無法從 JSON 載入人格提示詞 (personality_id: ' . $personality_id . ')，請檢查 ghost/ 資料夾');
-        }
-        return [];
-    }
-
-    // 沒有指定 personality_id 時使用靜態快取（向後兼容）
-    static $static_categories = null;
-
-    if ($static_categories !== null) {
-        return $static_categories;
+    if (isset($cache[$cache_key])) {
+        return $cache[$cache_key];
     }
 
     // 從 JSON 載入（personality-loader.php）
     if (function_exists('mpu_load_personality_prompts')) {
-        $json_prompts = mpu_load_personality_prompts();
+        $json_prompts = mpu_load_personality_prompts($personality_id);
 
         if (!empty($json_prompts)) {
-            $static_categories = $json_prompts;
-            return $static_categories;
+            $cache[$cache_key] = $json_prompts;
+            return $cache[$cache_key];
         }
     }
 
     // JSON 載入失敗：記錄錯誤並返回空陣列
+    $log_msg = $personality_id !== null
+        ? '[MP Ukagaka] 無法從 JSON 載入人格提示詞 (personality_id: ' . $personality_id . ')，請檢查 ghost/ 資料夾'
+        : '[MP Ukagaka] 無法從 JSON 載入人格提示詞，請檢查 ghost/ 資料夾';
     if (function_exists('mpu_debug_log')) {
-        mpu_debug_log('[MP Ukagaka] 無法從 JSON 載入人格提示詞，請檢查 ghost/ 資料夾');
+        mpu_debug_log($log_msg);
     } else {
-        mpu_log_error('無法從 JSON 載入人格提示詞，請檢查 ghost/ 資料夾');
+        mpu_log_error($log_msg);
     }
-    $static_categories = [];
-    return $static_categories;
+    $cache[$cache_key] = [];
+    return $cache[$cache_key];
 }
 
 /**

@@ -6,6 +6,35 @@
 
 ---
 
+## [2.8.3] - 2026-02-21
+
+### 🚀 Performance Optimization & Refactoring
+
+- **PHP Backend Performance & Structural Optimization**:
+  - **O(1) Map Lookup Optimization**: Implemented a static reverse lookup map (`static $name_map`) in `personality-loader.php`, downgrading the array traversal O(n) complexity to O(1) `isset()` lookups.
+  - **Request-Level Cache**: Implemented a `$post_id_cache` array in `llm-slimstat.php` to prevent repetitive, expensive `url_to_postid()` queries for the same URL.
+  - **Static Resource Cache Merger**: Optimized caching in `prompt-categories.php` by using `$personality_id ?? '__default__'` so all Ukagaka personalities can benefit from static memory caching across requests.
+  - **String Processing Improvements**: Extracted `mpu_normalize_for_similarity()`, executing normalization before loops to avoid repeating `preg_replace`; merged multiple Regex (`preg_match`) weather operations on the same string in `personality-prompts.php` into a single, efficient match.
+  - **Loop Consolidation**: Merged 4 separate `foreach` iterations in `user-chat-handler.php` into a single loop using dynamic variables (`$$flag`), significantly reducing boilerplate code.
+
+- **JS Frontend Optimization**:
+  - **O(n²) → O(n)**: Refactored array mutative loops utilizing `splice` in `ukagaka-context.js` and `ukagaka-greeting.js` to use `filter()` and a counter mechanism. This drastically reduces CPU overhead when processing massive chat history arrays.
+  - **jQuery Selector Caching**: Cached `const $msgnum` in `ukagaka-core.js`'s `mpu_nextmsg` processes to reduce repeated DOM interactions and repaints.
+
+### 🛡️ Security & Stability
+
+- **ZIP Bomb Mitigation**: Implemented a strict file limit check (maximum `1,000` files) in `admin-functions.php` to instantly deny uploads of archives containing excessively large numbers of files, preventing memory exhaustion (DoS).
+- **Secure Randomizer**: Entirely replaced insecure `mt_rand()` instances globally with the WordPress-standard, cryptographically safer `wp_rand()`.
+- **Fatal Error Prevention (`mpu_recursive_rmdir`)**: Extracted directory removal functions to global scope to eliminate nested inclusion conflicts which were causing sporadic Fatal Errors.
+
+### 🔧 Code Cleanup & Reusability
+
+- **Heavy Code Deduplication**: Abstracted scattered, redundant logic into unified global utility functions, cutting hundreds of lines of code:
+  - PHP: `mpu_verify_ajax_nonce()`, `mpu_get_current_provider()`, `mpu_get_provider_api_key()`, `mpu_build_user_info_prompt()`.
+  - JS: `mpu_isDeepSleepTime()`, `mpu_selectNextMessage()`, unified `_isDebug()` conditionals.
+- **Ollama Thinking Model Recognition**: Upgraded from tedious `strpos(strtolower())` chains to a clean, maintainable `array_filter` & `stripos` mechanism.
+- **Directory Scanning Simplification**: Replaced bulky `scandir()` loops with a concise `glob()` technique in `personality-loader.php`, bypassing the need for mundane `.` / `..` filtering and `file_exists` evaluations.
+
 ## [2.8.2] - 2026-02-16
 
 - New: Added `mpu_country_code_to_name` utility function to convert ISO 3166-1 country codes to full country names (prioritizing PHP intl extension).

@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.7.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.8.3-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.8.0 の新機能
+## 🎉 v2.8.3 の新機能
 
-**Abilities API (ツール呼び出し)**：WordPress Core Abilities API を統合し、AI キャラクターにバックエンド操作を実行する能力を付与しました。
+**パフォーマンス最適化**：O(1) ハッシュマップ検索、リクエストレベルキャッシュの導入、および JS での O(n) メッセージ履歴処理アルゴリズムを採用し、バックエンド・フロントエンド全体のパフォーマンスを劇的に向上させました。
 
-- **管理者限定**：ツール実行は管理者権限を持つユーザーのみに厳格に制限されます。
-- **訪問者最適化**：非管理者の訪問者に対しては、システムが自動的にツール定義をフィルタリングし、トークンを節約します。
-- **キャラクターによる拒絶**：権限のないリクエストに対して、AI はキャラクターの口調で拒否します（例：「それは秘密だよ」）。
-
-**セキュリティ強化**：すべてのフロントエンド AJAX リクエストで厳格な Nonce 検証を実施し、CSRF 攻撃を防止します。
+**セキュリティと安定性の強化**：高度な ZIP 爆弾対策 (ZIP Bomb Mitigation) の導入、安全な乱数生成器 (`wp_rand`) の採用、および全域での重複コード削減を通じた致命的エラーの抑止を行いました。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 
