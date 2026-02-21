@@ -396,6 +396,30 @@ function mpu_enqueue_frontend_assets()
         );
 
         wp_enqueue_script(
+            'mpu-context',
+            plugins_url('js/ukagaka-context.js', $main_file),
+            array('mpu-core'),
+            MPU_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
+            'mpu-dialog',
+            plugins_url('js/ukagaka-dialog.js', $main_file),
+            array('mpu-core'),
+            MPU_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
+            'mpu-greeting',
+            plugins_url('js/ukagaka-greeting.js', $main_file),
+            array('mpu-core', 'mpu-chat'),
+            MPU_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
             'mpu-chat',
             plugins_url('js/ukagaka-chat.js', $main_file),
             array('mpu-core', 'mpu-anime'),
@@ -415,7 +439,7 @@ function mpu_enqueue_frontend_assets()
         wp_enqueue_script(
             'mpu-features',
             plugins_url('js/ukagaka-features.js', $main_file),
-            array('mpu-core', 'mpu-anime', 'mpu-chat'),
+            array('mpu-core', 'mpu-anime', 'mpu-chat', 'mpu-context', 'mpu-dialog', 'mpu-greeting'),
             MPU_VERSION,
             true
         );
