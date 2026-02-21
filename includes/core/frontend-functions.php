@@ -612,6 +612,7 @@ function mpu_head()
                             );
                         }
                         window.mpuInitData = response;
+                        window.mpuPersonalityId = response.personality_id || null;
                         window.mpuDecorationsBaseUrl = response.decorations_base_url;
                         window.mpuDecorationConfig = response.decoration_config;
                         window.mpuTouchZones = response.touchzones;

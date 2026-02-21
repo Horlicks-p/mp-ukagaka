@@ -1,73 +1,3 @@
-<style>
-    /* 動漫風格：統一設定頁面樣式 */
-    .mpu-settings-card {
-        background: #E8F4F8;
-        border: 1px solid #B8E6E6;
-        border-radius: 10px;
-        padding: 20px 24px;
-        margin: 20px 0;
-        box-shadow: 0 2px 8px rgba(168, 216, 234, 0.15);
-    }
-
-    .mpu-settings-card h4 {
-        color: #4A9EBD;
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0 0 16px 0;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #A8D8EA;
-    }
-
-    .mpu-settings-card .mpu-field-group {
-        margin-bottom: 16px;
-    }
-
-    .mpu-settings-card .mpu-field-group:last-child {
-        margin-bottom: 0;
-    }
-
-    .mpu-settings-card label {
-        font-weight: 500;
-    }
-
-    .mpu-settings-card small {
-        color: #5A7A8C;
-        display: block;
-        margin-top: 4px;
-    }
-
-    .mpu-settings-card label {
-        color: #2C3E50;
-    }
-
-    /* 動漫風格：textarea 滾動條樣式 */
-    .mpu-settings-card textarea::-webkit-scrollbar {
-        width: 12px;
-    }
-
-    .mpu-settings-card textarea::-webkit-scrollbar-track {
-        background: #E8F4F8;
-        border-radius: 6px;
-        border: 1px solid #B8E6E6;
-    }
-
-    .mpu-settings-card textarea::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #A8D8EA 0%, #B8E6E6 100%);
-        border-radius: 6px;
-        border: 2px solid #E8F4F8;
-    }
-
-    .mpu-settings-card textarea::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #4A9EBD 0%, #5FB3A1 100%);
-    }
-
-    /* Firefox 滾動條樣式 */
-    .mpu-settings-card textarea {
-        scrollbar-width: thin;
-        scrollbar-color: #A8D8EA #E8F4F8;
-    }
-</style>
-
 <div>
     <h3><?php _e('創建新偽春菜', 'mp-ukagaka'); ?></h3>
     
@@ -85,7 +15,7 @@
     
     <?php if ($preview_data === null): ?>
         <!-- ZIP 上傳模式 -->
-        <p style="color: #5A7A8C; margin-bottom: 20px;">
+        <p style="color: #8A7FA0; margin-bottom: 20px;">
             <small><?php _e('上傳包含 manifest.json、shell/ 等文件的 ZIP 壓縮包，系統會自動解壓並驗證。', 'mp-ukagaka'); ?></small>
         </p>
         <form method="post" name="upload_zip" id="upload_zip" action="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=2'); ?>" enctype="multipart/form-data">
@@ -104,9 +34,9 @@
             <p><input name="submit_upload_zip" class="button button-primary" value="<?php _e('上傳並驗證', 'mp-ukagaka'); ?>" type="submit" /></p>
         </form>
         
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #B8E6E6;" />
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #DED6EE;" />
         
-        <p style="color: #5A7A8C; margin-bottom: 20px;">
+        <p style="color: #8A7FA0; margin-bottom: 20px;">
             <small>
                 <?php _e('或使用傳統方式創建（僅支援內建對話系統，無法使用 LLM 對話功能）：圖片請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭。', 'mp-ukagaka'); ?>
             </small>
@@ -123,7 +53,7 @@
         
         <?php if ($preview_data !== null): ?>
             <!-- 預覽區域 -->
-            <div class="mpu-settings-card" style="border: 2px solid #4A9EBD; background: #F0F9FC;">
+            <div class="mpu-settings-card" style="border: 2px solid #7B68AE; background: #F7F4FC;">
                 <h4><?php _e('📋 預覽資訊', 'mp-ukagaka'); ?></h4>
                 
                 <div class="mpu-field-group">

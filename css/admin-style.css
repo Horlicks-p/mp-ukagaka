@@ -1,31 +1,33 @@
 /**
  * MP Ukagaka 後台管理介面樣式
- * Claude 風格設計，配色參考 sample_style.css
+ * Frieren Theme — 芙莉蓮主題配色
  */
 
-/* ========== 基本變數定義 ========== */
+/* ========== Frieren 色票變數 ========== */
 :root {
-  --claude-bg-primary: #f5f5f0;
-  --claude-bg-secondary: #eeecde;
-  --claude-bg-card: #f0eee0;
-  --claude-bg-white: #ffffff;
-  --claude-text-primary: #666;
-  --claude-text-secondary: #69644e;
-  --claude-text-heading: #1d8ac3;
-  --claude-link: #94b800;
-  --claude-link-hover: #69644e;
-  --claude-border: #B8E6E6;
-  --claude-border-light: #A8D8EA;
-  --claude-shadow: rgba(0, 0, 0, 0.08);
-  --claude-shadow-hover: rgba(0, 0, 0, 0.12);
-  --claude-accent: #1d8ac3;
-  --claude-success: #94b800;
-  --claude-error: #d32f2f;
+  --mpu-bg-primary: #FDFBF7;
+  --mpu-bg-card: #FFFFFF;
+  --mpu-bg-white: #FFFFFF;
+  --mpu-bg-section: #FDFAFE;
+  --mpu-accent: #7B68AE;
+  --mpu-accent-dark: #5E4D8B;
+  --mpu-accent-light: #C4B6DE;
+  --mpu-accent-muted: #EDE8F5;
+  --mpu-text-heading: #4A3D6B;
+  --mpu-text-primary: #5C5470;
+  --mpu-text-secondary: #8A7FA0;
+  --mpu-border: #DED6EE;
+  --mpu-border-light: #EAE4F4;
+  --mpu-success: #6A9F5B;
+  --mpu-error: #C94F4F;
+  --mpu-link: #7B68AE;
+  --mpu-shadow: rgba(75, 61, 107, 0.08);
+  --mpu-shadow-hover: rgba(75, 61, 107, 0.14);
 }
 
 /* ========== 整體容器 ========== */
 .mp-ukagaka-wrap {
-  background: #f0f0f1; /* WordPress 預設背景色 */
+  background: #f0f0f1;
   min-height: 100vh;
   padding: 0 !important;
   margin: 0 -20px 0 -2px;
@@ -33,13 +35,12 @@
     "Segoe UI", Roboto, sans-serif;
 }
 
-/* 覆蓋 WordPress 默認的 .wrap 樣式 */
 .wrap.mp-ukagaka-wrap {
   padding: 0 !important;
 }
 
 .mp-ukagaka-wrap h2 {
-  color: var(--claude-text-heading);
+  color: var(--mpu-text-heading);
   font-size: 28px;
   font-weight: 600;
   margin: 0 0 30px 0;
@@ -51,71 +52,71 @@
 
 /* ========== 標籤頁導航 ========== */
 .mp-ukagaka-tabs {
-  margin: 0 0 0 0;
-  padding: 0 0 0 0;
-  width: 55%;
-  flex: 0 0 55%;
-  max-width: 55%;
-  border-bottom: 2px solid var(--claude-border-light);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  border-bottom: 2px solid var(--mpu-border-light);
   background: transparent;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px 6px;
   box-sizing: border-box;
 }
 
 .mp-ukagaka-tabs a {
   display: inline-block;
-  padding: 12px 20px;
+  padding: 10px 16px;
   text-decoration: none;
-  color: var(--claude-text-primary);
-  font-size: 14px;
+  color: var(--mpu-text-primary);
+  font-size: 13px;
   font-weight: 500;
   border: none;
-  border-radius: 0; /* 改為直角 */
+  border-radius: 0;
   background: transparent;
   transition: all 0.3s ease;
   position: relative;
   margin-bottom: -2px;
+  white-space: nowrap;
 }
 
 .mp-ukagaka-tabs a:hover {
-  color: var(--claude-text-heading);
-  background: rgba(29, 138, 195, 0.08);
+  color: var(--mpu-accent);
+  background: rgba(123, 104, 174, 0.08);
 }
 
 .mp-ukagaka-tabs a.active {
-  color: var(--claude-text-heading);
-  background: var(--claude-bg-white);
-  border-bottom: 3px solid var(--claude-text-heading);
+  color: var(--mpu-accent);
+  background: var(--mpu-bg-white);
+  border-bottom: 3px solid var(--mpu-accent);
   font-weight: 600;
-  box-shadow: none; /* 移除陰影 */
+  box-shadow: none;
 }
 
 /* ========== 內容區域 ========== */
 .mp-ukagaka-section {
-  background: var(--claude-bg-white);
+  background: var(--mpu-bg-white);
   padding: 35px 40px;
   margin: 0 0 30px 0;
-  width: 75%;
-  max-width: 1200px;
-  border-radius: 0 0 12px 12px; /* 只有下方圓角，上方直角 */
-  box-shadow: none; /* 移除陰影 */
-  border: 1px solid var(--claude-border-light);
+  width: 100%;
+  max-width: 1400px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: none;
+  border: 1px solid var(--mpu-border-light);
 }
 
 .mp-ukagaka-section h3 {
-  color: var(--claude-text-heading);
+  color: var(--mpu-text-heading);
   font-size: 22px;
   font-weight: 600;
   margin: 0 0 25px 0;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--claude-border-light);
+  border-bottom: 2px solid var(--mpu-border-light);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .mp-ukagaka-section h4 {
-  color: var(--claude-text-secondary);
+  color: var(--mpu-text-secondary);
   font-size: 16px;
   font-weight: 600;
   margin: 25px 0 15px 0;
@@ -124,12 +125,12 @@
 /* ========== 表單元素 ========== */
 .mp-ukagaka-section p {
   margin: 18px 0;
-  color: var(--claude-text-primary);
+  color: var(--mpu-text-primary);
   line-height: 1.8;
 }
 
 .mp-ukagaka-section label {
-  color: var(--claude-text-primary);
+  color: var(--mpu-text-primary);
   font-weight: 500;
   display: block;
   margin-bottom: 8px;
@@ -142,12 +143,12 @@
 .mp-ukagaka-section input[type="color"],
 .mp-ukagaka-section textarea,
 .mp-ukagaka-section select {
-  background: var(--claude-bg-white);
-  border: 2px solid var(--claude-border-light);
+  background: var(--mpu-bg-white);
+  border: 2px solid var(--mpu-border-light);
   border-radius: 8px;
   padding: 10px 14px;
   font-size: 14px;
-  color: var(--claude-text-primary);
+  color: var(--mpu-text-primary);
   transition: all 0.3s ease;
   font-family: inherit;
 }
@@ -159,8 +160,8 @@
 .mp-ukagaka-section textarea:focus,
 .mp-ukagaka-section select:focus {
   outline: none;
-  border-color: var(--claude-text-heading);
-  box-shadow: 0 0 0 3px rgba(29, 138, 195, 0.1);
+  border-color: var(--mpu-accent);
+  box-shadow: 0 0 0 3px rgba(123, 104, 174, 0.12);
 }
 
 .mp-ukagaka-section textarea {
@@ -172,13 +173,12 @@
 .mp-ukagaka-section select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235C5470' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 35px;
 }
 
-/* 顏色選擇器專用樣式 */
 .mp-ukagaka-section input[type="color"] {
   padding: 4px;
   width: 100px;
@@ -193,7 +193,7 @@
   height: 18px;
   margin-right: 8px;
   cursor: pointer;
-  accent-color: var(--claude-text-heading);
+  accent-color: var(--mpu-accent);
   vertical-align: middle;
 }
 
@@ -201,7 +201,6 @@
   cursor: pointer;
 }
 
-/* 單選框組的 label */
 .mp-ukagaka-section p > label {
   display: inline-block;
   margin-right: 20px;
@@ -209,7 +208,6 @@
   vertical-align: middle;
 }
 
-/* 包含輸入框的 label 保持塊級顯示 */
 .mp-ukagaka-section label:has(input[type="text"]),
 .mp-ukagaka-section label:has(textarea),
 .mp-ukagaka-section label:has(select) {
@@ -221,7 +219,7 @@
 /* ========== 按鈕 ========== */
 .mp-ukagaka-section .button,
 .mp-ukagaka-section input[type="submit"].button {
-  background: var(--claude-text-heading);
+  background: var(--mpu-accent);
   color: white;
   border: none;
   border-radius: 8px;
@@ -230,34 +228,35 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 6px var(--claude-shadow);
+  box-shadow: 0 2px 6px var(--mpu-shadow);
   text-transform: none;
   letter-spacing: 0.5px;
 }
 
 .mp-ukagaka-section .button:hover,
 .mp-ukagaka-section input[type="submit"].button:hover {
-  background: #1674a0;
-  box-shadow: 0 4px 12px var(--claude-shadow-hover);
+  background: var(--mpu-accent-dark);
+  color: white;
+  box-shadow: 0 4px 12px var(--mpu-shadow-hover);
   transform: translateY(-1px);
 }
 
 .mp-ukagaka-section .button:active,
 .mp-ukagaka-section input[type="submit"].button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px var(--claude-shadow);
+  box-shadow: 0 2px 4px var(--mpu-shadow);
 }
 
 /* ========== 連結 ========== */
 .mp-ukagaka-section a {
-  color: var(--claude-link);
+  color: var(--mpu-link);
   text-decoration: none;
   transition: color 0.2s ease;
   font-weight: 500;
 }
 
 .mp-ukagaka-section a:hover {
-  color: var(--claude-link-hover);
+  color: var(--mpu-accent-dark);
   text-decoration: underline;
 }
 
@@ -267,7 +266,7 @@
   background: linear-gradient(
     to right,
     transparent,
-    var(--claude-border-light),
+    var(--mpu-border-light),
     transparent
   );
   margin: 30px 0;
@@ -280,7 +279,7 @@
   background: linear-gradient(
     to right,
     transparent,
-    var(--claude-border-light),
+    var(--mpu-border-light),
     transparent
   ) !important;
   margin: 30px 0 !important;
@@ -290,7 +289,7 @@
 
 /* ========== 小字說明 ========== */
 .mp-ukagaka-section small {
-  color: var(--claude-text-primary);
+  color: var(--mpu-text-primary);
   font-size: 13px;
   line-height: 1.6;
   display: block;
@@ -299,12 +298,12 @@
 }
 
 .mp-ukagaka-section code {
-  background: var(--claude-bg-secondary);
+  background: var(--mpu-accent-muted);
   padding: 2px 6px;
   border-radius: 4px;
   font-family: "Courier New", monospace;
   font-size: 13px;
-  color: var(--claude-text-secondary);
+  color: var(--mpu-text-heading);
 }
 
 /* ========== 訊息提示 ========== */
@@ -315,14 +314,13 @@
   padding: 15px 20px;
   border-radius: 8px;
   border-left: 4px solid;
-  box-shadow: 0 2px 8px var(--claude-shadow);
+  box-shadow: 0 2px 8px var(--mpu-shadow);
   clear: both;
   display: block;
   box-sizing: border-box;
   width: auto;
 }
 
-/* 確保訊息框與主內容區對齊（覆蓋 WordPress 默認樣式） */
 .mp-ukagaka-wrap > .updated,
 .mp-ukagaka-wrap > .error,
 .mp-ukagaka-wrap > .notice {
@@ -335,13 +333,13 @@
 
 .mp-ukagaka-wrap .updated {
   background: #f0f9f4;
-  border-left-color: var(--claude-success);
+  border-left-color: var(--mpu-success);
   color: #2d5016;
 }
 
 .mp-ukagaka-wrap .error {
   background: #fff5f5;
-  border-left-color: var(--claude-error);
+  border-left-color: var(--mpu-error);
   color: #8b2635;
 }
 
@@ -361,7 +359,7 @@
 .mp-ukagaka-section .form-table th {
   padding: 15px 10px 15px 0;
   font-weight: 600;
-  color: var(--claude-text-secondary);
+  color: var(--mpu-text-secondary);
   width: 200px;
   vertical-align: top;
 }
@@ -372,7 +370,7 @@
 }
 
 .mp-ukagaka-section .form-table tr {
-  border-bottom: 1px solid var(--claude-border-light);
+  border-bottom: 1px solid var(--mpu-border-light);
 }
 
 .mp-ukagaka-section .form-table tr:last-child {
@@ -381,18 +379,745 @@
 
 /* ========== 卡片式區塊 ========== */
 .mp-card {
-  background: var(--claude-bg-card);
-  border: 1px solid var(--claude-border-light);
+  background: #FFFFFF;
+  border: 1px solid #CCC;
   border-radius: 10px;
   padding: 20px;
   margin: 20px 0;
-  box-shadow: 0 1px 4px var(--claude-shadow);
+  box-shadow: 0 1px 4px var(--mpu-shadow);
   transition: all 0.3s ease;
 }
 
 .mp-card:hover {
-  box-shadow: 0 4px 12px var(--claude-shadow-hover);
+  box-shadow: 0 4px 12px var(--mpu-shadow-hover);
   transform: translateY(-2px);
+}
+
+/* ========== .mpu-settings-card（整合自各 tab 頁面）========== */
+.mpu-settings-card {
+  background: #FFFFFF;
+  border: 1px solid #CCC;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px var(--mpu-shadow);
+}
+
+.mpu-settings-card h4 {
+  color: var(--mpu-accent);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--mpu-border-light);
+}
+
+.mpu-settings-card code {
+  background: var(--mpu-accent-muted);
+  color: var(--mpu-text-heading);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "Courier New", Consolas, monospace;
+  font-size: 12px;
+  border: 1px solid var(--mpu-border-light);
+}
+
+.mpu-settings-card .mpu-field-group {
+  margin-bottom: 16px;
+}
+
+.mpu-settings-card .mpu-field-group:last-child {
+  margin-bottom: 0;
+}
+
+.mpu-settings-card label {
+  color: var(--mpu-text-heading);
+  font-weight: 500;
+}
+
+.mpu-settings-card small {
+  color: var(--mpu-text-secondary);
+  display: block;
+  margin-top: 4px;
+}
+
+.mpu-settings-card small a {
+  color: var(--mpu-link);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.mpu-settings-card small a:hover {
+  color: var(--mpu-accent-dark);
+  text-decoration: underline;
+}
+
+.mpu-settings-card a {
+  color: var(--mpu-link);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.mpu-settings-card a:hover {
+  color: var(--mpu-accent-dark);
+  text-decoration: underline;
+}
+
+.mpu-settings-card .radio-group {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.mpu-settings-card .radio-group label {
+  font-weight: normal;
+}
+
+/* .mpu-settings-card 滾動條 */
+.mpu-settings-card textarea::-webkit-scrollbar {
+  width: 12px;
+}
+
+.mpu-settings-card textarea::-webkit-scrollbar-track {
+  background: #F5F5F5;
+  border-radius: 6px;
+  border: 1px solid #CCC;
+}
+
+.mpu-settings-card textarea::-webkit-scrollbar-thumb {
+  background: var(--mpu-accent-light);
+  border-radius: 6px;
+  border: 2px solid #FFFFFF;
+}
+
+.mpu-settings-card textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--mpu-accent);
+}
+
+.mpu-settings-card textarea {
+  scrollbar-width: thin;
+  scrollbar-color: var(--mpu-accent-light) #F5F5F5;
+}
+
+/* 偽春菜們頁面的 header */
+.mpu-ukagaka-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.mpu-ukagaka-header h4 {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.mpu-ukagaka-header .mpu-delete-link {
+  color: var(--mpu-error);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.mpu-ukagaka-header .mpu-delete-link:hover {
+  text-decoration: underline;
+}
+
+/* 擴展頁面的警告框 */
+.mpu-warning-box {
+  background: #FFF8E1;
+  border: 1px solid #FFD54F;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 20px 0;
+  color: var(--mpu-text-secondary);
+  box-shadow: 0 2px 4px rgba(255, 213, 79, 0.15);
+}
+
+/* ========== .mpu-llm-card（向後兼容）========== */
+.mpu-llm-card {
+  background: #FFFFFF;
+  border: 1px solid #CCC;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px var(--mpu-shadow);
+}
+
+.mpu-llm-card h4 {
+  color: var(--mpu-accent);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--mpu-border-light);
+}
+
+.mpu-llm-card code {
+  background: var(--mpu-accent-muted);
+  color: var(--mpu-text-heading);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "Courier New", Consolas, monospace;
+  font-size: 12px;
+  border: 1px solid var(--mpu-border-light);
+}
+
+.mpu-llm-card .mpu-field-group {
+  margin-bottom: 16px;
+}
+
+.mpu-llm-card .mpu-field-group:last-child {
+  margin-bottom: 0;
+}
+
+/* ========== LLM 頁面元件 ========== */
+.mpu-test-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: 20px;
+}
+
+.mpu-test-row span {
+  margin-left: 8px;
+  font-size: 13px;
+}
+
+.mpu-test-row .button {
+  flex-shrink: 0;
+  min-width: auto;
+  width: auto;
+  padding: 6px 12px;
+  background: var(--mpu-accent-muted);
+  border: 2px solid var(--mpu-border);
+  border-radius: 6px;
+  color: var(--mpu-text-heading);
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.mpu-test-row .button:hover {
+  background: var(--mpu-accent);
+  color: white;
+  border-color: var(--mpu-accent);
+  box-shadow: 0 2px 4px var(--mpu-shadow);
+}
+
+.mpu-test-row .button:active {
+  background: var(--mpu-accent-dark);
+}
+
+.mpu-key-set {
+  color: var(--mpu-success);
+  font-weight: 500;
+}
+
+.mpu-test-success {
+  color: var(--mpu-success);
+}
+
+.mpu-test-error {
+  color: var(--mpu-error);
+}
+
+.mpu-loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--mpu-border);
+  border-top-color: var(--mpu-accent);
+  border-radius: 50%;
+  animation: mpu-spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes mpu-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 提供商選項卡 */
+.mpu-provider-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.mpu-provider-tab {
+  padding: 10px 20px;
+  background: var(--mpu-accent-muted);
+  border: 2px solid var(--mpu-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  user-select: none;
+  color: var(--mpu-text-heading);
+}
+
+.mpu-provider-tab:hover {
+  background: var(--mpu-border-light);
+  border-color: var(--mpu-accent-light);
+}
+
+.mpu-provider-tab.active {
+  background: var(--mpu-accent);
+  color: white;
+  border-color: var(--mpu-accent);
+  box-shadow: 0 2px 4px var(--mpu-shadow);
+}
+
+.mpu-provider-content {
+  display: none;
+}
+
+.mpu-provider-content.active {
+  display: block;
+}
+
+/* ========== 日記頁面元件 ========== */
+.mpu-diary-card {
+  background: #FFFFFF;
+  border: 1px solid #CCC;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px var(--mpu-shadow);
+}
+
+.mpu-diary-card h4 {
+  color: var(--mpu-accent);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--mpu-border-light);
+}
+
+.mpu-diary-card .mpu-field-group {
+  margin-bottom: 16px;
+}
+
+.mpu-diary-card .mpu-field-group:last-child {
+  margin-bottom: 0;
+}
+
+.mpu-diary-card label {
+  color: var(--mpu-text-heading);
+  font-weight: 500;
+}
+
+.mpu-diary-card small {
+  color: var(--mpu-text-secondary);
+  display: block;
+  margin-top: 4px;
+}
+
+.mpu-diary-card code {
+  background: var(--mpu-accent-muted);
+  color: var(--mpu-text-heading);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "Courier New", Consolas, monospace;
+  font-size: 12px;
+  border: 1px solid var(--mpu-border-light);
+}
+
+/* 日記提供商選項卡 */
+.mpu-diary-provider-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.mpu-diary-provider-tab {
+  padding: 10px 20px;
+  background: var(--mpu-accent-muted);
+  border: 2px solid var(--mpu-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+  user-select: none;
+  color: var(--mpu-text-heading);
+}
+
+.mpu-diary-provider-tab:hover {
+  background: var(--mpu-border-light);
+  border-color: var(--mpu-accent-light);
+}
+
+.mpu-diary-provider-tab.active {
+  background: var(--mpu-accent);
+  color: white;
+  border-color: var(--mpu-accent);
+  box-shadow: 0 2px 4px var(--mpu-shadow);
+}
+
+.mpu-diary-provider-content {
+  display: none;
+}
+
+.mpu-diary-provider-content.active {
+  display: block;
+}
+
+/* 機率滑桿 */
+.mpu-range-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mpu-range-container input[type="range"] {
+  width: 200px;
+  accent-color: var(--mpu-accent);
+}
+
+.mpu-range-value {
+  min-width: 50px;
+  font-weight: 600;
+  color: var(--mpu-accent);
+}
+
+/* ========== 統計儀表板 ========== */
+.mpu-stats-dashboard {
+  max-width: min(1400px, calc(100vw - 200px));
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+@media screen and (max-width: 1600px) {
+  .mpu-stats-dashboard {
+    max-width: calc(100vw - 220px);
+  }
+}
+
+.folded .mpu-stats-dashboard {
+  max-width: calc(100vw - 80px);
+}
+
+.mpu-stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.mpu-stats-header h3 {
+  margin: 0;
+  color: var(--mpu-text-heading);
+}
+
+.mpu-time-filter {
+  display: flex;
+  gap: 8px;
+}
+
+.mpu-time-filter a {
+  padding: 6px 16px;
+  background: var(--mpu-bg-card);
+  border: 1px solid var(--mpu-border);
+  border-radius: 6px;
+  color: var(--mpu-accent);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.mpu-time-filter a:hover {
+  background: var(--mpu-accent-muted);
+  color: var(--mpu-text-heading);
+}
+
+.mpu-time-filter a.active {
+  background: var(--mpu-accent);
+  color: white;
+  border-color: var(--mpu-accent);
+}
+
+/* 摘要卡片 */
+.mpu-stats-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.mpu-stat-card {
+  background: #FFFFFF;
+  border: 1px solid #CCC;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px var(--mpu-shadow);
+}
+
+.mpu-stat-card .stat-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.mpu-stat-card .stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--mpu-accent);
+  line-height: 1.2;
+}
+
+.mpu-stat-card .stat-label {
+  font-size: 13px;
+  color: var(--mpu-text-secondary);
+  margin-top: 4px;
+}
+
+.mpu-stat-card .stat-sub {
+  font-size: 11px;
+  color: var(--mpu-text-secondary);
+  margin-top: 2px;
+  opacity: 0.7;
+}
+
+/* 圖表區塊 */
+.mpu-charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.mpu-charts-row-full {
+  grid-template-columns: 1fr;
+}
+
+.mpu-charts-row-three {
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+}
+
+.mpu-charts-row-three > * {
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .mpu-charts-row-three {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .mpu-charts-row,
+  .mpu-charts-row-three {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mpu-chart-card {
+  background: #FFFFFF;
+  border: 1px solid #CCC;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px var(--mpu-shadow);
+}
+
+.mpu-chart-card h4 {
+  color: var(--mpu-accent);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--mpu-border-light);
+}
+
+.mpu-chart-container {
+  position: relative;
+  height: 250px;
+}
+
+/* 熱門話題 */
+.mpu-topics-card {
+  background: #FFFFFF;
+  border: 1px solid #CCC;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px var(--mpu-shadow);
+}
+
+.mpu-topics-card h4 {
+  color: var(--mpu-accent);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--mpu-border-light);
+}
+
+.mpu-topics-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mpu-topics-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--mpu-border);
+}
+
+.mpu-topics-list li:last-child {
+  border-bottom: none;
+}
+
+.mpu-topic-rank {
+  width: 24px;
+  height: 24px;
+  background: var(--mpu-accent-muted);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mpu-text-heading);
+  margin-right: 10px;
+}
+
+.mpu-topic-rank.top-3 {
+  background: var(--mpu-accent);
+  color: white;
+}
+
+.mpu-topic-name {
+  flex: 1;
+  color: var(--mpu-text-heading);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mpu-topic-count {
+  color: var(--mpu-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--mpu-accent-muted);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.mpu-no-data {
+  text-align: center;
+  color: var(--mpu-text-secondary);
+  padding: 20px;
+  font-size: 13px;
+}
+
+/* 控制區 */
+.mpu-stats-controls {
+  background: #FFFFFF;
+  border: 1px solid #CCC;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.mpu-stats-controls h4 {
+  color: var(--mpu-accent);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--mpu-border-light);
+}
+
+.mpu-stats-controls p {
+  margin: 0 0 12px 0;
+  color: var(--mpu-text-secondary);
+  font-size: 13px;
+}
+
+.mpu-stats-controls .button-danger {
+  background: #E57373;
+  border-color: #E57373;
+  color: white;
+}
+
+.mpu-stats-controls .button-danger:hover {
+  background: #EF5350;
+  border-color: #EF5350;
+}
+
+/* ========== 特殊元素 ========== */
+.mp-ukagaka-section .resizable-textarea {
+  position: relative;
+}
+
+.mp-ukagaka-section .grippie {
+  background-color: var(--mpu-accent-muted);
+  border: 1px solid var(--mpu-border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  cursor: s-resize;
+  height: 12px;
+  margin-top: -1px;
+  background-repeat: no-repeat;
+  background-position: center 2px;
+}
+
+/* ========== 成功/錯誤標記 ========== */
+.mp-ukagaka-section span[style*="color: green"],
+.mp-ukagaka-section .success {
+  color: var(--mpu-success) !important;
+  font-weight: 600;
+}
+
+.mp-ukagaka-section span[style*="color: red"],
+.mp-ukagaka-section .error-text {
+  color: var(--mpu-error) !important;
+  font-weight: 600;
+}
+
+/* ========== 動畫效果 ========== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mp-ukagaka-section {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* ========== 滾動條樣式 ========== */
+.mp-ukagaka-section textarea::-webkit-scrollbar {
+  width: 10px;
+}
+
+.mp-ukagaka-section textarea::-webkit-scrollbar-track {
+  background: var(--mpu-accent-muted);
+  border-radius: 5px;
+}
+
+.mp-ukagaka-section textarea::-webkit-scrollbar-thumb {
+  background: var(--mpu-border);
+  border-radius: 5px;
+}
+
+.mp-ukagaka-section textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--mpu-text-secondary);
 }
 
 /* ========== 響應式設計 ========== */
@@ -421,7 +1146,7 @@
   }
 
   .mp-ukagaka-tabs a.active {
-    border-bottom: 3px solid var(--claude-text-heading);
+    border-bottom: 3px solid var(--mpu-accent);
   }
 
   .mp-ukagaka-section {
@@ -445,69 +1170,4 @@
     width: 100% !important;
     max-width: 100%;
   }
-}
-
-/* ========== 特殊元素 ========== */
-.mp-ukagaka-section .resizable-textarea {
-  position: relative;
-}
-
-.mp-ukagaka-section .grippie {
-  background-color: #E8F4F8;
-  border: 1px solid #B8E6E6;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  cursor: s-resize;
-  height: 12px;
-  margin-top: -1px;
-  background-repeat: no-repeat;
-  background-position: center 2px;
-}
-
-/* ========== 成功/錯誤標記 ========== */
-.mp-ukagaka-section span[style*="color: green"],
-.mp-ukagaka-section .success {
-  color: var(--claude-success) !important;
-  font-weight: 600;
-}
-
-.mp-ukagaka-section span[style*="color: red"],
-.mp-ukagaka-section .error-text {
-  color: var(--claude-error) !important;
-  font-weight: 600;
-}
-
-/* ========== 動畫效果 ========== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.mp-ukagaka-section {
-  animation: fadeIn 0.4s ease-out;
-}
-
-/* ========== 滾動條樣式 ========== */
-.mp-ukagaka-section textarea::-webkit-scrollbar {
-  width: 10px;
-}
-
-.mp-ukagaka-section textarea::-webkit-scrollbar-track {
-  background: var(--claude-bg-secondary);
-  border-radius: 5px;
-}
-
-.mp-ukagaka-section textarea::-webkit-scrollbar-thumb {
-  background: var(--claude-border);
-  border-radius: 5px;
-}
-
-.mp-ukagaka-section textarea::-webkit-scrollbar-thumb:hover {
-  background: var(--claude-text-secondary);
 }

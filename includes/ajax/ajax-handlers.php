@@ -545,16 +545,26 @@ function mpu_ajax_wake_ghost()
     // 速率限制 - 10次/分鐘
     mpu_enforce_rate_limit('wake_ghost', 10, 60);
 
-    // ★ 從請求中獲取 personality_id（必須）
+    // ★ 從請求中獲取 personality_id（優先）
     $personality_id = isset($request_data['personality_id'])
         ? sanitize_text_field($request_data['personality_id'])
         : null;
+
+    // 後備：若前端尚未拿到 personality_id，允許傳入 ukagaka_num 由伺服器映射
+    if (empty($personality_id)) {
+        $ukagaka_num = isset($request_data['ukagaka_num'])
+            ? sanitize_text_field($request_data['ukagaka_num'])
+            : null;
+        if (!empty($ukagaka_num) && function_exists('mpu_get_personality_id_from_ukagaka_name')) {
+            $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_num);
+        }
+    }
 
     // ★ 驗證 personality_id 是否有效
     if (empty($personality_id)) {
         wp_send_json([
             'success' => false,
-            'error' => __('缺少角色 ID 參數', 'mp-ukagaka')
+            'error' => __('缺少角色 ID 參數（personality_id / ukagaka_num）', 'mp-ukagaka')
         ]);
         return;
     }
@@ -564,9 +574,34 @@ function mpu_ajax_wake_ghost()
         $result = mpu_mark_ip_as_woken($personality_id);
 
         if (!$result) {
+            // 如果是在深度睡眠期間，允許單次喚醒（不記錄 IP）
+            $is_deep_sleep = false;
+            if (function_exists('mpu_get_sleep_settings')) {
+                $sleep_settings = mpu_get_sleep_settings($personality_id);
+                $hour = (int) wp_date('G');
+                $d_start = (int)$sleep_settings['deep_sleep_start'];
+                $d_end = (int)$sleep_settings['deep_sleep_end'];
+                
+                if ($d_start < $d_end) {
+                    $is_deep_sleep = ($hour >= $d_start && $hour < $d_end);
+                } else {
+                    $is_deep_sleep = ($hour >= $d_start || $hour < $d_end);
+                }
+            }
+
+            if ($is_deep_sleep) {
+                 wp_send_json([
+                    'success' => true,
+                    'message' => __('角色已被暫時喚醒（深度睡眠期間，刷新頁面將恢復睡眠）', 'mp-ukagaka'),
+                    'personality_id' => $personality_id,
+                    'is_temporary' => true
+                ]);
+                return;
+            }
+
             // mpu_mark_ip_as_woken 返回 false 的情況：
             // 1. oversleep_enabled = false（該角色未啟用賴床）
-            // 2. 不在賴床時間範圍內
+            // 2. 不在賴床時間範圍內，也非深度睡眠
             wp_send_json([
                 'success' => false,
                 'error' => __('當前無法喚醒角色（可能未在賴床時間或未啟用賴床功能）', 'mp-ukagaka'),
@@ -835,6 +870,7 @@ function mpu_ajax_init()
     // ===== 合併回應 =====
     wp_send_json([
         'success' => true,
+        'personality_id' => $personality_id,
         // Shell
         'shell_info' => $shell_info,
         'ukagaka_name' => $ukagaka_name,

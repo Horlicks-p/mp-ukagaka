@@ -15,8 +15,10 @@ Thumbs.db
 desktop.ini
 future-plan.md
 CLAUDE.md
+AGENTS.md
 claude.sh
 claude.bat
+codex.md
 
 # IDE files
 .idea/
@@ -25,6 +27,9 @@ claude.bat
 *.sublime-workspace
 .cursor/
 .claude
+claude-5df3-cwd
+claude-9ef6-cwd
+
 
 # Build files
 node_modules/

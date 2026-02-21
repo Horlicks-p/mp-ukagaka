@@ -839,7 +839,10 @@
         return false;
       }
 
-      if (!this.isDeepSleepTime()) {
+      // 如果是暫時喚醒，我們仍然視為正在處理睡眠訊息（以便播放喚醒動畫）
+      const isTemporaryWakeUp = typeof window.mpuInfo !== "undefined" && window.mpuInfo.isTemporaryWakeUp === true;
+
+      if (!this.isDeepSleepTime() && !isTemporaryWakeUp) {
         return false;
       }
 
@@ -1104,72 +1107,109 @@
 
       this.setDecorationsClickable(false);
 
+      const executeAjaxReq = () => {
+        const formData = new FormData();
+        formData.append("action", "mpu_decoration_chat");
+        if (typeof mpuNonce !== "undefined" && mpuNonce) {
+          formData.append("mpu_nonce", mpuNonce);
+        }
+        formData.append("decoration_type", decorationType);
+
+        if (typeof mpuFetch !== "undefined" && typeof mpuurl !== "undefined") {
+          mpuFetch(mpuurl, {
+            method: "POST",
+            body: formData,
+            timeout: 30000,
+            retries: 1,
+            requestId: "mpu_decoration_chat_" + decorationType,
+          })
+            .then((res) => {
+              if (jQuery("#ukagaka_msgbox").is(":hidden") && typeof mpu_showmsg !== "undefined") {
+                mpu_showmsg(400);
+              }
+
+              if (res && res.msg && !res.error) {
+                if (typeof mpu_typewriter !== "undefined") {
+                  mpu_typewriter(res.msg, "#ukagaka_msg");
+                }
+
+                if (this.isFrierenMode) {
+                  this.triggerFrierenSpeaking(true);
+                }
+
+                if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
+                  window.mpuEmojiManager.showEmoji(res.emoji);
+                }
+
+                this.waitForTypewriterAndRestore();
+              } else {
+                const errorMsg = res?.error || "發生錯誤，請稍後再試";
+                if (typeof mpu_typewriter !== "undefined") {
+                  mpu_typewriter(errorMsg, "#ukagaka_msg");
+                }
+
+                this.waitForTypewriterAndRestore();
+              }
+            })
+            .catch((error) => {
+              if (jQuery("#ukagaka_msgbox").is(":hidden") && typeof mpu_showmsg !== "undefined") {
+                mpu_showmsg(400);
+              }
+
+              if (typeof mpuLogger !== "undefined" && mpuLogger.error) {
+                mpuLogger.error("裝飾物對話請求失敗:", error);
+              }
+              if (typeof mpu_typewriter !== "undefined") {
+                mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
+              }
+
+              this.waitForTypewriterAndRestore();
+            });
+        }
+      };
+
       const $msgbox = jQuery("#ukagaka_msgbox");
-      if ($msgbox.is(":visible")) {
-        $msgbox.fadeOut(400, () => {
+      const isAsleep = this.isSleepMessage();
+
+      // 如果處於睡眠模式，觸發喚醒動畫
+      if (isAsleep) {
+        if ($msgbox.is(":visible")) {
+          $msgbox.fadeOut(1000, () => {
+            if (typeof mpu_send_wake_up_request === "function") {
+              mpu_send_wake_up_request();
+            }
+            this.triggerFrierenSpeaking(true, null);
+            
+            // 清空對話框準備顯示新訊息
+            jQuery("#ukagaka_msg").html("");
+            executeAjaxReq();
+          });
+        } else {
+          if (typeof mpu_send_wake_up_request === "function") {
+            mpu_send_wake_up_request();
+          }
+          this.triggerFrierenSpeaking(true, null);
+          executeAjaxReq();
+        }
+      } else {
+        // 一般模式：顯示思考中
+        if ($msgbox.is(":visible")) {
+          $msgbox.fadeOut(400, () => {
+            jQuery("#ukagaka_msg").html(
+              '（…えっと<span class="mpu-thinking"></span>）'
+            );
+            $msgbox.fadeIn(400);
+            executeAjaxReq();
+          });
+        } else {
           jQuery("#ukagaka_msg").html(
             '（…えっと<span class="mpu-thinking"></span>）'
           );
-          $msgbox.fadeIn(400);
-        });
-      } else {
-        jQuery("#ukagaka_msg").html(
-          '（…えっと<span class="mpu-thinking"></span>）'
-        );
-        if (typeof mpu_showmsg !== "undefined") {
-          mpu_showmsg(400);
+          if (typeof mpu_showmsg !== "undefined") {
+            mpu_showmsg(400);
+          }
+          executeAjaxReq();
         }
-      }
-
-      const formData = new FormData();
-      formData.append("action", "mpu_decoration_chat");
-      if (typeof mpuNonce !== "undefined" && mpuNonce) {
-        formData.append("mpu_nonce", mpuNonce);
-      }
-      formData.append("decoration_type", decorationType);
-
-      if (typeof mpuFetch !== "undefined" && typeof mpuurl !== "undefined") {
-        mpuFetch(mpuurl, {
-          method: "POST",
-          body: formData,
-          timeout: 30000,
-          retries: 1,
-          requestId: "mpu_decoration_chat_" + decorationType,
-        })
-          .then((res) => {
-            if (res && res.msg && !res.error) {
-              if (typeof mpu_typewriter !== "undefined") {
-                mpu_typewriter(res.msg, "#ukagaka_msg");
-              }
-
-              if (this.isFrierenMode) {
-                this.triggerFrierenSpeaking(true);
-              }
-
-              if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-                window.mpuEmojiManager.showEmoji(res.emoji);
-              }
-
-              this.waitForTypewriterAndRestore();
-            } else {
-              const errorMsg = res?.error || "發生錯誤，請稍後再試";
-              if (typeof mpu_typewriter !== "undefined") {
-                mpu_typewriter(errorMsg, "#ukagaka_msg");
-              }
-
-              this.waitForTypewriterAndRestore();
-            }
-          })
-          .catch((error) => {
-            if (typeof mpuLogger !== "undefined" && mpuLogger.error) {
-              mpuLogger.error("裝飾物對話請求失敗:", error);
-            }
-            if (typeof mpu_typewriter !== "undefined") {
-              mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
-            }
-
-            this.waitForTypewriterAndRestore();
-          });
       }
     },
 
@@ -1356,61 +1396,98 @@
         window.mpuOllamaRequestQueue = [];
       }
 
+      const self = this;
+
+      const executeAjaxReq = () => {
+        const formData = new FormData();
+        formData.append("action", "mpu_touch_zone_chat");
+        if (typeof mpuNonce !== "undefined" && mpuNonce) {
+          formData.append("mpu_nonce", mpuNonce);
+        }
+        formData.append("touch_zone", zoneName);
+
+        if (typeof mpuFetch !== "undefined" && typeof mpuurl !== "undefined") {
+          mpuFetch(mpuurl, {
+            method: "POST",
+            body: formData,
+            timeout: 30000,
+            retries: 1,
+            requestId: "mpu_touch_zone_" + zoneName,
+          })
+            .then((res) => {
+              if (jQuery("#ukagaka_msgbox").is(":hidden") && typeof mpu_showmsg !== "undefined") {
+                mpu_showmsg(400);
+              }
+
+              if (res && res.msg && !res.error) {
+                if (typeof mpu_typewriter !== "undefined") {
+                  mpu_typewriter(res.msg, "#ukagaka_msg");
+                }
+
+                if (self.isFrierenMode) {
+                  self.triggerFrierenSpeaking(true);
+                }
+
+                if (res.emoji && typeof mpuEmojiManager !== "undefined") {
+                  mpuEmojiManager.showEmoji(res.emoji);
+                }
+              }
+
+              self.scheduleRestoreAfterChat();
+            })
+            .catch((err) => {
+              if (jQuery("#ukagaka_msgbox").is(":hidden") && typeof mpu_showmsg !== "undefined") {
+                mpu_showmsg(400);
+              }
+
+              console.error("觸摸區域對話請求失敗:", err);
+              self.restoreAfterDecorationChat();
+            });
+        }
+      };
+
       const $msgbox = jQuery("#ukagaka_msgbox");
-      if ($msgbox.is(":visible")) {
-        $msgbox.fadeOut(400, () => {
+      const isAsleep = this.isSleepMessage();
+
+      // 如果處於睡眠模式，觸發喚醒動畫
+      if (isAsleep) {
+        if ($msgbox.is(":visible")) {
+          $msgbox.fadeOut(1000, () => {
+            if (typeof mpu_send_wake_up_request === "function") {
+              mpu_send_wake_up_request();
+            }
+            self.triggerFrierenSpeaking(true, null);
+            
+            // 清空對話框準備顯示新訊息
+            jQuery("#ukagaka_msg").html("");
+            executeAjaxReq();
+          });
+        } else {
+          if (typeof mpu_send_wake_up_request === "function") {
+            mpu_send_wake_up_request();
+          }
+          self.triggerFrierenSpeaking(true, null);
+          executeAjaxReq();
+        }
+      } else {
+        // 一般模式：顯示思考中
+        if ($msgbox.is(":visible")) {
+          $msgbox.fadeOut(400, () => {
+            jQuery("#ukagaka_msg").html(
+              '（…えっと<span class="mpu-thinking"></span>）'
+            );
+            $msgbox.fadeIn(400);
+            executeAjaxReq();
+          });
+        } else {
           jQuery("#ukagaka_msg").html(
             '（…えっと<span class="mpu-thinking"></span>）'
           );
-          $msgbox.fadeIn(400);
-        });
-      } else {
-        jQuery("#ukagaka_msg").html(
-          '（…えっと<span class="mpu-thinking"></span>）'
-        );
-        if (typeof mpu_showmsg !== "undefined") {
-          mpu_showmsg(400);
+          if (typeof mpu_showmsg !== "undefined") {
+            mpu_showmsg(400);
+          }
+          executeAjaxReq();
         }
-      }
-
-      const formData = new FormData();
-      formData.append("action", "mpu_touch_zone_chat");
-      if (typeof mpuNonce !== "undefined" && mpuNonce) {
-        formData.append("mpu_nonce", mpuNonce);
-      }
-      formData.append("touch_zone", zoneName);
-
-      const self = this;
-
-      if (typeof mpuFetch !== "undefined" && typeof mpuurl !== "undefined") {
-        mpuFetch(mpuurl, {
-          method: "POST",
-          body: formData,
-          timeout: 30000,
-          retries: 1,
-          requestId: "mpu_touch_zone_" + zoneName,
-        })
-          .then((res) => {
-            if (res && res.msg && !res.error) {
-              if (typeof mpu_typewriter !== "undefined") {
-                mpu_typewriter(res.msg, "#ukagaka_msg");
-              }
-
-              if (self.isFrierenMode) {
-                self.triggerFrierenSpeaking(true);
-              }
-
-              if (res.emoji && typeof mpuEmojiManager !== "undefined") {
-                mpuEmojiManager.showEmoji(res.emoji);
-              }
-            }
-
-            self.scheduleRestoreAfterChat();
-          })
-          .catch((err) => {
-            console.error("觸摸區域對話請求失敗:", err);
-            self.restoreAfterDecorationChat();
-          });
       }
     },
 

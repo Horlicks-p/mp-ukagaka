@@ -51,278 +51,6 @@ $chart_data = [
 ];
 ?>
 
-<style>
-    /* 統計儀表板樣式 */
-    .mpu-stats-dashboard {
-        /* 使用 calc() 確保不超出可視區域，預留 WordPress 側邊欄空間 */
-        max-width: min(1400px, calc(100vw - 200px));
-        box-sizing: border-box;
-        overflow-x: auto;  /* 如果還是太窄，允許水平捲動 */
-    }
-
-    /* 確保內容在放大時不會被裁切 */
-    @media screen and (max-width: 1600px) {
-        .mpu-stats-dashboard {
-            max-width: calc(100vw - 220px);
-        }
-    }
-
-    /* WordPress 側邊欄收合時 */
-    .folded .mpu-stats-dashboard {
-        max-width: calc(100vw - 80px);
-    }
-
-    .mpu-stats-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .mpu-stats-header h3 {
-        margin: 0;
-        color: #2C3E50;
-    }
-
-    .mpu-time-filter {
-        display: flex;
-        gap: 8px;
-    }
-
-    .mpu-time-filter a {
-        padding: 6px 16px;
-        background: #E8F4F8;
-        border: 1px solid #B8E6E6;
-        border-radius: 6px;
-        color: #4A9EBD;
-        text-decoration: none;
-        font-size: 13px;
-        transition: all 0.2s;
-    }
-
-    .mpu-time-filter a:hover {
-        background: #A8D8EA;
-        color: #2C3E50;
-    }
-
-    .mpu-time-filter a.active {
-        background: linear-gradient(135deg, #4A9EBD 0%, #5FB3A1 100%);
-        color: white;
-        border-color: #4A9EBD;
-    }
-
-    /* 摘要卡片 */
-    .mpu-stats-summary {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .mpu-stat-card {
-        background: #E8F4F8;
-        border: 1px solid #B8E6E6;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(168, 216, 234, 0.15);
-    }
-
-    .mpu-stat-card .stat-icon {
-        font-size: 28px;
-        margin-bottom: 8px;
-    }
-
-    .mpu-stat-card .stat-value {
-        font-size: 32px;
-        font-weight: 700;
-        color: #4A9EBD;
-        line-height: 1.2;
-    }
-
-    .mpu-stat-card .stat-label {
-        font-size: 13px;
-        color: #5A7A8C;
-        margin-top: 4px;
-    }
-
-    .mpu-stat-card .stat-sub {
-        font-size: 11px;
-        color: #7A9AAC;
-        margin-top: 2px;
-    }
-
-    /* 圖表區塊 */
-    .mpu-charts-row {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 20px;
-        margin-bottom: 24px;
-    }
-
-    .mpu-charts-row-full {
-        grid-template-columns: 1fr;
-    }
-
-    .mpu-charts-row-three {
-        grid-template-columns: repeat(3, minmax(280px, 1fr));
-    }
-
-    .mpu-charts-row-three > * {
-        min-width: 0;  /* 防止 Grid 子元素溢出 */
-    }
-
-    @media (max-width: 1200px) {
-        .mpu-charts-row-three {
-            grid-template-columns: 1fr 1fr;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .mpu-charts-row,
-        .mpu-charts-row-three {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .mpu-chart-card {
-        background: #E8F4F8;
-        border: 1px solid #B8E6E6;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(168, 216, 234, 0.15);
-    }
-
-    .mpu-chart-card h4 {
-        color: #4A9EBD;
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0 0 16px 0;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #A8D8EA;
-    }
-
-    .mpu-chart-container {
-        position: relative;
-        height: 250px;
-    }
-
-    /* 熱門話題 */
-    .mpu-topics-card {
-        background: #E8F4F8;
-        border: 1px solid #B8E6E6;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 2px 8px rgba(168, 216, 234, 0.15);
-    }
-
-    .mpu-topics-card h4 {
-        color: #4A9EBD;
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0 0 16px 0;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #A8D8EA;
-    }
-
-    .mpu-topics-list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .mpu-topics-list li {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px dashed #B8E6E6;
-    }
-
-    .mpu-topics-list li:last-child {
-        border-bottom: none;
-    }
-
-    .mpu-topic-rank {
-        width: 24px;
-        height: 24px;
-        background: linear-gradient(135deg, #A8D8EA 0%, #B8E6E6 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        font-weight: 600;
-        color: #2C3E50;
-        margin-right: 10px;
-    }
-
-    .mpu-topic-rank.top-3 {
-        background: linear-gradient(135deg, #4A9EBD 0%, #5FB3A1 100%);
-        color: white;
-    }
-
-    .mpu-topic-name {
-        flex: 1;
-        color: #2C3E50;
-        font-size: 13px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .mpu-topic-count {
-        color: #5A7A8C;
-        font-size: 12px;
-        font-weight: 500;
-        background: #D4E8F0;
-        padding: 2px 8px;
-        border-radius: 10px;
-    }
-
-    .mpu-no-data {
-        text-align: center;
-        color: #7A9AAC;
-        padding: 20px;
-        font-size: 13px;
-    }
-
-    /* 控制區 */
-    .mpu-stats-controls {
-        background: #E8F4F8;
-        border: 1px solid #B8E6E6;
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 20px;
-    }
-
-    .mpu-stats-controls h4 {
-        color: #4A9EBD;
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0 0 16px 0;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #A8D8EA;
-    }
-
-    .mpu-stats-controls p {
-        margin: 0 0 12px 0;
-        color: #5A7A8C;
-        font-size: 13px;
-    }
-
-    .mpu-stats-controls .button-danger {
-        background: linear-gradient(135deg, #E57373 0%, #EF5350 100%);
-        border-color: #E57373;
-        color: white;
-    }
-
-    .mpu-stats-controls .button-danger:hover {
-        background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
-        border-color: #EF5350;
-    }
-</style>
-
 <div class="mpu-stats-dashboard">
     <div class="mpu-stats-header">
         <h3><?php _e('📊 統計儀表板', 'mp-ukagaka'); ?></h3>
@@ -421,7 +149,7 @@ $chart_data = [
                 <?php _e('🗑️ 清除所有統計資料', 'mp-ukagaka'); ?>
             </button>
         </form>
-        <p style="margin-top: 12px; font-size: 12px; color: #7A9AAC;">
+        <p style="margin-top: 12px; font-size: 12px; color: #8A7FA0;">
             <?php printf(__('資料更新時間: %s', 'mp-ukagaka'), $dashboard_data['generated_at']); ?>
         </p>
     </div>
@@ -434,19 +162,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // 圖表資料（由 PHP wp_json_encode 輸出，確保 XSS 安全）
     const chartData = <?php echo wp_json_encode($chart_data); ?>;
     
-    // 顏色主題
+    // 顏色主題（Frieren 紫色系）
     const colors = {
-        primary: 'rgba(74, 158, 189, 1)',
-        primaryLight: 'rgba(74, 158, 189, 0.2)',
-        secondary: 'rgba(95, 179, 161, 1)',
-        secondaryLight: 'rgba(95, 179, 161, 0.2)',
-        accent: 'rgba(168, 216, 234, 1)',
-        danger: 'rgba(229, 115, 115, 1)',
+        primary: 'rgba(123, 104, 174, 1)',
+        primaryLight: 'rgba(123, 104, 174, 0.2)',
+        secondary: 'rgba(106, 159, 91, 1)',
+        secondaryLight: 'rgba(106, 159, 91, 0.2)',
+        accent: 'rgba(196, 182, 222, 1)',
+        danger: 'rgba(201, 79, 79, 1)',
         chart: [
-            'rgba(74, 158, 189, 0.8)',
-            'rgba(95, 179, 161, 0.8)',
-            'rgba(168, 216, 234, 0.8)',
-            'rgba(229, 115, 115, 0.8)',
+            'rgba(123, 104, 174, 0.8)',
+            'rgba(106, 159, 91, 0.8)',
+            'rgba(196, 182, 222, 0.8)',
+            'rgba(201, 79, 79, 0.8)',
             'rgba(255, 183, 77, 0.8)',
             'rgba(149, 117, 205, 0.8)'
         ]
@@ -512,14 +240,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const conversationData = chartData.conversation.values;
         const hasData = conversationData.some(v => v > 0);
         
-        // 6 種對話類型的專屬顏色
+        // 6 種對話類型的專屬顏色（Frieren 紫色系）
         const conversationColors = [
-            'rgba(74, 158, 189, 0.85)',   // 頁面感知 - 青藍
-            'rgba(95, 179, 161, 0.85)',   // 互動對話 - 青綠
+            'rgba(123, 104, 174, 0.85)',  // 頁面感知 - 長袍紫
+            'rgba(106, 159, 91, 0.85)',   // 互動對話 - 森林綠
             'rgba(255, 183, 77, 0.85)',   // 首次問候 - 橙黃
-            'rgba(229, 115, 115, 0.85)',  // 觸摸反應 - 粉紅
-            'rgba(149, 117, 205, 0.85)',  // 自言自語 - 紫色
-            'rgba(100, 181, 246, 0.85)'   // 裝飾品反應 - 天藍
+            'rgba(201, 79, 79, 0.85)',    // 觸摸反應 - 柔紅
+            'rgba(196, 182, 222, 0.85)',  // 自言自語 - 柔薰衣草
+            'rgba(94, 77, 139, 0.85)'     // 裝飾品反應 - 深紫
         ];
         
         new Chart(conversationCtx, {

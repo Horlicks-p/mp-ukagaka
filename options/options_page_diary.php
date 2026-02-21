@@ -41,160 +41,9 @@ $diary_ollama_model = isset($mpu_opt['diary_ollama_model']) ? $mpu_opt['diary_ol
 $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signature'] : '*このエントリは、千年以上生きた魔法使のフリーレンが書きました。';
 ?>
 
-<style>
-    /* 複用 LLM 設定頁面樣式 */
-    .mpu-diary-card {
-        background: #E8F4F8;
-        border: 1px solid #B8E6E6;
-        border-radius: 10px;
-        padding: 20px 24px;
-        margin: 20px 0;
-        box-shadow: 0 2px 8px rgba(168, 216, 234, 0.15);
-    }
-
-    .mpu-diary-card h4 {
-        color: #4A9EBD;
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0 0 16px 0;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #A8D8EA;
-    }
-
-    .mpu-diary-card .mpu-field-group {
-        margin-bottom: 16px;
-    }
-
-    .mpu-diary-card .mpu-field-group:last-child {
-        margin-bottom: 0;
-    }
-
-    .mpu-diary-card label {
-        color: #2C3E50;
-        font-weight: 500;
-    }
-
-    .mpu-diary-card small {
-        color: #5A7A8C;
-        display: block;
-        margin-top: 4px;
-    }
-
-    .mpu-diary-card code {
-        background: #D4E8F0;
-        color: #2C3E50;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-family: "Courier New", Consolas, monospace;
-        font-size: 12px;
-        border: 1px solid #B8E6E6;
-    }
-
-    /* 提供商選項卡樣式 */
-    .mpu-diary-provider-tabs {
-        display: flex;
-        gap: 8px;
-        margin: 16px 0;
-        flex-wrap: wrap;
-    }
-
-    .mpu-diary-provider-tab {
-        padding: 10px 20px;
-        background: #D4E8F0;
-        border: 2px solid #B8E6E6;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s;
-        user-select: none;
-        color: #2C3E50;
-    }
-
-    .mpu-diary-provider-tab:hover {
-        background: #C5E3F6;
-        border-color: #A8D8EA;
-    }
-
-    .mpu-diary-provider-tab.active {
-        background: linear-gradient(135deg, #4A9EBD 0%, #5FB3A1 100%);
-        color: white;
-        border-color: #4A9EBD;
-        box-shadow: 0 2px 4px rgba(74, 158, 189, 0.2);
-    }
-
-    .mpu-diary-provider-content {
-        display: none;
-    }
-
-    .mpu-diary-provider-content.active {
-        display: block;
-    }
-
-    .mpu-test-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-top: 12px;
-        margin-bottom: 20px;
-    }
-
-    .mpu-test-row .button {
-        flex-shrink: 0;
-    }
-
-    .mpu-key-set {
-        color: #5FB3A1;
-        font-weight: 500;
-    }
-
-    .mpu-test-success {
-        color: #5FB3A1;
-    }
-
-    .mpu-test-error {
-        color: #E57373;
-    }
-
-    .mpu-loading {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid #B8E6E6;
-        border-top-color: #4A9EBD;
-        border-radius: 50%;
-        animation: mpu-spin 0.8s linear infinite;
-        vertical-align: middle;
-        margin-right: 6px;
-    }
-
-    @keyframes mpu-spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* 機率滑桿樣式 */
-    .mpu-range-container {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .mpu-range-container input[type="range"] {
-        width: 200px;
-        accent-color: #4A9EBD;
-    }
-
-    .mpu-range-value {
-        min-width: 50px;
-        font-weight: 600;
-        color: #4A9EBD;
-    }
-</style>
-
 <div>
     <h3><?php _e('📓 日記設定', 'mp-ukagaka'); ?></h3>
-    <p style="color: #5A7A8C; margin-bottom: 20px;">
+    <p style="color: #8A7FA0; margin-bottom: 20px;">
         <small><?php _e('設定自動日記功能（フリーレン手記）。角色會以極低機率自動發表日記文章。', 'mp-ukagaka'); ?></small>
     </p>
     <form method="post" name="diary_setting" id="diary_setting" action="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=7'); ?>">
@@ -264,7 +113,7 @@ $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signatur
         <!-- 日記專用 AI 供應商 -->
         <div class="mpu-diary-card">
             <h4><?php _e('🤖 日記 AI 供應商', 'mp-ukagaka'); ?></h4>
-            <small style="display: block; margin-bottom: 16px; color: #5A7A8C;">
+            <small style="display: block; margin-bottom: 16px; color: #8A7FA0;">
                 <?php _e('日記功能使用獨立的 AI 設定，可與對話功能使用不同的模型以節省成本。', 'mp-ukagaka'); ?>
             </small>
 

@@ -1,99 +1,6 @@
-<style>
-    /* 動漫風格：統一設定頁面樣式 */
-    .mpu-settings-card {
-        background: #E8F4F8;
-        border: 1px solid #B8E6E6;
-        border-radius: 10px;
-        padding: 20px 24px;
-        margin: 20px 0;
-        box-shadow: 0 2px 8px rgba(168, 216, 234, 0.15);
-    }
-
-    .mpu-settings-card h4 {
-        color: #4A9EBD;
-        font-size: 15px;
-        font-weight: 600;
-        margin: 0 0 16px 0;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #A8D8EA;
-    }
-
-    .mpu-settings-card .mpu-field-group {
-        margin-bottom: 16px;
-    }
-
-    .mpu-settings-card .mpu-field-group:last-child {
-        margin-bottom: 0;
-    }
-
-    .mpu-settings-card label {
-        font-weight: 500;
-    }
-
-    .mpu-settings-card small {
-        color: #5A7A8C;
-        display: block;
-        margin-top: 4px;
-    }
-
-    .mpu-settings-card label {
-        color: #2C3E50;
-    }
-
-    /* 動漫風格：textarea 滾動條樣式 */
-    .mpu-settings-card textarea::-webkit-scrollbar {
-        width: 12px;
-    }
-
-    .mpu-settings-card textarea::-webkit-scrollbar-track {
-        background: #E8F4F8;
-        border-radius: 6px;
-        border: 1px solid #B8E6E6;
-    }
-
-    .mpu-settings-card textarea::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #A8D8EA 0%, #B8E6E6 100%);
-        border-radius: 6px;
-        border: 2px solid #E8F4F8;
-    }
-
-    .mpu-settings-card textarea::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #4A9EBD 0%, #5FB3A1 100%);
-    }
-
-    /* Firefox 滾動條樣式 */
-    .mpu-settings-card textarea {
-        scrollbar-width: thin;
-        scrollbar-color: #A8D8EA #E8F4F8;
-    }
-
-    .mpu-ukagaka-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-    }
-
-    .mpu-ukagaka-header h4 {
-        margin: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-    }
-
-    .mpu-ukagaka-header .mpu-delete-link {
-        color: #d63638;
-        text-decoration: none;
-        font-size: 13px;
-    }
-
-    .mpu-ukagaka-header .mpu-delete-link:hover {
-        text-decoration: underline;
-    }
-</style>
-
 <div>
     <h3><?php _e('偽春菜們', 'mp-ukagaka'); ?></h3>
-    <p style="color: #5A7A8C; margin-bottom: 20px;">
+    <p style="color: #8A7FA0; margin-bottom: 20px;">
         <small><?php _e('圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。', 'mp-ukagaka'); ?></small>
     </p>
     <form method="post" name="ukagakas" id="ukagakas" action="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=1'); ?>">
@@ -118,7 +25,7 @@
                             <input type="checkbox" name="ukagakas[<?php echo esc_attr($key); ?>][show_decorations]" value="true" <?php if (isset($value['show_decorations']) && $value['show_decorations']) {
                                                                                                                             echo ' checked="checked"';
                                                                                                                         } ?> /><?php _e('アクセサリー表示', 'mp-ukagaka'); ?>
-                            <small style="color: #5A7A8C;"><?php _e('（スーツケース、巨大な頭蓋骨、魔法の杖と魔法の本）', 'mp-ukagaka'); ?></small>
+                            <small style="color: #8A7FA0;"><?php _e('（スーツケース、巨大な頭蓋骨、魔法の杖と魔法の本）', 'mp-ukagaka'); ?></small>
                         </label>
                     <?php } ?>
                 </div>

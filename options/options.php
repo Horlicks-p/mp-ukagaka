@@ -19,6 +19,19 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '
     $cur_page = 0;
 }
 
+$page_labels = array(
+    0 => __('通用設定', 'mp-ukagaka'),
+    1 => __('偽春菜們', 'mp-ukagaka'),
+    2 => __('創建新偽春菜', 'mp-ukagaka'),
+    3 => __('擴展', 'mp-ukagaka'),
+    4 => __('會話', 'mp-ukagaka'),
+    5 => __('AI 設定', 'mp-ukagaka'),
+    6 => __('LLM 設定', 'mp-ukagaka'),
+    7 => __('日記設定', 'mp-ukagaka'),
+    8 => __('統計', 'mp-ukagaka')
+);
+$current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] : $page_labels[0];
+
 // 注意：表單處理已統一由 admin-functions.php 的 mpu_handle_options_save() 函數處理
 // 在 admin_init hook 中執行，確保在頁面渲染前完成處理
 ?>
@@ -37,13 +50,168 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '
     });
 </script>
 
-<!-- 引入 Claude 風格後台樣式 -->
+<!-- 引入後台樣式 -->
 <link rel="stylesheet" href="<?php echo plugins_url('css/admin-style.css', defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : __FILE__); ?>" type="text/css" />
 
-<!-- 自訂樣式：調整文字區域的外觀（保留必要的內聯樣式） -->
+<!-- 自訂樣式：Frieren 主題佈局 -->
 <style type="text/css">
-    /* 增加文字區域大小以便於輸入HTML */
-    /* 統一 textarea 寬度，與 System Prompt 保持一致 */
+    .mpu-frieren-admin.wrap {
+        margin: 0 0 0 -2px !important;
+        padding: 22px 24px 28px 24px !important;
+        background: #f0f0f1;
+        min-height: calc(100vh - 40px);
+        box-sizing: border-box;
+    }
+
+    .mpu-frieren-hero {
+        margin: 0 0 14px 0;
+        padding: 18px 22px 20px 22px;
+        width: 70%;
+        max-width: 70%;
+        border: 1px solid var(--mpu-border);
+        border-radius: 6px;
+        background: var(--mpu-bg-section);
+        box-shadow: none;
+    }
+
+    .mpu-frieren-hero__tag {
+        display: inline-block;
+        padding: 4px 10px;
+        margin-bottom: 10px;
+        border-radius: 999px;
+        background: linear-gradient(120deg, var(--mpu-accent), #9B8EC4);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .mpu-frieren-hero h2 {
+        margin: 0 0 6px 0 !important;
+        padding: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        font-size: 30px !important;
+        line-height: 1.15;
+        color: var(--mpu-text-heading) !important;
+        text-shadow: none !important;
+    }
+
+    .mpu-frieren-hero p {
+        margin: 0;
+        color: #6E5BA0;
+        font-size: 14px;
+        line-height: 1.7;
+        max-width: 860px;
+    }
+
+    .mpu-frieren-admin .updated,
+    .mpu-frieren-admin .error,
+    .mpu-frieren-admin .notice {
+        border-radius: 6px;
+        border-left-width: 4px;
+        margin: 12px 0 18px 0 !important;
+        box-shadow: none;
+    }
+
+    .mpu-frieren-admin .mp-ukagaka-tabs a {
+        border-radius: 2px 2px 0 0;
+    }
+
+    .mpu-frieren-admin .mp-ukagaka-tabs {
+        width: 70% !important;
+        max-width: 70% !important;
+        margin-bottom: 0;
+        border-bottom: 0 !important;
+    }
+
+    .mpu-frieren-admin .mp-ukagaka-main-layout {
+        display: flex;
+        gap: 18px;
+        align-items: flex-start;
+        width: 70%;
+        max-width: 70%;
+        margin-top: 0;
+    }
+
+    .mpu-frieren-admin .mp-ukagaka-section {
+        flex: 1 1 auto;
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0;
+        margin: 0 !important;
+        padding: 26px 30px !important;
+        border-radius: 0 0 6px 6px;
+        border: 1px solid var(--mpu-border);
+        border-top: 0;
+        background: var(--mpu-bg-section);
+        box-shadow: none;
+    }
+
+    .mpu-frieren-admin .mp-ukagaka-sidebar {
+        flex: 0 0 300px;
+        width: 300px;
+        position: sticky;
+        top: 42px;
+    }
+
+    .mpu-frieren-admin .mpu-quick-link-card {
+        background: var(--mpu-bg-section);
+        border: 1px solid var(--mpu-border);
+        border-radius: 6px;
+        padding: 14px 16px;
+        margin-bottom: 14px;
+        box-shadow: none;
+    }
+
+    .mpu-frieren-admin .mpu-quick-link-card h4 {
+        margin: 0 0 10px 0;
+        padding: 0 0 8px 0;
+        border-bottom: 1px solid var(--mpu-border-light);
+        color: var(--mpu-text-heading);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+    }
+
+    .mpu-frieren-admin .mpu-quick-link-card p,
+    .mpu-frieren-admin .mpu-quick-link-card li {
+        margin: 0 0 8px 0;
+        color: var(--mpu-text-primary);
+        line-height: 1.55;
+        font-size: 12px;
+    }
+
+    .mpu-frieren-admin .mpu-quick-link-card li:last-child,
+    .mpu-frieren-admin .mpu-quick-link-card p:last-child {
+        margin-bottom: 0;
+    }
+
+    .mpu-frieren-admin .mpu-quick-link-card a {
+        color: #6E5BA0;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(110, 91, 160, 0.35);
+        transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .mpu-frieren-admin .mpu-quick-link-card a:hover {
+        color: var(--mpu-accent-dark);
+        border-color: rgba(94, 77, 139, 0.7);
+    }
+
+    .mpu-frieren-admin .mpu-context-panel {
+        font-size: 12px;
+        color: var(--mpu-text-primary);
+        line-height: 1.6;
+    }
+
+    .mpu-frieren-admin .mpu-context-panel strong {
+        color: var(--mpu-text-heading);
+        font-weight: 700;
+    }
+
+    /* 增加文字區域大小以便於輸入 HTML */
     textarea[name$="[msg]"],
     textarea#common_msg,
     textarea#auto_msg,
@@ -56,16 +224,15 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '
 
     .resizable-textarea textarea {
         display: block;
-        margin-bottom: 0pt;
+        margin-bottom: 0;
         height: 20%;
         width: 100%;
         min-width: 300px;
     }
 
-    /* 動漫風格：Grippie 調整大小底框 */
     div.grippie {
-        background: #E8F4F8 url(<?php echo plugins_url('images/grippie.png', defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : __FILE__); ?>) no-repeat scroll center 2px;
-        border: 1px solid #B8E6E6;
+        background: var(--mpu-accent-muted) url(<?php echo plugins_url('images/grippie.png', defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : __FILE__); ?>) no-repeat scroll center 2px;
+        border: 1px solid var(--mpu-border);
         border-top: none;
         border-radius: 0 0 6px 6px;
         cursor: s-resize;
@@ -73,218 +240,59 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '
         margin-top: -1px;
     }
 
-    /* 兩欄布局：主內容區和側邊欄 */
-    .mp-ukagaka-main-layout {
-        display: flex;
-        gap: 20px;
-        align-items: flex-start;
-        width: 100%;
-        box-sizing: border-box;
-        /* 防止在放大時溢出 */
-        max-width: calc(100vw - 200px);
-    }
-
-    .mp-ukagaka-section {
-        /* 使用彈性寬度，自動填滿剩餘空間 */
-        flex: 1 1 auto;
-        min-width: 0;  /* 防止 flex 子元素溢出 */
-        box-sizing: border-box;
-    }
-
-    .mp-ukagaka-sidebar {
-        /* 彈性收縮的側邊欄 */
-        flex: 0 0 280px;
-        width: 280px;
-        min-width: 200px;
-        max-width: 300px;
-        position: sticky;
-        top: 32px;
-        /* WordPress admin bar height */
-        box-sizing: border-box;
-    }
-
-    /* WordPress 側邊欄收合時有更多空間 */
-    .folded .mp-ukagaka-main-layout {
-        max-width: calc(100vw - 80px);
-    }
-
-    /* 動漫風格：主背景漸變 */
-    body.wp-admin .wrap {
-        background: linear-gradient(135deg, #F0F8FF 0%, #F5FDFF 100%);
-        min-height: 100vh;
-        padding: 20px;
-        margin: 0 -20px 0 -20px;
-    }
-
-    /* 快速連結卡片樣式 - 動漫風格 */
-    .mpu-quick-link-card {
-        background: #E8F4F8;
-        border: 1px solid #B8E6E6;
-        border-radius: 10px;
-        padding: 16px 20px;
-        margin-bottom: 16px;
-        box-shadow: 0 2px 8px rgba(168, 216, 234, 0.15);
-    }
-
-    .mpu-quick-link-card h4 {
-        color: #4A9EBD;
-        font-size: 14px;
-        font-weight: 600;
-        margin: 0 0 12px 0;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #A8D8EA;
-    }
-
-    .mpu-quick-link-card ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    .mpu-quick-link-card li {
-        margin-bottom: 8px;
-    }
-
-    .mpu-quick-link-card li:last-child {
-        margin-bottom: 0;
-    }
-
-    .mpu-quick-link-card a {
-        color: #3A9BC1;
-        text-decoration: none;
-        transition: color 0.2s;
-    }
-
-    .mpu-quick-link-card a:hover {
-        color: #5FB3A1;
-        text-decoration: underline;
-    }
-
-    .mpu-provider-links p {
-        margin: 0 0 10px 0;
-        line-height: 1.6;
-        font-size: 13px;
-    }
-
-    .mpu-provider-links p:last-child {
-        margin-bottom: 0;
-    }
-
-    .mpu-provider-links strong {
-        color: #2C3E50;
-        font-weight: 600;
-    }
-
-    .mpu-provider-links p {
-        color: #2C3E50;
-    }
-
-    /* 動漫風格：按鈕樣式 */
-    .mpu-settings-card .button,
-    .wrap .button {
-        background: linear-gradient(135deg, #A8D8EA 0%, #B8E6E6 100%);
-        border: 2px solid #B8E6E6;
-        border-radius: 6px;
-        color: #2C3E50;
-        font-weight: 500;
-        transition: all 0.2s;
-        box-shadow: 0 2px 4px rgba(168, 216, 234, 0.15);
-    }
-
-    .mpu-settings-card .button:hover,
-    .wrap .button:hover {
-        background: linear-gradient(135deg, #4A9EBD 0%, #5FB3A1 100%);
-        color: white;
-        border-color: #4A9EBD;
-        box-shadow: 0 2px 8px rgba(74, 158, 189, 0.3);
-        transform: translateY(-1px);
-    }
-
-    .mpu-settings-card .button:active,
-    .wrap .button:active {
-        background: linear-gradient(135deg, #3A8CAD 0%, #4FA391 100%);
-        transform: translateY(0);
-    }
-
-    /* 動漫風格：輸入框樣式 */
-    .mpu-settings-card input[type="text"],
-    .mpu-settings-card input[type="password"],
-    .mpu-settings-card input[type="number"],
-    .mpu-settings-card input[type="url"],
-    .mpu-settings-card select,
-    .mpu-settings-card textarea {
-        border: 1px solid #A8D8EA;
-        border-radius: 6px;
-        background: #F0F9FF;
-        color: #2C3E50;
-        transition: all 0.2s;
-    }
-
-    /* 動漫風格：textarea 滾動條樣式 */
-    .mpu-settings-card textarea::-webkit-scrollbar {
-        width: 12px;
-    }
-
-    .mpu-settings-card textarea::-webkit-scrollbar-track {
-        background: #E8F4F8;
-        border-radius: 6px;
-        border: 1px solid #B8E6E6;
-    }
-
-    .mpu-settings-card textarea::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, #A8D8EA 0%, #B8E6E6 100%);
-        border-radius: 6px;
-        border: 2px solid #E8F4F8;
-    }
-
-    .mpu-settings-card textarea::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, #4A9EBD 0%, #5FB3A1 100%);
-    }
-
-    /* Firefox 滾動條樣式 */
-    .mpu-settings-card textarea {
-        scrollbar-width: thin;
-        scrollbar-color: #A8D8EA #E8F4F8;
-    }
-
-    .mpu-settings-card input[type="text"]:focus,
-    .mpu-settings-card input[type="password"]:focus,
-    .mpu-settings-card input[type="number"]:focus,
-    .mpu-settings-card input[type="url"]:focus,
-    .mpu-settings-card select:focus,
-    .mpu-settings-card textarea:focus {
-        border-color: #4A9EBD;
-        background: #FFFFFF;
-        box-shadow: 0 0 0 3px rgba(74, 158, 189, 0.1);
-        outline: none;
-    }
-
-    @media (max-width: 1200px) {
-        .mp-ukagaka-main-layout {
+    @media (max-width: 1280px) {
+        .mpu-frieren-admin .mp-ukagaka-main-layout {
             flex-direction: column;
+            gap: 14px;
+            width: 100%;
             max-width: 100%;
         }
 
-        .mp-ukagaka-section {
-            flex: 1;
-            max-width: 100%;
-            width: 100%;
-        }
-
-        .mp-ukagaka-sidebar {
-            flex: 1;
-            width: 100%;
-            min-width: 100%;
-            max-width: 100%;
+        .mpu-frieren-admin .mp-ukagaka-sidebar {
             position: static;
+            flex: 1;
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 782px) {
+        .mpu-frieren-admin.wrap {
+            margin-left: 0 !important;
+            padding: 14px !important;
+        }
+
+        .mpu-frieren-hero {
+            padding: 14px 14px 15px 14px;
+            border-radius: 6px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .mpu-frieren-hero h2 {
+            font-size: 25px !important;
+        }
+
+        .mpu-frieren-admin .mp-ukagaka-tabs {
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .mpu-frieren-admin .mp-ukagaka-section {
+            padding: 18px 14px !important;
+            margin: 0 !important;
         }
     }
 </style>
 
-
 <!-- 主要內容區塊 -->
-<div class="wrap mp-ukagaka-wrap">
-    <h2><?php _e('MP Ukagaka 選項', 'mp-ukagaka'); ?></h2>
+<div class="wrap mp-ukagaka-wrap mpu-frieren-admin">
+    <div class="mpu-frieren-hero">
+        <span class="mpu-frieren-hero__tag">Ghost Console</span>
+        <h2><?php _e('MP Ukagaka 選項', 'mp-ukagaka'); ?></h2>
+        <p><?php _e('在 WordPress 網站上顯示互動式偽春菜角色，支援多家 AI 供應商的 LLM 對話、頁面感知、自動日記等功能。', 'mp-ukagaka'); ?></p>
+    </div>
 
     <!-- 顯示操作結果訊息 -->
     <?php if (!empty($text)) echo $text; ?>
@@ -326,9 +334,16 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '
 
         <!-- 右側快速連結欄 -->
         <div class="mp-ukagaka-sidebar">
+            <div class="mpu-quick-link-card mpu-context-panel">
+                <h4><?php _e('控制台狀態', 'mp-ukagaka'); ?></h4>
+                <p><strong><?php _e('目前頁面：', 'mp-ukagaka'); ?></strong><?php echo esc_html($current_page_label); ?></p>
+                <p><strong><?php _e('模式：', 'mp-ukagaka'); ?></strong><?php _e('後台設定', 'mp-ukagaka'); ?></p>
+                <p><strong><?php _e('建議：', 'mp-ukagaka'); ?></strong><?php _e('先完成 LLM 與 AI 設定，再調整會話與日記細節。', 'mp-ukagaka'); ?></p>
+            </div>
+
             <!-- AI Provider 相關網站 -->
             <div class="mpu-quick-link-card">
-                <h4>🤖 AI Provider</h4>
+                <h4><?php _e('AI Provider', 'mp-ukagaka'); ?></h4>
                 <div class="mpu-provider-links">
                     <p><strong>OpenAI:</strong> <a href="https://platform.openai.com/api-keys" target="_blank">API Keys</a> / <a href="https://platform.openai.com/docs" target="_blank">Docs</a></p>
                     <p><strong>Google Gemini:</strong> <a href="https://makersuite.google.com/app/apikey" target="_blank">AI Studio</a> / <a href="https://ai.google.dev/docs" target="_blank">Docs</a></p>
@@ -339,7 +354,7 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '
 
             <!-- 文檔連結 -->
             <div class="mpu-quick-link-card">
-                <h4>📚 Documentation</h4>
+                <h4><?php _e('Documentation', 'mp-ukagaka'); ?></h4>
                 <ul>
                     <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs/README.md" target="_blank">README</a></li>
                     <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs/USER_GUIDE.md" target="_blank">User Guide</a></li>
@@ -350,7 +365,7 @@ if (!is_numeric($cur_page) || ($cur_page < 0 || $cur_page > 8) || $cur_page == '
 
             <!-- 相關連結 -->
             <div class="mpu-quick-link-card">
-                <h4>🔗 Links</h4>
+                <h4><?php _e('Links', 'mp-ukagaka'); ?></h4>
                 <ul>
                     <li><a href="https://www.moelog.com/" target="_blank">萌えログ.COM</a></li>
                     <li><a href="https://ja.wikipedia.org/wiki/伺か" target="_blank">伺か (Wikipedia)</a></li>
