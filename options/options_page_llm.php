@@ -329,7 +329,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                 var ajaxData = {
                     action: 'mpu_test_' + provider + '_connection',
                     model: model,
-                    nonce: '<?php echo wp_create_nonce("mpu_test_connection"); ?>'
+                    mpu_nonce: '<?php echo wp_create_nonce("mpu_ajax_nonce"); ?>'
                 };
 
                 if (provider !== 'ollama') {
@@ -408,7 +408,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                         action: 'mpu_test_weather_api',
                         latitude: latitude,
                         longitude: longitude,
-                        nonce: '<?php echo wp_create_nonce("mpu_test_weather"); ?>'
+                        mpu_nonce: '<?php echo wp_create_nonce("mpu_ajax_nonce"); ?>'
                     },
                     success: function(response) {
                         $btn.prop('disabled', false);
@@ -446,7 +446,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     method: 'POST',
                     data: {
                         action: 'mpu_clear_api_cache',
-                        nonce: '<?php echo wp_create_nonce("mpu_clear_cache"); ?>'
+                        mpu_nonce: '<?php echo wp_create_nonce("mpu_ajax_nonce"); ?>'
                     },
                     success: function(response) {
                         $btn.prop('disabled', false);

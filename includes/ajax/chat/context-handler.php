@@ -94,27 +94,33 @@ function mpu_ajax_chat_context()
     // 判斷是否為日語（用於決定文案語言）
     $is_japanese = (strpos(strtolower($language), 'ja') === 0 || $language === 'ja');
 
-    $user_prompt = mpu_build_user_info_prompt($user_info);
+    // --- [組合 User Prompt] ---
+    $prompt_parts = [];
 
-    $user_prompt .= "\n【訪問者情報】\n";
+    // 1. 用戶資訊
+    $prompt_parts[] = mpu_build_user_info_prompt($user_info);
+
+    // 2. 訪問者情報
+    $visitor_lines = [];
+    $visitor_lines[] = "【訪問者情報】";
     if (!empty($visitor_info['is_bot']) && $visitor_info['is_bot']) {
-        $bot_name = $visitor_info['browser_name'] ?? '';
-        if (empty($bot_name)) {
-            $bot_name = '未知のクローラー';
-        }
-        $user_prompt .= "BOT検出：{$bot_name}\n";
+        $bot_name = !empty($visitor_info['browser_name']) ? $visitor_info['browser_name'] : '未知のクローラー';
+        $visitor_lines[] = "BOT検出：{$bot_name}";
     }
     if (!empty($visitor_info['slimstat_country'])) {
         $country_name = function_exists('mpu_country_code_to_name') ? mpu_country_code_to_name($visitor_info['slimstat_country']) : $visitor_info['slimstat_country'];
-        $user_prompt .= "アクセス元地域：{$country_name}";
+        $country_msg = "アクセス元地域：{$country_name}";
         if (!empty($visitor_info['slimstat_city'])) {
-            $user_prompt .= " {$visitor_info['slimstat_city']}";
+            $country_msg .= " {$visitor_info['slimstat_city']}";
         }
-        $user_prompt .= "\n";
+        $visitor_lines[] = $country_msg;
     }
+    $prompt_parts[] = implode("\n", $visitor_lines);
 
-    $user_prompt .= "\n【記事内容】\n";
-    $user_prompt .= "タイトル：{$page_title}\n";
+    // 3. 記事內容
+    $article_lines = [];
+    $article_lines[] = "【記事內容】";
+    $article_lines[] = "タイトル：{$page_title}";
 
     // 添加發布日期資訊（如果有的話）
     if (!empty($publish_date)) {
@@ -157,20 +163,23 @@ function mpu_ajax_chat_context()
             // 如果日期解析失敗，只顯示日期標籤，不顯示年齡
             $date_label = $is_japanese ? "公開日" : "發布日期";
         }
-        $user_prompt .= "{$date_label}：{$publish_date}";
+        
+        $date_msg = "{$date_label}：{$publish_date}";
         if (!empty($article_age)) {
-            $user_prompt .= " {$article_age}";
+            $date_msg .= " {$article_age}";
         }
-        $user_prompt .= "\n";
+        $article_lines[] = $date_msg;
     }
 
-    $user_prompt .= "\n內容摘要：{$page_content}";
+    $article_lines[] = "內容摘要：{$page_content}";
+    $prompt_parts[] = implode("\n", $article_lines);
 
     // ===== 頁面感知專用：會話指示選擇 =====
     // 從 dynamics.json 載入角色專屬的 page_aware 提示詞
     // 提示詞會引導 AI 如何評論文章內容（聚焦於管理人的文章本身）
     $page_aware_instruction = '';
     $is_own_diary = false;
+    $special_info = '';
 
     if (function_exists('mpu_load_personality_dynamic_prompts')) {
         // mpu_load_personality_dynamic_prompts 會在 personality_id 為 null 時自動使用當前 personality_id
@@ -193,11 +202,11 @@ function mpu_ajax_chat_context()
             if ($is_recent && !empty($dynamic_prompts['page_aware_own_diary_recent']) && is_array($dynamic_prompts['page_aware_own_diary_recent'])) {
                 $page_aware_instruction = $dynamic_prompts['page_aware_own_diary_recent'][array_rand($dynamic_prompts['page_aware_own_diary_recent'])];
                 // 添加提示讓 AI 知道這是最近的日記
-                $user_prompt .= "\n\n【特別情報】この記事はあなた自身がつい最近書いた日記です。";
+                $special_info = "【特別情報】この記事はあなた自身がつい最近書いた日記です。";
             } elseif (!empty($dynamic_prompts['page_aware_own_diary_past']) && is_array($dynamic_prompts['page_aware_own_diary_past'])) {
                 $page_aware_instruction = $dynamic_prompts['page_aware_own_diary_past'][array_rand($dynamic_prompts['page_aware_own_diary_past'])];
                 // 添加提示讓 AI 知道這是過去的日記
-                $user_prompt .= "\n\n【特別情報】この記事はあなた自身が以前書いた日記です。";
+                $special_info = "【特別情報】この記事はあなた自身が以前書いた日記です。";
             }
         }
         
@@ -211,10 +220,18 @@ function mpu_ajax_chat_context()
         }
     }
 
-    // 添加會話指示到 User Prompt
-    if (!empty($page_aware_instruction)) {
-        $user_prompt .= "\n\n【会話指示】\n" . $page_aware_instruction;
+    // 4. 特別情報（如果是日記）
+    if (!empty($special_info)) {
+        $prompt_parts[] = $special_info;
     }
+
+    // 5. 會話指示
+    if (!empty($page_aware_instruction)) {
+        $prompt_parts[] = "【会話指示】\n" . $page_aware_instruction;
+    }
+
+    // 合併最終 User Prompt
+    $user_prompt = implode("\n\n", $prompt_parts);
 
     // 頁面感知 AI 需要更長的回應來完整表達對文章的看法
     // 獲取最大 Token 數（優先順序：Manifest > 全域設定 > 預設 1000）

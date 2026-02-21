@@ -96,55 +96,9 @@ function mpu_get_option()
         } else {
             $mpu_opt = array_merge($default_opt, $options);
 
-            // 確保 default_1 的預設值被應用（如果名稱還是舊的「初音」，則更新）
-            if (isset($default_opt['ukagakas']['default_1'])) {
-                if (!isset($mpu_opt['ukagakas']['default_1'])) {
-                    $mpu_opt['ukagakas']['default_1'] = $default_opt['ukagakas']['default_1'];
-                } else {
-                    // 檢查是否為舊的預設值（名稱包含「初音」或「Miku」），如果是則更新為新的預設值
-                    $current_name = $mpu_opt['ukagakas']['default_1']['name'] ?? '';
-                    // 檢查多種可能的舊名稱變體
-                    $is_old_default = (
-                        $current_name === '初音' ||
-                        $current_name === '初音ミク' ||
-                        stripos($current_name, '初音') !== false ||
-                        stripos($current_name, 'miku') !== false ||
-                        stripos($current_name, 'ミク') !== false
-                    );
-                    if ($is_old_default) {
-                        // 只更新名稱、shell、msg 和 dialog_filename，保留其他設定（如 show）
-                        $mpu_opt['ukagakas']['default_1']['name'] = $default_opt['ukagakas']['default_1']['name'];
-                        $mpu_opt['ukagakas']['default_1']['shell'] = $default_opt['ukagakas']['default_1']['shell'];
-                        $mpu_opt['ukagakas']['default_1']['msg'] = $default_opt['ukagakas']['default_1']['msg'];
-                        $mpu_opt['ukagakas']['default_1']['dialog_filename'] = $default_opt['ukagakas']['default_1']['dialog_filename'];
-                        update_option("mp_ukagaka", $mpu_opt);
-                        wp_cache_delete("mp_ukagaka", "options");
-                    } else {
-                        // 檢查 shell 路徑是否需要更新（即使名稱不是舊的「初音」，也要檢查路徑）
-                        $current_shell = $mpu_opt['ukagakas']['default_1']['shell'] ?? '';
-                        $new_shell = $default_opt['ukagakas']['default_1']['shell'];
-
-                        // 如果當前路徑不包含新的路徑結構，則更新
-                        // 檢查是否包含舊的路徑格式：images/Frieren/ 或 personalities/Frieren/
-                        $needs_path_update = (
-                            strpos($current_shell, 'ghost/Frieren/shell/Frieren/') === false &&
-                            (
-                                strpos($current_shell, 'images/Frieren/') !== false ||
-                                strpos($current_shell, 'personalities/Frieren/') !== false ||
-                                // 如果 dialog_filename 是 Frieren，但路徑不正確，也更新
-                                (isset($mpu_opt['ukagakas']['default_1']['dialog_filename']) &&
-                                    $mpu_opt['ukagakas']['default_1']['dialog_filename'] === 'Frieren' &&
-                                    $current_shell !== $new_shell)
-                            )
-                        );
-
-                        if ($needs_path_update) {
-                            $mpu_opt['ukagakas']['default_1']['shell'] = $new_shell;
-                            update_option("mp_ukagaka", $mpu_opt);
-                            wp_cache_delete("mp_ukagaka", "options");
-                        }
-                    }
-                }
+            // 確保 default_1 的預設值被應用
+            if (isset($default_opt['ukagakas']['default_1']) && !isset($mpu_opt['ukagakas']['default_1'])) {
+                $mpu_opt['ukagakas']['default_1'] = $default_opt['ukagakas']['default_1'];
             }
         }
     }

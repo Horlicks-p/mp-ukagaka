@@ -415,14 +415,20 @@ function mpu_get_provider_api_key($provider, $mpu_opt = null)
     switch ($provider) {
         case 'openai':
             // 向後兼容：優先使用新設定鍵，否則使用舊設定鍵
-            $api_key_encrypted = $mpu_opt['llm_openai_api_key'] ?? $mpu_opt['openai_api_key'] ?? '';
+            $api_key_encrypted = !empty($mpu_opt['llm_openai_api_key'])
+                ? $mpu_opt['llm_openai_api_key']
+                : (!empty($mpu_opt['openai_api_key']) ? $mpu_opt['openai_api_key'] : '');
             break;
         case 'claude':
-            $api_key_encrypted = $mpu_opt['llm_claude_api_key'] ?? $mpu_opt['claude_api_key'] ?? '';
+            $api_key_encrypted = !empty($mpu_opt['llm_claude_api_key'])
+                ? $mpu_opt['llm_claude_api_key']
+                : (!empty($mpu_opt['claude_api_key']) ? $mpu_opt['claude_api_key'] : '');
             break;
         case 'gemini':
         default:
-            $api_key_encrypted = $mpu_opt['llm_gemini_api_key'] ?? $mpu_opt['ai_api_key'] ?? '';
+            $api_key_encrypted = !empty($mpu_opt['llm_gemini_api_key'])
+                ? $mpu_opt['llm_gemini_api_key']
+                : (!empty($mpu_opt['ai_api_key']) ? $mpu_opt['ai_api_key'] : '');
             break;
     }
 
@@ -1069,7 +1075,8 @@ function mpu_resolve_personality_id($ukagaka_name = null): ?string
  */
 function mpu_verify_ajax_nonce(): bool
 {
-    if (!isset($_POST['mpu_nonce']) || !wp_verify_nonce($_POST['mpu_nonce'], 'mpu_ajax_nonce')) {
+    $request_data = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' ? $_POST : $_GET;
+    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
         wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
         return false;
     }
@@ -1093,16 +1100,21 @@ function mpu_build_user_info_prompt(array $user_info): string
         'subscriber'    => '購読者',
     ];
 
-    $prompt = "【現在のユーザー情報】\n";
+    $parts = [];
+    $parts[] = "【現在のユーザー情報】";
+
     if ($user_info['is_logged_in']) {
         $role_label = $role_labels[$user_info['primary_role']] ?? $user_info['primary_role'];
-        $prompt .= "ユーザーがログインしています：{$user_info['display_name']} ({$user_info['username']})\n";
-        $prompt .= "役割：{$role_label}\n";
+        $user_lines = [];
+        $user_lines[] = "ユーザーがログインしています：{$user_info['display_name']} ({$user_info['username']})";
+        $user_lines[] = "役割：{$role_label}";
         if ($user_info['is_admin']) {
-            $prompt .= "このユーザーはサイト管理人です。\n";
+            $user_lines[] = "このユーザーはサイト管理人です。";
         }
+        $parts[] = implode("\n", $user_lines);
     } else {
-        $prompt .= "ユーザーがログインしていません（訪問者）。\n";
+        $parts[] = "ユーザーがログインしていません（訪問者）。";
     }
-    return $prompt;
+
+    return implode("\n", $parts);
 }

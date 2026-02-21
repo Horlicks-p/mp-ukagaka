@@ -395,23 +395,31 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         $articles = mpu_get_random_posts_for_llm($article_count);
 
         if (!empty($articles)) {
-            $articles_info = "\n【記事情報】\n";
+            $article_parts = [];
+            $article_parts[] = "【記事情報】";
             $article_num = 1;
             foreach ($articles as $article) {
                 // get_permalink() 已經返回正確編碼的 URL，但為了節省 token 和可讀性，我們進行解碼
                 $article_url = urldecode($article['url']);
-                $articles_info .= "記事{$article_num}：{$article['title']} - {$article_url}\n";
+                $article_parts[] = "記事{$article_num}：{$article['title']} - {$article_url}";
                 $article_num++;
             }
             // 明確指示 AI：URL 已經解碼，保持原樣
             $example_url = !empty($articles[0]['url']) ? urldecode($articles[0]['url']) : '';
-            $articles_info .= "\n【重要】記事を紹介する際は、HTML形式の<a>タグを使用してリンクを生成してください。\n";
-            $articles_info .= "URLはデコード済みです。日本語が含まれていても、そのまま使用してください（再エンコード不要）。\n";
-            $articles_info .= "例：<a href=\"{$example_url}\">記事のタイトル</a>\n";
+            $article_parts[] = "";
+            $article_parts[] = "【重要】記事を紹介する際は、HTML形式の<a>タグを使用してリンクを生成してください。";
+            $article_parts[] = "URLはデコード済みです。日本語が含まれていても、そのまま使用してください（再エンコード不要）。";
+            $article_parts[] = "例：<a href=\"{$example_url}\">記事のタイトル</a>";
+            
+            $articles_info = implode("\n", $article_parts);
         }
     }
 
-    $user_prompt = "【當前用戶資訊】\n";
+    // --- [組合 User Prompt 基礎資訊] ---
+    $prompt_parts = [];
+
+    // --- 【當前用戶資訊】 ---
+    $user_block = "【當前用戶資訊】\n";
     if ($user_info['is_logged_in']) {
         $role_labels = [
             'administrator' => '管理人',
@@ -424,53 +432,63 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
             ? $role_labels[$user_info['primary_role']]
             : $user_info['primary_role'];
 
-        $user_prompt .= "ユーザーがログインしています：{$user_info['display_name']} ({$user_info['username']})\n";
-        $user_prompt .= "役割：{$role_label}\n";
+        $user_block .= "ユーザーがログインしています：{$user_info['display_name']} ({$user_info['username']})\n";
+        $user_block .= "役割：{$role_label}\n";
         if ($user_info['is_admin']) {
-            $user_prompt .= "このユーザーはサイトの管理人です。\n";
+            $user_block .= "このユーザーはサイトの管理人です。\n";
         }
     } else {
-        $user_prompt .= "ユーザーがログインしていません（訪客）。\n";
+        $user_block .= "ユーザーがログインしていません（訪客）。\n";
     }
+    $prompt_parts[] = rtrim($user_block);
 
-    $user_prompt .= "\n【訪客情報】\n";
+    // --- 【訪客情報】 ---
+    $visitor_block = "【訪客情報】\n";
     if (!empty($visitor_info['is_bot']) && $visitor_info['is_bot']) {
         $bot_name = $visitor_info['browser_name'] ?? '未知のクローラー';
-        $user_prompt .= "BOT を検出しました：{$bot_name}\n";
+        $visitor_block .= "BOT を検出しました：{$bot_name}\n";
     }
     if (!empty($visitor_info['slimstat_country'])) {
         $country_name = function_exists('mpu_country_code_to_name') ? mpu_country_code_to_name($visitor_info['slimstat_country']) : $visitor_info['slimstat_country'];
-        $user_prompt .= "国：{$country_name}";
+        $visitor_block .= "国：{$country_name}";
         if (!empty($visitor_info['slimstat_city'])) {
-            $user_prompt .= " {$visitor_info['slimstat_city']}";
+            $visitor_block .= " {$visitor_info['slimstat_city']}";
         }
-        $user_prompt .= "\n";
+        $visitor_block .= "\n";
     }
+    $prompt_parts[] = rtrim($visitor_block);
 
-    $user_prompt .= "\n【サイト統計】\n";
-    $user_prompt .= "記事数：{$wp_info['post_count']}\n";
-    $user_prompt .= "コメント数：{$wp_info['comment_count']}\n";
-    $user_prompt .= "カテゴリ数：{$wp_info['category_count']}\n";
-    $user_prompt .= "タグ数：{$wp_info['tag_count']}\n";
-    $user_prompt .= "スパム数：{$wp_info['spam_count']}\n";
-    $user_prompt .= "運営日数：{$wp_info['days_operating']}\n";
+    // --- 【サイト統計】 ---
+    $stats_block = "【サイト統計】\n";
+    $stats_block .= "記事数：{$wp_info['post_count']}\n";
+    $stats_block .= "コメント数：{$wp_info['comment_count']}\n";
+    $stats_block .= "カテゴリ数：{$wp_info['category_count']}\n";
+    $stats_block .= "タグ数：{$wp_info['tag_count']}\n";
+    $stats_block .= "スパム数：{$wp_info['spam_count']}\n";
+    $stats_block .= "運営日数：{$wp_info['days_operating']}\n";
     if (!empty($wp_info['theme_name'])) {
-        $user_prompt .= "テーマ：{$wp_info['theme_name']} v{$wp_info['theme_version']}\n";
+        $stats_block .= "テーマ：{$wp_info['theme_name']} v{$wp_info['theme_version']}\n";
     }
-    $user_prompt .= "WordPressのバージョン：{$wp_info['wp_version']}\n";
-    $user_prompt .= "PHPのバージョン：{$wp_info['php_version']}\n";
+    $stats_block .= "WordPressのバージョン：{$wp_info['wp_version']}\n";
+    $stats_block .= "PHPのバージョン：{$wp_info['php_version']}\n";
+    $prompt_parts[] = rtrim($stats_block);
 
-    $user_prompt .= "\n【時間感覚】\n";
-    $user_prompt .= "今は：{$time_context}\n";
-
-    // ★ 追加：紀念日情報をプロンプトに含める
+    // --- 【時間感覚】 ---
+    $time_block = "【時間感覚】\n";
+    $time_block .= "今は：{$time_context}\n";
     if (!empty($today_holiday_info)) {
-        $user_prompt .= "特記事項：{$today_holiday_info}\n";
+        $time_block .= "特記事項：{$today_holiday_info}\n";
+    }
+    $prompt_parts[] = rtrim($time_block);
+
+    // --- 【記事情報】 ---
+    if (!empty($articles_info)) {
+        // articles_info 本身帶有 \n【記事情報】\n，我們去除頭尾換行以融入陣列
+        $prompt_parts[] = rtrim(ltrim($articles_info, "\n"));
     }
 
-    if (!empty($articles_info)) {
-        $user_prompt .= $articles_info;
-    }
+    // 基礎上下文合併
+    $user_prompt = implode("\n\n", $prompt_parts);
 
     /**
      * Filter: mpu_llm_user_prompt
@@ -480,7 +498,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
      * add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
      *     $attack_info = get_transient('mpu_llar_attack_info');
      *     if ($attack_info) {
-     *         return $prompt . "\n【安全警報】\n" . $attack_info;
+     *         return $prompt . "\n\n【安全警報】\n" . $attack_info;
      *     }
      *     return $prompt;
      * }, 10, 3);
@@ -492,45 +510,37 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
      */
     $user_prompt = apply_filters('mpu_llm_user_prompt', $user_prompt, $ukagaka_name, $personality_id);
 
-    $user_prompt .= "\n【会話指示】\n";
-    $user_prompt .= $category_instruction;
-    
-    // 統一字數建議：30-150 字
-    $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で応答すること。";
+    // --- [組合後續指示與規則] ---
+    $post_parts = [];
 
-    // 加入回應歷史提示，幫助 LLM 避免重複
+    // --- 【会話指示】 ---
+    $post_parts[] = "【会話指示】\n{$category_instruction}\n\n【回応ルール】淡々とした常体で、30-150文字で応答すること。";
+
+    // --- 【最近の発言履歴】 ---
     if (!empty($response_history) && is_array($response_history) && count($response_history) > 0) {
-        $user_prompt .= "\n\n【最近の発言履歴（避けるべき内容）】\n";
-        $user_prompt .= "以下の内容と似たことは言わないでください：\n";
+        $history_block = "【最近の発言履歴（避けるべき内容）】\n";
+        $history_block .= "以下の内容と似たことは言わないでください：\n";
 
         // 只顯示最近 5 條，避免 prompt 過長
         $recent_for_prompt = array_slice($response_history, -5);
         foreach ($recent_for_prompt as $idx => $hist_msg) {
             $hist_escaped = esc_attr(mb_substr($hist_msg, 0, 40, 'UTF-8'));
-            $user_prompt .= "- 「{$hist_escaped}...」\n";
+            $history_block .= "- 「{$hist_escaped}...」\n";
         }
-        $user_prompt .= "新しい話題や違う視点で話してください。";
+        $history_block .= "新しい話題や違う視点で話してください。";
+        $post_parts[] = rtrim($history_block);
     }
 
+    // --- 【注意：過去発言】 ---
     if (!empty($last_response)) {
         $last_response_escaped = esc_attr($last_response);
-        $user_prompt .= "\n\n注意：さっき「{$last_response_escaped}」と言ったため、新しいことがなければ、違う短い一言を言うか、何も言わないで（何も出力しない）。同じことを繰り返さないこと。";
+        $post_parts[] = "注意：さっき「{$last_response_escaped}」と言ったため、新しいことがなければ、違う短い一言を言うか、何も言わないで（何も出力しない）。同じことを繰り返さないこと。";
     }
 
-    $api_key = '';
-    if ($provider !== 'ollama') {
-        switch ($provider) {
-            case 'gemini':
-                $api_key = !empty($mpu_opt['llm_gemini_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_gemini_api_key']) : (!empty($mpu_opt['ai_api_key']) ? mpu_decrypt_api_key($mpu_opt['ai_api_key']) : '');
-                break;
-            case 'openai':
-                $api_key = !empty($mpu_opt['llm_openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_openai_api_key']) : (!empty($mpu_opt['openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['openai_api_key']) : '');
-                break;
-            case 'claude':
-                $api_key = !empty($mpu_opt['llm_claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_claude_api_key']) : (!empty($mpu_opt['claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['claude_api_key']) : '');
-                break;
-        }
-    }
+    // 將後續提示組合併附加到最終 prompt
+    $user_prompt .= "\n\n" . implode("\n\n", $post_parts);
+
+    $api_key = mpu_get_provider_api_key($provider, $mpu_opt);
 
     if ($provider === 'ollama') {
         $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
@@ -589,9 +599,7 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
 
         if (empty($result)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
-            if (defined('WP_DEBUG') && WP_DEBUG) {
                 mpu_debug_log('MP Ukagaka - LLM 回應僅包含思考過程，無實際內容');
-            }
             }
             return false;
         }

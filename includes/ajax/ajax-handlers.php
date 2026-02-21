@@ -18,11 +18,10 @@ if (!defined('ABSPATH')) {
 function mpu_ajax_nextmsg()
 {
     // 驗證 Nonce（強制）
-    $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+    if (!mpu_verify_ajax_nonce()) {
         return;
     }
+    $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
 
     // 速率限制（防止濫用）- 20次/分鐘
     mpu_enforce_rate_limit('nextmsg', 20, 60);
@@ -165,11 +164,10 @@ add_action('wp_ajax_nopriv_mpu_nextmsg', 'mpu_ajax_nextmsg');
 function mpu_ajax_extend()
 {
     // 驗證 Nonce（強制）
-    $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+    if (!mpu_verify_ajax_nonce()) {
         return;
     }
+    $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
 
     // 速率限制 - 10次/分鐘
     mpu_enforce_rate_limit('extend', 10, 60);
@@ -188,11 +186,10 @@ add_action('wp_ajax_nopriv_mpu_extend', 'mpu_ajax_extend');
 function mpu_ajax_change()
 {
     // 驗證 Nonce（強制）
-    $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
-    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+    if (!mpu_verify_ajax_nonce()) {
         return;
     }
+    $request_data = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
 
     // 速率限制 - 10次/分鐘
     mpu_enforce_rate_limit('change', 10, 60);
@@ -465,6 +462,11 @@ function mpu_ajax_get_visitor_info()
 add_action('wp_ajax_mpu_get_visitor_info', 'mpu_ajax_get_visitor_info');
 add_action('wp_ajax_nopriv_mpu_get_visitor_info', 'mpu_ajax_get_visitor_info');
 
+/**
+ * AJAX 處理器：獲取裝飾物提示詞
+ * 
+ * @deprecated 2.4.0 疑似孤兒端點，計畫在後續版本移除。目前無前端調用來源。
+ */
 function mpu_ajax_get_decoration_prompts()
 {
     // 驗證 Nonce（強制）
@@ -492,11 +494,6 @@ function mpu_ajax_get_decoration_prompts()
         : null;
 
     $prompts = [];
-
-    // 獲取當前人格 ID
-    $personality_id = function_exists('mpu_get_current_personality_id')
-        ? mpu_get_current_personality_id()
-        : null;
 
     if ($decoration_type) {
         // 返回特定裝飾物的提示詞
@@ -628,6 +625,13 @@ add_action('wp_ajax_nopriv_mpu_wake_ghost', 'mpu_ajax_wake_ghost');
  * 
  * 用於避免在網頁原始碼中直接暴露圖片路徑
  * 前端透過 AJAX 動態獲取 shell info 後再初始化 Canvas
+ */
+/**
+ * AJAX 處理器：獲取 Shell 資訊
+ * 
+ * @deprecated 2.4.0 疑似孤兒端點，計畫在後續版本移除。
+ * 注意：內部的 mpu_get_shell_info() 函數仍被其他 AJAX 處理器（如 init/change）使用，
+ * 僅此獨立 AJAX Action 無前端調用來源。
  */
 function mpu_ajax_get_shell_info()
 {

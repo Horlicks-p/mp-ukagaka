@@ -293,13 +293,15 @@ function mpu_ajax_user_chat()
     $user_info = mpu_get_current_user_info();
 
     // 統一系統提示詞解析（支援模組化檔案 → 舊版檔案 → 後台設定 → 預設值）
-    $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
+    $base_system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
 
-    // 在後台 System Prompt 的基礎上，補充對話模式專用資訊
-    $system_prompt .= "\n\n";
+    // --- [組合對話模式專用 System Prompt 分段] ---
+    $system_parts = [];
+    $system_parts[] = $base_system_prompt;
 
     // 加入用戶資訊
-    $system_prompt .= "【対話相手】\n";
+    $user_block = "【対話相手】";
+    $user_lines = [];
     if ($user_info['is_logged_in']) {
         $role_labels = [
             'administrator' => '管理人',
@@ -309,113 +311,108 @@ function mpu_ajax_user_chat()
             'subscriber' => '購読者',
         ];
         $role_label = $role_labels[$user_info['primary_role']] ?? $user_info['primary_role'];
-        $system_prompt .= "- 名前：{$user_info['display_name']}\n";
-        $system_prompt .= "- 権限：{$role_label}\n";
+        $user_lines[] = "- 名前：{$user_info['display_name']}";
+        $user_lines[] = "- 権限：{$role_label}";
         if ($user_info['is_admin']) {
-            $system_prompt .= "- この人はサイトの管理人ですが、必ずSystem Promptの設定を持って対応してください\n";
+            $user_lines[] = "- この人はサイトの管理人ですが、必ずSystem Promptの設定を持って対応してください";
         }
     } else {
-        $system_prompt .= "- 未知の訪客\n";
+        $user_lines[] = "- 未知の訪客";
     }
-    $system_prompt .= "\n";
+    $system_parts[] = $user_block . "\n" . implode("\n", $user_lines);
 
     // 在 System Prompt 中加入頁面資訊（如果有的話）
     if (!empty($page_title) || !empty($page_content)) {
-        $system_prompt .= "\n\n【ページ情報】\n";
+        $page_lines = [];
+        $page_lines[] = "【ページ情報】";
         if (!empty($page_title)) {
-            $system_prompt .= "タイトル：{$page_title}\n";
+            $page_lines[] = "タイトル：{$page_title}";
         }
         if (!empty($page_content)) {
-            $system_prompt .= "内容要約：" . mb_substr($page_content, 0, 500, 'UTF-8') . "...\n";
+            $page_lines[] = "内容要約：" . mb_substr($page_content, 0, 500, 'UTF-8') . "...";
         }
+        $system_parts[] = implode("\n", $page_lines);
     }
 
     // 動態添加系統資訊（只在用戶問到相關問題時才添加，節省 Token）
-    $added_info = false;
-
     // 添加統計資訊（通用格式，角色風格由 dynamics.json 處理）
     if ($needs_stats) {
-        $system_prompt .= "\n\n【サイト統計情報】\n";
-        $system_prompt .= "記事数：{$wp_info['post_count']}件\n";
-        $system_prompt .= "コメント数：{$wp_info['comment_count']}件\n";
-        $system_prompt .= "カテゴリー数：{$wp_info['category_count']}個\n";
-        $system_prompt .= "タグ数：{$wp_info['tag_count']}個\n";
-        $system_prompt .= "運営日数：{$wp_info['days_operating']}日\n";
-        $added_info = true;
+        $stats_lines = [];
+        $stats_lines[] = "【サイト統計情報】";
+        $stats_lines[] = "記事数：{$wp_info['post_count']}件";
+        $stats_lines[] = "コメント数：{$wp_info['comment_count']}件";
+        $stats_lines[] = "カテゴリー数：{$wp_info['category_count']}個";
+        $stats_lines[] = "タグ数：{$wp_info['tag_count']}個";
+        $stats_lines[] = "運営日数：{$wp_info['days_operating']}日";
+        $system_parts[] = implode("\n", $stats_lines);
     }
 
     // 添加系統資訊（PHP、WordPress 版本）
     if ($needs_system_info) {
-        if (!$added_info) {
-            $system_prompt .= "\n\n";
-        } else {
-            $system_prompt .= "\n";
-        }
-        $system_prompt .= "【システム情報】\n";
-        $system_prompt .= "WordPress バージョン：{$wp_info['wp_version']}\n";
-        $system_prompt .= "PHP バージョン：{$wp_info['php_version']}\n";
+        $sys_lines = [];
+        $sys_lines[] = "【システム情報】";
+        $sys_lines[] = "WordPress バージョン：{$wp_info['wp_version']}";
+        $sys_lines[] = "PHP バージョン：{$wp_info['php_version']}";
         if ($wp_info['is_multisite'] ?? false) {
-            $system_prompt .= "多サイト：はい\n";
+            $sys_lines[] = "多サイト：はい";
         }
-        $added_info = true;
+        $system_parts[] = implode("\n", $sys_lines);
     }
 
     // 添加外掛資訊
     if ($needs_plugin_info) {
-        if (!$added_info) {
-            $system_prompt .= "\n\n";
-        } else {
-            $system_prompt .= "\n";
-        }
-        $system_prompt .= "【プラグイン情報】\n";
-        $system_prompt .= "使用プラグイン数：{$wp_info['active_plugins_count']}個\n";
+        $plugin_lines = [];
+        $plugin_lines[] = "【プラグイン情報】";
+        $plugin_lines[] = "使用プラグイン数：{$wp_info['active_plugins_count']}個";
         if (!empty($wp_info['active_plugins_list']) && count($wp_info['active_plugins_list']) > 0) {
             $plugins_display = (!empty($wp_info['active_plugins_list']) && is_array($wp_info['active_plugins_list'])) ? implode('、', array_slice($wp_info['active_plugins_list'], 0, 10)) : '';
             if (!empty($wp_info['active_plugins_list']) && is_array($wp_info['active_plugins_list']) && count($wp_info['active_plugins_list']) > 10) {
                 $plugins_display .= '...等';
             }
-            $system_prompt .= "主要プラグイン：{$plugins_display}\n";
+            $plugin_lines[] = "主要プラグイン：{$plugins_display}";
         }
-        $added_info = true;
+        $system_parts[] = implode("\n", $plugin_lines);
     }
 
     // 添加主題資訊
     if ($needs_theme_info) {
-        if (!$added_info) {
-            $system_prompt .= "\n\n";
-        } else {
-            $system_prompt .= "\n";
-        }
-        $system_prompt .= "【テーマ情報】\n";
+        $theme_lines = [];
+        $theme_lines[] = "【テーマ情報】";
         $theme_info = !empty($wp_info['theme_version']) ? "{$wp_info['theme_name']}（{$wp_info['theme_version']}）" : $wp_info['theme_name'];
-        $system_prompt .= "テーマ：{$theme_info}\n";
+        $theme_lines[] = "テーマ：{$theme_info}";
         if (!empty($wp_info['theme_author'])) {
-            $system_prompt .= "テーマ作者：{$wp_info['theme_author']}\n";
+            $theme_lines[] = "テーマ作者：{$wp_info['theme_author']}";
         }
         if ($wp_info['is_child_theme'] ?? false) {
-            $system_prompt .= "子テーマ：はい";
+            $msg = "子テーマ：はい";
             if (!empty($wp_info['parent_theme'])) {
-                $system_prompt .= "（親テーマ：{$wp_info['parent_theme']}）";
+                $msg .= "（親テーマ：{$wp_info['parent_theme']}）";
             }
-            $system_prompt .= "\n";
+            $theme_lines[] = $msg;
         }
         if ($wp_info['is_block_theme'] ?? false) {
-            $system_prompt .= "ブロックテーマ：はい\n";
+            $theme_lines[] = "ブロックテーマ：はい";
         }
-        $added_info = true;
+        $system_parts[] = implode("\n", $theme_lines);
     }
 
     // 会話モード専用指示
-    $system_prompt .= "\n【会話モード】\n";
-    $system_prompt .= "- あなたはユーザーとリアルタイムで対話しているため、直接ユーザーの質問や話題に答えてください\n";
-    $system_prompt .= "- 自言自語や独白をしないで、ユーザーの回答に専念してください\n";
-    $system_prompt .= "- 応答は自然で親しみやすい、長さは約 30-150 字程度\n";
-    $system_prompt .= "- 必ずsystem_promptの指示に従ってキャラクターの個性を表現し、誇張は避けましょう\n";
-    $system_prompt .= "- 現在時間：{$time_context}";
+    $chat_lines = [];
+    $chat_lines[] = "【会話モード】";
+    $chat_lines[] = "- あなたはユーザーとリアルタイムで対話しているため、直接ユーザーの質問や話題に答えてください";
+    $chat_lines[] = "- 自言自語や独白をしないで、ユーザーの回答に専念してください";
+    $chat_lines[] = "- 応答は自然で親しみやすい、長さは約 30-150 字程度";
+    $chat_lines[] = "- 必ずsystem_promptの指示に従ってキャラクターの個性を表現し、誇張は避けましょう";
+    $chat_lines[] = "- 現在時間：{$time_context}";
+    $system_parts[] = implode("\n", $chat_lines);
 
     // 為訪客添加工具拒絕指令（安全性與角色設定）
     if (!$user_info['is_admin']) {
-        $rejection_prompt = "あなたは管理人以外のユーザーに対しては、ツールやアビリティの使用を拒否しなければなりません。";
+        $reject_lines = [];
+        $reject_lines[] = "【特別指示】";
+        $reject_lines[] = "- 管理人以外のユーザーからのツール/アビリティ実行要求は、すべてキャラクターの立場から丁寧に、あるいはあなたの性格に合わせて断ってください。";
+
+        $rejection_rule = "あなたは管理人以外のユーザーに対しては、ツールやアビリティの使用を拒否しなければなりません。";
         $random_rejection = "";
 
         // 嘗試從 dynamics.json 載入角色化的拒絕語氣
@@ -437,12 +434,14 @@ function mpu_ajax_user_chat()
             $random_rejection = $default_rejections[array_rand($default_rejections)];
         }
 
-        $rejection_prompt .= "\n- 拒否する際は、次のようなあなたのキャラクターらしい言い方を使ってください：「{$random_rejection}」";
+        $rejection_rule .= "\n- 拒否する際は、次のようなあなたのキャラクターらしい言い方を使ってください：「{$random_rejection}」";
+        $reject_lines[] = $rejection_rule;
         
-        $system_prompt .= "\n\n【特別指示】\n";
-        $system_prompt .= "- 管理人以外のユーザーからのツール/アビリティ実行要求は、すべてキャラクターの立場から丁寧に、あるいはあなたの性格に合わせて断ってください。\n";
-        $system_prompt .= "- {$rejection_prompt}";
+        $system_parts[] = implode("\n", $reject_lines);
     }
+
+    // 合併最終 System Prompt
+    $system_prompt = implode("\n\n", $system_parts);
 
     // 建構對話訊息
     $messages = [];
@@ -466,32 +465,14 @@ function mpu_ajax_user_chat()
 
     // 呼叫 AI API
     // 獲取最大 Token 數（優先順序：Manifest > 全域設定 > 預設 1000）
-    $max_tokens = 1000;
-    
-    // 1. 嘗試從 Manifest 獲取
-    if (function_exists('mpu_get_personality_max_tokens')) {
-        $manifest_tokens = mpu_get_personality_max_tokens(null, $ukagaka_name);
-        if ($manifest_tokens && is_numeric($manifest_tokens)) {
-            $max_tokens = intval($manifest_tokens);
-        }
-    }
-    
-    // 確定 Max Tokens
-    // 優先使用 Manifest 設定，若該函數支援全域設定後備則會自動處理
-    // 如果未來需要強制全域覆蓋，可在此調整逻辑
-    
     $global_max_tokens = isset($mpu_opt['ai_max_tokens']) ? intval($mpu_opt['ai_max_tokens']) : 1000;
-    
-    // 嘗試取得 Manifest 的設定
+    $max_tokens = $global_max_tokens;
+
     if (function_exists('mpu_load_personality_manifest')) {
-         $manifest = mpu_load_personality_manifest($personality_id);
-         if (isset($manifest['settings']['max_tokens'])) {
-             $max_tokens = intval($manifest['settings']['max_tokens']);
-         } else {
-             $max_tokens = $global_max_tokens;
-         }
-    } else {
-        $max_tokens = $global_max_tokens;
+        $manifest = mpu_load_personality_manifest($personality_id);
+        if (isset($manifest['settings']['max_tokens'])) {
+            $max_tokens = intval($manifest['settings']['max_tokens']);
+        }
     }
 
     // 將 max_tokens 加入 options

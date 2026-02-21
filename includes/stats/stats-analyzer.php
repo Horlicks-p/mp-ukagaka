@@ -21,8 +21,104 @@ if (!defined('ABSPATH')) {
  */
 function mpu_get_stats_summary()
 {
-    $today_stats = mpu_get_daily_stats();
-    $week_stats = mpu_get_weekly_trend();
+    return mpu_build_stats_summary_from_dataset([]);
+}
+
+/**
+ * 獲取過去 N 天的趨勢資料
+ * 
+ * @param int $days 天數（預設 7 天）
+ * @return array 趨勢資料陣列
+ */
+function mpu_get_weekly_trend($days = 7)
+{
+    return mpu_build_trend_from_dataset([], $days);
+}
+
+/**
+ * 獲取過去 30 天的趨勢資料
+ * 
+ * @return array 趨勢資料陣列
+ */
+function mpu_get_monthly_trend()
+{
+    return mpu_get_weekly_trend(30);
+}
+
+/**
+ * 獲取熱門話題排行
+ * 
+ * @param int $days 統計天數（預設 7 天）
+ * @param int $limit 返回數量（預設 10 個）
+ * @return array 熱門話題陣列 [['topic' => '...', 'count' => N], ...]
+ */
+function mpu_get_top_topics($days = 7, $limit = 10)
+{
+    return mpu_build_top_topics_from_dataset([], $days, $limit);
+}
+
+/**
+ * 獲取提供商使用分佈
+ * 
+ * @param int $days 統計天數（預設 7 天）
+ * @return array 提供商分佈 ['gemini' => N, 'openai' => M, ...]
+ */
+function mpu_get_provider_distribution($days = 7)
+{
+    return mpu_build_provider_distribution_from_dataset([], $days);
+}
+
+/**
+ * 獲取對話類型分佈
+ * 
+ * @param int $days 統計天數（預設 7 天）
+ * @return array 對話類型分佈
+ */
+function mpu_get_conversation_distribution($days = 7)
+{
+    return mpu_build_conversation_distribution_from_dataset([], $days);
+}
+
+/**
+ * 獲取儀表板所需的所有統計資料
+ * 
+ * @param int $days 統計天數（預設 7 天）
+ * @return array 完整的儀表板資料
+ */
+function mpu_get_dashboard_data($days = 7)
+{
+    // 預先載入資料集以避免 N+1 查詢問題
+    $load_days = max($days, 7);
+    $dataset = [];
+    $now = current_time('timestamp');
+    for ($i = 0; $i < $load_days; $i++) {
+        $timestamp = $now - ($i * DAY_IN_SECONDS);
+        $date = date('Ymd', $timestamp);
+        $dataset[$date] = [
+            'stats' => mpu_get_daily_stats($date)
+        ];
+    }
+
+    return [
+        'summary' => mpu_build_stats_summary_from_dataset($dataset),
+        'trend' => mpu_build_trend_from_dataset($dataset, $days),
+        'top_topics' => mpu_build_top_topics_from_dataset($dataset, $days),
+        'provider_distribution' => mpu_build_provider_distribution_from_dataset($dataset, $days),
+        'conversation_distribution' => mpu_build_conversation_distribution_from_dataset($dataset, $days),
+        'generated_at' => current_time('mysql')
+    ];
+}
+
+// ==========================================
+// 內部 Helper 集合 (Dataset Aggregators)
+// 用於純資料陣列的聚合運算，避免重複資料庫 I/O
+// ==========================================
+
+function mpu_build_stats_summary_from_dataset($dataset)
+{
+    $today_date = date('Ymd', current_time('timestamp'));
+    $today_stats = isset($dataset[$today_date]) ? $dataset[$today_date]['stats'] : mpu_get_daily_stats($today_date);
+    $week_stats = mpu_build_trend_from_dataset($dataset, 7);
     
     // 計算今日 API 調用總數
     $today_api_calls = 0;
@@ -67,20 +163,15 @@ function mpu_get_stats_summary()
     ];
 }
 
-/**
- * 獲取過去 N 天的趨勢資料
- * 
- * @param int $days 天數（預設 7 天）
- * @return array 趨勢資料陣列
- */
-function mpu_get_weekly_trend($days = 7)
+function mpu_build_trend_from_dataset($dataset, $days)
 {
     $trend = [];
+    $now = current_time('timestamp');
     
     for ($i = $days - 1; $i >= 0; $i--) {
-        $timestamp = current_time('timestamp') - ($i * DAY_IN_SECONDS);
+        $timestamp = $now - ($i * DAY_IN_SECONDS);
         $date = date('Ymd', $timestamp);
-        $stats = mpu_get_daily_stats($date);
+        $stats = isset($dataset[$date]) ? $dataset[$date]['stats'] : mpu_get_daily_stats($date);
         
         // 計算當日 API 調用
         $api_calls = 0;
@@ -103,31 +194,15 @@ function mpu_get_weekly_trend($days = 7)
     return $trend;
 }
 
-/**
- * 獲取過去 30 天的趨勢資料
- * 
- * @return array 趨勢資料陣列
- */
-function mpu_get_monthly_trend()
-{
-    return mpu_get_weekly_trend(30);
-}
-
-/**
- * 獲取熱門話題排行
- * 
- * @param int $days 統計天數（預設 7 天）
- * @param int $limit 返回數量（預設 10 個）
- * @return array 熱門話題陣列 [['topic' => '...', 'count' => N], ...]
- */
-function mpu_get_top_topics($days = 7, $limit = 10)
+function mpu_build_top_topics_from_dataset($dataset, $days = 7, $limit = 10)
 {
     $all_topics = [];
+    $now = current_time('timestamp');
     
     for ($i = 0; $i < $days; $i++) {
-        $timestamp = current_time('timestamp') - ($i * DAY_IN_SECONDS);
+        $timestamp = $now - ($i * DAY_IN_SECONDS);
         $date = date('Ymd', $timestamp);
-        $stats = mpu_get_daily_stats($date);
+        $stats = isset($dataset[$date]) ? $dataset[$date]['stats'] : mpu_get_daily_stats($date);
         
         foreach ($stats['topics'] as $topic => $count) {
             if (!isset($all_topics[$topic])) {
@@ -153,20 +228,15 @@ function mpu_get_top_topics($days = 7, $limit = 10)
     return $result;
 }
 
-/**
- * 獲取提供商使用分佈
- * 
- * @param int $days 統計天數（預設 7 天）
- * @return array 提供商分佈 ['gemini' => N, 'openai' => M, ...]
- */
-function mpu_get_provider_distribution($days = 7)
+function mpu_build_provider_distribution_from_dataset($dataset, $days = 7)
 {
     $distribution = [];
+    $now = current_time('timestamp');
     
     for ($i = 0; $i < $days; $i++) {
-        $timestamp = current_time('timestamp') - ($i * DAY_IN_SECONDS);
+        $timestamp = $now - ($i * DAY_IN_SECONDS);
         $date = date('Ymd', $timestamp);
-        $stats = mpu_get_daily_stats($date);
+        $stats = isset($dataset[$date]) ? $dataset[$date]['stats'] : mpu_get_daily_stats($date);
         
         foreach ($stats['api_calls'] as $provider => $counts) {
             if (!isset($distribution[$provider])) {
@@ -180,13 +250,7 @@ function mpu_get_provider_distribution($days = 7)
     return $distribution;
 }
 
-/**
- * 獲取對話類型分佈
- * 
- * @param int $days 統計天數（預設 7 天）
- * @return array 對話類型分佈
- */
-function mpu_get_conversation_distribution($days = 7)
+function mpu_build_conversation_distribution_from_dataset($dataset, $days = 7)
 {
     $distribution = [
         'context' => 0,
@@ -196,11 +260,12 @@ function mpu_get_conversation_distribution($days = 7)
         'auto_talk' => 0,
         'decoration' => 0
     ];
+    $now = current_time('timestamp');
     
     for ($i = 0; $i < $days; $i++) {
-        $timestamp = current_time('timestamp') - ($i * DAY_IN_SECONDS);
+        $timestamp = $now - ($i * DAY_IN_SECONDS);
         $date = date('Ymd', $timestamp);
-        $stats = mpu_get_daily_stats($date);
+        $stats = isset($dataset[$date]) ? $dataset[$date]['stats'] : mpu_get_daily_stats($date);
         
         foreach ($stats['conversations'] as $type => $count) {
             if (isset($distribution[$type])) {
@@ -210,22 +275,4 @@ function mpu_get_conversation_distribution($days = 7)
     }
     
     return $distribution;
-}
-
-/**
- * 獲取儀表板所需的所有統計資料
- * 
- * @param int $days 統計天數（預設 7 天）
- * @return array 完整的儀表板資料
- */
-function mpu_get_dashboard_data($days = 7)
-{
-    return [
-        'summary' => mpu_get_stats_summary(),
-        'trend' => mpu_get_weekly_trend($days),
-        'top_topics' => mpu_get_top_topics($days),
-        'provider_distribution' => mpu_get_provider_distribution($days),
-        'conversation_distribution' => mpu_get_conversation_distribution($days),
-        'generated_at' => current_time('mysql')
-    ];
 }

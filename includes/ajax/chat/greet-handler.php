@@ -94,33 +94,42 @@ function mpu_ajax_chat_greet()
 
     $user_info = mpu_get_current_user_info();
 
-    $user_prompt = mpu_build_user_info_prompt($user_info);
+    // --- [組合 User Prompt] ---
+    $prompt_parts = [];
 
-    $user_prompt .= "\n【訪問者のアクセス元】\n";
-    $user_prompt .= "訪問者は初めての訪問です。";
+    // 1. 用戶資訊
+    $prompt_parts[] = mpu_build_user_info_prompt($user_info);
+
+    // 2. 訪問者訪問來源
+    $visitor_lines = [];
+    $visitor_lines[] = "【訪問者のアクセス元】";
+    $visitor_lines[] = "訪問者は初めての訪問です。";
 
     if ($is_direct) {
-        $user_prompt .= "訪問者は直接URLを入力したり、ブックマークから訪問しました（参照元のウェブページはありません）。";
+        $visitor_lines[] = "訪問者は直接URLを入力したり、ブックマークから訪問しました（参照元のウェブページはありません）。";
     } else if (!empty($search_engine)) {
-        $user_prompt .= "訪問者は検索エンジン「{$search_engine}」から訪問しました。";
+        $visitor_lines[] = "訪問者は検索エンジン「{$search_engine}」から訪問しました。";
     } else if (!empty($referrer_host)) {
-        $user_prompt .= "訪問者はウェブサイト「{$referrer_host}」から訪問しました。";
+        $msg = "訪問者はウェブ網站「{$referrer_host}」から訪問しました。";
         if (!empty($referrer)) {
-            $user_prompt .= "（{$referrer}）";
+            $msg .= "（{$referrer}）";
         }
-        $user_prompt .= "。";
+        $msg .= "。";
+        $visitor_lines[] = $msg;
     } else {
-        $user_prompt .= "訪問者のアクセス元は不明です。";
+        $visitor_lines[] = "訪問者のアクセス元は不明です。";
     }
 
     if (!empty($country)) {
         $country_name = function_exists('mpu_country_code_to_name') ? mpu_country_code_to_name($country) : $country;
-        $user_prompt .= "訪問者は「{$country_name}」から来ました";
+        $msg = "訪問者は「{$country_name}」から來ました";
         if (!empty($city)) {
-            $user_prompt .= "の「{$city}」";
+            $msg .= "の「{$city}」";
         }
-        $user_prompt .= "。";
+        $msg .= "。";
+        $visitor_lines[] = $msg;
     }
+    $prompt_parts[] = implode("\n", $visitor_lines);
 
     // ===== 初回訪問挨拶專用：會話指示選擇 =====
     // 優先順序：dynamics.json greet_first_visit → 後台 ai_greet_prompt → hardcoded 預設
@@ -143,8 +152,14 @@ function mpu_ajax_chat_greet()
         $greet_instruction = '初回訪問者のアクセス元に軽く触れながら、淡々と短く挨拶する。敬語は使わず常体で話す';
     }
 
-    $user_prompt .= "\n\n【会話指示】\n" . $greet_instruction;
-    $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で挨拶すること。";
+    // 3. 會話指示
+    $prompt_parts[] = "【会話指示】\n" . $greet_instruction;
+
+    // 4. 回應規則
+    $prompt_parts[] = "【回応ルール】\n淡々とした常体で、30-150文字で挨拶すること。";
+
+    // 合併最終 User Prompt
+    $user_prompt = implode("\n\n", $prompt_parts);
 
     // 從 manifest.json 的 settings.max_tokens 讀取（預設 800）
     $max_tokens = 800;

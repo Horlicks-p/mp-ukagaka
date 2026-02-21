@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 
 function mpu_ajax_test_ollama_connection()
 {
-    check_ajax_referer('mpu_test_connection', 'nonce');
+    if (!mpu_verify_ajax_nonce()) return;
 
     // Rate Limiting
     if (function_exists('mpu_enforce_rate_limit')) {
@@ -161,7 +161,7 @@ add_action('wp_ajax_mpu_test_ollama_connection', 'mpu_ajax_test_ollama_connectio
 
 function mpu_ajax_test_gemini_connection()
 {
-    check_ajax_referer('mpu_test_connection', 'nonce');
+    if (!mpu_verify_ajax_nonce()) return;
 
     // Rate Limiting
     if (function_exists('mpu_enforce_rate_limit')) {
@@ -244,7 +244,7 @@ add_action('wp_ajax_mpu_test_gemini_connection', 'mpu_ajax_test_gemini_connectio
 
 function mpu_ajax_test_openai_connection()
 {
-    check_ajax_referer('mpu_test_connection', 'nonce');
+    if (!mpu_verify_ajax_nonce()) return;
 
     // Rate Limiting
     if (function_exists('mpu_enforce_rate_limit')) {
@@ -322,7 +322,7 @@ add_action('wp_ajax_mpu_test_openai_connection', 'mpu_ajax_test_openai_connectio
 
 function mpu_ajax_test_claude_connection()
 {
-    check_ajax_referer('mpu_test_connection', 'nonce');
+    if (!mpu_verify_ajax_nonce()) return;
 
     // Rate Limiting
     if (function_exists('mpu_enforce_rate_limit')) {
@@ -404,7 +404,7 @@ add_action('wp_ajax_mpu_test_claude_connection', 'mpu_ajax_test_claude_connectio
  */
 function mpu_ajax_test_weather_api()
 {
-    check_ajax_referer('mpu_test_weather', 'nonce');
+    if (!mpu_verify_ajax_nonce()) return;
 
     // Rate Limiting
     if (function_exists('mpu_enforce_rate_limit')) {
@@ -487,7 +487,7 @@ add_action('wp_ajax_mpu_test_weather_api', 'mpu_ajax_test_weather_api');
  */
 function mpu_ajax_clear_api_cache()
 {
-    check_ajax_referer('mpu_clear_cache', 'nonce');
+    if (!mpu_verify_ajax_nonce()) return;
     
     // Rate Limiting
     if (function_exists('mpu_enforce_rate_limit')) {
