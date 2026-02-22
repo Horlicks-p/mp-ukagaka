@@ -56,9 +56,16 @@ function mpu_ajax_user_chat()
         $report .= "wp_register_ability function: " . (function_exists('wp_register_ability') ? 'Yes' : 'No') . "\n";
 
         // Check Ability Registration
-        $ability_name = 'mp-ukagaka/get-popular-posts';
-        $is_registered = function_exists('wp_has_ability') && wp_has_ability($ability_name);
-        $report .= "Ability '{$ability_name}' registered: " . ($is_registered ? 'Yes' : 'No') . "\n";
+        $check_abilities = [
+            'mp-ukagaka/get-popular-posts',
+            'mp-ukagaka/get-bot-blocker-stats',
+            'mp-ukagaka/ban-ip',
+            'mp-ukagaka/clear-bot-blocker-data',
+        ];
+        foreach ($check_abilities as $ability_name) {
+            $is_registered = function_exists('wp_has_ability') && wp_has_ability($ability_name);
+            $report .= "Ability '{$ability_name}' registered: " . ($is_registered ? 'Yes' : 'No') . "\n";
+        }
 
         // Check Manager class
         $report .= "McpTools Manager class: " . (class_exists('\MP_Ukagaka\McpTools\Manager') ? 'Yes' : 'No') . "\n";

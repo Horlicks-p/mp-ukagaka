@@ -136,6 +136,39 @@ function mpu_ajax_check_spam_event()
         }
     }
 
+    // Moelog Bot Blocker 檢查
+    $mbb_event = get_transient('moelog_bot_blocker_event');
+
+    if ($mbb_event !== false && get_transient('mpu_mbb_reaction_cooldown') === false) {
+        delete_transient('moelog_bot_blocker_event');
+        // 冷卻時間 30 分鐘，避免一直講
+        set_transient('mpu_mbb_reaction_cooldown', true, 30 * MINUTE_IN_SECONDS);
+
+        $count = intval($mbb_event['count']);
+        $message = function_exists('mpu_generate_mbb_reaction_llm') 
+            ? mpu_generate_mbb_reaction_llm($count) 
+            : false;
+
+        if ($message !== false) {
+            if (function_exists('mpu_record_conversation')) {
+                mpu_record_conversation('auto_talk');
+            }
+            if (function_exists('mpu_debug_log')) {
+                mpu_debug_log('Moelog Bot Blocker: 防禦魔法反應觸發，攔截數量: ' . $count . '（冷卻 30 分鐘）');
+            }
+            wp_send_json([
+                'has_event' => true,
+                'msg' => $message,
+                'action' => 'bot_blocker_alert',
+                'block_count' => $count,
+            ]);
+            return;
+        }
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log('Moelog Bot Blocker: LLM 生成失敗，跳過反應');
+        }
+    }
+
     // Bot 檢查（獨立冷卻）
     $bot_name = function_exists('mpu_check_recent_bot_visit') ? mpu_check_recent_bot_visit(60) : false;
 
@@ -418,6 +451,145 @@ function mpu_generate_bot_alert_llm($bot_name)
     // 過濾思考標籤
     if (!empty($result) && is_string($result) && function_exists('mpu_filter_thinking_content')) {
         $result = mpu_filter_thinking_content($result);
+    }
+
+    if (empty($result)) {
+        return false;
+    }
+
+    // 限制回應長度
+    $max_length = 150;
+    if (function_exists('mpu_get_personality_max_response_length')) {
+        $max_length = mpu_get_personality_max_response_length($personality_id, $cur_num);
+    }
+    if (mb_strlen($result, 'UTF-8') > $max_length) {
+        $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
+    }
+
+    return $result;
+}
+
+/**
+ * 使用 LLM 生成 Moelog Bot Blocker 反應台詞
+ * 
+ * 使用 dynamics.json 中的 moelog_bot_blocker_report 模板。
+ * 
+ * @param int $count 攔截數量
+ * @return string|false 生成的台詞，失敗時回傳 false
+ */
+function mpu_generate_mbb_reaction_llm($count)
+{
+    $mpu_opt = mpu_get_option();
+
+    // 取得 LLM 設定
+    $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
+    $language = $mpu_opt['ai_language'] ?? 'zh-TW';
+
+    // 取得 personality_id
+    $cur_num = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+    $personality_id = null;
+    if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
+        $personality_id = mpu_get_personality_id_from_ukagaka_name($cur_num);
+    }
+
+    // 建構 System Prompt
+    $wp_info = function_exists('mpu_get_wordpress_info') ? mpu_get_wordpress_info() : [];
+    $user_info = function_exists('mpu_get_current_user_info') ? mpu_get_current_user_info() : [];
+    $visitor_info = function_exists('mpu_get_visitor_info_for_llm') ? mpu_get_visitor_info_for_llm() : [];
+    $time_context = function_exists('mpu_get_time_context') ? mpu_get_time_context($personality_id) : '';
+
+    $system_prompt = '';
+    if (function_exists('mpu_build_optimized_system_prompt')) {
+        $system_prompt = mpu_build_optimized_system_prompt(
+            $mpu_opt,
+            $wp_info,
+            $user_info,
+            $visitor_info,
+            $cur_num,
+            $time_context,
+            $language,
+            $personality_id
+        );
+    }
+
+    // 建構 User Prompt
+    $dynamics = function_exists('mpu_load_personality_dynamic_prompts')
+        ? mpu_load_personality_dynamic_prompts($personality_id)
+        : [];
+
+    $mbb_templates = $dynamics['moelog_bot_blocker_report'] ?? [];
+    if (!empty($mbb_templates) && is_array($mbb_templates)) {
+        $template = $mbb_templates[array_rand($mbb_templates)];
+        $vars = ['count' => $count];
+        $instruction = mpu_replace_single_prompt_variables($template, $vars);
+    } else {
+        // fallback - 通用的描述
+        $instruction = "防衛魔法で{$count}体の魔族（ボット）の侵入を阻止したことを報告する";
+    }
+
+    // 從 prompts.json 讀取 moelog_bot_blocker_reactions 提示詞
+    $category_instruction = '';
+    if (function_exists('mpu_load_personality_prompts')) {
+        $all_prompts = mpu_load_personality_prompts($personality_id);
+        if (!empty($all_prompts['moelog_bot_blocker_reactions'])) {
+            $mbb_prompts = $all_prompts['moelog_bot_blocker_reactions'];
+            $category_instruction = "\n【参考セリフ】\n「" . $mbb_prompts[array_rand($mbb_prompts)] . "」";
+        }
+    }
+
+    $user_prompt = "【状況】\nサイトの防衛魔法（Bot Blocker）が起動し、{$count}件の怪しいアクセスを遮断した。\n\n";
+    $user_prompt .= "【指示】\n{$instruction}\n";
+    if ($category_instruction !== '') {
+        $user_prompt .= $category_instruction;
+    }
+    $user_prompt .= "\n【制約】50字以内で淡々と。魔族の侵入を阻止したという設定で、冷静に述べること";
+
+    // 取得 API Key
+    $api_key = '';
+    if ($provider !== 'ollama') {
+        switch ($provider) {
+            case 'gemini':
+                $api_key = !empty($mpu_opt['llm_gemini_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_gemini_api_key']) : (!empty($mpu_opt['ai_api_key']) ? mpu_decrypt_api_key($mpu_opt['ai_api_key']) : '');
+                break;
+            case 'openai':
+                $api_key = !empty($mpu_opt['llm_openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_openai_api_key']) : (!empty($mpu_opt['openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['openai_api_key']) : '');
+                break;
+            case 'claude':
+                $api_key = !empty($mpu_opt['llm_claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_claude_api_key']) : (!empty($mpu_opt['claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['claude_api_key']) : '');
+                break;
+        }
+    }
+
+    // 呼叫 LLM API
+    if (function_exists('mpu_call_ai_api')) {
+        $result = mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt, 200);
+    } else {
+        return false;
+    }
+
+    if (is_wp_error($result)) {
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log('Moelog Bot Blocker: LLM API Error - ' . $result->get_error_message());
+        }
+        return false;
+    }
+
+    // 過濾思考標籤
+    if (!empty($result) && is_string($result) && function_exists('mpu_filter_thinking_content')) {
+        $result = mpu_filter_thinking_content($result);
+    }
+
+    if (empty($result)) {
+        return false;
+    }
+
+    // 限制回應長度
+    $max_length = 150;
+    if (function_exists('mpu_get_personality_max_response_length')) {
+        $max_length = mpu_get_personality_max_response_length($personality_id, $cur_num);
+    }
+    if (mb_strlen($result, 'UTF-8') > $max_length) {
+        $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
     }
 
     return $result;

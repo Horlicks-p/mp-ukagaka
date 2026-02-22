@@ -16,6 +16,7 @@ class Manager
      */
     protected static $abilities = [
         '\MP_Ukagaka\McpTools\Abilities\Wp_PostViews_Ability',
+        '\MP_Ukagaka\McpTools\Abilities\Wp_Bot_Blocker_Ability',
     ];
 
     /**

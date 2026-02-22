@@ -103,12 +103,6 @@ function mpu_isUnawokenSleepMode() {
  * 啟動自動對話計時器
  */
 function startAutoTalk() {
-  mpuLogger.log(
-    "startAutoTalk 被調用, mpuAutoTalk =",
-    mpuAutoTalk,
-    ", mpuAutoTalkInterval =",
-    mpuAutoTalkInterval
-  );
   stopAutoTalk();
   if (!mpuAutoTalk) {
     mpuLogger.log("startAutoTalk: mpuAutoTalk 為 false，退出");
@@ -169,20 +163,20 @@ function startAutoTalk() {
       currentInterval,
       "ms（原始:",
       window.mpuBaseAutoTalkInterval || mpuAutoTalkInterval,
-      "ms）"
+      "ms）",
     );
   }
 
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(400);
 
-  mpuLogger.log("startAutoTalk: 設置計時器，間隔 =", currentInterval, "ms");
+  mpuLogger.log("startAutoTalk: 設置計時器，間隔 =", currentInterval, "ms, mpuAutoTalk =", mpuAutoTalk);
   mpuAutoTalkTimer = setTimeout(function () {
     mpuAutoTalkTimer = null; // 清除計時器引用，表示已觸發
     mpuLogger.log(
       "自動對話計時器觸發, mpuAutoTalk =",
       mpuAutoTalk,
       ", mpuOllamaReplaceDialogue =",
-      mpuOllamaReplaceDialogue
+      mpuOllamaReplaceDialogue,
     );
 
     // 閒置檢查：如果用戶閒置超過閾值，跳過本次自動對話
@@ -192,7 +186,7 @@ function startAutoTalk() {
       mpuLogger.log(
         "使用者閒置中（",
         Math.floor(idleTime / 1000),
-        "秒），跳過本次自動對話"
+        "秒），跳過本次自動對話",
       );
       // 雖然跳過，但仍需重新啟動計時器以檢測下一次
       if (mpuAutoTalk) startAutoTalk();
@@ -209,7 +203,7 @@ function startAutoTalk() {
         newSleepModeInfo.isSleepMode ? "睡眠" : "正常",
         "），重新啟動自動對話（新間隔:",
         newSleepModeInfo.interval,
-        "ms）"
+        "ms）",
       );
       if (mpuAutoTalk) {
         startAutoTalk();
@@ -220,7 +214,7 @@ function startAutoTalk() {
     // 檢查是否為睡眠模式且尚未被喚醒，如果是則跳過本次自動對話
     if (mpu_isUnawokenSleepMode()) {
       mpuLogger.log(
-        "🌙 睡眠模式且尚未被喚醒：跳過本次自動對話，只接受 OK 鈕觸發"
+        "🌙 睡眠模式且尚未被喚醒：跳過本次自動對話，只接受 OK 鈕觸發",
       );
       // 重新啟動計時器（雖然這次跳過）
       if (mpuAutoTalk) startAutoTalk();
@@ -318,11 +312,9 @@ function mpuMoe(command) {
   }
 }
 
-
-
 /**
  * 檢查是否有 Akismet 攔截的垃圾留言事件
- * 
+ *
  * @param {Function} callback - 回調函數，參數為 boolean（是否已處理垃圾留言事件）
  */
 function mpu_checkSpamEvent(callback) {
@@ -340,20 +332,25 @@ function mpu_checkSpamEvent(callback) {
     .then(function (res) {
       if (res && res.has_event && res.msg) {
         if (res.action === "bot_alert") {
-            mpuLogger.log(
-                "🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱:",
-                res.bot_name
-            );
+          mpuLogger.log(
+            "🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱:",
+            res.bot_name,
+          );
         } else if (res.action === "turnstile_block") {
-            mpuLogger.log(
-                "🛡️ Turnstile 結界防禦：偵測到結界撞擊事件，攔截次數:",
-                res.block_count
-            );
+          mpuLogger.log(
+            "🛡️ Turnstile 結界防禦：偵測到結界撞擊事件，攔截次數:",
+            res.block_count,
+          );
+        } else if (res.action === "bot_blocker_alert") {
+          mpuLogger.log(
+            "🛡️ Moelog Bot Blocker：偵測到防禦魔法攔截事件，攔截數量:",
+            res.block_count,
+          );
         } else {
-            mpuLogger.log(
-                "🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量:",
-                res.spam_count
-            );
+          mpuLogger.log(
+            "🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量:",
+            res.spam_count,
+          );
         }
 
         // 停止當前的自動對話計時器
@@ -364,8 +361,10 @@ function mpu_checkSpamEvent(callback) {
 
         setTimeout(function () {
           // 顯示垃圾留言反應台詞
-          const aiColor = typeof mpuAiTextColor !== "undefined" ? mpuAiTextColor : "#4a6fa5";
-          const msg = '<span style="color: ' + aiColor + ';">' + res.msg + "</span>";
+          const aiColor =
+            typeof mpuAiTextColor !== "undefined" ? mpuAiTextColor : "#4a6fa5";
+          const msg =
+            '<span style="color: ' + aiColor + ';">' + res.msg + "</span>";
 
           mpu_showMsgText();
           mpu_typewriter(msg, "#ukagaka_msg");
@@ -384,7 +383,10 @@ function mpu_checkSpamEvent(callback) {
                     window.mpuEmojiManager.showEmoji(res.emoji);
                   })
                   .catch(function (error) {
-                    mpuLogger.warn("Akismet: Failed to load emoji config:", error);
+                    mpuLogger.warn(
+                      "Akismet: Failed to load emoji config:",
+                      error,
+                    );
                   });
               }
             } else {
@@ -407,7 +409,7 @@ function mpu_checkSpamEvent(callback) {
         }, 700);
       } else {
         // 沒有垃圾留言事件
-        mpuLogger.log("🛡️ Turnstile/Akismet/Bot Check: 無事件");
+        mpuLogger.log("🛡️ Turnstile/Akismet/BotBlocker/Bot Check: 無事件");
         callback(false);
       }
     })
@@ -432,7 +434,7 @@ function mpu_processOllamaQueue() {
       "mpu_processOllamaQueue: 處理佇列中的請求, trigger =",
       nextTrigger,
       ", 剩餘佇列長度 =",
-      mpuOllamaRequestQueue.length
+      mpuOllamaRequestQueue.length,
     );
     mpu_nextmsg(nextTrigger);
   }, mpuOllamaQueueDelay);
@@ -456,12 +458,12 @@ function mpu_nextmsg(trigger) {
     ", isManual =",
     isManual,
     ", mpuOllamaReplaceDialogue =",
-    mpuOllamaReplaceDialogue
+    mpuOllamaReplaceDialogue,
   );
 
   if (mpuMessageBlocking) {
     mpuLogger.log(
-      "mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過"
+      "mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過",
     );
     return;
   }
@@ -491,7 +493,7 @@ function mpu_nextmsg(trigger) {
     mpuLogger.log(
       "🌙 睡眠模式且尚未被喚醒：跳過",
       trigger,
-      "觸發的對話，只接受 OK 鈕觸發"
+      "觸發的對話，只接受 OK 鈕觸發",
     );
     return;
   }
@@ -542,7 +544,7 @@ function mpu_nextmsg(trigger) {
     const curMsgnum =
       parseInt(
         document.getElementById("ukagaka_msgnum")?.innerHTML || "0",
-        10
+        10,
       ) || 0;
 
     const formData = new FormData();
@@ -586,7 +588,7 @@ function mpu_nextmsg(trigger) {
 
         if (mpuMessageBlocking || mpuAiContextInProgress) {
           mpuLogger.log(
-            "mpu_nextmsg: LLM 回應被阻擋（頁面感知 AI 正在進行中），跳過顯示"
+            "mpu_nextmsg: LLM 回應被阻擋（頁面感知 AI 正在進行中），跳過顯示",
           );
           return;
         }
@@ -612,7 +614,7 @@ function mpu_nextmsg(trigger) {
                   mpu_showMsgText();
                   mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
                   mpu_showmsg(400);
-                }
+                },
               );
 
             if (!isWakingUp) {
@@ -669,19 +671,23 @@ function mpu_nextmsg(trigger) {
             });
             mpuLogger.log(
               "mpu_nextmsg: 自發對話已加入對話歷史，當前歷史長度:",
-              mpuChatHistory.length
+              mpuChatHistory.length,
             );
             // 限制最多保留 3 條自發對話（避免佔用太多上下文）
             // 只刪除最舊的 assistant 記錄，保留所有 user 記錄
             const maxAutoTalkHistory = 3;
             const assistantMessages = mpuChatHistory.filter(
-              (msg) => msg.role === "assistant"
+              (msg) => msg.role === "assistant",
             );
             if (assistantMessages.length > maxAutoTalkHistory) {
               // 找到需要刪除的最舊的 assistant 記錄
               let removed = 0;
               const toRemove = assistantMessages.length - maxAutoTalkHistory;
-              for (let i = 0; i < mpuChatHistory.length && removed < toRemove; i++) {
+              for (
+                let i = 0;
+                i < mpuChatHistory.length && removed < toRemove;
+                i++
+              ) {
                 if (mpuChatHistory[i].role === "assistant") {
                   mpuChatHistory.splice(i, 1);
                   removed++;
@@ -693,7 +699,7 @@ function mpu_nextmsg(trigger) {
                 removed,
                 "條舊的自發對話，保留",
                 maxAutoTalkHistory,
-                "條"
+                "條",
               );
             }
             if (typeof mpu_saveChatHistory === "function") {
@@ -701,12 +707,12 @@ function mpu_nextmsg(trigger) {
               mpuLogger.log("mpu_nextmsg: 對話歷史已儲存");
             } else {
               mpuLogger.warn(
-                "mpu_nextmsg: mpu_saveChatHistory 函數不存在，無法儲存對話歷史"
+                "mpu_nextmsg: mpu_saveChatHistory 函數不存在，無法儲存對話歷史",
               );
             }
           } else {
             mpuLogger.warn(
-              "mpu_nextmsg: mpuChatHistory 未初始化或不是陣列，無法加入對話歷史"
+              "mpu_nextmsg: mpuChatHistory 未初始化或不是陣列，無法加入對話歷史",
             );
           }
 
@@ -717,7 +723,7 @@ function mpu_nextmsg(trigger) {
           // ⚠️ LLM 回應成功後，等待打字效果完成再啟動自動對話計時器
           if (mpuAutoTalk && !mpuAutoTalkTimer) {
             mpuLogger.log(
-              "mpu_nextmsg: LLM 回應完成，等待打字完成後啟動自動對話計時器"
+              "mpu_nextmsg: LLM 回應完成，等待打字完成後啟動自動對話計時器",
             );
             mpu_waitForTypewriterComplete(function () {
               if (mpuAutoTalk && !mpuAutoTalkTimer) {
@@ -746,7 +752,7 @@ function mpu_nextmsg(trigger) {
             mpu_showMsgText();
             mpu_typewriter(
               `<span style="color: ${mpuAiTextColor};">${rateLimitMessage}</span>`,
-              "#ukagaka_msg"
+              "#ukagaka_msg",
             );
             mpu_showmsg(400);
 
@@ -773,7 +779,7 @@ function mpu_nextmsg(trigger) {
             // ⚠️ 即使 fallback，也等待打字完成再啟動自動對話
             if (mpuAutoTalk && !mpuAutoTalkTimer) {
               mpuLogger.log(
-                "mpu_nextmsg: fallback 完成，等待打字完成後啟動計時器"
+                "mpu_nextmsg: fallback 完成，等待打字完成後啟動計時器",
               );
               mpu_waitForTypewriterComplete(function () {
                 if (mpuAutoTalk && !mpuAutoTalkTimer) {
@@ -803,13 +809,13 @@ function mpu_nextmsg(trigger) {
 
         if (mpuMessageBlocking || mpuAiContextInProgress) {
           mpuLogger.log(
-            "mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過"
+            "mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過",
           );
           return;
         }
         mpuLogger.warn(
           "LLM dialogue generation failed, using fallback:",
-          error
+          error,
         );
 
         if (debugMode || window.mpuDebugMode) {
@@ -892,7 +898,7 @@ function mpu_nextmsg(trigger) {
           mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
           $msgnum.html(msgNum);
           mpu_showmsg(400);
-        }
+        },
       );
 
       if (!isWakingUp) {
@@ -925,7 +931,7 @@ function mpu_nextmsg_fallback() {
     mpu_showMsgText();
     if (mpuMessageBlocking || mpuAiContextInProgress) {
       mpuLogger.log(
-        "mpu_nextmsg_fallback: 被阻擋（頁面感知 AI 正在進行中），跳過顯示"
+        "mpu_nextmsg_fallback: 被阻擋（頁面感知 AI 正在進行中），跳過顯示",
       );
       return;
     }
@@ -1055,7 +1061,7 @@ function mpuChange(num) {
           window.mpuCanvasManager.init(
             payload.shell_info,
             payload.name || "",
-            payload.num || null
+            payload.num || null,
           );
           $imgWrapper.fadeIn(180);
         });
@@ -1070,13 +1076,13 @@ function mpuChange(num) {
                 images: [],
               },
               payload.name || "",
-              payload.num || null
+              payload.num || null,
             );
             $imgWrapper.fadeIn(180);
           });
         } else {
           mpuLogger.warn(
-            "mpuChange: Canvas 管理器在 Ajax 成功後才發現不存在，這不應該發生"
+            "mpuChange: Canvas 管理器在 Ajax 成功後才發現不存在，這不應該發生",
           );
           mpu_handle_error(
             "Canvas 管理器未載入",
@@ -1084,7 +1090,7 @@ function mpuChange(num) {
             {
               showToUser: true,
               userMessage: "動畫模組載入失敗，請刷新頁面。",
-            }
+            },
           );
         }
       }

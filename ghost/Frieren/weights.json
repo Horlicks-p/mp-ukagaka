@@ -48,6 +48,7 @@
     "programming_code": 4,
     "lesson_learned": 2,
     "bot_detection": 1,
+    "moelog_bot_blocker_reactions": 1,
     "error_problem": 1,
     "success_achievement": 2,
     "future_plans": 2,
@@ -210,6 +211,7 @@
 
     "is_bot": {
       "bot_detection": 25,
+      "moelog_bot_blocker_reactions": 12,
       "demon_related": 15,
       "observation": 10
     }
