@@ -153,7 +153,7 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
 
         $response = wp_remote_post($api_url, [
             "headers" => ["Content-Type" => "application/json"],
-            "body" => wp_json_encode($request_body),
+            "body" => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
             "timeout" => 60,
         ]);
 
@@ -168,12 +168,12 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
         if ($response_code === 400 && !empty($tools_config)) {
              $error_data = json_decode($response_body, true);
              $error_msg = $error_data['error']['message'] ?? '';
-             
+
              if (strpos($error_msg, 'tools') !== false || strpos($error_msg, 'Unknown name') !== false) {
                  unset($request_body['tools']);
                  $response = wp_remote_post($api_url, [
                     'headers' => ['Content-Type' => 'application/json'],
-                    'body' => wp_json_encode($request_body),
+                    'body' => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
                     'timeout' => 60,
                 ]);
                 $response_code = wp_remote_retrieve_response_code($response);
@@ -316,7 +316,7 @@ function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $la
                 "Content-Type" => "application/json",
                 "Authorization" => "Bearer " . $api_key,
             ],
-            "body" => wp_json_encode($request_body),
+            "body" => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
             "timeout" => 60, // 增加超時時間以支援工具執行
         ]);
 
@@ -453,7 +453,7 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
                 "x-api-key" => $api_key,
                 "anthropic-version" => "2023-06-01",
             ],
-            "body" => wp_json_encode($request_body),
+            "body" => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
             "timeout" => 60,
         ]);
 
@@ -643,7 +643,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
 
         $response = wp_remote_post($api_url, [
             'headers' => ['Content-Type' => 'application/json'],
-            'body' => wp_json_encode($request_body),
+            'body' => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
             'timeout' => $timeout,
         ]);
 

@@ -320,39 +320,33 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
             // 連接測試函數（通用）
             function testConnection(provider, apiKeyId, modelId, resultId, buttonId) {
                 var $btn = $('#' + buttonId);
-                var apiKey = $('#' + apiKeyId).val();
-                var model = $('#' + modelId).val();
+                var apiKey = apiKeyId ? $('#' + apiKeyId).val() : '';
+                var model = modelId ? $('#' + modelId).val() : '';
 
                 $btn.prop('disabled', true);
                 $('#' + resultId).html('<span class="mpu-loading"></span><?php _e("測試中...", "mp-ukagaka"); ?>');
 
-                var ajaxData = {
-                    action: 'mpu_test_' + provider + '_connection',
-                    model: model,
-                    mpu_nonce: '<?php echo wp_create_nonce("mpu_ajax_nonce"); ?>'
-                };
+                var requestData = { model: model };
 
                 if (provider !== 'ollama') {
-                    ajaxData.api_key = apiKey;
+                    requestData.api_key = apiKey;
                 } else {
-                    ajaxData.endpoint = $('#ollama_endpoint').val();
+                    requestData.endpoint = $('#ollama_endpoint').val();
                 }
 
                 $.ajax({
-                    url: '<?php echo admin_url("admin-ajax.php"); ?>',
+                    url: '<?php echo esc_url(rest_url("mp-ukagaka/v1/test-connection/")); ?>' + provider,
                     method: 'POST',
-                    data: ajaxData,
+                    headers: { 'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>' },
+                    data: requestData,
                     success: function(response) {
                         $btn.prop('disabled', false);
-                        if (response.success) {
-                            $('#' + resultId).html('<span class="mpu-test-success">✓ ' + response.data + '</span>');
-                        } else {
-                            $('#' + resultId).html('<span class="mpu-test-error">✗ ' + response.data + '</span>');
-                        }
+                        $('#' + resultId).html('<span class="mpu-test-success">✓ ' + response.msg + '</span>');
                     },
                     error: function(xhr, status, error) {
                         $btn.prop('disabled', false);
-                        $('#' + resultId).html('<span class="mpu-test-error">✗ <?php _e("測試失敗，請檢查網絡連接", "mp-ukagaka"); ?> (' + error + ')</span>');
+                        var errorMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : error;
+                        $('#' + resultId).html('<span class="mpu-test-error">✗ ' + errorMsg + '</span>');
                     }
                 });
             }
@@ -402,25 +396,18 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                 $('#weather_test_result').html('<span class="mpu-loading"></span><?php _e("測試中...", "mp-ukagaka"); ?>');
                 
                 $.ajax({
-                    url: '<?php echo admin_url("admin-ajax.php"); ?>',
+                    url: '<?php echo esc_url(rest_url("mp-ukagaka/v1/test-connection/weather")); ?>',
                     method: 'POST',
-                    data: {
-                        action: 'mpu_test_weather_api',
-                        latitude: latitude,
-                        longitude: longitude,
-                        mpu_nonce: '<?php echo wp_create_nonce("mpu_ajax_nonce"); ?>'
-                    },
+                    headers: { 'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>' },
+                    data: { latitude: latitude, longitude: longitude },
                     success: function(response) {
                         $btn.prop('disabled', false);
-                        if (response.success) {
-                            $('#weather_test_result').html('<span class="mpu-test-success">✓ ' + response.data + '</span>');
-                        } else {
-                            $('#weather_test_result').html('<span class="mpu-test-error">✗ ' + response.data + '</span>');
-                        }
+                        $('#weather_test_result').html('<span class="mpu-test-success">✓ ' + response.msg + '</span>');
                     },
                     error: function(xhr, status, error) {
                         $btn.prop('disabled', false);
-                        $('#weather_test_result').html('<span class="mpu-test-error">✗ <?php _e("測試失敗，請檢查網絡連接", "mp-ukagaka"); ?> (' + error + ')</span>');
+                        var errorMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : error;
+                        $('#weather_test_result').html('<span class="mpu-test-error">✗ ' + errorMsg + '</span>');
                     }
                 });
                 
@@ -442,27 +429,21 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                 $('#cache_clear_result').html('<span class="mpu-loading"></span><?php _e("清除中...", "mp-ukagaka"); ?>');
                 
                 $.ajax({
-                    url: '<?php echo admin_url("admin-ajax.php"); ?>',
+                    url: '<?php echo esc_url(rest_url("mp-ukagaka/v1/clear-cache")); ?>',
                     method: 'POST',
-                    data: {
-                        action: 'mpu_clear_api_cache',
-                        mpu_nonce: '<?php echo wp_create_nonce("mpu_ajax_nonce"); ?>'
-                    },
+                    headers: { 'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>' },
                     success: function(response) {
                         $btn.prop('disabled', false);
-                        if (response.success) {
-                            $('#cache_clear_result').html('<span class="mpu-test-success">✓ ' + response.data + '</span>');
-                            // 更新統計顯示為 0
-                            setTimeout(function() {
-                                location.reload();
-                            }, 1500);
-                        } else {
-                            $('#cache_clear_result').html('<span class="mpu-test-error">✗ ' + response.data + '</span>');
-                        }
+                        $('#cache_clear_result').html('<span class="mpu-test-success">✓ ' + response.msg + '</span>');
+                        // 更新統計顯示為 0
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
                     },
                     error: function(xhr, status, error) {
                         $btn.prop('disabled', false);
-                        $('#cache_clear_result').html('<span class="mpu-test-error">✗ <?php _e("清除失敗", "mp-ukagaka"); ?> (' + error + ')</span>');
+                        var errorMsg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : error;
+                        $('#cache_clear_result').html('<span class="mpu-test-error">✗ ' + errorMsg + '</span>');
                     }
                 });
                 

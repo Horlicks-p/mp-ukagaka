@@ -1125,14 +1125,10 @@
 
       const executeAjaxReq = () => {
         const formData = new FormData();
-        formData.append("action", "mpu_decoration_chat");
-        if (typeof mpuNonce !== "undefined" && mpuNonce) {
-          formData.append("mpu_nonce", mpuNonce);
-        }
         formData.append("decoration_type", decorationType);
 
-        if (typeof mpuFetch !== "undefined" && typeof mpuurl !== "undefined") {
-          mpuFetch(mpuurl, {
+        if (typeof mpuFetch !== "undefined" && typeof mpuRestUrl !== "undefined") {
+          mpuFetch(mpuRestUrl + "touch/decoration", {
             method: "POST",
             body: formData,
             timeout: 30000,
@@ -1416,14 +1412,10 @@
 
       const executeAjaxReq = () => {
         const formData = new FormData();
-        formData.append("action", "mpu_touch_zone_chat");
-        if (typeof mpuNonce !== "undefined" && mpuNonce) {
-          formData.append("mpu_nonce", mpuNonce);
-        }
         formData.append("touch_zone", zoneName);
 
-        if (typeof mpuFetch !== "undefined" && typeof mpuurl !== "undefined") {
-          mpuFetch(mpuurl, {
+        if (typeof mpuFetch !== "undefined" && typeof mpuRestUrl !== "undefined") {
+          mpuFetch(mpuRestUrl + "touch/zone", {
             method: "POST",
             body: formData,
             timeout: 30000,

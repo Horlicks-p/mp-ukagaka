@@ -823,6 +823,11 @@ async function mpuFetch(url, options = {}) {
 
             mpuRequestManager.cleanup(requestId);
 
+            if (result && typeof result === "object" && result.new_token) {
+                window.mpuRestNonce = result.new_token;
+                mpuLogger.log("REST Nonce 已自動更新");
+            }
+
             return result;
 
         } catch (error) {

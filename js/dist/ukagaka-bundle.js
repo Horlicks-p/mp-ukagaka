@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-02-23T13:01:15.242Z
+ * Generated: 2026-02-23T14:41:42.005Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -830,6 +830,11 @@ async function mpuFetch(url, options = {}) {
             }
 
             mpuRequestManager.cleanup(requestId);
+
+            if (result && typeof result === "object" && result.new_token) {
+                window.mpuRestNonce = result.new_token;
+                mpuLogger.log("REST Nonce 已自動更新");
+            }
 
             return result;
 

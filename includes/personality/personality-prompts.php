@@ -203,6 +203,9 @@ function mpu_replace_single_prompt_variables($prompt, $variables)
         $prompt = str_replace('{' . $key . '}', (string)$value, $prompt);
     }
 
+    // 清除未被替換的殘留 {placeholder}，避免 template 語法直接送進 LLM
+    $prompt = preg_replace('/\{[a-z_]+\}/', '', $prompt);
+
     return $prompt;
 }
 

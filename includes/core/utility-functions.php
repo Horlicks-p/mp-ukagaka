@@ -698,8 +698,8 @@ function mpu_render_prompt_template($template, $variables = [])
                 }
             }
 
-            // 未定義的變數保持原樣（不替換）
-            return $matches[0];
+            // 未定義的變數移除，避免 template 語法直接送進 LLM
+            return '';
         },
         $template
     );
@@ -1055,6 +1055,30 @@ function mpu_rest_check_rate_limit($action, $max_requests = 10, $period = 60)
     }
     return null;
 }
+
+/**
+ * REST API 自動更新 Nonce
+ *
+ * 當 wp_verify_nonce() 回傳 2（nonce 處於 12–24 小時老化期）時，
+ * 在回應資料中附加 new_token，讓前端自動更新 mpuRestNonce，
+ * 避免隔日長工作階段出現 403。
+ *
+ * @since 2.9.1
+ */
+add_filter('rest_post_dispatch', function ($result, $server, $request) {
+    if (strpos($request->get_route(), '/mp-ukagaka/v1/') === false) {
+        return $result;
+    }
+    $nonce = $request->get_header('X-WP-Nonce');
+    if ($nonce && wp_verify_nonce($nonce, 'wp_rest') === 2) {
+        $data = $result->get_data();
+        if (is_array($data)) {
+            $data['new_token'] = wp_create_nonce('wp_rest');
+            $result->set_data($data);
+        }
+    }
+    return $result;
+}, 10, 3);
 
 /**
  * 重置指定動作的速率限制
