@@ -98,17 +98,20 @@ mp-ukagaka/
 │   ├── options_page_ai.php     # AI 功能設定頁面
 │   ├── options_page_llm.php    # LLM 功能設定頁面（BETA）
 │   └── options_page_diary.php  # 日記功能設定頁面
-├── js/                     # 前端 JavaScript 模組
-│   ├── dist/                   # 打包輸出目錄（生產版）
-│   │   ├── ukagaka-bundle.min.js   # 合併壓縮後的核心 bundle
-│   │   └── ukagaka-textarearesizer.min.js  # 後台工具（壓縮版）
-│   ├── ukagaka-base.js         # 基礎層（配置 + 工具 + AJAX）
-│   ├── ukagaka-core.js         # 前端核心 JS（訊息顯示、偽春菜切換等）
-│   ├── ukagaka-features.js     # 前端功能 JS（AI 頁面感知、首次訪客打招呼等）
-│   ├── ukagaka-anime.js        # Canvas 動畫管理器（圖片序列播放）
-│   ├── ukagaka-chat.js         # 聊天功能前端（v2.3.0）
-│   ├── ukagaka-emoji.js        # 表情配置載入器
-│   └── ukagaka-textarearesizer.js  # 後台文字區域調整器
+│   ├── js/                     # 前端 JavaScript 模組
+│   │   ├── dist/                   # 打包輸出目錄（生產版）
+│   │   │   ├── ukagaka-bundle.min.js   # 合併壓縮後的核心 bundle
+│   │   │   └── ukagaka-textarearesizer.min.js  # 後台工具（壓縮版）
+│   │   ├── ukagaka-base.js         # 基礎層（配置 + 工具 + AJAX）
+│   │   ├── ukagaka-core.js         # 前端核心 JS（訊息顯示、偽春菜切換等）
+│   │   ├── ukagaka-features.js     # 前端功能 JS（設定配置、事件監聽）
+│   │   ├── ukagaka-context.js      # 頁面感知 AI 對話功能
+│   │   ├── ukagaka-greeting.js     # 首次訪客打招呼功能
+│   │   ├── ukagaka-chat.js         # 聊天功能前端（互動對話，v2.3.0）
+│   │   ├── ukagaka-dialog.js       # 外部對話載入與後備處理
+│   │   ├── ukagaka-anime.js        # Canvas 動畫管理器（圖片序列播放）
+│   │   ├── ukagaka-emoji.js        # 表情配置載入器
+│   │   └── ukagaka-textarearesizer.js  # 後台文字區域調整器
 └── readme.txt              # WordPress 外掛目錄說明檔
 ```
 
@@ -168,8 +171,8 @@ $admin_modules = [
 
 ### 常數定義
 
-| 常數              | 說明       | 值           |
-| ----------------- | ---------- | ------------ |
+| 常數            | 說明       | 值         |
+| --------------- | ---------- | ---------- |
 | `MPU_VERSION`   | 外掛版本   | `"2.5.6"`  |
 | `MPU_MAIN_FILE` | 主檔案路徑 | `__FILE__` |
 
@@ -407,25 +410,24 @@ function mpu_load_personality_emoji_keywords($personality_id = null): array
 每個 personality 資料夾應包含：
 
 - **manifest.json**（必需）：元數據和設定
-
   - `id`：Personality ID
   - `name`、`name_en`、`name_zh`：多語言名稱
   - `version`：版本號
   - `settings`：角色設定（如 `max_response_length`、`speech_style`、`tone`）
   - `character_traits`：角色特質（如 `age`、`race`、`occupation`、`personality`）
+
 - **prompts.json**（可選）：靜態對話類別
-
   - 鍵值為類別名稱，值為提示詞陣列
-- **dynamics.json**（可選）：動態模板（含變數替換）
 
+- **dynamics.json**（可選）：動態模板（含變數替換）
   - 支援 `{variable_name}` 變數替換
   - 包含 `time_aware_dynamic`、`tech_observation`、`bot_detection` 等類別
-- **weights.json**（可選）：類別權重配置
 
+- **weights.json**（可選）：類別權重配置
   - `base_weights`：基礎權重
   - `time_adjustments`：時間段調整
-- **decorations.json**（可選）：裝飾物點擊提示詞
 
+- **decorations.json**（可選）：裝飾物點擊提示詞
   - `items`：裝飾物配置陣列，每項包含：
     - `id`：裝飾物 ID
     - `image`：圖片路徑（相對於 `decorations/` 資料夾）
@@ -434,8 +436,8 @@ function mpu_load_personality_emoji_keywords($personality_id = null): array
     - `z_index`：層級（數字）
     - `prompt`：點擊時的提示詞
     - `transform`：CSS 變形（可選，如 `scale(1)`）
-- **emoji-keywords.json**（可選，v2.4.0）：表情觸發關鍵字
 
+- **emoji-keywords.json**（可選，v2.4.0）：表情觸發關鍵字
   - `mappings`：表情類型與關鍵字的映射
   - 格式範例：
     ```json
@@ -449,8 +451,8 @@ function mpu_load_personality_emoji_keywords($personality_id = null): array
       }
     }
     ```
-- **script**（可選）：角色專屬 JavaScript 檔案
 
+- **script**（可選）：角色專屬 JavaScript 檔案
   - 如 `frieren.js`，由前端自動載入
 
 #### 使用範例
@@ -559,12 +561,12 @@ function mpu_get_allowed_conditional_tags(): array
 
 #### 支援的 AI 提供商
 
-| 提供商 | 函數                      | API 端點                              | 模型選擇                                    |
-| ------ | ------------------------- | ------------------------------------- | ------------------------------------------- |
+| 提供商 | 函數                    | API 端點                            | 模型選擇                                    |
+| ------ | ----------------------- | ----------------------------------- | ------------------------------------------- |
 | Gemini | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | 支援（gemini-2.5-flash, gemini-2.5-pro 等） |
 | OpenAI | `mpu_call_openai_api()` | `api.openai.com`                    | 支援（gpt-4o-mini, gpt-4o 等）              |
 | Claude | `mpu_call_claude_api()` | `api.anthropic.com`                 | 支援（claude-sonnet-4-5-20250929 等）       |
-| Ollama | `mpu_call_ollama_api()` | 本地或遠程 Ollama 服務                | 支援（任何 Ollama 模型）                    |
+| Ollama | `mpu_call_ollama_api()` | 本地或遠程 Ollama 服務              | 支援（任何 Ollama 模型）                    |
 
 ### llm-functions.php (BETA)
 
@@ -627,8 +629,8 @@ function mpu_get_ollama_settings()
 
 #### 超時時間設定
 
-| 操作類型                | 本地連接 | 遠程連接 |
-| ----------------------- | -------- | -------- |
+| 操作類型              | 本地連接 | 遠程連接 |
+| --------------------- | -------- | -------- |
 | 服務檢查 (`check`)    | 3 秒     | 10 秒    |
 | API 調用 (`api_call`) | 60 秒    | 90 秒    |
 | 測試連接 (`test`)     | 30 秒    | 45 秒    |
@@ -697,7 +699,7 @@ function mpu_publish_diary_post($diary_data)
  * 分析對話內容的情緒，返回對應的表情文件名
  * 優先從角色專屬配置 `emoji-keywords.json` 載入，
  * 如果不存在則回退到內建的通用預設值。
- * 
+ *
  * @param string $text 對話內容
  * @param string|null $personality_id Personality ID (可選)
  * @return string|null 表情文件名（如 'happy.png'），無法匹配時返回 null
@@ -1579,24 +1581,26 @@ function mpuChange()
 function mpu_showMessage(message, options)
 ```
 
-### AI 功能函數 (ukagaka-features.js)
+### AI 功能函數
+
+#### ukagaka-context.js
+
+```javascript
+/**
+ * AI 上下文對話：根據當前頁面內容生成 AI 回應
+ */
+function mpu_chat_context()
+```
+
+#### ukagaka-greeting.js
 
 ````javascript
 /**
- * 觸發 AI 頁面感知
+ * 首次訪客打招呼：根據訪客資訊生成個性化問候語
+ * @param {Object} settings - 設定物件
+ * @returns {Promise}
  */
-function mpu_triggerAIContext()
-
-/**
- * 觸發 AI 首次訪客打招呼
- */
-function mpu_triggerAIGreeting()
-
-/**
- * 暫停自動對話
- * @param {number} duration - 暫停時間（毫秒）
- */
-function mpu_pauseAutoTalk(duration)
+function mpu_greet_first_visitor(settings)
 
 ### Canvas 動畫函數 (ukagaka-anime.js)
 
@@ -1759,22 +1763,21 @@ if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
 未來可以實現一個通用的角色管理器系統，支援多個角色各自擁有專屬的動畫和互動邏輯：
 
 1. **動態管理器查找機制**
-
    - 在 `ukagaka-anime.js` 中實現 `getCurrentCharacterManager()` 方法
    - 根據當前角色的 `dialog_filename` 或 personality ID 動態查找對應的管理器
    - 使用命名約定：`window.mpu{PersonalityId}Manager`（例如：`mpuFrierenManager`、`mpuSakuraManager`）
-2. **統一介面標準**
 
+2. **統一介面標準**
    - 定義標準的角色管理器介面（方法名和屬性）
    - 所有角色管理器必須實現：`initMode()`, `triggerSpeaking()`, `isCharacterMode` 等
    - 確保向後兼容（保持對 `mpuFrierenManager` 的支援）
-3. **實現位置**
 
+3. **實現位置**
    - 主要修改：`js/ukagaka-anime.js`（約 20 處引用需要修改）
    - 次要修改：`js/ukagaka-chat.js` 和 `js/ukagaka-core.js`（少量引用）
    - 預估工作量：約 2-3 小時（包含測試）
-4. **觸發時機**
 
+4. **觸發時機**
    - 當有第二個角色需要專屬動畫或互動功能時，可以一併實現
    - 或者當需要將芙莉蓮專屬功能抽象化時進行重構
 
@@ -1898,12 +1901,14 @@ MP Ukagaka 支援 SPA 導航。當佈景主題使用 AJAX 載入頁面內容而�
 
 ```javascript
 // 在 SPA 導航完成後觸發
-document.dispatchEvent(new CustomEvent('mpu:spaReady', {
+document.dispatchEvent(
+  new CustomEvent("mpu:spaReady", {
     detail: {
-        url: window.location.href,    // 可選：當前 URL
-        title: document.title         // 可選：頁面標題
-    }
-}));
+      url: window.location.href, // 可選：當前 URL
+      title: document.title, // 可選：頁面標題
+    },
+  }),
+);
 ```
 
 ### 插件回應
@@ -1918,29 +1923,29 @@ document.dispatchEvent(new CustomEvent('mpu:spaReady', {
 
 ```javascript
 // 使用 History API 的 SPA 導航範例
-document.addEventListener('click', function(e) {
-    const link = e.target.closest('a');
-    if (!link || link.target === '_blank') return;
-    
-    e.preventDefault();
-    
-    // 執行 AJAX 載入...
-    fetch(link.href)
-        .then(response => response.text())
-        .then(html => {
-            // 更新頁面內容
-            document.getElementById('content').innerHTML = html;
-            history.pushState({}, '', link.href);
-            
-            // 通知 MP Ukagaka
-            document.dispatchEvent(new CustomEvent('mpu:spaReady'));
-        });
+document.addEventListener("click", function (e) {
+  const link = e.target.closest("a");
+  if (!link || link.target === "_blank") return;
+
+  e.preventDefault();
+
+  // 執行 AJAX 載入...
+  fetch(link.href)
+    .then((response) => response.text())
+    .then((html) => {
+      // 更新頁面內容
+      document.getElementById("content").innerHTML = html;
+      history.pushState({}, "", link.href);
+
+      // 通知 MP Ukagaka
+      document.dispatchEvent(new CustomEvent("mpu:spaReady"));
+    });
 });
 
 // 處理瀏覽器返回/前進
-window.addEventListener('popstate', function() {
-    // 載入對應頁面內容後...
-    document.dispatchEvent(new CustomEvent('mpu:spaReady'));
+window.addEventListener("popstate", function () {
+  // 載入對應頁面內容後...
+  document.dispatchEvent(new CustomEvent("mpu:spaReady"));
 });
 ```
 

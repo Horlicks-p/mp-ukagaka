@@ -7,7 +7,7 @@
 ## 📑 Table of Contents
 
 1. [Introduction](#introduction)
-2. [Installation & Activation](#installation--activation)
+2. [Installation &amp; Activation](#installation--activation)
 3. [Quick Start](#quick-start)
 4. [Basic Settings](#basic-settings)
 5. [Ukagaka Management](#ukagaka-management)
@@ -24,8 +24,6 @@
 ## Introduction
 
 MP Ukagaka is a WordPress plugin that lets you display interactive desktop mascot characters (Ukagaka/Nanika) on your website. Characters can display custom dialogue messages and support AI intelligent page awareness, automatically generating comments based on article content.
-
-> 🎉 **Special Announcement**: To celebrate the premiere of "Sousou no Frieren" Season 2 on January 16, 2026, the default character has been changed from Hatsune Miku to Frieren (フリーレン). New installations will see Frieren as the default character, and existing installations with the default character name still set to "初音" will automatically be updated to Frieren.
 
 ### Key Features
 
@@ -1271,7 +1269,7 @@ Interactive Chat Mode transforms the frontend "Change Ukagaka" button into a rea
 - **Multi-turn Conversations**: System maintains conversation history for coherent contextual responses
 - **Context Awareness**: AI understands current page content and basic site information
 - **Dynamic Context Injection**: Only adds WordPress statistics when relevant keywords are detected, significantly saving tokens
-- **Scroll​able History**: Long conversations auto-scroll, input box fixed at bottom for easy typing
+- **Scrollable History**: Long conversations auto-scroll, input box fixed at bottom for easy typing
 - **Custom Scrollbar**: Beautiful scrollbar styling
 - **Responsive Layout**: Automatically adapts to different screen sizes
 

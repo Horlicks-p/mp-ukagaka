@@ -139,8 +139,8 @@ function mpu_secure_file_read(string $file_path, int $max_size = 2097152)
 
 **可能なエラー：**
 
-| エラーコード         | 説明                                 |
-| -------------------- | ------------------------------------ |
+| エラーコード       | 説明                                 |
+| ------------------ | ------------------------------------ |
 | `file_not_found`   | 指定されたファイルが見つからない     |
 | `path_not_allowed` | そのパスの読み取りは許可されていない |
 | `file_too_large`   | ファイルが大きすぎて読み取れない     |
@@ -269,11 +269,11 @@ function mpu_get_language_instruction(string $language): string
 
 **戻り値：**
 
-| 言語コード | 戻り値                         |
-| ---------- | ------------------------------ |
-| `zh-TW`  | `請用繁體中文回覆。`         |
-| `ja`     | `日本語で返答してください。` |
-| `en`     | `Please reply in English.`   |
+| 言語コード | 戻り値                       |
+| ---------- | ---------------------------- |
+| `zh-TW`    | `請用繁體中文回覆。`         |
+| `ja`       | `日本語で返答してください。` |
+| `en`       | `Please reply in English.`   |
 
 ---
 
@@ -564,10 +564,10 @@ function mpu_generate_llm_dialogue(
 
 **利用可能な Filter Hooks（v2.5.7）：**
 
-| Filter | 説明 | パラメータ |
-|--------|------|------------|
-| `mpu_llm_system_prompt` | System Prompt を変更 | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
-| `mpu_llm_user_prompt` | 会話指示の前に追加コンテキストを注入 | `$prompt`, `$ukagaka_name`, `$personality_id` |
+| Filter                  | 説明                                 | パラメータ                                                |
+| ----------------------- | ------------------------------------ | --------------------------------------------------------- |
+| `mpu_llm_system_prompt` | System Prompt を変更                 | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
+| `mpu_llm_user_prompt`   | 会話指示の前に追加コンテキストを注入 | `$prompt`, `$ukagaka_name`, `$personality_id`             |
 
 **使用例（セキュリティアラート統合）：**
 
@@ -729,21 +729,25 @@ function mpu_get_random_msg($num = false, $echo = false): string
 
 ### Actions
 
-| Hook                   | 説明                 | パラメータ   |
-| ---------------------- | -------------------- | ------------ |
-| `mpu_loaded`         | プラグイン読み込み後 | なし         |
-| `mpu_before_html`    | 伺か HTML 生成前     | なし         |
-| `mpu_after_html`     | 伺か HTML 生成後     | なし         |
+| Hook                 | 説明                 | パラメータ |
+| -------------------- | -------------------- | ---------- |
+| `mpu_loaded`         | プラグイン読み込み後 | なし       |
+| `mpu_before_html`    | 伺か HTML 生成前     | なし       |
+| `mpu_after_html`     | 伺か HTML 生成後     | なし       |
 | `mpu_settings_saved` | 設定保存後           | `$mpu_opt` |
 
 ### Filters
 
-| Filter              | 説明                   | パラメータ                     |
-| ------------------- | ---------------------- | ------------------------------ |
-| `mpu_options`     | 設定配列をフィルター   | `$mpu_opt`                   |
-| `mpu_html`        | 伺か HTML をフィルター | `$html`, `$ukagaka`        |
-| `mpu_message`     | メッセージをフィルター | `$message`, `$ukagaka_key` |
-| `mpu_ai_response` | AI 応答をフィルター    | `$response`, `$provider`   |
+| Filter                  | 説明                                         | パラメータ                                                    |
+| ----------------------- | -------------------------------------------- | ------------------------------------------------------------- |
+| `mpu_options`           | 設定配列をフィルター                         | `$mpu_opt`                                                    |
+| `mpu_html`              | 伺か HTML をフィルター                       | `$html`, `$ukagaka`                                           |
+| `mpu_message`           | メッセージをフィルター                       | `$message`, `$ukagaka_key`                                    |
+| `mpu_ai_response`       | AI 応答をフィルター                          | `$response`, `$provider`                                      |
+| `mpu_llm_system_prompt` | LLMシステムプロンプトをフィルター            | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context`     |
+| `mpu_llm_user_prompt`   | ユーザーチャットプロンプトをフィルター       | `$prompt`, `$ukagaka_name`, `$personality_id`                 |
+| `mpu_prompt_categories` | ダイアログカテゴリ定義をフィルター           | `$categories`, `$wp_info`, `$visitor_info`, `$time_context`   |
+| `mpu_category_weights`  | ダイアログカテゴリのランダム重みをフィルター | `$weights`, `$time_context`, `$visitor_info`, `$context_vars` |
 
 ---
 
@@ -757,8 +761,8 @@ function mpu_get_random_msg($num = false, $echo = false): string
 
 **パラメータ：**
 
-| パラメータ        | タイプ | 説明                         |
-| ----------------- | ------ | ---------------------------- |
+| パラメータ      | タイプ | 説明                         |
+| --------------- | ------ | ---------------------------- |
 | `cur_num`       | string | 現在の伺かキー               |
 | `cur_msgnum`    | int    | 現在のメッセージインデックス |
 | `last_response` | string | (オプション) 前回の LLM 応答 |
@@ -767,12 +771,12 @@ function mpu_get_random_msg($num = false, $echo = false): string
 
 ```json
 {
-    "success": true,
-    "data": {
-        "msg": "メッセージ内容",
-        "msgnum": 1,
-        "is_llm": false
-    }
+  "success": true,
+  "data": {
+    "msg": "メッセージ内容",
+    "msgnum": 1,
+    "is_llm": false
+  }
 }
 ```
 
@@ -784,9 +788,9 @@ function mpu_get_random_msg($num = false, $echo = false): string
 
 **パラメータ：**
 
-| パラメータ  | タイプ | 説明           |
-| ----------- | ------ | -------------- |
-| `new_num` | string | 新しい伺かキー |
+| パラメータ | タイプ | 説明           |
+| ---------- | ------ | -------------- |
+| `new_num`  | string | 新しい伺かキー |
 
 **戻り値：**
 
@@ -810,8 +814,8 @@ AI ページ感知ダイアログを取得。
 
 **パラメータ：**
 
-| パラメータ       | タイプ | 説明         |
-| ---------------- | ------ | ------------ |
+| パラメータ     | タイプ | 説明         |
+| -------------- | ------ | ------------ |
 | `post_content` | string | 記事内容     |
 | `post_title`   | string | 記事タイトル |
 
@@ -819,10 +823,10 @@ AI ページ感知ダイアログを取得。
 
 ```json
 {
-    "success": true,
-    "data": {
-        "response": "AI が生成したコメント"
-    }
+  "success": true,
+  "data": {
+    "response": "AI が生成したコメント"
+  }
 }
 ```
 
@@ -834,18 +838,18 @@ AI ページ感知ダイアログを取得。
 
 **パラメータ：**
 
-| パラメータ       | タイプ | 説明       |
-| ---------------- | ------ | ---------- |
+| パラメータ     | タイプ | 説明       |
+| -------------- | ------ | ---------- |
 | `visitor_info` | object | 訪問者情報 |
 
 **戻り値：**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "response": "AI が生成した挨拶"
-    }
+  "success": true,
+  "data": {
+    "response": "AI が生成した挨拶"
+  }
 }
 ```
 
@@ -861,13 +865,13 @@ AI ページ感知ダイアログを取得。
 
 ```json
 {
-    "success": true,
-    "data": {
-        "autoTalk": true,
-        "autoTalkInterval": 8000,
-        "typewriterSpeed": 40,
-        "clickBehavior": 0
-    }
+  "success": true,
+  "data": {
+    "autoTalk": true,
+    "autoTalkInterval": 8000,
+    "typewriterSpeed": 40,
+    "clickBehavior": 0
+  }
 }
 ```
 
@@ -881,8 +885,8 @@ Ollama 接続をテスト。
 
 **リクエストパラメータ：**
 
-| パラメータ   | タイプ | 説明                      |
-| ------------ | ------ | ------------------------- |
+| パラメータ | タイプ | 説明                      |
+| ---------- | ------ | ------------------------- |
 | `endpoint` | string | Ollama エンドポイント URL |
 | `model`    | string | モデル名                  |
 | `nonce`    | string | WordPress nonce           |
@@ -902,8 +906,8 @@ Ollama 接続をテスト。
 
 ```json
 {
-    "success": true,
-    "data": "接続成功（リモート接続）、モデル応答正常（プレビュー：Hello...）"
+  "success": true,
+  "data": "接続成功（リモート接続）、モデル応答正常（プレビュー：Hello...）"
 }
 ```
 
@@ -911,8 +915,8 @@ Ollama 接続をテスト。
 
 ```json
 {
-    "success": false,
-    "data": "接続失敗：リモート Ollama サービスに接続できません..."
+  "success": false,
+  "data": "接続失敗：リモート Ollama サービスに接続できません..."
 }
 ```
 
@@ -926,18 +930,18 @@ Google Gemini API 接続をテスト。
 
 **リクエストパラメータ：**
 
-| パラメータ  | タイプ | 説明                                                         |
-| ----------- | ------ | ------------------------------------------------------------ |
-| `api_key` | string | Gemini API Key（オプション、未提供の場合は設定から読み込み） |
-| `model`   | string | モデル名（オプション、未提供の場合は設定から読み込み）       |
-| `nonce`   | string | WordPress nonce                                              |
+| パラメータ | タイプ | 説明                                                         |
+| ---------- | ------ | ------------------------------------------------------------ |
+| `api_key`  | string | Gemini API Key（オプション、未提供の場合は設定から読み込み） |
+| `model`    | string | モデル名（オプション、未提供の場合は設定から読み込み）       |
+| `nonce`    | string | WordPress nonce                                              |
 
 **成功応答：**
 
 ```json
 {
-    "success": true,
-    "data": "接続成功、API Key 有効"
+  "success": true,
+  "data": "接続成功、API Key 有効"
 }
 ```
 
@@ -945,8 +949,8 @@ Google Gemini API 接続をテスト。
 
 ```json
 {
-    "success": false,
-    "data": "接続失敗：API Key 無効またはネットワークエラー"
+  "success": false,
+  "data": "接続失敗：API Key 無効またはネットワークエラー"
 }
 ```
 
@@ -960,18 +964,18 @@ OpenAI API 接続をテスト。
 
 **リクエストパラメータ：**
 
-| パラメータ  | タイプ | 説明                                                         |
-| ----------- | ------ | ------------------------------------------------------------ |
-| `api_key` | string | OpenAI API Key（オプション、未提供の場合は設定から読み込み） |
-| `model`   | string | モデル名（オプション、未提供の場合は設定から読み込み）       |
-| `nonce`   | string | WordPress nonce                                              |
+| パラメータ | タイプ | 説明                                                         |
+| ---------- | ------ | ------------------------------------------------------------ |
+| `api_key`  | string | OpenAI API Key（オプション、未提供の場合は設定から読み込み） |
+| `model`    | string | モデル名（オプション、未提供の場合は設定から読み込み）       |
+| `nonce`    | string | WordPress nonce                                              |
 
 **成功応答：**
 
 ```json
 {
-    "success": true,
-    "data": "接続成功、API Key 有効"
+  "success": true,
+  "data": "接続成功、API Key 有効"
 }
 ```
 
@@ -979,8 +983,8 @@ OpenAI API 接続をテスト。
 
 ```json
 {
-    "success": false,
-    "data": "接続失敗：API Key 無効またはネットワークエラー"
+  "success": false,
+  "data": "接続失敗：API Key 無効またはネットワークエラー"
 }
 ```
 
@@ -994,18 +998,18 @@ Claude (Anthropic) API 接続をテスト。
 
 **リクエストパラメータ：**
 
-| パラメータ  | タイプ | 説明                                                         |
-| ----------- | ------ | ------------------------------------------------------------ |
-| `api_key` | string | Claude API Key（オプション、未提供の場合は設定から読み込み） |
-| `model`   | string | モデル名（オプション、未提供の場合は設定から読み込み）       |
-| `nonce`   | string | WordPress nonce                                              |
+| パラメータ | タイプ | 説明                                                         |
+| ---------- | ------ | ------------------------------------------------------------ |
+| `api_key`  | string | Claude API Key（オプション、未提供の場合は設定から読み込み） |
+| `model`    | string | モデル名（オプション、未提供の場合は設定から読み込み）       |
+| `nonce`    | string | WordPress nonce                                              |
 
 **成功応答：**
 
 ```json
 {
-    "success": true,
-    "data": "接続成功、API Key 有効"
+  "success": true,
+  "data": "接続成功、API Key 有効"
 }
 ```
 
@@ -1013,8 +1017,8 @@ Claude (Anthropic) API 接続をテスト。
 
 ```json
 {
-    "success": false,
-    "data": "接続失敗：API Key 無効またはネットワークエラー"
+  "success": false,
+  "data": "接続失敗：API Key 無効またはネットワークエラー"
 }
 ```
 
@@ -1028,19 +1032,19 @@ Claude (Anthropic) API 接続をテスト。
 
 **リクエストパラメータ：**
 
-| パラメータ   | タイプ | 説明                    |
-| ------------ | ------ | ----------------------- |
-| `filename` | string | ファイル名              |
+| パラメータ | タイプ | 説明                |
+| ---------- | ------ | ------------------- |
+| `filename` | string | ファイル名          |
 | `format`   | string | `txt` または `json` |
 
 **成功応答：**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "messages": ["ダイアログ1", "ダイアログ2", "ダイアログ3"]
-    }
+  "success": true,
+  "data": {
+    "messages": ["ダイアログ1", "ダイアログ2", "ダイアログ3"]
+  }
 }
 ```
 
@@ -1054,20 +1058,20 @@ AI ページ感知ダイアログ。
 
 **リクエストパラメータ：**
 
-| パラメータ  | タイプ | 説明                   |
-| ----------- | ------ | ---------------------- |
-| `title`   | string | 記事タイトル           |
-| `content` | string | 記事内容               |
-| `nonce`   | string | セキュリティ認証コード |
+| パラメータ | タイプ | 説明                   |
+| ---------- | ------ | ---------------------- |
+| `title`    | string | 記事タイトル           |
+| `content`  | string | 記事内容               |
+| `nonce`    | string | セキュリティ認証コード |
 
 **成功応答：**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "AI が生成したコメント"
-    }
+  "success": true,
+  "data": {
+    "message": "AI が生成したコメント"
+  }
 }
 ```
 
@@ -1083,21 +1087,21 @@ AI ページ感知ダイアログ。
 
 | パラメータ | タイプ | 説明                   |
 | ---------- | ------ | ---------------------- |
-| `nonce`  | string | セキュリティ認証コード |
+| `nonce`    | string | セキュリティ認証コード |
 
 **成功応答：**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "country": "JP",
-        "city": "Tokyo",
-        "referer": "https://google.com",
-        "searchterms": "検索キーワード",
-        "browser": "Chrome",
-        "platform": "Windows"
-    }
+  "success": true,
+  "data": {
+    "country": "JP",
+    "city": "Tokyo",
+    "referer": "https://google.com",
+    "searchterms": "検索キーワード",
+    "browser": "Chrome",
+    "platform": "Windows"
+  }
 }
 ```
 
@@ -1111,8 +1115,8 @@ AI 初回訪問者挨拶。
 
 **リクエストパラメータ：**
 
-| パラメータ       | タイプ | 説明                   |
-| ---------------- | ------ | ---------------------- |
+| パラメータ     | タイプ | 説明                   |
+| -------------- | ------ | ---------------------- |
 | `visitor_info` | object | 訪問者情報             |
 | `nonce`        | string | セキュリティ認証コード |
 
@@ -1120,10 +1124,10 @@ AI 初回訪問者挨拶。
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "日本からの友達、ようこそ！"
-    }
+  "success": true,
+  "data": {
+    "message": "日本からの友達、ようこそ！"
+  }
 }
 ```
 
@@ -1137,18 +1141,18 @@ AI 初回訪問者挨拶。
 
 **リクエストパラメータ：**
 
-| パラメータ  | タイプ | 説明                         |
-| ----------- | ------ | ---------------------------- |
-| `message` | string | ユーザーが入力したメッセージ |
-| `history` | array  | 会話履歴配列                 |
-| `nonce`   | string | セキュリティ認証コード       |
+| パラメータ | タイプ | 説明                         |
+| ---------- | ------ | ---------------------------- |
+| `message`  | string | ユーザーが入力したメッセージ |
+| `history`  | array  | 会話履歴配列                 |
+| `nonce`    | string | セキュリティ認証コード       |
 
 **会話履歴形式：**
 
 ```json
 [
-    {"role": "user", "content": "こんにちは"},
-    {"role": "assistant", "content": "こんにちは！何か話したいことある？"}
+  { "role": "user", "content": "こんにちは" },
+  { "role": "assistant", "content": "こんにちは！何か話したいことある？" }
 ]
 ```
 
@@ -1156,10 +1160,10 @@ AI 初回訪問者挨拶。
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "AI が生成した応答"
-    }
+  "success": true,
+  "data": {
+    "message": "AI が生成した応答"
+  }
 }
 ```
 
@@ -1173,8 +1177,8 @@ AI 初回訪問者挨拶。
 
 **リクエストパラメータ：**
 
-| パラメータ          | タイプ | 説明                                               |
-| ------------------- | ------ | -------------------------------------------------- |
+| パラメータ        | タイプ | 説明                                               |
+| ----------------- | ------ | -------------------------------------------------- |
 | `decoration_type` | string | 装飾物タイプ（suitcase, evil_horns, staff, books） |
 | `nonce`           | string | セキュリティ認証コード                             |
 
@@ -1182,12 +1186,60 @@ AI 初回訪問者挨拶。
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "このスーツケースについて...中には集めた魔法が入っている。"
-    }
+  "success": true,
+  "data": {
+    "message": "このスーツケースについて...中には集めた魔法が入っている。"
+  }
 }
 ```
+
+---
+
+### mpu_touch_zone_chat (v2.3.0)
+
+キャラクタータッチ領域クリックリクエスト。タッチ反応ダイアログを生成。
+
+**Action:** `mpu_touch_zone_chat`
+
+---
+
+### mpu_check_spam_event
+
+Akismet スパムコメントブロックイベント通知。
+
+**Action:** `mpu_check_spam_event`
+
+---
+
+### mpu_wake_ghost
+
+手動で伺かを起こす。
+
+**Action:** `mpu_wake_ghost`
+
+---
+
+### mpu_init
+
+フロントエンド伺か初期化に必要なリソース。
+
+**Action:** `mpu_init`
+
+---
+
+### mpu_clear_api_cache (Admin)
+
+LLM API キャッシュをすべてクリア。
+
+**Action:** `mpu_clear_api_cache`
+
+---
+
+### mpu_test_weather_api (Admin)
+
+天気 API 接続をテスト。
+
+**Action:** `mpu_test_weather_api`
 
 ---
 
@@ -1198,19 +1250,19 @@ AI 初回訪問者挨拶。
 ```javascript
 // 設定オブジェクト
 window.mpuConfig = {
-    ajaxUrl: '/wp-admin/admin-ajax.php',
-    nonce: 'xxx',
-    currentUkagaka: 'default_1',
-    autoTalkInterval: 8000,
-    typewriterSpeed: 40
+  ajaxUrl: "/wp-admin/admin-ajax.php",
+  nonce: "xxx",
+  currentUkagaka: "default_1",
+  autoTalkInterval: 8000,
+  typewriterSpeed: 40,
 };
 
 // Canvas マネージャー
 window.mpuCanvasManager = {
-    init(shellInfo, name) {},
-    playAnimation() {},
-    stopAnimation() {},
-    isAnimationMode() {}
+  init(shellInfo, name) {},
+  playAnimation() {},
+  stopAnimation() {},
+  isAnimationMode() {},
 };
 ```
 
@@ -1224,7 +1276,7 @@ window.mpuCanvasManager = {
 /**
  * @param {string} mode - 'next' 順序 / 'random' ランダム / '' 設定値を使用
  */
-mpu_nextmsg('next');
+mpu_nextmsg("next");
 ```
 
 ---
@@ -1290,9 +1342,9 @@ mpuChange();
  * @param {string} options.color - テキスト色
  * @param {boolean} options.typewriter - タイプライター効果を使用するか
  */
-mpu_showMessage('ようこそ！', {
-    color: '#ff6b6b',
-    typewriter: true
+mpu_showMessage("ようこそ！", {
+  color: "#ff6b6b",
+  typewriter: true,
 });
 ```
 
@@ -1337,19 +1389,19 @@ mpu_pauseAutoTalk(10000); // 10 秒間一時停止
 
 ```javascript
 window.mpuSettings = {
-    ajaxUrl: '/wp-admin/admin-ajax.php',
-    nonce: 'xxx',
-    autoTalk: true,
-    autoTalkInterval: 8000,      // ミリ秒
-    typewriterSpeed: 40,          // ミリ秒/文字
-    clickBehavior: 0,             // 0=次へ, 1=操作なし
-    nextMode: 0,                  // 0=順序, 1=ランダム
-    aiEnabled: true,
-    aiTextColor: '#ff6b6b',
-    aiDisplayDuration: 8000,      // ミリ秒
-    aiGreetEnabled: true,
-    useExternalFile: false,
-    externalFileFormat: 'txt'
+  ajaxUrl: "/wp-admin/admin-ajax.php",
+  nonce: "xxx",
+  autoTalk: true,
+  autoTalkInterval: 8000, // ミリ秒
+  typewriterSpeed: 40, // ミリ秒/文字
+  clickBehavior: 0, // 0=次へ, 1=操作なし
+  nextMode: 0, // 0=順序, 1=ランダム
+  aiEnabled: true,
+  aiTextColor: "#ff6b6b",
+  aiDisplayDuration: 8000, // ミリ秒
+  aiGreetEnabled: true,
+  useExternalFile: false,
+  externalFileFormat: "txt",
 };
 ```
 

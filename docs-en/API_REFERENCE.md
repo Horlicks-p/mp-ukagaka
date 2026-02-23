@@ -192,8 +192,8 @@ if (is_wp_error($content)) {
 
 **Possible Errors:**
 
-| Error Code           | Description              |
-| -------------------- | ------------------------ |
+| Error Code         | Description              |
+| ------------------ | ------------------------ |
 | `file_not_found`   | File not found           |
 | `path_not_allowed` | Path not allowed to read |
 | `file_too_large`   | File too large to read   |
@@ -216,8 +216,8 @@ function mpu_secure_file_write(string $file_path, string $content)
 
 **Possible Errors:**
 
-| Error Code           | Description                |
-| -------------------- | -------------------------- |
+| Error Code         | Description                |
+| ------------------ | -------------------------- |
 | `mkdir_failed`     | Failed to create directory |
 | `path_not_allowed` | Path not allowed to write  |
 | `invalid_filename` | Invalid filename           |
@@ -331,11 +331,11 @@ function mpu_get_language_instruction(string $language): string
 
 **Return Values:**
 
-| Language Code | Return Value                   |
-| ------------- | ------------------------------ |
-| `zh-TW`     | `請用繁體中文回覆。`         |
-| `ja`        | `日本語で返答してください。` |
-| `en`        | `Please reply in English.`   |
+| Language Code | Return Value                 |
+| ------------- | ---------------------------- |
+| `zh-TW`       | `請用繁體中文回覆。`         |
+| `ja`          | `日本語で返答してください。` |
+| `en`          | `Please reply in English.`   |
 
 ---
 
@@ -616,10 +616,10 @@ $dialogue = mpu_generate_llm_dialogue('frieren', 'Last response', ['Response 1',
 
 **Available Filter Hooks (v2.5.7):**
 
-| Filter | Description | Parameters |
-|--------|-------------|------------|
-| `mpu_llm_system_prompt` | Modify System Prompt | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
-| `mpu_llm_user_prompt` | Inject additional context before conversation instructions | `$prompt`, `$ukagaka_name`, `$personality_id` |
+| Filter                  | Description                                                | Parameters                                                |
+| ----------------------- | ---------------------------------------------------------- | --------------------------------------------------------- |
+| `mpu_llm_system_prompt` | Modify System Prompt                                       | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
+| `mpu_llm_user_prompt`   | Inject additional context before conversation instructions | `$prompt`, `$ukagaka_name`, `$personality_id`             |
 
 **Usage Example (Security Alert Integration):**
 
@@ -1131,6 +1131,54 @@ add_action('mpu_settings_saved', function($mpu_opt) {
 
 ### Filters
 
+#### mpu_llm_system_prompt
+
+Filter LLM system prompt.
+
+```php
+add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personality_id, $context) {
+    return $prompt;
+}, 10, 4);
+```
+
+---
+
+#### mpu_llm_user_prompt
+
+Filter user chat prompt (inject additional context before instructions).
+
+```php
+add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
+    return $prompt;
+}, 10, 3);
+```
+
+---
+
+#### mpu_prompt_categories
+
+Filter prompt dialogue category definitions.
+
+```php
+add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_info, $time_context) {
+    return $categories;
+}, 10, 4);
+```
+
+---
+
+#### mpu_category_weights
+
+Filter random weight configuration for dialogue categories.
+
+```php
+add_filter('mpu_category_weights', function($weights, $time_context, $visitor_info, $context_vars) {
+    return $weights;
+}, 10, 4);
+```
+
+---
+
 #### mpu_options
 
 Filter settings.
@@ -1197,21 +1245,21 @@ Get next message.
 
 **Request Parameters:**
 
-| Parameter   | Type   | Description            |
-| ----------- | ------ | ---------------------- |
-| `ukagaka` | string | Ukagaka key            |
-| `current` | int    | Current message index  |
-| `mode`    | string | `next` or `random` |
+| Parameter | Type   | Description           |
+| --------- | ------ | --------------------- |
+| `ukagaka` | string | Ukagaka key           |
+| `current` | int    | Current message index |
+| `mode`    | string | `next` or `random`    |
 
 **Success Response:**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "msg": "Dialogue content",
-        "index": 1
-    }
+  "success": true,
+  "data": {
+    "msg": "Dialogue content",
+    "index": 1
+  }
 }
 ```
 
@@ -1225,20 +1273,20 @@ Switch Ukagaka.
 
 **Request Parameters:**
 
-| Parameter   | Type   | Description        |
-| ----------- | ------ | ------------------ |
+| Parameter | Type   | Description        |
+| --------- | ------ | ------------------ |
 | `ukagaka` | string | Target Ukagaka key |
 
 **Success Response:**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "name": "Frieren",
-        "shell": "https://.../frieren.png",
-        "messages": ["Dialog 1", "Dialog 2"]
-    }
+  "success": true,
+  "data": {
+    "name": "Frieren",
+    "shell": "https://.../frieren.png",
+    "messages": ["Dialog 1", "Dialog 2"]
+  }
 }
 ```
 
@@ -1254,13 +1302,13 @@ Get frontend settings.
 
 ```json
 {
-    "success": true,
-    "data": {
-        "autoTalk": true,
-        "autoTalkInterval": 8000,
-        "typewriterSpeed": 40,
-        "clickBehavior": 0
-    }
+  "success": true,
+  "data": {
+    "autoTalk": true,
+    "autoTalkInterval": 8000,
+    "typewriterSpeed": 40,
+    "clickBehavior": 0
+  }
 }
 ```
 
@@ -1311,34 +1359,34 @@ Load external dialogue file.
 
 **Request Parameters:**
 
-| Parameter    | Type   | Description         |
-| ------------ | ------ | ------------------- |
-| `filename` | string | Filename            |
+| Parameter  | Type   | Description     |
+| ---------- | ------ | --------------- |
+| `filename` | string | Filename        |
 | `format`   | string | `txt` or `json` |
 
 **Success Response:**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "messages": ["Dialog 1", "Dialog 2", "Dialog 3"]
-    }
+  "success": true,
+  "data": {
+    "messages": ["Dialog 1", "Dialog 2", "Dialog 3"]
+  }
 }
 ```
 
 ---
 
-### mpu_ai_context_chat
+### mpu_chat_context
 
 AI page awareness chat.
 
-**Action:** `mpu_ai_context_chat`
+**Action:** `mpu_chat_context`
 
 **Request Parameters:**
 
-| Parameter   | Type   | Description    |
-| ----------- | ------ | -------------- |
+| Parameter | Type   | Description    |
+| --------- | ------ | -------------- |
 | `title`   | string | Post Title     |
 | `content` | string | Post Content   |
 | `nonce`   | string | Security nonce |
@@ -1347,10 +1395,10 @@ AI page awareness chat.
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "AI Generated Comment"
-    }
+  "success": true,
+  "data": {
+    "message": "AI Generated Comment"
+  }
 }
 ```
 
@@ -1366,36 +1414,36 @@ Get visitor info (Requires Slimstat).
 
 | Parameter | Type   | Description    |
 | --------- | ------ | -------------- |
-| `nonce` | string | Security nonce |
+| `nonce`   | string | Security nonce |
 
 **Success Response:**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "country": "TW",
-        "city": "Taipei",
-        "referer": "https://google.com",
-        "searchterms": "Search terms",
-        "browser": "Chrome",
-        "platform": "Windows"
-    }
+  "success": true,
+  "data": {
+    "country": "TW",
+    "city": "Taipei",
+    "referer": "https://google.com",
+    "searchterms": "Search terms",
+    "browser": "Chrome",
+    "platform": "Windows"
+  }
 }
 ```
 
 ---
 
-### mpu_ai_greet
+### mpu_chat_greet
 
 AI first visitor greeting.
 
-**Action:** `mpu_ai_greet`
+**Action:** `mpu_chat_greet`
 
 **Request Parameters:**
 
-| Parameter        | Type   | Description    |
-| ---------------- | ------ | -------------- |
+| Parameter      | Type   | Description    |
+| -------------- | ------ | -------------- |
 | `visitor_info` | object | Visitor Info   |
 | `nonce`        | string | Security nonce |
 
@@ -1403,10 +1451,10 @@ AI first visitor greeting.
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "Welcome friend from Taiwan!"
-    }
+  "success": true,
+  "data": {
+    "message": "Welcome friend from Taiwan!"
+  }
 }
 ```
 
@@ -1420,8 +1468,8 @@ User interactive chat request. Process user input in interactive chat mode.
 
 **Request Parameters:**
 
-| Parameter   | Type   | Description                |
-| ----------- | ------ | -------------------------- |
+| Parameter | Type   | Description                |
+| --------- | ------ | -------------------------- |
 | `message` | string | User input message         |
 | `history` | array  | Conversation history array |
 | `nonce`   | string | Security nonce             |
@@ -1430,8 +1478,11 @@ User interactive chat request. Process user input in interactive chat mode.
 
 ```json
 [
-    {"role": "user", "content": "Hello"},
-    {"role": "assistant", "content": "Hello! What would you like to chat about?"}
+  { "role": "user", "content": "Hello" },
+  {
+    "role": "assistant",
+    "content": "Hello! What would you like to chat about?"
+  }
 ]
 ```
 
@@ -1439,10 +1490,10 @@ User interactive chat request. Process user input in interactive chat mode.
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "AI generated response"
-    }
+  "success": true,
+  "data": {
+    "message": "AI generated response"
+  }
 }
 ```
 
@@ -1456,8 +1507,8 @@ Decoration click dialogue request. Generate related dialogue when user clicks ch
 
 **Request Parameters:**
 
-| Parameter           | Type   | Description                                          |
-| ------------------- | ------ | ---------------------------------------------------- |
+| Parameter         | Type   | Description                                          |
+| ----------------- | ------ | ---------------------------------------------------- |
 | `decoration_type` | string | Decoration type (suitcase, evil_horns, staff, books) |
 | `nonce`           | string | Security nonce                                       |
 
@@ -1465,12 +1516,60 @@ Decoration click dialogue request. Generate related dialogue when user clicks ch
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "About this suitcase... it contains collected magic."
-    }
+  "success": true,
+  "data": {
+    "message": "About this suitcase... it contains collected magic."
+  }
 }
 ```
+
+---
+
+### mpu_touch_zone_chat (v2.3.0)
+
+Character touch zone click request. Generate touching reaction dialogue.
+
+**Action:** `mpu_touch_zone_chat`
+
+---
+
+### mpu_check_spam_event
+
+Akismet blocked spam comment event notification.
+
+**Action:** `mpu_check_spam_event`
+
+---
+
+### mpu_wake_ghost
+
+Manually wake up Ukagaka.
+
+**Action:** `mpu_wake_ghost`
+
+---
+
+### mpu_init
+
+Resources needed for frontend Ukagaka initialization.
+
+**Action:** `mpu_init`
+
+---
+
+### mpu_clear_api_cache (Admin)
+
+Clear all LLM API cache.
+
+**Action:** `mpu_clear_api_cache`
+
+---
+
+### mpu_test_weather_api (Admin)
+
+Test weather API connection.
+
+**Action:** `mpu_test_weather_api`
 
 ---
 
@@ -1486,7 +1585,7 @@ Show next message.
 /**
  * @param {string} mode - 'next' sequential / 'random' random / '' use setting
  */
-mpu_nextmsg('next');
+mpu_nextmsg("next");
 ```
 
 ---
@@ -1552,9 +1651,9 @@ Show specific message (with typewriter effect).
  * @param {string} options.color - Text color
  * @param {boolean} options.typewriter - Whether to use typewriter effect
  */
-mpu_showMessage('Welcome!', {
-    color: '#ff6b6b',
-    typewriter: true
+mpu_showMessage("Welcome!", {
+  color: "#ff6b6b",
+  typewriter: true,
 });
 ```
 
@@ -1599,19 +1698,19 @@ mpu_pauseAutoTalk(10000); // Pause for 10 seconds
 
 ```javascript
 window.mpuSettings = {
-    ajaxUrl: '/wp-admin/admin-ajax.php',
-    nonce: 'xxx',
-    autoTalk: true,
-    autoTalkInterval: 8000,      // ms
-    typewriterSpeed: 40,          // ms/char
-    clickBehavior: 0,             // 0=Next, 1=No Action
-    nextMode: 0,                  // 0=Sequential, 1=Random
-    aiEnabled: true,
-    aiTextColor: '#ff6b6b',
-    aiDisplayDuration: 8000,      // ms
-    aiGreetEnabled: true,
-    useExternalFile: false,
-    externalFileFormat: 'txt'
+  ajaxUrl: "/wp-admin/admin-ajax.php",
+  nonce: "xxx",
+  autoTalk: true,
+  autoTalkInterval: 8000, // ms
+  typewriterSpeed: 40, // ms/char
+  clickBehavior: 0, // 0=Next, 1=No Action
+  nextMode: 0, // 0=Sequential, 1=Random
+  aiEnabled: true,
+  aiTextColor: "#ff6b6b",
+  aiDisplayDuration: 8000, // ms
+  aiGreetEnabled: true,
+  useExternalFile: false,
+  externalFileFormat: "txt",
 };
 ```
 

@@ -88,17 +88,20 @@ mp-ukagaka/
 │   ├── options_page_ai.php     # AI settings page
 │   ├── options_page_llm.php    # LLM settings page (BETA)
 │   └── options_page_diary.php  # Diary settings page
-├── js/                     # Frontend JavaScript Modules
-│   ├── dist/                   # Build output directory (Production)
-│   │   ├── ukagaka-bundle.min.js   # Merged and minified core bundle
-│   │   └── ukagaka-textarearesizer.min.js  # Admin tool (minified)
-│   ├── ukagaka-base.js         # Base layer (Config + Utils + AJAX)
-│   ├── ukagaka-core.js         # Frontend core JS (Message display, switching, etc.)
-│   ├── ukagaka-features.js     # Frontend features JS (AI page awareness, greeting, etc.)
-│   ├── ukagaka-anime.js        # Canvas Animation Manager (Image Sequence Playback)
-│   ├── ukagaka-chat.js         # Chat functionality frontend (v2.3.0)
-│   ├── ukagaka-emoji.js        # Emoji config loader
-│   └── ukagaka-textarearesizer.js  # Admin textarea resizer
+│   ├── js/                     # Frontend JavaScript Modules
+│   │   ├── dist/                   # Build output directory (Production)
+│   │   │   ├── ukagaka-bundle.min.js   # Merged and minified core bundle
+│   │   │   └── ukagaka-textarearesizer.min.js  # Admin tool (minified)
+│   │   ├── ukagaka-base.js         # Base layer (Config + Utils + AJAX)
+│   │   ├── ukagaka-core.js         # Frontend core JS (Message display, switching, etc.)
+│   │   ├── ukagaka-features.js     # Frontend features JS (Settings configuration, event listening)
+│   │   ├── ukagaka-context.js      # Page-aware AI dialog functionality
+│   │   ├── ukagaka-greeting.js     # First visitor greeting functionality
+│   │   ├── ukagaka-chat.js         # Chat functionality frontend (Interactive chat mode)
+│   │   ├── ukagaka-dialog.js       # External dialog loading and fallback processing
+│   │   ├── ukagaka-anime.js        # Canvas Animation Manager (Image Sequence Playback)
+│   │   ├── ukagaka-emoji.js        # Emoji config loader
+│   │   └── ukagaka-textarearesizer.js  # Admin textarea resizer
 └── readme.txt              # WordPress plugin directory readme
 ```
 
@@ -158,10 +161,10 @@ $admin_modules = [
 
 ### Constant Definitions
 
-| Constant        | Description      | Value     |
-| --------------- | ---------------- | --------- |
-| `MPU_VERSION`   | Plugin Version   | `"2.5.6"` |
-| `MPU_MAIN_FILE` | Main File Path   | `__FILE__`|
+| Constant        | Description    | Value      |
+| --------------- | -------------- | ---------- |
+| `MPU_VERSION`   | Plugin Version | `"2.5.6"`  |
+| `MPU_MAIN_FILE` | Main File Path | `__FILE__` |
 
 ---
 
@@ -482,12 +485,12 @@ Each personality folder should contain:
 
 #### Supported AI Providers
 
-| Provider | Function                | API Endpoint                        | Model Selection                                   |
-| -------- | ----------------------- | ----------------------------------- | ------------------------------------------------- |
-| Gemini   | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | Supported (gemini-2.5-flash, gemini-2.5-pro, etc.)|
-| OpenAI   | `mpu_call_openai_api()` | `api.openai.com`                    | Supported (gpt-4o-mini, gpt-4o, etc.)             |
-| Claude   | `mpu_call_claude_api()` | `api.anthropic.com`                 | Supported (claude-sonnet-4-5-20250929, etc.)      |
-| Ollama   | `mpu_call_ollama_api()` | Local or Remote Ollama Service      | Supported (Any Ollama model)                      |
+| Provider | Function                | API Endpoint                        | Model Selection                                    |
+| -------- | ----------------------- | ----------------------------------- | -------------------------------------------------- |
+| Gemini   | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | Supported (gemini-2.5-flash, gemini-2.5-pro, etc.) |
+| OpenAI   | `mpu_call_openai_api()` | `api.openai.com`                    | Supported (gpt-4o-mini, gpt-4o, etc.)              |
+| Claude   | `mpu_call_claude_api()` | `api.anthropic.com`                 | Supported (claude-sonnet-4-5-20250929, etc.)       |
+| Ollama   | `mpu_call_ollama_api()` | Local or Remote Ollama Service      | Supported (Any Ollama model)                       |
 
 ### llm-functions.php (BETA)
 
@@ -550,11 +553,11 @@ function mpu_get_ollama_settings()
 
 #### Timeout Settings
 
-| Operation Type            | Local Connection | Remote Connection |
-| ------------------------- | ---------------- | ----------------- |
-| Service Check (`check`)   | 3s               | 10s               |
-| API Call (`api_call`)     | 60s              | 90s               |
-| Test Connection (`test`)  | 30s              | 45s               |
+| Operation Type           | Local Connection | Remote Connection |
+| ------------------------ | ---------------- | ----------------- |
+| Service Check (`check`)  | 3s               | 10s               |
+| API Call (`api_call`)    | 60s              | 90s               |
+| Test Connection (`test`) | 30s              | 45s               |
 
 #### Usage Example
 
@@ -878,20 +881,20 @@ $mpu_opt = [
     'insert_html' => 0,                 // HTML insert position
     'no_style' => false,                // No custom style
     'no_page' => '',                    // Exclude pages
-    
+
     // Auto Talk
     'auto_talk' => true,                // Enable auto talk
     'auto_talk_interval' => 8,          // Interval (seconds)
     'typewriter_speed' => 40,           // Typing speed (ms/char)
-    
+
     // External Dialogue Files
     'use_external_file' => true,        // Use external file (Fixed to true)
     'external_file_format' => 'txt',     // File format (txt/json)
-    
+
     // Session Settings
     'auto_msg' => '',                   // Fixed message
     'common_msg' => '',                 // Common dialogue
-    
+
     // AI Settings (Page Awareness)
     'ai_enabled' => false,              // Enable AI
     'ai_provider' => 'gemini',          // AI Provider (gemini/openai/claude/ollama)
@@ -909,18 +912,18 @@ $mpu_opt = [
     'ai_display_duration' => 8,         // Display Duration (seconds)
     'ai_greet_enabled' => false,        // First Visitor Greeting
     'ai_greet_prompt' => '',            // Greeting Prompt
-    
+
     // LLM Settings (BETA)
     'ollama_endpoint' => 'http://localhost:11434',  // Ollama Endpoint
     'ollama_model' => 'qwen3:8b',                   // Ollama Model
     'ollama_replace_dialogue' => false,              // Use LLM Replace Dialogue
     'ollama_disable_thinking' => true,               // Disable Thinking Mode
-    
+
     // Extensions
     'extend' => [
         'js_area' => '',                // Custom JavaScript
     ],
-    
+
     // Ukagaka List
     'ukagakas' => [
         'default_1' => [
@@ -1191,15 +1194,15 @@ AI first visitor greeting.
 ```javascript
 // Settings object
 window.mpuSettings = {
-    ajaxUrl: '/wp-admin/admin-ajax.php',
-    nonce: 'xxx',
-    autoTalk: true,
-    autoTalkInterval: 8000,
-    typewriterSpeed: 40,
-    aiEnabled: true,
-    aiTextColor: '#ff6b6b',
-    aiDisplayDuration: 8000,
-    // ...
+  ajaxUrl: "/wp-admin/admin-ajax.php",
+  nonce: "xxx",
+  autoTalk: true,
+  autoTalkInterval: 8000,
+  typewriterSpeed: 40,
+  aiEnabled: true,
+  aiTextColor: "#ff6b6b",
+  aiDisplayDuration: 8000,
+  // ...
 };
 ```
 
@@ -1245,24 +1248,26 @@ function mpuChange()
 function mpu_showMessage(message, options)
 ```
 
-### AI Feature Functions (ukagaka-features.js)
+### AI Feature Functions
+
+#### ukagaka-context.js
 
 ```javascript
 /**
- * Trigger AI page context
+ * AI Context Chat: Generate AI response based on current page content
  */
-function mpu_triggerAIContext()
+function mpu_chat_context()
+```
 
-/**
- * Trigger AI first visitor greeting
- */
-function mpu_triggerAIGreeting()
+#### ukagaka-greeting.js
 
+````javascript
 /**
- * Pause auto talk
- * @param {number} duration - Pause duration (ms)
+ * First Visitor Greeting: Generate personalized greeting based on visitor info
+ * @param {Object} settings - Settings object
+ * @returns {Promise}
  */
-function mpu_pauseAutoTalk(duration)
+function mpu_greet_first_visitor(settings)
 
 ### Canvas Animation Functions (ukagaka-anime.js)
 
@@ -1294,7 +1299,7 @@ window.mpuCanvasManager = {
      */
     isAnimationMode: function()
 };
-```
+````
 
 ---
 
@@ -1308,9 +1313,9 @@ window.mpuCanvasManager = {
 function mpu_call_newprovider_api($prompt, $system_prompt) {
     $mpu_opt = mpu_get_option();
     $api_key = mpu_decrypt_api_key($mpu_opt['newprovider_api_key']);
-    
+
     // API call logic...
-    
+
     return $response;
 }
 ```
@@ -1348,9 +1353,9 @@ add_action('wp_ajax_nopriv_mpu_custom_action', 'mpu_handle_custom_action');
 function mpu_handle_custom_action() {
     // Verify nonce
     check_ajax_referer('mpu_nonce', 'nonce');
-    
+
     // Logic...
-    
+
     wp_send_json_success(['data' => $result]);
 }
 ```
@@ -1395,7 +1400,7 @@ $current_ukagaka = $mpu_opt['cur_ukagaka'] ?? 'default_1';
 if (isset($mpu_opt['ukagakas'][$current_ukagaka])) {
     $ukagaka = $mpu_opt['ukagakas'][$current_ukagaka];
     $dialog_filename = $ukagaka['dialog_filename'] ?? $current_ukagaka;
-    
+
     // Read dialogue file
     if (function_exists('mpu_get_msg_from_file')) {
         $dialog_messages = mpu_get_msg_from_file($dialog_filename);
@@ -1524,12 +1529,14 @@ Your theme should dispatch the `mpu:spaReady` event after SPA navigation complet
 
 ```javascript
 // Dispatch after SPA navigation completes
-document.dispatchEvent(new CustomEvent('mpu:spaReady', {
+document.dispatchEvent(
+  new CustomEvent("mpu:spaReady", {
     detail: {
-        url: window.location.href,    // Optional: Current URL
-        title: document.title         // Optional: Page title
-    }
-}));
+      url: window.location.href, // Optional: Current URL
+      title: document.title, // Optional: Page title
+    },
+  }),
+);
 ```
 
 ### Plugin Response
@@ -1544,29 +1551,29 @@ The plugin listens for this event and will:
 
 ```javascript
 // SPA navigation example using History API
-document.addEventListener('click', function(e) {
-    const link = e.target.closest('a');
-    if (!link || link.target === '_blank') return;
-    
-    e.preventDefault();
-    
-    // Perform AJAX loading...
-    fetch(link.href)
-        .then(response => response.text())
-        .then(html => {
-            // Update page content
-            document.getElementById('content').innerHTML = html;
-            history.pushState({}, '', link.href);
-            
-            // Notify MP Ukagaka
-            document.dispatchEvent(new CustomEvent('mpu:spaReady'));
-        });
+document.addEventListener("click", function (e) {
+  const link = e.target.closest("a");
+  if (!link || link.target === "_blank") return;
+
+  e.preventDefault();
+
+  // Perform AJAX loading...
+  fetch(link.href)
+    .then((response) => response.text())
+    .then((html) => {
+      // Update page content
+      document.getElementById("content").innerHTML = html;
+      history.pushState({}, "", link.href);
+
+      // Notify MP Ukagaka
+      document.dispatchEvent(new CustomEvent("mpu:spaReady"));
+    });
 });
 
 // Handle browser back/forward
-window.addEventListener('popstate', function() {
-    // After loading page content...
-    document.dispatchEvent(new CustomEvent('mpu:spaReady'));
+window.addEventListener("popstate", function () {
+  // After loading page content...
+  document.dispatchEvent(new CustomEvent("mpu:spaReady"));
 });
 ```
 

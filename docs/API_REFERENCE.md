@@ -192,8 +192,8 @@ if (is_wp_error($content)) {
 
 **可能的錯誤：**
 
-| 錯誤代碼             | 說明               |
-| -------------------- | ------------------ |
+| 錯誤代碼           | 說明               |
+| ------------------ | ------------------ |
 | `file_not_found`   | 找不到指定的文件   |
 | `path_not_allowed` | 不允許讀取該路徑   |
 | `file_too_large`   | 文件過大，無法讀取 |
@@ -216,8 +216,8 @@ function mpu_secure_file_write(string $file_path, string $content)
 
 **可能的錯誤：**
 
-| 錯誤代碼             | 說明             |
-| -------------------- | ---------------- |
+| 錯誤代碼           | 說明             |
+| ------------------ | ---------------- |
 | `mkdir_failed`     | 無法創建目錄     |
 | `path_not_allowed` | 不允許寫入該路徑 |
 | `invalid_filename` | 不合法的文件名   |
@@ -431,11 +431,11 @@ function mpu_get_language_instruction(string $language): string
 
 **返回值：**
 
-| 語言代碼  | 返回值                         |
-| --------- | ------------------------------ |
-| `zh-TW` | `請用繁體中文回覆。`         |
-| `ja`    | `日本語で返答してください。` |
-| `en`    | `Please reply in English.`   |
+| 語言代碼 | 返回值                       |
+| -------- | ---------------------------- |
+| `zh-TW`  | `請用繁體中文回覆。`         |
+| `ja`     | `日本語で返答してください。` |
+| `en`     | `Please reply in English.`   |
 
 ---
 
@@ -773,10 +773,10 @@ $dialogue = mpu_generate_llm_dialogue('frieren', '上次的回應', ['回應1', 
 
 **可用的 Filter Hooks（v2.5.7）：**
 
-| Filter | 說明 | 參數 |
-|--------|------|------|
-| `mpu_llm_system_prompt` | 修改 System Prompt | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
-| `mpu_llm_user_prompt` | 在會話指示前注入額外上下文 | `$prompt`, `$ukagaka_name`, `$personality_id` |
+| Filter                  | 說明                       | 參數                                                      |
+| ----------------------- | -------------------------- | --------------------------------------------------------- |
+| `mpu_llm_system_prompt` | 修改 System Prompt         | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
+| `mpu_llm_user_prompt`   | 在會話指示前注入額外上下文 | `$prompt`, `$ukagaka_name`, `$personality_id`             |
 
 **使用範例（安全警報整合）：**
 
@@ -1216,8 +1216,8 @@ function mpu_get_decoration_prompt(string $decoration_type)
 
 **支援的裝飾物類型：**
 
-| 類型           | 說明                 |
-| -------------- | -------------------- |
+| 類型         | 說明                 |
+| ------------ | -------------------- |
 | `suitcase`   | 行李箱（魔法收藏箱） |
 | `evil_horns` | 惡魔角飾             |
 | `staff`      | 魔法杖               |
@@ -1403,6 +1403,54 @@ add_action('mpu_settings_saved', function($mpu_opt) {
 
 ### Filters
 
+#### mpu_llm_system_prompt
+
+過濾 LLM 系統提示詞。
+
+```php
+add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personality_id, $context) {
+    return $prompt;
+}, 10, 4);
+```
+
+---
+
+#### mpu_llm_user_prompt
+
+過濾用戶對話提示詞（在會話指示前注入額外上下文）。
+
+```php
+add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
+    return $prompt;
+}, 10, 3);
+```
+
+---
+
+#### mpu_prompt_categories
+
+過濾 Prompt 的對話類別定義。
+
+```php
+add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_info, $time_context) {
+    return $categories;
+}, 10, 4);
+```
+
+---
+
+#### mpu_category_weights
+
+過濾對話類別的隨機權重配置。
+
+```php
+add_filter('mpu_category_weights', function($weights, $time_context, $visitor_info, $context_vars) {
+    return $weights;
+}, 10, 4);
+```
+
+---
+
 #### mpu_options
 
 過濾設定值。
@@ -1469,21 +1517,21 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 **請求參數：**
 
-| 參數        | 類型   | 說明                   |
-| ----------- | ------ | ---------------------- |
-| `ukagaka` | string | 春菜鍵值               |
-| `current` | int    | 目前訊息索引           |
+| 參數      | 類型   | 說明               |
+| --------- | ------ | ------------------ |
+| `ukagaka` | string | 春菜鍵值           |
+| `current` | int    | 目前訊息索引       |
 | `mode`    | string | `next` 或 `random` |
 
 **成功回應：**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "msg": "對話內容",
-        "index": 1
-    }
+  "success": true,
+  "data": {
+    "msg": "對話內容",
+    "index": 1
+  }
 }
 ```
 
@@ -1497,20 +1545,20 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 **請求參數：**
 
-| 參數        | 類型   | 說明         |
-| ----------- | ------ | ------------ |
+| 參數      | 類型   | 說明         |
+| --------- | ------ | ------------ |
 | `ukagaka` | string | 目標春菜鍵值 |
 
 **成功回應：**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "name": "芙莉蓮",
-        "shell": "https://.../frieren.png",
-        "messages": ["對話1", "對話2"]
-    }
+  "success": true,
+  "data": {
+    "name": "芙莉蓮",
+    "shell": "https://.../frieren.png",
+    "messages": ["對話1", "對話2"]
+  }
 }
 ```
 
@@ -1526,13 +1574,13 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ```json
 {
-    "success": true,
-    "data": {
-        "autoTalk": true,
-        "autoTalkInterval": 8000,
-        "typewriterSpeed": 40,
-        "clickBehavior": 0
-    }
+  "success": true,
+  "data": {
+    "autoTalk": true,
+    "autoTalkInterval": 8000,
+    "typewriterSpeed": 40,
+    "clickBehavior": 0
+  }
 }
 ```
 
@@ -1546,8 +1594,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 **請求參數：**
 
-| 參數         | 類型   | 說明            |
-| ------------ | ------ | --------------- |
+| 參數       | 類型   | 說明            |
+| ---------- | ------ | --------------- |
 | `endpoint` | string | Ollama 端點 URL |
 | `model`    | string | 模型名稱        |
 | `nonce`    | string | WordPress nonce |
@@ -1567,8 +1615,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ```json
 {
-    "success": true,
-    "data": "連接成功（遠程連接），模型響應正常（預覽：Hello...）"
+  "success": true,
+  "data": "連接成功（遠程連接），模型響應正常（預覽：Hello...）"
 }
 ```
 
@@ -1576,8 +1624,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ```json
 {
-    "success": false,
-    "data": "連接失敗：無法連接到遠程 Ollama 服務..."
+  "success": false,
+  "data": "連接失敗：無法連接到遠程 Ollama 服務..."
 }
 ```
 
@@ -1591,8 +1639,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 **請求參數：**
 
-| 參數        | 類型   | 說明                                           |
-| ----------- | ------ | ---------------------------------------------- |
+| 參數      | 類型   | 說明                                           |
+| --------- | ------ | ---------------------------------------------- |
 | `api_key` | string | Gemini API Key（可選，如未提供則從設定中讀取） |
 | `model`   | string | 模型名稱（可選，如未提供則從設定中讀取）       |
 | `nonce`   | string | WordPress nonce                                |
@@ -1601,8 +1649,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ```json
 {
-    "success": true,
-    "data": "連接成功，API Key 有效"
+  "success": true,
+  "data": "連接成功，API Key 有效"
 }
 ```
 
@@ -1610,8 +1658,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ```json
 {
-    "success": false,
-    "data": "連接失敗：API Key 無效或網路錯誤"
+  "success": false,
+  "data": "連接失敗：API Key 無效或網路錯誤"
 }
 ```
 
@@ -1625,8 +1673,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 **請求參數：**
 
-| 參數        | 類型   | 說明                                           |
-| ----------- | ------ | ---------------------------------------------- |
+| 參數      | 類型   | 說明                                           |
+| --------- | ------ | ---------------------------------------------- |
 | `api_key` | string | OpenAI API Key（可選，如未提供則從設定中讀取） |
 | `model`   | string | 模型名稱（可選，如未提供則從設定中讀取）       |
 | `nonce`   | string | WordPress nonce                                |
@@ -1635,8 +1683,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ```json
 {
-    "success": true,
-    "data": "連接成功，API Key 有效"
+  "success": true,
+  "data": "連接成功，API Key 有效"
 }
 ```
 
@@ -1644,8 +1692,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ```json
 {
-    "success": false,
-    "data": "連接失敗：API Key 無效或網路錯誤"
+  "success": false,
+  "data": "連接失敗：API Key 無效或網路錯誤"
 }
 ```
 
@@ -1659,8 +1707,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 **請求參數：**
 
-| 參數        | 類型   | 說明                                           |
-| ----------- | ------ | ---------------------------------------------- |
+| 參數      | 類型   | 說明                                           |
+| --------- | ------ | ---------------------------------------------- |
 | `api_key` | string | Claude API Key（可選，如未提供則從設定中讀取） |
 | `model`   | string | 模型名稱（可選，如未提供則從設定中讀取）       |
 | `nonce`   | string | WordPress nonce                                |
@@ -1669,8 +1717,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ```json
 {
-    "success": true,
-    "data": "連接成功，API Key 有效"
+  "success": true,
+  "data": "連接成功，API Key 有效"
 }
 ```
 
@@ -1678,8 +1726,8 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 ```json
 {
-    "success": false,
-    "data": "連接失敗：API Key 無效或網路錯誤"
+  "success": false,
+  "data": "連接失敗：API Key 無效或網路錯誤"
 }
 ```
 
@@ -1693,34 +1741,34 @@ add_filter('mpu_ukagaka_html', function($html) {
 
 **請求參數：**
 
-| 參數         | 類型   | 說明                |
-| ------------ | ------ | ------------------- |
-| `filename` | string | 檔案名稱            |
+| 參數       | 類型   | 說明            |
+| ---------- | ------ | --------------- |
+| `filename` | string | 檔案名稱        |
 | `format`   | string | `txt` 或 `json` |
 
 **成功回應：**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "messages": ["對話1", "對話2", "對話3"]
-    }
+  "success": true,
+  "data": {
+    "messages": ["對話1", "對話2", "對話3"]
+  }
 }
 ```
 
 ---
 
-### mpu_ai_context_chat
+### mpu_chat_context
 
 AI 頁面感知對話。
 
-**Action:** `mpu_ai_context_chat`
+**Action:** `mpu_chat_context`
 
 **請求參數：**
 
-| 參數        | 類型   | 說明       |
-| ----------- | ------ | ---------- |
+| 參數      | 類型   | 說明       |
+| --------- | ------ | ---------- |
 | `title`   | string | 文章標題   |
 | `content` | string | 文章內容   |
 | `nonce`   | string | 安全驗證碼 |
@@ -1729,10 +1777,10 @@ AI 頁面感知對話。
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "AI 生成的評論"
-    }
+  "success": true,
+  "data": {
+    "message": "AI 生成的評論"
+  }
 }
 ```
 
@@ -1746,38 +1794,38 @@ AI 頁面感知對話。
 
 **請求參數：**
 
-| 參數      | 類型   | 說明       |
-| --------- | ------ | ---------- |
+| 參數    | 類型   | 說明       |
+| ------- | ------ | ---------- |
 | `nonce` | string | 安全驗證碼 |
 
 **成功回應：**
 
 ```json
 {
-    "success": true,
-    "data": {
-        "country": "TW",
-        "city": "Taipei",
-        "referer": "https://google.com",
-        "searchterms": "搜尋關鍵字",
-        "browser": "Chrome",
-        "platform": "Windows"
-    }
+  "success": true,
+  "data": {
+    "country": "TW",
+    "city": "Taipei",
+    "referer": "https://google.com",
+    "searchterms": "搜尋關鍵字",
+    "browser": "Chrome",
+    "platform": "Windows"
+  }
 }
 ```
 
 ---
 
-### mpu_ai_greet
+### mpu_chat_greet
 
 AI 首次訪客打招呼。
 
-**Action:** `mpu_ai_greet`
+**Action:** `mpu_chat_greet`
 
 **請求參數：**
 
-| 參數             | 類型   | 說明       |
-| ---------------- | ------ | ---------- |
+| 參數           | 類型   | 說明       |
+| -------------- | ------ | ---------- |
 | `visitor_info` | object | 訪客資訊   |
 | `nonce`        | string | 安全驗證碼 |
 
@@ -1785,10 +1833,10 @@ AI 首次訪客打招呼。
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "歡迎來自台灣的朋友！"
-    }
+  "success": true,
+  "data": {
+    "message": "歡迎來自台灣的朋友！"
+  }
 }
 ```
 
@@ -1802,8 +1850,8 @@ AI 首次訪客打招呼。
 
 **請求參數：**
 
-| 參數        | 類型   | 說明           |
-| ----------- | ------ | -------------- |
+| 參數      | 類型   | 說明           |
+| --------- | ------ | -------------- |
 | `message` | string | 用戶輸入的訊息 |
 | `history` | array  | 對話歷史陣列   |
 | `nonce`   | string | 安全驗證碼     |
@@ -1812,8 +1860,8 @@ AI 首次訪客打招呼。
 
 ```json
 [
-    {"role": "user", "content": "你好"},
-    {"role": "assistant", "content": "你好！有什麼想聊的嗎？"}
+  { "role": "user", "content": "你好" },
+  { "role": "assistant", "content": "你好！有什麼想聊的嗎？" }
 ]
 ```
 
@@ -1821,10 +1869,10 @@ AI 首次訪客打招呼。
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "AI 生成的回應"
-    }
+  "success": true,
+  "data": {
+    "message": "AI 生成的回應"
+  }
 }
 ```
 
@@ -1838,8 +1886,8 @@ AI 首次訪客打招呼。
 
 **請求參數：**
 
-| 參數                | 類型   | 說明                                             |
-| ------------------- | ------ | ------------------------------------------------ |
+| 參數              | 類型   | 說明                                             |
+| ----------------- | ------ | ------------------------------------------------ |
 | `decoration_type` | string | 裝飾物類型（suitcase, evil_horns, staff, books） |
 | `nonce`           | string | 安全驗證碼                                       |
 
@@ -1847,12 +1895,60 @@ AI 首次訪客打招呼。
 
 ```json
 {
-    "success": true,
-    "data": {
-        "message": "關於這個行李箱...裡面裝的都是收集的魔法。"
-    }
+  "success": true,
+  "data": {
+    "message": "關於這個行李箱...裡面裝的都是收集的魔法。"
+  }
 }
 ```
+
+---
+
+### mpu_touch_zone_chat (v2.3.0)
+
+角色點擊撫摸區塊請求。產生撫摸反應對話。
+
+**Action:** `mpu_touch_zone_chat`
+
+---
+
+### mpu_check_spam_event
+
+Akismet 阻擋垃圾留言事件通知。
+
+**Action:** `mpu_check_spam_event`
+
+---
+
+### mpu_wake_ghost
+
+手動喚醒春菜。
+
+**Action:** `mpu_wake_ghost`
+
+---
+
+### mpu_init
+
+前端春菜初始化所需資源。
+
+**Action:** `mpu_init`
+
+---
+
+### mpu_clear_api_cache (Admin)
+
+清空 LLM API 快取。
+
+**Action:** `mpu_clear_api_cache`
+
+---
+
+### mpu_test_weather_api (Admin)
+
+測試天氣 API 連線。
+
+**Action:** `mpu_test_weather_api`
 
 ---
 
@@ -1868,7 +1964,7 @@ AI 首次訪客打招呼。
 /**
  * @param {string} mode - 'next' 順序 / 'random' 隨機 / '' 使用設定值
  */
-mpu_nextmsg('next');
+mpu_nextmsg("next");
 ```
 
 ---
@@ -1934,9 +2030,9 @@ mpuChange();
  * @param {string} options.color - 文字顏色
  * @param {boolean} options.typewriter - 是否使用打字效果
  */
-mpu_showMessage('歡迎光臨！', {
-    color: '#ff6b6b',
-    typewriter: true
+mpu_showMessage("歡迎光臨！", {
+  color: "#ff6b6b",
+  typewriter: true,
 });
 ```
 
@@ -1981,19 +2077,19 @@ mpu_pauseAutoTalk(10000); // 暫停 10 秒
 
 ```javascript
 window.mpuSettings = {
-    ajaxUrl: '/wp-admin/admin-ajax.php',
-    nonce: 'xxx',
-    autoTalk: true,
-    autoTalkInterval: 8000,      // 毫秒
-    typewriterSpeed: 40,          // 毫秒/字
-    clickBehavior: 0,             // 0=下一條, 1=無操作
-    nextMode: 0,                  // 0=順序, 1=隨機
-    aiEnabled: true,
-    aiTextColor: '#ff6b6b',
-    aiDisplayDuration: 8000,      // 毫秒
-    aiGreetEnabled: true,
-    useExternalFile: false,
-    externalFileFormat: 'txt'
+  ajaxUrl: "/wp-admin/admin-ajax.php",
+  nonce: "xxx",
+  autoTalk: true,
+  autoTalkInterval: 8000, // 毫秒
+  typewriterSpeed: 40, // 毫秒/字
+  clickBehavior: 0, // 0=下一條, 1=無操作
+  nextMode: 0, // 0=順序, 1=隨機
+  aiEnabled: true,
+  aiTextColor: "#ff6b6b",
+  aiDisplayDuration: 8000, // 毫秒
+  aiGreetEnabled: true,
+  useExternalFile: false,
+  externalFileFormat: "txt",
 };
 ```
 

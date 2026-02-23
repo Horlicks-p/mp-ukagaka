@@ -89,17 +89,20 @@ mp-ukagaka/
 │   ├── options_page_ai.php     # AI 機能設定ページ
 │   ├── options_page_llm.php    # LLM 機能設定ページ（BETA）
 │   └── options_page_diary.php  # 日記機能設定ページ
-├── js/                     # フロントエンド JavaScript モジュール
-│   ├── dist/                   # ビルド出力ディレクトリ（本番用）
-│   │   ├── ukagaka-bundle.min.js   # 結合・圧縮されたコアバンドル
-│   │   └── ukagaka-textarearesizer.min.js  # 管理画面ツール（圧縮版）
-│   ├── ukagaka-base.js         # 基盤層（設定 + ユーティリティ + AJAX）
-│   ├── ukagaka-core.js         # フロントエンドコア JS（メッセージ表示、伺か切り替えなど）
-│   ├── ukagaka-features.js     # フロントエンド機能 JS（AI ページ感知、初回訪問者挨拶など）
-│   ├── ukagaka-anime.js        # Canvas アニメーションマネージャー（画像シーケンス再生）
-│   ├── ukagaka-chat.js         # チャット機能フロントエンド（v2.3.0）
-│   ├── ukagaka-emoji.js        # 表情設定ローダー
-│   └── ukagaka-textarearesizer.js  # 管理画面テキストエリアリサイザー
+│   ├── js/                     # フロントエンド JavaScript モジュール
+│   │   ├── dist/                   # ビルド出力ディレクトリ（本番用）
+│   │   │   ├── ukagaka-bundle.min.js   # 結合・圧縮されたコアバンドル
+│   │   │   └── ukagaka-textarearesizer.min.js  # 管理画面ツール（圧縮版）
+│   │   ├── ukagaka-base.js         # 基盤層（設定 + ユーティリティ + AJAX）
+│   │   ├── ukagaka-core.js         # フロントエンドコア JS（メッセージ表示、伺か切り替えなど）
+│   │   ├── ukagaka-features.js     # フロントエンド機能 JS（設定配置、イベント監視）
+│   │   ├── ukagaka-context.js      # ページコンテキスト AI ダイアログ機能
+│   │   ├── ukagaka-greeting.js     # 初回訪問者挨拶機能
+│   │   ├── ukagaka-chat.js         # チャット機能フロントエンド（インタラクティブチャット、v2.3.0）
+│   │   ├── ukagaka-dialog.js       # 外部ダイアログの読み込みとフォールバック処理
+│   │   ├── ukagaka-anime.js        # Canvas アニメーションマネージャー（画像シーケンス再生）
+│   │   ├── ukagaka-emoji.js        # 表情設定ローダー
+│   │   └── ukagaka-textarearesizer.js  # 管理画面テキストエリアリサイザー
 └── readme.txt              # WordPress プラグインディレクトリ説明ファイル
 ```
 
@@ -161,7 +164,7 @@ $admin_modules = [
 
 | 定数            | 説明                 | 値         |
 | --------------- | -------------------- | ---------- |
-| `MPU_VERSION`   | プラグインバージョン   | `"2.5.6"`  |
+| `MPU_VERSION`   | プラグインバージョン | `"2.5.6"`  |
 | `MPU_MAIN_FILE` | メインファイルパス   | `__FILE__` |
 
 ---
@@ -301,6 +304,7 @@ function mpu_load_personality_emoji_keywords($personality_id = null): array
 - **emoji-keywords.json**（オプション，v2.4.0）：表情トリガーキーワード
   - `mappings`：表情タイプとキーワードのマッピング
   - フォーマット例：
+
     ```json
     {
       "mappings": {
@@ -421,11 +425,11 @@ AI 機能モジュール、クラウド AI API 呼び出し（Gemini、OpenAI、
 
 #### サポートされている AI プロバイダー
 
-| プロバイダー | 関数                    | API エンドポイント                  | モデル選択 |
-| ------------ | ----------------------- | ----------------------------------- | ---------- |
-| Gemini       | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | サポート   |
-| OpenAI       | `mpu_call_openai_api()` | `api.openai.com`                    | サポート   |
-| Claude       | `mpu_call_claude_api()` | `api.anthropic.com`                 | サポート   |
+| プロバイダー | 関数                    | API エンドポイント                     | モデル選択 |
+| ------------ | ----------------------- | -------------------------------------- | ---------- |
+| Gemini       | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com`    | サポート   |
+| OpenAI       | `mpu_call_openai_api()` | `api.openai.com`                       | サポート   |
+| Claude       | `mpu_call_claude_api()` | `api.anthropic.com`                    | サポート   |
 | Ollama       | `mpu_call_ollama_api()` | ローカルまたはリモート Ollama サービス | サポート   |
 
 ### llm-functions.php (BETA)
@@ -436,11 +440,11 @@ LLM 機能モジュール、Ollama ローカル LLM 統合を専門に処理。
 
 #### タイムアウト設定
 
-| 操作タイプ                    | ローカル接続 | リモート接続 |
-| --------------------------- | ------------ | ------------ |
-| サービスチェック (`check`)   | 3 秒         | 10 秒        |
-| API 呼び出し (`api_call`)   | 60 秒        | 90 秒        |
-| 接続テスト (`test`)         | 30 秒        | 45 秒        |
+| 操作タイプ                 | ローカル接続 | リモート接続 |
+| -------------------------- | ------------ | ------------ |
+| サービスチェック (`check`) | 3 秒         | 10 秒        |
+| API 呼び出し (`api_call`)  | 60 秒        | 90 秒        |
+| 接続テスト (`test`)        | 30 秒        | 45 秒        |
 
 ### diary-functions.php (v2.5.0)
 
@@ -697,16 +701,16 @@ $mpu_opt = [
     'default_msg' => 0,                 // 0=ランダム, 1=最初の一つ
     'next_msg' => 0,                    // 0=順序, 1=ランダム
     'click_ukagaka' => 0,               // 0=次へ, 1=何もしない
-    
+
     // 自動ダイアログ
     'auto_talk' => true,                // 自動ダイアログを有効化
     'auto_talk_interval' => 8,          // 自動ダイアログ間隔（秒）
     'typewriter_speed' => 40,           // タイプ速度（ミリ秒/文字）
-    
+
     // 外部ダイアログファイル
     'use_external_file' => true,        // 外部ファイルを使用
     'external_file_format' => 'txt',     // ファイル形式（txt/json）
-    
+
     // AI 設定（ページ感知機能）
     'ai_enabled' => false,              // AI を有効化
     'ai_provider' => 'gemini',          // AI プロバイダー
@@ -721,13 +725,13 @@ $mpu_opt = [
     'ai_probability' => 10,             // AI トリガー確率（0-100）
     'ai_trigger_pages' => 'is_single',  // トリガーページ条件
     'ai_display_duration' => 8,         // AI 表示時間（秒）
-    
+
     // LLM 設定 (BETA)
     'ollama_endpoint' => 'http://localhost:11434',  // Ollama エンドポイント
     'ollama_model' => 'qwen3:8b',                   // Ollama モデル
     'ollama_replace_dialogue' => false,              // LLM で内蔵ダイアログを置換
     'ollama_disable_thinking' => true,               // 思考モードを無効化
-    
+
     // 伺かリスト
     'ukagakas' => [
         'default_1' => [
@@ -797,27 +801,27 @@ $response = apply_filters('mpu_ai_response', $response, $provider);
 
 ## AJAX エンドポイント
 
-### 公開エンドポイント（wp_ajax_nopriv_*）
+### 公開エンドポイント（wp*ajax_nopriv*\*）
 
-| アクション               | 説明                 | パラメータ                   |
-| ---------------------- | -------------------- | -------------------------- |
-| `mpu_nextmsg`          | 次のメッセージを取得 | `cur_num`, `cur_msgnum`    |
-| `mpu_extend`           | 拡張機能を実行       | 状況による                 |
-| `mpu_change`           | 伺かを切り替え       | `new_num`                  |
-| `mpu_get_settings`     | 設定を取得           | なし                       |
-| `mpu_load_dialog`      | ダイアログファイルを読み込み | `filename`, `format`       |
-| `mpu_chat_context`     | AI ページ感知       | `post_content`, `post_title` |
-| `mpu_get_visitor_info` | 訪問者情報を取得     | なし                       |
-| `mpu_chat_greet`       | 初回訪問者挨拶       | `visitor_info`             |
+| アクション             | 説明                         | パラメータ                   |
+| ---------------------- | ---------------------------- | ---------------------------- |
+| `mpu_nextmsg`          | 次のメッセージを取得         | `cur_num`, `cur_msgnum`      |
+| `mpu_extend`           | 拡張機能を実行               | 状況による                   |
+| `mpu_change`           | 伺かを切り替え               | `new_num`                    |
+| `mpu_get_settings`     | 設定を取得                   | なし                         |
+| `mpu_load_dialog`      | ダイアログファイルを読み込み | `filename`, `format`         |
+| `mpu_chat_context`     | AI ページ感知                | `post_content`, `post_title` |
+| `mpu_get_visitor_info` | 訪問者情報を取得             | なし                         |
+| `mpu_chat_greet`       | 初回訪問者挨拶               | `visitor_info`               |
 
-### 管理画面エンドポイント（wp_ajax_*）
+### 管理画面エンドポイント（wp*ajax*\*）
 
-| アクション            | 説明               |
-| ------------------- | ------------------ |
-| `mpu_test_ollama`   | Ollama 接続テスト   |
-| `mpu_test_gemini`   | Gemini 接続テスト   |
-| `mpu_test_openai`   | OpenAI 接続テスト   |
-| `mpu_test_claude`   | Claude 接続テスト   |
+| アクション        | 説明              |
+| ----------------- | ----------------- |
+| `mpu_test_ollama` | Ollama 接続テスト |
+| `mpu_test_gemini` | Gemini 接続テスト |
+| `mpu_test_openai` | OpenAI 接続テスト |
+| `mpu_test_claude` | Claude 接続テスト |
 
 ---
 
@@ -828,21 +832,21 @@ $response = apply_filters('mpu_ai_response', $response, $provider);
 ```javascript
 // 設定オブジェクト
 window.mpuConfig = {
-    ajaxUrl: '/wp-admin/admin-ajax.php',
-    nonce: 'xxx',
-    currentUkagaka: 'default_1',
-    autoTalkInterval: 8000,
-    typewriterSpeed: 40,
-    // ...
+  ajaxUrl: "/wp-admin/admin-ajax.php",
+  nonce: "xxx",
+  currentUkagaka: "default_1",
+  autoTalkInterval: 8000,
+  typewriterSpeed: 40,
+  // ...
 };
 
 // Canvas マネージャー
 window.mpuCanvasManager = {
-    init(shellInfo, name) {},
-    playAnimation() {},
-    stopAnimation() {},
-    isAnimationMode() {},
-    // ...
+  init(shellInfo, name) {},
+  playAnimation() {},
+  stopAnimation() {},
+  isAnimationMode() {},
+  // ...
 };
 ```
 
@@ -858,11 +862,11 @@ mpuChange(newUkagakaKey);
 // 次のメッセージを取得
 mpuNextMsg();
 
-// AI ページ感知を実行
-mpuChatContext(postContent, postTitle);
+// AI ページ感知を実行（ukagaka-context.js）
+mpu_chat_context();
 
-// 初回訪問者に挨拶
-mpuGreetFirstVisitor();
+// 初回訪問者に挨拶（ukagaka-greeting.js）
+mpu_greet_first_visitor(settings);
 ```
 
 ---
@@ -889,9 +893,9 @@ function mpu_call_newprovider_api($api_key, $model, $system_prompt, $user_prompt
 // includes/ajax-handlers.php に追加
 function mpu_ajax_custom_action() {
     check_ajax_referer('mpu_nonce', 'nonce');
-    
+
     // ロジックを実装
-    
+
     wp_send_json_success(['data' => $result]);
 }
 add_action('wp_ajax_mpu_custom_action', 'mpu_ajax_custom_action');
@@ -956,12 +960,14 @@ MP Ukagaka は SPA ナビゲーションをサポートしています。テー�
 
 ```javascript
 // SPA ナビゲーション完了後にディスパッチ
-document.dispatchEvent(new CustomEvent('mpu:spaReady', {
+document.dispatchEvent(
+  new CustomEvent("mpu:spaReady", {
     detail: {
-        url: window.location.href,    // オプション：現在の URL
-        title: document.title         // オプション：ページタイトル
-    }
-}));
+      url: window.location.href, // オプション：現在の URL
+      title: document.title, // オプション：ページタイトル
+    },
+  }),
+);
 ```
 
 ### プラグインの応答
@@ -976,29 +982,29 @@ document.dispatchEvent(new CustomEvent('mpu:spaReady', {
 
 ```javascript
 // History API を使用した SPA ナビゲーション例
-document.addEventListener('click', function(e) {
-    const link = e.target.closest('a');
-    if (!link || link.target === '_blank') return;
-    
-    e.preventDefault();
-    
-    // AJAX 読み込みを実行...
-    fetch(link.href)
-        .then(response => response.text())
-        .then(html => {
-            // ページコンテンツを更新
-            document.getElementById('content').innerHTML = html;
-            history.pushState({}, '', link.href);
-            
-            // MP Ukagaka に通知
-            document.dispatchEvent(new CustomEvent('mpu:spaReady'));
-        });
+document.addEventListener("click", function (e) {
+  const link = e.target.closest("a");
+  if (!link || link.target === "_blank") return;
+
+  e.preventDefault();
+
+  // AJAX 読み込みを実行...
+  fetch(link.href)
+    .then((response) => response.text())
+    .then((html) => {
+      // ページコンテンツを更新
+      document.getElementById("content").innerHTML = html;
+      history.pushState({}, "", link.href);
+
+      // MP Ukagaka に通知
+      document.dispatchEvent(new CustomEvent("mpu:spaReady"));
+    });
 });
 
 // ブラウザの戻る/進むを処理
-window.addEventListener('popstate', function() {
-    // ページコンテンツ読み込み後...
-    document.dispatchEvent(new CustomEvent('mpu:spaReady'));
+window.addEventListener("popstate", function () {
+  // ページコンテンツ読み込み後...
+  document.dispatchEvent(new CustomEvent("mpu:spaReady"));
 });
 ```
 
