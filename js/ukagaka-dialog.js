@@ -9,15 +9,10 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   const pure = (file || "").replace(/^.*[\\/]/, "");
 
   const params = new URLSearchParams({
-    action: "mpu_load_dialog",
     file: pure,
   });
 
-  if (typeof mpuNonce !== "undefined") {
-    params.append("mpu_nonce", mpuNonce);
-  }
-
-  const url = `${mpuurl}?${params.toString()}`;
+  const url = `${mpuRestUrl}dialog?${params.toString()}`;
 
   document.body.style.cursor = "wait";
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);

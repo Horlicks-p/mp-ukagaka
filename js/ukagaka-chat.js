@@ -277,10 +277,6 @@ function mpu_sendUserMessage() {
 
   // 發送 AJAX 請求
   const formData = new FormData();
-  formData.append("action", "mpu_user_chat");
-  if (typeof mpuNonce !== "undefined" && mpuNonce) {
-    formData.append("mpu_nonce", mpuNonce);
-  }
   formData.append("message", message);
   formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
   // 新增：傳送頁面資訊
@@ -290,7 +286,7 @@ function mpu_sendUserMessage() {
     (pageContext.content || "").substring(0, 2000),
   ); // 裁切節省 Token
 
-  mpuFetch(mpuurl, {
+  mpuFetch(mpuRestUrl + "chat/user", {
     method: "POST",
     body: formData,
     timeout: 60000,
@@ -543,19 +539,15 @@ function mpu_send_wake_up_request() {
   }
 
   // 發送喚醒請求
-  var wakeParams = new URLSearchParams({ action: "mpu_wake_ghost" });
+  var wakeFormData = new FormData();
   if (personalityId) {
-    wakeParams.append("personality_id", personalityId);
+    wakeFormData.append("personality_id", personalityId);
   }
   if (ukagakaNum) {
-    wakeParams.append("ukagaka_num", ukagakaNum);
+    wakeFormData.append("ukagaka_num", ukagakaNum);
   }
-  if (typeof mpuNonce !== "undefined") {
-    wakeParams.append("mpu_nonce", mpuNonce);
-  }
-  var wakeUrl = mpuurl + "?" + wakeParams.toString();
 
-  mpuFetch(wakeUrl, { timeout: 5000 })
+  mpuFetch(mpuRestUrl + "wake-ghost", { method: "POST", body: wakeFormData, timeout: 5000 })
     .then(function (res) {
       if (res && res.success) {
         if (typeof mpuLogger !== "undefined") {

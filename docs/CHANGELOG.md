@@ -6,6 +6,20 @@
 
 ---
 
+## [2.9.0] - 2026-02-23
+
+### 🚀 重大更新：REST API 全面遷移 (REST API Migration)
+
+- **後端架構重構**：將所有 AJAX 端點從傳統的 `admin-ajax.php` 全面遷移至現代化的 **WordPress REST API** (`wp-json/mp-ukagaka/v1/`)。
+- **模組化路由**：將單一的 AJAX 處理中樞拆分為多個模組化的 REST 控制器（如 `rest-init.php`, `rest-core.php`, `rest-chat.php`, `rest-touch.php` 等），大幅提升程式碼維護性與可讀性。
+- **安全性升級**：
+  - 登入驗證全面改用原生的 `X-WP-Nonce` header，並結合 `permission_callback`。
+  - 嚴格綁定 `GET` (唯讀) 與 `POST` (狀態修改) 請求方法，防止未授權的狀態變更。
+- **標準化錯誤處理**：全面採用 `WP_Error` 搭配原生 HTTP 狀態碼 (400, 401, 403, 429) 回應，前端更精確解析錯誤。
+- **速率限制 (Rate Limit) 優化**：新增專屬於 REST 的速率限制機制 (`mpu_rest_check_rate_limit`)，超限時會回傳標準的 HTTP 429 及 `Retry-After` header。
+- **Cookie 處理除錯**：修正 REST 脈絡中直接呼叫 `setcookie()` 的不穩定問題，改由 `WP_REST_Response::header` 安全派發 Cookie。
+- **前端重構**：所有 JavaScript AJAX 呼叫 (透過 `mpuFetch`) 已完全去耦合 `admin-ajax.php`，統一改為請求 REST API，並精準處理 5xx 等網路重試邏輯。
+
 ## [2.8.3] - 2026-02-21
 
 ### 🚀 效能優化與架構重構 (Performance & Refactoring)

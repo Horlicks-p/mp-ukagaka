@@ -55,21 +55,24 @@ function mpu_on_akismet_spam_caught()
  * 前端在 auto_talk 計時器觸發時會呼叫此端點。
  * 事件在被消費後會被清除（一次性反應）。
  */
-function mpu_ajax_check_spam_event()
+/**
+ * REST Callback: Check Spam Event
+ */
+function mpu_rest_check_spam_event( WP_REST_Request $request )
 {
     // 速率限制 - 20次/分鐘（跟隨 auto_talk 頻率）
-    if (function_exists('mpu_enforce_rate_limit')) {
-        mpu_enforce_rate_limit('check_spam_event', 20, 60);
+    if (function_exists('mpu_rest_check_rate_limit')) {
+        $rl = mpu_rest_check_rate_limit('check_spam_event', 20, 60);
+        if ($rl !== null) return $rl;
     }
 
     $is_llm_enabled = function_exists('mpu_is_llm_replace_dialogue_enabled')
         && mpu_is_llm_replace_dialogue_enabled();
 
     if (!$is_llm_enabled) {
-        wp_send_json([
+        return new WP_REST_Response([
             'has_event' => false
-        ]);
-        return;
+        ], 200);
     }
 
     // Turnstile 結界檢查（最優先）
@@ -91,13 +94,12 @@ function mpu_ajax_check_spam_event()
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Turnstile Integration: 結界防禦反應觸發，撞擊數量: ' . $count . '（冷卻 30 分鐘）');
             }
-            wp_send_json([
+            return new WP_REST_Response([
                 'has_event' => true,
                 'msg' => $message,
                 'action' => 'turnstile_block',
                 'block_count' => $count,
-            ]);
-            return;
+            ], 200);
         }
         // LLM 生成失敗 → 不阻擋，繼續往下檢查
         if (function_exists('mpu_debug_log')) {
@@ -122,13 +124,12 @@ function mpu_ajax_check_spam_event()
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Akismet Integration: 垃圾留言反應觸發，攔截數量: ' . $count . '（冷卻 30 分鐘）');
             }
-            wp_send_json([
+            return new WP_REST_Response([
                 'has_event' => true,
                 'msg' => $message,
                 'action' => 'spam_alert',
                 'spam_count' => $count,
-            ]);
-            return;
+            ], 200);
         }
         // LLM 生成失敗 → 不阻擋，繼續往下檢查 Bot
         if (function_exists('mpu_debug_log')) {
@@ -156,13 +157,12 @@ function mpu_ajax_check_spam_event()
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Moelog Bot Blocker: 防禦魔法反應觸發，攔截數量: ' . $count . '（冷卻 30 分鐘）');
             }
-            wp_send_json([
+            return new WP_REST_Response([
                 'has_event' => true,
                 'msg' => $message,
                 'action' => 'bot_blocker_alert',
                 'block_count' => $count,
-            ]);
-            return;
+            ], 200);
         }
         if (function_exists('mpu_debug_log')) {
             mpu_debug_log('Moelog Bot Blocker: LLM 生成失敗，跳過反應');
@@ -184,23 +184,29 @@ function mpu_ajax_check_spam_event()
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Bot Alert: 偵測到 Bot (' . $bot_name . ')，觸發警報反應');
             }
-            wp_send_json([
+            return new WP_REST_Response([
                 'has_event' => true,
                 'msg' => $message,
                 'action' => 'bot_alert',
                 'bot_name' => $bot_name,
-            ]);
-            return;
+            ], 200);
         }
     }
 
 
-    wp_send_json([
+    return new WP_REST_Response([
         'has_event' => false
-    ]);
+    ], 200);
 }
-add_action('wp_ajax_mpu_check_spam_event', 'mpu_ajax_check_spam_event');
-add_action('wp_ajax_nopriv_mpu_check_spam_event', 'mpu_ajax_check_spam_event');
+
+function mpu_register_akismet_rest_routes() {
+    register_rest_route('mp-ukagaka/v1', '/check-spam-event', array(
+        'methods'             => WP_REST_Server::CREATABLE,
+        'callback'            => 'mpu_rest_check_spam_event',
+        'permission_callback' => '__return_true',
+    ));
+}
+add_action('rest_api_init', 'mpu_register_akismet_rest_routes');
 
 /**
  * 使用 LLM 生成垃圾留言反應台詞

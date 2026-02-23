@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-02-22T12:29:35.784Z
+ * Generated: 2026-02-23T13:01:15.242Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -776,6 +776,15 @@ async function mpuFetch(url, options = {}) {
         signal: controller.signal
     };
 
+    // 自動注入 REST API Nonce
+    if (typeof mpuRestUrl !== 'undefined' && url.startsWith(mpuRestUrl) && typeof mpuRestNonce !== 'undefined') {
+        fetchOptions.headers = fetchOptions.headers || {};
+        // 只有在未手動設定 X-WP-Nonce 時才注入
+        if (!fetchOptions.headers['X-WP-Nonce']) {
+            fetchOptions.headers['X-WP-Nonce'] = mpuRestNonce;
+        }
+    }
+
     let lastError = null;
     for (let attempt = 0; attempt <= config.retries; attempt++) {
         try {
@@ -795,10 +804,20 @@ async function mpuFetch(url, options = {}) {
             }
 
             if (!response.ok) {
-                if (attempt === config.retries) {
-                    throw new Error(`Network response was not ok: ${response.statusText} (${response.status})`);
+                // 嘗試解析 WP REST API 的錯誤訊息（WP_Error 格式：{ code, message, data }）
+                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                try {
+                    const errBody = await response.json();
+                    if (errBody && errBody.message) {
+                        errorMessage = errBody.message;
+                    }
+                } catch (_) {}
+                // 4xx 是客戶端錯誤（含 429 rate limit），不重試；僅 5xx 才值得重試
+                const shouldRetry = response.status >= 500;
+                if (!shouldRetry || attempt === config.retries) {
+                    throw new Error(errorMessage);
                 }
-                lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+                lastError = new Error(errorMessage);
                 continue;
             }
 
@@ -1223,9 +1242,8 @@ function mpuMoe(command) {
  */
 function mpu_checkSpamEvent(callback) {
   const formData = new FormData();
-  formData.append("action", "mpu_check_spam_event");
 
-  mpuFetch(mpuurl, {
+  mpuFetch(mpuRestUrl + "check-spam-event", {
     method: "POST",
     body: formData,
     timeout: 15000,
@@ -1452,14 +1470,8 @@ function mpu_nextmsg(trigger) {
       ) || 0;
 
     const formData = new FormData();
-    formData.append("action", "mpu_nextmsg");
     formData.append("cur_num", curNum);
     formData.append("cur_msgnum", curMsgnum);
-
-    // Add nonce for security
-    if (typeof mpuNonce !== "undefined") {
-      formData.append("mpu_nonce", mpuNonce);
-    }
 
     // 傳送上次訪問時間（用於問候語選擇）
     const lastVisitHours =
@@ -1477,9 +1489,9 @@ function mpu_nextmsg(trigger) {
       formData.append("response_history", JSON.stringify(recentHistory));
     }
 
-    mpuLogger.log("mpu_nextmsg: 發送 LLM POST 請求到", mpuurl);
+    mpuLogger.log("mpu_nextmsg: 發送 LLM POST 請求到", mpuRestUrl + "nextmsg");
 
-    mpuFetch(mpuurl, {
+    mpuFetch(mpuRestUrl + "nextmsg", {
       method: "POST",
       body: formData,
       timeout: 60000,
@@ -1912,15 +1924,11 @@ function mpuChange(num) {
     return;
   }
 
-  const params = new URLSearchParams({ action: "mpu_change" });
+  const formData = new FormData();
   if (hasNum) {
-    params.append("mpu_num", num);
+    formData.append("mpu_num", num);
   }
-  // Add nonce for security
-  if (typeof mpuNonce !== "undefined") {
-    params.append("mpu_nonce", mpuNonce);
-  }
-  const url = `${mpuurl}?${params.toString()}`;
+  const url = `${mpuRestUrl}change`;
 
   document.body.style.cursor = "wait";
 
@@ -1935,6 +1943,8 @@ function mpuChange(num) {
   if (!jQuery("#ukagaka_msgbox").is(":hidden")) mpu_hidemsg(200);
 
   mpuFetch(url, {
+    method: "POST",
+    body: formData,
     cancelPrevious: true,
     requestId: `mpu_change_${hasNum ? num : "menu"}`,
     timeout: 15000,
@@ -1942,9 +1952,26 @@ function mpuChange(num) {
   })
     .then((res) => {
       if (!hasNum) {
-        if (typeof res !== "string")
-          throw new Error("Expected HTML, got JSON.");
-        jQuery("#ukagaka_msg").html(res || "No content.");
+        if (!res || typeof res !== "object")
+          throw new Error("Invalid change-list response.");
+        const $msg = jQuery("#ukagaka_msg").empty();
+        if (res.items && res.items.length > 0) {
+          const $wrap = jQuery("<div>").addClass("ukagaka-list");
+          $wrap.append(document.createTextNode((res.heading || "") + "："));
+          $wrap.append(jQuery("<br>"));
+          res.items.forEach(function (item) {
+            const $row = jQuery("<div>").css({ padding: "3px 0", paddingLeft: "10px" });
+            const $link = jQuery("<a>")
+              .text(item.name)
+              .css("cursor", "pointer")
+              .on("click", function () { mpuChange(item.key); });
+            $row.append($link);
+            $wrap.append($row);
+          });
+          $msg.append($wrap);
+        } else {
+          $msg.text(res.empty_message || "");
+        }
         mpu_showmsg(300);
         jQuery("#ukagaka").stop(true, true).fadeIn(200);
         document.body.style.cursor = "auto";
@@ -2765,22 +2792,23 @@ function mpuChange(num) {
         }
 
         return new Promise((resolve, reject) => {
-            if (typeof mpuurl === 'undefined') {
-                reject(new Error('mpuurl is not defined'));
+            if (typeof mpuRestUrl === 'undefined') {
+                reject(new Error('mpuRestUrl is not defined'));
                 return;
             }
 
-            const params = new URLSearchParams({ action: 'mpu_get_emoji_config' });
-            if (typeof mpuNonce !== 'undefined') {
-                params.append('mpu_nonce', mpuNonce);
+            const url = `${mpuRestUrl}emoji-config`;
+
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            if (typeof mpuRestNonce !== 'undefined') {
+                headers['X-WP-Nonce'] = mpuRestNonce;
             }
-            const url = `${mpuurl}?${params.toString()}`;
 
             fetch(url, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: headers,
             })
                 .then(response => {
                     if (!response.ok) {
@@ -3212,15 +3240,11 @@ function mpu_chat_context() {
   );
 
   const formData = new FormData();
-  formData.append("action", "mpu_chat_context");
-  if (typeof mpuNonce !== "undefined" && mpuNonce) {
-    formData.append("mpu_nonce", mpuNonce);
-  }
   formData.append("page_title", context.title);
   formData.append("page_content", context.content);
   formData.append("publish_date", context.publishDate || "");
 
-  mpuFetch(mpuurl, {
+  mpuFetch(mpuRestUrl + "chat/context", {
     method: "POST",
     body: formData,
     cancelPrevious: true,
@@ -3398,8 +3422,7 @@ function mpu_chat_context() {
  * 在瀏覽器控制台輸入：mpu_test_visitor_info() 即可測試
  */
 function mpu_test_visitor_info() {
-  const visitorParams = new URLSearchParams({ action: "mpu_get_visitor_info" });
-  const visitorUrl = `${mpuurl}?${visitorParams.toString()}`;
+  const visitorUrl = `${mpuRestUrl}visitor-info`;
 
   mpuFetch(visitorUrl, {
     timeout: 10000, // 10 秒超時
@@ -3443,10 +3466,7 @@ function mpu_greet_first_visitor(settings) {
     }
 
     // 先獲取訪客資訊
-    const visitorParams = new URLSearchParams({
-      action: "mpu_get_visitor_info",
-    });
-    const visitorUrl = `${mpuurl}?${visitorParams.toString()}`;
+    const visitorUrl = `${mpuRestUrl}visitor-info`;
 
     mpuFetch(visitorUrl, {
       timeout: 10000, // 10 秒超時
@@ -3473,10 +3493,6 @@ function mpu_greet_first_visitor(settings) {
         );
 
         const formData = new FormData();
-        formData.append("action", "mpu_chat_greet");
-        if (typeof mpuNonce !== "undefined" && mpuNonce) {
-          formData.append("mpu_nonce", mpuNonce);
-        }
         formData.append("referrer", visitorInfo.referrer || "");
         formData.append("referrer_host", visitorInfo.referrer_host || "");
         formData.append("search_engine", visitorInfo.search_engine || "");
@@ -3493,7 +3509,7 @@ function mpu_greet_first_visitor(settings) {
           visitorInfo.slimstat_city || visitorInfo.city || "",
         );
 
-        return mpuFetch(mpuurl, {
+        return mpuFetch(mpuRestUrl + "chat/greet", {
           method: "POST",
           body: formData,
           cancelPrevious: true,
@@ -3697,15 +3713,10 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   const pure = (file || "").replace(/^.*[\\/]/, "");
 
   const params = new URLSearchParams({
-    action: "mpu_load_dialog",
     file: pure,
   });
 
-  if (typeof mpuNonce !== "undefined") {
-    params.append("mpu_nonce", mpuNonce);
-  }
-
-  const url = `${mpuurl}?${params.toString()}`;
+  const url = `${mpuRestUrl}dialog?${params.toString()}`;
 
   document.body.style.cursor = "wait";
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
@@ -4191,10 +4202,6 @@ function mpu_sendUserMessage() {
 
   // 發送 AJAX 請求
   const formData = new FormData();
-  formData.append("action", "mpu_user_chat");
-  if (typeof mpuNonce !== "undefined" && mpuNonce) {
-    formData.append("mpu_nonce", mpuNonce);
-  }
   formData.append("message", message);
   formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
   // 新增：傳送頁面資訊
@@ -4204,7 +4211,7 @@ function mpu_sendUserMessage() {
     (pageContext.content || "").substring(0, 2000),
   ); // 裁切節省 Token
 
-  mpuFetch(mpuurl, {
+  mpuFetch(mpuRestUrl + "chat/user", {
     method: "POST",
     body: formData,
     timeout: 60000,
@@ -4457,19 +4464,15 @@ function mpu_send_wake_up_request() {
   }
 
   // 發送喚醒請求
-  var wakeParams = new URLSearchParams({ action: "mpu_wake_ghost" });
+  var wakeFormData = new FormData();
   if (personalityId) {
-    wakeParams.append("personality_id", personalityId);
+    wakeFormData.append("personality_id", personalityId);
   }
   if (ukagakaNum) {
-    wakeParams.append("ukagaka_num", ukagakaNum);
+    wakeFormData.append("ukagaka_num", ukagakaNum);
   }
-  if (typeof mpuNonce !== "undefined") {
-    wakeParams.append("mpu_nonce", mpuNonce);
-  }
-  var wakeUrl = mpuurl + "?" + wakeParams.toString();
 
-  mpuFetch(wakeUrl, { timeout: 5000 })
+  mpuFetch(mpuRestUrl + "wake-ghost", { method: "POST", body: wakeFormData, timeout: 5000 })
     .then(function (res) {
       if (res && res.success) {
         if (typeof mpuLogger !== "undefined") {
@@ -4784,11 +4787,7 @@ jQuery(document).ready(function () {
     setTimeout(function() {
       if (!window.mpuSettings && !window.mpuSettingsLoaded) {
         mpuLogger.log("Fallback: 發送獨立 mpu_get_settings AJAX");
-        const settingsParams = new URLSearchParams({ action: "mpu_get_settings" });
-        if (typeof mpuNonce !== "undefined") {
-          settingsParams.append("mpu_nonce", mpuNonce);
-        }
-        const settingsUrl = `${mpuurl}?${settingsParams.toString()}`;
+        const settingsUrl = `${mpuRestUrl}settings`;
         
         mpuFetch(settingsUrl, {
           dedupe: true,
@@ -4840,11 +4839,7 @@ jQuery(document).ready(function () {
   });
 
   jQuery("#mpu_extend").on("click", function () {
-    const extendParams = new URLSearchParams({ action: "mpu_extend" });
-    if (typeof mpuNonce !== "undefined") {
-      extendParams.append("mpu_nonce", mpuNonce);
-    }
-    const extendUrl = `${mpuurl}?${extendParams.toString()}`;
+    const extendUrl = `${mpuRestUrl}extend`;
 
     document.body.style.cursor = "wait";
     if (jQuery("#ukagaka").is(":hidden")) mpu_showrobot(400);
@@ -4854,11 +4849,14 @@ jQuery(document).ready(function () {
       timeout: 10000, // 10 秒超時
       retries: 1,
     })
-      .then((html) => {
-        if (typeof html !== "string")
-          throw new Error("Expected HTML response.");
+      .then((res) => {
+        if (!res || !res.label)
+          throw new Error("Invalid extend response.");
         mpu_showmsg(400);
-        jQuery("#ukagaka_msg").html(html);
+        const link = jQuery("<a>")
+          .text(res.label)
+          .on("click", function () { mpuChange(""); });
+        jQuery("#ukagaka_msg").empty().append(link);
         document.body.style.cursor = "auto";
       })
       .catch((error) => {

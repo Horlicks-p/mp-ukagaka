@@ -21,10 +21,7 @@ function mpu_greet_first_visitor(settings) {
     }
 
     // 先獲取訪客資訊
-    const visitorParams = new URLSearchParams({
-      action: "mpu_get_visitor_info",
-    });
-    const visitorUrl = `${mpuurl}?${visitorParams.toString()}`;
+    const visitorUrl = `${mpuRestUrl}visitor-info`;
 
     mpuFetch(visitorUrl, {
       timeout: 10000, // 10 秒超時
@@ -51,10 +48,6 @@ function mpu_greet_first_visitor(settings) {
         );
 
         const formData = new FormData();
-        formData.append("action", "mpu_chat_greet");
-        if (typeof mpuNonce !== "undefined" && mpuNonce) {
-          formData.append("mpu_nonce", mpuNonce);
-        }
         formData.append("referrer", visitorInfo.referrer || "");
         formData.append("referrer_host", visitorInfo.referrer_host || "");
         formData.append("search_engine", visitorInfo.search_engine || "");
@@ -71,7 +64,7 @@ function mpu_greet_first_visitor(settings) {
           visitorInfo.slimstat_city || visitorInfo.city || "",
         );
 
-        return mpuFetch(mpuurl, {
+        return mpuFetch(mpuRestUrl + "chat/greet", {
           method: "POST",
           body: formData,
           cancelPrevious: true,

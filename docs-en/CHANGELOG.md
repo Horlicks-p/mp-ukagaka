@@ -6,6 +6,20 @@
 
 ---
 
+## [2.9.0] - 2026-02-23
+
+### 🚀 Major Update: Complete REST API Migration
+
+- **Backend Architecture Refactoring**: Comprehensively migrated all AJAX endpoints from the legacy `admin-ajax.php` to the modern **WordPress REST API** (`wp-json/mp-ukagaka/v1/`).
+- **Modular Routing**: Split the single monolithic AJAX handler into multiple modular REST controllers (e.g., `rest-init.php`, `rest-core.php`, `rest-chat.php`, `rest-touch.php`), significantly improving code maintainability.
+- **Security Upgrades**:
+  - Transitioned to native `X-WP-Nonce` headers combined with `permission_callback` for authenticated requests.
+  - Strictly bound `GET` (read-only) and `POST` (state-modifying) REST methods to prevent unauthorized state changes.
+- **Standardized Error Handling**: Fully adopted `WP_Error` combined with native HTTP status codes (400, 401, 403, 429) for more precise error parsing on the frontend.
+- **Rate Limit Optimization**: Added a REST-specific rate limiting mechanism (`mpu_rest_check_rate_limit`) that returns standard HTTP 429 alongside valid `Retry-After` headers when limits are exceeded.
+- **Cookie Handling Fixes**: Fixed unstable `setcookie()` calls within the REST context by routing them securely via `WP_REST_Response::header`.
+- **Frontend Refactoring**: All JavaScript requests (via `mpuFetch`) have been decoupled from `admin-ajax.php`, unified to interact exclusively with the REST API, featuring refined logic for network retries (e.g., exclusively for 5xx errors).
+
 ## [2.8.3] - 2026-02-21
 
 ### 🚀 Performance Optimization & Refactoring

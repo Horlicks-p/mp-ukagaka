@@ -281,11 +281,7 @@ jQuery(document).ready(function () {
     setTimeout(function() {
       if (!window.mpuSettings && !window.mpuSettingsLoaded) {
         mpuLogger.log("Fallback: 發送獨立 mpu_get_settings AJAX");
-        const settingsParams = new URLSearchParams({ action: "mpu_get_settings" });
-        if (typeof mpuNonce !== "undefined") {
-          settingsParams.append("mpu_nonce", mpuNonce);
-        }
-        const settingsUrl = `${mpuurl}?${settingsParams.toString()}`;
+        const settingsUrl = `${mpuRestUrl}settings`;
         
         mpuFetch(settingsUrl, {
           dedupe: true,
@@ -337,11 +333,7 @@ jQuery(document).ready(function () {
   });
 
   jQuery("#mpu_extend").on("click", function () {
-    const extendParams = new URLSearchParams({ action: "mpu_extend" });
-    if (typeof mpuNonce !== "undefined") {
-      extendParams.append("mpu_nonce", mpuNonce);
-    }
-    const extendUrl = `${mpuurl}?${extendParams.toString()}`;
+    const extendUrl = `${mpuRestUrl}extend`;
 
     document.body.style.cursor = "wait";
     if (jQuery("#ukagaka").is(":hidden")) mpu_showrobot(400);
@@ -351,11 +343,14 @@ jQuery(document).ready(function () {
       timeout: 10000, // 10 秒超時
       retries: 1,
     })
-      .then((html) => {
-        if (typeof html !== "string")
-          throw new Error("Expected HTML response.");
+      .then((res) => {
+        if (!res || !res.label)
+          throw new Error("Invalid extend response.");
         mpu_showmsg(400);
-        jQuery("#ukagaka_msg").html(html);
+        const link = jQuery("<a>")
+          .text(res.label)
+          .on("click", function () { mpuChange(""); });
+        jQuery("#ukagaka_msg").empty().append(link);
         document.body.style.cursor = "auto";
       })
       .catch((error) => {

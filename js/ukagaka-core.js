@@ -319,9 +319,8 @@ function mpuMoe(command) {
  */
 function mpu_checkSpamEvent(callback) {
   const formData = new FormData();
-  formData.append("action", "mpu_check_spam_event");
 
-  mpuFetch(mpuurl, {
+  mpuFetch(mpuRestUrl + "check-spam-event", {
     method: "POST",
     body: formData,
     timeout: 15000,
@@ -548,14 +547,8 @@ function mpu_nextmsg(trigger) {
       ) || 0;
 
     const formData = new FormData();
-    formData.append("action", "mpu_nextmsg");
     formData.append("cur_num", curNum);
     formData.append("cur_msgnum", curMsgnum);
-
-    // Add nonce for security
-    if (typeof mpuNonce !== "undefined") {
-      formData.append("mpu_nonce", mpuNonce);
-    }
 
     // 傳送上次訪問時間（用於問候語選擇）
     const lastVisitHours =
@@ -573,9 +566,9 @@ function mpu_nextmsg(trigger) {
       formData.append("response_history", JSON.stringify(recentHistory));
     }
 
-    mpuLogger.log("mpu_nextmsg: 發送 LLM POST 請求到", mpuurl);
+    mpuLogger.log("mpu_nextmsg: 發送 LLM POST 請求到", mpuRestUrl + "nextmsg");
 
-    mpuFetch(mpuurl, {
+    mpuFetch(mpuRestUrl + "nextmsg", {
       method: "POST",
       body: formData,
       timeout: 60000,
@@ -1008,15 +1001,11 @@ function mpuChange(num) {
     return;
   }
 
-  const params = new URLSearchParams({ action: "mpu_change" });
+  const formData = new FormData();
   if (hasNum) {
-    params.append("mpu_num", num);
+    formData.append("mpu_num", num);
   }
-  // Add nonce for security
-  if (typeof mpuNonce !== "undefined") {
-    params.append("mpu_nonce", mpuNonce);
-  }
-  const url = `${mpuurl}?${params.toString()}`;
+  const url = `${mpuRestUrl}change`;
 
   document.body.style.cursor = "wait";
 
@@ -1031,6 +1020,8 @@ function mpuChange(num) {
   if (!jQuery("#ukagaka_msgbox").is(":hidden")) mpu_hidemsg(200);
 
   mpuFetch(url, {
+    method: "POST",
+    body: formData,
     cancelPrevious: true,
     requestId: `mpu_change_${hasNum ? num : "menu"}`,
     timeout: 15000,
@@ -1038,9 +1029,26 @@ function mpuChange(num) {
   })
     .then((res) => {
       if (!hasNum) {
-        if (typeof res !== "string")
-          throw new Error("Expected HTML, got JSON.");
-        jQuery("#ukagaka_msg").html(res || "No content.");
+        if (!res || typeof res !== "object")
+          throw new Error("Invalid change-list response.");
+        const $msg = jQuery("#ukagaka_msg").empty();
+        if (res.items && res.items.length > 0) {
+          const $wrap = jQuery("<div>").addClass("ukagaka-list");
+          $wrap.append(document.createTextNode((res.heading || "") + "："));
+          $wrap.append(jQuery("<br>"));
+          res.items.forEach(function (item) {
+            const $row = jQuery("<div>").css({ padding: "3px 0", paddingLeft: "10px" });
+            const $link = jQuery("<a>")
+              .text(item.name)
+              .css("cursor", "pointer")
+              .on("click", function () { mpuChange(item.key); });
+            $row.append($link);
+            $wrap.append($row);
+          });
+          $msg.append($wrap);
+        } else {
+          $msg.text(res.empty_message || "");
+        }
         mpu_showmsg(300);
         jQuery("#ukagaka").stop(true, true).fadeIn(200);
         document.body.style.cursor = "auto";

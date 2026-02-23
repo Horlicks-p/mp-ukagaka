@@ -569,8 +569,8 @@ function mpu_head()
     $msg_hide = mpu_js_filter(__("隱藏會話 ▼", "mp-ukagaka"));
 
     echo "<script type=\"text/javascript\">\n";
-    echo "var mpuurl = '" . esc_url(admin_url('admin-ajax.php')) . "';\n";
-    echo "var mpuNonce = '" . wp_create_nonce('mpu_ajax_nonce') . "';\n";
+    echo "var mpuRestUrl = '" . esc_url_raw(rest_url('mp-ukagaka/v1/')) . "';\n";
+    echo "var mpuRestNonce = '" . wp_create_nonce('wp_rest') . "';\n";
 
     // ★ 先獲取當前 personality_id，再用於睡眠判定
     $current_personality = function_exists('mpu_get_current_personality_id')
@@ -618,12 +618,13 @@ function mpu_head()
     jQuery(document).ready(function($) {
         if (typeof window.mpuCanvasManager !== "undefined" && $("#cur_ukagaka").length > 0) {
             $.ajax({
-                url: mpuurl,
+                url: mpuRestUrl + "init",
                 type: "GET",
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader("X-WP-Nonce", mpuRestNonce);
+                },
                 data: {
-                    action: "mpu_init",
-                    ukagaka_num: mpuInitParams.ukagaka_num,
-                    mpu_nonce: mpuNonce
+                    ukagaka_num: mpuInitParams.ukagaka_num
                 },
                 dataType: "json",
                 success: function(response) {

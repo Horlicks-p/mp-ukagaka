@@ -261,22 +261,23 @@
         }
 
         return new Promise((resolve, reject) => {
-            if (typeof mpuurl === 'undefined') {
-                reject(new Error('mpuurl is not defined'));
+            if (typeof mpuRestUrl === 'undefined') {
+                reject(new Error('mpuRestUrl is not defined'));
                 return;
             }
 
-            const params = new URLSearchParams({ action: 'mpu_get_emoji_config' });
-            if (typeof mpuNonce !== 'undefined') {
-                params.append('mpu_nonce', mpuNonce);
+            const url = `${mpuRestUrl}emoji-config`;
+
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            if (typeof mpuRestNonce !== 'undefined') {
+                headers['X-WP-Nonce'] = mpuRestNonce;
             }
-            const url = `${mpuurl}?${params.toString()}`;
 
             fetch(url, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: headers,
             })
                 .then(response => {
                     if (!response.ok) {

@@ -768,6 +768,15 @@ async function mpuFetch(url, options = {}) {
         signal: controller.signal
     };
 
+    // 自動注入 REST API Nonce
+    if (typeof mpuRestUrl !== 'undefined' && url.startsWith(mpuRestUrl) && typeof mpuRestNonce !== 'undefined') {
+        fetchOptions.headers = fetchOptions.headers || {};
+        // 只有在未手動設定 X-WP-Nonce 時才注入
+        if (!fetchOptions.headers['X-WP-Nonce']) {
+            fetchOptions.headers['X-WP-Nonce'] = mpuRestNonce;
+        }
+    }
+
     let lastError = null;
     for (let attempt = 0; attempt <= config.retries; attempt++) {
         try {
@@ -787,10 +796,20 @@ async function mpuFetch(url, options = {}) {
             }
 
             if (!response.ok) {
-                if (attempt === config.retries) {
-                    throw new Error(`Network response was not ok: ${response.statusText} (${response.status})`);
+                // 嘗試解析 WP REST API 的錯誤訊息（WP_Error 格式：{ code, message, data }）
+                let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                try {
+                    const errBody = await response.json();
+                    if (errBody && errBody.message) {
+                        errorMessage = errBody.message;
+                    }
+                } catch (_) {}
+                // 4xx 是客戶端錯誤（含 429 rate limit），不重試；僅 5xx 才值得重試
+                const shouldRetry = response.status >= 500;
+                if (!shouldRetry || attempt === config.retries) {
+                    throw new Error(errorMessage);
                 }
-                lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+                lastError = new Error(errorMessage);
                 continue;
             }
 

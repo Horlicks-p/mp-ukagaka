@@ -81,10 +81,11 @@ function mpu_load_modules()
         'llm/llm-functions.php',       // LLM 功能（本機 LLM：Ollama）
         'personality/emoji-mapper.php',        // 表情映射與情緒分析（需在 AJAX 處理器之前載入）
         'core/ukagaka-functions.php',   // 偽春菜管理
-        'ajax/ajax-handlers.php',       // AJAX 處理器（核心功能）
-        'ajax/ajax-chat-handlers-llm.php',      // LLM 相關 AJAX 處理器（對話相關）
-        'ajax/ajax-touch-handlers-llm.php',     // LLM 相關 AJAX 處理器（觸摸相關）
-        'ajax/ajax-handlers-test.php',  // API 連線測試處理器
+        'rest/rest-init.php',           // REST API 處理器（初始化）
+        'rest/rest-core.php',           // REST API 處理器（核心）
+        'rest/rest-chat.php',           // REST API 處理器（對話相關）
+        'rest/rest-touch.php',          // REST API 處理器（觸摸相關）
+        'rest/rest-test.php',           // REST API 處理器（連線測試相關）
         'ajax/chat-api-handlers.php',   // 對話模式 API 處理器（多輪對話）
         'integrations/akismet-integration.php', // Akismet 垃圾留言連動
         'integrations/turnstile-integration.php', // Turnstile 垃圾留言連動

@@ -1023,6 +1023,40 @@ function mpu_enforce_rate_limit($action, $max_requests = 10, $period = 60)
 }
 
 /**
+ * REST API 速率限制檢查（REST pipeline 相容版）
+ *
+ * 與 mpu_enforce_rate_limit() 不同，此函式會回傳 REST response 物件，
+ * 由 REST callback 直接 return，讓 WP_REST_Server 走標準 response pipeline（含 CORS hooks 等）。
+ * 超限時會回傳 429 的 WP_REST_Response（含 Retry-After header）。
+ *
+ * @since 2.8.4
+ * @param string $action      動作標識
+ * @param int    $max_requests 時間週期內最大請求數
+ * @param int    $period       時間週期（秒）
+ * @return WP_REST_Response|null 超限時回傳 429 REST 回應，允許時回傳 null
+ */
+function mpu_rest_check_rate_limit($action, $max_requests = 10, $period = 60)
+{
+    $result = mpu_check_rate_limit($action, $max_requests, $period);
+    if (!$result['allowed']) {
+        $response = new WP_REST_Response(
+            [
+                'code'    => 'rest_rate_limit_exceeded',
+                'message' => sprintf(
+                    __('請求過於頻繁，請 %d 秒後再試', 'mp-ukagaka'),
+                    $result['reset_in']
+                ),
+                'data'    => ['status' => 429, 'retry_after' => $result['reset_in']],
+            ],
+            429
+        );
+        $response->header('Retry-After', (string) $result['reset_in']);
+        return $response;
+    }
+    return null;
+}
+
+/**
  * 重置指定動作的速率限制
  *
  * @since 2.5.7

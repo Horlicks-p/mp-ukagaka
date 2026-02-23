@@ -379,15 +379,11 @@ function mpu_chat_context() {
   );
 
   const formData = new FormData();
-  formData.append("action", "mpu_chat_context");
-  if (typeof mpuNonce !== "undefined" && mpuNonce) {
-    formData.append("mpu_nonce", mpuNonce);
-  }
   formData.append("page_title", context.title);
   formData.append("page_content", context.content);
   formData.append("publish_date", context.publishDate || "");
 
-  mpuFetch(mpuurl, {
+  mpuFetch(mpuRestUrl + "chat/context", {
     method: "POST",
     body: formData,
     cancelPrevious: true,
@@ -565,8 +561,7 @@ function mpu_chat_context() {
  * 在瀏覽器控制台輸入：mpu_test_visitor_info() 即可測試
  */
 function mpu_test_visitor_info() {
-  const visitorParams = new URLSearchParams({ action: "mpu_get_visitor_info" });
-  const visitorUrl = `${mpuurl}?${visitorParams.toString()}`;
+  const visitorUrl = `${mpuRestUrl}visitor-info`;
 
   mpuFetch(visitorUrl, {
     timeout: 10000, // 10 秒超時
