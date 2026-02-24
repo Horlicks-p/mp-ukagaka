@@ -6,6 +6,21 @@
 
 ---
 
+## [2.9.1] - 2026-02-24
+
+### 🛡️ Security & Stability Improvements
+
+- **Automatic REST API Nonce Refresh**: Automatically refreshes aging nonces (12-24 hours) via `rest_post_dispatch`, preventing 403 Forbidden errors during prolonged browser sessions.
+- **Type-Aware Field Sanitization**: Optimized backend settings sanitization by properly distinguishing between plain text, HTML, and booleans, preventing over-sanitization of HTML-allowed fields like system prompts.
+- **UTF-8 Safe JSON Encoding**: Added `JSON_INVALID_UTF8_SUBSTITUTE` to API requests to prevent silent failures caused by malformed UTF-8 characters.
+- **Unmatched Placeholder Cleanup**: Automatically cleans up unreplaced `{{variable}}` template tags before dispatching prompts to the LLM to prevent raw syntax from confusing the model.
+
+### ✨ New Features & Improvements
+
+- **Cron Health Status Tracking**: Introduced transient-based tracking for cron executions, providing a visual status panel in the diary settings page for admins to easily monitor the success or exact failure reasons of the auto-diary publishing feature.
+
+---
+
 ## [2.9.0] - 2026-02-23
 
 ### 🚀 Major Update: Complete REST API Migration
@@ -600,167 +615,6 @@ includes/
 ├── frontend-functions.php  # Frontend functions
 └── admin-functions.php     # Admin functions
 ```
-
----
-
-## [1.9.x] - Historical Versions
-
-### 1.9.5
-
-- Fixed compatibility issues with some themes.
-- Improved dialogue display effect.
-
-### 1.9.4
-
-- Added auto-dialogue feature.
-- Added dialogue interval setting.
-
-### 1.9.3
-
-- Added external dialogue file support (TXT format).
-- Added multi-Ukagaka switching feature.
-
-### 1.9.2
-
-- Added page exclusion feature.
-- Improved mobile display.
-
-### 1.9.1
-
-- Added fixed message feature.
-- Added common session feature.
-
-### 1.9.0
-
-- Added click behavior setting.
-- Added session order setting.
-
----
-
-## [1.8.x] - Historical Versions
-
-### 1.8.5
-
-- Added jQuery compatibility fixes.
-- Improved WordPress 5.x compatibility.
-
-### 1.8.0
-
-- Added multi-language support.
-- Added Traditional Chinese and Japanese translations.
-
----
-
-## [1.7.x] - Historical Versions
-
-### 1.7.0
-
-- Added Ukagaka management interface.
-- Added create new Ukagaka feature.
-
----
-
-## [1.6.x] - Historical Versions
-
-### 1.6.0
-
-- Added extensions page.
-- Added custom JavaScript feature.
-
----
-
-## [1.5.x] - Historical Versions
-
-### 1.5.0
-
-- Initial public release.
-- Basic Ukagaka display feature.
-- Basic dialogue feature.
-
----
-
-## Upgrade Guide
-
-### Upgrading from 1.x to 2.x
-
-1. **Backup Settings**
-   - Recommended to backup `mpu_opt` option in `wp_options` first.
-
-2. **Upgrade Plugin**
-   - Upload new version to overwrite old version.
-   - Or update via WordPress Admin.
-
-3. **Check Settings**
-   - Settings are automatically preserved after upgrade.
-   - Recommended to check all settings pages to confirm.
-
-4. **Clear Cache**
-   - Clear browser cache.
-   - Clear WordPress cache plugin cache.
-
-### Upgrading from 2.0.x to 2.1.x
-
-1. **API Key Auto-Encryption**
-   - Existing plaintext API Keys will be automatically encrypted on first save.
-   - No manual action required.
-
-2. **Check File Permissions**
-   - Ensure `dialogs/` folder is writable.
-   - WordPress Filesystem API requires appropriate permissions.
-
-### Upgrading from 2.1.x to 2.2.0
-
-1. **Automatic Settings Migration**
-   - All existing settings will be automatically preserved and migrated.
-   - AI provider settings will be automatically migrated to the LLM Settings page.
-   - No manual action required.
-
-2. **Check LLM Settings**
-   - Go to **Settings** → **MP Ukagaka** → **LLM Settings**.
-   - Confirm AI provider selection is correct.
-   - Confirm API Key is correctly set (automatically encrypted).
-   - Test connection to confirm it works.
-
-3. **Check AI Settings**
-   - Go to **Settings** → **MP Ukagaka** → **AI Settings**.
-   - Confirm "Page Awareness Probability" and "Trigger Pages" settings are correct.
-   - Confirm "Character Settings (System Prompt)" content is correct.
-
-4. **Clear Cache**
-   - Clear browser cache.
-   - Clear WordPress cache plugin cache (if applicable).
-
-5. **Experience New UI**
-   - All settings pages have been updated with new card-based design.
-   - Main settings page now includes sidebar quick links.
-
----
-
-## Known Issues
-
-### 2.1.0
-
-- Some older PHP versions (< 7.4) may not support encryption features.
-- Recommended to upgrade to PHP 7.4 or higher.
-
-### 2.0.0
-
-- AI features require stable internet connection.
-- Some firewalls might block AI API requests.
-
----
-
-## Reporting Issues
-
-If you find issues, please provide:
-
-1. WordPress Version
-2. PHP Version
-3. Plugin Version
-4. Error Message (if any)
-5. Browser Console Errors (Press F12 to view)
-
----
 
 ## Contributors
 

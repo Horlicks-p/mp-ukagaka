@@ -112,7 +112,8 @@ function mpu_handle_options_save()
         $mpu_opt['default_msg'] = isset($_POST['default_msg'][0]) ? intval($_POST['default_msg'][0]) : 0;
         $mpu_opt['next_msg'] = isset($_POST['next_msg'][0]) ? intval($_POST['next_msg'][0]) : 0;
         $mpu_opt['click_ukagaka'] = isset($_POST['click_ukagaka'][0]) ? intval($_POST['click_ukagaka'][0]) : 0;
-        $mpu_opt['cur_ukagaka'] = isset($_POST['cur_ukagaka']) ? sanitize_text_field($_POST['cur_ukagaka']) : 'default_1';
+        $cur = isset($_POST['cur_ukagaka']) ? mpu_sanitize_personality_id(sanitize_text_field($_POST['cur_ukagaka'])) : '';
+        $mpu_opt['cur_ukagaka'] = !empty($cur) ? $cur : 'default_1';
         $mpu_opt['no_style'] = isset($_POST['no_style']);
         $mpu_opt['custom_style_link'] = isset($_POST['custom_style_link']) ? wp_kses($_POST['custom_style_link'], [
             'link' => [
@@ -126,7 +127,7 @@ function mpu_handle_options_save()
         $mpu_opt['no_page'] = isset($_POST['no_page']) ? sanitize_textarea_field($_POST['no_page']) : '';
         // 系統已固定使用外部對話文件
         $mpu_opt['use_external_file'] = true;
-        $mpu_opt['external_file_format'] = isset($_POST['external_file_format'][0]) ? sanitize_text_field($_POST['external_file_format'][0]) : 'txt';
+        $mpu_opt['external_file_format'] = (isset($_POST['external_file_format'][0]) && in_array($_POST['external_file_format'][0], ['txt', 'json'], true)) ? $_POST['external_file_format'][0] : 'txt';
         $mpu_opt['auto_talk'] = isset($_POST['auto_talk']);
         $mpu_opt['auto_talk_interval'] = isset($_POST['auto_talk_interval']) ? max(3, min(30, intval($_POST['auto_talk_interval']))) : 8;
         $mpu_opt['typewriter_speed'] = isset($_POST['typewriter_speed']) ? max(10, min(200, intval($_POST['typewriter_speed']))) : 40;
@@ -167,7 +168,10 @@ function mpu_handle_options_save()
         $ukagakas_sanitized = [];
 
         foreach ($ukagakas_raw as $key => $value) {
-            $key = sanitize_text_field($key);
+            $key = mpu_sanitize_personality_id(sanitize_text_field($key));
+            if (empty($key)) {
+                continue;
+            }
             // 使用 sanitize_textarea_field 處理傳入的字串，再轉換為陣列
             $ukagakas_sanitized[$key]['msg'] = mpu_str2array(sanitize_textarea_field($value['msg']));
             $ukagakas_sanitized[$key]['name'] = sanitize_text_field($value['name']);
@@ -342,13 +346,14 @@ function mpu_handle_options_save()
 
         // 處理 AI 設定（僅頁面感知相關的設定，不處理提供商、API Key、模型選擇）
         $mpu_opt['ai_language'] = isset($_POST['ai_language']) ? sanitize_text_field($_POST['ai_language']) : 'zh-TW';
-        $mpu_opt['ai_system_prompt'] = isset($_POST['ai_system_prompt']) ? sanitize_textarea_field($_POST['ai_system_prompt']) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。必ずこのキャラクターとして振る舞い、一人称は「私」を使用してください。回答は日本語で、50文字以内の短い一言で返してください。自分が AI や Qwen だと言わないでください。';
+        $mpu_opt['ai_system_prompt'] = isset($_POST['ai_system_prompt']) ? wp_kses_post(wp_unslash($_POST['ai_system_prompt'])) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。必ずこのキャラクターとして振る舞い、一人称は「私」を使用してください。回答は日本語で、50文字以内の短い一言で返してください。自分が AI や Qwen だと言わないでください。';
         $mpu_opt['ai_probability'] = isset($_POST['ai_probability']) ? max(1, min(100, intval($_POST['ai_probability']))) : 10;
+        $mpu_opt['ai_max_tokens'] = isset($_POST['ai_max_tokens']) ? max(100, min(8192, intval($_POST['ai_max_tokens']))) : 1000;
         $mpu_opt['ai_trigger_pages'] = isset($_POST['ai_trigger_pages']) ? sanitize_text_field($_POST['ai_trigger_pages']) : 'is_single';
         $mpu_opt['ai_text_color'] = isset($_POST['ai_text_color']) ? sanitize_hex_color($_POST['ai_text_color']) : '#000000';
         $mpu_opt['ai_display_duration'] = isset($_POST['ai_display_duration']) ? max(1, min(60, intval($_POST['ai_display_duration']))) : 8;
         $mpu_opt['ai_greet_first_visit'] = isset($_POST['ai_greet_first_visit']) && $_POST['ai_greet_first_visit'] ? true : false;
-        $mpu_opt['ai_greet_prompt'] = isset($_POST['ai_greet_prompt']) ? sanitize_textarea_field($_POST['ai_greet_prompt']) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。';
+        $mpu_opt['ai_greet_prompt'] = isset($_POST['ai_greet_prompt']) ? wp_kses_post(wp_unslash($_POST['ai_greet_prompt'])) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。';
 
         // 注意：提供商選擇、API Key、模型選擇已移至 LLM 設定頁面
         // 「LLM 取代內建對話」和「頁面感知 AI (ai_enabled)」是兩個獨立的功能
@@ -364,7 +369,8 @@ function mpu_handle_options_save()
 
         // 保存提供商選擇（統一使用 llm_provider，同時保持 ai_provider 向後兼容）
         if (isset($_POST['llm_provider'])) {
-            $provider = sanitize_text_field($_POST['llm_provider']);
+            $allowed_providers = ['gemini', 'openai', 'claude', 'ollama'];
+            $provider = in_array($_POST['llm_provider'], $allowed_providers, true) ? $_POST['llm_provider'] : 'gemini';
             $mpu_opt['llm_provider'] = $provider;
             $mpu_opt['ai_provider'] = $provider; // 向後兼容
         }
@@ -403,7 +409,8 @@ function mpu_handle_options_save()
 
         // 保存 Ollama 設定
         if (isset($_POST['ollama_endpoint'])) {
-            $mpu_opt['ollama_endpoint'] = sanitize_text_field($_POST['ollama_endpoint']);
+            $validated = mpu_validate_ollama_endpoint(esc_url_raw(wp_unslash($_POST['ollama_endpoint'])));
+            $mpu_opt['ollama_endpoint'] = is_wp_error($validated) ? 'http://localhost:11434' : $validated;
         }
         if (isset($_POST['ollama_model'])) {
             $mpu_opt['ollama_model'] = sanitize_text_field($_POST['ollama_model']);
@@ -421,12 +428,12 @@ function mpu_handle_options_save()
 
         // 保存天氣設定
         $mpu_opt['weather_enabled'] = isset($_POST['weather_enabled']) && $_POST['weather_enabled'] ? true : false;
-        $mpu_opt['weather_latitude'] = isset($_POST['weather_latitude']) ? floatval($_POST['weather_latitude']) : 25.0330;
-        $mpu_opt['weather_longitude'] = isset($_POST['weather_longitude']) ? floatval($_POST['weather_longitude']) : 121.5654;
+        $mpu_opt['weather_latitude'] = isset($_POST['weather_latitude']) ? max(-90.0, min(90.0, floatval($_POST['weather_latitude']))) : 25.0330;
+        $mpu_opt['weather_longitude'] = isset($_POST['weather_longitude']) ? max(-180.0, min(180.0, floatval($_POST['weather_longitude']))) : 121.5654;
 
         // 保存 API 快取設定
         $mpu_opt['api_cache_enabled'] = isset($_POST['api_cache_enabled']) && $_POST['api_cache_enabled'] ? true : false;
-        $mpu_opt['api_cache_ttl'] = isset($_POST['api_cache_ttl']) ? intval($_POST['api_cache_ttl']) : 3600;
+        $mpu_opt['api_cache_ttl'] = isset($_POST['api_cache_ttl']) ? max(60, min(604800, intval($_POST['api_cache_ttl']))) : 3600;
 
         $text = '<div class="updated"><p><strong>' . __('LLM 設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
     } elseif (isset($_POST['submit_diary'])) {
@@ -442,7 +449,8 @@ function mpu_handle_options_save()
 
         // 保存 AI 供應商設定
         if (isset($_POST['diary_provider'])) {
-            $mpu_opt['diary_provider'] = sanitize_text_field($_POST['diary_provider']);
+            $allowed_providers = ['gemini', 'openai', 'claude', 'ollama'];
+            $mpu_opt['diary_provider'] = in_array($_POST['diary_provider'], $allowed_providers, true) ? $_POST['diary_provider'] : 'gemini';
         }
 
         // 處理各提供商的 API Key（加密存儲）
@@ -473,7 +481,14 @@ function mpu_handle_options_save()
 
         // 保存 Ollama 設定
         if (isset($_POST['diary_ollama_endpoint'])) {
-            $mpu_opt['diary_ollama_endpoint'] = sanitize_text_field($_POST['diary_ollama_endpoint']);
+            $raw_endpoint = trim(esc_url_raw(wp_unslash($_POST['diary_ollama_endpoint'])));
+            if (empty($raw_endpoint)) {
+                // 空字串保留，表示沿用 LLM 設定頁的主端點
+                $mpu_opt['diary_ollama_endpoint'] = '';
+            } else {
+                $validated = mpu_validate_ollama_endpoint($raw_endpoint);
+                $mpu_opt['diary_ollama_endpoint'] = is_wp_error($validated) ? '' : $validated;
+            }
         }
         if (isset($_POST['diary_ollama_model'])) {
             $mpu_opt['diary_ollama_model'] = sanitize_text_field($_POST['diary_ollama_model']);

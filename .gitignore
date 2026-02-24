@@ -13,9 +13,6 @@
 ehthumbs.db
 Thumbs.db
 desktop.ini
-future-plan.md
-ai_engine_patterns_memo.md
-REST API Migration Technical Report.md
 CLAUDE.md
 AGENTS.md
 claude.sh
@@ -53,8 +50,6 @@ error.log
 .env
 .env.local
 wp-config.php
-FUTURE_PLAN.md
-PROMPT_MARKDOWN_FEASIBILITY_PLAN.md
 
 # Temporary files
 *.tmp

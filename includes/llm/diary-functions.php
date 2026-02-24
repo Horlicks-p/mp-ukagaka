@@ -689,8 +689,21 @@ function mpu_get_random_diary_image($category_key, $personality_id = null)
  */
 function mpu_auto_diary_cron_handler()
 {
+    // 若前一次執行仍在進行中，跳過這次以避免重疊執行
+    if (get_transient('mpu_cron_diary_running')) {
+        return;
+    }
+
+    // 標記 cron 正在執行（300 秒 timeout，防止重疊）
+    set_transient('mpu_cron_diary_running', true, 300);
+
     // 檢查是否應該觸發
     if (!mpu_should_trigger_diary()) {
+        set_transient('mpu_cron_diary_last_run', [
+            'status' => 'skipped',
+            'time'   => time(),
+        ], WEEK_IN_SECONDS);
+        delete_transient('mpu_cron_diary_running');
         return;
     }
 
@@ -701,6 +714,12 @@ function mpu_auto_diary_cron_handler()
         if (defined('WP_DEBUG') && WP_DEBUG) {
             mpu_log_error('Diary: Failed to generate content - ' . $diary_data->get_error_message());
         }
+        set_transient('mpu_cron_diary_last_run', [
+            'status' => 'error',
+            'time'   => time(),
+            'error'  => $diary_data->get_error_message(),
+        ], WEEK_IN_SECONDS);
+        delete_transient('mpu_cron_diary_running');
         return;
     }
 
@@ -711,7 +730,20 @@ function mpu_auto_diary_cron_handler()
         if (defined('WP_DEBUG') && WP_DEBUG) {
             mpu_log_error('Diary: Failed to publish - ' . $result->get_error_message());
         }
+        set_transient('mpu_cron_diary_last_run', [
+            'status' => 'error',
+            'time'   => time(),
+            'error'  => $result->get_error_message(),
+        ], WEEK_IN_SECONDS);
+    } else {
+        set_transient('mpu_cron_diary_last_run', [
+            'status'  => 'ok',
+            'time'    => time(),
+            'post_id' => $result,
+        ], WEEK_IN_SECONDS);
     }
+
+    delete_transient('mpu_cron_diary_running');
 }
 add_action('mpu_daily_diary_check', 'mpu_auto_diary_cron_handler');
 

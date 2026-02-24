@@ -46,6 +46,68 @@ $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signatur
     <p style="color: #8A7FA0; margin-bottom: 20px;">
         <small><?php _e('設定自動日記功能（フリーレン手記）。角色會以極低機率自動發表日記文章。', 'mp-ukagaka'); ?></small>
     </p>
+    <!-- Cron 健康狀態 -->
+    <?php
+    $cron_running        = get_transient('mpu_cron_diary_running');
+    $cron_last_run       = get_transient('mpu_cron_diary_last_run');
+    $cron_next_scheduled = wp_next_scheduled('mpu_daily_diary_check');
+    ?>
+    <div class="mpu-diary-card">
+        <h4><?php _e('📊 Cron 執行狀態', 'mp-ukagaka'); ?></h4>
+        <?php if ($cron_running) : ?>
+            <p><span style="color:#f0ad4e;">🔄 <?php _e('Cron 目前正在執行中…', 'mp-ukagaka'); ?></span></p>
+        <?php elseif ($cron_last_run) : ?>
+            <?php
+            $run_time = wp_date('Y-m-d H:i:s', $cron_last_run['time']);
+            switch ($cron_last_run['status']) {
+                case 'ok':
+                    $status_html = '<span style="color:#46b450;">✅ ' . esc_html__('成功', 'mp-ukagaka') . '</span>';
+                    if (!empty($cron_last_run['post_id'])) {
+                        $post_url     = get_permalink((int) $cron_last_run['post_id']);
+                        $status_html .= ' — <a href="' . esc_url($post_url) . '" target="_blank">'
+                            . sprintf(esc_html__('文章 #%d', 'mp-ukagaka'), (int) $cron_last_run['post_id'])
+                            . '</a>';
+                    }
+                    break;
+                case 'error':
+                    $status_html = '<span style="color:#dc3232;">❌ ' . esc_html__('失敗', 'mp-ukagaka') . '</span>';
+                    if (!empty($cron_last_run['error'])) {
+                        $status_html .= ' — <code>' . esc_html($cron_last_run['error']) . '</code>';
+                    }
+                    break;
+                case 'skipped':
+                    $status_html = '<span style="color:#8A7FA0;">⏭️ ' . esc_html__('跳過（本次機率未觸發）', 'mp-ukagaka') . '</span>';
+                    break;
+                default:
+                    $status_html = '<span>' . esc_html($cron_last_run['status']) . '</span>';
+            }
+            ?>
+            <table class="widefat" style="max-width:500px;">
+                <tr>
+                    <th style="width:120px;"><?php _e('上次執行', 'mp-ukagaka'); ?></th>
+                    <td><?php echo esc_html($run_time); ?></td>
+                </tr>
+                <tr>
+                    <th><?php _e('狀態', 'mp-ukagaka'); ?></th>
+                    <td><?php echo $status_html; // phpcs:ignore WordPress.Security.EscapeOutput ?></td>
+                </tr>
+            </table>
+        <?php else : ?>
+            <p style="color:#8A7FA0;"><em><?php _e('尚無執行記錄。', 'mp-ukagaka'); ?></em></p>
+        <?php endif; ?>
+        <p style="margin-top:12px;">
+            <?php if ($cron_next_scheduled) : ?>
+                <?php printf(
+                    /* translators: %s = datetime */
+                    esc_html__('下次排程：%s', 'mp-ukagaka'),
+                    '<strong>' . esc_html(wp_date('Y-m-d H:i:s', $cron_next_scheduled)) . '</strong>'
+                ); ?>
+            <?php else : ?>
+                <span style="color:#dc3232;"><?php _e('⚠️ 排程事件未註冊，請停用後重新啟用插件。', 'mp-ukagaka'); ?></span>
+            <?php endif; ?>
+        </p>
+    </div>
+
     <form method="post" name="diary_setting" id="diary_setting" action="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=7'); ?>">
         <?php wp_nonce_field('mp_ukagaka_settings'); ?>
 
