@@ -7,15 +7,28 @@
 - **自動更新 Nonce 機制 (Automatic Nonce Refresh)**
   全域攔截 `/mp-ukagaka/v1/` 請求的 `rest_post_dispatch`，當 nonce 進入老化期時回傳 `new_token`，低成本且完美解決長時間掛機的 403 錯誤。
 
+- **Object-Oriented Routing (物件導向路由結構)**
+  已完成 REST 路由 OO 化重構：以 `MPU_REST_Base` 為基底，透過 `includes/rest/bootstrap.php` 集中註冊 Controller，19 條 REST 路由已由 `MPU_REST_Test`、`MPU_REST_Touch`、`MPU_REST_Chat`、`MPU_REST_Ghost`、`MPU_REST_Dialog` 接管。
+  舊 procedural REST 檔案已停用，舊 AJAX handlers（保留 `chat-api-handlers.php`）已完成清理。
+
+- **Provider 共用 Helper（第一階段）**
+  已建立 `includes/llm/provider-helpers.php`，集中抽出 Provider 共用邏輯，降低 `includes/llm/ai-functions.php` 與 `includes/ajax/chat-api-handlers.php` 的重複：
+  - `mpu_json_encode_safe()`（UTF-8 safe JSON encode，含 fallback 與 debug log）
+  - `mpu_tool_result_to_string()` / `mpu_tool_result_to_object()`
+  - `mpu_get_provider_headers()` / `mpu_build_http_args()`
+  - tool message / tool block builder（OpenAI / Claude / Ollama / Gemini）
+  - `mpu_parse_api_error_message()` / `mpu_json_decode_assoc()`
+  另外已將工具呼叫回合上限常數化：`MPU_MAX_TOOL_TURNS`。
+
 ---
 
 ## 🟢 低成本（可直接移植）
 
-### ✅ 1. UTF-8 Safe JSON Encoding
+### ✅ 1. UTF-8 Safe JSON Encoding（已擴展為 Provider Helper）
 
 [json_encode()](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/ai-engine/classes/engines/core.php#47-99) 加上 `JSON_INVALID_UTF8_SUBSTITUTE` 旗標，防止因為使用者貼上 Word 特殊文字或奇怪字元時，API 請求發生靜默失敗。
 
-- **改動位置**：[ai-functions.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/llm/ai-functions.php) 的 [json_encode](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/ai-engine/classes/engines/core.php#47-99) 呼叫統一換成 [json_encode($data, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE)](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/ai-engine/classes/engines/core.php#47-99)。
+- **目前狀態**：已透過 `includes/llm/provider-helpers.php` 的 `mpu_json_encode_safe()` 統一套用於 `ai-functions.php` 與 `chat-api-handlers.php`，並補上 fallback（避免呼叫端拿到 `false`）。
 
 ### ✅ 2. Cron 健康狀態追蹤
 
@@ -59,9 +72,9 @@
 
 在後端解析模型回傳的 Streaming chunk，並透過 `text/event-stream` 傳遞給前端，實現「打字機效果」，解決長訊息（如思考時間長的模型）的等待體驗問題。
 
-### 7. Object-Oriented Routing (物件導向路由結構)
+### ✅ 7. Object-Oriented Routing (物件導向路由結構) — 已完成
 
-將目前的 procedural 寫法改為 Base Class 繼承，將權限檢查、錯誤回傳格式與 Nonce 邏輯封裝在基礎的 REST Controller 中。
+已完成，不再列為待規劃項目。
 
 ### 8. Request-Scoped State Reset
 
@@ -77,9 +90,20 @@ Chat 送出前計算非使用者訊息（assistant、system role）的 MD5 並�
   set_transient('mpu_chat_checksum_' . $session_id, $checksum, HOUR_IN_SECONDS);
   ```
 
-### 10. Recursive Tool Call 的 maxDepth 迴圈防護
+### 10. 工具呼叫迴圈防護（Loop Guard / Loop Detection）
 
-目前 Abilities API 若一再要求呼叫工具，可能會無限迴圈。需在 `abilities-integration.php` 的工具執行循環加上 `maxDepth`（如預設 3 次）計數器與 `loop_detected()` 防護。
+目前架構主要是「工具呼叫回合迴圈（while loop）」而非真正遞迴呼叫堆疊。`abilities-integration.php` 主要負責工具註冊/執行入口（`mpu_execute_mcp_tool()`），真正的工具呼叫循環在 `includes/llm/ai-functions.php` 與 `includes/ajax/chat-api-handlers.php`。
+
+**目前已完成：**
+- 工具呼叫回合上限常數化：`MPU_MAX_TOOL_TURNS`（預設 5）
+- `mpu_call_ollama_with_messages()` 補上無有效回應時的跳出邏輯，避免卡在迴圈內重複請求
+
+**後續可做（仍值得規劃）：**
+- 補「重複工具呼叫」偵測（同一 tool + 相同 arguments 連續重複 N 次）
+- 超限時回傳明確錯誤（例如 `tool_call_loop_detected`）
+- 記錄 debug log（目前 turn、tool 名稱、截斷原因）
+
+> 註：若未來新增會在 tool 內再次呼叫 AI 的 Agent 型 ability，再評估真正的 `maxDepth`（遞迴深度）防護。
 
 ---
 
