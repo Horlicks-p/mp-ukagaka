@@ -6,6 +6,17 @@
 
 ---
 
+## [2.9.2] - 2026-02-25
+
+### 🚀 Major Update: REST OO Routing & Refactoring
+
+- **Object-Oriented Routing Structure**: Comprehensively refactored all 19 REST API routes into an object-oriented architecture. Introduced the `MPU_REST_Base` class and split domains into exclusive controllers (`Chat`, `Dialog`, `Ghost`, `Test`, `Touch`), centrally registered via `bootstrap.php`, dramatically improving routing maintainability.
+- **Provider Helpers Extraction**: Extracted shared LLM provider logic (e.g., safe JSON encoding, tool result formatting) into `provider-helpers.php`, eliminating code duplication and laying a solid foundation for the upcoming Factory Pattern.
+- **Tool Call Loop Hardening**: Enhanced tool execution protections in `includes/llm/ai-functions.php` and multi-turn chats by introducing a constant maximum loop limit (`MPU_MAX_TOOL_TURNS`), preventing the model from entering infinite local tool call loops.
+- **Dead Code Cleanup & Tech Debt Reduction**: Completely removed deprecated procedural REST files (`rest-init.php`, `rest-core.php`, etc.) and legacy AJAX handlers, fully embracing the elegant and modernized routing structure.
+
+---
+
 ## [2.9.1] - 2026-02-24
 
 ### 🛡️ Security & Stability Improvements

@@ -6,6 +6,17 @@
 
 ---
 
+## [2.9.2] - 2026-02-25
+
+### 🚀 重大更新：REST OO 路由與架構重構 (REST OO Routing Refactoring)
+
+- **物件導向路由結構 (Object-Oriented Routing)**：將 19 條 REST API 全面重構成物件導向架構，引入 `MPU_REST_Base` 基底類別，並按領域切分為 `Chat`, `Dialog`, `Ghost`, `Test`, `Touch` 五大專屬控制器，集中由 `bootstrap.php` 統一註冊，大幅提升路由維護性。
+- **Provider 共用 Helper**：抽離 LLM 提供商共用邏輯（如統一的 JSON 編碼、工具結果格式化轉換）至 `provider-helpers.php`，減少重複代碼，並為後續實作工廠模式打好基礎。
+- **工具呼叫迴圈防護**：全面強化 `includes/llm/ai-functions.php` 以及多輪對話的工具執行防護，常數化工具呼叫回合上限 (`MPU_MAX_TOOL_TURNS`)，避免模型陷入無限工具請求迴圈。
+- **死碼清理與技術債整理**：徹底移除廢棄的程序性 REST 檔案 (`rest-init.php`, `rest-core.php` 等) 以及舊版的傳統 AJAX Handler，全面擁抱優雅的現代化路由結構。
+
+---
+
 ## [2.9.1] - 2026-02-24
 
 ### 🛡️ 安全性與穩定性強化 (Security & Stability)
