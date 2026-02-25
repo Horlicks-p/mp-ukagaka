@@ -133,7 +133,7 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
     // Use v1beta for tools support
     $api_url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($api_key);
     
-    $max_turns = 5;
+    $max_turns = MPU_MAX_TOOL_TURNS; // 工具呼叫回合上限
     $current_turn = 0;
 
     while ($current_turn < $max_turns) {
@@ -151,11 +151,8 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
             $request_body['tools'] = [$tools_config];
         }
 
-        $response = wp_remote_post($api_url, [
-            "headers" => ["Content-Type" => "application/json"],
-            "body" => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
-            "timeout" => 60,
-        ]);
+        $response = wp_remote_post($api_url,
+            mpu_build_http_args(mpu_get_provider_headers('gemini'), $request_body));
 
         if (is_wp_error($response)) {
             return new WP_Error("api_request_failed", sprintf(__('Gemini API 請求失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
@@ -166,28 +163,23 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
 
         // Fallback: 如果因為 tools 導致 400 錯誤，嘗試移除 tools 重試
         if ($response_code === 400 && !empty($tools_config)) {
-             $error_data = json_decode($response_body, true);
-             $error_msg = $error_data['error']['message'] ?? '';
+             $error_msg = mpu_parse_api_error_message($response_body, '');
 
              if (strpos($error_msg, 'tools') !== false || strpos($error_msg, 'Unknown name') !== false) {
                  unset($request_body['tools']);
-                 $response = wp_remote_post($api_url, [
-                    'headers' => ['Content-Type' => 'application/json'],
-                    'body' => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
-                    'timeout' => 60,
-                ]);
+                 $response = wp_remote_post($api_url,
+                    mpu_build_http_args(mpu_get_provider_headers('gemini'), $request_body));
                 $response_code = wp_remote_retrieve_response_code($response);
                 $response_body = wp_remote_retrieve_body($response);
              }
         }
 
         if ($response_code !== 200) {
-            $error_data = json_decode($response_body, true);
-            $error_message = isset($error_data["error"]["message"]) ? $error_data["error"]["message"] : __('未知錯誤', 'mp-ukagaka');
+            $error_message = mpu_parse_api_error_message($response_body, __('未知錯誤', 'mp-ukagaka'));
             return new WP_Error("api_error", sprintf(__('Gemini API 錯誤（HTTP %s）：%s', 'mp-ukagaka'), $response_code, $error_message));
         }
 
-        $data = json_decode($response_body, true);
+        $data = mpu_json_decode_assoc($response_body);
         
         if (empty($data["candidates"][0]["content"])) {
             return new WP_Error("empty_response", __('Gemini API 回應為空', 'mp-ukagaka'));
@@ -215,29 +207,12 @@ function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $la
                 $function_name = $call["name"];
                 $args = $call["args"] ?? [];
                 
-                // 執行工具
-                $result = null;
-                if (function_exists('mpu_execute_mcp_tool')) {
-                    $result = mpu_execute_mcp_tool($function_name, $args);
-                    
-                    if (is_wp_error($result)) {
-                        $result = ["error" => $result->get_error_message()];
-                    } elseif (!is_array($result) && !is_object($result)) {
-                        // Ensure result is an object/array for JSON serialization
-                        $result = ["result" => (string) $result];
-                    }
-                } else {
-                    $result = ["error" => "Tool execution function missing"];
-                }
+                // 執行工具並建構 Gemini functionResponse part
+                $result = function_exists('mpu_execute_mcp_tool')
+                    ? mpu_execute_mcp_tool($function_name, $args)
+                    : ['error' => 'Tool execution function missing'];
 
-                // 格式化結果為 Gemini 要求格式
-                // Correct format: "response" => $result (direct object/array)
-                $function_response_parts[] = [
-                    "functionResponse" => [
-                        "name" => $function_name,
-                        "response" => $result  
-                    ]
-                ];
+                $function_response_parts[] = mpu_build_gemini_function_response_part($function_name, $result);
             }
 
             // 將函數結果加入歷史
@@ -295,7 +270,7 @@ function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $la
         $tools = mpu_get_mcp_tools_for_llm('openai');
     }
 
-    $max_turns = 5; // 防止無限迴圈
+    $max_turns = MPU_MAX_TOOL_TURNS; // 工具呼叫回合上限
     $current_turn = 0;
 
     while ($current_turn < $max_turns) {
@@ -311,14 +286,8 @@ function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $la
         }
 
         // 發送請求
-        $response = wp_remote_post($api_url, [
-            "headers" => [
-                "Content-Type" => "application/json",
-                "Authorization" => "Bearer " . $api_key,
-            ],
-            "body" => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
-            "timeout" => 60, // 增加超時時間以支援工具執行
-        ]);
+        $response = wp_remote_post($api_url,
+            mpu_build_http_args(mpu_get_provider_headers('openai', $api_key), $request_body));
 
         // 處理錯誤
         if (is_wp_error($response)) {
@@ -329,15 +298,12 @@ function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $la
         $response_body = wp_remote_retrieve_body($response);
 
         if ($response_code !== 200) {
-            $error_data = json_decode($response_body, true);
-            $error_message = isset($error_data["error"]["message"])
-                ? $error_data["error"]["message"]
-                : sprintf(__('API 請求失敗 (HTTP %s)', 'mp-ukagaka'), $response_code);
+            $error_message = mpu_parse_api_error_message($response_body, sprintf(__('API 請求失敗 (HTTP %s)', 'mp-ukagaka'), $response_code));
             return new WP_Error("api_error", sprintf(__('OpenAI API 錯誤：%s', 'mp-ukagaka'), $error_message));
         }
 
         // 解析回應
-        $data = json_decode($response_body, true);
+        $data = mpu_json_decode_assoc($response_body);
         
         if (empty($data["choices"][0]["message"])) {
             return new WP_Error("invalid_response", __('OpenAI API 回應格式錯誤', 'mp-ukagaka'));
@@ -363,23 +329,8 @@ function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $la
                     $result = new WP_Error('function_missing', 'Tool execution function missing.');
                 }
 
-                // 格式化結果
-                $output = '';
-                if (is_wp_error($result)) {
-                    $output = "Error: " . $result->get_error_message();
-                } elseif (is_array($result) || is_object($result)) {
-                    $output = wp_json_encode($result);
-                } else {
-                    $output = (string) $result;
-                }
-
                 // 加入工具結果到歷史
-                $messages[] = [
-                    "role" => "tool",
-                    "tool_call_id" => $tool_call['id'],
-                    "name" => $function_name,
-                    "content" => $output
-                ];
+                $messages[] = mpu_build_openai_tool_message($tool_call['id'], $function_name, $result);
             }
 
             // 繼續下一輪迴圈，讓 AI 根據工具結果生成新回應
@@ -431,7 +382,7 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
         $tools = mpu_get_mcp_tools_for_llm('claude');
     }
 
-    $max_turns = 5;
+    $max_turns = MPU_MAX_TOOL_TURNS; // 工具呼叫回合上限
     $current_turn = 0;
 
     while ($current_turn < $max_turns) {
@@ -447,15 +398,8 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
         }
 
         // 發送請求
-        $response = wp_remote_post($api_url, [
-            "headers" => [
-                "Content-Type" => "application/json",
-                "x-api-key" => $api_key,
-                "anthropic-version" => "2023-06-01",
-            ],
-            "body" => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
-            "timeout" => 60,
-        ]);
+        $response = wp_remote_post($api_url,
+            mpu_build_http_args(mpu_get_provider_headers('claude', $api_key), $request_body));
 
         if (is_wp_error($response)) {
             return new WP_Error("api_request_failed", sprintf(__('Claude API 請求失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
@@ -465,14 +409,11 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
         $response_body = wp_remote_retrieve_body($response);
 
         if ($response_code !== 200) {
-            $error_data = json_decode($response_body, true);
-            $error_message = isset($error_data["error"]["message"])
-                ? $error_data["error"]["message"]
-                : sprintf(__('API 請求失敗 (HTTP %s)', 'mp-ukagaka'), $response_code);
+            $error_message = mpu_parse_api_error_message($response_body, sprintf(__('API 請求失敗 (HTTP %s)', 'mp-ukagaka'), $response_code));
             return new WP_Error("api_error", sprintf(__('Claude API 錯誤：%s', 'mp-ukagaka'), $error_message));
         }
 
-        $data = json_decode($response_body, true);
+        $data = mpu_json_decode_assoc($response_body);
         
         if (empty($data["content"])) {
             return new WP_Error("invalid_response", __('Claude API 回應格式錯誤', 'mp-ukagaka'));
@@ -502,21 +443,7 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
                         $result = ["error" => "Tool execution function missing"];
                     }
 
-                    // 格式化結果為 Claude 格式
-                    // WP_Error 明確序列化為 JSON；字串直接傳遞避免二次編碼（""text""）
-                    if (is_wp_error($result)) {
-                        $content_text = wp_json_encode(["error" => $result->get_error_message()]);
-                    } elseif (is_string($result)) {
-                        $content_text = $result;
-                    } else {
-                        $content_text = wp_json_encode($result);
-                    }
-
-                    $tool_results[] = [
-                        "type" => "tool_result",
-                        "tool_use_id" => $tool_use_id,
-                        "content" => $content_text
-                    ];
+                    $tool_results[] = mpu_build_claude_tool_result_block($tool_use_id, $result);
                 }
             }
 
@@ -619,7 +546,7 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
         $tools = mpu_get_mcp_tools_for_llm('ollama');
     }
 
-    $max_turns = 5;
+    $max_turns = MPU_MAX_TOOL_TURNS; // 工具呼叫回合上限
     $current_turn = 0;
 
     while ($current_turn < $max_turns) {
@@ -641,11 +568,8 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
             $request_body['tools'] = $tools;
         }
 
-        $response = wp_remote_post($api_url, [
-            'headers' => ['Content-Type' => 'application/json'],
-            'body' => wp_json_encode($request_body, JSON_INVALID_UTF8_SUBSTITUTE),
-            'timeout' => $timeout,
-        ]);
+        $response = wp_remote_post($api_url,
+            mpu_build_http_args(mpu_get_provider_headers('ollama'), $request_body, $timeout));
 
         if (is_wp_error($response)) {
             // ... (保留原有的錯誤處理邏輯) ...
@@ -660,8 +584,8 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
             return new WP_Error("api_error", sprintf(__('Ollama API 錯誤 (HTTP %s)', 'mp-ukagaka'), $response_code));
         }
 
-        $data = json_decode($response_body, true);
-        
+        $data = mpu_json_decode_assoc($response_body);
+
         if (empty($data["message"])) {
             return new WP_Error("invalid_response", __('Ollama API 回應格式錯誤', 'mp-ukagaka'));
         }
@@ -689,15 +613,8 @@ function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $l
                     $result = ["error" => "Tool execution function missing"];
                 }
 
-                $content_text = is_string($result) ? $result : wp_json_encode($result);
-
                 // 將工具結果加入歷史 (role: tool)
-                $messages[] = [
-                    "role" => "tool",
-                    "content" => $content_text,
-                    // Ollama 有時需要 name，有時不需要，視版本而定。通常不需要 tool_call_id
-                    "name" => $function_name
-                ];
+                $messages[] = mpu_build_ollama_tool_message($function_name, $result);
             }
             
             $current_turn++;
