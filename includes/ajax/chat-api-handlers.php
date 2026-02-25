@@ -137,7 +137,7 @@ function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
         }
     }
 
-    $max_turns = 5;
+    $max_turns = MPU_MAX_TOOL_TURNS; // 工具呼叫回合上限
     $current_turn = 0;
     $tool_executed = false;
 
@@ -170,11 +170,8 @@ function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
 
         $timeout = mpu_get_ollama_timeout($endpoint, 'chat');
 
-        $response = wp_remote_post($api_url, [
-            'headers' => ['Content-Type' => 'application/json'],
-            'body' => wp_json_encode($request_body),
-            'timeout' => $timeout,
-        ]);
+        $response = wp_remote_post($api_url,
+            mpu_build_http_args(mpu_get_provider_headers('ollama'), $request_body, $timeout));
 
         if (is_wp_error($response)) {
             return $response;
@@ -187,7 +184,7 @@ function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
             return new WP_Error('ollama_error', sprintf(__('Ollama API 錯誤（HTTP %s）', 'mp-ukagaka'), $response_code));
         }
 
-        $data = json_decode($response_body, true);
+        $data = mpu_json_decode_assoc($response_body);
 
         $message = $data['message'];
         $ollama_messages[] = $message; // Add assistant response to history
@@ -218,10 +215,7 @@ function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
                 }
 
                 // Add tool result to history
-                $ollama_messages[] = [
-                    'role' => 'tool',
-                    'content' => json_encode($result)
-                ];
+                $ollama_messages[] = mpu_build_ollama_tool_message($function_name, $result);
             }
             $current_turn++;
             continue;
@@ -311,7 +305,9 @@ function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
             }
         }
         
-        // If we loop and still don't have a response (e.g. tool call loop issue), we error out after max turns
+        // 無工具呼叫但也無有效回應（content=null, thinking=null）：
+        // 跳出迴圈，交由外層 WP_Error 處理，防止 $current_turn 不遞增導致無限迴圈
+        break;
     }
 
     return new WP_Error(
@@ -348,7 +344,7 @@ function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $opt
         }
     }
 
-    $max_turns = 5;
+    $max_turns = MPU_MAX_TOOL_TURNS; // 工具呼叫回合上限
     $current_turn = 0;
     $tool_executed = false;
 
@@ -366,14 +362,8 @@ function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $opt
             $request_body['tool_choice'] = 'auto';
         }
 
-        $response = wp_remote_post($api_url, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . $api_key
-            ],
-            'body' => wp_json_encode($request_body),
-            'timeout' => 60,
-        ]);
+        $response = wp_remote_post($api_url,
+            mpu_build_http_args(mpu_get_provider_headers('openai', $api_key), $request_body));
 
         if (is_wp_error($response)) {
             return $response;
@@ -383,12 +373,11 @@ function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $opt
         $response_body = wp_remote_retrieve_body($response);
 
         if ($response_code !== 200) {
-            $error_data = json_decode($response_body, true);
-            $error_message = $error_data['error']['message'] ?? sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
+            $error_message = mpu_parse_api_error_message($response_body, sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code));
             return new WP_Error('openai_error', $error_message);
         }
 
-        $data = json_decode($response_body, true);
+        $data = mpu_json_decode_assoc($response_body);
         $message = $data['choices'][0]['message'];
 
         // 將助手的回應加入歷史
@@ -417,11 +406,7 @@ function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $opt
                 }
 
                 // 將工具結果加入歷史
-                $openai_messages[] = [
-                    'role' => 'tool',
-                    'tool_call_id' => $tool_call_id,
-                    'content' => json_encode($result)
-                ];
+                $openai_messages[] = mpu_build_openai_tool_message($tool_call_id, $function_name, $result);
             }
             $current_turn++;
             continue; // 繼續下一輪對話，讓 AI 處理結果
@@ -462,7 +447,7 @@ function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $opt
         }
     }
 
-    $max_turns = 5;
+    $max_turns = MPU_MAX_TOOL_TURNS; // 工具呼叫回合上限
     $current_turn = 0;
     $tool_executed = false;
 
@@ -478,15 +463,8 @@ function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $opt
             $request_body['tools'] = $tools_config;
         }
 
-        $response = wp_remote_post($api_url, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'x-api-key' => $api_key,
-                'anthropic-version' => '2023-06-01'
-            ],
-            'body' => wp_json_encode($request_body),
-            'timeout' => 60,
-        ]);
+        $response = wp_remote_post($api_url,
+            mpu_build_http_args(mpu_get_provider_headers('claude', $api_key), $request_body));
 
         if (is_wp_error($response)) {
             return $response;
@@ -496,12 +474,11 @@ function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $opt
         $response_body = wp_remote_retrieve_body($response);
 
         if ($response_code !== 200) {
-            $error_data = json_decode($response_body, true);
-            $error_message = $error_data['error']['message'] ?? sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
+            $error_message = mpu_parse_api_error_message($response_body, sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code));
             return new WP_Error('claude_error', $error_message);
         }
 
-        $data = json_decode($response_body, true);
+        $data = mpu_json_decode_assoc($response_body);
         
         // 檢查 stop_reason
         $stop_reason = $data['stop_reason'] ?? null;
@@ -525,28 +502,13 @@ function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $opt
                     $function_name = $block['name'];
                     $arguments = $block['input'];
 
-                    $result = null;
-                    $content_text = '';
-
                     if (function_exists('mpu_execute_mcp_tool')) {
                         $result = mpu_execute_mcp_tool($function_name, $arguments);
                     } else {
-                        $result = new WP_Error('missing_tool', "Tool execution function missing");
+                        $result = new WP_Error('missing_tool', 'Tool execution function missing');
                     }
 
-                    if (is_wp_error($result)) {
-                        $content_text = wp_json_encode(["error" => $result->get_error_message()]);
-                    } elseif (is_string($result)) {
-                        $content_text = $result;
-                    } else {
-                        $content_text = wp_json_encode($result);
-                    }
-
-                    $tool_results[] = [
-                        'type' => 'tool_result',
-                        'tool_use_id' => $tool_use_id,
-                        'content' => $content_text
-                    ];
+                    $tool_results[] = mpu_build_claude_tool_result_block($tool_use_id, $result);
                 }
             }
 
@@ -608,7 +570,7 @@ function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $opt
         }
     }
 
-    $max_turns = 5;
+    $max_turns = MPU_MAX_TOOL_TURNS; // 工具呼叫回合上限
     $current_turn = 0;
     $tool_executed = false;
 
@@ -628,11 +590,8 @@ function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $opt
             $request_body['tools'] = [$tools_config];
         }
 
-        $response = wp_remote_post($api_url, [
-            'headers' => ['Content-Type' => 'application/json'],
-            'body' => wp_json_encode($request_body),
-            'timeout' => 60,
-        ]);
+        $response = wp_remote_post($api_url,
+            mpu_build_http_args(mpu_get_provider_headers('gemini'), $request_body));
 
         if (is_wp_error($response)) {
             return $response;
@@ -643,28 +602,23 @@ function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $opt
 
         // Fallback: 如果因為 tools 導致 400 錯誤，嘗試移除 tools 重試
         if ($response_code === 400 && !empty($tools_config)) {
-             $error_data = json_decode($response_body, true);
-             $error_msg = $error_data['error']['message'] ?? '';
-             
+             $error_msg = mpu_parse_api_error_message($response_body, '');
+
              if (strpos($error_msg, 'tools') !== false || strpos($error_msg, 'Unknown name') !== false) {
                  unset($request_body['tools']);
-                 $response = wp_remote_post($api_url, [
-                    'headers' => ['Content-Type' => 'application/json'],
-                    'body' => wp_json_encode($request_body),
-                    'timeout' => 60,
-                ]);
+                 $response = wp_remote_post($api_url,
+                    mpu_build_http_args(mpu_get_provider_headers('gemini'), $request_body));
                 $response_code = wp_remote_retrieve_response_code($response);
                 $response_body = wp_remote_retrieve_body($response);
              }
         }
 
         if ($response_code !== 200) {
-            $error_data = json_decode($response_body, true);
-            $error_message = $error_data['error']['message'] ?? sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
+            $error_message = mpu_parse_api_error_message($response_body, sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code));
             return new WP_Error('gemini_error', $error_message);
         }
 
-        $data = json_decode($response_body, true);
+        $data = mpu_json_decode_assoc($response_body);
         
         if (empty($data['candidates'][0]['content'])) {
              return new WP_Error('gemini_empty', __('Gemini 未返回有效回應', 'mp-ukagaka'));
@@ -697,27 +651,12 @@ function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $opt
                 $function_name = $call["name"];
                 $args = $call["args"] ?? [];
                 
-                // 執行工具
-                $result = null;
-                if (function_exists('mpu_execute_mcp_tool')) {
-                    $result = mpu_execute_mcp_tool($function_name, $args);
-                    
-                    if (is_wp_error($result)) {
-                        $result = ["error" => $result->get_error_message()];
-                    } elseif (!is_array($result) && !is_object($result)) {
-                        // Ensure result is an object/array for JSON serialization
-                        $result = ["result" => (string) $result];
-                    }
-                } else {
-                    $result = ["error" => "Tool execution function missing"];
-                }
+                // 執行工具並建構 Gemini functionResponse part
+                $result = function_exists('mpu_execute_mcp_tool')
+                    ? mpu_execute_mcp_tool($function_name, $args)
+                    : ['error' => 'Tool execution function missing'];
 
-                $function_response_parts[] = [
-                    "functionResponse" => [
-                        "name" => $function_name,
-                        "response" => $result // Direct result as response
-                    ]
-                ];
+                $function_response_parts[] = mpu_build_gemini_function_response_part($function_name, $result);
             }
 
             // 將函數結果加入歷史 - Role: user (as per user request)
