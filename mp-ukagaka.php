@@ -72,6 +72,7 @@ function mpu_load_modules()
         'stats/stats-collector.php',   // 統計收集器（需在 ai-functions.php 之前載入）
         'stats/stats-analyzer.php',    // 統計分析器
         'llm/api-cache.php',           // API 快取系統（需在 ai-functions.php 之前載入）
+        'llm/provider-helpers.php',    // Provider 共用 Helper（JSON encode、tool result 格式化）
         'llm/ai-functions.php',        // AI 功能（雲端 API：Gemini, OpenAI, Claude）
         'llm/prompt-categories.php',   // Prompt 類別指令管理（需在 llm-functions.php 之前載入）
         'llm/llm-slimstat.php',       // LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
@@ -81,11 +82,12 @@ function mpu_load_modules()
         'llm/llm-functions.php',       // LLM 功能（本機 LLM：Ollama）
         'personality/emoji-mapper.php',        // 表情映射與情緒分析（需在 AJAX 處理器之前載入）
         'core/ukagaka-functions.php',   // 偽春菜管理
-        'rest/rest-init.php',           // REST API 處理器（初始化）
-        'rest/rest-core.php',           // REST API 處理器（核心）
-        'rest/rest-chat.php',           // REST API 處理器（對話相關）
-        'rest/rest-touch.php',          // REST API 處理器（觸摸相關）
-        'rest/rest-test.php',           // REST API 處理器（連線測試相關）
+        'rest/bootstrap.php',           // REST OO Controller 註冊入口（含 Base Class 載入）
+        // 'rest/rest-init.php' — 已由 MPU_REST_Ghost Controller 取代（bootstrap.php）
+        // 'rest/rest-core.php' — 已由 MPU_REST_Ghost + MPU_REST_Dialog Controller 取代（bootstrap.php）
+        // 'rest/rest-chat.php' — 已由 MPU_REST_Chat Controller 取代（bootstrap.php，含 chat/*.php）
+        // 'rest/rest-touch.php' — 已由 MPU_REST_Touch Controller 取代（bootstrap.php）
+        // 'rest/rest-test.php' — 已由 MPU_REST_Test Controller 取代（bootstrap.php）
         'ajax/chat-api-handlers.php',   // 對話模式 API 處理器（多輪對話）
         'integrations/akismet-integration.php', // Akismet 垃圾留言連動
         'integrations/turnstile-integration.php', // Turnstile 垃圾留言連動
