@@ -4,10 +4,8 @@
 
 - **AI Provider 的工廠模式 (Factory Pattern)**
   已完成第二階段重構，建立 `MPU_AI_Provider_Factory` 體系，讓所有 LLM 供應商（OpenAI, Gemini, Claude, Ollama）實作標準介面。
-
 - **工具呼叫迴圈防護 (Loop Guard / Loop Detection)**
   已全面實裝於各 Provider 類別中，透過 Signature (MD5 hash) 識別重複呼叫，上限常數名為 `MPU_MAX_TOOL_REPEAT_SAME_CALL`。
-
 - **伺服器發送事件串流 (SSE Streaming)**
   已全面導入 `text/event-stream` 傳輸協定與 `user-stream` 端點，支援 OpenAI (`tool_calls` 組裝) 與 Ollama 的即時輸出，成功解決長回覆與思考型模型的等待焦慮。
 
@@ -59,7 +57,7 @@
 
 建立 `MPU_AI_Provider_Factory::get_provider()`，讓所有 LLM 供應商（OpenAI, Gemini, Claude, Ollama）實作標準介面。這能統一 [class-mpu-rest-test.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-test.php) 與 [ai-functions.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/llm/ai-functions.php)，未來新增模型（如 DeepSeek）會非常容易。
 
-### 6. 伺服器發送事件串流 (SSE Streaming)
+### ✅ 6. 伺服器發送事件串流 (SSE Streaming)
 
 在後端解析模型回傳的 Streaming chunk，並透過 `text/event-stream` 傳遞給前端，實現「打字機效果」，解決長訊息（如思考時間長的模型）的等待體驗問題。
 
