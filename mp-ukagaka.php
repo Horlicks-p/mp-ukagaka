@@ -3,7 +3,7 @@
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Gemini、OpenAI、Claude）。本機 LLM 支援（Ollama，測試階段）。API Key 加密存儲、安全文件操作、可配置打字速度。Claude 風格後台管理介面。JSON 人格系統。
-Version: 2.9.1
+Version: 2.12.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 */
@@ -13,7 +13,7 @@ if (!defined("ABSPATH")) {
 }
 
 // 定義常量
-define("MPU_VERSION", "2.9.1");
+define("MPU_VERSION", "2.12.0");
 define("MPU_MAIN_FILE", __FILE__);
 
 /**
@@ -73,6 +73,12 @@ function mpu_load_modules()
         'stats/stats-analyzer.php',    // 統計分析器
         'llm/api-cache.php',           // API 快取系統（需在 ai-functions.php 之前載入）
         'llm/provider-helpers.php',    // Provider 共用 Helper（JSON encode、tool result 格式化）
+        'llm/chat-integrity.php',      // 對話歷史完整性 checksum（防前端篡改）
+        'llm/request-state.php',       // 請求期間狀態重置/追蹤（MCP tool flag、未來 SSE buffer）
+        'llm/tool-loop-guard.php',     // 工具呼叫迴圈防護機制
+        'llm/streaming-helpers.php',   // SSE 串流 Helper（ob 清理、事件發送）
+        'llm/provider-stream-http.php', // 低階 cURL 串流 HTTP Client
+        'llm/providers/bootstrap.php', // AI Providers 工廠模式與類別（需在 ai-functions.php 之前載入）
         'llm/ai-functions.php',        // AI 功能（雲端 API：Gemini, OpenAI, Claude）
         'llm/prompt-categories.php',   // Prompt 類別指令管理（需在 llm-functions.php 之前載入）
         'llm/llm-slimstat.php',       // LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
@@ -83,11 +89,6 @@ function mpu_load_modules()
         'personality/emoji-mapper.php',        // 表情映射與情緒分析（需在 AJAX 處理器之前載入）
         'core/ukagaka-functions.php',   // 偽春菜管理
         'rest/bootstrap.php',           // REST OO Controller 註冊入口（含 Base Class 載入）
-        // 'rest/rest-init.php' — 已由 MPU_REST_Ghost Controller 取代（bootstrap.php）
-        // 'rest/rest-core.php' — 已由 MPU_REST_Ghost + MPU_REST_Dialog Controller 取代（bootstrap.php）
-        // 'rest/rest-chat.php' — 已由 MPU_REST_Chat Controller 取代（bootstrap.php，含 chat/*.php）
-        // 'rest/rest-touch.php' — 已由 MPU_REST_Touch Controller 取代（bootstrap.php）
-        // 'rest/rest-test.php' — 已由 MPU_REST_Test Controller 取代（bootstrap.php）
         'ajax/chat-api-handlers.php',   // 對話模式 API 處理器（多輪對話）
         'integrations/akismet-integration.php', // Akismet 垃圾留言連動
         'integrations/turnstile-integration.php', // Turnstile 垃圾留言連動

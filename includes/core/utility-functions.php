@@ -18,6 +18,10 @@ if (!defined('MPU_MAX_TOOL_TURNS')) {
     define('MPU_MAX_TOOL_TURNS', 5); // 每次 AI 呼叫最多允許的工具呼叫回合數（tool-call turns limit）
 }
 
+if (!defined('MPU_MAX_TOOL_REPEAT_SAME_CALL')) {
+    define('MPU_MAX_TOOL_REPEAT_SAME_CALL', 2); // 同一工具與參數連續重複呼叫的門檻（觸發 loop 中止）
+}
+
 // ========================================
 // API 快取時間常數
 // ========================================

@@ -261,12 +261,13 @@ Call AI API (Automatically select provider). Supports Gemini, OpenAI, Claude.
 
 ```php
 /**
- * @param string $provider AI provider ('gemini', 'openai', 'claude')
+ * @param string $provider AI provider ('gemini', 'openai', 'claude', 'ollama')
  * @param string $api_key API Key
  * @param string $system_prompt System prompt (Personality settings)
  * @param string $user_prompt User prompt
  * @param string $language Language setting ('zh-TW', 'ja', 'en')
- * @param array $mpu_opt Plugin options (used to get model name)
+ * @param array|null $mpu_opt Plugin options (used to get model name)
+ * @param int|null $max_tokens Max tokens (optional)
  * @return string|WP_Error AI response or error
  */
 function mpu_call_ai_api(
@@ -275,7 +276,8 @@ function mpu_call_ai_api(
     string $system_prompt,
     string $user_prompt,
     string $language = 'zh-TW',
-    array $mpu_opt = []
+    ?array $mpu_opt = null,
+    ?int $max_tokens = null
 )
 ```
 
@@ -345,11 +347,22 @@ Call Google Gemini API.
 
 ```php
 /**
- * @param string $prompt User prompt
+ * @param string $api_key Gemini API Key
+ * @param string $model Model name (e.g. 'gemini-2.5-flash')
  * @param string $system_prompt System prompt
- * @return string|null AI response or null
+ * @param string $user_prompt User prompt
+ * @param string $language Language setting
+ * @param int|null $max_tokens Max tokens (optional)
+ * @return string|WP_Error AI response or error
  */
-function mpu_call_gemini_api(string $prompt, string $system_prompt): ?string
+function mpu_call_gemini_api(
+    string $api_key,
+    string $model,
+    string $system_prompt,
+    string $user_prompt,
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
+)
 ```
 
 ---
@@ -360,11 +373,22 @@ Call OpenAI API.
 
 ```php
 /**
- * @param string $prompt User prompt
+ * @param string $api_key OpenAI API Key
+ * @param string $model Model name (e.g. 'gpt-4o-mini')
  * @param string $system_prompt System prompt
- * @return string|null AI response or null
+ * @param string $user_prompt User prompt
+ * @param string $language Language setting
+ * @param int|null $max_tokens Max tokens (optional)
+ * @return string|WP_Error AI response or error
  */
-function mpu_call_openai_api(string $prompt, string $system_prompt): ?string
+function mpu_call_openai_api(
+    string $api_key,
+    string $model,
+    string $system_prompt,
+    string $user_prompt,
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
+)
 ```
 
 ---
@@ -375,11 +399,22 @@ Call Anthropic Claude API.
 
 ```php
 /**
- * @param string $prompt User prompt
+ * @param string $api_key Claude API Key
+ * @param string $model Model name (e.g. 'claude-sonnet-4-5-20250929')
  * @param string $system_prompt System prompt
- * @return string|null AI response or null
+ * @param string $user_prompt User prompt
+ * @param string $language Language setting
+ * @param int|null $max_tokens Max tokens (optional)
+ * @return string|WP_Error AI response or error
  */
-function mpu_call_claude_api(string $prompt, string $system_prompt): ?string
+function mpu_call_claude_api(
+    string $api_key,
+    string $model,
+    string $system_prompt,
+    string $user_prompt,
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
+)
 ```
 
 ---

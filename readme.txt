@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.8.0
+Stable tag: 2.12.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -161,9 +161,15 @@ This plugin uses a modular architecture for better maintainability:
 * `llm-slimstat.php` - Slimstat integration for visitor statistics
 * `emoji-mapper.php` - Emoji mapping and emotion analysis
 * `ukagaka-functions.php` - Character management
-* `ajax-handlers.php` - AJAX endpoints
-* `ajax-handlers-llm.php` - LLM-related AJAX handlers
-* `chat-api-handlers.php` - Chat mode API handlers (multi-turn conversations)
+* `llm/providers/` - AI Provider Factory (Gemini, OpenAI, Claude, Ollama)
+* `tool-loop-guard.php` - Protection against LLM infinite loops
+* `rest/bootstrap.php` - REST Controller registration entry
+* `rest/class-mpu-rest-base.php` - Base Class (OO Architecture)
+* `rest/class-mpu-rest-chat.php` - LLM Chat Endpoints (SSE Streaming)
+* `rest/class-mpu-rest-ghost.php` - Personality/Init Endpoints
+* `rest/class-mpu-rest-dialog.php` - Dialog Management Endpoints
+* `rest/class-mpu-rest-touch.php` - Touch Interaction Endpoints
+* `rest/class-mpu-rest-test.php` - Connection Test Endpoints
 * `frontend-functions.php` - Frontend HTML and assets
 * `admin-functions.php` - Admin settings pages
 
@@ -176,6 +182,21 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-02-27 =
+* v2.12.0
+* [NEW] SSE Streaming: Implemented Real-time "Typewriter Effect" for AI responses
+* [NEW] Streaming Endpoint: Added /chat/user-stream with security & rate limits
+* [IMPROVE] Factory Pattern Phase 2: Completed provider logic encapsulation
+* [IMPROVE] Ghost Management: Unified personality initialization via MPU_REST_Ghost
+* [FIX] Connection Guard: Added ignore_user_abort to prevent ghost-talking processes
+
+= 2026-02-26 =
+* v2.10.0
+* [NEW] AI Provider Factory: Object-oriented architecture for AI providers (Gemini, OpenAI, Claude, Ollama)
+* [NEW] Tool Loop Guard: Protection against LLM infinite loops
+* [IMPROVE] REST API Migration: Completely replaced admin-ajax.php with WordPress REST API
+* [SECURITY] UTF-8 Safe JSON Encoding & precise nonce refreshing mechanism
 
 = 2026-02-15 =
 * v2.8.0

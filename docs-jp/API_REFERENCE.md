@@ -199,12 +199,13 @@ AI API を呼び出す（自動プロバイダー選択）。Gemini、OpenAI、C
 
 ```php
 /**
- * @param string $provider AI プロバイダー（'gemini'、'openai'、'claude'）
+ * @param string $provider AI プロバイダー（'gemini'、'openai'、'claude'、'ollama'）
  * @param string $api_key API Key
  * @param string $system_prompt システムプロンプト（キャラクター設定）
  * @param string $user_prompt ユーザープロンプト
  * @param string $language 言語設定（'zh-TW'、'ja'、'en'）
- * @param array $mpu_opt プラグイン設定（モデル名取得用）
+ * @param array|null $mpu_opt プラグイン設定（モデル名取得用）
+ * @param int|null $max_tokens 最大トークン数（オプション）
  * @return string|WP_Error AI 応答またはエラー
  */
 function mpu_call_ai_api(
@@ -213,7 +214,8 @@ function mpu_call_ai_api(
     string $system_prompt,
     string $user_prompt,
     string $language = 'zh-TW',
-    array $mpu_opt = []
+    ?array $mpu_opt = null,
+    ?int $max_tokens = null
 )
 ```
 
@@ -288,6 +290,7 @@ Google Gemini API を呼び出す。
  * @param string $system_prompt システムプロンプト
  * @param string $user_prompt ユーザープロンプト
  * @param string $language 言語設定
+ * @param int|null $max_tokens 最大トークン数（オプション）
  * @return string|WP_Error AI 応答またはエラー
  */
 function mpu_call_gemini_api(
@@ -295,7 +298,8 @@ function mpu_call_gemini_api(
     string $model,
     string $system_prompt,
     string $user_prompt,
-    string $language = 'zh-TW'
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
 )
 ```
 
@@ -308,10 +312,11 @@ OpenAI API を呼び出す。
 ```php
 /**
  * @param string $api_key OpenAI API Key
- * @param string $model モデル名（例：'gpt-4.1-mini-2025-04-14'）
+ * @param string $model モデル名（例：'gpt-4o-mini'）
  * @param string $system_prompt システムプロンプト
  * @param string $user_prompt ユーザープロンプト
  * @param string $language 言語設定
+ * @param int|null $max_tokens 最大トークン数（オプション）
  * @return string|WP_Error AI 応答またはエラー
  */
 function mpu_call_openai_api(
@@ -319,7 +324,8 @@ function mpu_call_openai_api(
     string $model,
     string $system_prompt,
     string $user_prompt,
-    string $language = 'zh-TW'
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
 )
 ```
 
@@ -336,6 +342,7 @@ Anthropic Claude API を呼び出す。
  * @param string $system_prompt システムプロンプト
  * @param string $user_prompt ユーザープロンプト
  * @param string $language 言語設定
+ * @param int|null $max_tokens 最大トークン数（オプション）
  * @return string|WP_Error AI 応答またはエラー
  */
 function mpu_call_claude_api(
@@ -343,7 +350,8 @@ function mpu_call_claude_api(
     string $model,
     string $system_prompt,
     string $user_prompt,
-    string $language = 'zh-TW'
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
 )
 ```
 
@@ -360,6 +368,7 @@ Ollama API を呼び出す（ローカルまたはリモート）。
  * @param string $system_prompt システムプロンプト
  * @param string $user_prompt ユーザープロンプト
  * @param string $language 言語設定
+ * @param int|null $max_tokens 最大トークン数（オプション）
  * @return string|WP_Error AI 応答またはエラー
  */
 function mpu_call_ollama_api(
@@ -367,7 +376,8 @@ function mpu_call_ollama_api(
     string $model,
     string $system_prompt,
     string $user_prompt,
-    string $language = 'zh-TW'
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
 )
 ```
 

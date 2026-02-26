@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.8.3-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.12.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.8.3
+## 🎉 What's New in v2.12.0
 
-**Performance Optimization**: Refactored major backend and frontend architectures, featuring O(1) hash map lookups, Request-Level Caches, and O(n) message history JS algorithms to improve overall performance.
+**SSE Streaming & Typewriter Effect**: Introduced Server-Sent Events (SSE) protocol for real-time AI responses. The "Typewriter Effect" significantly improves user experience during long replies or for "thinking" models (e.g., Ollama).
 
-**Security & Stability**: Introduced advanced ZIP Bomb Mitigation, adopted cryptographically safer randomizers (`wp_rand`), and implemented Global utility functions to prevent inclusion loops.
+**New Streaming Endpoint**: Added a dedicated REST route `/chat/user-stream` with full security verification, rate limiting, and dialogue integrity checks. Fully supports streaming for OpenAI (tool calls) and Ollama (thinking mark filtering).
+
+**System Architecture & Safety**: Completed Stage 2 refactoring of the AI Provider Factory Pattern for better scalability. Implemented Tool Call Loop Detection (Loop Guard) to automatically intercept infinite loops and protect API quotas.
+
+**Stability Enhancements**: Integrated `ignore_user_abort` and cURL stream callbacks to prevent "ghost talking" and save server resources when users disconnect.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

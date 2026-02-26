@@ -361,12 +361,13 @@ function mpu_get_current_provider(?array $mpu_opt = null): string
 
 ```php
 /**
- * @param string $provider AI 提供商（'gemini'、'openai'、'claude'）
+ * @param string $provider AI 提供商（'gemini'、'openai'、'claude'、'ollama'）
  * @param string $api_key API Key
  * @param string $system_prompt 系統提示（角色設定）
  * @param string $user_prompt 使用者提示
  * @param string $language 語言設定（'zh-TW'、'ja'、'en'）
- * @param array $mpu_opt 外掛設定（用於獲取模型名稱）
+ * @param array|null $mpu_opt 外掛設定（用於獲取模型名稱）
+ * @param int|null $max_tokens 最大 token 數（可選）
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_ai_api(
@@ -375,7 +376,8 @@ function mpu_call_ai_api(
     string $system_prompt,
     string $user_prompt,
     string $language = 'zh-TW',
-    array $mpu_opt = []
+    ?array $mpu_opt = null,
+    ?int $max_tokens = null
 )
 ```
 
@@ -450,6 +452,7 @@ function mpu_get_language_instruction(string $language): string
  * @param string $system_prompt 系統提示
  * @param string $user_prompt 使用者提示
  * @param string $language 語言設定
+ * @param int|null $max_tokens 最大 token 數（可選）
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_gemini_api(
@@ -457,7 +460,8 @@ function mpu_call_gemini_api(
     string $model,
     string $system_prompt,
     string $user_prompt,
-    string $language = 'zh-TW'
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
 )
 ```
 
@@ -470,10 +474,11 @@ function mpu_call_gemini_api(
 ```php
 /**
  * @param string $api_key OpenAI API Key
- * @param string $model 模型名稱（如 'gpt-4.1-mini-2025-04-14'）
+ * @param string $model 模型名稱（如 'gpt-4o-mini'）
  * @param string $system_prompt 系統提示
  * @param string $user_prompt 使用者提示
  * @param string $language 語言設定
+ * @param int|null $max_tokens 最大 token 數（可選）
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_openai_api(
@@ -481,7 +486,8 @@ function mpu_call_openai_api(
     string $model,
     string $system_prompt,
     string $user_prompt,
-    string $language = 'zh-TW'
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
 )
 ```
 
@@ -498,6 +504,7 @@ function mpu_call_openai_api(
  * @param string $system_prompt 系統提示
  * @param string $user_prompt 使用者提示
  * @param string $language 語言設定
+ * @param int|null $max_tokens 最大 token 數（可選）
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_claude_api(
@@ -505,7 +512,8 @@ function mpu_call_claude_api(
     string $model,
     string $system_prompt,
     string $user_prompt,
-    string $language = 'zh-TW'
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
 )
 ```
 
@@ -522,6 +530,7 @@ function mpu_call_claude_api(
  * @param string $system_prompt 系統提示
  * @param string $user_prompt 使用者提示
  * @param string $language 語言設定
+ * @param int|null $max_tokens 最大 token 數（可選）
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_ollama_api(
@@ -529,7 +538,8 @@ function mpu_call_ollama_api(
     string $model,
     string $system_prompt,
     string $user_prompt,
-    string $language = 'zh-TW'
+    string $language = 'zh-TW',
+    ?int $max_tokens = null
 )
 ```
 

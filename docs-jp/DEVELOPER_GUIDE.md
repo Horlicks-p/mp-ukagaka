@@ -34,16 +34,16 @@ mp-ukagaka/
 │   │   ├── utility-functions.php   # ユーティリティ関数
 │   │   ├── ukagaka-functions.php   # 伺か管理
 │   │   └── frontend-functions.php  # フロントエンド機能
+│   ├── rest/                   # REST API 処理モジュール（v2.12.0 OO アーキテクチャ）
+│   │   ├── bootstrap.php           # REST Controller 登録エントリーポイント
+│   │   ├── class-mpu-rest-base.php # 基本クラス
+│   │   ├── class-mpu-rest-chat.php # LLM 対話エンドポイント (rest-chat.php を置換)
+│   │   ├── class-mpu-rest-ghost.php# 核心/パーソナリティエンドポイント (rest-init.php を置換)
+│   │   ├── class-mpu-rest-dialog.php# 対話管理エンドポイント (rest-core.php を置換)
+│   │   ├── class-mpu-rest-touch.php# タッチ相互作用エンドポイント (rest-touch.php を置換)
+│   │   └── class-mpu-rest-test.php # API テストエンドポイント (rest-test.php を置換)
 │   ├── ajax/                   # AJAX ハンドラーモジュール
-│   │   ├── chat/                   # チャットハンドラーサブディレクトリ（v2.5.6）
-│   │   │   ├── context-handler.php     # ページ感知チャット
-│   │   │   ├── greet-handler.php       # 初回訪問挨拶
-│   │   │   └── user-chat-handler.php   # インタラクティブチャット
-│   │   ├── ajax-handlers.php       # AJAX 処理（コア）
-│   │   ├── ajax-chat-handlers-llm.php  # LLM チャットローダー（v2.5.6，chat/ サブディレクトリを読み込み）
-│   │   ├── ajax-touch-handlers-llm.php # LLM タッチ AJAX 処理
-│   │   ├── ajax-handlers-test.php  # API 接続テストハンドラー
-│   │   └── chat-api-handlers.php   # マルチターンダイアログ API ハンドラー
+│   │   └── chat-api-handlers.php   # 対話モード API ハンドラー（複数ターン対話ラッパー）
 │   ├── personality/            # パーソナリティシステムモジュール
 │   │   ├── personality-loader.php  # パーソナリティシステム（JSON ローダー，v2.4.0）
 │   │   ├── personality-prompts.php # パーソナリティプロンプトモジュール
@@ -57,13 +57,22 @@ mp-ukagaka/
 │   │   ├── llm-context-builder.php # LLM コンテキスト構築
 │   │   ├── llm-slimstat.php        # LLM Slimstat 統合
 │   │   ├── prompt-categories.php   # Prompt カテゴリ指示管理
+│   │   ├── provider-helpers.php    # AI プロバイダー補助関数（v2.10.0）
+│   │   ├── tool-loop-guard.php     # ツール呼び出しループ保護メカニズム（v2.10.0）
 │   │   ├── weather-functions.php   # 天気機能（Open-Meteo API）
-│   │   └── diary-functions.php     # AI 日記機能（v2.5.0）
+│   │   ├── diary-functions.php     # AI 日記機能（v2.5.0）
+│   │   └── providers/              # AI プロバイダーファクトリモジュール（v2.10.0）
+│   │       ├── bootstrap.php       # ローダー
+│   │       ├── interface-mpu-ai-provider.php # インターフェース
+│   │       ├── class-mpu-ai-provider-base.php # 基本クラス
+│   │       ├── class-mpu-ai-provider-factory.php # ファクトリクラス
+│   │       ├── class-mpu-ai-provider-gemini.php # Gemini プロバイダー
+│   │       ├── class-mpu-ai-provider-openai.php # OpenAI プロバイダー
+│   │       ├── class-mpu-ai-provider-claude.php # Claude プロバイダー
+│   │       └── class-mpu-ai-provider-ollama.php # Ollama プロバイダー
     │   ├── integrations/           # 統合機能モジュール（v2.7.0）
     │   │   ├── akismet-integration.php # Akismet スパムブロック統合
     │   │   └── turnstile-integration.php # Turnstile 統合
-    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
-    │   │   └── akismet-integration.php # Akismet スパムブロック統合
 │   └── admin-functions.php     # 管理画面機能
 ├── ghost/                  # キャラクターパーソナリティ設定（v2.4.0）
 │   ├── Frieren/
@@ -125,20 +134,20 @@ $core_modules = [
     'stats/stats-collector.php',   // 7. 統計コレクター（ai-functions.php より前に読み込み）
     'stats/stats-analyzer.php',    // 8. 統計アナライザー
     'llm/api-cache.php',           // 9. API キャッシュシステム（v2.5.6，ai-functions.php より前に読み込み）
-    'llm/ai-functions.php',        // 10. AI 機能（クラウド API：Gemini, OpenAI, Claude）
-    'llm/prompt-categories.php',   // 11. Prompt カテゴリ指示管理（llm-functions.php より前に読み込み）
-    'llm/llm-slimstat.php',        // 12. LLM Slimstat 統合（llm-context-builder.php より前に読み込み）
-    'llm/llm-context-builder.php', // 13. LLM コンテキスト構築（llm-functions.php より前に読み込み）
-    'llm/weather-functions.php',   // 14. 天気機能（Open-Meteo API）
-    'llm/diary-functions.php',     // 15. AI 日記機能（v2.5.0）
-    'llm/llm-functions.php',       // 16. LLM 機能（ローカル LLM：Ollama）
+    'llm/provider-helpers.php',    // 10. プロバイダー共通ヘルパー（v2.10.0）
+    'llm/tool-loop-guard.php',     // 11. ツール呼び出しループ保護メカニズム（v2.10.0）
+    'llm/providers/bootstrap.php', // 12. AI プロバイダーファクトリとクラス（v2.10.0）
+    'llm/ai-functions.php',        // 13. AI 機能（クラウド API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 14. Prompt カテゴリ指示管理（llm-functions.php より前に読み込み）
+    'llm/llm-slimstat.php',        // 15. LLM Slimstat 統合（llm-context-builder.php より前に読み込み）
+    'llm/llm-context-builder.php', // 16. LLM コンテキスト構築（llm-functions.php より前に読み込み）
+    'llm/weather-functions.php',   // 17. 天気機能（Open-Meteo API）
+    'llm/diary-functions.php',     // 18. AI 日記機能（v2.5.0）
+    'llm/llm-functions.php',       // 19. LLM 機能（ローカル LLM：Ollama）
     'personality/emoji-mapper.php',        // 17. 表情マッピング（AJAX 処理より前に読み込み）
     'core/ukagaka-functions.php',   // 18. 伺か管理
-    'ajax/ajax-handlers.php',       // 19. AJAX 処理（コア）
-    'ajax/ajax-chat-handlers-llm.php',      // 20. LLM 対話 AJAX 処理
-    'ajax/ajax-touch-handlers-llm.php',     // 21. LLM タッチ AJAX 処理
-    'ajax/ajax-handlers-test.php',  // 22. API 接続テストハンドラー
-    'ajax/chat-api-handlers.php',   // 23. マルチターンダイアログ API ハンドラー
+    'rest/bootstrap.php',           // 19. REST OO Controller 登録エントリーポイント
+    'ajax/chat-api-handlers.php',   // 20. 対話モード API ハンドラー（互換レイヤー）
     'integrations/akismet-integration.php', // 24. Akismet スパムブロック統合
     'integrations/turnstile-integration.php', // 25. Turnstile 統合
 ];
@@ -445,6 +454,50 @@ LLM 機能モジュール、Ollama ローカル LLM 統合を専門に処理。
 | サービスチェック (`check`) | 3 秒         | 10 秒        |
 | API 呼び出し (`api_call`)  | 60 秒        | 90 秒        |
 | 接続テスト (`test`)        | 30 秒        | 45 秒        |
+
+### chat-api-handlers.php (互換レイヤー)
+
+対話モード API ハンドラー。新しい REST Controller 向けに複数ターンの対話 AI 呼び出しラッパーを提供し、複雑なプロバイダー設定の処理を分離します。
+
+#### 主要関数
+
+```php
+/**
+ * AI API 呼び出し（複数ターンの対話に対応。Factory クラスを自動的に利用）
+ * @param string $provider プロバイダー
+ * @param string $api_key API キー
+ * @param string $system_prompt システムプロンプト
+ * @param array $messages 対話履歴
+ * @param string $language 言語
+ * @param array $options オプション（max_tokens, temperature など）
+ * @return string|WP_Error AI の応答
+ */
+function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
+
+/**
+ * 特定プロバイダー専用のラッパー
+ */
+function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
+function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $options = [])
+function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $options = [])
+function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $options = [])
+```
+
+### REST API モジュール (OO アーキテクチャ)
+
+v2.12.0 から導入され、`bootstrap.php` によって一括管理されています。すべての Controller は `MPU_REST_Base` を継承しています。
+
+#### 主要クラスの役割
+
+- **MPU_REST_Chat**: AI 対話に関連するすべてのエンドポイントを集中処理します。
+  - `/chat/context` (ページ感知)
+  - `/chat/greet` (初回挨拶)
+  - `/chat/user` (同期対話)
+  - `/chat/user-stream` (SSE ストリーム対話)
+- **MPU_REST_Ghost**: パーソナリティリストと初期設定を処理します。
+- **MPU_REST_Dialog**: 静的およびローカルダイアログの読み込みを管理します。
+- **MPU_REST_Touch**: タッチポイントの相互作用を処理します。
+- **MPU_REST_Test**: 管理画面の接続テスト機能を提供します。
 
 ### diary-functions.php (v2.5.0)
 

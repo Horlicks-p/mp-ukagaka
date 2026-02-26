@@ -34,16 +34,16 @@ mp-ukagaka/
 │   │   ├── utility-functions.php   # 工具函數
 │   │   ├── ukagaka-functions.php   # 偽春菜管理
 │   │   └── frontend-functions.php  # 前端功能
-│   ├── ajax/                   # AJAX 處理模組
-│   │   ├── chat/                   # 對話處理器子目錄（v2.5.6）
-│   │   │   ├── context-handler.php     # 頁面感知對話
-│   │   │   ├── greet-handler.php       # 首訪問候
-│   │   │   └── user-chat-handler.php   # 互動對話
-│   │   ├── ajax-handlers.php       # AJAX 處理（核心功能）
-│   │   ├── ajax-chat-handlers-llm.php  # LLM 對話載入器（v2.5.6，載入 chat/ 子目錄）
-│   │   ├── ajax-touch-handlers-llm.php # LLM 觸摸相關 AJAX 處理
-│   │   ├── ajax-handlers-test.php  # API 連線測試處理器
-│   │   └── chat-api-handlers.php   # 多輪對話 API 處理
+│   ├── rest/                   # REST API 處理模組（v2.12.0 OO 架構）
+│   │   ├── bootstrap.php           # REST Controller 註冊入口
+│   │   ├── class-mpu-rest-base.php # 基礎類別
+│   │   ├── class-mpu-rest-chat.php # LLM 對話端點 (取代 rest-chat.php)
+│   │   ├── class-mpu-rest-ghost.php# 核心/人格端點 (取代 rest-init.php)
+│   │   ├── class-mpu-rest-dialog.php# 對話管理端點 (取代 rest-core.php)
+│   │   ├── class-mpu-rest-touch.php# 觸摸互動端點 (取代 rest-touch.php)
+│   │   └── class-mpu-rest-test.php # API 測試端點 (取代 rest-test.php)
+│   ├── ajax/                   # AJAX 處理器模組
+│   │   └── chat-api-handlers.php   # 對話模式 API 處理器（多輪對話封裝）
 │   ├── personality/            # 人格系統模組
 │   │   ├── personality-loader.php  # 人格系統（JSON 載入器，v2.4.0）
 │   │   ├── personality-prompts.php # 人格提示詞模組
@@ -57,8 +57,19 @@ mp-ukagaka/
 │   │   ├── llm-context-builder.php # LLM 上下文建構
 │   │   ├── llm-slimstat.php        # LLM Slimstat 整合
 │   │   ├── prompt-categories.php   # Prompt 類別指令管理
+│   │   ├── provider-helpers.php    # AI 提供商輔助函數（v2.10.0）
+│   │   ├── tool-loop-guard.php     # 工具呼叫迴圈防護機制（v2.10.0）
 │   │   ├── weather-functions.php   # 天氣功能（Open-Meteo API）
-│   │   └── diary-functions.php     # AI 日記功能（v2.5.0）
+│   │   ├── diary-functions.php     # AI 日記功能（v2.5.0）
+│   │   └── providers/              # AI 提供商工廠模組（v2.10.0）
+│   │       ├── bootstrap.php       # 載入器
+│   │       ├── interface-mpu-ai-provider.php # 介面
+│   │       ├── class-mpu-ai-provider-base.php # 基礎類別
+│   │       ├── class-mpu-ai-provider-factory.php # 工廠類別
+│   │       ├── class-mpu-ai-provider-gemini.php # Gemini 提供商
+│   │       ├── class-mpu-ai-provider-openai.php # OpenAI 提供商
+│   │       ├── class-mpu-ai-provider-claude.php # Claude 提供商
+│   │       └── class-mpu-ai-provider-ollama.php # Ollama 提供商
     │   ├── integrations/           # 整合功能模組（v2.7.0）
     │   │   ├── akismet-integration.php # Akismet 垃圾留言攔截整合
     │   │   └── turnstile-integration.php # Turnstile 驗證整合
@@ -134,20 +145,20 @@ $core_modules = [
     'stats/stats-collector.php',   // 7. 統計收集器（需在 ai-functions.php 之前載入）
     'stats/stats-analyzer.php',    // 8. 統計分析器
     'llm/api-cache.php',           // 9. API 快取系統（v2.5.6，需在 ai-functions.php 之前載入）
-    'llm/ai-functions.php',        // 10. AI 功能（雲端 API：Gemini, OpenAI, Claude）
-    'llm/prompt-categories.php',   // 11. Prompt 類別指令管理（需在 llm-functions.php 之前載入）
-    'llm/llm-slimstat.php',        // 12. LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
-    'llm/llm-context-builder.php', // 13. LLM 上下文建構（需在 llm-functions.php 之前載入）
-    'llm/weather-functions.php',   // 14. 天氣功能（Open-Meteo API）
-    'llm/diary-functions.php',     // 15. AI 日記功能（v2.5.0）
-    'llm/llm-functions.php',       // 16. LLM 功能（本機 LLM：Ollama）
+    'llm/provider-helpers.php',    // 10. Provider 共用 Helper（v2.10.0）
+    'llm/tool-loop-guard.php',     // 11. 工具呼叫迴圈防護機制（v2.10.0）
+    'llm/providers/bootstrap.php', // 12. AI Providers 工廠模式與類別（v2.10.0）
+    'llm/ai-functions.php',        // 13. AI 功能（雲端 API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 14. Prompt 類別指令管理（需在 llm-functions.php 之前載入）
+    'llm/llm-slimstat.php',        // 15. LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
+    'llm/llm-context-builder.php', // 16. LLM 上下文建構（需在 llm-functions.php 之前載入）
+    'llm/weather-functions.php',   // 17. 天氣功能（Open-Meteo API）
+    'llm/diary-functions.php',     // 18. AI 日記功能（v2.5.0）
+    'llm/llm-functions.php',       // 19. LLM 功能（本機 LLM：Ollama）
     'personality/emoji-mapper.php',        // 17. 表情映射與情緒分析（需在 AJAX 處理器之前載入）
     'core/ukagaka-functions.php',   // 18. 偽春菜管理
-    'ajax/ajax-handlers.php',       // 19. AJAX 處理器（核心功能）
-    'ajax/ajax-chat-handlers-llm.php',      // 20. LLM 相關 AJAX 處理器（對話相關）
-    'ajax/ajax-touch-handlers-llm.php',     // 21. LLM 相關 AJAX 處理器（觸摸相關）
-    'ajax/ajax-handlers-test.php',  // 22. API 連線測試處理器
-    'ajax/chat-api-handlers.php',   // 23. 對話模式 API 處理器（多輪對話）
+    'rest/bootstrap.php',           // 19. REST OO Controller 註冊入口
+    'ajax/chat-api-handlers.php',   // 20. 對話模式 API 處理器（多輪對話，相容層）
     'integrations/akismet-integration.php', // 24. Akismet 垃圾留言連動
     'integrations/turnstile-integration.php', // 25. Turnstile 垃圾留言連動
 ];
@@ -568,6 +579,17 @@ function mpu_get_allowed_conditional_tags(): array
 | Claude | `mpu_call_claude_api()` | `api.anthropic.com`                 | 支援（claude-sonnet-4-5-20250929 等）       |
 | Ollama | `mpu_call_ollama_api()` | 本地或遠程 Ollama 服務              | 支援（任何 Ollama 模型）                    |
 
+#### AI 穩定性與安全 (Stability & Security)
+
+為防止 LLM 陷入工具呼叫死循環，系統內建了以下保護機制：
+
+1. **回合上限 (Turn Limit)**：由 `MPU_MAX_TOOL_TURNS` 定義，單次請求最多允許 5 回合工具呼叫。
+2. **重複偵測 (Loop Guard)**：
+   - 偵測目標：連續重複呼叫同一工具且參數完全一致的情境。
+   - 門檻設定：由 `MPU_MAX_TOOL_REPEAT_SAME_CALL` 定義（預設為 2）。
+   - 行為：一旦偵測到重複，系統會立即回傳 `tool_call_loop_detected` 錯誤並中止迴圈。
+   - 實作位置：`includes/llm/tool-loop-guard.php`。
+
 ### llm-functions.php (BETA)
 
 > ⚠️ **注意**：此模組處於**測試階段（BETA）**，API 可能會變更。
@@ -653,6 +675,50 @@ if (mpu_check_ollama_available($endpoint, $model)) {
 $is_remote = mpu_is_remote_endpoint($endpoint);
 $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
 ```
+
+### chat-api-handlers.php (相容層)
+
+對話模式 API 處理器，為新的 REST Controller 提供多輪對話的 AI 呼叫封裝，隔離了複雜的 Provider 選項處理。
+
+#### 主要函數
+
+```php
+/**
+ * AI API 呼叫（支援多輪對話，自動調度工廠類別）
+ * @param string $provider 提供商
+ * @param string $api_key API Key
+ * @param string $system_prompt 系統提示詞
+ * @param array $messages 對話歷史
+ * @param string $language 語言
+ * @param array $options 選項（max_tokens, temperature 等）
+ * @return string|WP_Error AI 回應
+ */
+function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
+
+/**
+ * 特定 Provider 專用封裝
+ */
+function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
+function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $options = [])
+function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $options = [])
+function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $options = [])
+```
+
+### REST API 模組 (OO 架構)
+
+從 v2.10.0 開始導入，由 `bootstrap.php` 統一驅動。所有 Controller 繼承 `MPU_REST_Base`。
+
+#### 主要類別功能
+
+- **MPU_REST_Chat**: 集中處理所有 AI 對話相關端點。
+  - `/chat/context` (頁面感知)
+  - `/chat/greet` (首次問候)
+  - `/chat/user` (同步對話)
+  - `/chat/user-stream` (SSE 串流對話)
+- **MPU_REST_Ghost**: 處理人格清單與初始設定。
+- **MPU_REST_Dialog**: 管理靜態與本地對話讀取。
+- **MPU_REST_Touch**: 處理觸摸位點互動。
+- **MPU_REST_Test**: 提供後台連線測試功能。
 
 ### diary-functions.php (v2.5.0)
 

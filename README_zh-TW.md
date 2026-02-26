@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.8.3-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.12.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,15 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.8.3 新功能
+## 🎉 v2.12.0 新功能
 
-**效能與架構優化**：透過導入 O(1) 查表快取、請求層級快取機制以及 O(n) 的 JS 前端陣列重構，大幅提升了插件整體的執行速度與記憶體使用效率。
+**SSE 串流輸出與打字機效果**：導入 Server-Sent Events (SSE) 協定，實現實時串流輸出。AI 的回應現在會以「打字機效果」即時呈現，大幅改善了長回覆或思考型模型（如 Ollama）的等待體驗。
 
-**安全性與穩定性增強**：新增了防範 ZIP Bomb 記憶體耗盡的提早拒絕機制，採用更安全的隨機數產生器，並藉由抽取共用 Utility 徹底解決重複載入導致的遞迴異常錯誤。
+**全新串流端點**：新增專屬 REST 路由 `/chat/user-stream`，支援與現行非串流路徑完全一致的安全驗證、率限制與對話完整度檢查。全面支援 OpenAI（含工具呼叫）與 Ollama（含思考標記過濾）的串流輸出。
+
+**架構優化與安全性**：完成 AI 提供商工廠模式（Factory Pattern）第二階段重構，架構更易擴充。正式實裝工具呼叫迴圈防護（Loop Guard），自動攔截 LLM 陷入無限重複請求，保障 API 帳單安全。
+
+**穩定性強化**：整合 `ignore_user_abort` 與 cURL 串流回呼機制，當使用者離線時能即時中斷 API 請求，防止「幽靈說話」並節省伺服器資源。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

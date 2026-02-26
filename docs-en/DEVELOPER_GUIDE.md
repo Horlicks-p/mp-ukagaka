@@ -34,16 +34,16 @@ mp-ukagaka/
 │   │   ├── utility-functions.php   # Utility functions
 │   │   ├── ukagaka-functions.php   # Ukagaka management
 │   │   └── frontend-functions.php  # Frontend functions
+│   ├── rest/                   # REST API handler modules (v2.12.0 OO Architecture)
+│   │   ├── bootstrap.php           # REST Controller registration entry
+│   │   ├── class-mpu-rest-base.php # Base class
+│   │   ├── class-mpu-rest-chat.php # LLM Chat endpoints (Replaced rest-chat.php)
+│   │   ├── class-mpu-rest-ghost.php# Core/Personality endpoints (Replaced rest-init.php)
+│   │   ├── class-mpu-rest-dialog.php# Dialogue management endpoints (Replaced rest-core.php)
+│   │   ├── class-mpu-rest-touch.php# Touch interaction endpoints (Replaced rest-touch.php)
+│   │   └── class-mpu-rest-test.php # API test endpoints (Replaced rest-test.php)
 │   ├── ajax/                   # AJAX handler modules
-│   │   ├── chat/                   # Chat handler subdirectory (v2.5.6)
-│   │   │   ├── context-handler.php     # Page awareness chat
-│   │   │   ├── greet-handler.php       # First visit greeting
-│   │   │   └── user-chat-handler.php   # Interactive chat
-│   │   ├── ajax-handlers.php       # AJAX handlers (Core)
-│   │   ├── ajax-chat-handlers-llm.php  # LLM chat loader (v2.5.6, loads chat/ subdirectory)
-│   │   ├── ajax-touch-handlers-llm.php # LLM touch AJAX handlers
-│   │   ├── ajax-handlers-test.php  # API connection test handlers
-│   │   └── chat-api-handlers.php   # Multi-turn dialogue API handlers
+│   │   └── chat-api-handlers.php   # Chat mode API handler (Multi-turn chat wrapper)
 │   ├── personality/            # Personality system modules
 │   │   ├── personality-loader.php  # Personality system (JSON loader, v2.4.0)
 │   │   ├── personality-prompts.php # Personality prompt module
@@ -56,13 +56,22 @@ mp-ukagaka/
 │   │   ├── llm-context-builder.php # LLM context builder
 │   │   ├── llm-slimstat.php        # LLM Slimstat integration
 │   │   ├── prompt-categories.php   # Prompt category management
+│   │   ├── provider-helpers.php    # AI provider helper functions (v2.10.0)
+│   │   ├── tool-loop-guard.php     # Tool call loop protection mechanism (v2.10.0)
 │   │   ├── weather-functions.php   # Weather functions (Open-Meteo API)
-│   │   └── diary-functions.php     # AI Diary functions (v2.5.0)
+│   │   ├── diary-functions.php     # AI Diary functions (v2.5.0)
+│   │   └── providers/              # AI provider factory module (v2.10.0)
+│   │       ├── bootstrap.php       # Loader
+│   │       ├── interface-mpu-ai-provider.php # Interface
+│   │       ├── class-mpu-ai-provider-base.php # Base class
+│   │       ├── class-mpu-ai-provider-factory.php # Factory class
+│   │       ├── class-mpu-ai-provider-gemini.php # Gemini provider
+│   │       ├── class-mpu-ai-provider-openai.php # OpenAI provider
+│   │       ├── class-mpu-ai-provider-claude.php # Claude provider
+│   │       └── class-mpu-ai-provider-ollama.php # Ollama provider
     │   ├── integrations/           # Integration modules (v2.7.0)
     │   │   ├── akismet-integration.php # Akismet spam protection integration
     │   │   └── turnstile-integration.php # Turnstile integration
-    │   ├── integrations/           # Integration modules (v2.7.0)
-    │   │   └── akismet-integration.php # Akismet spam protection integration
 │   └── admin-functions.php     # Admin functions
 ├── ghost/                  # Character personality configuration (v2.4.0)
 │   ├── Frieren/
@@ -124,20 +133,20 @@ $core_modules = [
     'stats/stats-collector.php',   // 7. Statistics collector (Load before ai-functions.php)
     'stats/stats-analyzer.php',    // 8. Statistics analyzer
     'llm/api-cache.php',           // 9. API cache system (v2.5.6, load before ai-functions.php)
-    'llm/ai-functions.php',        // 10. AI functions (Cloud API: Gemini, OpenAI, Claude)
-    'llm/prompt-categories.php',   // 11. Prompt category management (Load before llm-functions.php)
-    'llm/llm-slimstat.php',        // 12. LLM Slimstat integration (Load before llm-context-builder.php)
-    'llm/llm-context-builder.php', // 13. LLM context builder (Load before llm-functions.php)
-    'llm/weather-functions.php',   // 14. Weather functions (Open-Meteo API)
-    'llm/diary-functions.php',     // 15. AI Diary functions (v2.5.0)
-    'llm/llm-functions.php',       // 16. LLM functions (Local LLM: Ollama)
+    'llm/provider-helpers.php',    // 10. Provider common helpers (v2.10.0)
+    'llm/tool-loop-guard.php',     // 11. Tool call loop protection mechanism (v2.10.0)
+    'llm/providers/bootstrap.php', // 12. AI Providers factory pattern & classes (v2.10.0)
+    'llm/ai-functions.php',        // 13. AI functions (Cloud API: Gemini, OpenAI, Claude)
+    'llm/prompt-categories.php',   // 14. Prompt category management (Load before llm-functions.php)
+    'llm/llm-slimstat.php',        // 15. LLM Slimstat integration (Load before llm-context-builder.php)
+    'llm/llm-context-builder.php', // 16. LLM context builder (Load before llm-functions.php)
+    'llm/weather-functions.php',   // 17. Weather functions (Open-Meteo API)
+    'llm/diary-functions.php',     // 18. AI Diary functions (v2.5.0)
+    'llm/llm-functions.php',       // 19. LLM functions (Local LLM: Ollama)
     'personality/emoji-mapper.php',        // 17. Emoji mapping (Load before AJAX handlers)
     'core/ukagaka-functions.php',   // 18. Ukagaka management
-    'ajax/ajax-handlers.php',       // 19. AJAX handlers (Core)
-    'ajax/ajax-chat-handlers-llm.php',      // 20. LLM chat AJAX handlers
-    'ajax/ajax-touch-handlers-llm.php',     // 21. LLM touch AJAX handlers
-    'ajax/ajax-handlers-test.php',  // 22. API connection test handlers
-    'ajax/chat-api-handlers.php',   // 23. Multi-turn dialogue API handlers
+    'rest/bootstrap.php',           // 19. REST OO Controller registration entry
+    'ajax/chat-api-handlers.php',   // 20. Chat mode API handler (Compatibility layer)
     'integrations/akismet-integration.php', // 24. Akismet spam protection integration
     'integrations/turnstile-integration.php', // 25. Turnstile integration
 ];
@@ -577,6 +586,50 @@ if (mpu_check_ollama_available($endpoint, $model)) {
 $is_remote = mpu_is_remote_endpoint($endpoint);
 $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
 ```
+
+### chat-api-handlers.php (Compatibility Layer)
+
+Chat mode API handler, providing a multi-turn conversation AI call wrapper for the new REST Controllers, isolating complex provider option handling.
+
+#### Main Functions
+
+```php
+/**
+ * AI API Call (Supports multi-turn chat, automatically dispatches via Factory)
+ * @param string $provider Provider
+ * @param string $api_key API Key
+ * @param string $system_prompt System prompt
+ * @param array $messages Conversation history
+ * @param string $language Language
+ * @param array $options Options (max_tokens, temperature, etc.)
+ * @return string|WP_Error AI response
+ */
+function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
+
+/**
+ * Provider-specific wrappers
+ */
+function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
+function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $options = [])
+function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $options = [])
+function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $options = [])
+```
+
+### REST API Module (OO Architecture)
+
+Introduced starting v2.12.0, driven uniformly by `bootstrap.php`. All Controllers inherit from `MPU_REST_Base`.
+
+#### Main Class Responsibilities
+
+- **MPU_REST_Chat**: Centralizes all AI chat-related endpoints.
+  - `/chat/context` (Page-aware)
+  - `/chat/greet` (First greeting)
+  - `/chat/user` (Synchronous chat)
+  - `/chat/user-stream` (SSE streaming chat)
+- **MPU_REST_Ghost**: Handles personality lists and initial configuration.
+- **MPU_REST_Dialog**: Manages static and local dialogue reading.
+- **MPU_REST_Touch**: Handles touch zone interactions.
+- **MPU_REST_Test**: Provides backend connection testing functionality.
 
 ### diary-functions.php (v2.5.0)
 

@@ -551,6 +551,7 @@ function mpu_enqueue_frontend_assets()
         'chatWelcome' => __('有什麼想聊的嗎？', 'mp-ukagaka'),
         'chatPlaceholder' => __('輸入訊息...', 'mp-ukagaka'),
         'chatThinking' => __('…うーん、そうだね…', 'mp-ukagaka'),
+        'executingTool' => __('正在執行工具：%s...', 'mp-ukagaka'),
     ]);
 }
 add_action('wp_enqueue_scripts', 'mpu_enqueue_frontend_assets');
@@ -592,9 +593,18 @@ function mpu_head()
         : false;
     $typewriter_speed = isset($mpu_opt['typewriter_speed']) ? intval($mpu_opt['typewriter_speed']) : 40;
     $ai_enabled = isset($mpu_opt['ai_enabled']) && $mpu_opt['ai_enabled'];
+    $streaming_enabled = false;
+    if (class_exists('MPU_AI_Provider_Factory') && function_exists('mpu_get_current_provider')) {
+        $current_provider = mpu_get_current_provider($mpu_opt);
+        $provider_instance = MPU_AI_Provider_Factory::get_provider($current_provider);
+        if (!is_wp_error($provider_instance) && is_object($provider_instance) && method_exists($provider_instance, 'supports')) {
+            $streaming_enabled = $provider_instance->supports(MPU_AI_Provider_Base::FEATURE_STREAMING);
+        }
+    }
     echo "var mpuPreSettings = {\n";
     echo "    ollama_replace: " . ($ollama_replace ? 'true' : 'false') . ",\n";
-    echo "    typewriter_speed: " . $typewriter_speed . "\n";
+    echo "    typewriter_speed: " . $typewriter_speed . ",\n";
+    echo "    streaming_enabled: " . ($streaming_enabled ? 'true' : 'false') . "\n";
     echo "};\n";
     echo "var mpuAiEnabled = " . ($ai_enabled ? 'true' : 'false') . ";\n";
 
