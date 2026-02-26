@@ -2,23 +2,14 @@
 
 這份備忘錄整合了從 `ai-engine` 分析出對 `mp-ukagaka` 最有參考價值的架構與安全模式，並依據改動成本進行分類排序。
 
-## ✅ 已實裝
+- **AI Provider 的工廠模式 (Factory Pattern)**
+  已完成第二階段重構，建立 `MPU_AI_Provider_Factory` 體系，讓所有 LLM 供應商（OpenAI, Gemini, Claude, Ollama）實作標準介面。
 
-- **自動更新 Nonce 機制 (Automatic Nonce Refresh)**
-  全域攔截 `/mp-ukagaka/v1/` 請求的 `rest_post_dispatch`，當 nonce 進入老化期時回傳 `new_token`，低成本且完美解決長時間掛機的 403 錯誤。
+- **工具呼叫迴圈防護 (Loop Guard / Loop Detection)**
+  已全面實裝於各 Provider 類別中，透過 Signature (MD5 hash) 識別重複呼叫，上限常數名為 `MPU_MAX_TOOL_REPEAT_SAME_CALL`。
 
-- **Object-Oriented Routing (物件導向路由結構)**
-  已完成 REST 路由 OO 化重構：以 `MPU_REST_Base` 為基底，透過 `includes/rest/bootstrap.php` 集中註冊 Controller，19 條 REST 路由已由 `MPU_REST_Test`、`MPU_REST_Touch`、`MPU_REST_Chat`、`MPU_REST_Ghost`、`MPU_REST_Dialog` 接管。
-  舊 procedural REST 檔案已停用，舊 AJAX handlers（保留 `chat-api-handlers.php`）已完成清理。
-
-- **Provider 共用 Helper（第一階段）**
-  已建立 `includes/llm/provider-helpers.php`，集中抽出 Provider 共用邏輯，降低 `includes/llm/ai-functions.php` 與 `includes/ajax/chat-api-handlers.php` 的重複：
-  - `mpu_json_encode_safe()`（UTF-8 safe JSON encode，含 fallback 與 debug log）
-  - `mpu_tool_result_to_string()` / `mpu_tool_result_to_object()`
-  - `mpu_get_provider_headers()` / `mpu_build_http_args()`
-  - tool message / tool block builder（OpenAI / Claude / Ollama / Gemini）
-  - `mpu_parse_api_error_message()` / `mpu_json_decode_assoc()`
-  另外已將工具呼叫回合上限常數化：`MPU_MAX_TOOL_TURNS`。
+- **伺服器發送事件串流 (SSE Streaming)**
+  已全面導入 `text/event-stream` 傳輸協定與 `user-stream` 端點，支援 OpenAI (`tool_calls` 組裝) 與 Ollama 的即時輸出，成功解決長回覆與思考型模型的等待焦慮。
 
 ---
 
@@ -64,9 +55,9 @@
 
 ## 🟡 中成本（值得規劃）
 
-### 5. AI Provider 的工廠模式 (Factory Pattern)
+### ✅ 5. AI Provider 的工廠模式 (Factory Pattern) — 已完成
 
-建立 `MPU_AI_Provider_Factory::get_provider()`，讓所有 LLM 供應商（OpenAI, Gemini, Claude, Ollama）實作標準介面。這能統一 [rest-test.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/rest-test.php) 與 [ai-functions.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/llm/ai-functions.php)，未來新增模型（如 DeepSeek）會非常容易。
+建立 `MPU_AI_Provider_Factory::get_provider()`，讓所有 LLM 供應商（OpenAI, Gemini, Claude, Ollama）實作標準介面。這能統一 [class-mpu-rest-test.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-test.php) 與 [ai-functions.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/llm/ai-functions.php)，未來新增模型（如 DeepSeek）會非常容易。
 
 ### 6. 伺服器發送事件串流 (SSE Streaming)
 
@@ -76,34 +67,42 @@
 
 已完成，不再列為待規劃項目。
 
-### 8. Request-Scoped State Reset
+### ✅ 8. Request-Scoped State Reset
 
 確保每次 API 請求前（或開始時）清空前一次請求殘留的狀態（如 Streaming buffer、Function call 結果）。如果未來加上 SSE Streaming，這個模式必須建立以防狀態污染。
 
-### 9. Messages Integrity Checksum (對話防篡改)
+**實裝細節：**
+
+- 新增 `includes/llm/request-state.php`，提供 `mpu_reset_request_state()` / `mpu_ensure_request_state()` / `mpu_mark_request_mcp_tool_executed()` / `mpu_did_request_execute_mcp_tool()` 四個 API。
+- `rest_pre_dispatch` filter（priority 5）在所有 `/mp-ukagaka/v1/` 請求前自動 reset。
+- AJAX `mpu_ajax_user_chat` 入口明確 reset；`mpu_call_ai_api` 與 `chat-api-handlers.php` 以 `ensure`（不強制覆寫）作 fallback。
+- 4 個 Provider 在偵測到 tool call 時改用 `mpu_mark_request_mcp_tool_executed()` 標記。
+- 3 處截斷判斷改讀 `mpu_did_request_execute_mcp_tool()`，舊 global 保留為 legacy fallback。
+
+### ✅ 9. Messages Integrity Checksum (對話防篡改)
 
 Chat 送出前計算非使用者訊息（assistant、system role）的 MD5 並存入 transient，下次請求驗證。防止前端修改 AI 的歷史回答來誘發 Prompt Injection。
 
-- **改動位置**：[user-chat-handler.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/chat/user-chat-handler.php) 中計算 checksum
-  ```php
-  $checksum = md5(json_encode(array_filter($messages, fn($m) => $m['role'] !== 'user')));
-  set_transient('mpu_chat_checksum_' . $session_id, $checksum, HOUR_IN_SECONDS);
-  ```
+**實裝細節：**
 
-### 10. 工具呼叫迴圈防護（Loop Guard / Loop Detection）
+- 新增 `includes/llm/chat-integrity.php`，提供 `mpu_chat_integrity_normalize_session_id()` / `mpu_chat_integrity_verify_history()` / `mpu_chat_integrity_store_history()` 三個公開 API。
+- session_id 可選；無 session_id 時 `verify_history()` 回傳 `null`（向下相容，不影響現有前端）。
+- checksum 只針對非 user 訊息（assistant）計算，`hash_equals()` timing-safe 比較，TTL `HOUR_IN_SECONDS`。
+- AJAX `mpu_ajax_user_chat` 與 REST `MPU_REST_Chat::user_chat` 均在歷史驗證後呼叫 AI、回應後寫入下一輪 checksum。
+- store 前先對 AI 回應套 `sanitize_text_field()`，確保存入 checksum 的內容與下一輪 verify 時客端傳回再 sanitize 後的結果一致，消除 false positive。
+- 前端新增 `mpu_getOrCreateChatSessionId()`（localStorage + sessionStorage fallback），`/reset` / `/clear` 輪替 session id，請求時附帶 `session_id` 欄位。
 
-目前架構主要是「工具呼叫回合迴圈（while loop）」而非真正遞迴呼叫堆疊。`abilities-integration.php` 主要負責工具註冊/執行入口（`mpu_execute_mcp_tool()`），真正的工具呼叫循環在 `includes/llm/ai-functions.php` 與 `includes/ajax/chat-api-handlers.php`。
+### ✅ 10. 工具呼叫迴圈防護（Loop Guard / Loop Detection）
 
-**目前已完成：**
-- 工具呼叫回合上限常數化：`MPU_MAX_TOOL_TURNS`（預設 5）
-- `mpu_call_ollama_with_messages()` 補上無有效回應時的跳出邏輯，避免卡在迴圈內重複請求
+已全面實裝於各 Provider 類別中。
 
-**後續可做（仍值得規劃）：**
-- 補「重複工具呼叫」偵測（同一 tool + 相同 arguments 連續重複 N 次）
-- 超限時回傳明確錯誤（例如 `tool_call_loop_detected`）
-- 記錄 debug log（目前 turn、tool 名稱、截斷原因）
+**實裝細節：**
 
-> 註：若未來新增會在 tool 內再次呼叫 AI 的 Agent 型 ability，再評估真正的 `maxDepth`（遞迴深度）防護。
+- 工具呼叫回合上限常數化：`MPU_MAX_TOOL_TURNS`（預設 5）。
+- 新增連續重複呼叫偵測：`MPU_MAX_TOOL_REPEAT_SAME_CALL`（預設 2）。
+- 使用 Signature (MD5 hash of normalized args) 識別相同呼叫。
+- 實作於 `includes/llm/tool-loop-guard.php` 並整合至 Provider Factory 體系。
+- 超限時回傳明確錯誤 `tool_call_loop_detected` 並記錄詳細 debug log。
 
 ---
 

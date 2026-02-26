@@ -6,6 +6,36 @@
 
 ---
 
+## [2.12.0] - 2026-02-27
+
+### 🚀 Major Update: SSE Streaming & Typewriter Effect
+
+- **Server-Sent Events (SSE) Streaming**: Fully implemented the `text/event-stream` protocol for real-time output. AI responses now appear with a smooth "typewriter effect," significantly improving the user experience for long replies and thinking-heavy models like Ollama.
+- **Dedicated Streaming Endpoint**: Introduced a new REST route `/chat/user-stream`, providing consistent security, rate limiting, and chat integrity checks as the existing synchronous path.
+- **Standardized SSE Protocol**: Designed a custom event model (`delta`, `status`, `nonce`, `done`, `error`) allowing the frontend to precisely track token increments, tool execution status, and secure token refreshes.
+- **Provider Streaming Support**:
+  - **OpenAI**: Full support for streaming, including complex multi-chunk `tool_calls` assembly.
+  - **Ollama**: Native support for JSON Lines streaming relay with integrated thinking tag filtering.
+- **Connection Stability & Protection**: Integrated `ignore_user_abort` and cURL streaming callbacks to proactively terminate upstream API requests when a user disconnects or closes the chat, preventing "ghost responses" and saving resources.
+
+### 🏗️ Advanced Architecture Upgrades
+
+- **AI Provider Factory Pattern**: Completed Stage 2 refactoring, unifying all provider logic under the `MPU_AI_Provider_Factory` architecture, removing redundant branches for better extensibility.
+- **Tool Call Loop Detection**: Officially implemented the loop signature detection system, automatically intercepting infinite "same tool + same args" cycles to protect API usage costs.
+
+---
+
+## [2.10.0] - 2026-02-26
+
+### 🚀 Major Update: AI Provider Factory & Stability Enhancements
+
+- **AI Provider Factory Pattern**: Comprehensively refactored the provider routing logic within `ai-functions.php` and `chat-api-handlers.php` into an object-oriented Factory Pattern. Introduced the `includes/llm/providers/` architecture and `MPU_AI_Provider_Factory`, streamlining future integrations for new models like DeepSeek.
+- **Tool Call Loop Detection**: Implemented a robust loop guard mechanism (`tool-loop-guard.php`) for multi-turn chats. Utilizing argument JSON hash signatures, the system now instantly halts execution and returns `tool_call_loop_detected` if an LLM requests the exact same tool with identical parameters consecutively, drastically mitigating wasted API token costs.
+- **API Compatibility Wrappers**: To maintain backward compatibility, 8 legacy API entry points (e.g., `mpu_call_ai_api`) have been converted into "thin wrappers" that safely route requests to the new underlying factory architecture.
+- **Stability Optimizations**: Fixed parameter bugs in `handle_api_error`; added slug normalization mechanisms for defensive provider routing; and updated default Gemini model handling.
+
+---
+
 ## [2.9.2] - 2026-02-25
 
 ### 🚀 Major Update: REST OO Routing & Refactoring

@@ -6,6 +6,36 @@
 
 ---
 
+## [2.12.0] - 2026-02-27
+
+### 🚀 重大更新：SSE 串流輸出與打字機效果 (SSE Streaming)
+
+- **伺服器發送事件 (SSE) 串流**：全面導入 `text/event-stream` 傳輸協定，實作即時串流輸出能力。現在 AI 的回應會以「打字機效果」即時呈現在網頁上，大幅改善了長回覆或思考型模型（如 Ollama）的等待體驗。
+- **全新串流端點**：新增專屬 REST 路由 `/chat/user-stream`，支援與現行非串流路徑完全一致的安全驗證、率限制與對話完整度檢查。
+- **標準化 SSE 協議**：設計了插件專屬的串流事件模型（`delta`, `status`, `nonce`, `done`, `error`），讓前端能精準掌握模型增量、工具執行狀態與連線安全刷新。
+- **Provider 串流支援**：
+  - **OpenAI**: 支援全功能串流，包含複雜的 `tool_calls` 分段增量組裝。
+  - **Ollama**: 支援 JSON Lines 串流轉送，並完美整合思考標記過濾。
+- **連線穩定性與防護**：整合了 `ignore_user_abort` 與 cURL 串流回呼機制，當使用者關閉對話或斷線時，系統能主動中斷上游 API 請求，節省資源並防止「幽靈說話」。
+
+### 🏗️ 架構進階優化 (Architecture Upgrades)
+
+- **AI 提供商工廠模式 (Factory Pattern)**：完成第二階段重構，所有 AI 提供商邏輯已完全歸併至 `MPU_AI_Provider_Factory` 進階架構，移除冗餘分支，提升後續擴充性。
+- **工具呼叫迴圈防護 (Loop Detection)**：正式實裝迴圈簽名偵測系統，自動攔截 LLM 陷入「相同工具 + 相同參數」的連續重複請求，保障 API 帳單安全。
+
+---
+
+## [2.10.0] - 2026-02-26
+
+### 🚀 重大更新：AI 提供商工廠模式與穩定性強化 (AI Provider Factory & Loop Guard)
+
+- **AI 提供商工廠模式 (Factory Pattern)**：將原先 `ai-functions.php` 與 `chat-api-handlers.php` 中的供應商判斷邏輯，全面重構為物件導向的工廠模式。新增 `includes/llm/providers/` 目錄並實作 `MPU_AI_Provider_Factory`，讓新增如 DeepSeek 等新模型變得輕而易舉。
+- **工具呼叫迴圈防護 (Tool Call Loop Detection)**：在多輪對話中實裝了強大的工具呼叫迴圈偵測機制 (`tool-loop-guard.php`)。透過參數 JSON 的雜湊簽名 (Signature)，當偵測到大語言模型連續兩次發出完全相同的工具請求時，會立即中斷執行並回傳 `tool_call_loop_detected`，大幅降低無效的 API 花費。
+- **API 相容性包裝**：為確保舊版外掛架構相容，原有的 8 個 API 呼叫入口 (例如 `mpu_call_ai_api`) 皆已轉換為薄包裝 (Thin Wrappers)，底層改由最新的工廠類別處理。
+- **穩定性優化**：修復了 `handle_api_error` 的參數問題；增加了 AI 提供商代號 (Slug) 的常規化防禦機制；並將 Gemini 預設模型切換為更新的系列。
+
+---
+
 ## [2.9.2] - 2026-02-25
 
 ### 🚀 重大更新：REST OO 路由與架構重構 (REST OO Routing Refactoring)
