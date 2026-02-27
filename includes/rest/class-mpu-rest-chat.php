@@ -920,9 +920,9 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         // [Debug] MCP Tool Diagnostics
         if (!empty($args['is_debug_mcp'])) {
-            $report  = "=== MCP Diagnostics ===\n";
-            $report .= 'Integration active: ' . (function_exists('mpu_get_mcp_tools_for_llm') ? 'Yes' : 'No') . "\n";
-            $report .= 'wp_register_ability function: ' . (function_exists('wp_register_ability') ? 'Yes' : 'No') . "\n";
+            $integration = function_exists('mpu_get_mcp_tools_for_llm') ? 'Yes' : 'No';
+            $wp_ability  = function_exists('wp_register_ability') ? 'Yes' : 'No';
+            $manager     = class_exists('\MP_Ukagaka\McpTools\Manager') ? 'Yes' : 'No';
 
             $check_abilities = [
                 'mp-ukagaka/get-popular-posts',
@@ -930,35 +930,34 @@ class MPU_REST_Chat extends MPU_REST_Base {
                 'mp-ukagaka/ban-ip',
                 'mp-ukagaka/clear-bot-blocker-data',
             ];
+            $abilities_html = '';
             foreach ($check_abilities as $ability_name) {
-                $is_registered = function_exists('wp_has_ability') && wp_has_ability($ability_name);
-                $report .= "Ability '{$ability_name}' registered: " . ($is_registered ? 'Yes' : 'No') . "\n";
+                $ok = function_exists('wp_has_ability') && wp_has_ability($ability_name);
+                $icon = $ok ? '✅' : '❌';
+                $short = preg_replace('#^[^/]+/#', '', $ability_name);
+                $abilities_html .= "<div style=\"margin-bottom:2px;\">{$icon} {$short}</div>";
             }
 
-            $report .= 'McpTools Manager class: ' . (class_exists('\MP_Ukagaka\McpTools\Manager') ? 'Yes' : 'No') . "\n";
-            $report .= 'Wp_PostViews_Ability class: ' . (class_exists('\MP_Ukagaka\McpTools\Abilities\Wp_PostViews_Ability') ? 'Yes' : 'No') . "\n";
-
+            $tool_count = 0;
             if (function_exists('mpu_get_mcp_tools_for_llm')) {
-                $tools   = mpu_get_mcp_tools_for_llm('gemini');
-                $report .= 'Tool count: ' . count($tools) . "\n";
-                $report .= "Tools found:\n";
-                foreach ($tools as $t) {
-                    $name    = $t['name'] ?? $t['function']['name'] ?? 'unknown';
-                    $report .= '- ' . $name . "\n";
-                }
-            } else {
-                $report .= "Cannot fetch tools (function missing).\n";
+                $tools = mpu_get_mcp_tools_for_llm('gemini');
+                $tool_count = is_array($tools) ? count($tools) : 0;
             }
 
-            $report .= 'WP-PostViews function (get_most_viewed): ' . (function_exists('get_most_viewed') ? 'Exists' : 'Missing') . "\n";
+            $report = '<div style="font-size:0.85em;line-height:1.6;">'
+                . '<strong>MCP Diagnostics</strong><br>'
+                . "Integration: {$integration}<br>"
+                . "Manager: {$manager}<br>"
+                . "Available Tools: {$tool_count}<br>"
+                . '<hr style="margin:6px 0;border:0;border-top:1px dashed #aeb8c2;">'
+                . '<div style="font-size:0.95em;">' . $abilities_html . '</div>'
+                . '</div>';
 
-            // [Fix] 更新 Checksum，將 debug 報告納入歷史，防止下一輪驗證失敗 (Codex 建議)
+            // [Fix] 更新 Checksum
             if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
                 $raw_history   = $args['chat_history'];
                 $raw_history[] = ['role' => 'user', 'content' => $args['user_message']];
                 $raw_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($report)];
-                
-                // [Fix] slice 後再正規化：防止滑動窗口導致首位變成孤立 assistant，完美對稱 verify 端。
                 mpu_chat_integrity_store_history(
                     $args['chat_session_id'],
                     mpu_chat_integrity_slice_for_store($raw_history, 10)
@@ -967,6 +966,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
             return $this->ok(['msg' => $report]);
         }
+
 
         $result = mpu_call_ai_api_with_messages(
             $args['provider'],

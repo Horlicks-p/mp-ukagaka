@@ -1,68 +1,47 @@
-# SSE Streaming 實作計畫（#6）
-
-## 目的
-
-為 `mp-ukagaka` 的互動對話模式加入 **伺服器發送事件串流（SSE）**，在後端解析模型 Streaming chunk 後，即時推送到前端，改善長回覆與思考型模型的等待體驗（打字機效果 / 漸進顯示）。
-
-本計畫以「**低風險分階段導入**」為原則，優先保留現有同步路徑相容性。
-
+﻿# SSE Streaming 蟇ｦ菴懆ｨ育吻・・6・・
+## 逶ｮ逧・
+轤ｺ `mp-ukagaka` 逧・ｺ貞虚蟆崎ｩｱ讓｡蠑丞刈蜈･ **莨ｺ譛榊勣逋ｼ騾∽ｺ倶ｻｶ荳ｲ豬・ｼ・SE・・*・悟惠蠕檎ｫｯ隗｣譫先ｨ｡蝙・Streaming chunk 蠕鯉ｼ悟叉譎よ耳騾∝芦蜑咲ｫｯ・梧隼蝟・聞蝗櫁ｦ・・諤晁・梛讓｡蝙狗噪遲牙ｾ・ｫ秘ｩ暦ｼ域遠蟄玲ｩ滓譜譫・/ 貍ｸ騾ｲ鬘ｯ遉ｺ・峨・
+譛ｬ險育吻莉･縲・*菴朱｢ｨ髫ｪ蛻・嚴谿ｵ蟆主・**縲咲ぜ蜴溷援・悟━蜈井ｿ晉蕗迴ｾ譛牙酔豁･霍ｯ蠕醍嶌螳ｹ諤ｧ縲・
 ---
 
-## 現況摘要（已確認）
-
-- REST 聊天主路徑為 `POST /mp-ukagaka/v1/chat/user`
-  - 註冊位置：`includes/rest/class-mpu-rest-chat.php:42`
-  - 處理入口：`includes/rest/class-mpu-rest-chat.php:466`
-- 前端互動聊天目前為一次性 `fetch` + JSON 回應（非串流）
-  - `js/ukagaka-chat.js:329`
-- 通用 `mpuFetch()` 目前是 JSON/文字回應模型，並會從 JSON 的 `new_token` 更新 REST nonce
+## 迴ｾ豕∵遭隕・ｼ亥ｷｲ遒ｺ隱搾ｼ・
+- REST 閨雁､ｩ荳ｻ霍ｯ蠕醍ぜ `POST /mp-ukagaka/v1/chat/user`
+  - 險ｻ蜀贋ｽ咲ｽｮ・啻includes/rest/class-mpu-rest-chat.php:42`
+  - 陌慕炊蜈･蜿｣・啻includes/rest/class-mpu-rest-chat.php:466`
+- 蜑咲ｫｯ莠貞虚閨雁､ｩ逶ｮ蜑咲ぜ荳谺｡諤ｧ `fetch` + JSON 蝗樊㊨・磯撼荳ｲ豬・ｼ・  - `js/ukagaka-chat.js:329`
+- 騾夂畑 `mpuFetch()` 逶ｮ蜑肴弍 JSON/譁・ｭ怜屓諛画ｨ｡蝙具ｼ御ｸｦ譛・ｾ・JSON 逧・`new_token` 譖ｴ譁ｰ REST nonce
   - `js/ukagaka-base.js:737`
   - `js/ukagaka-base.js:772`
   - `js/ukagaka-base.js:826`
-- 多輪聊天 wrapper 目前為同步 `generate_chat()`
+- 螟夊ｼｪ閨雁､ｩ wrapper 逶ｮ蜑咲ぜ蜷梧ｭ･ `generate_chat()`
   - `includes/ajax/chat-api-handlers.php:26`
-- Provider base 已預留 `FEATURE_STREAMING` 常數，但尚未實作
-  - `includes/llm/providers/class-mpu-ai-provider-base.php:24`
-- Request-scoped state 已預留 `streaming` 狀態欄位（目前僅 buffer）
-  - `includes/llm/request-state.php:42`
-- `chat integrity checksum` 流程目前是：
-  - 請求前驗證 history
-  - AI 回應完成後寫入下一輪 checksum
-  - SSE 必須保留相同安全順序
-
+- Provider base 蟾ｲ鬆千蕗 `FEATURE_STREAMING` 蟶ｸ謨ｸ・御ｽ・ｰ壽悴蟇ｦ菴・  - `includes/llm/providers/class-mpu-ai-provider-base.php:24`
+- Request-scoped state 蟾ｲ鬆千蕗 `streaming` 迢諷区ｬ・ｽ搾ｼ育岼蜑榊ュ buffer・・  - `includes/llm/request-state.php:42`
+- `chat integrity checksum` 豬∫ｨ狗岼蜑肴弍・・  - 隲区ｱょ燕鬩苓ｭ・history
+  - AI 蝗樊㊨螳梧・蠕悟ｯｫ蜈･荳倶ｸ霈ｪ checksum
+  - SSE 蠢・井ｿ晉蕗逶ｸ蜷悟ｮ牙・鬆・ｺ・
 ---
 
-## 核心設計決策（建議）
+## 譬ｸ蠢・ｨｭ險域ｱｺ遲厄ｼ亥ｻｺ隴ｰ・・
+1. 譁ｰ蠅樒昏遶狗ｫｯ鮟・`POST /mp-ukagaka/v1/chat/user-stream`
+2. 蜑咲ｫｯ菴ｿ逕ｨ `fetch + ReadableStream` 隶蜿・SSE・井ｸ堺ｽｿ逕ｨ `EventSource`・・3. 隨ｬ荳迚亥ュ蟆主・莠貞虚閨雁､ｩ・・chat/user`・会ｼ御ｸ肴洞謨｣蛻ｰ `chat/context` / `chat/greet`
+4. 菫晉蕗蜷梧ｭ･ fallback・・rovider 荳肴髪謠ｴ streaming 譎り・蜍暮蝗櫁・豬∫ｨ具ｼ・5. 隨ｬ荳髫取ｮｵ蜆ｪ蜈域髪謠ｴ `OpenAI` + `Ollama`・形Claude` / `Gemini` 蟒ｶ蠕・6. REST SSE 謗幃ｻ樊治 **Option A・壼惠 callback 蜈ｧ逶ｴ謗･ `echo + flush + exit;`**・井ｸ堺ｽｿ逕ｨ `rest_pre_serve_request`・・
+### 轤ｺ菴穂ｸ咲畑 EventSource
 
-1. 新增獨立端點 `POST /mp-ukagaka/v1/chat/user-stream`
-2. 前端使用 `fetch + ReadableStream` 讀取 SSE（不使用 `EventSource`）
-3. 第一版僅導入互動聊天（`chat/user`），不擴散到 `chat/context` / `chat/greet`
-4. 保留同步 fallback（provider 不支援 streaming 時自動退回舊流程）
-5. 第一階段優先支援 `OpenAI` + `Ollama`，`Claude` / `Gemini` 延後
-6. REST SSE 掛點採 **Option A：在 callback 內直接 `echo + flush + exit;`**（不使用 `rest_pre_serve_request`）
-
-### 為何不用 EventSource
-
-- 現有請求是 `POST + FormData + X-WP-Nonce`
-- `EventSource` 不適合此請求模型（偏向 GET，且 headers 客製困難）
-- `fetch + ReadableStream` 更符合現有前端架構與 nonce 注入需求
-
+- 迴ｾ譛芽ｫ区ｱよ弍 `POST + FormData + X-WP-Nonce`
+- `EventSource` 荳埼←蜷域ｭ､隲区ｱよｨ｡蝙具ｼ亥￥蜷・GET・御ｸ・headers 螳｢陬ｽ蝗ｰ髮｣・・- `fetch + ReadableStream` 譖ｴ隨ｦ蜷育樟譛牙燕遶ｯ譫ｶ讒玖・ nonce 豕ｨ蜈･髴豎・
 ---
 
-## 分階段實施計畫
+## 蛻・嚴谿ｵ蟇ｦ譁ｽ險育吻
 
-## Phase 0（先決條件）：抽出 user_chat 共用前置準備流程（避免邏輯複製）
-
-`REST user_chat()` 目前邏輯很長，SSE 若直接複製會造成維護風險。
-
-### 建議抽出函式（明確命名）
-
+## Phase 0・亥・豎ｺ譴昜ｻｶ・会ｼ壽歓蜃ｺ user_chat 蜈ｱ逕ｨ蜑咲ｽｮ貅門ｙ豬∫ｨ具ｼ磯∩蜈埼ｏ霈ｯ隍・｣ｽ・・
+`REST user_chat()` 逶ｮ蜑埼ｏ霈ｯ蠕磯聞・郡SE 闍･逶ｴ謗･隍・｣ｽ譛・謌千ｶｭ隴ｷ鬚ｨ髫ｪ縲・
+### 蟒ｺ隴ｰ謚ｽ蜃ｺ蜃ｽ蠑擾ｼ域・遒ｺ蜻ｽ蜷搾ｼ・
 ```php
 function mpu_prepare_user_chat_args(WP_REST_Request $request): array|WP_Error
 ```
 
-### 建議回傳內容（至少）
-
+### 蟒ｺ隴ｰ蝗槫さ蜈ｧ螳ｹ・郁・蟆托ｼ・
 - `provider`
 - `api_key`
 - `system_prompt`
@@ -71,170 +50,126 @@ function mpu_prepare_user_chat_args(WP_REST_Request $request): array|WP_Error
 - `language`
 - `personality_id`
 - `ukagaka_name`
-- `session_id`（已完成 checksum 驗證）
-- `chat_history`
+- `session_id`・亥ｷｲ螳梧・ checksum 鬩苓ｭ会ｼ・- `chat_history`
 - `user_message`
 - `mpu_opt`
 
-### 目標
-
-- 同步 `user_chat()` 與新 `user_chat_stream()` 共用同一份前置流程
-- 降低未來安全修補（sanitize/checksum/rate-limit）漏改風險
+### 逶ｮ讓・
+- 蜷梧ｭ･ `user_chat()` 闊・眠 `user_chat_stream()` 蜈ｱ逕ｨ蜷御ｸ莉ｽ蜑咲ｽｮ豬∫ｨ・- 髯堺ｽ取悴萓・ｮ牙・菫ｮ陬懶ｼ・anitize/checksum/rate-limit・画ｼ乗隼鬚ｨ髫ｪ
 
 ---
 
-## Phase 1：定義插件內部 SSE 協議（標準事件）
-
-後端統一輸出 `text/event-stream`，事件格式固定，payload 為 JSON：
-
+## Phase 1・壼ｮ夂ｾｩ謠剃ｻｶ蜈ｧ驛ｨ SSE 蜊碑ｭｰ・域ｨ呎ｺ紋ｺ倶ｻｶ・・
+蠕檎ｫｯ邨ｱ荳霈ｸ蜃ｺ `text/event-stream`・御ｺ倶ｻｶ譬ｼ蠑丞崋螳夲ｼ継ayload 轤ｺ JSON・・
 - `event: start`
-  - 請求已接受（provider / model / request_id）
-- `event: nonce`
-  - 傳遞 `new_token`（可加上 `new_nonce` 同值欄位，保留未來擴充命名空間）
-  - SSE 路徑不會自動走 `rest_post_dispatch`
+  - 隲区ｱょｷｲ謗･蜿暦ｼ・rovider / model / request_id・・- `event: nonce`
+  - 蛯ｳ驕・`new_token`・亥庄蜉荳・`new_nonce` 蜷悟ｼ谺・ｽ搾ｼ御ｿ晉蕗譛ｪ萓・洞蜈・多蜷咲ｩｺ髢難ｼ・  - SSE 霍ｯ蠕台ｸ肴怎閾ｪ蜍戊ｵｰ `rest_post_dispatch`
 - `event: delta`
-  - 文字增量（前端即時拼接）
-- `event: status`
-  - 狀態通知（思考中、工具執行中等）
-- `event: tool_call`
-  - 工具名稱（可選，偏 debug/UI）
-- `event: tool_result`
-  - 工具執行完成（可選）
-- `event: done`
-  - 完整結果、emoji、收尾資訊（checksum / 統計完成）
-- `event: error`
-  - 錯誤碼與訊息
+  - 譁・ｭ怜｢樣㍼・亥燕遶ｯ蜊ｳ譎よ蕎謗･・・- `event: status`
+  - 迢諷矩夂衍・域晁・ｸｭ縲∝ｷ･蜈ｷ蝓ｷ陦御ｸｭ遲会ｼ・- `event: tool_call`
+  - 蟾･蜈ｷ蜷咲ｨｱ・亥庄驕ｸ・悟￥ debug/UI・・- `event: tool_result`
+  - 蟾･蜈ｷ蝓ｷ陦悟ｮ梧・・亥庄驕ｸ・・- `event: done`
+  - 螳梧紛邨先棡縲‘moji縲∵噺蟆ｾ雉・ｨ奇ｼ・hecksum / 邨ｱ險亥ｮ梧・・・- `event: error`
+  - 骭ｯ隱､遒ｼ闊・ｨ頑・
 - `event: ping`
-  - heartbeat（避免長時間無輸出遭 proxy 中斷）
-
-### 設計原則
-
-- 對前端暴露的是「插件標準事件」，不是各 provider 原生格式
-- provider chunk 差異（OpenAI SSE / Ollama JSON Lines）由後端吸收
+  - heartbeat・磯∩蜈埼聞譎る俣辟｡霈ｸ蜃ｺ驕ｭ proxy 荳ｭ譁ｷ・・
+### 險ｭ險亥次蜑・
+- 蟆榊燕遶ｯ證ｴ髴ｲ逧・弍縲梧薯莉ｶ讓呎ｺ紋ｺ倶ｻｶ縲搾ｼ御ｸ肴弍蜷・provider 蜴溽函譬ｼ蠑・- provider chunk 蟾ｮ逡ｰ・・penAI SSE / Ollama JSON Lines・臥罰蠕檎ｫｯ蜷ｸ謾ｶ
 
 ---
 
-## Phase 2：新增 SSE 傳輸共用 Helper
+## Phase 2・壽眠蠅・SSE 蛯ｳ霈ｸ蜈ｱ逕ｨ Helper
 
-建議新增檔案（擇一）：
-
+蟒ｺ隴ｰ譁ｰ蠅樊ｪ疲｡茨ｼ域島荳・会ｼ・
 - `includes/rest/sse-helpers.php`
-- 或 `includes/llm/streaming-helpers.php`
+- 謌・`includes/llm/streaming-helpers.php`
 
-### 職責
+### 閨ｷ雋ｬ
 
-- 設定 SSE 標頭
+- 險ｭ螳・SSE 讓咎ｭ
   - `Content-Type: text/event-stream`
   - `Cache-Control: no-cache, no-transform`
   - `X-Accel-Buffering: no`
   - `X-Content-Type-Options: nosniff`
-- 安全地關閉/清理 output buffering
-- SSE handler 進入點設置：
-  - `ignore_user_abort(true);`
+- 螳牙・蝨ｰ髣憺哩/貂・炊 output buffering
+- SSE handler 騾ｲ蜈･鮟櫁ｨｭ鄂ｮ・・  - `ignore_user_abort(true);`
   - `set_time_limit(0);`
-- 提供通用函式：
-  - `mpu_sse_send_event($event, $data)`
+- 謠蝉ｾ幃夂畑蜃ｽ蠑擾ｼ・  - `mpu_sse_send_event($event, $data)`
   - `mpu_sse_flush()`
   - `mpu_sse_heartbeat_if_needed()`
   - `mpu_sse_client_disconnected()`
 
-### 注意
-
-- 這一層只負責「傳輸」，不處理聊天業務邏輯
-- Output buffering 必須清多層（不能只清一層）：
-
+### 豕ｨ諢・
+- 騾吩ｸ螻､蜿ｪ雋雋ｬ縲悟さ霈ｸ縲搾ｼ御ｸ崎剳逅・♀螟ｩ讌ｭ蜍咎ｏ霈ｯ
+- Output buffering 蠢・域ｸ・､壼ｱ､・井ｸ崎・蜿ｪ貂・ｸ螻､・会ｼ・
 ```php
 while (ob_get_level() > 0) {
     ob_end_clean();
 }
 ```
 
-- 若未清乾淨，XAMPP / Apache / PHP 多層 buffering 會導致「看似串流、實際整包輸出」
+- 闍･譛ｪ貂・ｹｾ豺ｨ・傾AMPP / Apache / PHP 螟壼ｱ､ buffering 譛・ｰ手・縲檎恚莨ｼ荳ｲ豬√∝ｯｦ髫帶紛蛹・ｼｸ蜃ｺ縲・
+---
+
+## Phase 3・壽眠蠅・REST 霍ｯ逕ｱ `POST /chat/user-stream`
+
+讙疲｡茨ｼ啻includes/rest/class-mpu-rest-chat.php`
+
+### 隶頑峩
+
+- 蝨ｨ `register_routes()` 蠅槫刈 `/chat/user-stream`
+- 譁ｰ蠅・callback・啻user_chat_stream(WP_REST_Request $request)`
+
+### 陦檎ぜ隕∵ｱゑｼ磯怙闊・`/chat/user` 荳閾ｴ・・
+- Rate limit 荳閾ｴ・・0 谺｡ / 60 遘抵ｼ・- 菴ｿ逕ｨ迴ｾ譛・request-state reset 讖溷宛・・rest_pre_dispatch` 蟾ｲ譛会ｼ・- `chat integrity verify` 蜑咲ｽｮ讙｢譟･荳閾ｴ
+- 謌仙粥譎りｵｰ SSE 霈ｸ蜃ｺ・磯撼 `WP_REST_Response`・・
+### 驥崎ｦ∝ｷｮ逡ｰ
+
+- 逕ｱ譁ｼ SSE callback 蜿ｯ閭ｽ逶ｴ謗･霈ｸ蜃ｺ荳ｦ謠仙燕邨先據・形rest_post_dispatch` 逧・・蜍・nonce refresh 荳堺ｸ螳壽怎螂礼畑
+- 蠢・亥惠 SSE 豬∫ｨ倶ｸｭ閾ｪ陦檎匸騾・`event: nonce`
+
+### 謗幃ｻ樊ｱｺ遲厄ｼ域悽險育吻謗｡逕ｨ・・
+- 謗｡逕ｨ **callback 蜈ｧ逶ｴ謗･霈ｸ蜃ｺ SSE 荳ｦ `exit;`**
+- 荳堺ｽｿ逕ｨ `rest_pre_serve_request`
+- 逅・罰・・  - `rest_pre_dispatch`・・equest-state reset・牙ｷｲ蝨ｨ callback 蜑榊濤陦・  - `rest_post_dispatch` nonce refresh 蜿ｯ逕ｱ `event: nonce` 陬憺ｽ・  - 驕ｿ蜈・sentinel 蝗槫さ蛟ｼ闊・｡榊､・filter 蜊碑ｪｿ謌先悽
 
 ---
 
-## Phase 3：新增 REST 路由 `POST /chat/user-stream`
+## Phase 4・啀rovider Streaming 莉矩擇闊・・蜉帛ｮ｣蜻・
+### 蟒ｺ隴ｰ謫ｴ蜈・Provider contract
 
-檔案：`includes/rest/class-mpu-rest-chat.php`
-
-### 變更
-
-- 在 `register_routes()` 增加 `/chat/user-stream`
-- 新增 callback：`user_chat_stream(WP_REST_Request $request)`
-
-### 行為要求（需與 `/chat/user` 一致）
-
-- Rate limit 一致（30 次 / 60 秒）
-- 使用現有 request-state reset 機制（`rest_pre_dispatch` 已有）
-- `chat integrity verify` 前置檢查一致
-- 成功時走 SSE 輸出（非 `WP_REST_Response`）
-
-### 重要差異
-
-- 由於 SSE callback 可能直接輸出並提前結束，`rest_post_dispatch` 的自動 nonce refresh 不一定會套用
-- 必須在 SSE 流程中自行發送 `event: nonce`
-
-### 掛點決策（本計畫採用）
-
-- 採用 **callback 內直接輸出 SSE 並 `exit;`**
-- 不使用 `rest_pre_serve_request`
-- 理由：
-  - `rest_pre_dispatch`（request-state reset）已在 callback 前執行
-  - `rest_post_dispatch` nonce refresh 可由 `event: nonce` 補齊
-  - 避免 sentinel 回傳值與額外 filter 協調成本
-
----
-
-## Phase 4：Provider Streaming 介面與能力宣告
-
-### 建議擴充 Provider contract
-
-在 Provider 介面增加串流方法（命名可討論）：
-
+蝨ｨ Provider 莉矩擇蠅槫刈荳ｲ豬∵婿豕包ｼ亥多蜷榊庄險手ｫ厄ｼ会ｼ・
 - `generate_chat_stream(array $args, callable $emit, array $context = [])`
 
-其中：
+蜈ｶ荳ｭ・・
+- `$emit`・嗔rovider 蟆・ｧ｣譫仙ｾ御ｺ倶ｻｶ蝗槫さ邨ｦ荳雁ｱ､・・EST SSE handler・・- `$context`・壼さ驕・request-level metadata・井ｾ句ｦ・`provider`縲～request_id`・会ｼ碁∩蜈・provider 萓晁ｳｴ REST 螻､邏ｰ遽
 
-- `$emit`：provider 將解析後事件回傳給上層（REST SSE handler）
-- `$context`：傳遞 request-level metadata（例如 `provider`、`request_id`），避免 provider 依賴 REST 層細節
-
-### `$emit` callable 簽名（建議先定義）
-
+### `$emit` callable 邁ｽ蜷搾ｼ亥ｻｺ隴ｰ蜈亥ｮ夂ｾｩ・・
 ```php
 // $emit(string $event_name, array $data): void
 ```
 
-範例：
-
+遽・ｾ具ｼ・
 ```php
-$emit('delta', ['text' => '你好']);
+$emit('delta', ['text' => '菴螂ｽ']);
 $emit('done', ['full_text' => '...', 'emoji' => null]);
 $emit('error', ['code' => 'stream_failed', 'message' => '...']);
 ```
 
-### `supports()` 能力宣告
-
-- `supports(FEATURE_STREAMING)` 明確回報 provider 是否支援
-- 第一階段：
-  - `OpenAI`：`true`
-  - `Ollama`：`true`
-  - `Claude`：`false`（或 stub）
-  - `Gemini`：`false`（或 stub）
-
-### 相容性要求
-
-- 所有 provider 先補 stub，避免 interface 改動造成 fatal error
-- 實作需維持 PHP 7.4 相容（不可使用 PHP 8.0 union types）
-
-### PHP 7.4 相容性提醒（實作時）
-
-本計畫中的函式簽名示意屬於 pseudocode，實作時請勿直接使用 PHP 8+ union type，例如：
-
+### `supports()` 閭ｽ蜉帛ｮ｣蜻・
+- `supports(FEATURE_STREAMING)` 譏守｢ｺ蝗槫ｱ provider 譏ｯ蜷ｦ謾ｯ謠ｴ
+- 隨ｬ荳髫取ｮｵ・・  - `OpenAI`・啻true`
+  - `Ollama`・啻true`
+  - `Claude`・啻false`・域・ stub・・  - `Gemini`・啻false`・域・ stub・・
+### 逶ｸ螳ｹ諤ｧ隕∵ｱ・
+- 謇譛・provider 蜈郁｣・stub・碁∩蜈・interface 謾ｹ蜍暮謌・fatal error
+- 蟇ｦ菴憺怙邯ｭ謖・PHP 7.4 逶ｸ螳ｹ・井ｸ榊庄菴ｿ逕ｨ PHP 8.0 union types・・
+### PHP 7.4 逶ｸ螳ｹ諤ｧ謠宣・・亥ｯｦ菴懈凾・・
+譛ｬ險育吻荳ｭ逧・・蠑冗ｰｽ蜷咲､ｺ諢丞ｱｬ譁ｼ pseudocode・悟ｯｦ菴懈凾隲句響逶ｴ謗･菴ｿ逕ｨ PHP 8+ union type・御ｾ句ｦゑｼ・
 - `array|WP_Error`
 - `void|WP_Error`
 
-請改用 PHPDoc + PHP 7.4 相容簽名，例如：
-
+隲区隼逕ｨ PHPDoc + PHP 7.4 逶ｸ螳ｹ邁ｽ蜷搾ｼ御ｾ句ｦゑｼ・
 ```php
 /** @return array|WP_Error */
 function mpu_prepare_user_chat_args(WP_REST_Request $request) {
@@ -244,467 +179,337 @@ function mpu_prepare_user_chat_args(WP_REST_Request $request) {
 
 ---
 
-## Phase 5：新增低階串流 HTTP Client（關鍵）
-
-現有 provider 皆以 `wp_remote_post()` 收整包回應，不適合真正 chunk relay。
-
-### 建議新增 helper
+## Phase 5・壽眠蠅樔ｽ朱嚴荳ｲ豬・HTTP Client・磯梨骰ｵ・・
+迴ｾ譛・provider 逧・ｻ･ `wp_remote_post()` 謾ｶ謨ｴ蛹・屓諛会ｼ御ｸ埼←蜷育悄豁｣ chunk relay縲・
+### 蟒ｺ隴ｰ譁ｰ蠅・helper
 
 - `includes/llm/provider-stream-http.php`
 
-### 建議實作方式
+### 蟒ｺ隴ｰ蟇ｦ菴懈婿蠑・
+- 菴ｿ逕ｨ PHP cURL low-level streaming・・CURLOPT_WRITEFUNCTION`・・- 蝨ｨ callback 荳ｭ蜊ｳ譎よ磁謾ｶ chunk・御ｺ､邨ｦ provider parser
+- 謾ｯ謠ｴ・・  - headers / body / timeout
+  - client disconnect 譎ゆｸｭ豁｢荳頑ｸｸ隲区ｱ・  - 骭ｯ隱､讓呎ｺ門喧蝗槫さ
 
-- 使用 PHP cURL low-level streaming（`CURLOPT_WRITEFUNCTION`）
-- 在 callback 中即時接收 chunk，交給 provider parser
-- 支援：
-  - headers / body / timeout
-  - client disconnect 時中止上游請求
-  - 錯誤標準化回傳
-
-### 斷線處理關鍵（必須）
-
-- SSE handler 進入點第一行就呼叫：
-
+### 譁ｷ邱夊剳逅・梨骰ｵ・亥ｿ・茨ｼ・
+- SSE handler 騾ｲ蜈･鮟樒ｬｬ荳陦悟ｰｱ蜻ｼ蜿ｫ・・
 ```php
 ignore_user_abort(true);
 ```
 
-- 否則 client 斷線時 PHP 可能直接中止 script，執行不到 `connection_aborted()` 檢查點
-- 然後在 streaming loop / callback 中定期檢查 `connection_aborted()`，必要時停止上游 cURL 串流
+- 蜷ｦ蜑・client 譁ｷ邱壽凾 PHP 蜿ｯ閭ｽ逶ｴ謗･荳ｭ豁｢ script・悟濤陦御ｸ榊芦 `connection_aborted()` 讙｢譟･鮟・- 辟ｶ蠕悟惠 streaming loop / callback 荳ｭ螳壽悄讙｢譟･ `connection_aborted()`・悟ｿ・ｦ∵凾蛛懈ｭ｢荳頑ｸｸ cURL 荳ｲ豬・
+### 髯咲ｴ夂ｭ也払
 
-### 降級策略
-
-- 若環境無 cURL 或串流建立失敗：
-  - 回 `error` event（明確訊息）
-  - 或 fallback 到同步 `chat/user`（依實作選擇）
-
-> 這是 #6 成敗關鍵，請 Claude / Gemini 特別審視（尤其 `ignore_user_abort(true)` 與 cURL callback 的中止策略）。
-
+- 闍･迺ｰ蠅・┌ cURL 謌紋ｸｲ豬∝ｻｺ遶句､ｱ謨暦ｼ・  - 蝗・`error` event・域・遒ｺ險頑・・・  - 謌・fallback 蛻ｰ蜷梧ｭ･ `chat/user`・井ｾ晏ｯｦ菴憺∈謫・ｼ・
+> 騾呎弍 #6 謌先風髣憺嵯・瑚ｫ・Claude / Gemini 迚ｹ蛻･蟇ｩ隕厄ｼ亥ｰ､蜈ｶ `ignore_user_abort(true)` 闊・cURL callback 逧・ｸｭ豁｢遲也払・峨・
 ---
 
-## Phase 6：Provider 串流解析器（第一階段：OpenAI + Ollama）
-
+## Phase 6・啀rovider 荳ｲ豬∬ｧ｣譫仙勣・育ｬｬ荳髫取ｮｵ・唹penAI + Ollama・・
 ## 7.1 OpenAI Streaming
 
-### 上游格式
-
-- OpenAI 為 SSE（`data: ...`，最終 `[DONE]`）
-
-### 後端解析重點
-
-- 解析 `choices[].delta.content` 作為文字增量
-- 若出現 `tool_calls` delta，需以 `index` 組裝跨多 chunk 的 tool call（不能直接當文字輸出）
-- 將 provider chunk 轉為插件標準事件（`delta/status/tool_call/...`）
-
-### OpenAI `tool_calls` 串流組裝（高風險區，需獨立測試）
-
-OpenAI 的 `tool_calls` 常跨多個 delta，以 `index` 拼接，不會一次給完整 arguments：
-
+### 荳頑ｸｸ譬ｼ蠑・
+- OpenAI 轤ｺ SSE・・data: ...`・梧怙邨・`[DONE]`・・
+### 蠕檎ｫｯ隗｣譫宣㍾鮟・
+- 隗｣譫・`choices[].delta.content` 菴懃ぜ譁・ｭ怜｢樣㍼
+- 闍･蜃ｺ迴ｾ `tool_calls` delta・碁怙莉･ `index` 邨・｣晁ｷｨ螟・chunk 逧・tool call・井ｸ崎・逶ｴ謗･逡ｶ譁・ｭ苓ｼｸ蜃ｺ・・- 蟆・provider chunk 霓臥ぜ謠剃ｻｶ讓呎ｺ紋ｺ倶ｻｶ・・delta/status/tool_call/...`・・
+### OpenAI `tool_calls` 荳ｲ豬∫ｵ・｣晢ｼ磯ｫ倬｢ｨ髫ｪ蜊・碁怙迯ｨ遶区ｸｬ隧ｦ・・
+OpenAI 逧・`tool_calls` 蟶ｸ霍ｨ螟壼・delta・御ｻ･ `index` 諡ｼ謗･・御ｸ肴怎荳谺｡邨ｦ螳梧紛 arguments・・
 ```text
 delta: {"tool_calls":[{"index":0,"id":"call_abc","function":{"name":"get-pop"}}]}
 delta: {"tool_calls":[{"index":0,"function":{"arguments":"{\"lim"}}]}
 delta: {"tool_calls":[{"index":0,"function":{"arguments":"it\":5}"}}]}
 ```
 
-### 建議組裝策略
+### 蟒ｺ隴ｰ邨・｣晉ｭ也払
 
-- 維護 `$tool_calls_buffer[$index]`
-- 持續拼接：
-  - `id`
+- 邯ｭ隴ｷ `$tool_calls_buffer[$index]`
+- 謖∫ｺ梧蕎謗･・・  - `id`
   - `function.name`
-  - `function.arguments`（字串增量）
-- 僅在 `finish_reason === 'tool_calls'` 時，才將 buffer 視為可執行工具呼叫
-- 之後再進入既有 Loop Guard / MCP execution 流程
-
-> 此段建議列為 Phase 6 的獨立測試項目（最容易出錯）。
-
+  - `function.arguments`・亥ｭ嶺ｸｲ蠅樣㍼・・- 蜒・惠 `finish_reason === 'tool_calls'` 譎ゑｼ梧燕蟆・buffer 隕也ぜ蜿ｯ蝓ｷ陦悟ｷ･蜈ｷ蜻ｼ蜿ｫ
+- 荵句ｾ悟・騾ｲ蜈･譌｢譛・Loop Guard / MCP execution 豬∫ｨ・
+> 豁､谿ｵ蟒ｺ隴ｰ蛻礼ぜ Phase 6 逧・昏遶区ｸｬ隧ｦ鬆・岼・域怙螳ｹ譏灘・骭ｯ・峨・
 ## 7.2 Ollama Streaming
 
-### 上游格式
+### 荳頑ｸｸ譬ｼ蠑・
+- 蟶ｸ隕狗ぜ JSON Lines・域ｯ剰｡御ｸ蛟・JSON・御ｸ肴弍 SSE・・
+### 蠕檎ｫｯ隗｣譫宣㍾鮟・
+- 騾占｡瑚ｧ｣譫・JSON
+- 謚ｽ蜿・`message.content` / `message.thinking` / `done`
+- 蜀崎ｽ画・謠剃ｻｶ讓呎ｺ・SSE 莠倶ｻｶ
+- `thinking` 蜈ｧ螳ｹ・亥ｦ・`<think>...</think>`・蛾怙蝨ｨ隨ｬ荳迚域・遒ｺ遲也払・・  - 蟒ｺ隴ｰ鬆占ｨｭ驕取ｿｾ・御ｸ埼｡ｯ遉ｺ邨ｦ菴ｿ逕ｨ閠・  - 螯る怙 debug・悟庄謾ｹ襍ｰ `status` 莠倶ｻｶ鞫倩ｦ∬碁撼蜴滓枚霈ｸ蜃ｺ
 
-- 常見為 JSON Lines（每行一個 JSON，不是 SSE）
-
-### 後端解析重點
-
-- 逐行解析 JSON
-- 抽取 `message.content` / `message.thinking` / `done`
-- 再轉成插件標準 SSE 事件
-- `thinking` 內容（如 `<think>...</think>`）需在第一版明確策略：
-  - 建議預設過濾，不顯示給使用者
-  - 如需 debug，可改走 `status` 事件摘要而非原文輸出
-
-## 7.3 共通要求
-
-- 累積最終文字（供 checksum / emoji / store_history 使用）
-- 工具呼叫回合維持既有 Loop Guard 與 request-state 標記
-- 在適當時機送 heartbeat（`ping`）
-
+## 7.3 蜈ｱ騾夊ｦ∵ｱ・
+- 邏ｯ遨肴怙邨よ枚蟄暦ｼ井ｾ・checksum / emoji / store_history 菴ｿ逕ｨ・・- 蟾･蜈ｷ蜻ｼ蜿ｫ蝗槫粋邯ｭ謖∵里譛・Loop Guard 闊・request-state 讓呵ｨ・- 蝨ｨ驕ｩ逡ｶ譎よｩ滄・heartbeat・・ping`・・
 ---
 
-## Phase 7：工具呼叫（MCP）與串流策略（第一版建議）
+## Phase 7・壼ｷ･蜈ｷ蜻ｼ蜿ｫ・・CP・芽・荳ｲ豬∫ｭ也払・育ｬｬ荳迚亥ｻｺ隴ｰ・・
+### 隨ｬ荳迚育ｭ也払
 
-### 第一版策略
-
-- 僅串流「最終 assistant 文字回合」
-- 工具回合不輸出工具結果全文，僅發送狀態事件
+- 蜒・ｸｲ豬√梧怙邨・assistant 譁・ｭ怜屓蜷医・- 蟾･蜈ｷ蝗槫粋荳崎ｼｸ蜃ｺ蟾･蜈ｷ邨先棡蜈ｨ譁・ｼ悟ュ逋ｼ騾∫朽諷倶ｺ倶ｻｶ
   - `status`
   - `tool_call`
   - `tool_result`
 
-### 狀態事件建議 payload
+### 迢諷倶ｺ倶ｻｶ蟒ｺ隴ｰ payload
 
-- `status` 可帶：
-  - `thinking: true`
+- `status` 蜿ｯ蟶ｶ・・  - `thinking: true`
   - `executing_tool: "tool_name"`
-  - `message: "正在搜尋網頁..."`（可選）
-
-### 優點
-
-- 保留目前 MCP 安全邊界
-- 不必讓前端處理複雜 tool schema / partial JSON
-- 與現有 `Loop Guard` / checksum 流程相容性高
-
-### 可選（之後）
-
-- debug mode 下額外輸出工具結果摘要（非預設）
-
+  - `message: "豁｣蝨ｨ謳懷ｰ狗ｶｲ鬆・.."`・亥庄驕ｸ・・
+### 蜆ｪ鮟・
+- 菫晉蕗逶ｮ蜑・MCP 螳牙・驍顔阜
+- 荳榊ｿ・ｮ灘燕遶ｯ陌慕炊隍・屆 tool schema / partial JSON
+- 闊・樟譛・`Loop Guard` / checksum 豬∫ｨ狗嶌螳ｹ諤ｧ鬮・
+### 蜿ｯ驕ｸ・井ｹ句ｾ鯉ｼ・
+- debug mode 荳矩｡榊､冶ｼｸ蜃ｺ蟾･蜈ｷ邨先棡鞫倩ｦ・ｼ磯撼鬆占ｨｭ・・
 ---
 
-## Phase 8：前端 SSE Reader（新函式，不改 `mpuFetch()`）
+## Phase 8・壼燕遶ｯ SSE Reader・域眠蜃ｽ蠑擾ｼ御ｸ肴隼 `mpuFetch()`・・
+讙疲｡茨ｼ啻js/ukagaka-chat.js`
 
-檔案：`js/ukagaka-chat.js`
-
-### 新增函式（命名可調整）
-
+### 譁ｰ蠅槫・蠑擾ｼ亥多蜷榊庄隱ｿ謨ｴ・・
 - `mpuFetchSSE(...)`
-- 或 `mpu_chat_stream_request(...)`
+- 謌・`mpu_chat_stream_request(...)`
 
-### 實作方式
-
-- 使用 `fetch(..., { method: "POST", body: FormData, headers: { "X-WP-Nonce": mpuRestNonce } })`
-- 讀取 `response.body.getReader()`
-- 使用 `TextDecoder` 解析 chunk
-- 自行處理 SSE frame 邊界（chunk 可能切斷 event）
-
-### SSE frame parser（需明確實作）
-
-前端需維持持久 `lineBuffer`，處理 chunk 被切斷在 event 中間的情況：
-
+### 蟇ｦ菴懈婿蠑・
+- 菴ｿ逕ｨ `fetch(..., { method: "POST", body: FormData, headers: { "X-WP-Nonce": mpuRestNonce } })`
+- 隶蜿・`response.body.getReader()`
+- 菴ｿ逕ｨ `TextDecoder` 隗｣譫・chunk
+- 閾ｪ陦瑚剳逅・SSE frame 驍顔阜・・hunk 蜿ｯ閭ｽ蛻・鵡 event・・
+### SSE frame parser・磯怙譏守｢ｺ蟇ｦ菴懶ｼ・
+蜑咲ｫｯ髴邯ｭ謖∵戟荵・`lineBuffer`・瑚剳逅・chunk 陲ｫ蛻・鵡蝨ｨ event 荳ｭ髢鍋噪諠・ｳ・ｼ・
 ```js
 let lineBuffer = "";
 
-// 每次 chunk 到達時：
-lineBuffer += decoder.decode(chunk, { stream: true });
+// 豈乗ｬ｡ chunk 蛻ｰ驕疲凾・・lineBuffer += decoder.decode(chunk, { stream: true });
 const frames = lineBuffer.split("\n\n");
-lineBuffer = frames.pop() || ""; // 最後一段可能不完整，保留到下一輪
+lineBuffer = frames.pop() || ""; // 譛蠕御ｸ谿ｵ蜿ｯ閭ｽ荳榊ｮ梧紛・御ｿ晉蕗蛻ｰ荳倶ｸ霈ｪ
 
 for (const frame of frames) {
   // parse event:/data: lines
 }
 ```
 
-### 補充
+### 陬懷・
 
-- 不可假設 `ReadableStream` chunk 與 SSE event frame 一一對齊
-- `data:` JSON 也可能剛好在字串中間被切開
+- 荳榊庄蛛・ｨｭ `ReadableStream` chunk 闊・SSE event frame 荳荳蟆埼ｽ・- `data:` JSON 荵溷庄閭ｽ蜑帛･ｽ蝨ｨ蟄嶺ｸｲ荳ｭ髢楢｢ｫ蛻・幕
 
-### 事件處理邏輯
+### 莠倶ｻｶ陌慕炊驍剰ｼｯ
 
 - `delta`
-  - 累積文字並即時更新 `#ukagaka_msg`
-  - 取代「等待整包後再 `mpu_typewriter()`」的模式
-- `nonce`
-  - 更新 `window.mpuRestNonce`
+  - 邏ｯ遨肴枚蟄嶺ｸｦ蜊ｳ譎よ峩譁ｰ `#ukagaka_msg`
+  - 蜿紋ｻ｣縲檎ｭ牙ｾ・紛蛹・ｾ悟・ `mpu_typewriter()`縲咲噪讓｡蠑・- `nonce`
+  - 譖ｴ譁ｰ `window.mpuRestNonce`
 - `status`
-  - 先寫 log（之後可做 UI）
-- `done`
-  - 寫入 `mpuChatHistory`
+  - 蜈亥ｯｫ log・井ｹ句ｾ悟庄蛛・UI・・- `done`
+  - 蟇ｫ蜈･ `mpuChatHistory`
   - `mpu_saveChatHistory()`
-  - 顯示 emoji
-  - 解鎖輸入框 / 聚焦
+  - 鬘ｯ遉ｺ emoji
+  - 隗｣骼冶ｼｸ蜈･譯・/ 閨夂┬
 - `error`
-  - 顯示錯誤訊息
-  - 解鎖 UI
+  - 鬘ｯ遉ｺ骭ｯ隱､險頑・
+  - 隗｣骼・UI
 
-### 與現有 `mpu_sendUserMessage()` 整合
+### 闊・樟譛・`mpu_sendUserMessage()` 謨ｴ蜷・
+- 蜉蜈･蛻・髪・・  - 闍･ SSE 蜿ｯ逕ｨ荳・provider 謾ｯ謠ｴ streaming -> 襍ｰ SSE
+  - 蜷ｦ蜑・ｶｭ謖∵里譛・`mpuFetch(mpuRestUrl + "chat/user", ...)`
 
-- 加入分支：
-  - 若 SSE 可用且 provider 支援 streaming -> 走 SSE
-  - 否則維持既有 `mpuFetch(mpuRestUrl + "chat/user", ...)`
+### 豕ｨ諢・
+- 荳榊ｻｺ隴ｰ逶ｴ謗･謾ｹ騾 `mpuFetch()` 謌・SSE 蜈ｩ逕ｨ・碁｢ｨ髫ｪ霈・ｫ假ｼ育樟譛牙､ｧ驥・JSON 蜻ｼ蜿ｫ萓晁ｳｴ・・
+---
 
-### 注意
+## Phase 9・壼叙豸郁ｫ区ｱり・譁ｷ邱夊剳逅・
+## 蜑咲ｫｯ
 
-- 不建議直接改造 `mpuFetch()` 成 SSE 兩用，風險較高（現有大量 JSON 呼叫依賴）
+- 菴ｿ逕ｨ `AbortController` 荳ｭ豁｢ SSE 隲区ｱ・- 隗ｸ逋ｼ諠・｢・ｼ・  - 菴ｿ逕ｨ閠・・谺｡騾∝・
+  - 髮｢髢玖♀螟ｩ讓｡蠑・  - 荳ｻ蜍募叙豸茨ｼ郁凶蠕檎ｺ悟刈謖蛾・・・
+## 蠕檎ｫｯ
+
+- 莉･ `connection_aborted()` 蛛ｵ貂ｬ client disconnect
+- 荳ｭ豁｢荳頑ｸｸ provider 荳ｲ豬∬ｫ区ｱゑｼ磯∩蜈崎ｳ・ｺ先ｵｪ雋ｻ・・- 蛛懈ｭ｢蠕檎ｺ・SSE 霈ｸ蜃ｺ闊・噺蟆ｾ蟇ｫ蜈･
+
+### 驕ｿ蜈阪悟ｹｽ髱郁ｪｪ隧ｱ縲・
+- 蜑咲ｫｯ蝨ｨ閨雁､ｩ讓｡蠑城梨髢画凾遶句叉 abort
+- 荳榊ｰ・ｸｭ譁ｷ荳ｭ逧・partial 蝗櫁ｦ・ｯｫ蜈･豁ｷ蜿ｲ
 
 ---
 
-## Phase 9：取消請求與斷線處理
-
-## 前端
-
-- 使用 `AbortController` 中止 SSE 請求
-- 觸發情境：
-  - 使用者再次送出
-  - 離開聊天模式
-  - 主動取消（若後續加按鈕）
-
-## 後端
-
-- 以 `connection_aborted()` 偵測 client disconnect
-- 中止上游 provider 串流請求（避免資源浪費）
-- 停止後續 SSE 輸出與收尾寫入
-
-### 避免「幽靈說話」
-
-- 前端在聊天模式關閉時立即 abort
-- 不將中斷中的 partial 回覆寫入歷史
-
----
-
-## Phase 10：完整收尾（與同步路徑一致）
-
-在串流完成後（final text 已確定）再執行：
-
-- 回應長度限制（保留現有 `mpu_did_request_execute_mcp_tool()` 邏輯）
-- `emoji` 分析
+## Phase 10・壼ｮ梧紛謾ｶ蟆ｾ・郁・蜷梧ｭ･霍ｯ蠕台ｸ閾ｴ・・
+蝨ｨ荳ｲ豬∝ｮ梧・蠕鯉ｼ・inal text 蟾ｲ遒ｺ螳夲ｼ牙・蝓ｷ陦鯉ｼ・
+- 蝗樊㊨髟ｷ蠎ｦ髯仙宛・井ｿ晉蕗迴ｾ譛・`mpu_did_request_execute_mcp_tool()` 驍剰ｼｯ・・- `emoji` 蛻・梵
 - `mpu_record_conversation('interactive')`
 - `mpu_chat_integrity_store_history(...)`
-- 最後送 `event: done`
+- 譛蠕碁・`event: done`
 
-### 中途錯誤 / 中止時
-
-- 不寫 checksum（避免污染下一輪 integrity）
-- 視情境送 `error` event 或安靜結束（client 已斷線）
-- 僅在 `event: done` 前、且連線仍有效時寫入 checksum
+### 荳ｭ騾秘険隱､ / 荳ｭ豁｢譎・
+- 荳榊ｯｫ checksum・磯∩蜈肴ｱ｡譟謎ｸ倶ｸ霈ｪ integrity・・- 隕匁ュ蠅・・`error` event 謌門ｮ蛾撩邨先據・・lient 蟾ｲ譁ｷ邱夲ｼ・- 蜒・惠 `event: done` 蜑阪∽ｸ秘｣邱壻ｻ肴怏謨域凾蟇ｫ蜈･ checksum
 
 ---
 
-## Phase 11：測試與驗證計畫（必做）
+## Phase 11・壽ｸｬ隧ｦ闊・ｩ苓ｭ芽ｨ育吻・亥ｿ・★・・
+## 蜉溯・貂ｬ隧ｦ
 
-## 功能測試
+- OpenAI・・  - 遏ｭ蝗櫁ｦ・/ 髟ｷ蝗櫁ｦ・/ 蟾･蜈ｷ蜻ｼ蜿ｫ蝗槫粋
+- Ollama・・  - 荳闊ｬ讓｡蝙・/ thinking 讓｡蝙具ｼ磯聞遲牙ｾ・ｼ・- 閨雁､ｩ讓｡蠑城梨髢我ｸｭ騾・abort
+- 蠢ｫ騾滄｣鮟樣∝・・・ancelPrevious 陦檎ぜ・・- `/reset` / `/clear` 蠕・session 霈ｪ譖ｿ豁｣蟶ｸ
 
-- OpenAI：
-  - 短回覆 / 長回覆 / 工具呼叫回合
-- Ollama：
-  - 一般模型 / thinking 模型（長等待）
-- 聊天模式關閉中途 abort
-- 快速連點送出（cancelPrevious 行為）
-- `/reset` / `/clear` 後 session 輪替正常
+## 螳牙・闊・ｩｩ螳壽ｧ貂ｬ隧ｦ
 
-## 安全與穩定性測試
+- Rate limit 莉咲函謨・- nonce 譖ｴ譁ｰ・・SE `nonce` event・牙庄豁｣遒ｺ蛻ｷ譁ｰ蜑咲ｫｯ `mpuRestNonce`
+- chat integrity checksum 蝨ｨ豁｣蟶ｸ螳梧・譎ょｯｫ蜈･縲∝惠荳ｭ豁｢譎ゆｸ肴ｱ｡譟・- 髟ｷ譎る俣辟｡霈ｸ蜃ｺ譎・heartbeat 蜿ｯ邯ｭ謖・｣邱・- client 譁ｷ邱壽凾 `ignore_user_abort(true)` + `connection_aborted()` 霍ｯ蠕大庄豁｣蟶ｸ荳ｭ豁｢荳頑ｸｸ荳ｲ豬・
+## 逶ｸ螳ｹ諤ｧ貂ｬ隧ｦ
 
-- Rate limit 仍生效
-- nonce 更新（SSE `nonce` event）可正確刷新前端 `mpuRestNonce`
-- chat integrity checksum 在正常完成時寫入、在中止時不污染
-- 長時間無輸出時 heartbeat 可維持連線
-- client 斷線時 `ignore_user_abort(true)` + `connection_aborted()` 路徑可正常中止上游串流
-
-## 相容性測試
-
-- 不支援 streaming 的 provider 自動 fallback 同步流程
-- 原有 `chat/user` JSON API 完全不受影響
-- 前端打包後正常（`npm run build`）
-- Proxy 環境 buffering 測試（例如 Nginx + FastCGI），確認非僅本地 XAMPP 有效
+- 荳肴髪謠ｴ streaming 逧・provider 閾ｪ蜍・fallback 蜷梧ｭ･豬∫ｨ・- 蜴滓怏 `chat/user` JSON API 螳悟・荳榊女蠖ｱ髻ｿ
+- 蜑咲ｫｯ謇灘桁蠕梧ｭ｣蟶ｸ・・npm run build`・・- Proxy 迺ｰ蠅・buffering 貂ｬ隧ｦ・井ｾ句ｦ・Nginx + FastCGI・会ｼ檎｢ｺ隱埼撼蜒・悽蝨ｰ XAMPP 譛画譜
 
 ---
 
-## 建議實作順序（實務）
-
-1. **先完成 Phase 0（抽離共用前置邏輯）**，作為 SSE 導入先決條件
-2. 完成 SSE helper + `/chat/user-stream` 空殼（回 `start` / `done`）
-3. 前端 SSE reader 串起來（先用假資料驗證 parser/UI）
-4. 接 `Ollama` streaming（本地易反覆測試）
-5. 接 `OpenAI` streaming（含 `tool_calls` index 組裝）
-6. 補 nonce event / checksum store / fallback 細節
-7. 再評估 `Claude` / `Gemini`
+## 蟒ｺ隴ｰ蟇ｦ菴憺・ｺ擾ｼ亥ｯｦ蜍呻ｼ・
+1. **蜈亥ｮ梧・ Phase 0・域歓髮｢蜈ｱ逕ｨ蜑咲ｽｮ驍剰ｼｯ・・*・御ｽ懃ぜ SSE 蟆主・蜈域ｱｺ譴昜ｻｶ
+2. 螳梧・ SSE helper + `/chat/user-stream` 遨ｺ谿ｼ・亥屓 `start` / `done`・・3. 蜑咲ｫｯ SSE reader 荳ｲ襍ｷ萓・ｼ亥・逕ｨ蛛・ｳ・侭鬩苓ｭ・parser/UI・・4. 謗･ `Ollama` streaming・域悽蝨ｰ譏灘渚隕・ｸｬ隧ｦ・・5. 謗･ `OpenAI` streaming・亥性 `tool_calls` index 邨・｣晢ｼ・6. 陬・nonce event / checksum store / fallback 邏ｰ遽
+7. 蜀崎ｩ穂ｼｰ `Claude` / `Gemini`
 
 ---
 
-## 風險與注意事項
-
-- WordPress REST SSE 掛點本計畫已決策採用「callback 內直接輸出 `echo + flush + exit;`」（詳見 Phase 3）
-  - 需注意與 REST lifecycle 的交界行為（例如 `rest_post_dispatch` 不會接手 nonce refresh，因此以 `event: nonce` 補齊）
-- `wp_remote_post()` 不適合真串流 relay，需 low-level cURL 支援
-- 不同主機環境的 buffering（PHP output buffering / proxy buffering）可能導致「看似 SSE 實際延遲整包」
-- 工具呼叫 + 串流若處理不當，容易造成 partial JSON / state 汙染
+## 鬚ｨ髫ｪ闊・ｳｨ諢丈ｺ矩・
+- WordPress REST SSE 謗幃ｻ樊悽險育吻蟾ｲ豎ｺ遲匁治逕ｨ縲慶allback 蜈ｧ逶ｴ謗･霈ｸ蜃ｺ `echo + flush + exit;`縲搾ｼ郁ｩｳ隕・Phase 3・・  - 髴豕ｨ諢剰・ REST lifecycle 逧・ｺ､逡瑚｡檎ぜ・井ｾ句ｦ・`rest_post_dispatch` 荳肴怎謗･謇・nonce refresh・悟屏豁､莉･ `event: nonce` 陬憺ｽ奇ｼ・- `wp_remote_post()` 荳埼←蜷育悄荳ｲ豬・relay・碁怙 low-level cURL 謾ｯ謠ｴ
+- 荳榊酔荳ｻ讖溽腸蠅・噪 buffering・・HP output buffering / proxy buffering・牙庄閭ｽ蟆手・縲檎恚莨ｼ SSE 蟇ｦ髫帛ｻｶ驕ｲ謨ｴ蛹・・- 蟾･蜈ｷ蜻ｼ蜿ｫ + 荳ｲ豬∬凶陌慕炊荳咲文・悟ｮｹ譏馴謌・partial JSON / state 豎呎沒
 
 ---
 
-## 請 Claude / Gemini 協助審視的重點
-
-1. 已決策採用 callback 直接輸出 SSE + `exit;`，請審視其細節風險（buffer 清理、nonce event、中止行為）
-2. WP 環境中最穩定的 provider streaming transport（cURL callback 設計）
-3. 工具呼叫（MCP）與串流事件模型是否需要更細粒度狀態事件
-4. chat integrity checksum 在串流中斷時的最佳策略（完全不寫 vs partial 標記）
-5. 已將抽離 `REST/AJAX user_chat` 共用前置邏輯提升為 Phase 0 先決條件，請審視切分邊界是否合理
+## 隲・Claude / Gemini 蜊泌勧蟇ｩ隕也噪驥埼ｻ・
+1. 蟾ｲ豎ｺ遲匁治逕ｨ callback 逶ｴ謗･霈ｸ蜃ｺ SSE + `exit;`・瑚ｫ句ｯｩ隕門・邏ｰ遽鬚ｨ髫ｪ・・uffer 貂・炊縲］once event縲∽ｸｭ豁｢陦檎ぜ・・2. WP 迺ｰ蠅・ｸｭ譛遨ｩ螳夂噪 provider streaming transport・・URL callback 險ｭ險茨ｼ・3. 蟾･蜈ｷ蜻ｼ蜿ｫ・・CP・芽・荳ｲ豬∽ｺ倶ｻｶ讓｡蝙区弍蜷ｦ髴隕∵峩邏ｰ邊貞ｺｦ迢諷倶ｺ倶ｻｶ
+4. chat integrity checksum 蝨ｨ荳ｲ豬∽ｸｭ譁ｷ譎ら噪譛菴ｳ遲也払・亥ｮ悟・荳榊ｯｫ vs partial 讓呵ｨ假ｼ・5. 蟾ｲ蟆・歓髮｢ `REST/AJAX user_chat` 蜈ｱ逕ｨ蜑咲ｽｮ驍剰ｼｯ謠仙合轤ｺ Phase 0 蜈域ｱｺ譴昜ｻｶ・瑚ｫ句ｯｩ隕門・蛻・ｊ逡梧弍蜷ｦ蜷育炊
 
 ---
 
-## 補充：本計畫的相容性目標
-
-- 不破壞現有 `POST /mp-ukagaka/v1/chat/user`
-- 不改壞既有前端 `mpuFetch()` JSON 路徑
-- 可逐 provider 漸進開啟 streaming 能力
-- 若串流不可用，使用者體驗退回現有同步模式（可接受）
-
+## 陬懷・・壽悽險育吻逧・嶌螳ｹ諤ｧ逶ｮ讓・
+- 荳咲ｴ螢樒樟譛・`POST /mp-ukagaka/v1/chat/user`
+- 荳肴隼螢樊里譛牙燕遶ｯ `mpuFetch()` JSON 霍ｯ蠕・- 蜿ｯ騾・provider 貍ｸ騾ｲ髢句福 streaming 閭ｽ蜉・- 闍･荳ｲ豬∽ｸ榊庄逕ｨ・御ｽｿ逕ｨ閠・ｫ秘ｩ鈴蝗樒樟譛牙酔豁･讓｡蠑擾ｼ亥庄謗･蜿暦ｼ・
 ---
 
-## 已實作結果與問題修正紀錄（2026-02-26）
+## 蟾ｲ蟇ｦ菴懃ｵ先棡闊・撫鬘御ｿｮ豁｣邏骭・ｼ・026-02-26・・
+譛ｬ遽險倬隙 SSE Streaming 蟇ｦ菴懷ｾ檎噪蟇ｦ髫幄誠蝨ｰ邨先棡・御ｻ･蜿顔岼蜑榊ｷｲ雕ｩ驕惹ｸｦ菫ｮ蠕ｩ逧・撫鬘後よ悴萓・凶蜀榊・迴ｾ蝗樊ｭｸ・悟庄蜆ｪ蜈亥ｰ咲・譛ｬ遽縲・
+### 蟾ｲ螳梧・・亥ｯｦ菴懆誠蝨ｰ・・
+- 譁ｰ蠅・REST SSE 遶ｯ鮟橸ｼ啻POST /mp-ukagaka/v1/chat/user-stream`
+- 蠕檎ｫｯ SSE helper 蟾ｲ關ｽ蝨ｰ・亥､壼ｱ､ output buffer 貂・炊縲～ignore_user_abort(true)`縲～set_time_limit(0)`縲～X-Accel-Buffering: no`縲～X-Content-Type-Options: nosniff`・・- Provider streaming 蟾ｲ關ｽ蝨ｰ・育ｬｬ荳髫取ｮｵ・・- OpenAI・售SE chunk relay + `tool_calls` index 邨・｣・- Ollama・哽SON Lines relay + 蟾･蜈ｷ蜻ｼ蜿ｫ霑ｴ蝨域紛蜷・- 蜑咲ｫｯ `fetch + ReadableStream` SSE reader 蟾ｲ關ｽ蝨ｰ・亥性 `lineBuffer` 邏ｯ遨搾ｼ・- SSE 霍ｯ蠕・nonce refresh 蟾ｲ關ｽ蝨ｰ・・event: nonce` + 蜑咲ｫｯ譖ｴ譁ｰ `mpuRestNonce`・・- 蜑咲ｫｯ蟾ｲ謨ｴ蜷・`AbortController` 驕ｿ蜈榊ｹｽ髱郁ｪｪ隧ｱ
+- 髱樔ｸｲ豬・Provider・亥ｦ・Claude/Gemini・牙ｷｲ蜿ｯ閾ｪ蜍戊ｵｰ蜷梧ｭ･ fallback・亥燕遶ｯ隶 `mpuPreSettings.streaming_enabled`・・
+### 蟾ｲ菫ｮ蠕ｩ蝠城｡鯉ｼ磯㍾鮟樒ｴ骭・ｼ・
+#### 1. Streaming 蜿・丙驕ｺ貍擾ｼ・llama endpoint / max_tokens / model・・
+- `prepare_user_chat_args()` 蛻晉沿譛ｪ蝗槫さ鬆ょｱ､ `endpoint` / `max_tokens` / `model`
+- 蠖ｱ髻ｿ・・- Ollama streaming 豌ｸ驕謇・`localhost`
+- `max_tokens` 謗牙屓鬆占ｨｭ `1000`
+- SSE `start` event 讓｡蝙句錐蜿ｯ閭ｽ鬘ｯ遉ｺ `unknown`
+- 菫ｮ豁｣・壼惠 `prepare_user_chat_args()` 蝗槫さ鬆ょｱ､蜿・丙・御ｾ・streaming provider 闊・SSE `start` 蜈ｱ逕ｨ
 
-本節記錄 SSE Streaming 實作後的實際落地結果，以及目前已踩過並修復的問題。未來若再出現回歸，可優先對照本節。
+#### 2. `/debug_mcp` 謇灘芦 `user-stream` 騾謌・500 Fatal
 
-### 已完成（實作落地）
-
-- 新增 REST SSE 端點：`POST /mp-ukagaka/v1/chat/user-stream`
-- 後端 SSE helper 已落地（多層 output buffer 清理、`ignore_user_abort(true)`、`set_time_limit(0)`、`X-Accel-Buffering: no`、`X-Content-Type-Options: nosniff`）
-- Provider streaming 已落地（第一階段）
-- OpenAI：SSE chunk relay + `tool_calls` index 組裝
-- Ollama：JSON Lines relay + 工具呼叫迴圈整合
-- 前端 `fetch + ReadableStream` SSE reader 已落地（含 `lineBuffer` 累積）
-- SSE 路徑 nonce refresh 已落地（`event: nonce` + 前端更新 `mpuRestNonce`）
-- 前端已整合 `AbortController` 避免幽靈說話
-- 非串流 Provider（如 Claude/Gemini）已可自動走同步 fallback（前端讀 `mpuPreSettings.streaming_enabled`）
-
-### 已修復問題（重點紀錄）
-
-#### 1. Streaming 參數遺漏（Ollama endpoint / max_tokens / model）
-
-- `prepare_user_chat_args()` 初版未回傳頂層 `endpoint` / `max_tokens` / `model`
-- 影響：
-- Ollama streaming 永遠打 `localhost`
-- `max_tokens` 掉回預設 `1000`
-- SSE `start` event 模型名可能顯示 `unknown`
-- 修正：在 `prepare_user_chat_args()` 回傳頂層參數，供 streaming provider 與 SSE `start` 共用
-
-#### 2. `/debug_mcp` 打到 `user-stream` 造成 500 Fatal
-
-- 症狀：
-- `Undefined array key "provider"`
+- 逞・朽・・- `Undefined array key "provider"`
 - `get_provider(null)` -> `WP_Error`
-- 呼叫 `WP_Error::supports()` fatal
-- 根因：`user_chat_stream()` 在 `/debug_mcp` 特殊回傳（無 `provider`）下，仍先做 provider 檢查
-- 修正：
-- `user_chat_stream()` 提前攔截 `is_debug_mcp`，轉回同步 `user_chat($request)`
-- 增加 `is_wp_error($provider_instance)` guard
+- 蜻ｼ蜿ｫ `WP_Error::supports()` fatal
+- 譬ｹ蝗・啻user_chat_stream()` 蝨ｨ `/debug_mcp` 迚ｹ谿雁屓蛯ｳ・育┌ `provider`・我ｸ具ｼ御ｻ榊・蛛・provider 讙｢譟･
+- 菫ｮ豁｣・・- `user_chat_stream()` 謠仙燕謾疲穐 `is_debug_mcp`・瑚ｽ牙屓蜷梧ｭ･ `user_chat($request)`
+- 蠅槫刈 `is_wp_error($provider_instance)` guard
 
-#### 3. Windows/Apache 環境下 SSE frame 無法被前端正確解析（HTTP 200 但 UI 卡在「えっと…」）
+#### 3. Windows/Apache 迺ｰ蠅・ｸ・SSE frame 辟｡豕戊｢ｫ蜑咲ｫｯ豁｣遒ｺ隗｣譫撰ｼ・TTP 200 菴・UI 蜊｡蝨ｨ縲後∴縺｣縺ｨ窶ｦ縲搾ｼ・
+- 逞・朽・咼evTools 蜿ｯ逵句芦 `event: delta`/`done`・御ｽ・燕遶ｯ荳崎ｧｸ逋ｼ `onDelta` / `onDone`
+- 譬ｹ蝗・壼燕遶ｯ parser 蜿ｪ逕ｨ `split("\\n\\n")`・梧悴陌慕炊 `CRLF`・・\\r\\n\\r\\n`・・- 菫ｮ豁｣・・- frame 蛻・牡謾ｹ轤ｺ `split(/\\r?\\n\\r?\\n/)`
+- frame 隗｣譫仙燕蜉 `line = line.replace(/\\r/g, "")`
 
-- 症狀：DevTools 可看到 `event: delta`/`done`，但前端不觸發 `onDelta` / `onDone`
-- 根因：前端 parser 只用 `split("\\n\\n")`，未處理 `CRLF`（`\\r\\n\\r\\n`）
-- 修正：
-- frame 分割改為 `split(/\\r?\\n\\r?\\n/)`
-- frame 解析前加 `line = line.replace(/\\r/g, "")`
+#### 4. 蜷梧ｭ･ fallback 蛻・髪荳蠎ｦ隶頑・遨ｺ谿ｼ / UX 蝠城｡・
+- 髱樔ｸｲ豬・fallback 譖ｾ蜿ｪ蜑ｩ險ｻ隗｣ `.then(...)`・悟ｰ手・荳肴髪謠ｴ streaming 逧・provider 辟｡豕墓ｭ｣蟶ｸ鬘ｯ遉ｺ蝗櫁ｦ・- 菫ｮ豁｣・夊｣懷屓螳梧紛 `.then/.catch/.finally`・・istory 蟇ｫ蜈･縲∝虚逡ｫ縲‘moji縲・険隱､陌慕炊縲ゞI 隗｣骼厄ｼ・- SSE `onDone` 逕ｨ謌ｪ譁ｷ蠕・`data.msg` 驥咲ｹｪ逡ｫ髱｢譛・謌宣聞蝗櫁ｦ・麻霍ｳ
+- 菫ｮ豁｣・夊凶荳ｲ豬・℃遞句ｷｲ譛・`fullResponse`・形onDone` 荳榊・驥咲ｹｪ・悟宵蟇ｫ豁ｷ蜿ｲ
 
-#### 4. 同步 fallback 分支一度變成空殼 / UX 問題
+#### 5. Chat Integrity Checksum 400・域ｭｷ蜿ｲ鬩苓ｭ牙､ｱ謨暦ｼ臥ｳｻ蛻怜撫鬘・
+- 蝠城｡・A・壼┫蟄・checksum 逧・ｭｷ蜿ｲ髟ｷ蠎ｦ闊・燕遶ｯ荳倶ｸ霈ｪ騾∝・逧・ｭｷ蜿ｲ髟ｷ蠎ｦ荳堺ｸ閾ｴ
+- 菫ｮ豁｣・壼酔豁･ / 荳ｲ豬∬ｷｯ蠕大惠 `store_history()` 蜑咲ｵｱ荳 `array_slice($next_history, -10)`
 
-- 非串流 fallback 曾只剩註解 `.then(...)`，導致不支援 streaming 的 provider 無法正常顯示回覆
-- 修正：補回完整 `.then/.catch/.finally`（history 寫入、動畫、emoji、錯誤處理、UI 解鎖）
-- SSE `onDone` 用截斷後 `data.msg` 重繪畫面會造成長回覆閃跳
-- 修正：若串流過程已有 `fullResponse`，`onDone` 不再重繪，只寫歷史
+- 蝠城｡・B・啻/debug_mcp` 蝗樊㊨譛・｢ｫ蜑咲ｫｯ蟇ｫ蜈･閨雁､ｩ豁ｷ蜿ｲ・御ｽ・debug 蛻・髪譛ｪ蟇ｫ checksum
+- 逞・朽・壼濤陦・`/debug_mcp` 蠕鯉ｼ御ｸ倶ｸ蜿･襍ｷ莠貞虚閨雁､ｩ闊・ｸ闊ｬ蟆崎ｩｱ逧・庄閭ｽ陲ｫ豎｡譟難ｼ形user-stream`/`chat/user` 蝗・400
+- 菫ｮ豁｣・啻/debug_mcp` 蛻・髪蝗槫さ蜑搾ｼ梧焔蜍募ｰ・debug 蟆崎ｩｱ・・ser + assistant report・牙ｯｫ蜈･ checksum
 
-#### 5. Chat Integrity Checksum 400（歷史驗證失敗）系列問題
+- 蝠城｡・C・唹llama thinking 蜈ｧ螳ｹ・亥ｦ・`<think>...</think>`・蛾謌仙燕蠕檎ｫｯ蜈ｧ螳ｹ荳堺ｸ閾ｴ
+- 逞・朽・夂ｬｬ荳蜿･豁｣蟶ｸ縲∫ｬｬ莠悟唱 checksum mismatch・亥ｰ､蜈ｶ Ollama / MCP / thinking 讓｡蝙具ｼ・- 譬ｹ蝗・壼ｾ檎ｫｯ蟇ｫ蜈･ checksum 逧・・螳ｹ闊・燕遶ｯ鬘ｯ遉ｺ / 荳倶ｸ霈ｪ騾∝屓蜈ｧ螳ｹ蝨ｨ thinking 讓呵ｨ伜ｱ､邏壻ｸ堺ｸ閾ｴ
+- 菫ｮ豁｣・壼惠 `user_chat` / `user_chat_stream` 謾ｶ蟆ｾ縲∝ｯｫ蜈･ checksum 蜑搾ｼ瑚凶 provider 轤ｺ Ollama・悟・螂・`mpu_filter_thinking_content()` 蜀榊ｭ・
+- 蝠城｡・D・夊ｷｨ Provider 蛻・鋤・亥ｰ､蜈ｶ蛻・芦/蛻・屬 Ollama・牙ｾ悟・迴ｾ checksum 400
+- 譬ｹ蝗・壻ｸ榊酔 provider・育音蛻･譏ｯ Ollama・牙ｰ・assistant content 逧・怙邨ょ梛諷倶ｸ榊酔・悟ｰ手・蜷御ｸ `session_id` 荳・checksum 荳堺ｸ閾ｴ
+- 菫ｮ豁｣譁ｹ蜷托ｼ亥ｷｲ螳梧・・会ｼ夂ｵｱ荳 checksum 蟇ｫ蜈･蜑咲噪蜈ｧ螳ｹ豁｣隕丞喧豬∫ｨ具ｼ檎｢ｺ菫晏・謠・provider 蠕御ｻ榊庄蟆埼ｽ・
+##### 逕溽箸迺ｰ蠅・怙邨ら｢ｺ隱搾ｼ・026-02-27・・
+- 蝠城｡・E・壽ｻ大虚遯怜哨騾謌・store / verify 荳榊ｰ咲ｨｱ・磯聞蟆崎ｩｱ隨ｬ 6 霈ｪ蠕碁ｫ俶ｩ溽紫 400・・- 譬ｹ蝗・壼ュ蛛・`array_slice(..., -10)` 譎ゑｼ檎ｪ怜哨蟾ｦ蛛ｴ蛻・脂 `user` 蠕鯉ｼ碁ｦ紋ｽ榊庄閭ｽ隶頑・蟄､遶・`assistant`・幄凶蜆ｲ蟄倡ｫｯ闊・ｩ苓ｭ臥ｫｯ陌慕炊鬆・ｺ丈ｸ榊酔・慶hecksum 蠢・┯荳堺ｸ閾ｴ
+- 菫ｮ豁｣・・- 蝨ｨ `includes/llm/chat-integrity.php` 譁ｰ蠅樔ｸｦ邨ｱ荳菴ｿ逕ｨ `mpu_chat_integrity_slice_for_store($history, 10)`・亥・ slice・悟・豁｣隕丞喧遘ｻ髯､蟄､遶・assistant・・- 荳牙句ｯｫ蜈･鮟橸ｼ・user_chat` / `user_chat_stream` / `/debug_mcp`・臥嚀謾ｹ轤ｺ蜈育ｵ・`$raw_history`・悟・蜻ｼ蜿ｫ `mpu_chat_integrity_slice_for_store(..., 10)` 蠕悟ｯｫ蜈･
 
-- 問題 A：儲存 checksum 的歷史長度與前端下一輪送出的歷史長度不一致
-- 修正：同步 / 串流路徑在 `store_history()` 前統一 `array_slice($next_history, -10)`
+- 蝠城｡・F・夐聞譁・悽闊・鋤陦悟惠蟄伜叙豬∫ｨ倶ｸｭ逧・ｾｮ蟾ｮ蟆手・ checksum mismatch
+- 譬ｹ蝗・啻sanitize_text_field` 譛・｣灘ｹｳ謠幄｡鯉ｼ娥CP/髟ｷ蝗櫁ｦ・ュ蠅・ｸ具ｼ悟燕遶ｯ蝗槫さ蜈ｧ螳ｹ闊・ｾ檎ｫｯ蜆ｲ蟄伜・螳ｹ螳ｹ譏灘・迴ｾ蟄嶺ｸｲ螻､邏壼ｷｮ逡ｰ
+- 菫ｮ豁｣・・- 鬩苓ｭ臥ｫｯ豁ｷ蜿ｲ貂・炊邨ｱ荳謾ｹ轤ｺ `sanitize_textarea_field(wp_unslash(...))`
+- 蜆ｲ蟄倡ｫｯ assistant 蜈ｧ螳ｹ邨ｱ荳謾ｹ轤ｺ `sanitize_textarea_field(...)`
 
-- 問題 B：`/debug_mcp` 回應會被前端寫入聊天歷史，但 debug 分支未寫 checksum
-- 症狀：執行 `/debug_mcp` 後，下一句起互動聊天與一般對話皆可能被污染，`user-stream`/`chat/user` 回 400
-- 修正：`/debug_mcp` 分支回傳前，手動將 debug 對話（user + assistant report）寫入 checksum
+- 蝠城｡・H・壽崟蝌苓ｩｦ蝨ｨ store 遶ｯ蜉蜈･ `wp_unslash()`・・sanitize_textarea_field(wp_unslash($result))`・・- 鬚ｨ髫ｪ・啻$result` 萓・・ AI API・碁撼 WP magic quotes 霈ｸ蜈･・幃｡榊､・`wp_unslash()` 蜿ｯ閭ｽ蜷・脂蜷域ｳ募渚譁懃ｷ夲ｼ育ｨ句ｼ冗｢ｼ/豁｣蜑・霍ｯ蠕托ｼ会ｼ御ｸｦ闊・`done` event 鬘ｯ遉ｺ蜈ｧ螳ｹ逕｢逕滓眠荳堺ｸ閾ｴ
+- 譛邨よｱｺ遲厄ｼ・026-02-27・会ｼ壽彫蝗・store 遶ｯ `wp_unslash()`・帛ュ verify 遶ｯ菫晉蕗 `wp_unslash()`・亥屏轤ｺ verify 隶逧・弍 request POST payload・・
+- 蝠城｡・I・售SE/蜷梧ｭ･骭ｯ隱､謌紋ｸｭ豁｢譎ゑｼ悟燕遶ｯ蟾ｲ push 逧・user 險頑・譛ｪ蝗樊ｻｾ
+- 鬚ｨ髫ｪ・壼燕遶ｯ豁ｷ蜿ｲ谿倡蕗縲檎┌蟆肴㊨ assistant縲咲噪 user 險頑・・御ｸ倶ｸ霈ｪ蜿ｯ閭ｽ隗ｸ逋ｼ checksum mismatch
+- 譛邨ゆｿｮ豁｣・井ｿ晉蕗・会ｼ壼燕遶ｯ `onError` / `onAbort` / 蜷梧ｭ･ `.catch()` 驛ｽ譛・屓貊ｾ譛ｫ蟆ｾ user 荳ｦ `saveChatHistory()`
 
-- 問題 C：Ollama thinking 內容（如 `<think>...</think>`）造成前後端內容不一致
-- 症狀：第一句正常、第二句 checksum mismatch（尤其 Ollama / MCP / thinking 模型）
-- 根因：後端寫入 checksum 的內容與前端顯示 / 下一輪送回內容在 thinking 標記層級不一致
-- 修正：在 `user_chat` / `user_chat_stream` 收尾、寫入 checksum 前，若 provider 為 Ollama，先套 `mpu_filter_thinking_content()` 再存
+- 蝠城｡・G・夐｣邱壻ｸｭ豁｢蠕御ｻ榊ｯｫ蜈･ checksum・梧ｱ｡譟謎ｸ倶ｸ霈ｪ鬩苓ｭ・- 菫ｮ豁｣・壻ｸ牙・checksum 蟇ｫ蜈･鮟樒嚀蜉蜈･ `!connection_aborted()` 髦ｲ隴ｷ
 
-- 問題 D：跨 Provider 切換（尤其切到/切離 Ollama）後出現 checksum 400
-- 根因：不同 provider（特別是 Ollama）對 assistant content 的最終型態不同，導致同一 `session_id` 下 checksum 不一致
-- 修正方向（已完成）：統一 checksum 寫入前的內容正規化流程，確保切換 provider 後仍可對齊
+- 鬩玲噺邨先棡・・- `php -l includes/llm/chat-integrity.php` 騾夐℃
+- `php -l includes/rest/class-mpu-rest-chat.php` 騾夐℃
+- `user-stream` 200・・text/event-stream`・芽・ 400・・application/json`・臥ぜ蝗樊㊨蝙区・蟾ｮ逡ｰ・悟ｷｲ遒ｺ隱肴ｸ蠢・撫鬘悟惠 checksum 蟆埼ｽ企ｏ霈ｯ・碁撼 Cloudflare header 陦檎ぜ譛ｬ霄ｫ
 
-##### 生產環境最終確認（2026-02-27）
+#### 6. MCP 蟾･蜈ｷ蝓ｷ陦檎朽諷玖ｨ頑・隱櫁ｨ荳榊酔豁･・域ｨ｡蝙句屓譌･譁・∫朽諷区署遉ｺ鬘ｯ遉ｺ荳ｭ譁・ｼ・
+- 譬ｹ蝗・壼ｾ檎ｫｯ `$emit('status', ...)` 菴ｿ逕ｨ遑ｬ邱ｨ遒ｼ荳ｭ譁・ｨ頑・
+- 菫ｮ豁｣・・- 蠕檎ｫｯ・・penAI/Ollama・画隼轤ｺ machine-readable status payload・・type: "executing_tool"`, `tool: "..."`・・- 蜑咲ｫｯ `onStatus` 萓・`type` 菴ｿ逕ｨ `mpuL10n.executingTool` 讓｡譚ｿ譬ｼ蠑丞喧
+- `frontend-functions.php` 譁ｰ蠅・`mpuL10n.executingTool`・郁ｵｰ WP i18n・・- 菫晉蕗 `data.message` / `executing_tool` 菴懃嶌螳ｹ fallback
 
-- 問題 E：滑動窗口造成 store / verify 不對稱（長對話第 6 輪後高機率 400）
-- 根因：僅做 `array_slice(..., -10)` 時，窗口左側切掉 `user` 後，首位可能變成孤立 `assistant`；若儲存端與驗證端處理順序不同，checksum 必然不一致
-- 修正：
-- 在 `includes/llm/chat-integrity.php` 新增並統一使用 `mpu_chat_integrity_slice_for_store($history, 10)`（先 slice，再正規化移除孤立 assistant）
-- 三個寫入點（`user_chat` / `user_chat_stream` / `/debug_mcp`）皆改為先組 `$raw_history`，再呼叫 `mpu_chat_integrity_slice_for_store(..., 10)` 後寫入
+#### 7. `/debug_mcp` 邯・`user-stream` 蝗槫さ JSON 200・御ｽ・燕遶ｯ莉堺ｻ･ SSE parser 陌慕炊・育ｴ・ｭ・骭ｯ隱､ UI・・
+- 逞・朽・啻/debug_mcp` 蠕檎ｫｯ蟾ｲ豁｣遒ｺ蝗・`application/json` 闊・ｨｺ譁ｷ蜈ｧ螳ｹ・御ｽ・燕遶ｯ莉埼｡ｯ遉ｺ骭ｯ隱､讓｣蠑乗・譛ｪ豁｣遒ｺ螳梧・豬∫ｨ・- 譬ｹ蝗・啻mpuFetchSSE()` 鬆先悄 `text/event-stream`・梧悴陌慕炊 `application/json` fallback
+- 菫ｮ豁｣・壼惠 `mpuFetchSSE()` 蜈域ｪ｢譟･ `content-type`
+- 闍･轤ｺ `application/json` 荳・`response.ok`・檎峩謗･ `onDone(json)`
+- 闍･轤ｺ `application/json` 荳秘撼 200・檎峩謗･ `onError(json)`
 
-- 問題 F：長文本與換行在存取流程中的微差導致 checksum mismatch
-- 根因：`sanitize_text_field` 會壓平換行；MCP/長回覆情境下，前端回傳內容與後端儲存內容容易出現字串層級差異
-- 修正：
-- 驗證端歷史清理統一改為 `sanitize_textarea_field(wp_unslash(...))`
-- 儲存端 assistant 內容統一改為 `sanitize_textarea_field(...)`
+#### 8. SSE 骭ｯ隱､霍ｯ蠕鷹㍾隍・ｧｸ逋ｼ `onError`・亥燕遶ｯ・・
+- 逞・朽・壻ｸｲ豬・比ｸｭ逋ｼ逕・`event: error` 譎ゑｼ形onError` 陲ｫ蜻ｼ蜿ｫ蜈ｩ谺｡・碁険隱､蜍慕吻/Log 逍雁刈
+- 譬ｹ蝗・啻case "error"` 蜈亥他蜿ｫ `onError` 蠕悟処 `throw`・瑚｢ｫ螟門ｱ､ `catch` 蜀肴ｬ｡蜻ｼ蜿ｫ `onError`
+- 菫ｮ豁｣・啻case "error"` 謾ｹ轤ｺ蜻ｼ蜿ｫ `onError` 蠕檎峩謗･ `return`・御ｸ榊・ `throw`
 
-- 問題 H：曾嘗試在 store 端加入 `wp_unslash()`（`sanitize_textarea_field(wp_unslash($result))`）
-- 風險：`$result` 來自 AI API，非 WP magic quotes 輸入；額外 `wp_unslash()` 可能吃掉合法反斜線（程式碼/正則/路徑），並與 `done` event 顯示內容產生新不一致
-- 最終決策（2026-02-27）：撤回 store 端 `wp_unslash()`；僅 verify 端保留 `wp_unslash()`（因為 verify 讀的是 request POST payload）
+#### 9. Ollama provider 闊・REST handler 驥崎､・∝・ SSE `error` event
 
-- 問題 I：SSE/同步錯誤或中止時，前端已 push 的 user 訊息未回滾
-- 風險：前端歷史殘留「無對應 assistant」的 user 訊息，下一輪可能觸發 checksum mismatch
-- 最終修正（保留）：前端 `onError` / `onAbort` / 同步 `.catch()` 都會回滾末尾 user 並 `saveChatHistory()`
+- 逞・朽・唹llama 荳ｲ豬・険隱､譎ゑｼ継rovider 闊・`user_chat_stream()` 螟門ｱ､驛ｽ騾・`event: error`・悟燕遶ｯ骭ｯ隱､陌慕炊蜿ｯ閭ｽ蛟榊｢・- 譬ｹ蝗・嗔rovider 螻､ `emit('error', ...)` 蠕御ｻ榊屓蛯ｳ `WP_Error`・悟､門ｱ､ handler 蜀埼∽ｸ谺｡ `error` event
+- 菫ｮ豁｣・夂ｵｱ荳骭ｯ隱､莠倶ｻｶ逋ｼ騾∬ｲｬ莉ｻ蛻ｰ `user_chat_stream()` 螟門ｱ､
+- Ollama provider 骭ｯ隱､譎ょュ `return WP_Error`・御ｸ崎・陦・`emit('error', ...)`
 
-- 問題 G：連線中止後仍寫入 checksum，污染下一輪驗證
-- 修正：三個 checksum 寫入點皆加入 `!connection_aborted()` 防護
+#### 10. `prepare_user_chat_args()` 闊・`rate_limit()` 蝗槫さ蝙句挨莠､逡鯉ｼ・WP_REST_Response`・・
+- 逞・朽・夊凶 `rate_limit()` 蜻ｽ荳ｭ蝗槫さ `WP_REST_Response`・悟他蜿ｫ遶ｯ闍･隱､逡ｶ髯｣蛻嶺ｽｿ逕ｨ・悟庄閭ｽ蟆手・蠕檎ｺ碁険隱､
+- 菫ｮ豁｣・・- `prepare_user_chat_args()` 蜈ｧ莉･ `if ($rl !== null) return $rl;` 譏守｢ｺ霓牙さ
+- `user_chat()` / `user_chat_stream()` 蜈･蜿｣蜷梧凾讙｢譟･ `WP_REST_Response` 闊・`WP_Error`
 
-- 驗收結果：
-- `php -l includes/llm/chat-integrity.php` 通過
-- `php -l includes/rest/class-mpu-rest-chat.php` 通過
-- `user-stream` 200（`text/event-stream`）與 400（`application/json`）為回應型態差異，已確認核心問題在 checksum 對齊邏輯，非 Cloudflare header 行為本身
+### 蟇ｦ蜍咎ｩ苓ｭ臥ｶ馴ｩ暦ｼ亥庄萓帛ｾ檎ｺ梧賜譟･・・
+- 闍･ `user-stream` 譏ｯ HTTP 200 荳・body 荳ｭ蜿ｯ逵句芦 `event: delta`/`event: done`・御ｽ・UI 荳肴峩譁ｰ・壼━蜈域ｪ｢譟･蜑咲ｫｯ SSE parser・亥・髫皮ｬｦ / CRLF・・- 闍･ `/debug_mcp` 蠕御ｸ倶ｸ蜿･髢句ｧ区園譛芽♀螟ｩ驛ｽ 400・壼━蜈域ｪ｢譟･ debug 蛻・髪譏ｯ蜷ｦ譛牙酔豁･蟇ｫ蜈･ checksum
+- 闍･蜒・Ollama 謌門・謠帛芦/髮｢髢・Ollama 蠕悟ｮｹ譏・400・壼━蜈域ｪ｢譟･ thinking content 豁｣隕丞喧闊・checksum 蟇ｫ蜈･蜈ｧ螳ｹ譏ｯ蜷ｦ蟆埼ｽ・- 闍･蜃ｺ迴ｾ `Undefined array key "provider"` 謌・`WP_Error::supports()`・壼━蜈域ｪ｢譟･ `user_chat_stream()` 譏ｯ蜷ｦ蜈域粕謌ｪ debug 蛻・髪闊・`is_wp_error($provider_instance)` guard
 
-#### 6. MCP 工具執行狀態訊息語言不同步（模型回日文、狀態提示顯示中文）
+### 蟆夐怙謖∫ｺ瑚ｧ蟇滂ｼ域悴萓・庄閭ｽ蜀崎ｸｩ蛻ｰ・・
+- Ollama 荳榊酔讓｡蝙狗噪蟾･蜈ｷ蜻ｼ蜿ｫ遨ｩ螳壽ｧ・域怏莠帶ｨ｡蝙句庄閭ｽ霈ｸ蜃ｺ譁・ｭ怜ｼ丞ｷ･蜈ｷ隱樊ｳ包ｼ御ｾ句ｦ・`::invoke ...`・瑚碁撼邨先ｧ句喧 `tool_calls`・・- 莉｣逅・腸蠅・ｼ・ginx + FastCGI・叡uffering 蟆・SSE 逵滉ｸｲ豬・ｫ秘ｩ礼噪蠖ｱ髻ｿ
+- 髟ｷ譎る俣蟾･菴憺嚴谿ｵ荳・nonce refresh 闊・ｸｭ譁ｷ驥埼｣陦檎ぜ
+- 螟夊ｼｪ蟆崎ｩｱ + MCP + Provider 蛻・鋤豺ｷ蜷域ュ蠅・噪 checksum 荳閾ｴ諤ｧ
 
-- 根因：後端 `$emit('status', ...)` 使用硬編碼中文訊息
-- 修正：
-- 後端（OpenAI/Ollama）改為 machine-readable status payload（`type: "executing_tool"`, `tool: "..."`）
-- 前端 `onStatus` 依 `type` 使用 `mpuL10n.executingTool` 模板格式化
-- `frontend-functions.php` 新增 `mpuL10n.executingTool`（走 WP i18n）
-- 保留 `data.message` / `executing_tool` 作相容 fallback
+### 邯ｭ隴ｷ閠・ｙ蠢假ｼ磯∩蜈埼㍾雹郁ｦ・ｽ搾ｼ・
+- 豸牙所 `class-mpu-rest-chat.php` / `ukagaka-chat.js` 逧・ｿｮ陬懆ｫ句━蜈井ｽｿ逕ｨ邊ｾ貅・patch・碁∩蜈肴紛讙秘㍾蟇ｫ騾謌千ｷｨ遒ｼ謌紋ｺら｢ｼ鬚ｨ髫ｪ
+- 豈乗ｬ｡隱ｿ謨ｴ蠕瑚・蟆大濤陦鯉ｼ・- `php -l includes/rest/class-mpu-rest-chat.php`
+- `npm run build`・域峩譁ｰ `js/dist/ukagaka-bundle*.js`・・- 闍･蜀榊・迴ｾ `蟆崎ｩｱ豁ｷ蜿ｲ鬩苓ｭ牙､ｱ謨輿・・00・会ｼ悟━蜈域衍逵・`MPU Chat Integrity` debug log 逧・`expected/actual/history_count`
 
-#### 7. `/debug_mcp` 經 `user-stream` 回傳 JSON 200，但前端仍以 SSE parser 處理（紅字/錯誤 UI）
+---
 
-- 症狀：`/debug_mcp` 後端已正確回 `application/json` 與診斷內容，但前端仍顯示錯誤樣式或未正確完成流程
-- 根因：`mpuFetchSSE()` 預期 `text/event-stream`，未處理 `application/json` fallback
-- 修正：在 `mpuFetchSSE()` 先檢查 `content-type`
-- 若為 `application/json` 且 `response.ok`，直接 `onDone(json)`
-- 若為 `application/json` 且非 200，直接 `onError(json)`
+## 2026-02-27 決策更新：Checksum 改為觀測模式（治本）
 
-#### 8. SSE 錯誤路徑重複觸發 `onError`（前端）
+- 背景：
+  - SSE Streaming 上線後，`chat history checksum` 在多種邊界情境（分段、fallback、中斷、工具呼叫、thinking）容易出現「理論上不一致，但不代表攻擊」的誤判。
+  - 既有硬性策略為：mismatch -> `WP_Error(status=400)` -> REST fail，造成使用體驗受損。
 
-- 症狀：串流途中發生 `event: error` 時，`onError` 被呼叫兩次，錯誤動畫/Log 疊加
-- 根因：`case "error"` 先呼叫 `onError` 後又 `throw`，被外層 `catch` 再次呼叫 `onError`
-- 修正：`case "error"` 改為呼叫 `onError` 後直接 `return`，不再 `throw`
+- 新策略（已實作）：
+  - mismatch -> 記錄 `[WARN]` log -> `return null`（與「沒有 transient」同級處理）-> 請求繼續。
+  - 對齊 -> `return true`，請求繼續。
+  - 沒有 transient -> `return null`，請求繼續。
 
-#### 9. Ollama provider 與 REST handler 重複送出 SSE `error` event
+- 影響：
+  - checksum 從「阻斷機制」調整為「稽核/觀測機制」。
+  - 目標是優先穩定 SSE 體驗，降低誤判造成的 400。
 
-- 症狀：Ollama 串流錯誤時，provider 與 `user_chat_stream()` 外層都送 `event: error`，前端錯誤處理可能倍增
-- 根因：provider 層 `emit('error', ...)` 後仍回傳 `WP_Error`，外層 handler 再送一次 `error` event
-- 修正：統一錯誤事件發送責任到 `user_chat_stream()` 外層
-- Ollama provider 錯誤時僅 `return WP_Error`，不自行 `emit('error', ...)`
-
-#### 10. `prepare_user_chat_args()` 與 `rate_limit()` 回傳型別交界（`WP_REST_Response`）
-
-- 症狀：若 `rate_limit()` 命中回傳 `WP_REST_Response`，呼叫端若誤當陣列使用，可能導致後續錯誤
-- 修正：
-- `prepare_user_chat_args()` 內以 `if ($rl !== null) return $rl;` 明確轉傳
-- `user_chat()` / `user_chat_stream()` 入口同時檢查 `WP_REST_Response` 與 `WP_Error`
-
-### 實務驗證經驗（可供後續排查）
-
-- 若 `user-stream` 是 HTTP 200 且 body 中可看到 `event: delta`/`event: done`，但 UI 不更新：優先檢查前端 SSE parser（分隔符 / CRLF）
-- 若 `/debug_mcp` 後下一句開始所有聊天都 400：優先檢查 debug 分支是否有同步寫入 checksum
-- 若僅 Ollama 或切換到/離開 Ollama 後容易 400：優先檢查 thinking content 正規化與 checksum 寫入內容是否對齊
-- 若出現 `Undefined array key "provider"` 或 `WP_Error::supports()`：優先檢查 `user_chat_stream()` 是否先攔截 debug 分支與 `is_wp_error($provider_instance)` guard
-
-### 尚需持續觀察（未來可能再踩到）
-
-- Ollama 不同模型的工具呼叫穩定性（有些模型可能輸出文字式工具語法，例如 `::invoke ...`，而非結構化 `tool_calls`）
-- 代理環境（Nginx + FastCGI）buffering 對 SSE 真串流體驗的影響
-- 長時間工作階段下 nonce refresh 與中斷重連行為
-- 多輪對話 + MCP + Provider 切換混合情境的 checksum 一致性
-
-### 維護者備忘（避免重蹈覆轍）
-
-- 涉及 `class-mpu-rest-chat.php` / `ukagaka-chat.js` 的修補請優先使用精準 patch，避免整檔重寫造成編碼或亂碼風險
-- 每次調整後至少執行：
-- `php -l includes/rest/class-mpu-rest-chat.php`
-- `npm run build`（更新 `js/dist/ukagaka-bundle*.js`）
-- 若再出現 `對話歷史驗證失敗`（400），優先查看 `MPU Chat Integrity` debug log 的 `expected/actual/history_count`
+- 回滾方式（保留）：
+  - 若未來要恢復硬性阻斷，只要把 mismatch 分支改回 `return new WP_Error(...)` 即可，REST 入口邏輯無需調整。
