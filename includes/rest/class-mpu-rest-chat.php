@@ -555,7 +555,8 @@ class MPU_REST_Chat extends MPU_REST_Base {
             }
 
             if (json_last_error() === JSON_ERROR_NONE || is_array($decoded_history)) {
-                $chat_history = array_slice($decoded_history, -10);
+                // [Fix] 先保留完整解碼後的歷史，以便進行正規化
+                $chat_history = $decoded_history;
             }
         }
 
@@ -563,18 +564,33 @@ class MPU_REST_Chat extends MPU_REST_Base {
         foreach ($chat_history as $msg) {
             if (is_array($msg) && isset($msg['role'], $msg['content'])) {
                 $role    = ($msg['role'] === 'user') ? 'user' : 'assistant';
-                $content = sanitize_text_field($msg['content']);
-
-                if (mb_strlen($content, 'UTF-8') > 500) {
-                    $content = mb_substr($content, 0, 500, 'UTF-8') . '...';
-                }
+                
+                // [Fix] 對於對話歷史（尤其是包含 MCP 結果的長文本），使用 sanitize_textarea_field
+                // 這樣能保留換行符，確保與後端儲存時的內容完全一致，防止 Checksum 失敗。
+                $content = sanitize_textarea_field(wp_unslash($msg['content']));
 
                 if (!empty(trim($content))) {
                     $valid_history[] = ['role' => $role, 'content' => $content];
                 }
             }
         }
-        $chat_history = $valid_history;
+        
+        // [Fix] 修正正規化邏輯：必須在 array_slice 之前進行。
+        // 否則當窗口滑動時，第一筆 assistant 訊息會因前面的 user 訊息被 slice 掉而變成「孤立」訊息被濾除，
+        // 導致下一輪 Checksum 驗證失敗。
+        $normalized_history = [];
+        $previous_role      = '';
+        foreach ($valid_history as $message) {
+            if ($message['role'] === 'assistant' && $previous_role !== 'user') {
+                continue;
+            }
+
+            $normalized_history[] = $message;
+            $previous_role        = $message['role'];
+        }
+        
+        // 正規化後再取最後 10 筆，確保與儲存時的索引邏輯一致
+        $chat_history = array_slice($normalized_history, -10);
 
         if (!empty($chat_session_id) && function_exists('mpu_chat_integrity_verify_history')) {
             $integrity_check = mpu_chat_integrity_verify_history($chat_session_id, $chat_history);
@@ -871,11 +887,16 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $report .= 'WP-PostViews function (get_most_viewed): ' . (function_exists('get_most_viewed') ? 'Exists' : 'Missing') . "\n";
 
             // [Fix] 更新 Checksum，將 debug 報告納入歷史，防止下一輪驗證失敗 (Codex 建議)
-            if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history')) {
-                $next_history   = $args['chat_history'];
-                $next_history[] = ['role' => 'user', 'content' => $args['user_message']];
-                $next_history[] = ['role' => 'assistant', 'content' => sanitize_text_field($report)];
-                mpu_chat_integrity_store_history($args['chat_session_id'], array_slice($next_history, -10));
+            if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
+                $raw_history   = $args['chat_history'];
+                $raw_history[] = ['role' => 'user', 'content' => $args['user_message']];
+                $raw_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($report)];
+                
+                // [Fix] slice 後再正規化：防止滑動窗口導致首位變成孤立 assistant，完美對稱 verify 端。
+                mpu_chat_integrity_store_history(
+                    $args['chat_session_id'],
+                    mpu_chat_integrity_slice_for_store($raw_history, 10)
+                );
             }
 
             return $this->ok(['msg' => $report]);
@@ -919,13 +940,18 @@ class MPU_REST_Chat extends MPU_REST_Base {
             mpu_record_conversation('interactive');
         }
 
-        if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history')) {
-            $integrity_result = sanitize_text_field($result);
-            $next_history   = $args['chat_history'];
-            $next_history[] = ['role' => 'user', 'content' => $args['user_message']];
-            $next_history[] = ['role' => 'assistant', 'content' => $integrity_result];
-            // 修正：確保儲存的歷史長度與前端下一輪送出的長度一致 (Bug #11)
-            mpu_chat_integrity_store_history($args['chat_session_id'], array_slice($next_history, -10));
+        if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
+            // [Fix] 儲存 Checksum 時與驗證端對齊處理邏輯（保留換行、修剪空白）
+            $integrity_result = sanitize_textarea_field($result);
+            $raw_history      = $args['chat_history'];
+            $raw_history[]    = ['role' => 'user', 'content' => $args['user_message']];
+            $raw_history[]    = ['role' => 'assistant', 'content' => $integrity_result];
+
+            // [Fix] slice 後再正規化：防止滑動窗口導致首位變成孤立 assistant，完美對稱 verify 端。
+            mpu_chat_integrity_store_history(
+                $args['chat_session_id'],
+                mpu_chat_integrity_slice_for_store($raw_history, 10)
+            );
         }
 
         return $this->ok(['msg' => $result, 'emoji' => $emoji]);
@@ -1022,12 +1048,17 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         // 寫入 Checksum
         if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
-            $integrity_result = sanitize_text_field($result);
-            $next_history   = $args['chat_history'];
-            $next_history[] = ['role' => 'user', 'content' => $args['user_message']];
-            $next_history[] = ['role' => 'assistant', 'content' => $integrity_result];
-            // 修正：確保儲存的歷史長度與前端下一輪送出的長度一致 (Bug #11)
-            mpu_chat_integrity_store_history($args['chat_session_id'], array_slice($next_history, -10));
+            // [Fix] 儲存 Checksum 時與驗證端對齊處理邏輯（保留換行、修剪空白）
+            $integrity_result = sanitize_textarea_field($result);
+            $raw_history      = $args['chat_history'];
+            $raw_history[]    = ['role' => 'user', 'content' => $args['user_message']];
+            $raw_history[]    = ['role' => 'assistant', 'content' => $integrity_result];
+
+            // [Fix] slice 後再正規化：防止滑動窗口導致首位變成孤立 assistant，完美對稱 verify 端。
+            mpu_chat_integrity_store_history(
+                $args['chat_session_id'],
+                mpu_chat_integrity_slice_for_store($raw_history, 10)
+            );
         }
 
         // 發送完成事件

@@ -531,7 +531,8 @@ function mpu_enqueue_frontend_assets()
     }
 
     // 根據模式選擇正確的 script handle
-    $l10n_handle = $use_bundle ? 'mpu-bundle' : 'mpu-features';
+    // 修正：掛載到更基礎的 handle (mpu-core)，確保 mpu-chat 等依賴它的腳本能讀取到 mpuL10n
+    $l10n_handle = $use_bundle ? 'mpu-bundle' : 'mpu-core';
     
     wp_localize_script($l10n_handle, 'mpuL10n', [
         // AI 相關訊息
@@ -551,7 +552,7 @@ function mpu_enqueue_frontend_assets()
         'chatWelcome' => __('有什麼想聊的嗎？', 'mp-ukagaka'),
         'chatPlaceholder' => __('輸入訊息...', 'mp-ukagaka'),
         'chatThinking' => __('…うーん、そうだね…', 'mp-ukagaka'),
-        'executingTool' => __('正在執行工具：%s...', 'mp-ukagaka'),
+        'executingTool' => __('（…%sを実行中…）', 'mp-ukagaka'),
     ]);
 }
 add_action('wp_enqueue_scripts', 'mpu_enqueue_frontend_assets');

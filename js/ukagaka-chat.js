@@ -1,4 +1,3 @@
-
 // ====== 互動對話模式 ======
 // 對話模式狀態
 let mpuChatModeActive = false;
@@ -262,7 +261,7 @@ function mpu_parseMarkdown(text) {
 
 /**
  * 使用 SSE (Server-Sent Events) 獲取 AI 回應
- * 
+ *
  * @param {string} url - 請求 URL
  * @param {object} options - Fetch 選項
  * @param {object} handlers - 事件處理器 { onStart, onDelta, onStatus, onNonce, onDone, onError }
@@ -295,7 +294,9 @@ async function mpuFetchSSE(url, options, handlers) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      throw new Error(
+        errorData.message || `HTTP error! status: ${response.status}`,
+      );
     }
 
     const reader = response.body.getReader();
@@ -307,7 +308,7 @@ async function mpuFetchSSE(url, options, handlers) {
       if (done) break;
 
       lineBuffer += decoder.decode(value, { stream: true });
-      
+
       // [Fix Issue 1] 支援 Windows (\r\n\r\n) 與 Unix (\n\n) 換行符切分 Frame
       const frames = lineBuffer.split(/\r?\n\r?\n/);
       lineBuffer = frames.pop() || "";
@@ -356,7 +357,7 @@ async function mpuFetchSSE(url, options, handlers) {
             break;
           case "done":
             if (handlers.onDone) handlers.onDone(data);
-            return; 
+            return;
           case "error":
             if (handlers.onError) handlers.onError(data);
             return; // [Fix] 直接結束，避免 throw 導致 catch 再次觸發 onError
@@ -368,6 +369,8 @@ async function mpuFetchSSE(url, options, handlers) {
   } catch (error) {
     if (error.name === "AbortError") {
       mpuLogger.log("SSE Request aborted");
+      // [Fix 漏洞 8] 通知呼叫端清理歷史狀態
+      if (handlers.onAbort) handlers.onAbort();
     } else {
       if (handlers.onError) handlers.onError(error);
       throw error;
@@ -440,7 +443,10 @@ function mpu_sendUserMessage() {
     formData.append("session_id", chatSessionId);
   }
   formData.append("page_title", pageContext.title || "");
-  formData.append("page_content", (pageContext.content || "").substring(0, 2000));
+  formData.append(
+    "page_content",
+    (pageContext.content || "").substring(0, 2000),
+  );
 
   // 判斷是否使用 Streaming (暫時預設啟用，若 provider 支援)
   const useStreaming =
@@ -453,79 +459,109 @@ function mpu_sendUserMessage() {
     const $msg = jQuery("#ukagaka_msg");
     $msg.html('（…えっと<span class="mpu-thinking"></span>）');
 
-    mpuFetchSSE(mpuRestUrl + "chat/user-stream", {
-      method: "POST",
-      body: formData,
-      controller: mpuChatAbortController
-    }, {
-      onStart: (data) => {
-        mpuLogger.log("SSE Started:", data);
+    mpuFetchSSE(
+      mpuRestUrl + "chat/user-stream",
+      {
+        method: "POST",
+        body: formData,
+        controller: mpuChatAbortController,
       },
-      onDelta: (data) => {
-        if (data.text) {
-          if (fullResponse === "") $msg.empty(); // 清除思考中狀態
-          fullResponse += data.text;
-          $msg.html(mpu_parseMarkdown(fullResponse));
-        }
-      },
-      onStatus: (data) => {
-        let statusMsg = "";
-        
-        if (data.type === "executing_tool" && data.tool) {
-          // [Fix] 使用 mpuL10n 本地化模板
-          const template = (typeof mpuL10n !== "undefined" && mpuL10n.executingTool) 
-            ? mpuL10n.executingTool 
-            : "正在執行工具：%s...";
-          statusMsg = template.replace("%s", data.tool);
-        } else if (data.message) {
-          // Fallback
-          statusMsg = data.message;
-        }
-
-        if (statusMsg) {
-          $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
-        }
-      },
-      onDone: (data) => {
-        mpuChatRequesting = false;
-        $input.prop("disabled", false);
-        if (mpuChatModeActive) $input.focus();
-
-        if (data.msg) {
-          const finalMsg = data.msg;
-          mpuChatHistory.push({
-            role: "assistant",
-            content: finalMsg,
-            timestamp: Date.now(),
-          });
-          mpu_saveChatHistory();
-          if (!fullResponse) {
-            $msg.html(mpu_parseMarkdown(finalMsg));
+      {
+        onStart: (data) => {
+          mpuLogger.log("SSE Started:", data);
+        },
+        onDelta: (data) => {
+          if (data.text) {
+            if (fullResponse === "") $msg.empty(); // 清除思考中狀態
+            fullResponse += data.text;
+            $msg.html(mpu_parseMarkdown(fullResponse));
           }
-        }
+        },
+        onStatus: (data) => {
+          let statusMsg = "";
 
-        // 觸發角色動畫
-        if (typeof window.mpuCanvasManager !== "undefined" && window.mpuCanvasManager.isCharacterMode) {
-          window.mpuCanvasManager.triggerCharacterAnimation(true);
-        }
+          if (data.type === "executing_tool" && data.tool) {
+            // [Fix] 使用 mpuL10n 本地化模板
+            const template =
+              typeof mpuL10n !== "undefined" && mpuL10n.executingTool
+                ? mpuL10n.executingTool
+                : "正在執行工具：%s...";
+            statusMsg = template.replace("%s", data.tool);
+          } else if (data.message) {
+            // Fallback
+            statusMsg = data.message;
+          }
 
-        // 顯示表情
-        if (data.emoji && typeof window.mpuEmojiManager !== "undefined") {
-          window.mpuEmojiManager.showEmoji(data.emoji);
-        }
+          if (statusMsg) {
+            $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+          }
+        },
+        onDone: (data) => {
+          mpuChatRequesting = false;
+          $input.prop("disabled", false);
+          if (mpuChatModeActive) $input.focus();
+
+          if (data.msg) {
+            const finalMsg = data.msg;
+            mpuChatHistory.push({
+              role: "assistant",
+              content: finalMsg,
+              timestamp: Date.now(),
+            });
+            mpu_saveChatHistory();
+            if (!fullResponse) {
+              $msg.html(mpu_parseMarkdown(finalMsg));
+            }
+          }
+
+          // 觸發角色動畫
+          if (
+            typeof window.mpuCanvasManager !== "undefined" &&
+            window.mpuCanvasManager.isCharacterMode
+          ) {
+            window.mpuCanvasManager.triggerCharacterAnimation(true);
+          }
+
+          // 顯示表情
+          if (data.emoji && typeof window.mpuEmojiManager !== "undefined") {
+            window.mpuEmojiManager.showEmoji(data.emoji);
+          }
+        },
+        onError: (error) => {
+          mpuChatRequesting = false;
+          $input.prop("disabled", false);
+          if (mpuChatModeActive) $input.focus();
+          // [Fix 漏洞 4] 錯誤時撤回已 push 的 user 訊息，防止下一輪 checksum mismatch
+          if (
+            mpuChatHistory.length > 0 &&
+            mpuChatHistory[mpuChatHistory.length - 1].role === "user"
+          ) {
+            mpuChatHistory.pop();
+            mpu_saveChatHistory();
+          }
+          mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
+          mpuLogger.error("SSE Error:", error);
+        },
+        onAbort: () => {
+          // [Fix 漏洞 8] abort 時撤回已 push 的 user 訊息，防止後端已寫 checksum 但前端缺少 assistant
+          if (
+            mpuChatHistory.length > 0 &&
+            mpuChatHistory[mpuChatHistory.length - 1].role === "user"
+          ) {
+            mpuChatHistory.pop();
+            mpu_saveChatHistory();
+          }
+          mpuChatRequesting = false;
+          $input.prop("disabled", false);
+        },
       },
-      onError: (error) => {
-        mpuChatRequesting = false;
-        $input.prop("disabled", false);
-        if (mpuChatModeActive) $input.focus();
-        mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
-        mpuLogger.error("SSE Error:", error);
-      }
-    });
+    );
   } else {
     // 傳統同步模式
     $input.val("").prop("disabled", true);
-    jQuery("#ukagaka_msg").html('（…えっと<span class="mpu-thinking"></span>）');
+    jQuery("#ukagaka_msg").html(
+      '（…えっと<span class="mpu-thinking"></span>）',
+    );
 
     mpuFetch(mpuRestUrl + "chat/user", {
       method: "POST",
@@ -567,6 +603,15 @@ function mpu_sendUserMessage() {
         }
       })
       .catch((error) => {
+        // [Fix 漏洞 4] 錯誤時撤回已 push 的 user 訊息，防止下一輪 checksum mismatch
+        if (
+          mpuChatHistory.length > 0 &&
+          mpuChatHistory[mpuChatHistory.length - 1].role === "user"
+        ) {
+          mpuChatHistory.pop();
+          mpu_saveChatHistory();
+        }
+
         if (!mpuChatModeActive) {
           mpuLogger.log("對話模式已關閉，捨棄錯誤訊息");
           return;
@@ -685,7 +730,7 @@ jQuery(document).ready(function () {
       $msgbox.fadeOut(1000, function () {
         // 在對話框隱藏後，開始喚醒動畫（skipBookFlip = true：不翻書）
         window.mpuCanvasManager.triggerCharacterAnimation(true, null, true);
-        
+
         // 同時呼叫後續動作（如生成 LLM 對話）
         handleOkAction();
       });
@@ -739,8 +784,7 @@ function mpu_send_wake_up_request() {
   // 取得當前角色 ID（後端 mpu_wake_ghost 必填 personality_id）
   // 注意：這裡必須嚴格綁定目前人格，不做 default_1 fallback，避免跨人格寫錯喚醒狀態
   var personalityId =
-    typeof window.mpuPersonalityId !== "undefined" &&
-    window.mpuPersonalityId
+    typeof window.mpuPersonalityId !== "undefined" && window.mpuPersonalityId
       ? window.mpuPersonalityId
       : typeof window.mpuInitData !== "undefined" &&
           window.mpuInitData &&
@@ -776,7 +820,11 @@ function mpu_send_wake_up_request() {
     wakeFormData.append("ukagaka_num", ukagakaNum);
   }
 
-  mpuFetch(mpuRestUrl + "wake-ghost", { method: "POST", body: wakeFormData, timeout: 5000 })
+  mpuFetch(mpuRestUrl + "wake-ghost", {
+    method: "POST",
+    body: wakeFormData,
+    timeout: 5000,
+  })
     .then(function (res) {
       if (res && res.success) {
         if (typeof mpuLogger !== "undefined") {

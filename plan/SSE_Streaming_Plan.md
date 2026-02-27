@@ -620,6 +620,36 @@ for (const frame of frames) {
 - 根因：不同 provider（特別是 Ollama）對 assistant content 的最終型態不同，導致同一 `session_id` 下 checksum 不一致
 - 修正方向（已完成）：統一 checksum 寫入前的內容正規化流程，確保切換 provider 後仍可對齊
 
+##### 生產環境最終確認（2026-02-27）
+
+- 問題 E：滑動窗口造成 store / verify 不對稱（長對話第 6 輪後高機率 400）
+- 根因：僅做 `array_slice(..., -10)` 時，窗口左側切掉 `user` 後，首位可能變成孤立 `assistant`；若儲存端與驗證端處理順序不同，checksum 必然不一致
+- 修正：
+- 在 `includes/llm/chat-integrity.php` 新增並統一使用 `mpu_chat_integrity_slice_for_store($history, 10)`（先 slice，再正規化移除孤立 assistant）
+- 三個寫入點（`user_chat` / `user_chat_stream` / `/debug_mcp`）皆改為先組 `$raw_history`，再呼叫 `mpu_chat_integrity_slice_for_store(..., 10)` 後寫入
+
+- 問題 F：長文本與換行在存取流程中的微差導致 checksum mismatch
+- 根因：`sanitize_text_field` 會壓平換行；MCP/長回覆情境下，前端回傳內容與後端儲存內容容易出現字串層級差異
+- 修正：
+- 驗證端歷史清理統一改為 `sanitize_textarea_field(wp_unslash(...))`
+- 儲存端 assistant 內容統一改為 `sanitize_textarea_field(...)`
+
+- 問題 H：曾嘗試在 store 端加入 `wp_unslash()`（`sanitize_textarea_field(wp_unslash($result))`）
+- 風險：`$result` 來自 AI API，非 WP magic quotes 輸入；額外 `wp_unslash()` 可能吃掉合法反斜線（程式碼/正則/路徑），並與 `done` event 顯示內容產生新不一致
+- 最終決策（2026-02-27）：撤回 store 端 `wp_unslash()`；僅 verify 端保留 `wp_unslash()`（因為 verify 讀的是 request POST payload）
+
+- 問題 I：SSE/同步錯誤或中止時，前端已 push 的 user 訊息未回滾
+- 風險：前端歷史殘留「無對應 assistant」的 user 訊息，下一輪可能觸發 checksum mismatch
+- 最終修正（保留）：前端 `onError` / `onAbort` / 同步 `.catch()` 都會回滾末尾 user 並 `saveChatHistory()`
+
+- 問題 G：連線中止後仍寫入 checksum，污染下一輪驗證
+- 修正：三個 checksum 寫入點皆加入 `!connection_aborted()` 防護
+
+- 驗收結果：
+- `php -l includes/llm/chat-integrity.php` 通過
+- `php -l includes/rest/class-mpu-rest-chat.php` 通過
+- `user-stream` 200（`text/event-stream`）與 400（`application/json`）為回應型態差異，已確認核心問題在 checksum 對齊邏輯，非 Cloudflare header 行為本身
+
 #### 6. MCP 工具執行狀態訊息語言不同步（模型回日文、狀態提示顯示中文）
 
 - 根因：後端 `$emit('status', ...)` 使用硬編碼中文訊息

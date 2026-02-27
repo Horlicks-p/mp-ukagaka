@@ -218,51 +218,43 @@
           : this.frierenIdleImage;
 
       const preloadImg = new Image();
-      preloadImg.onload = function () {
-        self.frierenIdleImgElement.src = imageToShow;
-        self.frierenIdleImgElement.style.display = "block";
-        self.frierenIdleImgElement.style.opacity = String(
-          self.frierenIdleOpacity
-        );
+      const finalizeIdle = function() {
+          // [Fix] 使用 endsWith 比對，避免絕對路徑造成的誤判，減少重複賦值 src。
+          const currentSrc = self.frierenIdleImgElement.src || "";
+          if (!currentSrc.endsWith(imageToShow)) {
+              self.frierenIdleImgElement.src = imageToShow;
+          }
+          
+          // 先顯示閒置圖片
+          self.frierenIdleImgElement.style.display = "block";
+          self.frierenIdleImgElement.style.opacity = String(self.frierenIdleOpacity);
 
-        if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
-          window.mpuCanvasManager.canvas.style.display = "none";
-        }
+          // 後隱藏畫布，確保視覺無縫過接
+          if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
+              window.mpuCanvasManager.canvas.style.display = "none";
+          }
 
-        const imgContainer = document.getElementById("ukagaka_img");
-        if (imgContainer) {
-          imgContainer.style.visibility = "visible";
-        }
+          const imgContainer = document.getElementById("ukagaka_img");
+          if (imgContainer) imgContainer.style.visibility = "visible";
 
-        const msgbox = document.getElementById("ukagaka_msgbox");
-        if (msgbox) {
-          msgbox.style.visibility = "visible";
-        }
+          const msgbox = document.getElementById("ukagaka_msgbox");
+          if (msgbox) msgbox.style.visibility = "visible";
 
-        self.setupDecorationClickThrough();
-        self.frierenIsSpeaking = false;
+          self.setupDecorationClickThrough();
+          self.frierenIsSpeaking = false;
 
-        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log(
-            shouldShowSleep
-              ? "🌙 顯示睡眠圖片 frieren[s].png"
-              : "☀️ 顯示閒置圖片 frieren[0].png"
-          );
-        }
+          // [Fix] 加回 Debug Log，方便監測切換時機
+          if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+            mpuLogger.log(
+              shouldShowSleep
+                ? "🌙 顯示睡眠圖片 frieren[s].png"
+                : "☀️ 顯示閒置圖片 frieren[0].png"
+            );
+          }
       };
-      preloadImg.onerror = function () {
-        self.frierenIdleImgElement.src = imageToShow;
-        self.frierenIdleImgElement.style.display = "block";
-        if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
-          window.mpuCanvasManager.canvas.style.display = "none";
-        }
-        const imgContainer = document.getElementById("ukagaka_img");
-        if (imgContainer) {
-          imgContainer.style.visibility = "visible";
-        }
-        self.setupDecorationClickThrough();
-        self.frierenIsSpeaking = false;
-      };
+
+      preloadImg.onload = finalizeIdle;
+      preloadImg.onerror = finalizeIdle;
       preloadImg.src = imageToShow;
     },
 
