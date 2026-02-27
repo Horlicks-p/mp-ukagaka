@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-02-27T02:52:56.870Z
+ * Generated: 2026-02-27T04:04:39.310Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -1247,6 +1247,15 @@ function mpuMoe(command) {
  */
 function mpu_checkSpamEvent(callback) {
   const formData = new FormData();
+  // [Fix] 傳送 session_id + history，讓後端在事件觸發後寫入 checksum
+  const spamSessionId = typeof mpu_getOrCreateChatSessionId === "function"
+    ? mpu_getOrCreateChatSessionId() : "";
+  if (spamSessionId) {
+    formData.append("session_id", spamSessionId);
+  }
+  if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
+    formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+  }
 
   mpuFetch(mpuRestUrl + "check-spam-event", {
     method: "POST",
@@ -1327,6 +1336,18 @@ function mpu_checkSpamEvent(callback) {
             window.mpuCanvasManager.isCharacterMode
           ) {
             window.mpuCanvasManager.triggerCharacterAnimation();
+          }
+
+          // [Fix] 將安全事件 AI 回應加入對話歷史，讓用戶開對話視窗時 chat/user verify 不會失敗
+          if (typeof mpuChatHistory !== "undefined" && Array.isArray(mpuChatHistory)) {
+            mpuChatHistory.push({
+              role: "assistant",
+              content: res.msg,
+              timestamp: Date.now(),
+            });
+            if (typeof mpu_saveChatHistory === "function") {
+              mpu_saveChatHistory();
+            }
           }
 
           // 等待打字完成後，通過回調告知已處理
@@ -1492,6 +1513,16 @@ function mpu_nextmsg(trigger) {
     if (mpuLLMResponseHistory.length > 0) {
       const recentHistory = mpuLLMResponseHistory.slice(-8);
       formData.append("response_history", JSON.stringify(recentHistory));
+    }
+
+    // [Fix] 傳送 session_id + history，讓後端記錄 LLM 自發對話的 checksum
+    const nextmsgSessionId = typeof mpu_getOrCreateChatSessionId === "function"
+      ? mpu_getOrCreateChatSessionId() : "";
+    if (nextmsgSessionId) {
+      formData.append("session_id", nextmsgSessionId);
+    }
+    if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
+      formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
     }
 
     mpuLogger.log("mpu_nextmsg: 發送 LLM POST 請求到", mpuRestUrl + "nextmsg");
@@ -3249,6 +3280,16 @@ function mpu_chat_context() {
   formData.append("page_content", context.content);
   formData.append("publish_date", context.publishDate || "");
 
+  // [Fix] 傳送 session_id + history，讓後端在頁面感知 AI 成功後也能更新 checksum，
+  // 防止下一輪 chat/user 驗證 400（裝飾品/身體點擊場景）。
+  const contextSessionId = mpu_getOrCreateChatSessionId();
+  if (contextSessionId) {
+    formData.append("session_id", contextSessionId);
+  }
+  if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
+    formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+  }
+
   mpuFetch(mpuRestUrl + "chat/context", {
     method: "POST",
     body: formData,
@@ -3513,6 +3554,16 @@ function mpu_greet_first_visitor(settings) {
           "city",
           visitorInfo.slimstat_city || visitorInfo.city || "",
         );
+
+        // [Fix] 傳送 session_id + history，讓後端記錄問候的 checksum
+        const greetSessionId = typeof mpu_getOrCreateChatSessionId === "function"
+          ? mpu_getOrCreateChatSessionId() : "";
+        if (greetSessionId) {
+          formData.append("session_id", greetSessionId);
+        }
+        if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
+          formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+        }
 
         return mpuFetch(mpuRestUrl + "chat/greet", {
           method: "POST",

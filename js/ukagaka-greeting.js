@@ -64,6 +64,16 @@ function mpu_greet_first_visitor(settings) {
           visitorInfo.slimstat_city || visitorInfo.city || "",
         );
 
+        // [Fix] 傳送 session_id + history，讓後端記錄問候的 checksum
+        const greetSessionId = typeof mpu_getOrCreateChatSessionId === "function"
+          ? mpu_getOrCreateChatSessionId() : "";
+        if (greetSessionId) {
+          formData.append("session_id", greetSessionId);
+        }
+        if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
+          formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+        }
+
         return mpuFetch(mpuRestUrl + "chat/greet", {
           method: "POST",
           body: formData,

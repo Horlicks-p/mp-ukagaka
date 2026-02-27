@@ -58,6 +58,41 @@ function mpu_on_akismet_spam_caught()
 /**
  * REST Callback: Check Spam Event
  */
+/**
+ * [Fix] 寫入 check-spam-event 的 checksum
+ * 確保前端 push 和後端驗證保持一致，不讓 chat/user verify 回 400。
+ */
+function mpu_store_spam_event_checksum( WP_REST_Request $request, $message )
+{
+    if (empty($message) || !function_exists('mpu_chat_integrity_store_history') || connection_aborted()) {
+        return;
+    }
+    $cs_sid_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
+    $cs_sid = function_exists('mpu_chat_integrity_normalize_session_id')
+        ? mpu_chat_integrity_normalize_session_id($cs_sid_param) : '';
+
+    if (empty($cs_sid)) return;
+
+    $prior = [];
+    $hp    = $request->get_param('history');
+    if (!empty($hp)) {
+        $decoded = is_string($hp) ? json_decode(wp_unslash($hp), true) : (array)$hp;
+        if (is_array($decoded)) {
+            foreach ($decoded as $hm) {
+                if (is_array($hm) && isset($hm['role'], $hm['content'])) {
+                    $r = ($hm['role'] === 'user') ? 'user' : 'assistant';
+                    $c = sanitize_textarea_field(wp_unslash($hm['content']));
+                    if ($c !== '') $prior[] = ['role' => $r, 'content' => $c];
+                }
+            }
+        }
+    }
+    $prior[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($message)];
+    if (function_exists('mpu_chat_integrity_slice_for_store')) {
+        mpu_chat_integrity_store_history($cs_sid, mpu_chat_integrity_slice_for_store($prior, 10));
+    }
+}
+
 function mpu_rest_check_spam_event( WP_REST_Request $request )
 {
     // 速率限制 - 20次/分鐘（跟隨 auto_talk 頻率）
@@ -94,6 +129,7 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Turnstile Integration: 結界防禦反應觸發，撞擊數量: ' . $count . '（冷卻 30 分鐘）');
             }
+            mpu_store_spam_event_checksum($request, $message);
             return new WP_REST_Response([
                 'has_event' => true,
                 'msg' => $message,
@@ -124,6 +160,7 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Akismet Integration: 垃圾留言反應觸發，攔截數量: ' . $count . '（冷卻 30 分鐘）');
             }
+            mpu_store_spam_event_checksum($request, $message);
             return new WP_REST_Response([
                 'has_event' => true,
                 'msg' => $message,
@@ -157,6 +194,7 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Moelog Bot Blocker: 防禦魔法反應觸發，攔截數量: ' . $count . '（冷卻 30 分鐘）');
             }
+            mpu_store_spam_event_checksum($request, $message);
             return new WP_REST_Response([
                 'has_event' => true,
                 'msg' => $message,
@@ -184,6 +222,7 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Bot Alert: 偵測到 Bot (' . $bot_name . ')，觸發警報反應');
             }
+            mpu_store_spam_event_checksum($request, $message);
             return new WP_REST_Response([
                 'has_event' => true,
                 'msg' => $message,
@@ -192,7 +231,6 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             ], 200);
         }
     }
-
 
     return new WP_REST_Response([
         'has_event' => false

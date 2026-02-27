@@ -186,12 +186,47 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             $emoji = mpu_analyze_emoji_from_text($msg, $personality_id);
         }
 
+        // [Fix] LLM 自發對話也會 push 到前端 mpuChatHistory，但後端未寫 checksum，
+        // 導致下一輪 chat/user verify 400。僅在 LLM 成功回應時寫入。
+        if ($is_llm_enabled && !$use_fallback && isset($msg) && $msg !== '' &&
+            $msg !== __('本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。', 'mp-ukagaka')) {
+            $chat_session_id_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
+            $chat_session_id = function_exists('mpu_chat_integrity_normalize_session_id')
+                ? mpu_chat_integrity_normalize_session_id($chat_session_id_param)
+                : '';
+
+            if (!empty($chat_session_id) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
+                $prior_history = [];
+                $history_param = $request->get_param('history');
+                if (!empty($history_param)) {
+                    $decoded = is_string($history_param) ? json_decode(wp_unslash($history_param), true) : (array) $history_param;
+                    if (is_array($decoded)) {
+                        foreach ($decoded as $entry) {
+                            if (is_array($entry) && isset($entry['role'], $entry['content'])) {
+                                $role    = ($entry['role'] === 'user') ? 'user' : 'assistant';
+                                $content = sanitize_textarea_field(wp_unslash($entry['content']));
+                                if ($content !== '') {
+                                    $prior_history[] = ['role' => $role, 'content' => $content];
+                                }
+                            }
+                        }
+                    }
+                }
+                $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($msg)];
+                mpu_chat_integrity_store_history(
+                    $chat_session_id,
+                    mpu_chat_integrity_slice_for_store($prior_history, 10)
+                );
+            }
+        }
+
         return $this->ok([
             'msg'    => $msg,
             'msgnum' => $msgnum,
             'emoji'  => $emoji,
         ]);
     }
+
 
     // =========================================================================
     // GET,POST /dialog — Rate limit: 30 次 / 60 秒

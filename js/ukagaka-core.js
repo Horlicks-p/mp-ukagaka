@@ -319,6 +319,15 @@ function mpuMoe(command) {
  */
 function mpu_checkSpamEvent(callback) {
   const formData = new FormData();
+  // [Fix] 傳送 session_id + history，讓後端在事件觸發後寫入 checksum
+  const spamSessionId = typeof mpu_getOrCreateChatSessionId === "function"
+    ? mpu_getOrCreateChatSessionId() : "";
+  if (spamSessionId) {
+    formData.append("session_id", spamSessionId);
+  }
+  if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
+    formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+  }
 
   mpuFetch(mpuRestUrl + "check-spam-event", {
     method: "POST",
@@ -399,6 +408,18 @@ function mpu_checkSpamEvent(callback) {
             window.mpuCanvasManager.isCharacterMode
           ) {
             window.mpuCanvasManager.triggerCharacterAnimation();
+          }
+
+          // [Fix] 將安全事件 AI 回應加入對話歷史，讓用戶開對話視窗時 chat/user verify 不會失敗
+          if (typeof mpuChatHistory !== "undefined" && Array.isArray(mpuChatHistory)) {
+            mpuChatHistory.push({
+              role: "assistant",
+              content: res.msg,
+              timestamp: Date.now(),
+            });
+            if (typeof mpu_saveChatHistory === "function") {
+              mpu_saveChatHistory();
+            }
           }
 
           // 等待打字完成後，通過回調告知已處理
@@ -564,6 +585,16 @@ function mpu_nextmsg(trigger) {
     if (mpuLLMResponseHistory.length > 0) {
       const recentHistory = mpuLLMResponseHistory.slice(-8);
       formData.append("response_history", JSON.stringify(recentHistory));
+    }
+
+    // [Fix] 傳送 session_id + history，讓後端記錄 LLM 自發對話的 checksum
+    const nextmsgSessionId = typeof mpu_getOrCreateChatSessionId === "function"
+      ? mpu_getOrCreateChatSessionId() : "";
+    if (nextmsgSessionId) {
+      formData.append("session_id", nextmsgSessionId);
+    }
+    if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
+      formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
     }
 
     mpuLogger.log("mpu_nextmsg: 發送 LLM POST 請求到", mpuRestUrl + "nextmsg");

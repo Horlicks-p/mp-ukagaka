@@ -78,15 +78,15 @@ function mpu_chat_integrity_verify_history($session_id, array $history)
     if ($expected === false || !is_string($expected) || $expected === '') return null;
     $actual = mpu_chat_integrity_compute_checksum($history);
     if (!hash_equals($expected, $actual)) {
+        // [Warn-only] Checksum mismatch：只記錄 log，不中斷請求（對齊 ai-engine 的做法）
+        // 若需恢復硬性 400，將下方改回 return new WP_Error(...)
         mpu_chat_integrity_debug_log(sprintf(
-            'Checksum mismatch. session_id=%s expected=%s actual=%s history_count=%d',
+            '[WARN] Checksum mismatch (non-blocking). session_id=%s expected=%s actual=%s history_count=%d',
             $session_id, $expected, $actual, count($history)
         ));
-        return new WP_Error('chat_history_checksum_mismatch', __('對話歷史驗證失敗，請重新整理頁面後再試一次。', 'mp-ukagaka'), [
-            'status'     => 400,
-            'session_id' => $session_id,
-        ]);
+        return null; // null = 跳過驗證，請求繼續
     }
+
     return true;
 }
 

@@ -383,6 +383,16 @@ function mpu_chat_context() {
   formData.append("page_content", context.content);
   formData.append("publish_date", context.publishDate || "");
 
+  // [Fix] 傳送 session_id + history，讓後端在頁面感知 AI 成功後也能更新 checksum，
+  // 防止下一輪 chat/user 驗證 400（裝飾品/身體點擊場景）。
+  const contextSessionId = mpu_getOrCreateChatSessionId();
+  if (contextSessionId) {
+    formData.append("session_id", contextSessionId);
+  }
+  if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
+    formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+  }
+
   mpuFetch(mpuRestUrl + "chat/context", {
     method: "POST",
     body: formData,

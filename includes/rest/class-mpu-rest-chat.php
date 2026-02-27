@@ -290,8 +290,42 @@ class MPU_REST_Chat extends MPU_REST_Base {
             mpu_extract_and_record_topic($page_title);
         }
 
+        // [Fix] 點擊裝飾品/身體後的頁面感知 AI 會把回覆 push 到前端歷史，
+        // 但後端從未為此寫入 checksum，導致下一輪 chat/user verify 必定 400。
+        // 因此在 chat/context 成功後，也同步寫入 checksum。
+        $chat_session_id_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
+        $chat_session_id = function_exists('mpu_chat_integrity_normalize_session_id')
+            ? mpu_chat_integrity_normalize_session_id($chat_session_id_param)
+            : '';
+
+        if (!empty($chat_session_id) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
+            // 讀取前端送來的歷史（若有），解碼後加上本次 assistant 回覆，再寫入 checksum
+            $prior_history = [];
+            $history_param = $request->get_param('history');
+            if (!empty($history_param)) {
+                $decoded = is_string($history_param) ? json_decode(wp_unslash($history_param), true) : (array) $history_param;
+                if (is_array($decoded)) {
+                    foreach ($decoded as $msg) {
+                        if (is_array($msg) && isset($msg['role'], $msg['content'])) {
+                            $role    = ($msg['role'] === 'user') ? 'user' : 'assistant';
+                            $content = sanitize_textarea_field(wp_unslash($msg['content']));
+                            if ($content !== '') {
+                                $prior_history[] = ['role' => $role, 'content' => $content];
+                            }
+                        }
+                    }
+                }
+            }
+            $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($result)];
+            mpu_chat_integrity_store_history(
+                $chat_session_id,
+                mpu_chat_integrity_slice_for_store($prior_history, 10)
+            );
+        }
+
         return $this->ok(['msg' => $result, 'emoji' => $emoji]);
     }
+
 
     // =========================================================================
     // POST /chat/greet — 首次訪客問候
@@ -462,8 +496,40 @@ class MPU_REST_Chat extends MPU_REST_Base {
             mpu_record_conversation('greeting');
         }
 
+        // [Fix] chat/greet 也會 push assistant 到前端 mpuChatHistory，但後端未寫 checksum
+        // 導致下一輪 chat/user verify 400。
+        $chat_session_id_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
+        $chat_session_id = function_exists('mpu_chat_integrity_normalize_session_id')
+            ? mpu_chat_integrity_normalize_session_id($chat_session_id_param)
+            : '';
+
+        if (!empty($chat_session_id) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
+            $prior_history = [];
+            $history_param = $request->get_param('history');
+            if (!empty($history_param)) {
+                $decoded = is_string($history_param) ? json_decode(wp_unslash($history_param), true) : (array) $history_param;
+                if (is_array($decoded)) {
+                    foreach ($decoded as $msg) {
+                        if (is_array($msg) && isset($msg['role'], $msg['content'])) {
+                            $role    = ($msg['role'] === 'user') ? 'user' : 'assistant';
+                            $content = sanitize_textarea_field(wp_unslash($msg['content']));
+                            if ($content !== '') {
+                                $prior_history[] = ['role' => $role, 'content' => $content];
+                            }
+                        }
+                    }
+                }
+            }
+            $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($result)];
+            mpu_chat_integrity_store_history(
+                $chat_session_id,
+                mpu_chat_integrity_slice_for_store($prior_history, 10)
+            );
+        }
+
         return $this->ok(['msg' => $result, 'emoji' => $emoji]);
     }
+
 
     // =========================================================================
     // POST /chat/user — 用戶互動對話（多輪 + Abilities/MCP）
