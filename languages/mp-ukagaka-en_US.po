@@ -1292,3 +1292,56 @@ msgstr "Statistics cleared"
 
 msgid "統計"
 msgstr "Statistics"
+
+msgid "控制台狀態"
+msgstr "Console Status"
+
+msgid "模組化檔案使用中"
+msgstr "Modular Files in Use"
+
+msgid "instructions.md + personality.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。"
+msgstr "The content of instructions.md + personality.md will be used as the System Prompt. The content in the textarea below will not be used."
+
+msgid "Cron 執行狀態"
+msgstr "Cron Execution Status"
+
+msgid "在 WordPress 網站上顯示互動式偽春菜角色，支援多家 AI 供應商的 LLM 對話、頁面感知、自動日記等功能。"
+msgstr "Displays interactive Ukagaka characters on WordPress sites, supporting LLM dialogue from multiple AI providers, page awareness, automatic diary features, and more."
+
+msgid "目前頁面："
+msgstr "Current Page:"
+
+msgid "模式："
+msgstr "Mode:"
+
+msgid "後台設定"
+msgstr "Backend Settings"
+
+msgid "建議："
+msgstr "Suggestion:"
+
+msgid "先完成 LLM 與 AI 設定，再調整會話與日記細節。"
+msgstr "Complete LLM and AI settings first, then adjust conversation and diary details."
+
+msgid "上次執行"
+msgstr "Last Run"
+
+msgid "狀態"
+msgstr "Status"
+
+msgid "成功"
+msgstr "Success"
+
+msgid "失敗"
+msgstr "Failure"
+
+msgid "跳過（本次機率未觸發）"
+msgstr "Skipped (probability not triggered this time)"
+
+msgid "文章 #%d"
+msgstr "Post #%d"
+
+msgid "下次排程：%s"
+msgstr "Next scheduled: %s"
+
+

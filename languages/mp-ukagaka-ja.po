@@ -1299,3 +1299,56 @@ msgstr "最大出力トークン (Max Output Tokens)："
 
 msgid "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"
 msgstr "AI応答の最大長（トークン数）を設定します。デフォルトは1000です。値を増やすと応答の途切れを防げますが、APIコストが増加する場合があります。"
+
+msgid "控制台狀態"
+msgstr "コンソールステータス"
+
+msgid "模組化檔案使用中"
+msgstr "モジュール化ファイル使用中"
+
+msgid "instructions.md + personality.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。"
+msgstr "instructions.md + personality.md の内容がシステムプロンプトとして使用されます。下のテキストエリアの内容は使用されません。"
+
+msgid "Cron 執行狀態"
+msgstr "Cron 実行ステータス"
+
+msgid "在 WordPress 網站上顯示互動式偽春菜角色，支援多家 AI 供應商的 LLM 對話、頁面感知、自動日記等功能。"
+msgstr "WordPress サイト上にインタラクティブな伺か（Ukagaka）キャラクターを表示し、複数の AI プロバイダーによる LLM 対話、ページ認識、自動日記などの機能をサポートします。"
+
+msgid "目前頁面："
+msgstr "現在のページ："
+
+msgid "模式："
+msgstr "モード："
+
+msgid "後台設定"
+msgstr "管理画面設定"
+
+msgid "建議："
+msgstr "推奨："
+
+msgid "先完成 LLM 與 AI 設定，再調整會話與日記細節。"
+msgstr "先に LLM と AI の設定を完了してから、会話と日記の詳細を調整してください。"
+
+msgid "上次執行"
+msgstr "前回実行"
+
+msgid "狀態"
+msgstr "ステータス"
+
+msgid "成功"
+msgstr "成功"
+
+msgid "失敗"
+msgstr "失敗"
+
+msgid "跳過（本次機率未觸發）"
+msgstr "スキップ（今回は確率でトリガーされませんでした）"
+
+msgid "文章 #%d"
+msgstr "記事 #%d"
+
+msgid "下次排程：%s"
+msgstr "次回のスケジュール：%s"
+
+
