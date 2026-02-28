@@ -4,9 +4,24 @@
 
 ---
 
----
+## [2.12.5] - 2026-02-28
 
-## [2.12.0] - 2026-02-27
+### 🚀 Major Update: Unified History & SSE Stability Hardening
+
+- **Unified History Memory**: Frieren can now remember all interactions (auto-talk, page context, touch responses, etc.). By implementing "Synthetic User Anchors," non-chat interactions are now correctly preserved in the conversation context, resolving identity/memory gaps.
+- **SSE Streaming Stability**: Fixed multiple vulnerabilities leading to persistent 400 Checksum errors.
+  - **Observational Mode**: Transitioned Checksum from a blocking mechanism to an auditing mode to improve long-conversation reliability.
+  - **Diagnostic Logs**: Added `logs/checksum-mismatch.log` to automatically record data differences between frontend/backend for easier troubleshooting.
+  - **Symmetry Fixes**: Corrected the slice/normalize order between storage and verification paths to ensure consistency.
+- **Frontend Architecture Refactoring**:
+  - **Global State Migration**: Moved core states like `mpuChatHistory` and `mpuChatModeActive` to the `window` object for better cross-module stability.
+  - **Capacity Doubled**: Increased chat history limit from 20 to 40 entries to accommodate all interaction events.
+  - **Lifecycle Management**: Implemented reload detection (F5) to reset memory while preserving it during internal SPA navigation.
+- **UX Enhancements**:
+  - Refined `/reset` command response to maintain character consistency.
+  - Improved `mpuFetchSSE` error handling with proper fallback for JSON error responses.
+
+---
 
 ### 🚀 Major Update: SSE Streaming & Typewriter Effect
 

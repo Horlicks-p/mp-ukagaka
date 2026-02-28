@@ -910,3 +910,82 @@ Akismet path 本身 DOES push 到 `mpuChatHistory`。新 log 中的 mismatch 可
 - 若 mismatch source 為 `frieren.js` 相關：確認已部署新版（含 touch push）
 - 若 source 為 `akismet-integration.php`：檢查前端歷史在觸發時是否有孤立 user 訊息
 - 觀測模式下 mismatch 只記 log 不中斷，可持續觀察 `logs/checksum-mismatch.log`
+
+---
+
+## 2026-02-28 第三輪修正：Checksum STORE type 欄位遺漏 & VERIFY 窗口不對稱
+
+### 診斷依據（`logs/checksum-mismatch.log` 實際案例）
+
+透過 log 比對，發現兩個獨立根因：
+
+#### 根因 A：非 user-chat 端點的 STORE 丟棄 `type` 欄位
+
+前端 push 到 `mpuChatHistory` 時各路徑均已標注正確 type：
+
+| 路徑 | user type | assistant type |
+|---|---|---|
+| auto-talk（mpu_nextmsg） | `synthetic` | `auto_talk` |
+| 頁面感知（chat/context） | `synthetic` | `context` |
+| 首次問候（chat/greet） | `synthetic` | `greet` |
+| Akismet/Bot 事件 | `synthetic` | `event` |
+| 使用者互動（chat/user） | `chat` | `chat` |
+
+`mpu_chat_integrity_filter_messages()` 只計入 `type === 'chat'` 的 assistant，因此 VERIFY 端正確排除 auto-talk / event / context / greet 類型的 assistant。
+
+但以下四個 STORE 端點在重組 `$prior_history` 時，**未保留前端送來的 `type` 欄位**，且新產生的 assistant 也**未標注 type**（預設落回 `'chat'`），導致 STORE 的 checksum 包含了不該計入的 non-chat assistant：
+
+- `class-mpu-rest-dialog.php` `nextmsg`
+- `class-mpu-rest-chat.php` `chat/context`
+- `class-mpu-rest-chat.php` `chat/greet`
+- `akismet-integration.php` `mpu_store_spam_event_checksum`
+
+**影響**：log mismatch #1（source=`class-mpu-rest-dialog.php:216`）中，STORE 記錄了 5 條 assistant（含 auto-talk/event），VERIFY 僅計入 2 條真實 user-chat assistant → checksum 不一致。
+
+#### 根因 B：STORE 使用 10 件窗口，VERIFY 使用 20 件窗口
+
+`prepare_user_chat_args()` 以 `array_slice($normalized_history, -20)` 建立 `$chat_history`，再將完整 20 件傳入 `mpu_chat_integrity_verify_history()`。但所有 STORE 端點皆以 `mpu_chat_integrity_slice_for_store($history, 10)` 只保留 10 件。
+
+當對話超過 10 輪後，VERIFY 的 20 件窗口可看到比 STORE 的 10 件窗口更早的 `type='chat'` assistant → 計入筆數不同 → mismatch。
+
+**確認依據**：log mismatch #2、#3 均顯示 `first diff (win): none`（即 `verify_windowed_checksum` = `expected`），代表只要將 VERIFY 也縮至 10 件，即可對齊。
+
+### 修正內容（2026-02-28）
+
+#### Fix A：四個 STORE 端點補上 `type` 保留邏輯
+
+| 檔案 | 修正位置 | prior_history 循環 | 新 assistant type |
+|---|---|---|---|
+| `class-mpu-rest-dialog.php` | nextmsg checksum 寫入區 | `$entry['type']` 保留 | `'auto_talk'` |
+| `class-mpu-rest-chat.php` | chat/context checksum 寫入區 | `$msg['type']` 保留 | `'context'` |
+| `class-mpu-rest-chat.php` | chat/greet checksum 寫入區 | `$msg['type']` 保留 | `'greet'` |
+| `akismet-integration.php` | `mpu_store_spam_event_checksum()` | `$hm['type']` 保留 | `'event'` |
+
+修正後，STORE 端的 `filter_messages` 將與 VERIFY 端同樣只計入 `type='chat'` 的 assistant。
+
+#### Fix B：VERIFY 窗口對齊至 10 件（不影響 LLM 上下文）
+
+`$chat_history`（20 件）仍照常傳給 LLM，僅 verify 呼叫改用獨立的 10 件窗口：
+
+```php
+// before — 20 件傳入 verify，與 store 的 10 件窗口不對稱
+$integrity_check = mpu_chat_integrity_verify_history($chat_session_id, $chat_history);
+
+// after — LLM 仍收 20 件；verify 專用 10 件（與 store 對齊）
+$history_for_verify = mpu_chat_integrity_slice_for_store($chat_history, 10);
+$integrity_check = mpu_chat_integrity_verify_history($chat_session_id, $history_for_verify);
+```
+
+修正位置：`class-mpu-rest-chat.php` `prepare_user_chat_args()`（verify 呼叫點前）。
+
+### 關於 `dialogs/Frieren.json` fallback 的釐清
+
+- fallback（`$use_fallback = true`）路徑本身**不寫 checksum**（`!$use_fallback` 條件防護），此行為正確
+- 前端在 mpu_nextmsg 成功回應後，不論是 LLM 或 fallback 內建台詞，均以 `type: 'auto_talk'` push 到 mpuChatHistory → 前端類型標注一致
+- Fix A 修正後，fallback 前後的 LLM 成功 auto-talk 也會以 `type='auto_talk'` 正確 STORE → 間接影響消除
+
+### 修正後預期行為
+
+- STORE（所有非 user-chat 端點）：只計入前端歷史中 `type='chat'` 的 assistant，新 auto-talk / event / context / greet assistant 不進入 checksum
+- VERIFY（user-chat）：同上，使用相同的 10 件窗口 + normalize + filter('chat') 路徑
+- 兩端 checksum 邏輯完全對稱，mismatch 應大幅減少（主要殘留來源：孤立 user 訊息、跨 session 邊緣情境）

@@ -82,12 +82,16 @@ function mpu_store_spam_event_checksum( WP_REST_Request $request, $message )
                 if (is_array($hm) && isset($hm['role'], $hm['content'])) {
                     $r = ($hm['role'] === 'user') ? 'user' : 'assistant';
                     $c = sanitize_textarea_field(wp_unslash($hm['content']));
-                    if ($c !== '') $prior[] = ['role' => $r, 'content' => $c];
+                    if ($c !== '') {
+                        $t = isset($hm['type']) && in_array($hm['type'], ['chat', 'synthetic', 'auto_talk', 'greet', 'context', 'event', 'touch_decoration', 'touch_zone'], true)
+                            ? (string) $hm['type'] : 'chat';
+                        $prior[] = ['role' => $r, 'content' => $c, 'type' => $t];
+                    }
                 }
             }
         }
     }
-    $prior[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($message)];
+    $prior[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($message), 'type' => 'event'];
     if (function_exists('mpu_chat_integrity_slice_for_store')) {
         mpu_chat_integrity_store_history($cs_sid, mpu_chat_integrity_slice_for_store($prior, 10));
     }

@@ -310,13 +310,15 @@ class MPU_REST_Chat extends MPU_REST_Base {
                             $role    = ($msg['role'] === 'user') ? 'user' : 'assistant';
                             $content = sanitize_textarea_field(wp_unslash($msg['content']));
                             if ($content !== '') {
-                                $prior_history[] = ['role' => $role, 'content' => $content];
+                                $type = isset($msg['type']) && in_array($msg['type'], ['chat', 'synthetic', 'auto_talk', 'greet', 'context', 'event', 'touch_decoration', 'touch_zone'], true)
+                                    ? (string) $msg['type'] : 'chat';
+                                $prior_history[] = ['role' => $role, 'content' => $content, 'type' => $type];
                             }
                         }
                     }
                 }
             }
-            $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($result)];
+            $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($result), 'type' => 'context'];
             mpu_chat_integrity_store_history(
                 $chat_session_id,
                 mpu_chat_integrity_slice_for_store($prior_history, 10)
@@ -514,13 +516,15 @@ class MPU_REST_Chat extends MPU_REST_Base {
                             $role    = ($msg['role'] === 'user') ? 'user' : 'assistant';
                             $content = sanitize_textarea_field(wp_unslash($msg['content']));
                             if ($content !== '') {
-                                $prior_history[] = ['role' => $role, 'content' => $content];
+                                $type = isset($msg['type']) && in_array($msg['type'], ['chat', 'synthetic', 'auto_talk', 'greet', 'context', 'event', 'touch_decoration', 'touch_zone'], true)
+                                    ? (string) $msg['type'] : 'chat';
+                                $prior_history[] = ['role' => $role, 'content' => $content, 'type' => $type];
                             }
                         }
                     }
                 }
             }
-            $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($result)];
+            $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($result), 'type' => 'greet'];
             mpu_chat_integrity_store_history(
                 $chat_session_id,
                 mpu_chat_integrity_slice_for_store($prior_history, 10)
@@ -668,7 +672,8 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $chat_history = array_slice($normalized_history, -20);
 
         if (!empty($chat_session_id) && function_exists('mpu_chat_integrity_verify_history')) {
-            $integrity_check = mpu_chat_integrity_verify_history($chat_session_id, $chat_history);
+            $history_for_verify = mpu_chat_integrity_slice_for_store($chat_history, 10);
+            $integrity_check = mpu_chat_integrity_verify_history($chat_session_id, $history_for_verify);
             if (is_wp_error($integrity_check)) {
                 return $this->fail('rest_error', $integrity_check->get_error_message(), 400);
             }

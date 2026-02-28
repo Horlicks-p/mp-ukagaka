@@ -206,13 +206,15 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                                 $role    = ($entry['role'] === 'user') ? 'user' : 'assistant';
                                 $content = sanitize_textarea_field(wp_unslash($entry['content']));
                                 if ($content !== '') {
-                                    $prior_history[] = ['role' => $role, 'content' => $content];
+                                    $type = isset($entry['type']) && in_array($entry['type'], ['chat', 'synthetic', 'auto_talk', 'greet', 'context', 'event', 'touch_decoration', 'touch_zone'], true)
+                                        ? (string) $entry['type'] : 'chat';
+                                    $prior_history[] = ['role' => $role, 'content' => $content, 'type' => $type];
                                 }
                             }
                         }
                     }
                 }
-                $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($msg)];
+                $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($msg), 'type' => 'auto_talk'];
                 mpu_chat_integrity_store_history(
                     $chat_session_id,
                     mpu_chat_integrity_slice_for_store($prior_history, 10)
