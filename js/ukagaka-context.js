@@ -435,24 +435,6 @@ function mpu_chat_context() {
             timestamp: Date.now(),
           });
 
-          // 限制最多保留 3 條自發對話（避免佔用太多上下文）
-          // 只刪除最舊的 assistant 記錄，保留所有 user 記錄
-          const maxAutoTalkHistory = 3;
-          const assistantMessages = mpuChatHistory.filter(
-            (msg) => msg.role === "assistant",
-          );
-          if (assistantMessages.length > maxAutoTalkHistory) {
-            const toRemove = assistantMessages.length - maxAutoTalkHistory;
-            let removed = 0;
-            mpuChatHistory = mpuChatHistory.filter((msg) => {
-              if (msg.role === "assistant" && removed < toRemove) {
-                removed++;
-                return false;
-              }
-              return true;
-            });
-          }
-
           if (typeof mpu_saveChatHistory === "function") {
             mpu_saveChatHistory();
             mpuLogger.log("mpu_chat_context: 對話已加入歷史並儲存");

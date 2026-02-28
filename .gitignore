@@ -37,6 +37,7 @@ composer.lock
 package-lock.json
 
 # Logs
+logs/
 *.log
 debug.log
 error.log

@@ -1007,13 +1007,18 @@ class MPU_REST_Chat extends MPU_REST_Base {
         }
 
         if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
-            // [Fix] 儲存 Checksum 時與驗證端對齊處理邏輯（保留換行、修剪空白）
+            // [Fix] 儲存 Checksum 時與驗證端對齊處理邏輯
             $integrity_result = sanitize_textarea_field($result);
             $raw_history      = $args['chat_history'];
-            $raw_history[]    = ['role' => 'user', 'content' => $args['user_message']];
-            $raw_history[]    = ['role' => 'assistant', 'content' => $integrity_result];
+            
+            // [Fix 2026-02-27] 偵測 Double-Append：如果歷史末尾已經是當前 user 訊息，則不重複添加
+            $last_msg = end($raw_history);
+            if (!($last_msg && $last_msg['role'] === 'user' && trim($last_msg['content'] ?? '') === trim($args['user_message']))) {
+                $raw_history[] = ['role' => 'user', 'content' => $args['user_message']];
+            }
+            $raw_history[] = ['role' => 'assistant', 'content' => $integrity_result];
 
-            // [Fix] slice 後再正規化：防止滑動窗口導致首位變成孤立 assistant，完美對稱 verify 端。
+            // [Fix] slice 後再正規化：完美對稱 verify 端。
             mpu_chat_integrity_store_history(
                 $args['chat_session_id'],
                 mpu_chat_integrity_slice_for_store($raw_history, 10)
@@ -1114,13 +1119,18 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         // 寫入 Checksum
         if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
-            // [Fix] 儲存 Checksum 時與驗證端對齊處理邏輯（保留換行、修剪空白）
+            // [Fix] 儲存 Checksum 時與驗證端對齊處理邏輯
             $integrity_result = sanitize_textarea_field($result);
             $raw_history      = $args['chat_history'];
-            $raw_history[]    = ['role' => 'user', 'content' => $args['user_message']];
-            $raw_history[]    = ['role' => 'assistant', 'content' => $integrity_result];
+            
+            // [Fix 2026-02-27] 偵測 Double-Append：如果歷史末尾已經是當前 user 訊息，則不重複添加
+            $last_msg = end($raw_history);
+            if (!($last_msg && $last_msg['role'] === 'user' && trim($last_msg['content'] ?? '') === trim($args['user_message']))) {
+                $raw_history[] = ['role' => 'user', 'content' => $args['user_message']];
+            }
+            $raw_history[] = ['role' => 'assistant', 'content' => $integrity_result];
 
-            // [Fix] slice 後再正規化：防止滑動窗口導致首位變成孤立 assistant，完美對稱 verify 端。
+            // [Fix] slice 後再正規化：完美對稱 verify 端。
             mpu_chat_integrity_store_history(
                 $args['chat_session_id'],
                 mpu_chat_integrity_slice_for_store($raw_history, 10)

@@ -117,23 +117,6 @@ function mpu_greet_first_visitor(settings) {
               timestamp: Date.now(),
             });
 
-            // 限制最多保留 3 條自發對話
-            const maxAutoTalkHistory = 3;
-            const assistantMessages = mpuChatHistory.filter(
-              (msg) => msg.role === "assistant",
-            );
-            if (assistantMessages.length > maxAutoTalkHistory) {
-              const toRemove = assistantMessages.length - maxAutoTalkHistory;
-              let removed = 0;
-              mpuChatHistory = mpuChatHistory.filter((msg) => {
-                if (msg.role === "assistant" && removed < toRemove) {
-                  removed++;
-                  return false;
-                }
-                return true;
-              });
-            }
-
             if (typeof mpu_saveChatHistory === "function") {
               mpu_saveChatHistory();
               mpuLogger.log("mpu_greet_first_visitor: 問候已加入歷史並儲存");

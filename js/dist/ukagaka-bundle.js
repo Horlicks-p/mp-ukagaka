@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-02-27T04:04:39.310Z
+ * Generated: 2026-02-28T02:40:25.629Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -1625,35 +1625,6 @@ function mpu_nextmsg(trigger) {
               "mpu_nextmsg: 自發對話已加入對話歷史，當前歷史長度:",
               mpuChatHistory.length,
             );
-            // 限制最多保留 3 條自發對話（避免佔用太多上下文）
-            // 只刪除最舊的 assistant 記錄，保留所有 user 記錄
-            const maxAutoTalkHistory = 3;
-            const assistantMessages = mpuChatHistory.filter(
-              (msg) => msg.role === "assistant",
-            );
-            if (assistantMessages.length > maxAutoTalkHistory) {
-              // 找到需要刪除的最舊的 assistant 記錄
-              let removed = 0;
-              const toRemove = assistantMessages.length - maxAutoTalkHistory;
-              for (
-                let i = 0;
-                i < mpuChatHistory.length && removed < toRemove;
-                i++
-              ) {
-                if (mpuChatHistory[i].role === "assistant") {
-                  mpuChatHistory.splice(i, 1);
-                  removed++;
-                  i--; // 因為刪除了元素，索引需要減 1
-                }
-              }
-              mpuLogger.log(
-                "mpu_nextmsg: 刪除了",
-                removed,
-                "條舊的自發對話，保留",
-                maxAutoTalkHistory,
-                "條",
-              );
-            }
             if (typeof mpu_saveChatHistory === "function") {
               mpu_saveChatHistory();
               mpuLogger.log("mpu_nextmsg: 對話歷史已儲存");
@@ -3332,24 +3303,6 @@ function mpu_chat_context() {
             timestamp: Date.now(),
           });
 
-          // 限制最多保留 3 條自發對話（避免佔用太多上下文）
-          // 只刪除最舊的 assistant 記錄，保留所有 user 記錄
-          const maxAutoTalkHistory = 3;
-          const assistantMessages = mpuChatHistory.filter(
-            (msg) => msg.role === "assistant",
-          );
-          if (assistantMessages.length > maxAutoTalkHistory) {
-            const toRemove = assistantMessages.length - maxAutoTalkHistory;
-            let removed = 0;
-            mpuChatHistory = mpuChatHistory.filter((msg) => {
-              if (msg.role === "assistant" && removed < toRemove) {
-                removed++;
-                return false;
-              }
-              return true;
-            });
-          }
-
           if (typeof mpu_saveChatHistory === "function") {
             mpu_saveChatHistory();
             mpuLogger.log("mpu_chat_context: 對話已加入歷史並儲存");
@@ -3607,23 +3560,6 @@ function mpu_greet_first_visitor(settings) {
               content: res.msg,
               timestamp: Date.now(),
             });
-
-            // 限制最多保留 3 條自發對話
-            const maxAutoTalkHistory = 3;
-            const assistantMessages = mpuChatHistory.filter(
-              (msg) => msg.role === "assistant",
-            );
-            if (assistantMessages.length > maxAutoTalkHistory) {
-              const toRemove = assistantMessages.length - maxAutoTalkHistory;
-              let removed = 0;
-              mpuChatHistory = mpuChatHistory.filter((msg) => {
-                if (msg.role === "assistant" && removed < toRemove) {
-                  removed++;
-                  return false;
-                }
-                return true;
-              });
-            }
 
             if (typeof mpu_saveChatHistory === "function") {
               mpu_saveChatHistory();
@@ -4379,7 +4315,7 @@ function mpu_sendUserMessage() {
   if (message === "/reset" || message === "/clear") {
     mpu_clearChatHistory();
     $input.val("");
-    mpu_typewriter("（記憶を消去しました...）對話歷史已清除。", "#ukagaka_msg");
+    mpu_typewriter("（記憶を消去しました...）", "#ukagaka_msg");
     mpuLogger.log("對話歷史已清除");
     return;
   }

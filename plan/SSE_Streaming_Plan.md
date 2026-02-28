@@ -719,3 +719,132 @@ for (const frame of frames) {
 - `php -l includes/rest/class-mpu-rest-chat.php`
 - `npm run build`（更新 `js/dist/ukagaka-bundle*.js`）
 - 若再出現 `對話歷史驗證失敗`（400），優先查看 `MPU Chat Integrity` debug log 的 `expected/actual/history_count`
+- **新增**：亦可查看 `mp-ukagaka/logs/checksum-mismatch.log`，內含 store/verify 兩端的 filtered JSON 原文 diff
+
+## 2026-02-27 追加修正：Checksum 診斷日誌 & slice 順序對齊
+
+### 背景
+
+- Checksum 已改為觀測模式（mismatch 不中斷請求），但缺乏有效的事後排查手段。
+- `mpu_chat_integrity_slice_for_store()` 的處理順序（slice→normalize）與 verify 端的處理順序（normalize→slice）不對稱，在長對話窗口滑動時可能導致孤立 assistant 被不同方式移除，產生 mismatch。
+
+### 變更內容
+
+#### 1. 新增 `mpu_chat_integrity_dump_mismatch()`（`chat-integrity.php`）
+
+- 當 `verify_history()` 偵測到 mismatch 時，自動呼叫此函式
+- 寫入 `mp-ukagaka/logs/checksum-mismatch.log`（有 `.htaccess` 保護）
+- 記錄內容：
+  - 時間戳、session_id、expected/actual checksum
+  - **STORE 端** 上一輪寫入時的 filtered JSON（透過 transient snapshot）
+  - **VERIFY 端** 本輪驗證時的 filtered JSON
+  - VERIFY 端 raw history 的 role + content 前 80 字元預覽
+- Log 檔案超過 512KB 時自動截斷保留後半
+
+#### 2. `mpu_chat_integrity_store_history()` 新增 snapshot 保存
+
+- 每次 store 時，同時將 filtered JSON 寫入 `mpu_chat_cs_snapshot_{session_id}` transient
+- 供下一次 mismatch dump 時比對用
+- 與 checksum transient 同生命週期（1 小時）
+
+#### 3. `mpu_chat_integrity_slice_for_store()` 順序修正
+
+- **舊版**：`array_slice(-$limit)` → normalize（移除孤立 assistant）
+- **新版**：normalize（移除孤立 assistant）→ `array_slice(-$limit)`
+- 此修正使 store 端與 verify 端（`prepare_user_chat_args` line 647-659）的處理路徑完全對稱
+- 影響範圍：所有 checksum 寫入點（`user_chat` / `user_chat_stream` / `debug_mcp` / `chat/context` / `chat/greet` / `akismet-integration`）
+
+#### 4. `.gitignore` 更新
+
+- 新增 `logs/` 目錄排除，防止診斷日誌被 commit
+
+### 已知的潛在不一致點（待觀察）
+
+- `user_message` 在 `prepare_user_chat_args()` 以 `sanitize_text_field()` 處理（會剝除換行），但 verify 端讀取前端歷史時以 `sanitize_textarea_field()` 處理（保留換行）。若使用者訊息含換行符，store 與 verify 可能產生差異。目前此情境較罕見（前端輸入框為單行），但若未來改為多行輸入框則需注意。
+
+### 排查流程更新
+
+- 若出現 mismatch，除了原有的 `[MPU Chat Integrity]` debug log 外，現在可直接查看 `mp-ukagaka/logs/checksum-mismatch.log`
+- Log 內會同時顯示 store 端與 verify 端的 JSON 原文，可直接做文字 diff
+- 若 log 中 STORE 端顯示 `(no snapshot)`，代表上一輪 store 時尚未啟用 snapshot 功能（首次部署後的第一次 mismatch）
+
+---
+
+## 2026-02-28 根因診斷：前端角色偏置過濾造成 Checksum 崩潰
+
+### 診斷依據
+
+透過 `logs/checksum-mismatch.log` 的實際案例進行分析：
+
+```
+verify role counts : {"assistant":1, "user":7}
+last store meta    : source=class-mpu-rest-dialog.php:216
+store snapshot     : 4 assistants（對應 user[2]~user[5] 的回覆）
+verify raw         : 7 user + 1 assistant（僅最後一輪 assistant 殘存）
+```
+
+實際對話有完整的 user/assistant 交替序列，但 VERIFY 端只收到 1 條 assistant。
+
+### 根本原因
+
+**`ukagaka-context.js` 與 `ukagaka-greeting.js` 中的 `maxAutoTalkHistory = 3` 過濾邏輯**：
+
+```js
+// 問題代碼（已移除）
+const assistantMessages = mpuChatHistory.filter(msg => msg.role === "assistant");
+if (assistantMessages.length > maxAutoTalkHistory) {
+  mpuChatHistory = mpuChatHistory.filter((msg) => {
+    if (msg.role === "assistant" && removed < toRemove) { ... return false; }
+    return true;  // user 全部保留 ← 問題所在
+  });
+}
+```
+
+- 每次 auto-talk / context / greeting 發話後，若 `mpuChatHistory` 中 assistant 數量 > 3，就**單邊刪除最舊的 assistant**，但對應的 user 訊息全部保留
+- 隨著對話進行，assistant 被逐輪刪除，最終形成「很多 user + 極少 assistant」的歷史結構
+- STORE（由 dialog endpoint 在某次 auto-talk 觸發時寫入）記錄了當時完整的 4 條 assistant
+- VERIFY（由 chat endpoint 在使用者下一次發言時執行）收到的卻是被挖空後只剩 1 條 assistant 的歷史
+- 兩端 filtered JSON 不一致 → checksum mismatch
+
+### 關於 `class-mpu-rest-dialog.php` 用同一 session_id 寫 checksum
+
+- 這**不是 bug**，而是設計選擇：讓 auto-talk 與 user chat 共用同一對話脈絡
+- 真正出錯的是前端歷史被角色偏置裁切，導致不同時刻的 store/verify 基準不一致
+- 修正前端過濾後，此設計仍可保留
+
+### 修正內容（2026-02-28）
+
+移除 `ukagaka-context.js` 與 `ukagaka-greeting.js` 中的 `maxAutoTalkHistory` 角色偏置過濾邏輯，改為純窗口推移策略：
+
+| 檔案 | 變更 |
+|---|---|
+| `js/ukagaka-context.js:438-454` | 刪除 `maxAutoTalkHistory` 過濾區塊 |
+| `js/ukagaka-greeting.js:120-135` | 刪除 `maxAutoTalkHistory` 過濾區塊 |
+| `js/ukagaka-chat.js:63` | 確認 `mpu_saveChatHistory()` 使用 `slice(-MPU_MAX_CHAT_HISTORY)`（原本已正確） |
+
+- auto-talk 應答完整保留在 `mpuChatHistory`，不再單邊刪除
+- 總量上限由 `mpu_saveChatHistory()` 的 `slice(-20)` 統一截斷
+- backend 的 `slice(-10)` normalize 流程不變，orphaned assistant 由後端自然處理
+- 執行 `npm run build` 更新 `js/dist/ukagaka-bundle.min.js`
+
+### 設計架構說明（修正後）
+
+```
+auto-talk 發話
+  → mpuChatHistory.push(assistant)        # 完整保留，不過濾
+  → mpu_saveChatHistory() → slice(-20)   # localStorage 上限 20
+  ↓
+user 發送聊天
+  → mpuChatHistory.push(user)
+  → formData: slice(-10)                 # backend 只看最近 10 筆
+  → backend normalize: 移除孤立 assistant  # orphaned auto-talk 在此自然消除
+  → slice(-10) → filter(assistant) → checksum
+```
+
+STORE 與 VERIFY 兩端都經由相同的 `slice(-10) + normalize + filter(assistant)` 路徑，一致性恢復。
+
+### 殘留觀察點
+
+- `ukagaka-core.js:691`（`mpu_nextmsg` AJAX 路徑）原本就沒有角色偏置過濾，此次未動
+- auto-talk 大量發話時，orphaned assistant 會佔用 `slice(-10)` 的部分窗口，但 backend normalize 會全部移除，不影響 checksum 正確性
+- 若使用者長時間放置（auto-talk 累積多則），AI 在 user chat 中可能「不記得」先前的 auto-talk 內容，屬設計上的取捨，非 bug

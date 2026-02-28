@@ -398,7 +398,7 @@ function mpu_sendUserMessage() {
   if (message === "/reset" || message === "/clear") {
     mpu_clearChatHistory();
     $input.val("");
-    mpu_typewriter("（記憶を消去しました...）對話歷史已清除。", "#ukagaka_msg");
+    mpu_typewriter("（記憶を消去しました...）", "#ukagaka_msg");
     mpuLogger.log("對話歷史已清除");
     return;
   }
