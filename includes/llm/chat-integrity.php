@@ -288,7 +288,11 @@ function mpu_chat_integrity_filter_messages(array $messages)
     foreach ($messages as $message) {
         if (!is_array($message)) continue;
         $role = isset($message['role']) ? (string) $message['role'] : '';
+        // 跳過所有 user（含 synthetic 錨點）與空 role
         if ($role === '' || $role === 'user') continue;
+        // 只計入真實對話輪次（type="chat"）的 assistant，合成/auto-talk/touch 等不納入 checksum
+        $type = isset($message['type']) ? (string) $message['type'] : 'chat';
+        if ($type !== 'chat') continue;
         if (!isset($message['content'])) continue;
         $content = $message['content'];
         if (is_scalar($content)) {

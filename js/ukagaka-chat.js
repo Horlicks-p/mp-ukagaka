@@ -1,13 +1,11 @@
 // ====== 互動對話模式 ======
 // 對話模式狀態
-let mpuChatModeActive = false;
-let mpuChatHistory = [];
-let mpuChatRequesting = false;
+window.mpuChatModeActive = false;
+window.mpuChatRequesting = false;
 let mpuEnableChatMode = false; // 後台設定：是否啟用互動對話功能
 const MPU_CHAT_HISTORY_KEY = "mpu_chat_history";
 const MPU_CHAT_SESSION_KEY = "mpu_chat_session_id";
-const MPU_MAX_CHAT_HISTORY = 20;
-let mpuChatSessionId = "";
+const MPU_MAX_CHAT_HISTORY = 40; // synthetic+assistant 各佔一則，20 個互動事件 = 40 entries
 
 function mpu_generateChatSessionId() {
   if (
@@ -26,19 +24,19 @@ function mpu_generateChatSessionId() {
 }
 
 function mpu_getOrCreateChatSessionId(forceNew = false) {
-  if (!forceNew && mpuChatSessionId) {
-    return mpuChatSessionId;
+  if (!forceNew && window.mpuChatSessionId) {
+    return window.mpuChatSessionId;
   }
 
   const stored = !forceNew ? mpu_getLocal(MPU_CHAT_SESSION_KEY) : null;
   if (!forceNew && typeof stored === "string" && stored) {
-    mpuChatSessionId = stored;
-    return mpuChatSessionId;
+    window.mpuChatSessionId = stored;
+    return window.mpuChatSessionId;
   }
 
-  mpuChatSessionId = mpu_generateChatSessionId();
-  mpu_setLocal(MPU_CHAT_SESSION_KEY, mpuChatSessionId);
-  return mpuChatSessionId;
+  window.mpuChatSessionId = mpu_generateChatSessionId();
+  mpu_setLocal(MPU_CHAT_SESSION_KEY, window.mpuChatSessionId);
+  return window.mpuChatSessionId;
 }
 
 /**
@@ -48,10 +46,10 @@ function mpu_loadChatHistory() {
   // 使用通用存儲函數，支援多層後備機制
   const stored = mpu_getLocal(MPU_CHAT_HISTORY_KEY);
   if (stored && Array.isArray(stored)) {
-    mpuChatHistory = stored.slice(-MPU_MAX_CHAT_HISTORY);
+    window.mpuChatHistory = stored.slice(-MPU_MAX_CHAT_HISTORY);
     return true;
   }
-  mpuChatHistory = [];
+  window.mpuChatHistory = [];
   return false;
 }
 
@@ -60,7 +58,7 @@ function mpu_loadChatHistory() {
  */
 function mpu_saveChatHistory() {
   // 使用通用存儲函數，支援多層後備機制
-  const toSave = mpuChatHistory.slice(-MPU_MAX_CHAT_HISTORY);
+  const toSave = (window.mpuChatHistory || []).slice(-MPU_MAX_CHAT_HISTORY);
   mpu_setLocal(MPU_CHAT_HISTORY_KEY, toSave);
 }
 
@@ -68,7 +66,7 @@ function mpu_saveChatHistory() {
  * 清除對話歷史
  */
 function mpu_clearChatHistory() {
-  mpuChatHistory = [];
+  window.mpuChatHistory = [];
   // 使用通用存儲函數刪除
   mpu_delLocal(MPU_CHAT_HISTORY_KEY);
   // 清空歷史時同步輪替 session，避免 checksum 將合法 reset 視為篡改
@@ -85,10 +83,10 @@ function mpu_toggleChatMode(enable) {
   const $input = jQuery("#mpu_user_input");
 
   if (typeof enable === "undefined") {
-    enable = !mpuChatModeActive;
+    enable = !window.mpuChatModeActive;
   }
 
-  mpuChatModeActive = enable;
+  window.mpuChatModeActive = enable;
 
   if (enable) {
     // 進入對話模式
@@ -426,9 +424,10 @@ function mpu_sendUserMessage() {
   mpuChatAbortController = new AbortController();
 
   // 添加用戶訊息到歷史（用於上下文，但不顯示）
-  mpuChatHistory.push({
+  window.mpuChatHistory.push({
     role: "user",
     content: message,
+    type: "chat",
     timestamp: Date.now(),
   });
 
@@ -438,7 +437,7 @@ function mpu_sendUserMessage() {
   // 準備 FormData
   const formData = new FormData();
   formData.append("message", message);
-  formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+  formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-20)));
   if (chatSessionId) {
     formData.append("session_id", chatSessionId);
   }
@@ -499,13 +498,14 @@ function mpu_sendUserMessage() {
         onDone: (data) => {
           mpuChatRequesting = false;
           $input.prop("disabled", false);
-          if (mpuChatModeActive) $input.focus();
+          if (window.mpuChatModeActive) $input.focus();
 
           if (data.msg) {
             const finalMsg = data.msg;
-            mpuChatHistory.push({
+            window.mpuChatHistory.push({
               role: "assistant",
               content: finalMsg,
+              type: "chat",
               timestamp: Date.now(),
             });
             mpu_saveChatHistory();
@@ -530,13 +530,13 @@ function mpu_sendUserMessage() {
         onError: (error) => {
           mpuChatRequesting = false;
           $input.prop("disabled", false);
-          if (mpuChatModeActive) $input.focus();
+          if (window.mpuChatModeActive) $input.focus();
           // [Fix 漏洞 4] 錯誤時撤回已 push 的 user 訊息，防止下一輪 checksum mismatch
           if (
-            mpuChatHistory.length > 0 &&
-            mpuChatHistory[mpuChatHistory.length - 1].role === "user"
+            window.mpuChatHistory.length > 0 &&
+            window.mpuChatHistory[window.mpuChatHistory.length - 1].role === "user"
           ) {
-            mpuChatHistory.pop();
+            window.mpuChatHistory.pop();
             mpu_saveChatHistory();
           }
           mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
@@ -545,10 +545,10 @@ function mpu_sendUserMessage() {
         onAbort: () => {
           // [Fix 漏洞 8] abort 時撤回已 push 的 user 訊息，防止後端已寫 checksum 但前端缺少 assistant
           if (
-            mpuChatHistory.length > 0 &&
-            mpuChatHistory[mpuChatHistory.length - 1].role === "user"
+            window.mpuChatHistory.length > 0 &&
+            window.mpuChatHistory[window.mpuChatHistory.length - 1].role === "user"
           ) {
-            mpuChatHistory.pop();
+            window.mpuChatHistory.pop();
             mpu_saveChatHistory();
           }
           mpuChatRequesting = false;
@@ -572,14 +572,14 @@ function mpu_sendUserMessage() {
       cancelPrevious: true,
     })
       .then((res) => {
-        if (!mpuChatModeActive) {
+        if (!window.mpuChatModeActive) {
           mpuLogger.log("對話模式已關閉，捨棄本次 AI 回應");
           return;
         }
 
         if (res && res.msg && !res.error) {
           const aiResponse = res.msg;
-          mpuChatHistory.push({
+          window.mpuChatHistory.push({
             role: "assistant",
             content: aiResponse,
             timestamp: Date.now(),
@@ -605,14 +605,14 @@ function mpu_sendUserMessage() {
       .catch((error) => {
         // [Fix 漏洞 4] 錯誤時撤回已 push 的 user 訊息，防止下一輪 checksum mismatch
         if (
-          mpuChatHistory.length > 0 &&
-          mpuChatHistory[mpuChatHistory.length - 1].role === "user"
+          window.mpuChatHistory.length > 0 &&
+          window.mpuChatHistory[window.mpuChatHistory.length - 1].role === "user"
         ) {
-          mpuChatHistory.pop();
+          window.mpuChatHistory.pop();
           mpu_saveChatHistory();
         }
 
-        if (!mpuChatModeActive) {
+        if (!window.mpuChatModeActive) {
           mpuLogger.log("對話模式已關閉，捨棄錯誤訊息");
           return;
         }
@@ -623,7 +623,7 @@ function mpu_sendUserMessage() {
       .finally(() => {
         mpuChatRequesting = false;
         $input.prop("disabled", false);
-        if (mpuChatModeActive) {
+        if (window.mpuChatModeActive) {
           $input.focus();
         }
       });
@@ -651,7 +651,7 @@ jQuery(document).ready(function () {
     mpu_getOrCreateChatSessionId();
     mpuLogger.log(
       "頁面載入：對話歷史已載入，當前記錄數:",
-      mpuChatHistory.length,
+      window.mpuChatHistory.length,
     );
   }
 

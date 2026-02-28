@@ -70,8 +70,8 @@ function mpu_greet_first_visitor(settings) {
         if (greetSessionId) {
           formData.append("session_id", greetSessionId);
         }
-        if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
-          formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+        if (typeof window.mpuChatHistory !== "undefined" && window.mpuChatHistory.length > 0) {
+          formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-10)));
         }
 
         return mpuFetch(mpuRestUrl + "chat/greet", {
@@ -108,12 +108,20 @@ function mpu_greet_first_visitor(settings) {
 
           // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
           if (
-            typeof mpuChatHistory !== "undefined" &&
-            Array.isArray(mpuChatHistory)
+            typeof window.mpuChatHistory !== "undefined" &&
+            Array.isArray(window.mpuChatHistory)
           ) {
-            mpuChatHistory.push({
+            // synthetic user 錨點：讓 LLM 能在後續對話中看到初次問候的完整脈絡
+            window.mpuChatHistory.push({
+              role: "user",
+              content: "（新しい訪客が来た）",
+              type: "synthetic",
+              timestamp: Date.now(),
+            });
+            window.mpuChatHistory.push({
               role: "assistant",
               content: res.msg,
+              type: "greet",
               timestamp: Date.now(),
             });
 
@@ -127,7 +135,7 @@ function mpu_greet_first_visitor(settings) {
             }
           } else {
             mpuLogger.warn(
-              "mpu_greet_first_visitor: mpuChatHistory 未初始化或不是陣列，無法加入對話歷史",
+              "mpu_greet_first_visitor: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史",
             );
           }
 

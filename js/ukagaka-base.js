@@ -7,6 +7,41 @@ let mpuDefaultMsg = mpuDefaultMsgInitial;
 let mpuAutoTalk = false;                // 自動對話開關，預設關閉
 let mpuAutoTalkInterval = 12000;        // 自動對話間隔時間（毫秒），預設 12 秒
 let mpuAutoTalkTimer = null;            // 自動對話計時器
+
+// F5/Reload 偵測：重整時清空對話記憶與 Session ID（SPA 路由切換不觸發，只有真正的 reload 才清空）
+(function () {
+  var isReload = false;
+  // 優先使用 PerformanceNavigationTiming（現代瀏覽器）
+  if (window.performance && typeof performance.getEntriesByType === "function") {
+    var navEntries = performance.getEntriesByType("navigation");
+    if (navEntries.length > 0 && navEntries[0].type === "reload") {
+      isReload = true;
+    }
+  }
+  // Fallback：performance.navigation（舊瀏覽器相容，已 deprecated 但廣泛支援）
+  if (!isReload && window.performance && performance.navigation) {
+    if (performance.navigation.type === 1) {
+      isReload = true;
+    }
+  }
+  if (isReload) {
+    try {
+      localStorage.removeItem("mpuChatHistory");
+      localStorage.removeItem("mpuChatSessionId");
+    } catch (e) {
+      // localStorage 不可用時靜默略過
+    }
+    // mpuLogger 尚未定義，使用 console
+    if (window.console) {
+      console.log("[MPU] \uD83D\uDD04 偵測到頁面重整，清空對話記憶與 Session ID");
+    }
+  }
+})();
+
+// 對話歷史與 Session ID 全域共享（確保各個 JS 模組同步，避免 Checksum Mismatch）
+window.mpuChatHistory = window.mpuChatHistory || [];
+window.mpuChatSessionId = window.mpuChatSessionId || "";
+
 let debugMode = (typeof window !== 'undefined' && window.mpuDebugMode === true) || false; // 調試模式，可在瀏覽器控制台輸入 window.mpuDebugMode = true 啟用
 let mpuAiTextColor = "#000000";         // AI 對話文字顏色
 let mpuAiDisplayDuration = 8;           // AI 對話顯示時間（秒）

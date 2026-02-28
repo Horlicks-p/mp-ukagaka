@@ -1145,6 +1145,26 @@
                   window.mpuEmojiManager.showEmoji(res.emoji);
                 }
 
+                // 記錄裝飾物對話到歷史，讓互動對話模式能記得此次觸摸反應
+                if (typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+                  // synthetic user 錨點：讓 LLM 能在後續對話中看到裝飾物觸摸的完整脈絡
+                  window.mpuChatHistory.push({
+                    role: "user",
+                    content: "（装飾品に触れた）",
+                    type: "synthetic",
+                    timestamp: Date.now(),
+                  });
+                  window.mpuChatHistory.push({
+                    role: "assistant",
+                    content: res.msg,
+                    type: "touch_decoration",
+                    timestamp: Date.now(),
+                  });
+                  if (typeof mpu_saveChatHistory === "function") {
+                    mpu_saveChatHistory();
+                  }
+                }
+
                 this.waitForTypewriterAndRestore();
               } else {
                 const errorMsg = res?.error || "發生錯誤，請稍後再試";
@@ -1430,6 +1450,26 @@
 
                 if (res.emoji && typeof mpuEmojiManager !== "undefined") {
                   mpuEmojiManager.showEmoji(res.emoji);
+                }
+
+                // 記錄身體觸摸對話到歷史，讓互動對話模式能記得此次觸摸反應
+                if (typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+                  // synthetic user 錨點：讓 LLM 能在後續對話中看到身體觸摸的完整脈絡
+                  window.mpuChatHistory.push({
+                    role: "user",
+                    content: "（芙莉蓮の体に触れた）",
+                    type: "synthetic",
+                    timestamp: Date.now(),
+                  });
+                  window.mpuChatHistory.push({
+                    role: "assistant",
+                    content: res.msg,
+                    type: "touch_zone",
+                    timestamp: Date.now(),
+                  });
+                  if (typeof mpu_saveChatHistory === "function") {
+                    mpu_saveChatHistory();
+                  }
                 }
               }
 

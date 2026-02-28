@@ -389,8 +389,8 @@ function mpu_chat_context() {
   if (contextSessionId) {
     formData.append("session_id", contextSessionId);
   }
-  if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
-    formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+  if (typeof window.mpuChatHistory !== "undefined" && window.mpuChatHistory.length > 0) {
+    formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-10)));
   }
 
   mpuFetch(mpuRestUrl + "chat/context", {
@@ -426,12 +426,20 @@ function mpu_chat_context() {
         // 記憶功能：將頁面感知對話存入對話歷史
         // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話
         if (
-          typeof mpuChatHistory !== "undefined" &&
-          Array.isArray(mpuChatHistory)
+          typeof window.mpuChatHistory !== "undefined" &&
+          Array.isArray(window.mpuChatHistory)
         ) {
-          mpuChatHistory.push({
+          // synthetic user 錨點：讓 LLM 能在後續對話中看到頁面感知的完整脈絡
+          window.mpuChatHistory.push({
+            role: "user",
+            content: "（ページの内容を感知した）",
+            type: "synthetic",
+            timestamp: Date.now(),
+          });
+          window.mpuChatHistory.push({
             role: "assistant",
             content: res.msg,
+            type: "context",
             timestamp: Date.now(),
           });
 

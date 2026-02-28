@@ -848,3 +848,65 @@ STORE 與 VERIFY 兩端都經由相同的 `slice(-10) + normalize + filter(assis
 - `ukagaka-core.js:691`（`mpu_nextmsg` AJAX 路徑）原本就沒有角色偏置過濾，此次未動
 - auto-talk 大量發話時，orphaned assistant 會佔用 `slice(-10)` 的部分窗口，但 backend normalize 會全部移除，不影響 checksum 正確性
 - 若使用者長時間放置（auto-talk 累積多則），AI 在 user chat 中可能「不記得」先前的 auto-talk 內容，屬設計上的取捨，非 bug
+
+---
+
+## 2026-02-28 第二輪診斷：Auto-talk 歷史不完整 & window 全域化
+
+### 新 mismatch log 案例
+
+```
+source=akismet-integration.php:92  stored_at=2026-02-28 11:57:58
+STORE: [{"role":"assistant","content":"いいね、一緒に食べるの楽しみだね。"}]
+VERIFY: []   ← verify history 只有 [user]，filter 後無 assistant
+```
+
+### 診斷：Touch / Decoration 互動未記錄歷史（根本缺口）
+
+auto-talk 各路徑的 `mpuChatHistory` 覆蓋情況：
+
+| 路徑 | push 到 mpuChatHistory？ | 寫入 checksum？ |
+|---|---|---|
+| `mpu_nextmsg`（auto-talk） | ✅ | ✅ |
+| `mpu_chat_context`（頁面感知） | ✅ | ✅ |
+| `mpu_greet_first_visitor`（打招呼） | ✅ | ✅ |
+| `mpu_checkSpamEvent`（Bot/Akismet/Turnstile） | ✅ | ✅ |
+| `handleDecorationClick`（裝飾物觸摸） | ❌ → **已修正** | ❌（touch 不寫 checksum，正確） |
+| `handleTouchZone`（身體觸摸） | ❌ → **已修正** | ❌（touch 不寫 checksum，正確） |
+
+### 修正內容（2026-02-28）
+
+#### 1. `ghost/Frieren/frieren.js` — touch/decoration 加入歷史記錄
+
+- `handleDecorationClick` `.then()` 成功分支加入：
+  ```js
+  window.mpuChatHistory.push({ role: "assistant", content: res.msg, timestamp: Date.now() });
+  mpu_saveChatHistory();
+  ```
+- `handleTouchZone` `.then()` 成功分支同上
+
+Touch 端點（`/touch/decoration`、`/touch/zone`）本身不寫 checksum，此修正純為讓 chat 模式的 AI 能「記得」觸摸互動。
+
+#### 2. `window.mpuChatHistory` 全域化
+
+由外部工具變更：將 `let mpuChatHistory = []`（`ukagaka-chat.js`）改為 `window.mpuChatHistory`，並在 `ukagaka-base.js` 初始化。
+
+- 對 bundled 情境無功能差異（`let` 在同一份 script scope 已共用）
+- 但使全域意圖更明確，並讓 `frieren.js`（獨立載入的 ghost script）也能透過 `window.mpuChatHistory` 正確存取
+
+#### 3. 統一剩餘引用
+
+`ukagaka-chat.js` 殘留的 `mpuChatHistory.*` 引用（line 427, 439, 504, 652, 500 的 `mpuChatModeActive`）全部補上 `window.` 前綴。
+
+### Akismet 特定 mismatch 的可能時序
+
+Akismet path 本身 DOES push 到 `mpuChatHistory`。新 log 中的 mismatch 可能成因：
+
+- **孤立 user message**：mpuChatHistory 在 Akismet 觸發時含有未配對的 `{user}` 訊息（舊請求失敗但 rollback 未執行）→ backend 以 `[{user}, {assistant}]` 計算 checksum；之後某事件清掉了這個 user 訊息，下一輪 verify 時前端歷史中沒有對應 assistant
+- checksum 已為觀測模式（非阻斷），此 mismatch 不影響功能，繼續觀察
+
+### 排查提示（更新）
+
+- 若 mismatch source 為 `frieren.js` 相關：確認已部署新版（含 touch push）
+- 若 source 為 `akismet-integration.php`：檢查前端歷史在觸發時是否有孤立 user 訊息
+- 觀測模式下 mismatch 只記 log 不中斷，可持續觀察 `logs/checksum-mismatch.log`

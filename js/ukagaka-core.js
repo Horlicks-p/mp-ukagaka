@@ -411,10 +411,18 @@ function mpu_checkSpamEvent(callback) {
           }
 
           // [Fix] 將安全事件 AI 回應加入對話歷史，讓用戶開對話視窗時 chat/user verify 不會失敗
-          if (typeof mpuChatHistory !== "undefined" && Array.isArray(mpuChatHistory)) {
-            mpuChatHistory.push({
+          if (typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+            // synthetic user 錨點：讓 LLM 能在後續對話中看到此事件的完整脈絡
+            window.mpuChatHistory.push({
+              role: "user",
+              content: "（システムイベントを感知した）",
+              type: "synthetic",
+              timestamp: Date.now(),
+            });
+            window.mpuChatHistory.push({
               role: "assistant",
               content: res.msg,
+              type: "event",
               timestamp: Date.now(),
             });
             if (typeof mpu_saveChatHistory === "function") {
@@ -685,17 +693,25 @@ function mpu_nextmsg(trigger) {
 
           // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
           if (
-            typeof mpuChatHistory !== "undefined" &&
-            Array.isArray(mpuChatHistory)
+            typeof window.mpuChatHistory !== "undefined" &&
+            Array.isArray(window.mpuChatHistory)
           ) {
-            mpuChatHistory.push({
+            // synthetic user 錨點：讓 LLM 能在後續對話中看到自語的完整脈絡
+            window.mpuChatHistory.push({
+              role: "user",
+              content: "（独り言）",
+              type: "synthetic",
+              timestamp: Date.now(),
+            });
+            window.mpuChatHistory.push({
               role: "assistant",
               content: res.msg,
+              type: "auto_talk",
               timestamp: Date.now(),
             });
             mpuLogger.log(
               "mpu_nextmsg: 自發對話已加入對話歷史，當前歷史長度:",
-              mpuChatHistory.length,
+              window.mpuChatHistory.length,
             );
             if (typeof mpu_saveChatHistory === "function") {
               mpu_saveChatHistory();
@@ -707,7 +723,7 @@ function mpu_nextmsg(trigger) {
             }
           } else {
             mpuLogger.warn(
-              "mpu_nextmsg: mpuChatHistory 未初始化或不是陣列，無法加入對話歷史",
+              "mpu_nextmsg: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史",
             );
           }
 
