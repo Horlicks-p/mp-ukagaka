@@ -705,7 +705,7 @@ function mpu_nextmsg(trigger) {
             });
             window.mpuChatHistory.push({
               role: "assistant",
-              content: res.msg,
+              content: out,
               type: "auto_talk",
               timestamp: Date.now(),
             });
@@ -925,6 +925,13 @@ function mpu_nextmsg(trigger) {
       mpu_showmsg(400);
     }
 
+    // 將傳統對話加入歷史，確保互動對話模式有完整脈絡
+    if (out && typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+      window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
+      window.mpuChatHistory.push({ role: "assistant", content: mpu_unescapeHTML(out), type: "auto_talk", timestamp: Date.now() });
+      if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
+    }
+
     // ⚠️ 傳統對話流程：等待打字完成後重啟自動對話計時器
     if (mpuAutoTalk && !mpuAutoTalkTimer) {
       mpuLogger.log("mpu_nextmsg: 傳統對話，等待打字完成後啟動計時器");
@@ -1005,6 +1012,13 @@ function mpu_nextmsg_fallback() {
 
     $msgnum.html(msgNum);
     mpu_showmsg(400);
+
+    // 將 fallback 對話加入歷史，確保互動對話模式有完整脈絡
+    if (out && typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+      window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
+      window.mpuChatHistory.push({ role: "assistant", content: mpu_unescapeHTML(out), type: "auto_talk", timestamp: Date.now() });
+      if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
+    }
   }, 400);
 }
 

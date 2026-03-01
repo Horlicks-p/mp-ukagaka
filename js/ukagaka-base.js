@@ -26,8 +26,8 @@ let mpuAutoTalkTimer = null;            // 自動對話計時器
   }
   if (isReload) {
     try {
-      localStorage.removeItem("mpuChatHistory");
-      localStorage.removeItem("mpuChatSessionId");
+      localStorage.removeItem("mpu_chat_history");
+      localStorage.removeItem("mpu_chat_session_id");
     } catch (e) {
       // localStorage 不可用時靜默略過
     }

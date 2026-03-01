@@ -210,10 +210,14 @@ function mpu_toggleChatMode(enable) {
           const msgArr = window.mpuMsgList.msg;
           const auto = window.mpuMsgList.auto_msg || "";
           const randomIdx = Math.floor(Math.random() * msgArr.length);
-          mpu_typewriter(
-            mpu_unescapeHTML(msgArr[randomIdx] + auto),
-            "#ukagaka_msg",
-          );
+          const exitContent = mpu_unescapeHTML(msgArr[randomIdx] + auto);
+          mpu_typewriter(exitContent, "#ukagaka_msg");
+          // 將隨機對話加入歷史，確保下次開啟互動對話模式有完整脈絡
+          if (exitContent && Array.isArray(window.mpuChatHistory)) {
+            window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
+            window.mpuChatHistory.push({ role: "assistant", content: exitContent, type: "auto_talk", timestamp: Date.now() });
+            if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
+          }
         }
 
         // 恢復自動對話

@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-02-28T09:43:12.663Z
+ * Generated: 2026-02-28T14:28:45.077Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -34,8 +34,8 @@ let mpuAutoTalkTimer = null;            // 自動對話計時器
   }
   if (isReload) {
     try {
-      localStorage.removeItem("mpuChatHistory");
-      localStorage.removeItem("mpuChatSessionId");
+      localStorage.removeItem("mpu_chat_history");
+      localStorage.removeItem("mpu_chat_session_id");
     } catch (e) {
       // localStorage 不可用時靜默略過
     }
@@ -1668,7 +1668,7 @@ function mpu_nextmsg(trigger) {
             });
             window.mpuChatHistory.push({
               role: "assistant",
-              content: res.msg,
+              content: out,
               type: "auto_talk",
               timestamp: Date.now(),
             });
@@ -1888,6 +1888,13 @@ function mpu_nextmsg(trigger) {
       mpu_showmsg(400);
     }
 
+    // 將傳統對話加入歷史，確保互動對話模式有完整脈絡
+    if (out && typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+      window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
+      window.mpuChatHistory.push({ role: "assistant", content: mpu_unescapeHTML(out), type: "auto_talk", timestamp: Date.now() });
+      if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
+    }
+
     // ⚠️ 傳統對話流程：等待打字完成後重啟自動對話計時器
     if (mpuAutoTalk && !mpuAutoTalkTimer) {
       mpuLogger.log("mpu_nextmsg: 傳統對話，等待打字完成後啟動計時器");
@@ -1968,6 +1975,13 @@ function mpu_nextmsg_fallback() {
 
     $msgnum.html(msgNum);
     mpu_showmsg(400);
+
+    // 將 fallback 對話加入歷史，確保互動對話模式有完整脈絡
+    if (out && typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+      window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
+      window.mpuChatHistory.push({ role: "assistant", content: mpu_unescapeHTML(out), type: "auto_talk", timestamp: Date.now() });
+      if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
+    }
   }, 400);
 }
 
@@ -4194,10 +4208,14 @@ function mpu_toggleChatMode(enable) {
           const msgArr = window.mpuMsgList.msg;
           const auto = window.mpuMsgList.auto_msg || "";
           const randomIdx = Math.floor(Math.random() * msgArr.length);
-          mpu_typewriter(
-            mpu_unescapeHTML(msgArr[randomIdx] + auto),
-            "#ukagaka_msg",
-          );
+          const exitContent = mpu_unescapeHTML(msgArr[randomIdx] + auto);
+          mpu_typewriter(exitContent, "#ukagaka_msg");
+          // 將隨機對話加入歷史，確保下次開啟互動對話模式有完整脈絡
+          if (exitContent && Array.isArray(window.mpuChatHistory)) {
+            window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
+            window.mpuChatHistory.push({ role: "assistant", content: exitContent, type: "auto_talk", timestamp: Date.now() });
+            if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
+          }
         }
 
         // 恢復自動對話

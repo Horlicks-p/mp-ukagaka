@@ -989,3 +989,86 @@ $integrity_check = mpu_chat_integrity_verify_history($chat_session_id, $history_
 - STORE（所有非 user-chat 端點）：只計入前端歷史中 `type='chat'` 的 assistant，新 auto-talk / event / context / greet assistant 不進入 checksum
 - VERIFY（user-chat）：同上，使用相同的 10 件窗口 + normalize + filter('chat') 路徑
 - 兩端 checksum 邏輯完全對稱，mismatch 應大幅減少（主要殘留來源：孤立 user 訊息、跨 session 邊緣情境）
+
+---
+
+## 2026-02-28 第四輪修正：前端顯示/記憶不一致（fallback / 傳統路徑 / exit dialog 未記錄）
+
+### 診斷依據
+
+透過 `logs/checksum-mismatch.log` 與對話體感分析，確認三個共同造成「使用者看得到、AI 記不住」斷層的前端路徑：
+
+### 根因 A：`mpu_nextmsg_fallback()` 顯示但不記錄
+
+`js/ukagaka-core.js:940`—當 LLM 失敗（rate limit、無 msg、error）時呼叫 fallback，從本地對話清單顯示隨機台詞，但未 push 到 `window.mpuChatHistory`。使用者若因此看見並回應該台詞，下一輪互動對話 AI 完全不知道曾發生什麼。
+
+### 根因 B：傳統非 LLM 對話路徑（`mpuOllamaReplaceDialogue === false`）不記錄
+
+`js/ukagaka-core.js:850`—未啟用 LLM 自發對話時走本地對話清單，同樣只顯示不記錄。
+
+### 根因 C：`mpu_toggleChatMode(false)` exit random dialog 不記錄
+
+`js/ukagaka-chat.js:210`—關閉互動對話模式後 5 秒，會隨機顯示一句本地對話（作為「再見」台詞），但未 push 到 `mpuChatHistory`。使用者若稍後重新開啟對話並回應這句話，AI 無法建立關聯。
+
+### 次要根因 D：LLM 成功路徑存入 `res.msg` 而非顯示用 `out`
+
+`js/ukagaka-core.js:706`—顯示時使用 `out = res.msg + auto_msg`，但 history 只存 `res.msg`，造成「看到的句子比記憶的長」體感差異。
+
+### 修正內容（2026-02-28）
+
+#### Fix 1：LLM 成功路徑 — 統一存入顯示字串
+
+```js
+// before
+content: res.msg
+
+// after（與 UI 顯示內容 out = res.msg + auto_msg 對齊）
+content: out
+```
+
+修正位置：`js/ukagaka-core.js` LLM 成功路徑的 `mpuChatHistory.push`（assistant）。
+
+#### Fix 2：傳統非 LLM 路徑 — 補成對 push
+
+```js
+// 補在顯示後、auto-talk 計時器啟動前
+if (out && typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+  window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
+  window.mpuChatHistory.push({ role: "assistant", content: mpu_unescapeHTML(out), type: "auto_talk", timestamp: Date.now() });
+  if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
+}
+```
+
+修正位置：`js/ukagaka-core.js:928`（傳統路徑顯示後）。
+
+#### Fix 3：`mpu_nextmsg_fallback()` — 補成對 push
+
+同 Fix 2 的成對 push，加在 fallback 函式的 `mpu_showmsg(400)` 之後。
+
+修正位置：`js/ukagaka-core.js:1016`。
+
+#### Fix 4：exit random dialog — 補成對 push
+
+```js
+const exitContent = mpu_unescapeHTML(msgArr[randomIdx] + auto);
+mpu_typewriter(exitContent, "#ukagaka_msg");
+if (exitContent && Array.isArray(window.mpuChatHistory)) {
+  window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
+  window.mpuChatHistory.push({ role: "assistant", content: exitContent, type: "auto_talk", timestamp: Date.now() });
+  if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
+}
+```
+
+修正位置：`js/ukagaka-chat.js:213`（exit random dialog 顯示後）。
+
+### 設計選擇
+
+- **`type: 'auto_talk'` 流用**：不引入新 type，`auto_talk` 已在 `class-mpu-rest-chat.php` 白名單（line 634）且被 `mpu_chat_integrity_filter_messages()` 自動排除於 checksum 計算之外，零副作用。
+- **成對寫入原則**：`synthetic user + assistant` 配對，確保 backend normalize 不會因孤立 assistant 被丟棄而失去脈絡。
+- **`mpu_unescapeHTML(out)`**：本地對話清單可能含 HTML entities，存入 history 前先展開為純文字，LLM 讀取更自然。
+
+### 修正後預期行為
+
+- 所有前端顯示路徑（LLM 成功 / 傳統 / fallback / exit dialog）均寫入 `mpuChatHistory`
+- 使用者看到並回應的任何台詞，下一輪互動對話 AI 均能在上下文中讀到
+- Checksum 不受影響（`auto_talk` 不進入 filter）

@@ -5,30 +5,31 @@
 **目標：** 使用者在任何時間點打開對話視窗時，芙莉蓮都能記得最近 20 則互動（含 auto-talk、touch、greet、bot 感知、user chat），且時序完整保留。
 
 **生命週期策略：**
+
 - 同一頁生命週期（SPA 內路由切換）→ 保留記憶（最多 40 entries）
-- F5 / 瀏覽器重整（reload）→ 清空 `mpuChatHistory` 與 `mpuChatSessionId`，重新開始
+- F5 / 瀏覽器重整（reload）→ 清空 mpu_chat_history 與 mpu_chat_session_id，重新開始
 
 ---
 
 ## 0. 需求情境（使用者確認的 5 個場景）
 
-| # | 場景 |
-|---|---|
-| 1 | 自言自語 → Bot 感知 → user 回饋 → 芙莉蓮記得 bot 感知時說的話 → 對話持續 |
-| 2 | 自言自語 → 頁面感知 → user 回饋 → 芙莉蓮記得感知時說的話 → 對話持續 |
-| 3 | 自言自語 → user 觸摸裝飾品/身體 → 芙莉蓮反饋 → user 根據反饋再回 → 對話持續 |
-| 4 | 自言自語 → user 接著回饋 → 芙莉蓮記得自語內容 → 對話持續 |
-| 5 | Bot 感知 → user 回饋 → 芙莉蓮記得 → user 觸摸 → 芙莉蓮反饋 → user 再回 → 對話持續 |
+| #   | 場景                                                                              |
+| --- | --------------------------------------------------------------------------------- |
+| 1   | 自言自語 → Bot 感知 → user 回饋 → 芙莉蓮記得 bot 感知時說的話 → 對話持續          |
+| 2   | 自言自語 → 頁面感知 → user 回饋 → 芙莉蓮記得感知時說的話 → 對話持續               |
+| 3   | 自言自語 → user 觸摸裝飾品/身體 → 芙莉蓮反饋 → user 根據反饋再回 → 對話持續       |
+| 4   | 自言自語 → user 接著回饋 → 芙莉蓮記得自語內容 → 對話持續                          |
+| 5   | Bot 感知 → user 回饋 → 芙莉蓮記得 → user 觸摸 → 芙莉蓮反饋 → user 再回 → 對話持續 |
 
 ---
 
 ## 1. v1 計畫缺陷（Codex 審查）
 
-| 編號 | 問題 | 嚴重度 |
-|---|---|---|
-| C1 | 「記住 20 則」目標 vs 實作「chat 10 + 非 chat 8」，數字不一致 | 需求對齊 |
-| C2 | chatTurns / activity_memory 分兩通道，模型只看到兩段摘要，時序丟失，情境 5 無法支援 | 架構錯誤 |
-| C3 | activity_memory 完全由前端送入，直接注入 system prompt，來源真實性無機制 | 信任邊界 |
+| 編號 | 問題                                                                                | 嚴重度   |
+| ---- | ----------------------------------------------------------------------------------- | -------- |
+| C1   | 「記住 20 則」目標 vs 實作「chat 10 + 非 chat 8」，數字不一致                       | 需求對齊 |
+| C2   | chatTurns / activity_memory 分兩通道，模型只看到兩段摘要，時序丟失，情境 5 無法支援 | 架構錯誤 |
+| C3   | activity_memory 完全由前端送入，直接注入 system prompt，來源真實性無機制            | 信任邊界 |
 
 ---
 
@@ -58,14 +59,14 @@ assistant: "うん、今日のは特別美味しかった…"      ← LLM 看�
 
 ### 2.3 Synthetic 訊息標籤（依角色語言設定）
 
-| 互動類型 | Synthetic user 標籤（日語） | 中文備選 |
-|---|---|---|
-| `auto_talk` | `（芙莉蓮の独り言）` | `（芙莉蓮自言自語）` |
-| `greet` | `（訪問者が来た）` | `（訪客到來）` |
-| `context` | `（ページの内容を感知した）` | `（感知到頁面內容）` |
-| `event` | `（イベントを感知した）` | `（感知到系統事件）` |
-| `touch_decoration` | `（装飾品に触れた）` | `（裝飾品被觸摸）` |
-| `touch_zone` | `（身体に触れた）` | `（身體被觸碰）` |
+| 互動類型           | Synthetic user 標籤（日語）  | 中文備選             |
+| ------------------ | ---------------------------- | -------------------- |
+| `auto_talk`        | `（芙莉蓮の独り言）`         | `（芙莉蓮自言自語）` |
+| `greet`            | `（訪問者が来た）`           | `（訪客到來）`       |
+| `context`          | `（ページの内容を感知した）` | `（感知到頁面內容）` |
+| `event`            | `（イベントを感知した）`     | `（感知到系統事件）` |
+| `touch_decoration` | `（装飾品に触れた）`         | `（裝飾品被觸摸）`   |
+| `touch_zone`       | `（身体に触れた）`           | `（身體被觸碰）`     |
 
 標籤語言可依 `mpu_opt['ai_language']` 動態選擇。
 
@@ -91,16 +92,16 @@ assistant: "うん、今日のは特別美味しかった…"      ← LLM 看�
 
 `type` 值表：
 
-| type | 描述 |
-|---|---|
-| `"chat"` | 真實 user 輸入或對應 assistant 回應 |
-| `"synthetic"` | 非 user 互動的錨點 user 訊息 |
-| `"auto_talk"` | 自言自語 assistant 回應 |
-| `"greet"` | 打招呼 assistant 回應 |
-| `"context"` | 頁面感知 assistant 回應 |
-| `"event"` | Bot/Akismet 事件 assistant 回應 |
-| `"touch_decoration"` | 裝飾物觸摸 assistant 回應 |
-| `"touch_zone"` | 身體觸摸 assistant 回應 |
+| type                 | 描述                                |
+| -------------------- | ----------------------------------- |
+| `"chat"`             | 真實 user 輸入或對應 assistant 回應 |
+| `"synthetic"`        | 非 user 互動的錨點 user 訊息        |
+| `"auto_talk"`        | 自言自語 assistant 回應             |
+| `"greet"`            | 打招呼 assistant 回應               |
+| `"context"`          | 頁面感知 assistant 回應             |
+| `"event"`            | Bot/Akismet 事件 assistant 回應     |
+| `"touch_decoration"` | 裝飾物觸摸 assistant 回應           |
+| `"touch_zone"`       | 身體觸摸 assistant 回應             |
 
 ### 3.2 各路徑 push 方式（以 frieren.js 為例）
 
@@ -108,16 +109,16 @@ assistant: "うん、今日のは特別美味しかった…"      ← LLM 看�
 // handleDecorationClick 成功回應後
 const syntheticLabel = mpuL10n?.touchDecorationLabel || "（装飾品に触れた）";
 window.mpuChatHistory.push({
-    role: "user",
-    content: syntheticLabel,
-    type: "synthetic",
-    timestamp: Date.now(),
+  role: "user",
+  content: syntheticLabel,
+  type: "synthetic",
+  timestamp: Date.now(),
 });
 window.mpuChatHistory.push({
-    role: "assistant",
-    content: res.msg,
-    type: "touch_decoration",
-    timestamp: Date.now(),
+  role: "assistant",
+  content: res.msg,
+  type: "touch_decoration",
+  timestamp: Date.now(),
 });
 mpu_saveChatHistory();
 ```
@@ -126,16 +127,16 @@ mpu_saveChatHistory();
 // ukagaka-core.js mpu_nextmsg（auto-talk）回應後
 const syntheticLabel = mpuL10n?.autoTalkLabel || "（芙莉蓮の独り言）";
 window.mpuChatHistory.push({
-    role: "user",
-    content: syntheticLabel,
-    type: "synthetic",
-    timestamp: Date.now(),
+  role: "user",
+  content: syntheticLabel,
+  type: "synthetic",
+  timestamp: Date.now(),
 });
 window.mpuChatHistory.push({
-    role: "assistant",
-    content: autoTalkMsg,
-    type: "auto_talk",
-    timestamp: Date.now(),
+  role: "assistant",
+  content: autoTalkMsg,
+  type: "auto_talk",
+  timestamp: Date.now(),
 });
 mpu_saveChatHistory();
 ```
@@ -163,11 +164,11 @@ formData.append("history", JSON.stringify(historyToSend));
 
 **localStorage vs sessionStorage 比較：**
 
-| 儲存方式 | SPA 路由切換 | F5 重整 | 關 Tab |
-|---|---|---|---|
-| localStorage（現況） | 保留 ✅ | 保留 ❌（不會清） | 保留 |
-| sessionStorage | 保留 ✅ | 保留 ❌（仍不清） | 清空 ✅ |
-| localStorage + reload 偵測 | 保留 ✅ | **主動清空 ✅** | 保留 |
+| 儲存方式                   | SPA 路由切換 | F5 重整           | 關 Tab  |
+| -------------------------- | ------------ | ----------------- | ------- |
+| localStorage（現況）       | 保留 ✅      | 保留 ❌（不會清） | 保留    |
+| sessionStorage             | 保留 ✅      | 保留 ❌（仍不清） | 清空 ✅ |
+| localStorage + reload 偵測 | 保留 ✅      | **主動清空 ✅**   | 保留    |
 
 → **採用 localStorage + reload 偵測**（sessionStorage 在 F5 後仍保留，不符合需求）。
 
@@ -176,40 +177,41 @@ formData.append("history", JSON.stringify(historyToSend));
 ```js
 // ukagaka-base.js — 初始化段落，在 mpuChatHistory / mpuChatSessionId 初始化之前執行
 (function () {
-    var isReload = false;
+  var isReload = false;
 
-    // 方法一：PerformanceNavigationTiming（現代瀏覽器）
-    if (window.performance && performance.getEntriesByType) {
-        var navEntries = performance.getEntriesByType("navigation");
-        if (navEntries.length > 0 && navEntries[0].type === "reload") {
-            isReload = true;
-        }
+  // 方法一：PerformanceNavigationTiming（現代瀏覽器）
+  if (window.performance && performance.getEntriesByType) {
+    var navEntries = performance.getEntriesByType("navigation");
+    if (navEntries.length > 0 && navEntries[0].type === "reload") {
+      isReload = true;
     }
-    // 方法二：performance.navigation（舊瀏覽器相容）
-    if (!isReload && window.performance && performance.navigation) {
-        if (performance.navigation.type === 1) {
-            isReload = true;
-        }
+  }
+  // 方法二：performance.navigation（舊瀏覽器相容）
+  if (!isReload && window.performance && performance.navigation) {
+    if (performance.navigation.type === 1) {
+      isReload = true;
     }
+  }
 
-    if (isReload) {
-        // 清空 localStorage 中的 chat history 與 session id
-        try {
-            localStorage.removeItem("mpuChatHistory");
-            localStorage.removeItem("mpuChatSessionId");
-        } catch (e) {
-            // localStorage 不可用時靜默略過
-        }
-        mpuLogger.log("🔄 偵測到頁面重整，清空對話記憶與 Session ID");
+  if (isReload) {
+    // 清空 localStorage 中的 chat history 與 session id
+    try {
+      localStorage.removeItem("mpuChatHistory");
+      localStorage.removeItem("mpuChatSessionId");
+    } catch (e) {
+      // localStorage 不可用時靜默略過
     }
+    mpuLogger.log("🔄 偵測到頁面重整，清空對話記憶與 Session ID");
+  }
 })();
 
 // 之後再初始化（此時 localStorage 已是乾淨的）
-window.mpuChatHistory   = window.mpuChatHistory   || [];
+window.mpuChatHistory = window.mpuChatHistory || [];
 window.mpuChatSessionId = window.mpuChatSessionId || "";
 ```
 
 **注意事項：**
+
 - IIFE 在初始化之前執行，確保 `window.mpuChatHistory = [] || ...` 讀到的是清空後的空 localStorage
 - `performance.getEntriesByType("navigation")` 在所有現代瀏覽器（Chrome / Firefox / Safari / Edge）均支援
 - `performance.navigation.type` 是舊 API（已 deprecated），但作為 fallback 保留
@@ -328,11 +330,11 @@ function mpu_chat_integrity_filter_messages(array $messages) {
 
 ### 5.1 威脅分析
 
-| 攻擊向量 | 說明 | 實際風險 |
-|---|---|---|
-| 偽造 assistant 內容 | 前端注入假的「芙莉蓮說過X」 | 低：需要 JS console 存取；攻擊者即本機使用者，影響自己的 session |
-| 偽造 synthetic 標籤 | 偽造「（裝飾品被觸摸）」等事件標記 | 低：標籤只是 context hint，不觸發任何伺服器邏輯 |
-| 注入惡意 prompt | 在 content 裡塞 prompt injection | 已由 sanitize_textarea_field + 500 字上限緩解 |
+| 攻擊向量            | 說明                               | 實際風險                                                         |
+| ------------------- | ---------------------------------- | ---------------------------------------------------------------- |
+| 偽造 assistant 內容 | 前端注入假的「芙莉蓮說過X」        | 低：需要 JS console 存取；攻擊者即本機使用者，影響自己的 session |
+| 偽造 synthetic 標籤 | 偽造「（裝飾品被觸摸）」等事件標記 | 低：標籤只是 context hint，不觸發任何伺服器邏輯                  |
+| 注入惡意 prompt     | 在 content 裡塞 prompt injection   | 已由 sanitize_textarea_field + 500 字上限緩解                    |
 
 本插件的對話框是前台 JS 功能，歷史本就儲存在瀏覽器端（localStorage）。攻擊者若能修改前端 JS，也能直接操控 DOM，此威脅模型不超過現有邊界。
 
@@ -351,17 +353,17 @@ function mpu_chat_integrity_filter_messages(array $messages) {
 
 ## 6. 影響範圍總覽
 
-| 層 | 檔案 | 變更量 | 備注 |
-|---|---|---|---|
-| 前端 | `js/ukagaka-chat.js` | 中 | 移除兩通道，改單一 history；`MPU_MAX_CHAT_HISTORY` 調整至 40 |
-| 前端 | `js/ukagaka-core.js` | 小 | push 改為先 synthetic 後 assistant |
-| 前端 | `js/ukagaka-context.js` | 小 | 同上 |
-| 前端 | `js/ukagaka-greeting.js` | 小 | 同上 |
-| 前端 | `ghost/Frieren/frieren.js` | 小 | 同上 |
-| 後端 | `includes/rest/class-mpu-rest-chat.php` | 中 | 接收含 type 欄位的統一 history；normalize 確認邏輯 |
-| 後端 | `includes/llm/chat-integrity.php` | 小 | `filter_messages` 加 type === "chat" 判斷 |
-| 後端 | `includes/rest/class-mpu-rest-touch.php` | 無（Phase 4 選配） | — |
-| i18n | `ghost/Frieren/frieren.js` 或 `includes/core/frontend-functions.php` | 小 | synthetic 標籤需 i18n 或語言判斷 |
+| 層   | 檔案                                                                 | 變更量             | 備注                                                         |
+| ---- | -------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------ |
+| 前端 | `js/ukagaka-chat.js`                                                 | 中                 | 移除兩通道，改單一 history；`MPU_MAX_CHAT_HISTORY` 調整至 40 |
+| 前端 | `js/ukagaka-core.js`                                                 | 小                 | push 改為先 synthetic 後 assistant                           |
+| 前端 | `js/ukagaka-context.js`                                              | 小                 | 同上                                                         |
+| 前端 | `js/ukagaka-greeting.js`                                             | 小                 | 同上                                                         |
+| 前端 | `ghost/Frieren/frieren.js`                                           | 小                 | 同上                                                         |
+| 後端 | `includes/rest/class-mpu-rest-chat.php`                              | 中                 | 接收含 type 欄位的統一 history；normalize 確認邏輯           |
+| 後端 | `includes/llm/chat-integrity.php`                                    | 小                 | `filter_messages` 加 type === "chat" 判斷                    |
+| 後端 | `includes/rest/class-mpu-rest-touch.php`                             | 無（Phase 4 選配） | —                                                            |
+| i18n | `ghost/Frieren/frieren.js` 或 `includes/core/frontend-functions.php` | 小                 | synthetic 標籤需 i18n 或語言判斷                             |
 
 ---
 
@@ -389,10 +391,10 @@ Phase 4  選配：Transient 驗證機制（高安全需求時實作）
 
 ## 8. 情境驗證矩陣
 
-| 情境 | 對應設計 | Phase 1-3 後可支援 |
-|---|---|---|
-| 1. bot 感知 → user 回饋 → 芙莉蓮記得 | `event` synthetic pair 在 history 中 | ✅ |
-| 2. 頁面感知 → user 回饋 | `context` synthetic pair | ✅ |
-| 3. touch → user 接著聊 → 芙莉蓮記得 | `touch_*` synthetic pair | ✅ |
-| 4. 自語 → user 接著聊 → 芙莉蓮記得 | `auto_talk` synthetic pair | ✅ |
-| 5. 複雜交錯時序（bot→user→touch→user） | 單一統一 history 保持時序 | ✅ |
+| 情境                                   | 對應設計                             | Phase 1-3 後可支援 |
+| -------------------------------------- | ------------------------------------ | ------------------ |
+| 1. bot 感知 → user 回饋 → 芙莉蓮記得   | `event` synthetic pair 在 history 中 | ✅                 |
+| 2. 頁面感知 → user 回饋                | `context` synthetic pair             | ✅                 |
+| 3. touch → user 接著聊 → 芙莉蓮記得    | `touch_*` synthetic pair             | ✅                 |
+| 4. 自語 → user 接著聊 → 芙莉蓮記得     | `auto_talk` synthetic pair           | ✅                 |
+| 5. 複雜交錯時序（bot→user→touch→user） | 單一統一 history 保持時序            | ✅                 |
