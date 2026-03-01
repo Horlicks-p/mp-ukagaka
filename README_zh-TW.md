@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.12.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.12.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -20,7 +20,7 @@
 
 本外掛雖提供 **創建新角色人格** 的功能（詳見 [GHOST_CREATE_GUIDE.md](docs/GHOST_CREATE_GUIDE.md)），但由於開發精力主要投注在預設角色「芙莉蓮」的製作上，因此該功能尚未經過完整測試，敬請見諒。
 
-如果您只是想使用預設角色「芙莉蓮」，基本台詞已內建於外掛中，開箱即用。若想獲得更豐富、更具互動性的對話體驗，建議設定 AI 模型的 API Key。此外，角色記憶設定檔 [system_prompt.md](ghost/Frieren/system_prompt.md)（包含動畫第一期的劇情記憶）也已內建，但請記得將其中的 `{{admin_nickname}}` 與 `{{admin_name}}` 替換為您的暱稱，並將誕生日修改為符合您的設定。
+如果您只是想使用預設角色「芙莉蓮」，基本台詞已內建於外掛中，開箱即用。若想獲得更豐富、更具互動性的對話體驗，建議設定 AI 模型的 API Key 。此外，角色記憶設定檔（載入順序： [personality.md](ghost/Frieren/personality.md) 、 [instructions.md](ghost/Frieren/instructions.md) ，最後才是 [system_prompt.md](ghost/Frieren/system_prompt.md) ，包含動畫第一期的劇情記憶）也已內建，但請記得將其中的 `{{admin_nickname}}` 與 `{{admin_name}}` 替換為您的暱稱，並將誕生日修改為符合您的設定。
 
 ### AI 模型推薦
 
@@ -98,15 +98,13 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.12.0 新功能
+## 🎉 v2.12.5 新功能
 
-**SSE 串流輸出與打字機效果**：導入 Server-Sent Events (SSE) 協定，實現實時串流輸出。AI 的回應現在會以「打字機效果」即時呈現，大幅改善了長回覆或思考型模型（如 Ollama）的等待體驗。
+**統一歷史記憶 (Unified History)**：現在芙莉蓮能記得所有互動（自言自語、頁面感知、觸摸反應等）。透過實作「Synthetic User 錨點」技術，非對話式的回應現在也能完整保留在對話脈絡中，解決了角色扮演斷層。
 
-**全新串流端點**：新增專屬 REST 路由 `/chat/user-stream`，支援與現行非串流路徑完全一致的安全驗證、率限制與對話完整度檢查。全面支援 OpenAI（含工具呼叫）與 Ollama（含思考標記過濾）的串流輸出。
+**SSE 穩定性與 Checksum 稽核**：修復了多項導致 400 錯誤的漏洞。將 Checksum 從硬性阻斷改為**稽核觀測模式**，並新增 `logs/checksum-mismatch.log` 自動記錄數據差異。
 
-**架構優化與安全性**：完成 AI 提供商工廠模式（Factory Pattern）第二階段重構，架構更易擴充。正式實裝工具呼叫迴圈防護（Loop Guard），自動攔截 LLM 陷入無限重複請求，保障 API 帳單安全。
-
-**穩定性強化**：整合 `ignore_user_abort` 與 cURL 串流回呼機制，當使用者離線時能即時中斷 API 請求，防止「幽靈說話」並節省伺服器資源。
+**前端與 UX 優化**：將核心狀態遷移至 `window` 物件，提升穩定性。記憶容量**翻倍**（從 20 則提升至 40 則）。實作頁面生命週期管理，F5 重整時清空記憶，但 SPA 內部跳轉時保留記憶。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

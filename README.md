@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.12.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.12.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -20,7 +20,7 @@ This plugin is an extensively expanded version based on the original WordPress p
 
 While this plugin provides the **Create New Character Personality** feature (see [GHOST_CREATE_GUIDE.md](docs-en/GHOST_CREATE_GUIDE.md)), development efforts have primarily focused on the default character "Frieren". Therefore, this feature has not been fully tested. Your understanding is appreciated.
 
-If you simply want to use the default character "Frieren", basic dialogues are built-in and ready to use out of the box. For richer, more interactive conversations, we recommend configuring an AI model API Key. Additionally, the character memory configuration file [system_prompt.md](ghost/Frieren/system_prompt.md) (containing memories from anime Season 1) is also built-in. However, please remember to replace `{{admin_nickname}}` and `{{admin_name}}` with your preferred nicknames, and update the birthday to match your settings.
+If you simply want to use the default character "Frieren", basic dialogues are built-in and ready to use out of the box. For richer, more interactive conversations, we recommend configuring an AI model API Key. Additionally, the character memory configuration files (loading sequence: [personality.md](ghost/Frieren/personality.md), [instructions.md](ghost/Frieren/instructions.md), and then [system_prompt.md](ghost/Frieren/system_prompt.md), containing memories from anime Season 1) are also built-in. However, please remember to replace `{{admin_nickname}}` and `{{admin_name}}` with your preferred nicknames, and update the birthday to match your settings.
 
 ### AI Model Recommendations
 
@@ -98,15 +98,13 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.12.0
+## 🎉 What's New in v2.12.5
 
-**SSE Streaming & Typewriter Effect**: Introduced Server-Sent Events (SSE) protocol for real-time AI responses. The "Typewriter Effect" significantly improves user experience during long replies or for "thinking" models (e.g., Ollama).
+**Unified History Memory**: Frieren now remembers all interactions, including self-talk, page awareness, and touch reactions. Using "Synthetic User Anchor" technology, non-conversational responses are now fully preserved in the dialogue context, solving role-playing discontinuities.
 
-**New Streaming Endpoint**: Added a dedicated REST route `/chat/user-stream` with full security verification, rate limiting, and dialogue integrity checks. Fully supports streaming for OpenAI (tool calls) and Ollama (thinking mark filtering).
+**SSE Stability & Checksum Audit**: Fixed multiple long-standing bugs causing 400 errors. Introduced **Audit Mode** for Checksums (changing from hard blocking to audit observation) and added `logs/checksum-mismatch.log` for precise troubleshooting.
 
-**System Architecture & Safety**: Completed Stage 2 refactoring of the AI Provider Factory Pattern for better scalability. Implemented Tool Call Loop Detection (Loop Guard) to automatically intercept infinite loops and protect API quotas.
-
-**Stability Enhancements**: Integrated `ignore_user_abort` and cURL stream callbacks to prevent "ghost talking" and save server resources when users disconnect.
+**Frontend & UX Upgrades**: Migrated core states to the `window` object for stability. Memory capacity has been **doubled** (from 20 to 40 entries). Improved page lifecycle management to preserve memory during SPA transitions while clearing it on F5 refresh.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
