@@ -65,30 +65,6 @@ function mpu_get_personality_decoration_prompt($decoration_type, $personality_id
 }
 
 /**
- * Get decoration configuration for a specific type
- * 
- * @param string $decoration_type Decoration type
- * @param string|null $personality_id Personality ID, or null for current
- * @return array|null Decoration configuration, or null if not found
- */
-function mpu_get_personality_decoration_config($decoration_type, $personality_id = null)
-{
-    $decorations = mpu_load_personality_decorations($personality_id);
-
-    if (empty($decorations['items']) || !is_array($decorations['items'])) {
-        return null;
-    }
-
-    foreach ($decorations['items'] as $item) {
-        if (isset($item['type']) && $item['type'] === $decoration_type) {
-            return $item;
-        }
-    }
-
-    return null;
-}
-
-/**
  * Get all decoration configurations for current personality
  * 
  * @param string|null $personality_id Personality ID, or null for current

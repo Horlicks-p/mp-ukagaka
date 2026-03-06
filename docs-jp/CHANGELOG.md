@@ -4,6 +4,16 @@
 
 ---
 
+## [2.13.0] - 2026-03-06
+
+### 🧹 デッドコードのクリーンアップ (Dead Code Cleanup)
+
+- **未使用の関数とファイルの削除**：長期間使用されておらず、フロントエンド/バックエンドからの呼び出しもない不要なコードを削除し、プラグインの軽量化と将来のメンテナンス性を確保しました。
+  - `includes/rest/chat/` および `includes/ajax/chat/` ディレクトリ内の、最新の OO アーキテクチャに置き換えられた複数の古いファイルを削除しました。
+  - `mpu_html_decode`、`mpu_is_browser`、`mpu_should_trigger_ai`、`mpu_ukagaka_list`、`mpu_get_default_msg`、`mpu_get_next_msg`、`mpu_get_msg_key`、`mpu_count_msg` などの時代遅れの関数を削除し、同時に開発者向けガイドからそれらの参照を削除しました。
+
+---
+
 ## [2.12.5] - 2026-02-28
 
 ### 🚀 メジャーアップデート：統一歴史記憶と SSE 安定性の強化

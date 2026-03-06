@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.12.5-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,13 +98,9 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.12.5 の新機能
+## 🎉 v2.13.0 の新機能
 
-**統一された履歴メモリ (Unified History)**: 芙莉蓮が、独り言、ページ認識、タッチ反応など、あらゆるやり取りを記憶できるようになりました。「Synthetic User アンカー」技術の実装により、非対話形式の応答も完全に対話コンテキストに保持され、ロールプレイの断絶が解消されました。
-
-**SSE 安定性とチェックサム監査**: 400 エラーを引き起こしていた複数の不具合を修正。チェックサムを硬性阻害から**監査観測モード**に変更し、詳細な調査のための `logs/checksum-mismatch.log` を追加しました。
-
-**フロントエンドと UX のアップグレード**: コア状態を `window` オブジェクトに移管して安定性を向上。履歴容量が **2 倍**（20件から40件）に増加しました。ページライフサイクル管理を改善し、SPA 遷移時は記憶を維持し、F5 更新時は適切にクリアされるようになりました。
+**デッドコードのクリーンアップ (Dead Code Cleanup)**: 長期間使用されていなかった廢棄された関数やモジュールをコードベースから削除し、プラグインを軽量化しました（`mpu_html_decode`、`mpu_is_browser`、`mpu_should_trigger_ai` などを含む）。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

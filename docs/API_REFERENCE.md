@@ -399,26 +399,6 @@ if (!is_wp_error($response)) {
 
 ---
 
-#### mpu_should_trigger_ai()
-
-檢查是否應觸發 AI。
-
-```php
-/**
- * @return bool 是否觸發
- */
-function mpu_should_trigger_ai(): bool
-```
-
-檢查條件：
-
-- AI 是否啟用
-- API Key 是否設定
-- 當前頁面是否符合觸發條件
-- 機率檢查
-
----
-
 #### mpu_get_language_instruction()
 
 取得語言指令字串。

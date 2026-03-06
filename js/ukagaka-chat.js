@@ -434,6 +434,8 @@ function mpu_sendUserMessage() {
     type: "chat",
     timestamp: Date.now(),
   });
+  // [Fix] 立即存檔，防止 F5 導致歷史遺失造成 Checksum Mismatch
+  mpu_saveChatHistory();
 
   // 獲取頁面上下文（複用現有函數）
   const pageContext = mpu_get_page_context();
@@ -504,18 +506,17 @@ function mpu_sendUserMessage() {
           $input.prop("disabled", false);
           if (window.mpuChatModeActive) $input.focus();
 
-          if (data.msg) {
-            const finalMsg = data.msg;
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: finalMsg,
-              type: "chat",
-              timestamp: Date.now(),
-            });
-            mpu_saveChatHistory();
-            if (!fullResponse) {
-              $msg.html(mpu_parseMarkdown(finalMsg));
-            }
+          const finalMsg = data.msg || "";
+          window.mpuChatHistory.push({
+            role: "assistant",
+            content: finalMsg,
+            type: "chat",
+            timestamp: Date.now(),
+          });
+          mpu_saveChatHistory();
+
+          if (finalMsg && !fullResponse) {
+            $msg.html(mpu_parseMarkdown(finalMsg));
           }
 
           // 觸發角色動畫

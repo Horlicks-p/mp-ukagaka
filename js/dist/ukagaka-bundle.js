@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-02-28T14:28:45.077Z
+ * Generated: 2026-03-04T15:35:38.971Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -4432,6 +4432,8 @@ function mpu_sendUserMessage() {
     type: "chat",
     timestamp: Date.now(),
   });
+  // [Fix] 立即存檔，防止 F5 導致歷史遺失造成 Checksum Mismatch
+  mpu_saveChatHistory();
 
   // 獲取頁面上下文（複用現有函數）
   const pageContext = mpu_get_page_context();
@@ -4502,18 +4504,17 @@ function mpu_sendUserMessage() {
           $input.prop("disabled", false);
           if (window.mpuChatModeActive) $input.focus();
 
-          if (data.msg) {
-            const finalMsg = data.msg;
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: finalMsg,
-              type: "chat",
-              timestamp: Date.now(),
-            });
-            mpu_saveChatHistory();
-            if (!fullResponse) {
-              $msg.html(mpu_parseMarkdown(finalMsg));
-            }
+          const finalMsg = data.msg || "";
+          window.mpuChatHistory.push({
+            role: "assistant",
+            content: finalMsg,
+            type: "chat",
+            timestamp: Date.now(),
+          });
+          mpu_saveChatHistory();
+
+          if (finalMsg && !fullResponse) {
+            $msg.html(mpu_parseMarkdown(finalMsg));
           }
 
           // 觸發角色動畫

@@ -654,8 +654,12 @@ for (const frame of frames) {
   - 對齊 -> `return true`，請求繼續。
   - 沒有 transient -> `return null`，請求繼續。
 
+- 狀態與決策（2026-03-01）：
+  - **觀察期延期**：由於目前仍有微調空間，將觀測期設定為一周。目前定於 **2026-03-08**。
+  - **恢復計畫**：若至 2026-03-08 為止皆無重大 `MissChecksum` 或誤判問題，屆時將恢復硬性阻斷（`WP_Error`）。
+
 - 影響：
-  - checksum 從「阻斷機制」調整為「稽核/觀測機制」。
+  - checksum 從「阻斷機制」暫時調整為「稽核/觀測機制」。
   - 目標是優先穩定 SSE 體驗，降低誤判造成的 400。
 
 - 回滾方式（保留）：
@@ -816,11 +820,11 @@ if (assistantMessages.length > maxAutoTalkHistory) {
 
 移除 `ukagaka-context.js` 與 `ukagaka-greeting.js` 中的 `maxAutoTalkHistory` 角色偏置過濾邏輯，改為純窗口推移策略：
 
-| 檔案 | 變更 |
-|---|---|
-| `js/ukagaka-context.js:438-454` | 刪除 `maxAutoTalkHistory` 過濾區塊 |
-| `js/ukagaka-greeting.js:120-135` | 刪除 `maxAutoTalkHistory` 過濾區塊 |
-| `js/ukagaka-chat.js:63` | 確認 `mpu_saveChatHistory()` 使用 `slice(-MPU_MAX_CHAT_HISTORY)`（原本已正確） |
+| 檔案                             | 變更                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| `js/ukagaka-context.js:438-454`  | 刪除 `maxAutoTalkHistory` 過濾區塊                                             |
+| `js/ukagaka-greeting.js:120-135` | 刪除 `maxAutoTalkHistory` 過濾區塊                                             |
+| `js/ukagaka-chat.js:63`          | 確認 `mpu_saveChatHistory()` 使用 `slice(-MPU_MAX_CHAT_HISTORY)`（原本已正確） |
 
 - auto-talk 應答完整保留在 `mpuChatHistory`，不再單邊刪除
 - 總量上限由 `mpu_saveChatHistory()` 的 `slice(-20)` 統一截斷
@@ -865,14 +869,14 @@ VERIFY: []   ← verify history 只有 [user]，filter 後無 assistant
 
 auto-talk 各路徑的 `mpuChatHistory` 覆蓋情況：
 
-| 路徑 | push 到 mpuChatHistory？ | 寫入 checksum？ |
-|---|---|---|
-| `mpu_nextmsg`（auto-talk） | ✅ | ✅ |
-| `mpu_chat_context`（頁面感知） | ✅ | ✅ |
-| `mpu_greet_first_visitor`（打招呼） | ✅ | ✅ |
-| `mpu_checkSpamEvent`（Bot/Akismet/Turnstile） | ✅ | ✅ |
-| `handleDecorationClick`（裝飾物觸摸） | ❌ → **已修正** | ❌（touch 不寫 checksum，正確） |
-| `handleTouchZone`（身體觸摸） | ❌ → **已修正** | ❌（touch 不寫 checksum，正確） |
+| 路徑                                          | push 到 mpuChatHistory？ | 寫入 checksum？                 |
+| --------------------------------------------- | ------------------------ | ------------------------------- |
+| `mpu_nextmsg`（auto-talk）                    | ✅                       | ✅                              |
+| `mpu_chat_context`（頁面感知）                | ✅                       | ✅                              |
+| `mpu_greet_first_visitor`（打招呼）           | ✅                       | ✅                              |
+| `mpu_checkSpamEvent`（Bot/Akismet/Turnstile） | ✅                       | ✅                              |
+| `handleDecorationClick`（裝飾物觸摸）         | ❌ → **已修正**          | ❌（touch 不寫 checksum，正確） |
+| `handleTouchZone`（身體觸摸）                 | ❌ → **已修正**          | ❌（touch 不寫 checksum，正確） |
 
 ### 修正內容（2026-02-28）
 
@@ -880,7 +884,11 @@ auto-talk 各路徑的 `mpuChatHistory` 覆蓋情況：
 
 - `handleDecorationClick` `.then()` 成功分支加入：
   ```js
-  window.mpuChatHistory.push({ role: "assistant", content: res.msg, timestamp: Date.now() });
+  window.mpuChatHistory.push({
+    role: "assistant",
+    content: res.msg,
+    timestamp: Date.now(),
+  });
   mpu_saveChatHistory();
   ```
 - `handleTouchZone` `.then()` 成功分支同上
@@ -923,13 +931,13 @@ Akismet path 本身 DOES push 到 `mpuChatHistory`。新 log 中的 mismatch 可
 
 前端 push 到 `mpuChatHistory` 時各路徑均已標注正確 type：
 
-| 路徑 | user type | assistant type |
-|---|---|---|
-| auto-talk（mpu_nextmsg） | `synthetic` | `auto_talk` |
-| 頁面感知（chat/context） | `synthetic` | `context` |
-| 首次問候（chat/greet） | `synthetic` | `greet` |
-| Akismet/Bot 事件 | `synthetic` | `event` |
-| 使用者互動（chat/user） | `chat` | `chat` |
+| 路徑                     | user type   | assistant type |
+| ------------------------ | ----------- | -------------- |
+| auto-talk（mpu_nextmsg） | `synthetic` | `auto_talk`    |
+| 頁面感知（chat/context） | `synthetic` | `context`      |
+| 首次問候（chat/greet）   | `synthetic` | `greet`        |
+| Akismet/Bot 事件         | `synthetic` | `event`        |
+| 使用者互動（chat/user）  | `chat`      | `chat`         |
 
 `mpu_chat_integrity_filter_messages()` 只計入 `type === 'chat'` 的 assistant，因此 VERIFY 端正確排除 auto-talk / event / context / greet 類型的 assistant。
 
@@ -954,12 +962,12 @@ Akismet path 本身 DOES push 到 `mpuChatHistory`。新 log 中的 mismatch 可
 
 #### Fix A：四個 STORE 端點補上 `type` 保留邏輯
 
-| 檔案 | 修正位置 | prior_history 循環 | 新 assistant type |
-|---|---|---|---|
-| `class-mpu-rest-dialog.php` | nextmsg checksum 寫入區 | `$entry['type']` 保留 | `'auto_talk'` |
-| `class-mpu-rest-chat.php` | chat/context checksum 寫入區 | `$msg['type']` 保留 | `'context'` |
-| `class-mpu-rest-chat.php` | chat/greet checksum 寫入區 | `$msg['type']` 保留 | `'greet'` |
-| `akismet-integration.php` | `mpu_store_spam_event_checksum()` | `$hm['type']` 保留 | `'event'` |
+| 檔案                        | 修正位置                          | prior_history 循環    | 新 assistant type |
+| --------------------------- | --------------------------------- | --------------------- | ----------------- |
+| `class-mpu-rest-dialog.php` | nextmsg checksum 寫入區           | `$entry['type']` 保留 | `'auto_talk'`     |
+| `class-mpu-rest-chat.php`   | chat/context checksum 寫入區      | `$msg['type']` 保留   | `'context'`       |
+| `class-mpu-rest-chat.php`   | chat/greet checksum 寫入區        | `$msg['type']` 保留   | `'greet'`         |
+| `akismet-integration.php`   | `mpu_store_spam_event_checksum()` | `$hm['type']` 保留    | `'event'`         |
 
 修正後，STORE 端的 `filter_messages` 將與 VERIFY 端同樣只計入 `type='chat'` 的 assistant。
 
@@ -1020,10 +1028,10 @@ $integrity_check = mpu_chat_integrity_verify_history($chat_session_id, $history_
 
 ```js
 // before
-content: res.msg
+content: res.msg;
 
 // after（與 UI 顯示內容 out = res.msg + auto_msg 對齊）
-content: out
+content: out;
 ```
 
 修正位置：`js/ukagaka-core.js` LLM 成功路徑的 `mpuChatHistory.push`（assistant）。
@@ -1032,9 +1040,23 @@ content: out
 
 ```js
 // 補在顯示後、auto-talk 計時器啟動前
-if (out && typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
-  window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
-  window.mpuChatHistory.push({ role: "assistant", content: mpu_unescapeHTML(out), type: "auto_talk", timestamp: Date.now() });
+if (
+  out &&
+  typeof window.mpuChatHistory !== "undefined" &&
+  Array.isArray(window.mpuChatHistory)
+) {
+  window.mpuChatHistory.push({
+    role: "user",
+    content: "（独り言）",
+    type: "synthetic",
+    timestamp: Date.now(),
+  });
+  window.mpuChatHistory.push({
+    role: "assistant",
+    content: mpu_unescapeHTML(out),
+    type: "auto_talk",
+    timestamp: Date.now(),
+  });
   if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
 }
 ```
@@ -1053,8 +1075,18 @@ if (out && typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.
 const exitContent = mpu_unescapeHTML(msgArr[randomIdx] + auto);
 mpu_typewriter(exitContent, "#ukagaka_msg");
 if (exitContent && Array.isArray(window.mpuChatHistory)) {
-  window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
-  window.mpuChatHistory.push({ role: "assistant", content: exitContent, type: "auto_talk", timestamp: Date.now() });
+  window.mpuChatHistory.push({
+    role: "user",
+    content: "（独り言）",
+    type: "synthetic",
+    timestamp: Date.now(),
+  });
+  window.mpuChatHistory.push({
+    role: "assistant",
+    content: exitContent,
+    type: "auto_talk",
+    timestamp: Date.now(),
+  });
   if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
 }
 ```
@@ -1072,3 +1104,13 @@ if (exitContent && Array.isArray(window.mpuChatHistory)) {
 - 所有前端顯示路徑（LLM 成功 / 傳統 / fallback / exit dialog）均寫入 `mpuChatHistory`
 - 使用者看到並回應的任何台詞，下一輪互動對話 AI 均能在上下文中讀到
 - Checksum 不受影響（`auto_talk` 不進入 filter）
+
+## 2026-03-01 決策更新：Checksum 策略最終調整
+
+依據目前觀測結果與開發團隊討論，Checksum 策略調整如下：
+
+- **觀測期設定**：即日起至 **2026-03-08** 為止。
+- **恢復機制**：若在此期間內（SSE 串流、多輪對話、MCP 工具呼叫等情境下）未再出現非預期的 `MissChecksum` 或 400 錯誤，將於 2026-03-08 後恢復 **硬性阻斷策略**。
+- **目標**：在確保 SSE 體驗穩定與診斷日誌完善的前提下，重新發揮 Checksum 的安全防護（防範 Prompt Injection）功能。
+
+---

@@ -11,39 +11,6 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
-/**
- * 取得偽春菜列表
- */
-function mpu_ukagaka_list()
-{
-    $mpu_opt = mpu_get_option();
-    $html = "";
-
-    if (!empty($mpu_opt["ukagakas"])) {
-        $html .= '<div class="ukagaka-list">';
-        $html .= __("偽春菜們", "mp-ukagaka") . "：<br/>";
-
-        foreach ($mpu_opt["ukagakas"] as $key => $value) {
-            if (!empty($value["show"])) {
-                // 使用 <div>/<span> 避免在 msgbox 內使用無序列表造成樣式問題
-                $html .= '<div style="padding-left:10px; padding:3px 0;">';
-                $html .=
-                    '<a onclick="mpuChange(\'' .
-                    esc_attr($key) .
-                    '\')" href="javascript:void(0);" style="cursor:pointer;">';
-                $html .= mpu_output_filter($value["name"]);
-                $html .= "</a></div>";
-            }
-        }
-
-        $html .= "</div>";
-    } else {
-        $html = __("沒有可供選擇的偽春菜", "mp-ukagaka");
-    }
-
-    return $html;
-}
-
 function mpu_get_ukagaka($num = false)
 {
     $mpu_opt = mpu_get_option();
@@ -186,68 +153,6 @@ function mpu_get_shell_info($num = false)
     ];
 }
 
-/**
- * 獲取 personality 的 shell URL
- * @param string $personality_id Personality ID
- * @return string Shell URL
- */
-function mpu_get_personality_shell_url($personality_id) {
-    $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(dirname(__FILE__))) . '/mp-ukagaka.php';
-    return plugins_url("ghost/{$personality_id}/shell/", $main_file);
-}
-
-/**
- * 獲取 personality 的 decorations URL
- * @param string $personality_id Personality ID
- * @return string Decorations URL
- */
-function mpu_get_personality_decorations_url($personality_id) {
-    $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(dirname(__FILE__))) . '/mp-ukagaka.php';
-    return plugins_url("ghost/{$personality_id}/decorations/", $main_file);
-}
-
-function mpu_get_msg($msgnum = 0, $num = false, $echo = false)
-{
-    $mpu_opt = mpu_get_option();
-    $name = $num === false ? $mpu_opt["cur_ukagaka"] ?? "default_1" : $num;
-    $msg = isset($mpu_opt["ukagakas"][$name]["msg"][$msgnum])
-        ? $mpu_opt["ukagakas"][$name]["msg"][$msgnum]
-        : "";
-    if ($echo) {
-        echo $msg;
-    } else {
-        return $msg;
-    }
-}
-
-function mpu_get_random_msg($num = false, $echo = false)
-{
-    $mpu_opt = mpu_get_option();
-    $name = $num === false ? $mpu_opt["cur_ukagaka"] ?? "default_1" : $num;
-    $msgs = $mpu_opt["ukagakas"][$name]["msg"] ?? [];
-    $total = count($msgs);
-    $msg = $total > 0 ? $msgs[wp_rand(0, $total - 1)] : "";
-    if ($echo) {
-        echo $msg;
-    } else {
-        return $msg;
-    }
-}
-
-function mpu_get_default_msg($num = false, $echo = false)
-{
-    $mpu_opt = mpu_get_option();
-    $msg =
-        intval($mpu_opt["default_msg"] ?? 0) == 0
-        ? mpu_get_random_msg($num, false)
-        : mpu_get_msg(0, $num, false);
-    if ($echo) {
-        echo $msg;
-    } else {
-        return $msg;
-    }
-}
-
 function mpu_common_msg()
 {
     global $mpu_opt;
@@ -330,25 +235,6 @@ function mpu_get_msg_arr($num = false)
             "msg" => ["載入錯誤: " . $e->getMessage()],
         ];
     }
-}
-
-function mpu_get_next_msg($num = false, $msgnum = 0)
-{
-    $mpu_opt = mpu_get_option();
-    $name = $num === false ? $mpu_opt["cur_ukagaka"] ?? "default_1" : $num;
-    $msgs = $mpu_opt["ukagakas"][$name]["msg"] ?? [];
-
-    if (($mpu_opt["next_msg"] ?? 0) == 0) {
-        $next = $msgnum + 1;
-        if (isset($msgs[$next])) {
-            $msg = $msgs[$next];
-        } else {
-            $msg = $msgs[0] ?? "";
-        }
-    } else {
-        $msg = mpu_get_random_msg($num, false);
-    }
-    return $msg;
 }
 
 function mpu_msg_code($msglist = [])
@@ -508,28 +394,6 @@ function mpu_msg_code($msglist = [])
 
     $depth--;
     return array_unique($templist);
-}
-
-function mpu_get_msg_key($num = false, $msg = "")
-{
-    $mpu_opt = mpu_get_option();
-    $name = $num === false ? $mpu_opt["cur_ukagaka"] ?? "default_1" : $num;
-    $msgnum = array_search(
-        $msg,
-        $mpu_opt["ukagakas"][$name]["msg"] ?? [],
-        true
-    );
-    if ($msgnum === false) {
-        $msgnum = 0;
-    }
-    return $msgnum;
-}
-
-function mpu_count_msg($num = false)
-{
-    $mpu_opt = mpu_get_option();
-    $name = $num === false ? $mpu_opt["cur_ukagaka"] ?? "default_1" : $num;
-    return max(0, count($mpu_opt["ukagakas"][$name]["msg"] ?? []) - 1);
 }
 
 function mpu_count_total_msg()

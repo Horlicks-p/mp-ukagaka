@@ -59,23 +59,4 @@ function mpu_sse_send_event($event, $data) {
     }
 }
 
-/**
- * 發送心跳 Ping，防止連線被 Proxy (如 Nginx/FastCGI) 超時中斷
- */
-function mpu_sse_ping() {
-    echo ": ping
 
-";
-    if (function_exists('flush')) {
-        flush();
-    }
-}
-
-/**
- * 檢查客戶端是否已斷開連線
- *
- * @return bool
- */
-function mpu_sse_is_disconnected() {
-    return connection_aborted();
-}

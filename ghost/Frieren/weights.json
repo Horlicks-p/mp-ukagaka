@@ -101,7 +101,7 @@
     },
 
     "睡眠時間帯": {
-      "_comment": "00:00~06:00: Enhanced sleep-related dialogues",
+      "_comment": "23:00~07:00: Enhanced sleep-related dialogues",
       "sleeping": 35,
       "silence": 20,
       "daily_life": 15,
@@ -283,6 +283,34 @@
       "weather": 18,
       "demon_related": 8,
       "silence": 10
+    },
+
+    "暑": {
+      "weather_hot": 25,
+      "weather": 15,
+      "daily_life": 10,
+      "silence": 8
+    },
+
+    "寒": {
+      "weather_cold": 25,
+      "weather": 15,
+      "philosophical": 10,
+      "memory": 8
+    },
+
+    "嵐": {
+      "weather_stormy": 25,
+      "weather": 15,
+      "demon_related": 10,
+      "silence": 12
+    },
+
+    "霧": {
+      "weather_foggy": 25,
+      "weather": 15,
+      "journey_adventure": 10,
+      "observation": 8
     }
   },
 

@@ -299,26 +299,6 @@ if (!is_wp_error($response)) {
 
 ---
 
-#### mpu_should_trigger_ai()
-
-Check if AI should be triggered.
-
-```php
-/**
- * @return bool Should trigger
- */
-function mpu_should_trigger_ai(): bool
-```
-
-Check conditions:
-
-- Is AI enabled
-- Is API Key set
-- Does current page match trigger conditions
-- Probability check
-
----
-
 #### mpu_get_language_instruction()
 
 Get language instruction string.

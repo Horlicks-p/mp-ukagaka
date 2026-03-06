@@ -4,6 +4,16 @@
 
 ---
 
+## [2.13.0] - 2026-03-06
+
+### 🧹 Dead Code Cleanup
+
+- **Removed Unused Functions & Files**: Removed deprecated code that hasn't been used and has no frontend/backend calls to ensure plugin lightweightness and future maintainability.
+  - Removed multiple obsolete files in `includes/rest/chat/` and `includes/ajax/chat/` directories which have been replaced by the latest OO architecture.
+  - Removed outdated functions such as `mpu_html_decode`, `mpu_is_browser`, `mpu_should_trigger_ai`, `mpu_ukagaka_list`, `mpu_get_default_msg`, `mpu_get_next_msg`, `mpu_get_msg_key`, `mpu_count_msg`, and simultaneously removed their references from the Developer Guides.
+
+---
+
 ## [2.12.5] - 2026-02-28
 
 ### 🚀 Major Update: Unified History & SSE Stability Hardening

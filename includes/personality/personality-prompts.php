@@ -210,39 +210,6 @@ function mpu_replace_single_prompt_variables($prompt, $variables)
 }
 
 /**
- * Build prompt variables array from context
- * 
- * @param array $wp_info WordPress info
- * @param array $visitor_info Visitor info
- * @param string $time_context Time context string
- * @param string $theme_name Theme name
- * @param string $theme_version Theme version
- * @param string $theme_author Theme author
- * @return array Variables array for replacement
- */
-function mpu_build_prompt_variables($wp_info, $visitor_info, $time_context, $theme_name, $theme_version, $theme_author)
-{
-    return [
-        'wp_version' => $wp_info['wp_version'] ?? '',
-        'php_version' => $wp_info['php_version'] ?? '',
-        'post_count' => $wp_info['post_count'] ?? 0,
-        'comment_count' => $wp_info['comment_count'] ?? 0,
-        'category_count' => $wp_info['category_count'] ?? 0,
-        'tag_count' => $wp_info['tag_count'] ?? 0,
-        'days_operating' => $wp_info['days_operating'] ?? 0,
-        'plugins_count' => $wp_info['active_plugins_count'] ?? 0,
-        'plugins_list' => $wp_info['active_plugins_list'] ?? [],
-        'theme_name' => $theme_name,
-        'theme_version' => $theme_version,
-        'theme_author' => $theme_author,
-        'time_context' => $time_context,
-        'visitor_country' => !empty($visitor_info['slimstat_country']) && function_exists('mpu_country_code_to_name') ? mpu_country_code_to_name($visitor_info['slimstat_country']) : ($visitor_info['slimstat_country'] ?? ''),
-        'visitor_city' => $visitor_info['slimstat_city'] ?? '',
-        'bot_name' => $visitor_info['browser_name'] ?? '',
-    ];
-}
-
-/**
  * Get dynamic prompt templates for a specific category
  * 
  * @param string $category Category name (e.g., 'time_aware_dynamic', 'tech_observation')

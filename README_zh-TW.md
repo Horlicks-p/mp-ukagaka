@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.12.5-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,13 +98,9 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.12.5 新功能
+## 🎉 v2.13.0 新功能
 
-**統一歷史記憶 (Unified History)**：現在芙莉蓮能記得所有互動（自言自語、頁面感知、觸摸反應等）。透過實作「Synthetic User 錨點」技術，非對話式的回應現在也能完整保留在對話脈絡中，解決了角色扮演斷層。
-
-**SSE 穩定性與 Checksum 稽核**：修復了多項導致 400 錯誤的漏洞。將 Checksum 從硬性阻斷改為**稽核觀測模式**，並新增 `logs/checksum-mismatch.log` 自動記錄數據差異。
-
-**前端與 UX 優化**：將核心狀態遷移至 `window` 物件，提升穩定性。記憶容量**翻倍**（從 20 則提升至 40 則）。實作頁面生命週期管理，F5 重整時清空記憶，但 SPA 內部跳轉時保留記憶。
+**死碼清理 (Dead Code Cleanup)**：移除了長期未使用且無呼叫的廢棄程式碼，包括 `mpu_html_decode`, `mpu_is_browser`, `mpu_should_trigger_ai` 等函數，提升了整體外掛代碼的輕量化。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

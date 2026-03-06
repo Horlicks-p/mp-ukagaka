@@ -872,7 +872,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             if (isset($msg['role'], $msg['content'])) {
                 $messages[] = [
                     'role'    => $msg['role'] === 'user' ? 'user' : 'assistant',
-                    'content' => sanitize_text_field($msg['content']),
+                    'content' => sanitize_textarea_field($msg['content']),
                 ];
             }
         }

@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.12.5-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,13 +98,9 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.12.5
+## 🎉 What's New in v2.13.0
 
-**Unified History Memory**: Frieren now remembers all interactions, including self-talk, page awareness, and touch reactions. Using "Synthetic User Anchor" technology, non-conversational responses are now fully preserved in the dialogue context, solving role-playing discontinuities.
-
-**SSE Stability & Checksum Audit**: Fixed multiple long-standing bugs causing 400 errors. Introduced **Audit Mode** for Checksums (changing from hard blocking to audit observation) and added `logs/checksum-mismatch.log` for precise troubleshooting.
-
-**Frontend & UX Upgrades**: Migrated core states to the `window` object for stability. Memory capacity has been **doubled** (from 20 to 40 entries). Improved page lifecycle management to preserve memory during SPA transitions while clearing it on F5 refresh.
+**Dead Code Cleanup**: Cleaned up the codebase by removing obsolete functions and modules that haven't been in use for a long time. The cleanup includes `mpu_html_decode`, `mpu_is_browser`, `mpu_should_trigger_ai`, and more.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

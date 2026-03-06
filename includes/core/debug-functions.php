@@ -53,17 +53,6 @@ function mpu_debug_log($message, $level = 'debug')
 }
 
 /**
- * 記錄資訊級別日誌
- * 
- * @param mixed $message 日誌訊息
- * @return void
- */
-function mpu_log_info($message)
-{
-    mpu_debug_log($message, 'info');
-}
-
-/**
  * 記錄警告級別日誌
  * 
  * @param mixed $message 日誌訊息
@@ -85,63 +74,4 @@ function mpu_log_error($message)
     mpu_debug_log($message, 'error');
 }
 
-/**
- * 記錄 API 調用日誌（詳細版本）
- * 
- * 用於記錄 AI API 調用的詳細資訊，包括 System Prompt 和 User Prompt。
- * 有助於除錯 LLM 相關問題。
- * 
- * @param string $provider AI 提供商名稱
- * @param string $system_prompt System Prompt 內容
- * @param string $user_prompt User Prompt 內容
- * @param string $language 語言設定
- * @return void
- */
-function mpu_log_api_call($provider, $system_prompt, $user_prompt, $language)
-{
-    if (!defined('WP_DEBUG') || !WP_DEBUG) {
-        return;
-    }
 
-    mpu_debug_log('=== AI API 調用 ===');
-    mpu_debug_log('提供商: ' . $provider);
-    mpu_debug_log('語言: ' . $language);
-    mpu_debug_log('--- System Prompt ---');
-    mpu_debug_log($system_prompt);
-    mpu_debug_log('--- User Prompt ---');
-    mpu_debug_log($user_prompt);
-    mpu_debug_log('=== End AI API 調用 ===');
-}
-
-/**
- * 記錄 System Prompt 統計資訊
- * 
- * 用於估算 Token 消耗，有助於優化 Prompt 設計。
- * 
- * @param string $system_prompt System Prompt 內容
- * @return void
- */
-function mpu_log_prompt_stats($system_prompt)
-{
-    if (!defined('WP_DEBUG') || !WP_DEBUG) {
-        return;
-    }
-
-    $char_count = mb_strlen($system_prompt, 'UTF-8');
-
-    // 計算中文字符數量
-    preg_match_all('/[\x{4e00}-\x{9fa5}]/u', $system_prompt, $chinese_chars);
-    $chinese_count = count($chinese_chars[0]);
-
-    // 計算英文字符數量
-    $english_count = $char_count - $chinese_count;
-
-    // 估算 Token 數（中文約 2 字符/Token，英文約 4 字符/Token）
-    $estimated_tokens = ($chinese_count / 2) + ($english_count / 4);
-
-    mpu_debug_log('=== System Prompt 統計 ===');
-    mpu_debug_log('字符長度: ' . $char_count);
-    mpu_debug_log('中文字符: ' . $chinese_count);
-    mpu_debug_log('估算 Token 數: ' . (int)ceil($estimated_tokens));
-    mpu_debug_log('=== End 統計 ===');
-}

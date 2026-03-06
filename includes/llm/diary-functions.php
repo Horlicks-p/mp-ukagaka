@@ -351,8 +351,8 @@ function mpu_get_diary_prompt($personality_id = null)
 
     // 如果沒有從 diary.json 獲取到，嘗試從 dynamics.json 獲取
     if (empty($selected_prompt)) {
-        if (function_exists('mpu_get_personality_dynamics')) {
-            $dynamics = mpu_get_personality_dynamics($personality_id);
+        if (function_exists('mpu_load_personality_dynamic_prompts')) {
+            $dynamics = mpu_load_personality_dynamic_prompts($personality_id);
             if (!empty($dynamics['diary_prompts']) && is_array($dynamics['diary_prompts'])) {
                 $selected_prompt = $dynamics['diary_prompts'][array_rand($dynamics['diary_prompts'])];
             }
@@ -391,7 +391,7 @@ function mpu_get_diary_prompt($personality_id = null)
     // 構建完整的系統提示詞
     $system_prompt = $base_prompt . "\n\n";
 
-    if (!empty($weather_context)) {
+    if (!empty($weather_context) && $category_key === 'daily_observation') {
         $system_prompt .= "現在の天気情報：" . $weather_context . "\n\n";
     }
 
@@ -489,17 +489,14 @@ function mpu_generate_diary_content()
         return new WP_Error('ai_function_missing', __('AI 功能模組未載入', 'mp-ukagaka'));
     }
 
-    // 構建選項陣列供 API 調用
+    // 構建選項陣列供 mpu_call_ai_api() 使用
+    // mpu_call_ai_api() 讀取 llm_*_model 和 ollama_* key
     $api_opt = [
-        'diary_gemini_model' => $provider_settings['model'] ?? 'gemini-2.5-flash',
-        'diary_openai_model' => $provider_settings['model'] ?? 'gpt-4.1-mini-2025-04-14',
-        'diary_claude_model' => $provider_settings['model'] ?? 'claude-sonnet-4-5-20250929',
-        'ollama_endpoint' => $provider_settings['endpoint'] ?? 'http://localhost:11434',
-        'ollama_model' => $provider_settings['model'] ?? 'qwen3:8b',
-        // 映射到通用鍵名
         'llm_gemini_model' => $provider_settings['model'] ?? 'gemini-2.5-flash',
         'llm_openai_model' => $provider_settings['model'] ?? 'gpt-4.1-mini-2025-04-14',
         'llm_claude_model' => $provider_settings['model'] ?? 'claude-sonnet-4-5-20250929',
+        'ollama_endpoint'  => $provider_settings['endpoint'] ?? 'http://localhost:11434',
+        'ollama_model'     => $provider_settings['model'] ?? 'qwen3:8b',
     ];
 
     $api_key = $provider_settings['api_key'] ?? '';
@@ -678,7 +675,6 @@ function mpu_get_random_diary_image($category_key, $personality_id = null)
     // 建構 URL
     // 注意：這裡需要返回對於前端可訪問的 URL
     // 假設 ghost 目錄在 wp-content/plugins/mp-ukagaka/ghost/
-    $plugin_url = plugins_url('', dirname(dirname(dirname(__FILE__)))) . '/mp-ukagaka.php';
     $plugin_dir_url = plugin_dir_url(dirname(dirname(dirname(__FILE__))) . '/mp-ukagaka.php');
     
     return $plugin_dir_url . 'ghost/' . $personality_id . '/diary_images/' . $category_key . '/' . $selected_image;
@@ -759,17 +755,6 @@ function mpu_schedule_diary_cron()
     }
 }
 add_action('init', 'mpu_schedule_diary_cron');
-
-/**
- * 清除日記 Cron 事件（插件停用時）
- */
-function mpu_clear_diary_cron()
-{
-    $timestamp = wp_next_scheduled('mpu_daily_diary_check');
-    if ($timestamp) {
-        wp_unschedule_event($timestamp, 'mpu_daily_diary_check');
-    }
-}
 
 /**
  * AJAX 處理：手動測試生成日記

@@ -429,6 +429,19 @@ function mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name, $va
         $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
     }
 
+    // --- 注入情感觸發 (Emotion Trigger) 指令 ---
+    if (function_exists('mpu_load_personality_emoji_config')) {
+        $emoji_config = mpu_load_personality_emoji_config($personality_id);
+        if (!empty($emoji_config['supported'])) {
+            $emotions_list = implode('、', $emoji_config['supported']);
+            $emotion_instruction = "\n\n【表情代碼指定】\n";
+            $emotion_instruction .= "你可以在回覆末尾添加 [表情: 表情名] 來顯式指定你的表情。這比自動識別更準確。\n";
+            $emotion_instruction .= "當前可用的表情名有：{$emotions_list}。";
+            
+            $system_prompt .= $emotion_instruction;
+        }
+    }
+
     return $system_prompt;
 }
 

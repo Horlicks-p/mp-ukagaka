@@ -252,32 +252,6 @@ function mpu_output_filter($str): string
  */
 function mpu_js_filter($str): string
 
-/**
- * 輸入過濾（stripslashes）
- * @param string $str 輸入字串
- * @return string 過濾後字串
- */
-function mpu_input_filter($str): string
-
-/**
- * HTML 解碼
- * @param string $str 輸入字串
- * @return string 解碼後字串
- */
-function mpu_html_decode($str): string
-```
-
-#### 瀏覽器檢測
-
-```php
-/**
- * 檢測瀏覽器類型
- * @param string $target 目標瀏覽器（如 'ie', 'chrome'）
- * @return bool 是否為目標瀏覽器
- */
-function mpu_is_browser($target = ""): bool
-```
-
 #### 安全檔案操作
 
 ```php
@@ -551,12 +525,6 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
 function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language)
 
 /**
- * 檢查是否應觸發 AI
- * @return bool 是否觸發
- */
-function mpu_should_trigger_ai(): bool
-
-/**
  * 取得語言指令
  * @param string $language 語言代碼
  * @return string 語言指令
@@ -823,12 +791,6 @@ wp_send_json([
 
 ```php
 /**
- * 取得偽春菜列表 HTML
- * @return string HTML 字串
- */
-function mpu_ukagaka_list(): string
-
-/**
  * 取得偽春菜資料
  * @param string|false $num 偽春菜鍵值（false 為目前偽春菜）
  * @return array|false 偽春菜資料或 false
@@ -861,14 +823,6 @@ function mpu_get_msg($msgnum = 0, $num = false, $echo = false): string
 function mpu_get_random_msg($num = false, $echo = false): string
 
 /**
- * 取得預設訊息
- * @param string|false $num 偽春菜鍵值
- * @param bool $echo 是否直接輸出
- * @return string 訊息內容
- */
-function mpu_get_default_msg($num = false, $echo = false): string
-
-/**
  * 取得通用訊息
  * @return string 通用訊息內容
  */
@@ -882,34 +836,11 @@ function mpu_common_msg(): string
 function mpu_get_msg_arr($num = false): array
 
 /**
- * 取得下一條訊息
- * @param string|false $num 偽春菜鍵值
- * @param int $msgnum 目前訊息索引
- * @return array 包含訊息和索引的陣列
- */
-function mpu_get_next_msg($num = false, $msgnum = 0): array
-
-/**
  * 處理訊息中的特殊代碼
  * @param array $msglist 訊息陣列
  * @return array 處理後的訊息陣列
  */
 function mpu_msg_code($msglist = []): array
-
-/**
- * 取得訊息鍵值
- * @param string|false $num 偽春菜鍵值
- * @param string $msg 訊息內容
- * @return int|false 訊息索引或 false
- */
-function mpu_get_msg_key($num = false, $msg = "")
-
-/**
- * 計算偽春菜訊息數
- * @param string|false $num 偽春菜鍵值
- * @return int 訊息數量
- */
-function mpu_count_msg($num = false): int
 
 /**
  * 計算所有偽春菜的總對話數

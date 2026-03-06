@@ -247,23 +247,6 @@ function mpu_js_filter($str): string
  */
 function mpu_input_filter($str): string
 
-/**
- * HTML decode
- * @param string $str Input string
- * @return string Decoded string
- */
-function mpu_html_decode($str): string
-```
-
-#### Browser Detection
-
-```php
-/**
- * Detect browser type
- * @param string $target Target browser (e.g., 'ie', 'chrome')
- * @return bool Is target browser
- */
-function mpu_is_browser($target = ""): bool
 ```
 
 #### Secure File Operations
@@ -391,11 +374,6 @@ function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $la
  */
 function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language)
 
-/**
- * Check if AI should be triggered
- * @return bool Should trigger
- */
-function mpu_should_trigger_ai(): bool
 
 /**
  * Get language instruction
@@ -672,11 +650,6 @@ Ukagaka management module, handling character operations and dialogue management
 #### ukagaka-functions.php Main Functions
 
 ```php
-/**
- * Get Ukagaka list HTML
- * @return string HTML string
- */
-function mpu_ukagaka_list(): string
 
 /**
  * Get Ukagaka data
@@ -710,13 +683,6 @@ function mpu_get_msg($msgnum = 0, $num = false, $echo = false): string
  */
 function mpu_get_random_msg($num = false, $echo = false): string
 
-/**
- * Get default message
- * @param string|false $num Ukagaka key
- * @param bool $echo Whether to echo directly
- * @return string Message content
- */
-function mpu_get_default_msg($num = false, $echo = false): string
 
 /**
  * Get common message
@@ -731,13 +697,6 @@ function mpu_common_msg(): string
  */
 function mpu_get_msg_arr($num = false): array
 
-/**
- * Get next message
- * @param string|false $num Ukagaka key
- * @param int $msgnum Current message index
- * @return array Array containing message and index
- */
-function mpu_get_next_msg($num = false, $msgnum = 0): array
 
 /**
  * Process special codes in message
@@ -746,20 +705,7 @@ function mpu_get_next_msg($num = false, $msgnum = 0): array
  */
 function mpu_msg_code($msglist = []): array
 
-/**
- * Get message key
- * @param string|false $num Ukagaka key
- * @param string $msg Message content
- * @return int|false Message index or false
- */
-function mpu_get_msg_key($num = false, $msg = "")
 
-/**
- * Count Ukagaka messages
- * @param string|false $num Ukagaka key
- * @return int Count
- */
-function mpu_count_msg($num = false): int
 
 /**
  * Count total messages of all Ukagakas

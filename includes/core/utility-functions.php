@@ -95,34 +95,6 @@ function mpu_input_filter($str)
     return stripslashes_deep($str);
 }
 
-/**
- * HTML 解碼
- */
-function mpu_html_decode($str)
-{
-    $table = [
-        "&amp;" => "&",
-        "&quot;" => '"',
-        "quot;" => '"',
-        "&#039;" => "'",
-        "&lt;" => "<",
-        "&gt;" => ">",
-    ];
-    return strtr($str, $table);
-}
-
-/**
- * 瀏覽器檢測
- */
-function mpu_is_browser($target = "")
-{
-    if (empty($_SERVER["HTTP_USER_AGENT"])) {
-        return false;
-    }
-    $ua = strtolower($_SERVER["HTTP_USER_AGENT"]);
-    return strpos($ua, strtolower($target)) !== false;
-}
-
 // ========================================
 // 安全性強化函數
 // ========================================
@@ -1090,24 +1062,6 @@ add_filter('rest_post_dispatch', function ($result, $server, $request) {
     }
     return $result;
 }, 10, 3);
-
-/**
- * 重置指定動作的速率限制
- *
- * @since 2.5.7
- * @param string $action 動作標識
- * @param string|null $ip IP 地址，null 則使用當前客戶端 IP
- * @return bool 是否成功重置
- */
-function mpu_reset_rate_limit($action, $ip = null)
-{
-    if ($ip === null) {
-        $ip = mpu_get_client_ip();
-    }
-
-    $transient_key = 'mpu_rl_' . sanitize_key($action) . '_' . md5($ip);
-    return delete_transient($transient_key);
-}
 
 // ========================================
 // AJAX 共用輔助函數

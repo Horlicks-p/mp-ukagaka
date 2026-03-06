@@ -4,6 +4,16 @@
 
 ---
 
+## [2.13.0] - 2026-03-06
+
+### 🧹 死碼清理 (Dead Code Cleanup)
+
+- **移除未使用的函式與檔案**：移除長期未使用且已無前後端呼叫的廢棄程式碼，確保外掛輕量化與未來維護性。
+  - 移除了 `includes/rest/chat/` 與 `includes/ajax/chat/` 目錄下多個已經由最新 OO 架構取代的過期檔案。
+  - 移除了 `mpu_html_decode`、`mpu_is_browser`、`mpu_should_trigger_ai`、`mpu_ukagaka_list`、`mpu_get_default_msg`、`mpu_get_next_msg`、`mpu_get_msg_key`、`mpu_count_msg` 等過時函數，並同步由開發者文件中剃除參考。
+
+---
+
 ## [2.12.5] - 2026-02-28
 
 ### 🚀 重大更新：統一歷史記憶與 SSE 穩定性強化

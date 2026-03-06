@@ -346,6 +346,22 @@ function mpu_get_dynamic_category_weights($time_context, $visitor_info, $context
     }
 
     /**
+     * 環境類別冷卻機制：避免過度頻繁地談論天氣或時間
+     * 如果 30 分鐘內（1800秒）才剛觸發過環境相關類別，則大幅降低其權重
+     */
+    $personality_key = sanitize_key($personality_id ?? 'default');
+    if (get_transient('mpu_last_env_trigger_' . $personality_key)) {
+        $env_categories = mpu_get_environmental_categories();
+        
+        foreach ($env_categories as $cat) {
+            if (isset($weights[$cat])) {
+                // 將權重降為 25%，但不低於 1
+                $weights[$cat] = max(1, intval($weights[$cat] * 0.25));
+            }
+        }
+    }
+
+    /**
      * Filter: mpu_category_weights
      * 允許其他開發者調整類別權重
      * 
@@ -403,4 +419,21 @@ function mpu_get_available_decoration_types($personality_id = null)
 
     // 如果沒有 JSON 資料，返回空陣列
     return [];
+}
+
+/**
+ * 獲取環境類別清單
+ * 
+ * 包含所有天氣和時間相關的類別。
+ * 
+ * @return array 環境類別清單
+ */
+function mpu_get_environmental_categories()
+{
+    return [
+        'weather', 'weather_nature', 'weather_specific', 'weather_report',
+        'weather_sunny', 'weather_cloudy', 'weather_rainy', 'weather_snowy',
+        'weather_hot', 'weather_cold', 'weather_stormy', 'weather_foggy',
+        'time_aware', 'time_morning', 'time_afternoon', 'time_evening', 'time_night'
+    ];
 }
