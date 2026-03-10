@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-03-04T15:35:38.971Z
+ * Generated: 2026-03-06T14:49:11.605Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -1495,6 +1495,13 @@ function mpu_nextmsg(trigger) {
 
   if ((isAuto || isStartup) && mpuAiContextInProgress) {
     mpuLogger.log("mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話");
+    return;
+  }
+
+  // 頁面感知即將觸發（3 秒內），避免 startup 的 BOT 對話搶先覆蓋頁面感知
+  if (isStartup && window.mpuContextPending) {
+    mpuLogger.log("mpu_nextmsg: 頁面感知已排程，跳過 startup 以避免 BOT 對話覆蓋");
+    mpuOllamaRequesting = false;
     return;
   }
 
@@ -3396,7 +3403,10 @@ function mpu_chat_context() {
             mpuAiDisplayTimer = null;
             mpuMessageBlocking = false;
             mpuAiContextInProgress = false;
-            if (wasAutoTalkRunning && mpuAutoTalk) {
+            // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；
+            // startup 被跳過時 auto-talk 從未啟動，wasAutoTalkRunning = false，
+            // 但 mpuAutoTalk 仍為 true，因此改用 mpuAutoTalk 作為判斷依據。
+            if (mpuAutoTalk && !mpuAutoTalkTimer) {
               startAutoTalk();
             }
           }, displayDurationMs);
@@ -5110,7 +5120,10 @@ jQuery(document).ready(function () {
 
         if (roll <= probability) {
           mpuLogger.log("頁面感知 AI 將在 3 秒後觸發");
+          // 設置旗標，讓 startup/auto-talk 在頁面感知觸發前不搶先顯示 BOT 對話
+          window.mpuContextPending = true;
           setTimeout(function () {
+            window.mpuContextPending = false;
             mpu_chat_context();
           }, 3000);
           return;

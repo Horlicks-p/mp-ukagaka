@@ -68,20 +68,44 @@ msgstr "MP Ukagaka 設定"
 msgid "通用設定"
 msgstr "一般設定"
 
+msgid "⚙️ 通用設定"
+msgstr "⚙️ 一般設定"
+
 msgid "AI 設定"
 msgstr "AI 設定"
+
+msgid "🧠 AI 設定"
+msgstr "🧠 AI 設定"
 
 msgid "LLM 設定"
 msgstr "LLM 設定"
 
+msgid "🤖 LLM 設定"
+msgstr "🤖 LLM 設定"
+
 msgid "會話"
 msgstr "メッセージ"
+
+msgid "💬 會話"
+msgstr "💬 メッセージ"
 
 msgid "春菜們"
 msgstr "ゴースト"
 
 msgid "創建新春菜"
 msgstr "ゴースト作成"
+
+msgid "👻 偽春菜們"
+msgstr "👻 ゴースト"
+
+msgid "✨ 創建新偽春菜"
+msgstr "✨ 新しいゴーストを作成"
+
+msgid "🔌 擴展"
+msgstr "🔌 拡張"
+
+msgid "📊 統計"
+msgstr "📊 統計"
 
 # ========================================
 # 管理画面 - メッセージ
@@ -1351,4 +1375,145 @@ msgstr "記事 #%d"
 msgid "下次排程：%s"
 msgstr "次回のスケジュール：%s"
 
+# ========================================
+# Bot防護ページ（Tab 9）
+# ========================================
+
+msgid "🛡️ Bot 防護"
+msgstr "🛡️ Bot防護"
+
+msgid "Bot 防護設定已儲存"
+msgstr "Bot防護設定を保存しました"
+
+msgid "您沒有足夠的權限執行此操作。"
+msgstr "この操作を実行する権限がありません。"
+
+msgid "IP 黑名單已清除。"
+msgstr "IPブラックリストをクリアしました。"
+
+msgid "Log 已清除。"
+msgstr "ログをクリアしました。"
+
+msgid "已移除 IP：%s"
+msgstr "IPを削除しました：%s"
+
+msgid "Bot 防護設定"
+msgstr "Bot防護設定"
+
+msgid "多層防禦機制封鎖惡意爬蟲：指紋黑名單、IP 黑名單、Cookie 陷阱、UA 異常偵測、JS Beacon。"
+msgstr "多層防御で悪意のあるボットをブロック：フィンガープリントブラックリスト、IPブラックリスト、Cookieトラップ、UA異常検出、JSビーコン。"
+
+msgid "啟用 Bot 防護"
+msgstr "Bot防護を有効にする"
+
+msgid "啟用多層 Bot 封鎖防護"
+msgstr "多層Botブロック防護を有効にする"
+
+msgid "啟用後立即生效。關閉後所有防護停止運作，但資料庫記錄與 IP 黑名單保留。"
+msgstr "有効にすると即時に適用されます。無効にすると全ての防護が停止しますが、データベースの記録とIPブラックリストは保持されます。"
+
+msgid "指紋黑名單"
+msgstr "フィンガープリントブラックリスト"
+
+msgid "Slimstat fingerprint hash，每行一個（例：f70fd15177b6515b0abf82a68122b25f）。"
+msgstr "Slimstatフィンガープリントハッシュ、1行に1つ（例：f70fd15177b6515b0abf82a68122b25f）。"
+
+msgid "可疑解析度黑名單"
+msgstr "不審な解像度ブラックリスト"
+
+msgid "格式：寬x高（例：1280x1200），每行一個。出現即封鎖，不需搭配其他條件。"
+msgstr "形式：幅x高さ（例：1280x1200）、1行に1つ。一致するとすぐにブロックされ、他の条件は不要です。"
+
+msgid "IP 自動封鎖"
+msgstr "IP自動ブロック"
+
+msgid "被指紋或解析度命中後，自動將該 IP 加入永久黑名單"
+msgstr "フィンガープリントまたは解像度でヒットした場合、そのIPを自動的に永久ブラックリストに追加"
+
+msgid "封鎖狀態碼"
+msgstr "ブロックステータスコード"
+
+msgid "HTTP 狀態碼（通常為 403 Forbidden）"
+msgstr "HTTPステータスコード（通常は403 Forbidden）"
+
+msgid "Hot-Transient 存活時間（秒）"
+msgstr "ホットトランジェントTTL（秒）"
+
+msgid "命中後同 IP 在此秒數內直接封鎖（預設 600 秒 = 10 分鐘）"
+msgstr "ヒット後、同じIPをこの秒数内で直接ブロック（デフォルト：600秒 = 10分）"
+
+msgid "Rate Limit 閾値（次 / 5 分鐘）"
+msgstr "レートリミット閾値（リクエスト数 / 5分）"
+
+msgid "同 IP 在 5 分鐘內超過此請求次數即封鎖（0 = 停用 Rate Limit）"
+msgstr "同じIPが5分以内にこのリクエスト数を超えるとブロック（0 = レートリミット無効）"
+
+msgid "Log 最大列數"
+msgstr "最大ログ行数"
+
+msgid "超過時自動刪除最舊的紀錄（預設 1000）"
+msgstr "上限を超えると古いレコードが自動削除されます（デフォルト：1000）"
+
+msgid "儲存 Bot 防護設定"
+msgstr "Bot防護設定を保存"
+
+msgid "攔截統計"
+msgstr "ブロック統計"
+
+msgid "攔截總計"
+msgstr "合計ブロック数"
+
+msgid "今日攔截"
+msgstr "今日のブロック数"
+
+msgid "IP 黑名單"
+msgstr "IPブラックリスト"
+
+msgid "監控指紋"
+msgstr "監視フィンガープリント"
+
+msgid "攔截事件分佈"
+msgstr "ブロックイベント分布"
+
+msgid "偽造的 Chrome 版本"
+msgstr "偽造されたChromeバージョン"
+
+msgid "攔截紀錄"
+msgstr "ブロックログ"
+
+msgid "最新 %d 筆"
+msgstr "最新 %d 件"
+
+msgid "還沒有攔截紀錄，一切安好！"
+msgstr "ブロックの記録はありません。すべて正常です！"
+
+msgid "時間"
+msgstr "時刻"
+
+msgid "事件"
+msgstr "イベント"
+
+msgid "Chrome"
+msgstr "Chrome"
+
+msgid "User-Agent"
+msgstr "User-Agent"
+
+msgid "目前沒有被封鎖的 IP。"
+msgstr "現在ブロックされているIPはありません。"
+
+msgid "移除此 IP"
+msgstr "このIPを削除"
+
+msgid "確定要清除所有被封鎖的 IP？這不會影響指紋黑名單。"
+msgstr "ブロック中のすべてのIPをクリアしてよろしいですか？フィンガープリントブラックリストには影響しません。"
+
+msgid "清除 IP 黑名單"
+msgstr "IPブラックリストをクリア"
+
+msgid "確定要清除所有 Log 紀錄？此操作無法復原。"
+msgstr "すべてのログ記録をクリアしてもよろしいですか？この操作は元に戻せません。"
+
+msgid "清除 Log"
+msgstr "ログをクリア"
 

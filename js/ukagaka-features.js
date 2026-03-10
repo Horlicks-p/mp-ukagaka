@@ -249,7 +249,10 @@ jQuery(document).ready(function () {
 
         if (roll <= probability) {
           mpuLogger.log("頁面感知 AI 將在 3 秒後觸發");
+          // 設置旗標，讓 startup/auto-talk 在頁面感知觸發前不搶先顯示 BOT 對話
+          window.mpuContextPending = true;
           setTimeout(function () {
+            window.mpuContextPending = false;
             mpu_chat_context();
           }, 3000);
           return;

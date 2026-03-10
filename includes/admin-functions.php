@@ -79,15 +79,16 @@ function mpu_handle_options_save()
 
     // 檢查是否為本外掛的表單提交
     $is_our_submit = isset($_POST['submit1'])     // 通用設定
-        || isset($_POST['submit2'])     // 偽春菜們
-        || isset($_POST['submit3'])     // 創建偽春菜
-        || isset($_POST['submit4'])     // 擴展
-        || isset($_POST['submit5'])     // 會話
-        || isset($_POST['submit_ai'])   // AI 設定
-        || isset($_POST['submit_llm'])  // LLM 設定
-        || isset($_POST['submit_diary']) // 日記設定
-        || isset($_POST['submit_reset']) // 重置設定
-        || isset($_POST['submit_upload_zip']); // ZIP 上傳
+        || isset($_POST['submit2'])          // 偽春菜們
+        || isset($_POST['submit3'])          // 創建偽春菜
+        || isset($_POST['submit4'])          // 擴展
+        || isset($_POST['submit5'])          // 會話
+        || isset($_POST['submit_ai'])        // AI 設定
+        || isset($_POST['submit_llm'])       // LLM 設定
+        || isset($_POST['submit_diary'])     // 日記設定
+        || isset($_POST['submit_reset'])     // 重置設定
+        || isset($_POST['submit_upload_zip']) // ZIP 上傳
+        || isset($_POST['submit_bot_blocker']); // Bot 防護
 
     if (! $is_our_submit) {
         return;
@@ -505,6 +506,52 @@ function mpu_handle_options_save()
         } else {
             $text = '<div class="error"><p><strong>' . __('設定未被重置', 'mp-ukagaka') . '</strong></p></div>';
         }
+    } elseif (isset($_POST['submit_bot_blocker'])) {
+        // 處理 Bot 防護設定
+        $current_opt = mpu_get_option();
+
+        // 保留現有的 bot_blocker 設定，再覆蓋表單送來的值
+        $bb = isset($current_opt['bot_blocker']) && is_array($current_opt['bot_blocker'])
+            ? $current_opt['bot_blocker']
+            : [];
+
+        $bb['enabled']   = isset($_POST['bot_blocker_enabled']) && $_POST['bot_blocker_enabled'] ? true : false;
+        $bb['auto_ban_ip'] = isset($_POST['bot_blocker_auto_ban_ip']) && $_POST['bot_blocker_auto_ban_ip'] ? true : false;
+
+        // 指紋黑名單：每行一個 hash，過濾空行與非法字元
+        if (isset($_POST['bot_blocker_banned_fingerprints'])) {
+            $lines = explode("\n", sanitize_textarea_field($_POST['bot_blocker_banned_fingerprints']));
+            $bb['banned_fingerprints'] = array_values(array_filter(
+                array_map('trim', $lines),
+                function($h) { return preg_match('/^[a-f0-9]{32}$/i', $h); }
+            ));
+        }
+
+        // 解析度黑名單：格式 WxH，每行一個
+        if (isset($_POST['bot_blocker_suspicious_resolutions'])) {
+            $lines = explode("\n", sanitize_textarea_field($_POST['bot_blocker_suspicious_resolutions']));
+            $bb['suspicious_resolutions'] = array_values(array_filter(
+                array_map('trim', $lines),
+                function($r) { return preg_match('/^\d+x\d+$/i', $r); }
+            ));
+        }
+
+        $bb['block_status']         = isset($_POST['bot_blocker_block_status'])
+            ? max(400, min(599, intval($_POST['bot_blocker_block_status'])))
+            : 403;
+        $bb['hot_transient_ttl']    = isset($_POST['bot_blocker_hot_transient_ttl'])
+            ? max(60, min(86400, intval($_POST['bot_blocker_hot_transient_ttl'])))
+            : 600;
+        $bb['rate_limit_threshold'] = isset($_POST['bot_blocker_rate_limit_threshold'])
+            ? max(0, min(1000, intval($_POST['bot_blocker_rate_limit_threshold'])))
+            : 40;
+        $bb['max_log_rows']         = isset($_POST['bot_blocker_max_log_rows'])
+            ? max(100, min(10000, intval($_POST['bot_blocker_max_log_rows'])))
+            : 1000;
+
+        $mpu_opt['bot_blocker'] = $bb;
+
+        $text = '<div class="updated"><p><strong>' . __('Bot 防護設定已儲存', 'mp-ukagaka') . '</strong></p></div>';
     }
 
     // 將選項保存到資料庫
@@ -518,7 +565,7 @@ function mpu_handle_options_save()
         // 保存後重定向，確保頁面顯示最新值
         // 獲取當前頁面編號，用於重定向
         $cur_page = isset($_GET['cur_page']) ? intval($_GET['cur_page']) : 0;
-        if ($cur_page < 0 || $cur_page > 8) {
+        if ($cur_page < 0 || $cur_page > 9) {
             $cur_page = 0;
         }
 

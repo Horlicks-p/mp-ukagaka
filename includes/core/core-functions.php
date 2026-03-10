@@ -74,6 +74,17 @@ function mpu_default_opt()
         "ai_display_duration" => 8,
         "ai_greet_first_visit" => false,
         "ai_greet_prompt" => "あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。",
+        // Bot 防護設定
+        "bot_blocker" => [
+            "enabled"                => false,
+            "banned_fingerprints"    => ["f70fd15177b6515b0abf82a68122b25f"],
+            "suspicious_resolutions" => ["1280x1200"],
+            "max_log_rows"           => 1000,
+            "auto_ban_ip"            => true,
+            "block_status"           => 403,
+            "hot_transient_ttl"      => 600,
+            "rate_limit_threshold"   => 40,
+        ],
     ];
 }
 

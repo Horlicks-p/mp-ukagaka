@@ -1,5 +1,5 @@
 <div>
-    <h3><?php _e('擴展', 'mp-ukagaka'); ?></h3>
+    <h3><?php _e('🔌 擴展', 'mp-ukagaka'); ?></h3>
     <div class="mpu-warning-box">
         <strong><?php _e('⚠️ 警告：', 'mp-ukagaka'); ?></strong> <?php _e('如果您不懂如何操作或編寫代碼，請勿更改此頁。', 'mp-ukagaka'); ?>
     </div>

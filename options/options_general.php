@@ -1,5 +1,5 @@
 <div>
-    <h3><?php _e('通用設定', 'mp-ukagaka'); ?></h3>
+    <h3><?php _e('⚙️ 通用設定', 'mp-ukagaka'); ?></h3>
     <p style="color: #8A7FA0; margin-bottom: 20px;">
         <small><?php _e('此頁面用於設定偽春菜的基本顯示和行為選項。', 'mp-ukagaka'); ?></small>
     </p>

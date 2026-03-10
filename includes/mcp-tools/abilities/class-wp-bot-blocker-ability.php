@@ -18,7 +18,7 @@ class Wp_Bot_Blocker_Ability
             return;
         }
 
-        if (!function_exists('moelog_bot_blocker_ban_ip')) {
+        if (!function_exists('mpu_bb_ban_ip')) {
             return;
         }
 
@@ -90,8 +90,8 @@ class Wp_Bot_Blocker_Ability
         $total_intercepts = 0;
         $today_intercepts = 0;
         $by_event = [];
-        if (function_exists('moelog_bot_blocker_parse_logs')) {
-            $parsed = moelog_bot_blocker_parse_logs();
+        if (function_exists('mpu_bb_parse_logs')) {
+            $parsed = mpu_bb_parse_logs();
             $total_intercepts = $parsed['stats']['total'] ?? 0;
             $today_intercepts = $parsed['stats']['today'] ?? 0;
             $by_event         = $parsed['stats']['by_event'] ?? [];
@@ -140,8 +140,8 @@ class Wp_Bot_Blocker_Ability
             return "IP {$ip} is already in the ban list.";
         }
 
-        moelog_bot_blocker_ban_ip($ip);
-        moelog_bot_blocker_log('MANUAL_BAN', ['source' => 'Frieren API', 'ip' => $ip]);
+        mpu_bb_ban_ip($ip);
+        mpu_bb_log('MANUAL_BAN', ['source' => 'Frieren API', 'ip' => $ip]);
 
         return "Successfully added IP {$ip} to the ban list.";
     }
@@ -180,8 +180,8 @@ class Wp_Bot_Blocker_Ability
         }
 
         if ($target === 'logs' || $target === 'both') {
-            if (function_exists('moelog_bot_blocker_clear_logs')) {
-                moelog_bot_blocker_clear_logs();
+            if (function_exists('mpu_bb_clear_logs')) {
+                mpu_bb_clear_logs();
 
                 delete_transient('moelog_bot_blocker_event');
                 delete_transient('mpu_mbb_reaction_cooldown');

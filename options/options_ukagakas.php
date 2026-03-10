@@ -1,5 +1,5 @@
 <div>
-    <h3><?php _e('偽春菜們', 'mp-ukagaka'); ?></h3>
+    <h3><?php _e('👻 偽春菜們', 'mp-ukagaka'); ?></h3>
     <p style="color: #8A7FA0; margin-bottom: 20px;">
         <small><?php _e('圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。', 'mp-ukagaka'); ?></small>
     </p>

@@ -535,6 +535,13 @@ function mpu_nextmsg(trigger) {
     return;
   }
 
+  // 頁面感知即將觸發（3 秒內），避免 startup 的 BOT 對話搶先覆蓋頁面感知
+  if (isStartup && window.mpuContextPending) {
+    mpuLogger.log("mpu_nextmsg: 頁面感知已排程，跳過 startup 以避免 BOT 對話覆蓋");
+    mpuOllamaRequesting = false;
+    return;
+  }
+
   if ((isAuto || isStartup) && mpuGreetInProgress) {
     mpuLogger.log("mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動/啟動對話");
     return;
