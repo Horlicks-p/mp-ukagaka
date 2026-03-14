@@ -544,7 +544,9 @@ function mpu_sendUserMessage() {
             window.mpuChatHistory.pop();
             mpu_saveChatHistory();
           }
-          mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
+          // 優先顯示後端回傳的錯誤訊息（如權限不足），否則才用通用字串
+          const errorMsg = error.message ?? "（…連線好像有點問題…）";
+          mpu_typewriter(errorMsg, "#ukagaka_msg");
           mpuLogger.error("SSE Error:", error);
         },
         onAbort: () => {
@@ -623,7 +625,9 @@ function mpu_sendUserMessage() {
         }
 
         mpu_handle_error(error, "mpu_sendUserMessage", { showToUser: false });
-        mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
+        // 優先顯示後端回傳的錯誤訊息（如權限不足），否則才用通用字串
+        const syncErrorMsg = error.message ?? "（…連線好像有點問題…）";
+        mpu_typewriter(syncErrorMsg, "#ukagaka_msg");
       })
       .finally(() => {
         mpuChatRequesting = false;
