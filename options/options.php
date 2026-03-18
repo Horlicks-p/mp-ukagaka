@@ -241,7 +241,19 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
         margin-top: -1px;
     }
 
+    @media (max-width: 1600px) {
+        .mpu-frieren-admin .mp-ukagaka-tabs a {
+            padding: 8px 9px !important;
+            font-size: 12px !important;
+        }
+    }
+
     @media (max-width: 1280px) {
+        .mpu-frieren-admin .mp-ukagaka-tabs {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
         .mpu-frieren-admin .mp-ukagaka-main-layout {
             flex-direction: column;
             gap: 14px;

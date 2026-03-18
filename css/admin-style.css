@@ -60,16 +60,17 @@
   background: transparent;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 6px;
+  gap: 4px 4px;
   box-sizing: border-box;
+  overflow-x: auto;
 }
 
 .mp-ukagaka-tabs a {
   display: inline-block;
-  padding: 10px 16px;
+  padding: 9px 12px;
   text-decoration: none;
   color: var(--mpu-text-primary);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   border: none;
   border-radius: 0;
