@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.12.5
+Stable tag: 2.13.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -25,7 +25,7 @@ This plugin is an extensively expanded version based on the original WordPress p
 
 While this plugin provides the "Create New Character Personality" feature (see docs/GHOST_CREATE_GUIDE.md), development efforts have primarily focused on the default character "Frieren". Therefore, this feature has not been fully tested. Your understanding is appreciated.
 
-If you simply want to use the default character "Frieren", basic dialogues are built-in and ready to use out of the box. For richer, more interactive conversations, we recommend configuring an AI model API Key. Additionally, the character memory configuration files (loading sequence: ghost/Frieren/personality.md, ghost/Frieren/instructions.md, and then ghost/Frieren/system_prompt.md, containing memories from anime Season 1) are also built-in. However, please remember to replace `{{admin_nickname}}` and `{{admin_name}}` with your preferred nicknames, and update the birthday to match your settings.
+If you simply want to use the default character "Frieren", basic dialogues are built-in and ready to use out of the box. For richer, more interactive conversations, we recommend configuring an AI model API Key. Additionally, the character memory configuration file (ghost/Frieren/system_prompt.md, containing memories from anime Season 1) is also built-in. However, please remember to replace `{{admin_nickname}}` and `{{admin_name}}` with your preferred nicknames, and update the birthday to match your settings.
 
 = AI Model Recommendations =
 
@@ -183,12 +183,11 @@ This plugin uses a modular architecture for better maintainability:
 
 == Changelog ==
 
-= 2026-02-28 =
-* v2.12.5
-* [NEW] Unified History: Frieren now remembers all interactions (self-talk, page awareness, etc.)
-* [FIX] SSE Stability: Fixed multiple 400 error bugs and introduced audit mode for Checksums
-* [IMPROVE] Memory Capacity: History limit increased from 20 to 40 entries
-* [IMPROVE] State Management: Core state migrated to window object for better stability
+= 2026-03-18 =
+* v2.13.1
+* [SECURITY] Command access control: /debug_mcp, /reset, /clear now route non-admin users through AI pipeline with in-character visitor_rejection response
+* [SECURITY] IP spoofing mitigation: mpu_bb_get_ip() conservative mode (proxy headers trusted only when REMOTE_ADDR is private); mpu_get_client_ip() validates proxy header IPs against public address range
+* [FIX] fail() method now accepts optional 4th parameter, preserving provider error details (http_status, raw_body) in REST responses
 
 = 2026-02-27 =
 * v2.12.0

@@ -337,6 +337,14 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     );
 
     $selected_category = mpu_weighted_random_select($prompt_categories, $category_weights);
+
+    // 環境類別冷卻設定：如果選中環境類別，設定 30 分鐘冷卻 transient
+    $env_categories = mpu_get_environmental_categories();
+    if (in_array($selected_category, $env_categories, true)) {
+        $personality_key = sanitize_key($personality_id ?? 'default');
+        set_transient('mpu_last_env_trigger_' . $personality_key, time(), 1800);
+    }
+
     $category_instruction = $prompt_categories[$selected_category][array_rand($prompt_categories[$selected_category])];
 
     // --- [變數替換邏輯開始] ---

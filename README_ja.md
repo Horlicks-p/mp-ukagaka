@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.12.5-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.12.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -20,7 +20,7 @@ WordPress サイトにインタラクティブな伺か（デスクトップマ�
 
 本プラグインには **新しい人格を作成する** 機能があります（[GHOST_CREATE_GUIDE.md](docs-jp/GHOST_CREATE_GUIDE.md) を参照）。ただし、開発の重点はデフォルトキャラクター「フリーレン」の制作に注がれているため、この機能は十分にテストされていません。ご了承ください。
 
-デフォルトキャラクター「フリーレン」をそのまま使用する場合、基本的なセリフはプラグインに内蔵されており、すぐに使用できます。より豊かでインタラクティブな対話体験をお求めの場合は、AI モデルの API Key を設定することをおすすめします。また、キャラクターの記憶設定ファイル（読み込み順：[personality.md](ghost/Frieren/personality.md)、[instructions.md](ghost/Frieren/instructions.md)、そして [system_prompt.md](ghost/Frieren/system_prompt.md)、アニメ第1期の記憶を含む）も内蔵されていますが、その中の `{{admin_nickname}}` と `{{admin_name}}` をご自身のニックネームに置き換え、誕生日もご自身の設定に合わせて変更してください。
+デフォルトキャラクター「フリーレン」をそのまま使用する場合、基本的なセリフはプラグインに内蔵されており、すぐに使用できます。より豊かでインタラクティブな対話体験をお求めの場合は、AI モデルの API Key を設定することをおすすめします。また、キャラクターの記憶設定ファイル [system_prompt.md](ghost/Frieren/system_prompt.md)（アニメ第1期の記憶を含む）も内蔵されていますが、その中の `{{admin_nickname}}` と `{{admin_name}}` をご自身のニックネームに置き換え、誕生日もご自身の設定に合わせて変更してください。
 
 ### AI モデルの推奨
 
@@ -98,13 +98,15 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.12.5 の新機能
+## 🎉 v2.12.0 の新機能
 
-**統一された履歴メモリ (Unified History)**: 芙莉蓮が、独り言、ページ認識、タッチ反応など、あらゆるやり取りを記憶できるようになりました。「Synthetic User アンカー」技術の実装により、非対話形式の応答も完全に対話コンテキストに保持され、ロールプレイの断絶が解消されました。
+**SSE ストリーミングとタイプライター効果**: リアルタイム AI 応答のための Server-Sent Events (SSE) プロトコルを導入。「タイプライター効果」により、長い回答や Ollama などの「思考型」モデルの待機時間が大幅に改善されました。
 
-**SSE 安定性とチェックサム監査**: 400 エラーを引き起こしていた複数の不具合を修正。チェックサムを硬性阻害から**監査観測モード**に変更し、詳細な調査のための `logs/checksum-mismatch.log` を追加しました。
+**新しいストリーミングエンドポイント**: 専用の REST ルート `/chat/user-stream` を追加。従来の非ストリームパスと同様の安全な検証、レート制限、対話整合性チェックを備えています。OpenAI (ツール呼び出し) および Ollama (思考標記フィルタリング) に対応。
 
-**フロントエンドと UX のアップグレード**: コア状態を `window` オブジェクトに移管して安定性を向上。履歴容量が **2 倍**（20件から40件）に増加しました。ページライフサイクル管理を改善し、SPA 遷移時は記憶を維持し、F5 更新時は適切にクリアされるようになりました。
+**システムアーキテクチャと安全性**: AI プロバイダーファクトリパターンの第2段階リファクタリングを完了し、拡張性が向上。ツール呼び出しループ防止（Loop Guard）を実装し、無限ループを自動遮断して API 料金を保護します。
+
+**安定性の向上**: `ignore_user_abort` と cURL ストリームコールバックを統合し、ユーザー切断時の「幽霊話」を防止してサーバーリソースを節約します。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

@@ -95,34 +95,6 @@ function mpu_input_filter($str)
     return stripslashes_deep($str);
 }
 
-/**
- * HTML 解碼
- */
-function mpu_html_decode($str)
-{
-    $table = [
-        "&amp;" => "&",
-        "&quot;" => '"',
-        "quot;" => '"',
-        "&#039;" => "'",
-        "&lt;" => "<",
-        "&gt;" => ">",
-    ];
-    return strtr($str, $table);
-}
-
-/**
- * 瀏覽器檢測
- */
-function mpu_is_browser($target = "")
-{
-    if (empty($_SERVER["HTTP_USER_AGENT"])) {
-        return false;
-    }
-    $ua = strtolower($_SERVER["HTTP_USER_AGENT"]);
-    return strpos($ua, strtolower($target)) !== false;
-}
-
 // ========================================
 // 安全性強化函數
 // ========================================
@@ -780,37 +752,30 @@ function mpu_country_code_to_name($code, $locale = 'ja')
  */
 function mpu_get_client_ip()
 {
-    $ip = '';
+    $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '';
 
-    // 1. Cloudflare 專用 header（最可靠）
+    // 從 proxy header 提取 candidate IP
+    $candidate = '';
     if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
-        $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
-    }
-    // 2. X-Forwarded-For（通用反向代理）
-    // 格式可能是：client, proxy1, proxy2
-    elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ip_list = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-        $ip = trim($ip_list[0]); // 取第一個（原始客戶端 IP）
-    }
-    // 3. X-Real-IP（Nginx 等）
-    elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
-        $ip = $_SERVER['HTTP_X_REAL_IP'];
-    }
-    // 4. 直連客戶端
-    elseif (!empty($_SERVER['REMOTE_ADDR'])) {
-        $ip = $_SERVER['REMOTE_ADDR'];
+        $candidate = sanitize_text_field($_SERVER['HTTP_CF_CONNECTING_IP']);
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ip_list   = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $candidate = sanitize_text_field(trim($ip_list[0]));
+    } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+        $candidate = sanitize_text_field($_SERVER['HTTP_X_REAL_IP']);
     }
 
-    // 驗證 IP 格式有效性
-    $ip = sanitize_text_field($ip);
-
-    // 基本 IP 格式驗證（IPv4 或 IPv6）
-    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
-        // 如果無法驗證，返回空字串或 REMOTE_ADDR 作為後備
-        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : '';
+    // Proxy header 只接受合法公開 IP（拒絕私有/保留位址，防止偽造 header 繞過速率限制）
+    if ($candidate && filter_var($candidate, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        return $candidate;
     }
 
-    return $ip;
+    // 直連或 proxy header 無效時回落到 REMOTE_ADDR（允許私有 IP，適用於內網環境）
+    if ($remote_addr && filter_var($remote_addr, FILTER_VALIDATE_IP)) {
+        return $remote_addr;
+    }
+
+    return '';
 }
 
 // ========================================
@@ -1090,24 +1055,6 @@ add_filter('rest_post_dispatch', function ($result, $server, $request) {
     }
     return $result;
 }, 10, 3);
-
-/**
- * 重置指定動作的速率限制
- *
- * @since 2.5.7
- * @param string $action 動作標識
- * @param string|null $ip IP 地址，null 則使用當前客戶端 IP
- * @return bool 是否成功重置
- */
-function mpu_reset_rate_limit($action, $ip = null)
-{
-    if ($ip === null) {
-        $ip = mpu_get_client_ip();
-    }
-
-    $transient_key = 'mpu_rl_' . sanitize_key($action) . '_' . md5($ip);
-    return delete_transient($transient_key);
-}
 
 // ========================================
 // AJAX 共用輔助函數

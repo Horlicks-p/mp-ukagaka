@@ -115,6 +115,59 @@ user_memory      → ← ここに動的記憶を注入
 - **動的重み調整**: `mpu_get_dynamic_category_weights()` — `prompt-categories.php:176-374`（200行以上の調整ロジック）
 - **睡眠モード**: `mpu_is_deep_sleep_time()` — `llm-context-builder.php:363-414`（賴床・IP 記録付き）
 
+### 追加実装（2026-03-04 セッション）
+
+#### 1. `mpu_get_environmental_categories()` — SSoT 関数の抽出
+
+**背景**: 環境カテゴリーリスト（`weather_sunny` / `weather_cloudy` / `weather_rainy` / `weather_snowy` / `weather_hot` / `weather_cold` / `weather_stormy` / `weather_foggy` / `time_morning` / `time_afternoon` / `time_evening` / `time_night`）が `prompt-categories.php` と `llm-functions.php` の 2 箇所にそれぞれハードコードされていた。
+
+**実装内容**:
+
+- `mpu_get_environmental_categories()` を `prompt-categories.php:431` に新規定義（Single Source of Truth）
+- 冷却降権ロジック（`prompt-categories.php:354`）がこの関数を呼び出すよう変更
+- Transient 書込ロジック（`llm-functions.php:342`）もこの関数を呼び出すよう変更
+- 将来 `weather_snowy` 等の追加が必要な場合、この関数のみ変更すれば全体に反映される
+
+#### 2. 環境カテゴリー冷却機構（Cooldown）
+
+天気・時間帯カテゴリーが連続して選ばれることを抑制する冷却ロジックを実装。
+
+| 項目 | 内容 |
+|------|------|
+| 冷却時間 | 30 分（1800 秒）|
+| 降権倍率 | 0.25 倍（通常重みの 1/4 に圧縮）|
+| Transient Key 形式 | `mpu_last_env_trigger_{sanitize_key($personality_id)}` |
+| 隔離性 | Personality ID 単位で管理（多キャラ環境で干渉なし）|
+| Getter 実装箇所 | `prompt-categories.php:350–360` |
+| Setter 実装箇所 | `llm-functions.php:340–346` |
+
+**動作フロー**: 環境カテゴリーが選ばれ実際にダイアログが生成された際、Setter が Transient にタイムスタンプを書き込む。次のリクエストで Getter が 30 分以内の記録を検出すると、全環境カテゴリーの重みを 0.25 倍に下げて連続発火を抑制する。30 分経過後は通常重みに戻る。
+
+#### 3. Transient Key の対称性修正
+
+**問題**: `sanitize_key()`（小文字変換を含む）をセッター側のみに適用していたため、Key が非対称になり冷却機構が無効化されていた。
+
+| 側 | ファイル | 修正前 | 修正後 |
+|----|----------|--------|--------|
+| 書込 (Setter) | `llm-functions.php:344` | `sanitize_key($personality_id ?? 'default')` ✅ | （変更なし）|
+| 読取 (Getter) | `prompt-categories.php:352` | `$personality_id ?? 'default'` ❌ | `sanitize_key($personality_id ?? 'default')` ✅ |
+
+**影響**: 修正前は Getter が `mpu_last_env_trigger_Frieren`、Setter が `mpu_last_env_trigger_frieren` という別の Key を参照しており、冷却機構が形骸化していた。修正後は両者が一致し、冷却ロジックが正常に稼働する。
+
+#### 4. `dynamics.json` 日本語正字化（Kanji 修正）
+
+`ghost/Frieren/dynamics.json` の天気テンプレートに混入していた繁体字（TC）を日本語正字（Shinjitai）に修正。
+
+| カテゴリー | 行 | 修正内容 |
+|-----------|-----|---------|
+| `weather_foggy` | L125 | `聲` → `声` |
+| `weather_foggy` | L125 | `出來事` → `出来事` |
+| `weather_foggy` | L126 | `油斷` → `油断` |
+| `weather_stormy` | L120 | `壽命` → `寿命` |
+| `weather_snowy` | L113 | `觀察` → `観察` |
+
+---
+
 ### 残りのタスク（微調整）
 
 - [ ] `system_prompt.md` に明示的な感情トリガー規則を追記（例：「深夜は相手に早く寝なよと促す」）

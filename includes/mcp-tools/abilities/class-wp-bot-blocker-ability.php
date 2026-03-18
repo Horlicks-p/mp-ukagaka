@@ -18,7 +18,7 @@ class Wp_Bot_Blocker_Ability
             return;
         }
 
-        if (!function_exists('moelog_bot_blocker_ban_ip')) {
+        if (!function_exists('mpu_bb_ban_ip')) {
             return;
         }
 
@@ -65,15 +65,15 @@ class Wp_Bot_Blocker_Ability
                     'target' => array(
                         'type'        => 'string',
                         'enum'        => array('logs', 'ips', 'both'),
+                        'default'     => 'logs',
                         'description' => __(
-                            '"logs" — deletes all intercept log records from the database (攔截紀錄/ログ). Use this when the user asks to clear records, history, logs, or intercept data. ' .
-                            '"ips" — clears the banned IP list only (IP黑名單). Use this when the user asks to unblock IPs or reset the ban list. ' .
-                            '"both" — clears both the intercept records and the banned IP list.',
+                            '"logs" — deletes all intercept log records from the database. ' .
+                            '"ips" — clears the banned IP list only. ' .
+                            '"both" — clears both.',
                             'mp-ukagaka'
                         ),
                     ),
                 ),
-                'required' => array('target'),
             ),
             'execute_callback'   => [self::class, 'clear_data_callback'],
             'permission_callback' => function () { return current_user_can('manage_options'); },
@@ -87,18 +87,16 @@ class Wp_Bot_Blocker_Ability
     {
         $banned_ips = get_option('moelog_bot_blocker_banned_ips', []);
 
-        // 使用 plugin 自己的解析函式，與後台顯示的數字一致
         $total_intercepts = 0;
         $today_intercepts = 0;
         $by_event = [];
-        if (function_exists('moelog_bot_blocker_parse_logs')) {
-            $parsed = moelog_bot_blocker_parse_logs();
+        if (function_exists('mpu_bb_parse_logs')) {
+            $parsed = mpu_bb_parse_logs();
             $total_intercepts = $parsed['stats']['total'] ?? 0;
             $today_intercepts = $parsed['stats']['today'] ?? 0;
             $by_event         = $parsed['stats']['by_event'] ?? [];
         }
 
-        // Map event keys to human-readable labels
         $event_label_map = [
             'ua_ancient_chrome'  => 'outdated browser (old Chrome)',
             'slimstat_intercept' => 'suspicious access (Slimstat)',
@@ -132,25 +130,18 @@ class Wp_Bot_Blocker_Ability
 
         $ip = sanitize_text_field($args['ip_address']);
 
-        // Check if the IP is valid
         if (!filter_var($ip, FILTER_VALIDATE_IP)) {
             return new \WP_Error('invalid_ip', __('The provided IP address is invalid.', 'mp-ukagaka'));
         }
 
-        // We use the same storage mechanism as the plugin does
         $banned = get_option('moelog_bot_blocker_banned_ips', []);
 
         if (in_array($ip, $banned, true)) {
             return "IP {$ip} is already in the ban list.";
         }
 
-        // Delegate to the plugin's own function to ensure consistency
-        // (handles deduplication, 500-limit, and option update)
-        moelog_bot_blocker_ban_ip($ip);
-
-        // Use the plugin's own log function so log rotation and the
-        // moelog_bot_blocker_event transient are also updated correctly.
-        moelog_bot_blocker_log('MANUAL_BAN', ['source' => 'Frieren API', 'ip' => $ip]);
+        mpu_bb_ban_ip($ip);
+        mpu_bb_log('MANUAL_BAN', ['source' => 'Frieren API', 'ip' => $ip]);
 
         return "Successfully added IP {$ip} to the ban list.";
     }
@@ -160,25 +151,50 @@ class Wp_Bot_Blocker_Ability
      */
     public static function clear_data_callback($args)
     {
-        if (empty($args['target'])) {
-            return new \WP_Error('invalid_param', __('Target to clear is required.', 'mp-ukagaka'));
-        }
+        $raw_target = isset($args['target']) ? strtolower(trim((string) $args['target'])) : 'logs';
 
-        $target = $args['target'];
+        // Accept common aliases to reduce LLM parameter mismatch.
+        $target_alias_map = array(
+            'log'        => 'logs',
+            'logs'       => 'logs',
+            'record'     => 'logs',
+            'records'    => 'logs',
+            'history'    => 'logs',
+            'ip'         => 'ips',
+            'ips'        => 'ips',
+            'ban'        => 'ips',
+            'bans'       => 'ips',
+            'banlist'    => 'ips',
+            'blockedip'  => 'ips',
+            'all'        => 'both',
+            'both'       => 'both',
+            'everything' => 'both',
+        );
+
+        $target = isset($target_alias_map[$raw_target]) ? $target_alias_map[$raw_target] : $raw_target;
         $messages = [];
 
         if ($target === 'ips' || $target === 'both') {
             delete_option('moelog_bot_blocker_banned_ips');
-            $messages[] = 'Cleared the IP ban list.';
+            $messages[] = __('Cleared the IP ban list.', 'mp-ukagaka');
         }
 
         if ($target === 'logs' || $target === 'both') {
-            if (function_exists('moelog_bot_blocker_clear_logs')) {
-                moelog_bot_blocker_clear_logs();
-                $messages[] = 'Cleared the log table.';
+            if (function_exists('mpu_bb_clear_logs')) {
+                mpu_bb_clear_logs();
+
+                delete_transient('moelog_bot_blocker_event');
+                delete_transient('mpu_mbb_reaction_cooldown');
+                delete_transient('moelog_bot_blocker_stats_summary');
+
+                $messages[] = __('Cleared the log table and reset event states.', 'mp-ukagaka');
             } else {
-                $messages[] = 'Log clear function not available.';
+                $messages[] = __('Log clear function not available.', 'mp-ukagaka');
             }
+        }
+
+        if (empty($messages)) {
+            return new \WP_Error('invalid_target', sprintf(__('No valid target specified (received: %s).', 'mp-ukagaka'), $raw_target));
         }
 
         return implode(' ', $messages);

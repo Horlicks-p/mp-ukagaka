@@ -396,13 +396,16 @@ function mpu_sendUserMessage() {
     return;
   }
 
-  // 指令攔截：/reset 或 /clear 清除對話歷史
+  // 指令攔截：/reset 或 /clear 清除對話歷史（僅管理員）
   if (message === "/reset" || message === "/clear") {
-    mpu_clearChatHistory();
-    $input.val("");
-    mpu_typewriter("（記憶を消去しました...）", "#ukagaka_msg");
-    mpuLogger.log("對話歷史已清除");
-    return;
+    if (mpuPreSettings && mpuPreSettings.is_admin) {
+      mpu_clearChatHistory();
+      $input.val("");
+      mpu_typewriter("（記憶を消去しました...）", "#ukagaka_msg");
+      mpuLogger.log("對話歷史已清除");
+      return;
+    }
+    // 非管理員：不攔截，讓訊息流入下方 AI 路徑，由 visitor_rejection 引導角色拒絕
   }
 
   // 指令攔截：/help 顯示可用指令
@@ -434,6 +437,8 @@ function mpu_sendUserMessage() {
     type: "chat",
     timestamp: Date.now(),
   });
+  // [Fix] 立即存檔，防止 F5 導致歷史遺失造成 Checksum Mismatch
+  mpu_saveChatHistory();
 
   // 獲取頁面上下文（複用現有函數）
   const pageContext = mpu_get_page_context();
@@ -504,18 +509,17 @@ function mpu_sendUserMessage() {
           $input.prop("disabled", false);
           if (window.mpuChatModeActive) $input.focus();
 
-          if (data.msg) {
-            const finalMsg = data.msg;
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: finalMsg,
-              type: "chat",
-              timestamp: Date.now(),
-            });
-            mpu_saveChatHistory();
-            if (!fullResponse) {
-              $msg.html(mpu_parseMarkdown(finalMsg));
-            }
+          const finalMsg = data.msg || "";
+          window.mpuChatHistory.push({
+            role: "assistant",
+            content: finalMsg,
+            type: "chat",
+            timestamp: Date.now(),
+          });
+          mpu_saveChatHistory();
+
+          if (finalMsg && !fullResponse) {
+            $msg.html(mpu_parseMarkdown(finalMsg));
           }
 
           // 觸發角色動畫
@@ -543,7 +547,9 @@ function mpu_sendUserMessage() {
             window.mpuChatHistory.pop();
             mpu_saveChatHistory();
           }
-          mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
+          // 優先顯示後端回傳的錯誤訊息（如權限不足），否則才用通用字串
+          const errorMsg = (error && error.message) ? error.message : "（…連線好像有點問題…）";
+          mpu_typewriter(errorMsg, "#ukagaka_msg");
           mpuLogger.error("SSE Error:", error);
         },
         onAbort: () => {
@@ -622,7 +628,9 @@ function mpu_sendUserMessage() {
         }
 
         mpu_handle_error(error, "mpu_sendUserMessage", { showToUser: false });
-        mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
+        // 優先顯示後端回傳的錯誤訊息（如權限不足），否則才用通用字串
+        const syncErrorMsg = (error && error.message) ? error.message : "（…連線好像有點問題…）";
+        mpu_typewriter(syncErrorMsg, "#ukagaka_msg");
       })
       .finally(() => {
         mpuChatRequesting = false;

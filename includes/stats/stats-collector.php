@@ -274,18 +274,6 @@ function mpu_clear_all_stats()
 }
 
 /**
- * 檢查是否啟用統計功能
- * 
- * @return bool
- */
-function mpu_is_stats_enabled()
-{
-    $mpu_opt = mpu_get_option();
-    // 預設啟用統計功能
-    return !isset($mpu_opt['stats_enabled']) || $mpu_opt['stats_enabled'];
-}
-
-/**
  * 註冊排程事件鉤子
  */
 add_action('mpu_daily_stats_cleanup', function() {

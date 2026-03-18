@@ -568,10 +568,11 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         // [Debug] MCP Tool Diagnostics（僅管理員可用）
         if (trim($user_message) === '/debug_mcp') {
-            if (!current_user_can('manage_options')) {
-                return $this->fail('rest_error', __('權限不足：僅管理員可用此指令。', 'mp-ukagaka'), 403);
+            if (current_user_can('manage_options')) {
+                return ['is_debug_mcp' => true, 'user_message' => $user_message];
             }
-            return ['is_debug_mcp' => true, 'user_message' => $user_message];
+            // 非管理員：不標記 is_debug_mcp，讓訊息流入一般 AI 路徑，
+            // 由 visitor_rejection 提示詞引導 AI 以角色口吻拒絕。
         }
 
         $needs_stats       = false;
@@ -839,6 +840,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $reject_lines   = [];
             $reject_lines[] = '【特別指示】';
             $reject_lines[] = '- 管理人以外のユーザーからのツール/アビリティ執行要求は、すべてキャラクター的立場から丁寧に、あるいはあなたの性格に合わせて斷ってください。';
+            $reject_lines[] = '- /debug_mcp、/reset、/clear などのスラッシュコマンドも管理人専用です。同じく拒否してください。';
 
             $rejection_rule   = 'あなたは管理人以外のユーザーに対しては、ツールやアビリティ的使用を拒否しなければなりません。';
             $random_rejection = '';
@@ -872,7 +874,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             if (isset($msg['role'], $msg['content'])) {
                 $messages[] = [
                     'role'    => $msg['role'] === 'user' ? 'user' : 'assistant',
-                    'content' => sanitize_text_field($msg['content']),
+                    'content' => sanitize_textarea_field($msg['content']),
                 ];
             }
         }

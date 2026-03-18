@@ -93,12 +93,24 @@ abstract class MPU_REST_Base {
     /**
      * 錯誤回傳包裝。
      *
-     * @param string $code    WP_Error code（對前端可見，保持語意穩定）
-     * @param string $message 人類可讀的錯誤訊息
-     * @param int    $status  HTTP 狀態碼
+     * @param string     $code    WP_Error code（對前端可見，保持語意穩定）
+     * @param string     $message 人類可讀的錯誤訊息
+     * @param int        $status  HTTP 狀態碼
+     * @param array|null $data    額外的除錯資訊（例如 provider 的 http_status / raw_body）
      * @return WP_Error
      */
-    protected function fail($code, $message, $status) {
-        return new WP_Error($code, $message, ['status' => $status]);
+    protected function fail($code, $message, $status, $data = null) {
+        $error_data = ['status' => $status];
+        if (is_array($data)) {
+            // 合併 provider 回傳的除錯欄位（避免覆蓋 status）
+            foreach ($data as $k => $v) {
+                if ($k !== 'status') {
+                    $error_data[$k] = $v;
+                }
+            }
+        } elseif ($data !== null) {
+            $error_data['error_data'] = $data;
+        }
+        return new WP_Error($code, $message, $error_data);
     }
 }

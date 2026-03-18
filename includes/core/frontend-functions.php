@@ -605,7 +605,8 @@ function mpu_head()
     echo "var mpuPreSettings = {\n";
     echo "    ollama_replace: " . ($ollama_replace ? 'true' : 'false') . ",\n";
     echo "    typewriter_speed: " . $typewriter_speed . ",\n";
-    echo "    streaming_enabled: " . ($streaming_enabled ? 'true' : 'false') . "\n";
+    echo "    streaming_enabled: " . ($streaming_enabled ? 'true' : 'false') . ",\n";
+    echo "    is_admin: " . (current_user_can('manage_options') ? 'true' : 'false') . "\n";
     echo "};\n";
     echo "var mpuAiEnabled = " . ($ai_enabled ? 'true' : 'false') . ";\n";
 

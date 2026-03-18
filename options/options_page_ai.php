@@ -1,5 +1,5 @@
 <div>
-    <h3><?php _e('AI 設定 (Context Awareness)', 'mp-ukagaka'); ?></h3>
+    <h3><?php _e('🧠 AI 設定 (Context Awareness)', 'mp-ukagaka'); ?></h3>
     <p style="color: #8A7FA0; margin-bottom: 20px;">
         <small><?php _e('此頁面用於設定「頁面感知 AI」功能的行為參數。AI 提供商選擇和模型設定請前往「LLM 設定」頁面。', 'mp-ukagaka'); ?></small>
     </p>

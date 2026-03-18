@@ -237,26 +237,6 @@ if (!is_wp_error($response)) {
 
 ---
 
-#### mpu_should_trigger_ai()
-
-AI をトリガーするかどうかを確認。
-
-```php
-/**
- * @return bool トリガーするか
- */
-function mpu_should_trigger_ai(): bool
-```
-
-確認条件：
-
-- AI が有効か
-- API Key が設定されているか
-- 現在のページがトリガー条件に合っているか
-- 確率チェック
-
----
-
 #### mpu_get_language_instruction()
 
 言語指示文字列を取得。
@@ -661,19 +641,6 @@ function mpu_build_optimized_system_prompt(
 ---
 
 ### 伺か関数 (ukagaka-functions.php)
-
-#### mpu_ukagaka_list()
-
-伺かリスト HTML を取得。
-
-```php
-/**
- * @return string HTML 文字列
- */
-function mpu_ukagaka_list(): string
-```
-
----
 
 #### mpu_get_ukagaka()
 

@@ -463,7 +463,10 @@ function mpu_chat_context() {
             mpuAiDisplayTimer = null;
             mpuMessageBlocking = false;
             mpuAiContextInProgress = false;
-            if (wasAutoTalkRunning && mpuAutoTalk) {
+            // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；
+            // startup 被跳過時 auto-talk 從未啟動，wasAutoTalkRunning = false，
+            // 但 mpuAutoTalk 仍為 true，因此改用 mpuAutoTalk 作為判斷依據。
+            if (mpuAutoTalk && !mpuAutoTalkTimer) {
               startAutoTalk();
             }
           }, displayDurationMs);

@@ -1,5 +1,5 @@
 <div>
-    <h3><?php _e('創建新偽春菜', 'mp-ukagaka'); ?></h3>
+    <h3><?php _e('✨ 創建新偽春菜', 'mp-ukagaka'); ?></h3>
     
     <?php
     // 檢查是否有 ZIP 上傳的預覽數據

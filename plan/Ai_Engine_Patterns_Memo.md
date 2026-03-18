@@ -8,6 +8,8 @@
   已全面實裝於各 Provider 類別中，透過 Signature (MD5 hash) 識別重複呼叫，上限常數名為 `MPU_MAX_TOOL_REPEAT_SAME_CALL`。
 - **伺服器發送事件串流 (SSE Streaming)**
   已全面導入 `text/event-stream` 傳輸協定與 `user-stream` 端點，支援 OpenAI (`tool_calls` 組裝) 與 Ollama 的即時輸出，成功解決長回覆與思考型模型的等待焦慮。
+- **實施進度摘要**：
+  目前 `Ai_Engine_Patterns_Memo.md` 內提到的低/中成本提案（第 1 點至第 10 點）已全部實施完成。目前僅剩高成本提案（第 11 與第 12 點）尚未實施。
 
 ---
 

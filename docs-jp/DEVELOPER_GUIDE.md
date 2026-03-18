@@ -384,10 +384,6 @@ function mpu_js_filter($str): string
  */
 function mpu_input_filter($str): string
 
-/**
- * HTML デコード
- */
-function mpu_html_decode($str): string
 ```
 
 #### 安全なファイル操作
@@ -540,11 +536,6 @@ function mpu_publish_diary_post($diary_data)
 #### ukagaka-functions.php 主要関数
 
 ```php
-/**
- * 伺かリストの HTML を取得
- * @return string HTML 文字列
- */
-function mpu_ukagaka_list(): string
 
 /**
  * 伺かデータを取得
@@ -578,13 +569,6 @@ function mpu_get_msg($msgnum = 0, $num = false, $echo = false): string
  */
 function mpu_get_random_msg($num = false, $echo = false): string
 
-/**
- * デフォルトメッセージを取得
- * @param string|false $num 伺かキー
- * @param bool $echo 直接出力するかどうか
- * @return string メッセージ内容
- */
-function mpu_get_default_msg($num = false, $echo = false): string
 
 /**
  * 共通メッセージを取得
@@ -599,13 +583,6 @@ function mpu_common_msg(): string
  */
 function mpu_get_msg_arr($num = false): array
 
-/**
- * 次のメッセージを取得
- * @param string|false $num 伺かキー
- * @param int $msgnum 現在のメッセージインデックス
- * @return array メッセージとインデックスを含む配列
- */
-function mpu_get_next_msg($num = false, $msgnum = 0): array
 
 /**
  * メッセージ内の特殊コードを処理

@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-02-28T14:28:45.077Z
+ * Generated: 2026-03-18T03:17:22.954Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -1495,6 +1495,13 @@ function mpu_nextmsg(trigger) {
 
   if ((isAuto || isStartup) && mpuAiContextInProgress) {
     mpuLogger.log("mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話");
+    return;
+  }
+
+  // 頁面感知即將觸發（3 秒內），避免 startup 的 BOT 對話搶先覆蓋頁面感知
+  if (isStartup && window.mpuContextPending) {
+    mpuLogger.log("mpu_nextmsg: 頁面感知已排程，跳過 startup 以避免 BOT 對話覆蓋");
+    mpuOllamaRequesting = false;
     return;
   }
 
@@ -3396,7 +3403,10 @@ function mpu_chat_context() {
             mpuAiDisplayTimer = null;
             mpuMessageBlocking = false;
             mpuAiContextInProgress = false;
-            if (wasAutoTalkRunning && mpuAutoTalk) {
+            // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；
+            // startup 被跳過時 auto-talk 從未啟動，wasAutoTalkRunning = false，
+            // 但 mpuAutoTalk 仍為 true，因此改用 mpuAutoTalk 作為判斷依據。
+            if (mpuAutoTalk && !mpuAutoTalkTimer) {
               startAutoTalk();
             }
           }, displayDurationMs);
@@ -4394,13 +4404,16 @@ function mpu_sendUserMessage() {
     return;
   }
 
-  // 指令攔截：/reset 或 /clear 清除對話歷史
+  // 指令攔截：/reset 或 /clear 清除對話歷史（僅管理員）
   if (message === "/reset" || message === "/clear") {
-    mpu_clearChatHistory();
-    $input.val("");
-    mpu_typewriter("（記憶を消去しました...）", "#ukagaka_msg");
-    mpuLogger.log("對話歷史已清除");
-    return;
+    if (mpuPreSettings && mpuPreSettings.is_admin) {
+      mpu_clearChatHistory();
+      $input.val("");
+      mpu_typewriter("（記憶を消去しました...）", "#ukagaka_msg");
+      mpuLogger.log("對話歷史已清除");
+      return;
+    }
+    // 非管理員：不攔截，讓訊息流入下方 AI 路徑，由 visitor_rejection 引導角色拒絕
   }
 
   // 指令攔截：/help 顯示可用指令
@@ -4432,6 +4445,8 @@ function mpu_sendUserMessage() {
     type: "chat",
     timestamp: Date.now(),
   });
+  // [Fix] 立即存檔，防止 F5 導致歷史遺失造成 Checksum Mismatch
+  mpu_saveChatHistory();
 
   // 獲取頁面上下文（複用現有函數）
   const pageContext = mpu_get_page_context();
@@ -4502,18 +4517,17 @@ function mpu_sendUserMessage() {
           $input.prop("disabled", false);
           if (window.mpuChatModeActive) $input.focus();
 
-          if (data.msg) {
-            const finalMsg = data.msg;
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: finalMsg,
-              type: "chat",
-              timestamp: Date.now(),
-            });
-            mpu_saveChatHistory();
-            if (!fullResponse) {
-              $msg.html(mpu_parseMarkdown(finalMsg));
-            }
+          const finalMsg = data.msg || "";
+          window.mpuChatHistory.push({
+            role: "assistant",
+            content: finalMsg,
+            type: "chat",
+            timestamp: Date.now(),
+          });
+          mpu_saveChatHistory();
+
+          if (finalMsg && !fullResponse) {
+            $msg.html(mpu_parseMarkdown(finalMsg));
           }
 
           // 觸發角色動畫
@@ -4541,7 +4555,9 @@ function mpu_sendUserMessage() {
             window.mpuChatHistory.pop();
             mpu_saveChatHistory();
           }
-          mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
+          // 優先顯示後端回傳的錯誤訊息（如權限不足），否則才用通用字串
+          const errorMsg = (error && error.message) ? error.message : "（…連線好像有點問題…）";
+          mpu_typewriter(errorMsg, "#ukagaka_msg");
           mpuLogger.error("SSE Error:", error);
         },
         onAbort: () => {
@@ -4620,7 +4636,9 @@ function mpu_sendUserMessage() {
         }
 
         mpu_handle_error(error, "mpu_sendUserMessage", { showToUser: false });
-        mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
+        // 優先顯示後端回傳的錯誤訊息（如權限不足），否則才用通用字串
+        const syncErrorMsg = (error && error.message) ? error.message : "（…連線好像有點問題…）";
+        mpu_typewriter(syncErrorMsg, "#ukagaka_msg");
       })
       .finally(() => {
         mpuChatRequesting = false;
@@ -5109,7 +5127,10 @@ jQuery(document).ready(function () {
 
         if (roll <= probability) {
           mpuLogger.log("頁面感知 AI 將在 3 秒後觸發");
+          // 設置旗標，讓 startup/auto-talk 在頁面感知觸發前不搶先顯示 BOT 對話
+          window.mpuContextPending = true;
           setTimeout(function () {
+            window.mpuContextPending = false;
             mpu_chat_context();
           }, 3000);
           return;

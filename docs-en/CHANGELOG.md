@@ -4,6 +4,31 @@
 
 ---
 
+## [2.13.1] - 2026-03-18
+
+### 🔒 Security Hardening
+
+- **Command Access Control**: Admin-only commands (`/debug_mcp`, `/reset`, `/clear`) no longer return a system error message for non-logged-in users. Instead, the `visitor_rejection` prompts from `dynamics.json` guide the character to refuse in-character, consistent with MCP tool rejection behavior.
+  - Backend: Non-admin `/debug_mcp` requests now fall through to the standard AI pipeline; the non-admin system prompt includes a note to reject slash commands.
+  - Frontend: `mpuPreSettings` gains an `is_admin` flag; `/reset` and `/clear` are guarded by admin check and fall through to the AI path for non-admin users.
+- **IP Spoofing Mitigation**: `mpu_get_client_ip()` (rate limiting) and `mpu_bb_get_ip()` (Bot Blocker auto-ban) now validate proxy header values (CF-Connecting-IP / X-Forwarded-For) against public address rules (`FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE`), preventing attackers from forging private/reserved IPs to bypass rate limits or trigger false auto-bans on legitimate targets.
+
+### 🐛 Bug Fix
+
+- **`fail()` Lost Error Details**: The `fail()` method in `class-mpu-rest-base.php` now accepts an optional 4th parameter `$data`. Provider-returned debug fields such as `http_status` and `raw_body` are no longer silently dropped and are now accessible in the REST response body for admin debugging.
+
+---
+
+## [2.13.0] - 2026-03-06
+
+### 🧹 Dead Code Cleanup
+
+- **Removed Unused Functions & Files**: Removed deprecated code that hasn't been used and has no frontend/backend calls to ensure plugin lightweightness and future maintainability.
+  - Removed multiple obsolete files in `includes/rest/chat/` and `includes/ajax/chat/` directories which have been replaced by the latest OO architecture.
+  - Removed outdated functions such as `mpu_html_decode`, `mpu_is_browser`, `mpu_should_trigger_ai`, `mpu_ukagaka_list`, `mpu_get_default_msg`, `mpu_get_next_msg`, `mpu_get_msg_key`, `mpu_count_msg`, and simultaneously removed their references from the Developer Guides.
+
+---
+
 ## [2.12.5] - 2026-02-28
 
 ### 🚀 Major Update: Unified History & SSE Stability Hardening

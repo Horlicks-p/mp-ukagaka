@@ -69,20 +69,44 @@ msgstr "MP Ukagaka Options"
 msgid "通用設定"
 msgstr "General Settings"
 
+msgid "⚙️ 通用設定"
+msgstr "⚙️ General Settings"
+
 msgid "AI 設定"
 msgstr "AI Settings"
+
+msgid "🧠 AI 設定"
+msgstr "🧠 AI Settings"
 
 msgid "LLM 設定"
 msgstr "LLM Settings"
 
+msgid "🤖 LLM 設定"
+msgstr "🤖 LLM Settings"
+
 msgid "會話"
 msgstr "Messages"
+
+msgid "💬 會話"
+msgstr "💬 Messages"
 
 msgid "春菜們"
 msgstr "Characters"
 
 msgid "創建新春菜"
 msgstr "Create New Character"
+
+msgid "👻 偽春菜們"
+msgstr "👻 Ukagakas"
+
+msgid "✨ 創建新偽春菜"
+msgstr "✨ Create New Ukagaka"
+
+msgid "🔌 擴展"
+msgstr "🔌 Extensions"
+
+msgid "📊 統計"
+msgstr "📊 Statistics"
 
 # ========================================
 # Admin Pages - Messages
@@ -1344,4 +1368,145 @@ msgstr "Post #%d"
 msgid "下次排程：%s"
 msgstr "Next scheduled: %s"
 
+# ========================================
+# Bot Protection Page (Tab 9)
+# ========================================
+
+msgid "🛡️ Bot 防護"
+msgstr "🛡️ Bot Protection"
+
+msgid "Bot 防護設定已儲存"
+msgstr "Bot protection settings saved"
+
+msgid "您沒有足夠的權限執行此操作。"
+msgstr "You don't have sufficient permissions to perform this action."
+
+msgid "IP 黑名單已清除。"
+msgstr "IP blocklist cleared."
+
+msgid "Log 已清除。"
+msgstr "Log cleared."
+
+msgid "已移除 IP：%s"
+msgstr "Removed IP: %s"
+
+msgid "Bot 防護設定"
+msgstr "Bot Protection Settings"
+
+msgid "多層防禦機制封鎖惡意爬蟲：指紋黑名單、IP 黑名單、Cookie 陷阱、UA 異常偵測、JS Beacon。"
+msgstr "Multi-layer defense to block malicious bots: fingerprint blocklist, IP blocklist, cookie trap, UA anomaly detection, JS Beacon."
+
+msgid "啟用 Bot 防護"
+msgstr "Enable Bot Protection"
+
+msgid "啟用多層 Bot 封鎖防護"
+msgstr "Enable multi-layer bot blocking"
+
+msgid "啟用後立即生效。關閉後所有防護停止運作，但資料庫記錄與 IP 黑名單保留。"
+msgstr "Takes effect immediately when enabled. When disabled, all protection stops, but database records and IP blocklist are retained."
+
+msgid "指紋黑名單"
+msgstr "Fingerprint Blocklist"
+
+msgid "Slimstat fingerprint hash，每行一個（例：f70fd15177b6515b0abf82a68122b25f）。"
+msgstr "Slimstat fingerprint hash, one per line (e.g., f70fd15177b6515b0abf82a68122b25f)."
+
+msgid "可疑解析度黑名單"
+msgstr "Suspicious Resolution Blocklist"
+
+msgid "格式：寬x高（例：1280x1200），每行一個。出現即封鎖，不需搭配其他條件。"
+msgstr "Format: WIDTHxHEIGHT (e.g., 1280x1200), one per line. Any match is blocked immediately, no other conditions required."
+
+msgid "IP 自動封鎖"
+msgstr "Auto IP Ban"
+
+msgid "被指紋或解析度命中後，自動將該 IP 加入永久黑名單"
+msgstr "Automatically add the IP to the permanent blocklist when matched by fingerprint or resolution"
+
+msgid "封鎖狀態碼"
+msgstr "Block Status Code"
+
+msgid "HTTP 狀態碼（通常為 403 Forbidden）"
+msgstr "HTTP status code (usually 403 Forbidden)"
+
+msgid "Hot-Transient 存活時間（秒）"
+msgstr "Hot-Transient TTL (seconds)"
+
+msgid "命中後同 IP 在此秒數內直接封鎖（預設 600 秒 = 10 分鐘）"
+msgstr "After a hit, the same IP is blocked directly within this many seconds (default: 600 seconds = 10 minutes)"
+
+msgid "Rate Limit 閾值（次 / 5 分鐘）"
+msgstr "Rate Limit Threshold (requests / 5 minutes)"
+
+msgid "同 IP 在 5 分鐘內超過此請求次數即封鎖（0 = 停用 Rate Limit）"
+msgstr "Block the same IP when it exceeds this many requests within 5 minutes (0 = disable Rate Limit)"
+
+msgid "Log 最大列數"
+msgstr "Max Log Rows"
+
+msgid "超過時自動刪除最舊的紀錄（預設 1000）"
+msgstr "Oldest records are automatically deleted when the limit is exceeded (default: 1000)"
+
+msgid "儲存 Bot 防護設定"
+msgstr "Save Bot Protection Settings"
+
+msgid "攔截統計"
+msgstr "Interception Statistics"
+
+msgid "攔截總計"
+msgstr "Total Blocked"
+
+msgid "今日攔截"
+msgstr "Blocked Today"
+
+msgid "IP 黑名單"
+msgstr "IP Blocklist"
+
+msgid "監控指紋"
+msgstr "Monitored Fingerprints"
+
+msgid "攔截事件分佈"
+msgstr "Interception Event Distribution"
+
+msgid "偽造的 Chrome 版本"
+msgstr "Forged Chrome Versions"
+
+msgid "攔截紀錄"
+msgstr "Interception Log"
+
+msgid "最新 %d 筆"
+msgstr "Latest %d entries"
+
+msgid "還沒有攔截紀錄，一切安好！"
+msgstr "No interception records yet — all is well!"
+
+msgid "時間"
+msgstr "Time"
+
+msgid "事件"
+msgstr "Event"
+
+msgid "Chrome"
+msgstr "Chrome"
+
+msgid "User-Agent"
+msgstr "User-Agent"
+
+msgid "目前沒有被封鎖的 IP。"
+msgstr "No blocked IPs currently."
+
+msgid "移除此 IP"
+msgstr "Remove this IP"
+
+msgid "確定要清除所有被封鎖的 IP？這不會影響指紋黑名單。"
+msgstr "Are you sure you want to clear all blocked IPs? This will not affect the fingerprint blocklist."
+
+msgid "清除 IP 黑名單"
+msgstr "Clear IP Blocklist"
+
+msgid "確定要清除所有 Log 紀錄？此操作無法復原。"
+msgstr "Are you sure you want to clear all log records? This action cannot be undone."
+
+msgid "清除 Log"
+msgstr "Clear Log"
 

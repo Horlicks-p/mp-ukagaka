@@ -1,5 +1,5 @@
 <div>
-    <h3><?php _e('會話', 'mp-ukagaka'); ?></h3>
+    <h3><?php _e('💬 會話', 'mp-ukagaka'); ?></h3>
     <p style="color: #8A7FA0; margin-bottom: 20px;">
         <small><?php _e('設定所有偽春菜共用的固定資訊和通用會話內容。', 'mp-ukagaka'); ?></small>
     </p>

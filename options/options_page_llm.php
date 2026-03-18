@@ -32,7 +32,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
 ?>
 
 <div>
-    <h3><?php _e('LLM 設定', 'mp-ukagaka'); ?></h3>
+    <h3><?php _e('🤖 LLM 設定', 'mp-ukagaka'); ?></h3>
     <p style="color: #8A7FA0; margin-bottom: 20px;">
         <small><?php _e('此頁面用於設定 AI 提供商、模型選擇和 LLM 功能。頁面感知 AI 的行為參數請前往「AI 設定」頁面。', 'mp-ukagaka'); ?></small>
     </p>

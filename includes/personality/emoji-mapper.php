@@ -318,6 +318,57 @@ function mpu_get_default_emoji_mappings()
 }
 
 /**
+ * 從文本中提取顯式指定的表情標籤
+ * 支援格式：[表情: 名稱]、[emoji: name]、(emotion: name)
+ * 
+ * @param string $text 對話內容
+ * @param string|null $personality_id Personality ID
+ * @return string|null 表情文件名，如果無法匹配則返回 null
+ */
+function mpu_extract_explicit_emotion($text, $personality_id = null)
+{
+    if (empty($text) || !is_string($text)) {
+        return null;
+    }
+
+    // 匹配格式：[表情: xxx] 或 [emoji: xxx] 或 (emotion: xxx)
+    // 支援中日文「表情」關鍵字與英文「emoji」、「emotion」
+    $patterns = [
+        '/\[(?:表情|emoji|emotion)\s*:\s*([^\]]+)\]/u',
+        '/\((?:表情|emoji|emotion)\s*:\s*([^\)]+)\)/u',
+    ];
+
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $text, $matches)) {
+            $emotion_name = trim($matches[1]);
+            
+            // 獲取表情配置
+            if (function_exists('mpu_load_personality_emoji_config')) {
+                $config = mpu_load_personality_emoji_config($personality_id);
+                $supported = $config['supported'] ?? [];
+                
+                // 檢查是否在支援列表中 (精確匹配)
+                if (in_array($emotion_name, $supported)) {
+                    return $emotion_name . '.png';
+                }
+                
+                // 模糊匹配 (不分大小寫)
+                foreach ($supported as $s) {
+                    if (strcasecmp($s, $emotion_name) === 0) {
+                        return $s . '.png';
+                    }
+                }
+            }
+            
+            // fallback: 如果找不到配置，但有名稱，嘗試直接拼接（不穩定的做法，僅作最後手段）
+            // 但在這裡我們寧可回傳 null 讓 keyword matching 接手
+        }
+    }
+
+    return null;
+}
+
+/**
  * 分析對話內容的情緒，返回對應的表情文件名
  * 
  * @param string $text 對話內容
@@ -328,6 +379,12 @@ function mpu_analyze_emoji_from_text($text, $personality_id = null)
 {
     if (empty($text) || !is_string($text)) {
         return null;
+    }
+
+    // --- 優先解析顯式標籤 ---
+    $explicit = mpu_extract_explicit_emotion($text, $personality_id);
+    if ($explicit !== null) {
+        return $explicit;
     }
 
     $emoji_map = mpu_get_emoji_mappings($personality_id);

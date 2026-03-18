@@ -4,6 +4,31 @@
 
 ---
 
+## [2.13.1] - 2026-03-18
+
+### 🔒 セキュリティ強化 (Security)
+
+- **コマンドアクセス制御**：`/debug_mcp`・`/reset`・`/clear` などの管理者専用コマンドが、非ログイン状態ではシステムメッセージを返さなくなりました。代わりに `dynamics.json` の `visitor_rejection` プロンプトに従い、キャラクターがそのキャラクターらしい口調で拒否します。MCP ツール拒否と一貫した体験を提供します。
+  - バックエンド：非管理者の `/debug_mcp` リクエストは通常の AI パイプラインにフォールスルーするよう変更。非管理者向け system prompt にスラッシュコマンド拒否の指示を追記。
+  - フロントエンド：`mpuPreSettings` に `is_admin` フラグを追加。`/reset`・`/clear` に管理者チェックを追加し、非管理者の場合は AI パスへフォールスルー。
+- **IP スプーフィング対策**：`mpu_get_client_ip()`（レート制限）と `mpu_bb_get_ip()`（Bot Blocker 自動 BAN）にて、proxy ヘッダー（CF-Connecting-IP / X-Forwarded-For）の値に対してパブリック IP 検証（`FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE`）を追加。プライベート/予約済み IP を偽装してレート制限を回避したり、正規 IP に誤 BAN を引き起こす攻撃を防止します。
+
+### 🐛 バグ修正 (Bug Fix)
+
+- **`fail()` エラー情報の消失**：`class-mpu-rest-base.php` の `fail()` メソッドに省略可能な第 4 引数 `$data` を追加。Provider が返す `http_status`・`raw_body` などのデバッグ情報がサイレントに破棄されなくなり、REST レスポンスボディから直接確認できるようになりました。
+
+---
+
+## [2.13.0] - 2026-03-06
+
+### 🧹 デッドコードのクリーンアップ (Dead Code Cleanup)
+
+- **未使用の関数とファイルの削除**：長期間使用されておらず、フロントエンド/バックエンドからの呼び出しもない不要なコードを削除し、プラグインの軽量化と将来のメンテナンス性を確保しました。
+  - `includes/rest/chat/` および `includes/ajax/chat/` ディレクトリ内の、最新の OO アーキテクチャに置き換えられた複数の古いファイルを削除しました。
+  - `mpu_html_decode`、`mpu_is_browser`、`mpu_should_trigger_ai`、`mpu_ukagaka_list`、`mpu_get_default_msg`、`mpu_get_next_msg`、`mpu_get_msg_key`、`mpu_count_msg` などの時代遅れの関数を削除し、同時に開発者向けガイドからそれらの参照を削除しました。
+
+---
+
 ## [2.12.5] - 2026-02-28
 
 ### 🚀 メジャーアップデート：統一歴史記憶と SSE 安定性の強化

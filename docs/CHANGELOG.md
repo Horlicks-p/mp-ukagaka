@@ -4,6 +4,31 @@
 
 ---
 
+## [2.13.1] - 2026-03-18
+
+### 🔒 安全性強化 (Security)
+
+- **指令存取控制**：`/debug_mcp`、`/reset`、`/clear` 等管理員指令在非登入狀態下不再回傳系統訊息，改由 `dynamics.json` 的 `visitor_rejection` 提示詞引導角色以個性口吻拒絕，體驗與拒絕 MCP 工具呼叫完全一致。
+  - 後端：`/debug_mcp` 非管理員請求改為 fall-through 進入一般 AI pipeline；非管理員 system prompt 補充 slash command 拒絕指示。
+  - 前端：`mpuPreSettings` 新增 `is_admin` 旗標；`/reset`、`/clear` 加入 admin 判斷，非管理員不攔截，交由 AI 路徑處理。
+- **IP 偽造防禦**：`mpu_get_client_ip()`（速率限制）與 `mpu_bb_get_ip()`（Bot Blocker 自動封鎖）對 proxy header（CF-Connecting-IP / X-Forwarded-For）的值加入公開位址驗證（`FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE`），防止攻擊者偽造私有/保留 IP 繞過速率限制，或觸發 auto-ban 誤封合法目標。
+
+### 🐛 修復 (Bug Fix)
+
+- **`fail()` 錯誤資訊遺失**：`class-mpu-rest-base.php` 的 `fail()` 方法新增選用第 4 參數 `$data`，Provider 回傳的 `http_status`、`raw_body` 等除錯欄位不再被靜默丟棄，管理員可直接在 REST response body 中查閱完整錯誤詳情。
+
+---
+
+## [2.13.0] - 2026-03-06
+
+### 🧹 死碼清理 (Dead Code Cleanup)
+
+- **移除未使用的函式與檔案**：移除長期未使用且已無前後端呼叫的廢棄程式碼，確保外掛輕量化與未來維護性。
+  - 移除了 `includes/rest/chat/` 與 `includes/ajax/chat/` 目錄下多個已經由最新 OO 架構取代的過期檔案。
+  - 移除了 `mpu_html_decode`、`mpu_is_browser`、`mpu_should_trigger_ai`、`mpu_ukagaka_list`、`mpu_get_default_msg`、`mpu_get_next_msg`、`mpu_get_msg_key`、`mpu_count_msg` 等過時函數，並同步由開發者文件中剃除參考。
+
+---
+
 ## [2.12.5] - 2026-02-28
 
 ### 🚀 重大更新：統一歷史記憶與 SSE 穩定性強化

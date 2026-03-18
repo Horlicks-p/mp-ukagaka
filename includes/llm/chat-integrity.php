@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Chat history integrity checksum helpers.
  */
