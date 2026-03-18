@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.12.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.12.0 の新機能
+## 🎉 v2.13.1 の新機能
 
-**SSE ストリーミングとタイプライター効果**: リアルタイム AI 応答のための Server-Sent Events (SSE) プロトコルを導入。「タイプライター効果」により、長い回答や Ollama などの「思考型」モデルの待機時間が大幅に改善されました。
+**セキュリティ強化**: 管理者専用コマンド (`/debug_mcp`, `/reset`, `/clear`) の非ログイン時の処理を改善。IP スプーフィング対策として proxy ヘッダーの検証を追加。`fail()` メソッドにデバッグ情報の保持機能を追加。
 
-**新しいストリーミングエンドポイント**: 専用の REST ルート `/chat/user-stream` を追加。従来の非ストリームパスと同様の安全な検証、レート制限、対話整合性チェックを備えています。OpenAI (ツール呼び出し) および Ollama (思考標記フィルタリング) に対応。
-
-**システムアーキテクチャと安全性**: AI プロバイダーファクトリパターンの第2段階リファクタリングを完了し、拡張性が向上。ツール呼び出しループ防止（Loop Guard）を実装し、無限ループを自動遮断して API 料金を保護します。
-
-**安定性の向上**: `ignore_user_abort` と cURL ストリームコールバックを統合し、ユーザー切断時の「幽霊話」を防止してサーバーリソースを節約します。
+**デッドコードのクリーンアップ (v2.13.0)**: 長期間使用されていなかった廢棄された関数やモジュールをコードベースから削除し、プラグインを軽量化しました。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

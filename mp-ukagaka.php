@@ -90,9 +90,10 @@ function mpu_load_modules()
         'core/ukagaka-functions.php',   // 偽春菜管理
         'rest/bootstrap.php',           // REST OO Controller 註冊入口（含 Base Class 載入）
         'ajax/chat-api-handlers.php',   // 對話模式 API 處理器（多輪對話）
-        'integrations/akismet-integration.php', // Akismet 垃圾留言連動
-        'integrations/turnstile-integration.php', // Turnstile 垃圾留言連動
-        'integrations/abilities-integration.php', // Abilities API Integration (formerly MCP)
+        'integrations/akismet-integration.php',    // Akismet 垃圾留言連動
+        'integrations/turnstile-integration.php',  // Turnstile 垃圾留言連動
+        'integrations/abilities-integration.php',  // Abilities API Integration (formerly MCP)
+        'integrations/bot-blocker-integration.php', // Bot 防護（整合自 Moelog Bot Blocker）
     ];
 
     // 前端專用模組
