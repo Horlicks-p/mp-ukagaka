@@ -67,8 +67,8 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
     .mpu-frieren-hero {
         margin: 0 0 14px 0;
         padding: 18px 22px 20px 22px;
-        width: 70%;
-        max-width: 70%;
+        width: 100%;
+        max-width: 100%;
         border: 1px solid var(--mpu-border);
         border-radius: 6px;
         background: var(--mpu-bg-section);
@@ -120,24 +120,28 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
         border-radius: 2px 2px 0 0;
     }
 
+    .mpu-frieren-admin .mp-ukagaka-main-layout {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        grid-template-rows: auto 1fr;
+        gap: 0 18px;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 0;
+    }
+
     .mpu-frieren-admin .mp-ukagaka-tabs {
-        width: 70% !important;
-        max-width: 70% !important;
+        grid-column: 1;
+        grid-row: 1;
+        width: 100% !important;
+        max-width: 100% !important;
         margin-bottom: 0;
         border-bottom: 0 !important;
     }
 
-    .mpu-frieren-admin .mp-ukagaka-main-layout {
-        display: flex;
-        gap: 18px;
-        align-items: flex-start;
-        width: 70%;
-        max-width: 70%;
-        margin-top: 0;
-    }
-
     .mpu-frieren-admin .mp-ukagaka-section {
-        flex: 1 1 auto;
+        grid-column: 1;
+        grid-row: 2;
         width: auto !important;
         max-width: none !important;
         min-width: 0;
@@ -151,10 +155,12 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
     }
 
     .mpu-frieren-admin .mp-ukagaka-sidebar {
-        flex: 0 0 300px;
+        grid-column: 2;
+        grid-row: 2;
         width: 300px;
         position: sticky;
         top: 42px;
+        align-self: start;
     }
 
     .mpu-frieren-admin .mpu-quick-link-card {
@@ -218,7 +224,8 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
     textarea#auto_msg,
     textarea#ai_system_prompt,
     textarea#ai_greet_prompt {
-        width: 1000px !important;
+        width: 100% !important;
+        box-sizing: border-box;
         min-height: 200px;
         resize: both !important;
     }
@@ -241,31 +248,28 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
         margin-top: -1px;
     }
 
-    @media (max-width: 1600px) {
-        .mpu-frieren-admin .mp-ukagaka-tabs a {
-            padding: 8px 9px !important;
-            font-size: 12px !important;
-        }
-    }
-
     @media (max-width: 1280px) {
-        .mpu-frieren-admin .mp-ukagaka-tabs {
-            width: 100% !important;
-            max-width: 100% !important;
+        .mpu-frieren-admin .mp-ukagaka-main-layout {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 14px 0;
         }
 
-        .mpu-frieren-admin .mp-ukagaka-main-layout {
-            flex-direction: column;
-            gap: 14px;
-            width: 100%;
-            max-width: 100%;
+        .mpu-frieren-admin .mp-ukagaka-tabs {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .mpu-frieren-admin .mp-ukagaka-section {
+            grid-column: 1;
+            grid-row: 2;
         }
 
         .mpu-frieren-admin .mp-ukagaka-sidebar {
+            grid-column: 1;
+            grid-row: 3;
             position: static;
-            flex: 1;
             width: 100%;
-            max-width: 100%;
         }
     }
 
@@ -286,12 +290,6 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
             font-size: 25px !important;
         }
 
-        .mpu-frieren-admin .mp-ukagaka-tabs {
-            margin: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-        }
-
         .mpu-frieren-admin .mp-ukagaka-section {
             padding: 18px 14px !important;
             margin: 0 !important;
@@ -310,21 +308,23 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
     <!-- 顯示操作結果訊息 -->
     <?php if (!empty($text)) echo $text; ?>
 
-    <!-- 改進的導覽列：頁面切換連結 -->
-    <div class="mp-ukagaka-tabs">
-        <a class="<?php echo $cur_page == 0 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=0'); ?>"><?php _e('⚙️ 通用設定', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 5 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=5'); ?>"><?php _e('🧠 AI 設定', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 6 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=6'); ?>"><?php _e('🤖 LLM 設定', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 7 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=7'); ?>"><?php _e('📓 日記設定', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 4 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=4'); ?>"><?php _e('💬 會話', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 1 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=1'); ?>"><?php _e('👻 偽春菜們', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 2 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=2'); ?>"><?php _e('✨ 創建新偽春菜', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 3 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=3'); ?>"><?php _e('🔌 擴展', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 9 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=9'); ?>"><?php _e('🛡️ Bot 防護', 'mp-ukagaka'); ?></a>
-        <a class="<?php echo $cur_page == 8 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=8'); ?>"><?php _e('📊 統計', 'mp-ukagaka'); ?></a>
-    </div>
-
     <div class="mp-ukagaka-main-layout">
+
+        <!-- タブナビ（grid row 1, col 1） -->
+        <div class="mp-ukagaka-tabs">
+            <a class="<?php echo $cur_page == 0 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=0'); ?>"><?php _e('⚙️ 通用設定', 'mp-ukagaka'); ?></a>
+            <a class="<?php echo $cur_page == 5 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=5'); ?>"><?php _e('🧠 AI 設定', 'mp-ukagaka'); ?></a>
+            <a class="<?php echo $cur_page == 6 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=6'); ?>"><?php _e('🤖 LLM 設定', 'mp-ukagaka'); ?></a>
+            <a class="<?php echo $cur_page == 7 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=7'); ?>"><?php _e('📓 日記設定', 'mp-ukagaka'); ?></a>
+            <a class="<?php echo $cur_page == 4 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=4'); ?>"><?php _e('💬 會話', 'mp-ukagaka'); ?></a>
+            <a class="<?php echo $cur_page == 1 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=1'); ?>"><?php _e('👻 偽春菜們', 'mp-ukagaka'); ?></a>
+            <a class="<?php echo $cur_page == 2 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=2'); ?>"><?php _e('✨ 創建新偽春菜', 'mp-ukagaka'); ?></a>
+            <a class="<?php echo $cur_page == 3 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=3'); ?>"><?php _e('🔌 擴展', 'mp-ukagaka'); ?></a>
+            <a class="<?php echo $cur_page == 9 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=9'); ?>"><?php _e('🛡️ Bot 防護', 'mp-ukagaka'); ?></a>
+            <a class="<?php echo $cur_page == 8 ? 'active' : ''; ?>" href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=8'); ?>"><?php _e('📊 統計', 'mp-ukagaka'); ?></a>
+        </div>
+
+        <!-- コンテンツ（grid row 2, col 1） -->
         <div class="mp-ukagaka-section">
             <!-- 根據當前頁面載入對應內容 -->
             <?php
@@ -345,7 +345,7 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
                 require_once($page_files[$cur_page]);
             }
             ?>
-        </div>
+        </div><!-- end mp-ukagaka-section -->
 
         <!-- 右側快速連結欄 -->
         <div class="mp-ukagaka-sidebar">

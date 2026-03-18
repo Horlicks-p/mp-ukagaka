@@ -383,6 +383,12 @@ msgstr "初回訪問者にAIが参照元に基づいてパーソナライズさ�
 msgid "首次訪客打招呼提示詞："
 msgstr "初回訪問者挨拶プロンプト："
 
+msgid "首次訪客打招呼提示詞（後備）："
+msgstr "初回訪問者挨拶プロンプト（後備）："
+
+msgid "角色的 <code>dynamics.json</code> 中有 <code>greet_first_visit</code> 設定時，會優先使用該設定作為會話指示。此欄位僅在角色無 dynamics.json 設定時作為後備使用。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
+msgstr "キャラクターの <code>dynamics.json</code> に <code>greet_first_visit</code> が設定されている場合はそちらが優先されます。このフィールドは dynamics.json に設定がない場合の後備として使用されます。<br>{{変数名}} を使用して変数置換が可能です（例：{{ukagaka_display_name}}、{{time_context}}、{{language}} など）。"
+
 msgid "定義春菜對首次訪客的打招呼風格和語氣"
 msgstr "初回訪問者への挨拶のスタイルとトーンを定義"
 

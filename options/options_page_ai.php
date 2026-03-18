@@ -73,7 +73,7 @@
                 ];
                 $cfg = $source_configs[$prompt_source] ?? $source_configs['default'];
                 ?>
-                <div style="margin: 6px 0 8px; padding: 8px 12px; border-left: 4px solid <?php echo esc_attr($cfg['color']); ?>; background: <?php echo esc_attr($cfg['bg']); ?>; max-width: 850px;">
+                <div style="margin: 6px 0 8px; padding: 8px 12px; border-left: 4px solid <?php echo esc_attr($cfg['color']); ?>; background: <?php echo esc_attr($cfg['bg']); ?>; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                     <strong><?php echo esc_html($cfg['icon'] . ' ' . $cfg['label']); ?></strong>
                     <span style="margin-left: 6px; color: #555;"><?php echo esc_html($cfg['desc']); ?></span>
                 </div>
@@ -134,7 +134,7 @@
             </div>
             <div class="mpu-field-group" id="ai_greet_prompt_container" style="<?php echo (isset($mpu_opt['ai_greet_first_visit']) && $mpu_opt['ai_greet_first_visit']) ? '' : 'display:none;'; ?>">
                 <label for="ai_greet_prompt"><?php _e('首次訪客打招呼提示詞（後備）：', 'mp-ukagaka'); ?></label>
-                <textarea cols="60" rows="8" id="ai_greet_prompt" name="ai_greet_prompt" class="resizable" style="line-height:130%; width: 100%; max-width: 850px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace;"><?php echo isset($mpu_opt['ai_greet_prompt']) ? esc_textarea($mpu_opt['ai_greet_prompt']) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。'; ?></textarea>
+                <textarea cols="60" rows="8" id="ai_greet_prompt" name="ai_greet_prompt" class="resizable" style="line-height:130%; width: 100%; font-family: 'Consolas', 'Monaco', 'Courier New', monospace;"><?php echo isset($mpu_opt['ai_greet_prompt']) ? esc_textarea($mpu_opt['ai_greet_prompt']) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。'; ?></textarea>
                 <small>
                     <?php _e('角色的 <code>dynamics.json</code> 中有 <code>greet_first_visit</code> 設定時，會優先使用該設定作為會話指示。此欄位僅在角色無 dynamics.json 設定時作為後備使用。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。', 'mp-ukagaka'); ?>
                 </small>
