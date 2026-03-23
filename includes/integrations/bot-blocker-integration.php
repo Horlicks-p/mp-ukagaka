@@ -121,6 +121,17 @@ function mpu_bb_early_check() {
         return;
     }
 
+    // 跳過已登入使用者，避免誤封編輯/管理員（例如頻繁預覽文章）
+    if (is_user_logged_in()) {
+        return;
+    }
+
+    // 跳過本機 / 私有 IP，開發環境不應被封鎖
+    $early_ip = mpu_bb_get_ip();
+    if (filter_var($early_ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+        return;
+    }
+
     // 1a. Cookie 陷阱檢查
     if (isset($_COOKIE['_mbb_t']) && $_COOKIE['_mbb_t'] === '1') {
         mpu_bb_block('cookie_trap');
