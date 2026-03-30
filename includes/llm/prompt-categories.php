@@ -109,6 +109,13 @@ function mpu_build_prompt_categories(
     // 從快取獲取靜態類別
     $prompt_categories = mpu_get_static_prompt_categories($personality_id);
 
+    // ★ 過濾掉不應出現在自發性對話中的分類：
+    //   - touch_* 類別：僅供 /touch/zone 端點使用（由玩家點擊觸發）
+    //   - _*  metadata key（_comment, _format_version, _variable_placeholders 等）
+    $prompt_categories = array_filter($prompt_categories, function ($key) {
+        return strpos($key, 'touch_') !== 0 && strpos($key, '_') !== 0;
+    }, ARRAY_FILTER_USE_KEY);
+
     // 使用 JSON 動態提示詞（如果可用）
     if (function_exists('mpu_apply_dynamic_prompts')) {
         // 構建變數陣列

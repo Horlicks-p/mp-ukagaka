@@ -63,12 +63,12 @@
     "time_evening": 2,
     "time_night": 2,
 
-    "_comment_touch": "Touch zone categories (triggered by clicking character)",
-    "touch_head": 1,
-    "touch_face": 1,
-    "touch_chest": 1,
-    "touch_book": 1,
-    "touch_legs": 1,
+    "_comment_touch": "Touch zone categories (only triggered by clicking character, excluded from auto-talk)",
+    "touch_head": 0,
+    "touch_face": 0,
+    "touch_chest": 0,
+    "touch_book": 0,
+    "touch_legs": 0,
 
     "_comment_holidays": "Holiday-specific categories (triggered by calendar.json)",
     "holiday_new_year": 1,
