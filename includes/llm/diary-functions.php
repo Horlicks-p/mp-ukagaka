@@ -368,9 +368,17 @@ function mpu_get_diary_prompt($personality_id = null)
         $selected_prompt = $default_prompts[array_rand($default_prompts)];
     }
 
-    // 從 system_prompt.md 讀取角色核心設定（使用 personality_id）
+    // 載入角色背景（僅 personality.md，避免 instructions.md 的 50 字限制影響日記長度）
     $base_prompt = '';
-    if (function_exists('mpu_load_personality_system_prompt')) {
+    $personality_path = mpu_get_personalities_dir() . '/' . $personality_id . '/personality.md';
+    if (file_exists($personality_path) && is_readable($personality_path)) {
+        $content = file_get_contents($personality_path);
+        if ($content !== false) {
+            $base_prompt = $content;
+        }
+    }
+    // Fallback：舊式 system_prompt.md / manifest.json
+    if (empty($base_prompt) && function_exists('mpu_load_personality_system_prompt')) {
         $loaded_prompt = mpu_load_personality_system_prompt($personality_id);
         if ($loaded_prompt !== false) {
             $base_prompt = $loaded_prompt;

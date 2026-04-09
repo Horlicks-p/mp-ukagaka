@@ -59,10 +59,10 @@
       "year_started": 2026,
       "description": "アニメ『葬送のフリーレン』第2期放送開始"
     },
-    "10-18": {
+    "MM-DD": {
       "name": "管理人の誕生日",
       "prompts": ["anniversary_admin_birthday"],
-      "description": "サイト管理人の誕生日"
+      "description": "サイト管理人の誕生日。MM-DD を実際の誕生日（例: 10-18）に変更してください。"
     }
   },
 
