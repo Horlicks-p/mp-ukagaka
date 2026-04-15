@@ -30,38 +30,43 @@ mp-ukagaka/
 │   └── admin-style.css         # 後台樣式表
 ├── includes/               # PHP 模組
 │   ├── core/                   # 核心功能模組
+│   │   ├── debug-functions.php     # 日誌系統（必須最先載入）
 │   │   ├── core-functions.php      # 核心功能（設定管理）
 │   │   ├── utility-functions.php   # 工具函數
 │   │   ├── ukagaka-functions.php   # 偽春菜管理
 │   │   └── frontend-functions.php  # 前端功能
-│   ├── rest/                   # REST API 處理模組（v2.12.0 OO 架構）
+│   ├── rest/                   # REST API 處理模組（OO 架構）
 │   │   ├── bootstrap.php           # REST Controller 註冊入口
 │   │   ├── class-mpu-rest-base.php # 基礎類別
-│   │   ├── class-mpu-rest-chat.php # LLM 對話端點 (取代 rest-chat.php)
-│   │   ├── class-mpu-rest-ghost.php# 核心/人格端點 (取代 rest-init.php)
-│   │   ├── class-mpu-rest-dialog.php# 對話管理端點 (取代 rest-core.php)
-│   │   ├── class-mpu-rest-touch.php# 觸摸互動端點 (取代 rest-touch.php)
-│   │   └── class-mpu-rest-test.php # API 測試端點 (取代 rest-test.php)
+│   │   ├── class-mpu-rest-chat.php # LLM 對話端點
+│   │   ├── class-mpu-rest-ghost.php# 核心/人格端點
+│   │   ├── class-mpu-rest-dialog.php# 對話管理端點
+│   │   ├── class-mpu-rest-touch.php# 觸摸互動端點
+│   │   └── class-mpu-rest-test.php # API 測試端點
 │   ├── ajax/                   # AJAX 處理器模組
 │   │   └── chat-api-handlers.php   # 對話模式 API 處理器（多輪對話封裝）
 │   ├── personality/            # 人格系統模組
-│   │   ├── personality-loader.php  # 人格系統（JSON 載入器，v2.4.0）
+│   │   ├── personality-loader.php  # 人格系統（JSON 載入器）
 │   │   ├── personality-prompts.php # 人格提示詞模組
 │   │   ├── personality-decorations.php # 裝飾物系統
 │   │   ├── personality-emoji.php   # 表情系統
-│   │   └── emoji-mapper.php        # 表情映射與情緒分析（v2.4.0）
+│   │   └── emoji-mapper.php        # 表情映射與情緒分析
 │   ├── llm/                    # LLM/AI 功能模組
-│   │   ├── api-cache.php           # API 快取系統（v2.5.6）
-│   │   ├── ai-functions.php        # AI 功能（雲端 API + Ollama）
-│   │   ├── llm-functions.php       # LLM 功能（Ollama 專用）- BETA
+│   │   ├── api-cache.php           # API 快取系統
+│   │   ├── ai-functions.php        # AI 功能（雲端 API：Gemini、OpenAI、Claude）
+│   │   ├── llm-functions.php       # LLM 功能（Ollama 專用）
 │   │   ├── llm-context-builder.php # LLM 上下文建構
 │   │   ├── llm-slimstat.php        # LLM Slimstat 整合
 │   │   ├── prompt-categories.php   # Prompt 類別指令管理
-│   │   ├── provider-helpers.php    # AI 提供商輔助函數（v2.10.0）
-│   │   ├── tool-loop-guard.php     # 工具呼叫迴圈防護機制（v2.10.0）
+│   │   ├── chat-integrity.php      # 對話歷史校驗碼驗證
+│   │   ├── request-state.php       # 請求級別狀態管理
+│   │   ├── provider-helpers.php    # AI 提供商輔助函數
+│   │   ├── streaming-helpers.php   # SSE 串流輔助函數
+│   │   ├── provider-stream-http.php# cURL 串流 HTTP 客戶端
+│   │   ├── tool-loop-guard.php     # 工具呼叫迴圈防護機制
 │   │   ├── weather-functions.php   # 天氣功能（Open-Meteo API）
-│   │   ├── diary-functions.php     # AI 日記功能（v2.5.0）
-│   │   └── providers/              # AI 提供商工廠模組（v2.10.0）
+│   │   ├── diary-functions.php     # AI 日記功能
+│   │   └── providers/              # AI 提供商工廠模組
 │   │       ├── bootstrap.php       # 載入器
 │   │       ├── interface-mpu-ai-provider.php # 介面
 │   │       ├── class-mpu-ai-provider-base.php # 基礎類別
@@ -70,33 +75,44 @@ mp-ukagaka/
 │   │       ├── class-mpu-ai-provider-openai.php # OpenAI 提供商
 │   │       ├── class-mpu-ai-provider-claude.php # Claude 提供商
 │   │       └── class-mpu-ai-provider-ollama.php # Ollama 提供商
-    │   ├── integrations/           # 整合功能模組（v2.7.0）
-    │   │   ├── akismet-integration.php # Akismet 垃圾留言攔截整合
-    │   │   └── turnstile-integration.php # Turnstile 驗證整合
+│   ├── stats/                  # 統計模組
+│   │   ├── stats-collector.php     # 使用統計收集
+│   │   └── stats-analyzer.php      # 統計分析
+│   ├── mcp-tools/              # 能力/工具呼叫實作
+│   │   ├── manager.php             # 能力管理器
+│   │   └── abilities/
+│   │       ├── class-wp-bot-blocker-ability.php # 機器人攔截能力
+│   │       └── class-wp-postviews-ability.php   # 文章瀏覽數能力
+│   ├── integrations/           # 整合功能模組
+│   │   ├── abilities-integration.php   # Abilities API 整合
+│   │   ├── akismet-integration.php     # Akismet 垃圾留言攔截整合
+│   │   ├── bot-blocker-integration.php # 機器人攔截整合
+│   │   └── turnstile-integration.php   # Turnstile 驗證整合
 │   └── admin-functions.php     # 後台功能
-├── ghost/                  # 角色人格配置（v2.4.0，類似偽春菜的 ghost 資料夾）
+├── ghost/                  # 角色人格配置
 │   ├── Frieren/
-│   │   ├── shell/              # Frieren 的角色圖片
-│   │   ├── decorations/        # Frieren 的裝飾物圖片
+│   │   ├── shell/              # 角色圖片
+│   │   ├── decorations/        # 裝飾物圖片
+│   │   ├── emojis/             # 角色表情圖片
 │   │   ├── manifest.json       # 元數據與設定
-│   │   ├── system_prompt.md    # 系統提示詞（Markdown）
+│   │   ├── personality.md      # 核心人格描述
+│   │   ├── instructions.md     # 行為規則與指示
 │   │   ├── prompts.json        # 靜態對話類別
 │   │   ├── dynamics.json       # 動態模板（含變數）
 │   │   ├── weights.json        # 類別權重配置
 │   │   ├── sleep_mode.json     # 睡眠模式配置
-│   │   ├── calendar.json       # 節日配置
+│   │   ├── calendar.json       # 日曆/節日事件
 │   │   ├── touchzones.json     # 觸摸區域配置
 │   │   ├── decorations.json    # 裝飾物點擊提示詞
+│   │   ├── diary.json          # AI 日記配置
+│   │   ├── emoji-keywords.json # 表情關鍵字配置
 │   │   ├── frieren.js          # 角色專屬 JavaScript
-│   │   ├── frieren-emoji.js    # Frieren 專屬表情系統（RO 風格，v2.4.0）
-│   │   ├── emoji-keywords.json # 表情關鍵字自定義配置（v2.4.0）
-│   │   └── emojis/             # Frieren 專屬表情圖片（RO 風格）
+│   │   └── frieren-emoji.js    # Frieren 專屬表情系統
 │   └── [其他角色...]/
 │       ├── shell/              # 角色圖片
 │       └── decorations/        # 裝飾物圖片（可選）
 ├── dialogs/                # 對話檔案
 ├── images/                 # 通用圖片資源
-│   └── msgbox_*.png            # 對話視窗圖片
 ├── languages/              # 語言檔案
 ├── docs/                   # 文檔
 ├── options/                # 後台設定頁面
@@ -107,22 +123,25 @@ mp-ukagaka/
 │   ├── options_extend.php      # 擴展設定頁面
 │   ├── options_dialog.php      # 會話設定頁面
 │   ├── options_page_ai.php     # AI 功能設定頁面
-│   ├── options_page_llm.php    # LLM 功能設定頁面（BETA）
-│   └── options_page_diary.php  # 日記功能設定頁面
-│   ├── js/                     # 前端 JavaScript 模組
-│   │   ├── dist/                   # 打包輸出目錄（生產版）
-│   │   │   ├── ukagaka-bundle.min.js   # 合併壓縮後的核心 bundle
-│   │   │   └── ukagaka-textarearesizer.min.js  # 後台工具（壓縮版）
-│   │   ├── ukagaka-base.js         # 基礎層（配置 + 工具 + AJAX）
-│   │   ├── ukagaka-core.js         # 前端核心 JS（訊息顯示、偽春菜切換等）
-│   │   ├── ukagaka-features.js     # 前端功能 JS（設定配置、事件監聽）
-│   │   ├── ukagaka-context.js      # 頁面感知 AI 對話功能
-│   │   ├── ukagaka-greeting.js     # 首次訪客打招呼功能
-│   │   ├── ukagaka-chat.js         # 聊天功能前端（互動對話，v2.3.0）
-│   │   ├── ukagaka-dialog.js       # 外部對話載入與後備處理
-│   │   ├── ukagaka-anime.js        # Canvas 動畫管理器（圖片序列播放）
-│   │   ├── ukagaka-emoji.js        # 表情配置載入器
-│   │   └── ukagaka-textarearesizer.js  # 後台文字區域調整器
+│   ├── options_page_llm.php    # LLM 功能設定頁面
+│   ├── options_page_diary.php  # 日記功能設定頁面
+│   ├── options_page_bot_blocker.php # 機器人攔截設定頁面
+│   └── options_page_stats.php  # 統計設定頁面
+├── js/                     # 前端 JavaScript 模組
+│   ├── dist/                   # 打包輸出目錄（生產版）
+│   │   ├── ukagaka-bundle.js       # 未壓縮 bundle
+│   │   ├── ukagaka-bundle.min.js   # 合併壓縮後的核心 bundle
+│   │   └── ukagaka-textarearesizer.min.js  # 後台工具（壓縮版）
+│   ├── ukagaka-base.js         # 基礎層（配置 + 工具 + AJAX）
+│   ├── ukagaka-core.js         # 前端核心 JS（訊息顯示、偽春菜切換等）
+│   ├── ukagaka-features.js     # 前端功能 JS（設定配置、事件監聽）
+│   ├── ukagaka-context.js      # 頁面感知 AI 對話功能
+│   ├── ukagaka-greeting.js     # 首次訪客打招呼功能
+│   ├── ukagaka-chat.js         # 聊天功能前端（互動對話）
+│   ├── ukagaka-dialog.js       # 外部對話載入與後備處理
+│   ├── ukagaka-anime.js        # Canvas 動畫管理器（圖片序列播放）
+│   ├── ukagaka-emoji.js        # 表情配置載入器
+│   └── ukagaka-textarearesizer.js  # 後台文字區域調整器
 └── readme.txt              # WordPress 外掛目錄說明檔
 ```
 

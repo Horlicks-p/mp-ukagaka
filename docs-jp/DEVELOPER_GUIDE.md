@@ -30,38 +30,43 @@ mp-ukagaka/
 │   └── admin-style.css         # 管理画面スタイルシート
 ├── includes/               # PHP モジュール
 │   ├── core/                   # コア機能モジュール
+│   │   ├── debug-functions.php     # ログシステム（最初に読み込む必要あり）
 │   │   ├── core-functions.php      # コア機能（設定管理）
 │   │   ├── utility-functions.php   # ユーティリティ関数
 │   │   ├── ukagaka-functions.php   # 伺か管理
 │   │   └── frontend-functions.php  # フロントエンド機能
-│   ├── rest/                   # REST API 処理モジュール（v2.12.0 OO アーキテクチャ）
+│   ├── rest/                   # REST API 処理モジュール（OO アーキテクチャ）
 │   │   ├── bootstrap.php           # REST Controller 登録エントリーポイント
 │   │   ├── class-mpu-rest-base.php # 基本クラス
-│   │   ├── class-mpu-rest-chat.php # LLM 対話エンドポイント (rest-chat.php を置換)
-│   │   ├── class-mpu-rest-ghost.php# 核心/パーソナリティエンドポイント (rest-init.php を置換)
-│   │   ├── class-mpu-rest-dialog.php# 対話管理エンドポイント (rest-core.php を置換)
-│   │   ├── class-mpu-rest-touch.php# タッチ相互作用エンドポイント (rest-touch.php を置換)
-│   │   └── class-mpu-rest-test.php # API テストエンドポイント (rest-test.php を置換)
+│   │   ├── class-mpu-rest-chat.php # LLM 対話エンドポイント
+│   │   ├── class-mpu-rest-ghost.php# 核心/パーソナリティエンドポイント
+│   │   ├── class-mpu-rest-dialog.php# 対話管理エンドポイント
+│   │   ├── class-mpu-rest-touch.php# タッチ相互作用エンドポイント
+│   │   └── class-mpu-rest-test.php # API テストエンドポイント
 │   ├── ajax/                   # AJAX ハンドラーモジュール
 │   │   └── chat-api-handlers.php   # 対話モード API ハンドラー（複数ターン対話ラッパー）
 │   ├── personality/            # パーソナリティシステムモジュール
-│   │   ├── personality-loader.php  # パーソナリティシステム（JSON ローダー，v2.4.0）
+│   │   ├── personality-loader.php  # パーソナリティシステム（JSON ローダー）
 │   │   ├── personality-prompts.php # パーソナリティプロンプトモジュール
 │   │   ├── personality-decorations.php # 装飾品システム
 │   │   ├── personality-emoji.php   # 表情システム
-│   │   └── emoji-mapper.php        # 表情マッピングと感情分析（v2.4.0）
+│   │   └── emoji-mapper.php        # 表情マッピングと感情分析
 │   ├── llm/                    # LLM/AI 機能モジュール
-│   │   ├── api-cache.php           # API キャッシュシステム（v2.5.6）
-│   │   ├── ai-functions.php        # AI 機能（クラウド API + Ollama）
-│   │   ├── llm-functions.php       # LLM 機能（Ollama 専用）- BETA
+│   │   ├── api-cache.php           # API キャッシュシステム
+│   │   ├── ai-functions.php        # AI 機能（クラウド API：Gemini、OpenAI、Claude）
+│   │   ├── llm-functions.php       # LLM 機能（Ollama 専用）
 │   │   ├── llm-context-builder.php # LLM コンテキスト構築
 │   │   ├── llm-slimstat.php        # LLM Slimstat 統合
 │   │   ├── prompt-categories.php   # Prompt カテゴリ指示管理
-│   │   ├── provider-helpers.php    # AI プロバイダー補助関数（v2.10.0）
-│   │   ├── tool-loop-guard.php     # ツール呼び出しループ保護メカニズム（v2.10.0）
+│   │   ├── chat-integrity.php      # チャット履歴チェックサム検証
+│   │   ├── request-state.php       # リクエスト単位の状態管理
+│   │   ├── provider-helpers.php    # AI プロバイダー補助関数
+│   │   ├── streaming-helpers.php   # SSE ストリーミングヘルパー
+│   │   ├── provider-stream-http.php# cURL ストリーミング HTTP クライアント
+│   │   ├── tool-loop-guard.php     # ツール呼び出しループ保護メカニズム
 │   │   ├── weather-functions.php   # 天気機能（Open-Meteo API）
-│   │   ├── diary-functions.php     # AI 日記機能（v2.5.0）
-│   │   └── providers/              # AI プロバイダーファクトリモジュール（v2.10.0）
+│   │   ├── diary-functions.php     # AI 日記機能
+│   │   └── providers/              # AI プロバイダーファクトリモジュール
 │   │       ├── bootstrap.php       # ローダー
 │   │       ├── interface-mpu-ai-provider.php # インターフェース
 │   │       ├── class-mpu-ai-provider-base.php # 基本クラス
@@ -70,19 +75,39 @@ mp-ukagaka/
 │   │       ├── class-mpu-ai-provider-openai.php # OpenAI プロバイダー
 │   │       ├── class-mpu-ai-provider-claude.php # Claude プロバイダー
 │   │       └── class-mpu-ai-provider-ollama.php # Ollama プロバイダー
-    │   ├── integrations/           # 統合機能モジュール（v2.7.0）
-    │   │   ├── akismet-integration.php # Akismet スパムブロック統合
-    │   │   └── turnstile-integration.php # Turnstile 統合
+│   ├── stats/                  # 統計モジュール
+│   │   ├── stats-collector.php     # 利用統計収集
+│   │   └── stats-analyzer.php      # 統計分析
+│   ├── mcp-tools/              # アビリティ/ツール呼び出し実装
+│   │   ├── manager.php             # アビリティマネージャー
+│   │   └── abilities/
+│   │       ├── class-wp-bot-blocker-ability.php # ボットブロッカーアビリティ
+│   │       └── class-wp-postviews-ability.php   # 投稿ビューアビリティ
+│   ├── integrations/           # 統合機能モジュール
+│   │   ├── abilities-integration.php   # アビリティ API 統合
+│   │   ├── akismet-integration.php     # Akismet スパムブロック統合
+│   │   ├── bot-blocker-integration.php # ボットブロッカー統合
+│   │   └── turnstile-integration.php   # Turnstile 統合
 │   └── admin-functions.php     # 管理画面機能
-├── ghost/                  # キャラクターパーソナリティ設定（v2.4.0）
+├── ghost/                  # キャラクターパーソナリティ設定
 │   ├── Frieren/
 │   │   ├── shell/              # キャラクター画像
 │   │   ├── decorations/        # 装飾品画像
+│   │   ├── emojis/             # キャラクター表情画像
 │   │   ├── manifest.json       # メタデータと設定
+│   │   ├── personality.md      # コアパーソナリティ説明
+│   │   ├── instructions.md     # 行動ルールと指示
+│   │   ├── prompts.json        # 静的ダイアログカテゴリ
+│   │   ├── dynamics.json       # 動的テンプレート（変数置換付き）
+│   │   ├── weights.json        # カテゴリ重み設定
+│   │   ├── sleep_mode.json     # スリープモード設定
+│   │   ├── calendar.json       # カレンダー/祝日イベント
+│   │   ├── touchzones.json     # タッチゾーン設定
+│   │   ├── decorations.json    # 装飾品クリックプロンプト
+│   │   ├── diary.json          # AI 日記設定
+│   │   ├── emoji-keywords.json # 表情キーワード設定
 │   │   ├── frieren.js          # キャラクター専用 JavaScript
-│   │   ├── frieren-emoji.js    # Frieren 専用表情システム（RO スタイル，v2.4.0）
-│   │   ├── emoji-keywords.json # 表情キーワードカスタム設定（v2.4.0）
-│   │   └── emojis/             # Frieren 専用表情画像（RO スタイル）
+│   │   └── frieren-emoji.js    # Frieren 専用表情システム
 │   └── [その他のキャラクター...]/
 ├── dialogs/                # ダイアログファイル
 ├── images/                 # 画像リソース
@@ -96,22 +121,25 @@ mp-ukagaka/
 │   ├── options_extend.php      # 拡張設定ページ
 │   ├── options_dialog.php      # 会話設定ページ
 │   ├── options_page_ai.php     # AI 機能設定ページ
-│   ├── options_page_llm.php    # LLM 機能設定ページ（BETA）
-│   └── options_page_diary.php  # 日記機能設定ページ
-│   ├── js/                     # フロントエンド JavaScript モジュール
-│   │   ├── dist/                   # ビルド出力ディレクトリ（本番用）
-│   │   │   ├── ukagaka-bundle.min.js   # 結合・圧縮されたコアバンドル
-│   │   │   └── ukagaka-textarearesizer.min.js  # 管理画面ツール（圧縮版）
-│   │   ├── ukagaka-base.js         # 基盤層（設定 + ユーティリティ + AJAX）
-│   │   ├── ukagaka-core.js         # フロントエンドコア JS（メッセージ表示、伺か切り替えなど）
-│   │   ├── ukagaka-features.js     # フロントエンド機能 JS（設定配置、イベント監視）
-│   │   ├── ukagaka-context.js      # ページコンテキスト AI ダイアログ機能
-│   │   ├── ukagaka-greeting.js     # 初回訪問者挨拶機能
-│   │   ├── ukagaka-chat.js         # チャット機能フロントエンド（インタラクティブチャット、v2.3.0）
-│   │   ├── ukagaka-dialog.js       # 外部ダイアログの読み込みとフォールバック処理
-│   │   ├── ukagaka-anime.js        # Canvas アニメーションマネージャー（画像シーケンス再生）
-│   │   ├── ukagaka-emoji.js        # 表情設定ローダー
-│   │   └── ukagaka-textarearesizer.js  # 管理画面テキストエリアリサイザー
+│   ├── options_page_llm.php    # LLM 機能設定ページ
+│   ├── options_page_diary.php  # 日記機能設定ページ
+│   ├── options_page_bot_blocker.php # ボットブロッカー設定ページ
+│   └── options_page_stats.php  # 統計設定ページ
+├── js/                     # フロントエンド JavaScript モジュール
+│   ├── dist/                   # ビルド出力ディレクトリ（本番用）
+│   │   ├── ukagaka-bundle.js       # 非圧縮バンドル
+│   │   ├── ukagaka-bundle.min.js   # 結合・圧縮されたコアバンドル
+│   │   └── ukagaka-textarearesizer.min.js  # 管理画面ツール（圧縮版）
+│   ├── ukagaka-base.js         # 基盤層（設定 + ユーティリティ + AJAX）
+│   ├── ukagaka-core.js         # フロントエンドコア JS（メッセージ表示、伺か切り替えなど）
+│   ├── ukagaka-features.js     # フロントエンド機能 JS（設定配置、イベント監視）
+│   ├── ukagaka-context.js      # ページコンテキスト AI ダイアログ機能
+│   ├── ukagaka-greeting.js     # 初回訪問者挨拶機能
+│   ├── ukagaka-chat.js         # チャット機能フロントエンド（インタラクティブチャット）
+│   ├── ukagaka-dialog.js       # 外部ダイアログの読み込みとフォールバック処理
+│   ├── ukagaka-anime.js        # Canvas アニメーションマネージャー（画像シーケンス再生）
+│   ├── ukagaka-emoji.js        # 表情設定ローダー
+│   └── ukagaka-textarearesizer.js  # 管理画面テキストエリアリサイザー
 └── readme.txt              # WordPress プラグインディレクトリ説明ファイル
 ```
 

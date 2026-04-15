@@ -30,37 +30,43 @@ mp-ukagaka/
 │   └── admin-style.css         # Admin stylesheet
 ├── includes/               # PHP Modules
 │   ├── core/                   # Core function modules
+│   │   ├── debug-functions.php     # Logging system (must load first)
 │   │   ├── core-functions.php      # Core functions (Settings)
 │   │   ├── utility-functions.php   # Utility functions
 │   │   ├── ukagaka-functions.php   # Ukagaka management
 │   │   └── frontend-functions.php  # Frontend functions
-│   ├── rest/                   # REST API handler modules (v2.12.0 OO Architecture)
+│   ├── rest/                   # REST API handler modules (OO Architecture)
 │   │   ├── bootstrap.php           # REST Controller registration entry
 │   │   ├── class-mpu-rest-base.php # Base class
-│   │   ├── class-mpu-rest-chat.php # LLM Chat endpoints (Replaced rest-chat.php)
-│   │   ├── class-mpu-rest-ghost.php# Core/Personality endpoints (Replaced rest-init.php)
-│   │   ├── class-mpu-rest-dialog.php# Dialogue management endpoints (Replaced rest-core.php)
-│   │   ├── class-mpu-rest-touch.php# Touch interaction endpoints (Replaced rest-touch.php)
-│   │   └── class-mpu-rest-test.php # API test endpoints (Replaced rest-test.php)
+│   │   ├── class-mpu-rest-chat.php # LLM Chat endpoints
+│   │   ├── class-mpu-rest-ghost.php# Core/Personality endpoints
+│   │   ├── class-mpu-rest-dialog.php# Dialogue management endpoints
+│   │   ├── class-mpu-rest-touch.php# Touch interaction endpoints
+│   │   └── class-mpu-rest-test.php # API test endpoints
 │   ├── ajax/                   # AJAX handler modules
 │   │   └── chat-api-handlers.php   # Chat mode API handler (Multi-turn chat wrapper)
 │   ├── personality/            # Personality system modules
-│   │   ├── personality-loader.php  # Personality system (JSON loader, v2.4.0)
+│   │   ├── personality-loader.php  # Personality system (JSON loader)
 │   │   ├── personality-prompts.php # Personality prompt module
 │   │   ├── personality-decorations.php # Decoration system
 │   │   ├── personality-emoji.php   # Emoji system
-│   │   └── emoji-mapper.php        # Emoji mapping and emotion analysis (v2.4.0)
+│   │   └── emoji-mapper.php        # Emoji mapping and emotion analysis
 │   ├── llm/                    # LLM/AI function modules
-│   │   ├── ai-functions.php        # AI functions (Cloud API + Ollama)
-│   │   ├── llm-functions.php       # LLM functions (Ollama specific) - BETA
+│   │   ├── api-cache.php           # API cache system
+│   │   ├── ai-functions.php        # AI functions (Cloud API: Gemini, OpenAI, Claude)
+│   │   ├── llm-functions.php       # LLM functions (Ollama specific)
 │   │   ├── llm-context-builder.php # LLM context builder
 │   │   ├── llm-slimstat.php        # LLM Slimstat integration
 │   │   ├── prompt-categories.php   # Prompt category management
-│   │   ├── provider-helpers.php    # AI provider helper functions (v2.10.0)
-│   │   ├── tool-loop-guard.php     # Tool call loop protection mechanism (v2.10.0)
+│   │   ├── chat-integrity.php      # Chat history checksum validation
+│   │   ├── request-state.php       # Per-request state management
+│   │   ├── provider-helpers.php    # AI provider helper functions
+│   │   ├── streaming-helpers.php   # SSE streaming helpers
+│   │   ├── provider-stream-http.php# cURL streaming HTTP client
+│   │   ├── tool-loop-guard.php     # Tool call loop protection
 │   │   ├── weather-functions.php   # Weather functions (Open-Meteo API)
-│   │   ├── diary-functions.php     # AI Diary functions (v2.5.0)
-│   │   └── providers/              # AI provider factory module (v2.10.0)
+│   │   ├── diary-functions.php     # AI Diary functions
+│   │   └── providers/              # AI provider factory module
 │   │       ├── bootstrap.php       # Loader
 │   │       ├── interface-mpu-ai-provider.php # Interface
 │   │       ├── class-mpu-ai-provider-base.php # Base class
@@ -69,19 +75,39 @@ mp-ukagaka/
 │   │       ├── class-mpu-ai-provider-openai.php # OpenAI provider
 │   │       ├── class-mpu-ai-provider-claude.php # Claude provider
 │   │       └── class-mpu-ai-provider-ollama.php # Ollama provider
-    │   ├── integrations/           # Integration modules (v2.7.0)
-    │   │   ├── akismet-integration.php # Akismet spam protection integration
-    │   │   └── turnstile-integration.php # Turnstile integration
+│   ├── stats/                  # Statistics modules
+│   │   ├── stats-collector.php     # Usage statistics collection
+│   │   └── stats-analyzer.php      # Statistics analysis
+│   ├── mcp-tools/              # Abilities/tool-call implementations
+│   │   ├── manager.php             # Abilities manager
+│   │   └── abilities/
+│   │       ├── class-wp-bot-blocker-ability.php # Bot blocker ability
+│   │       └── class-wp-postviews-ability.php   # Post views ability
+│   ├── integrations/           # Integration modules
+│   │   ├── abilities-integration.php   # Abilities API integration
+│   │   ├── akismet-integration.php     # Akismet spam protection
+│   │   ├── bot-blocker-integration.php # Bot blocker integration
+│   │   └── turnstile-integration.php   # Turnstile CAPTCHA integration
 │   └── admin-functions.php     # Admin functions
-├── ghost/                  # Character personality configuration (v2.4.0)
+├── ghost/                  # Character personality configuration
 │   ├── Frieren/
 │   │   ├── shell/              # Character images
 │   │   ├── decorations/        # Decoration images
+│   │   ├── emojis/             # Character emoji images
 │   │   ├── manifest.json       # Metadata and settings
+│   │   ├── personality.md      # Core personality description
+│   │   ├── instructions.md     # Behavioural instructions
+│   │   ├── prompts.json        # Static dialogue categories
+│   │   ├── dynamics.json       # Dynamic templates (with variables)
+│   │   ├── weights.json        # Category weight configuration
+│   │   ├── sleep_mode.json     # Sleep mode configuration
+│   │   ├── calendar.json       # Calendar/holiday events
+│   │   ├── touchzones.json     # Touch zone configuration
+│   │   ├── decorations.json    # Decoration click prompts
+│   │   ├── diary.json          # AI diary configuration
+│   │   ├── emoji-keywords.json # Emoji keyword configuration
 │   │   ├── frieren.js          # Character specific JavaScript
-│   │   ├── frieren-emoji.js    # Frieren specific emoji system (RO style, v2.4.0)
-│   │   ├── emoji-keywords.json # Emoji keyword custom configuration (v2.4.0)
-│   │   └── emojis/             # Frieren specific emoji images (RO style)
+│   │   └── frieren-emoji.js    # Frieren emoji system
 │   └── [other characters...]/
 ├── dialogs/                # Dialogue files
 ├── images/                 # Image resources
@@ -95,22 +121,25 @@ mp-ukagaka/
 │   ├── options_extend.php      # Extension settings page
 │   ├── options_dialog.php      # Dialogue settings page
 │   ├── options_page_ai.php     # AI settings page
-│   ├── options_page_llm.php    # LLM settings page (BETA)
-│   └── options_page_diary.php  # Diary settings page
-│   ├── js/                     # Frontend JavaScript Modules
-│   │   ├── dist/                   # Build output directory (Production)
-│   │   │   ├── ukagaka-bundle.min.js   # Merged and minified core bundle
-│   │   │   └── ukagaka-textarearesizer.min.js  # Admin tool (minified)
-│   │   ├── ukagaka-base.js         # Base layer (Config + Utils + AJAX)
-│   │   ├── ukagaka-core.js         # Frontend core JS (Message display, switching, etc.)
-│   │   ├── ukagaka-features.js     # Frontend features JS (Settings configuration, event listening)
-│   │   ├── ukagaka-context.js      # Page-aware AI dialog functionality
-│   │   ├── ukagaka-greeting.js     # First visitor greeting functionality
-│   │   ├── ukagaka-chat.js         # Chat functionality frontend (Interactive chat mode)
-│   │   ├── ukagaka-dialog.js       # External dialog loading and fallback processing
-│   │   ├── ukagaka-anime.js        # Canvas Animation Manager (Image Sequence Playback)
-│   │   ├── ukagaka-emoji.js        # Emoji config loader
-│   │   └── ukagaka-textarearesizer.js  # Admin textarea resizer
+│   ├── options_page_llm.php    # LLM settings page
+│   ├── options_page_diary.php  # Diary settings page
+│   ├── options_page_bot_blocker.php # Bot blocker settings page
+│   └── options_page_stats.php  # Statistics settings page
+├── js/                     # Frontend JavaScript modules
+│   ├── dist/                   # Build output directory (Production)
+│   │   ├── ukagaka-bundle.js       # Unminified bundle
+│   │   ├── ukagaka-bundle.min.js   # Merged and minified core bundle
+│   │   └── ukagaka-textarearesizer.min.js  # Admin tool (minified)
+│   ├── ukagaka-base.js         # Base layer (Config + Utils + AJAX)
+│   ├── ukagaka-core.js         # Frontend core JS (Message display, switching, etc.)
+│   ├── ukagaka-features.js     # Frontend features JS (Settings configuration, event listening)
+│   ├── ukagaka-context.js      # Page-aware AI dialog functionality
+│   ├── ukagaka-greeting.js     # First visitor greeting functionality
+│   ├── ukagaka-chat.js         # Chat functionality frontend (Interactive chat mode)
+│   ├── ukagaka-dialog.js       # External dialog loading and fallback processing
+│   ├── ukagaka-anime.js        # Canvas Animation Manager (Image Sequence Playback)
+│   ├── ukagaka-emoji.js        # Emoji config loader
+│   └── ukagaka-textarearesizer.js  # Admin textarea resizer
 └── readme.txt              # WordPress plugin directory readme
 ```
 
