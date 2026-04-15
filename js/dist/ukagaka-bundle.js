@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-03-18T03:17:22.954Z
+ * Generated: 2026-04-15T12:53:52.054Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -5183,11 +5183,12 @@ jQuery(document).ready(function () {
 
   if (jQuery("#toggleAutoTalk").length === 0) {
     const btn =
-      '<li class="auto-talk"><a id="toggleAutoTalk" href="javascript:void(0);" title="自動對話"></a></li>';
+      '<li class="auto-talk"><a id="toggleAutoTalk" href="#" title="自動對話"></a></li>';
     jQuery("#ukagaka-dock ul").append(btn);
     setAutoTalkUI();
 
-    jQuery("#toggleAutoTalk").on("click", function () {
+    jQuery("#toggleAutoTalk").on("click", function (e) {
+      e.preventDefault();
       mpuAutoTalk = !mpuAutoTalk;
       if (mpuAutoTalk) startAutoTalk();
       else stopAutoTalk();
@@ -5195,7 +5196,8 @@ jQuery(document).ready(function () {
     });
   }
 
-  jQuery("#show_msg").on("click", function () {
+  jQuery("#show_msg").on("click", function (e) {
+    e.preventDefault();
     if (jQuery("#ukagaka_msgbox").is(":hidden")) {
       mpu_showmsg(400);
       mpu_setLocal("mpuMsg", "show");
@@ -5248,7 +5250,8 @@ jQuery(document).ready(function () {
   });
 
   // [!] 移除 scroll fadeIn/fadeOut 邏輯
-  jQuery("#toTop").on("click", function () {
+  jQuery("#toTop").on("click", function (e) {
+    e.preventDefault();
     const startY = window.pageYOffset;
     const duration = 600;
     const startTime = performance.now();
@@ -5273,7 +5276,8 @@ jQuery(document).ready(function () {
   });
 
   jQuery("#mp_ukagaka").css("display", "block");
-  jQuery("#remove").on("click", function () {
+  jQuery("#remove").on("click", function (e) {
+    e.preventDefault();
     const $ukagaka = jQuery("#ukagaka");
     if ($ukagaka.is(":hidden")) {
       mpu_showrobot(400);

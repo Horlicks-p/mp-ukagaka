@@ -284,6 +284,9 @@
   padding: 0 !important;
   margin: 0 !important;
   transition: none !important;
+  cursor: pointer !important;
+  font-size: 0 !important;
+  overflow: hidden !important;
 }
 
 #mp_ukagaka #ukagaka-dock ul li.gotop a:hover,

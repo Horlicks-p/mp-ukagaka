@@ -281,13 +281,13 @@ function mpu_html($num = false)
         <div class="mpu-clear"></div>
         <div id="ukagaka-dock">
             <ul>
-                <li class="gotop"><a id="toTop" href="javascript:void(0);" title="転移">' .
+                <li class="gotop"><a id="toTop" href="#" title="転移">' .
         __("回到頂部 ▼", "mp-ukagaka") .
         '</a></li>
-                <li class="hide"><a id="remove" href="javascript:void(0);" title="ログアウト？">' .
+                <li class="hide"><a id="remove" href="#" title="ログアウト？">' .
         __("隱藏偽春菜 ▼", "mp-ukagaka") .
         '</a></li>
-                <li class="change"><a id="mpu_chat_toggle" href="javascript:void(0);" title="チャット">' .
+                <li class="change"><a id="mpu_chat_toggle" href="#" title="チャット">' .
         __("對話", "mp-ukagaka") .
         '</a></li>
             </ul>
