@@ -1314,6 +1314,42 @@ Must first complete these settings in the **LLM Settings** page:
 
 _Interactive Chat Mode: Visitors can directly engage in multi-turn conversations with characters_
 
+### Slash Commands
+
+While in chat mode, special slash commands can be entered directly in the input box.
+
+#### Available Commands
+
+| Command | Available to | Description |
+| ------------- | ------------ | --------------------------------- |
+| `/help` | Everyone | Displays the list of available commands |
+| `/reset` | Admin only | Clears the current chat history |
+| `/clear` | Admin only | Same as `/reset` |
+| `/debug_mcp` | Admin only | Displays MCP/Abilities diagnostic report |
+
+> **Note**: Admin-only commands are determined by WordPress login status. If a non-logged-in user types these commands, the character will refuse in-character.
+
+#### `/help`
+
+Displays a quick reference of available commands. Accessible to all users regardless of login status.
+
+#### `/reset` and `/clear`
+
+Immediately clears the current page's chat history. Useful when the conversation has gone off track or you want to start fresh without reloading the page.
+
+> **Admin only**: Must be logged in to WordPress as an administrator.
+
+#### `/debug_mcp`
+
+Displays a diagnostic panel showing the status of the Abilities/MCP tool system:
+
+- Integration module load status
+- Manager class status
+- Number of available tools
+- Status of each registered ability (e.g. `get-popular-posts`, `get-bot-blocker-stats`, `ban-ip`, `clear-bot-blocker-data`)
+
+> **Admin only**: Must be logged in to WordPress as an administrator.
+
 ### Chat Mode vs Page Awareness
 
 | Feature                | Interactive Chat Mode                     | Page Awareness Mode                |
