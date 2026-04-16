@@ -101,9 +101,9 @@ class MPU_REST_Test extends MPU_REST_Base {
 
         if (function_exists('mpu_clear_all_api_cache')) {
             $cleared_count = mpu_clear_all_api_cache();
-            return $this->ok(['msg' => sprintf(__('已清除 %d 筆快取', 'mp-ukagaka'), $cleared_count)]);
+            return $this->ok(['msg' => sprintf(__('%d 件のキャッシュを削除しました', 'mp-ukagaka'), $cleared_count)]);
         } else {
-            return $this->fail('rest_error', __('快取清除功能不可用', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('キャッシュ削除機能は利用できません', 'mp-ukagaka'), 400);
         }
     }
 
@@ -122,10 +122,10 @@ class MPU_REST_Test extends MPU_REST_Base {
         $longitude = isset($longitude_param) && $longitude_param !== '' ? floatval($longitude_param) : 121.5654;
 
         if ($latitude < -90 || $latitude > 90) {
-            return $this->fail('rest_error', __('緯度參數無效（須介於 -90 至 90 之間）', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('緯度パラメーターが無効です（-90〜90 の範囲で指定してください）', 'mp-ukagaka'), 400);
         }
         if ($longitude < -180 || $longitude > 180) {
-            return $this->fail('rest_error', __('經度參數無效（須介於 -180 至 180 之間）', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('経度パラメーターが無効です（-180〜180 の範囲で指定してください）', 'mp-ukagaka'), 400);
         }
 
         if (function_exists('mpu_clear_weather_cache')) {
@@ -133,12 +133,12 @@ class MPU_REST_Test extends MPU_REST_Base {
         }
 
         if (!function_exists('mpu_get_weather_forecast')) {
-            return $this->fail('rest_error', __('天氣功能模組不可用', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('天気機能モジュールは利用できません', 'mp-ukagaka'), 400);
         }
 
         $weather = mpu_get_weather_forecast($latitude, $longitude);
         if ($weather === null) {
-            return $this->fail('rest_error', __('無法獲取天氣數據，請確認網絡連線及 Open-Meteo API 是否正常', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('天気データを取得できません。ネットワーク接続および Open-Meteo API の状態を確認してください', 'mp-ukagaka'), 400);
         }
 
         $current_weather      = $weather['current']['weather_text'] ?? '不明';
@@ -164,7 +164,7 @@ class MPU_REST_Test extends MPU_REST_Base {
         }
 
         $message = sprintf(
-            __('連接成功！現在：%s %.0f°C%s / 明日：%s %.0f~%.0f°C%s', 'mp-ukagaka'),
+            __('接続成功！現在：%s %.0f°C%s / 明日：%s %.0f~%.0f°C%s', 'mp-ukagaka'),
             $current_weather,
             $current_temp,
             $today_precip_text,

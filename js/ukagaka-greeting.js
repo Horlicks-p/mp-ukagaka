@@ -163,9 +163,10 @@ function mpu_greet_first_visitor(settings) {
         } else {
           mpuLogger.warn("首次訪客打招呼失敗:", res);
 
-          // 檢查是否是速率限制錯誤
+          // 檢查是否是速率限制錯誤（請求過於頻繁）
           const isRateLimit =
-            res && res.error && res.error.includes("請求過於頻繁");
+            (res && res.error && (res.error.includes("請求過於頻繁") || res.error.includes("リクエストが多すぎます"))) ||
+            (res && res.code === "rest_rate_limit_exceeded");
 
           if (isRateLimit) {
             const rateLimitMessage =

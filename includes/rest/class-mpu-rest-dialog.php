@@ -122,25 +122,25 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                     $msgnum = wp_rand(0, $total - 1);
                     $msg    = $msgs[$msgnum];
                     if (defined('WP_DEBUG') && WP_DEBUG) {
-                        $reason = $llm_msg === 'MPU_USE_FALLBACK' ? '重複檢測' : ($llm_msg === 'MPU_OLLAMA_BUSY' ? 'Ollama 忙碌' : '生成失敗');
+                        $reason = $llm_msg === 'MPU_USE_FALLBACK' ? '重複検知' : ($llm_msg === 'MPU_OLLAMA_BUSY' ? 'Ollama 混雑' : '生成失敗');
                         if (function_exists('mpu_debug_log')) {
-                            mpu_debug_log('MP Ukagaka - ' . $reason . '，改用內建對話');
+                            mpu_debug_log('MP Ukagaka - ' . $reason . '、内蔵ダイアログを使用します');
                         } else {
-                            error_log('MP Ukagaka - ' . $reason . '，改用內建對話');
+                            error_log('MP Ukagaka - ' . $reason . '、内蔵ダイアログを使用します');
                         }
                     }
                 } else {
-                    $msg    = __('無對話內容', 'mp-ukagaka');
+                    $msg    = __('ダイアログ内容がありません', 'mp-ukagaka');
                     $msgnum = 0;
                 }
             } else {
-                $msg    = __('本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。', 'mp-ukagaka');
+                $msg    = __('ローカルの Ollama が起動していません。Ollama サービスが起動しているか確認してください。', 'mp-ukagaka');
                 $msgnum = 0;
                 if (defined('WP_DEBUG') && WP_DEBUG) {
                     if (function_exists('mpu_debug_log')) {
-                        mpu_debug_log('MP Ukagaka - LLM 生成失敗，返回錯誤提示。llm_msg = ' . ($llm_msg === false ? 'false' : $llm_msg));
+                        mpu_debug_log('MP Ukagaka - LLM 生成失敗、エラーメッセージを返します。llm_msg = ' . ($llm_msg === false ? 'false' : $llm_msg));
                     } else {
-                        error_log('MP Ukagaka - LLM 生成失敗，返回錯誤提示。llm_msg = ' . ($llm_msg === false ? 'false' : $llm_msg));
+                        error_log('MP Ukagaka - LLM 生成失敗、エラーメッセージを返します。llm_msg = ' . ($llm_msg === false ? 'false' : $llm_msg));
                     }
                 }
             }
@@ -155,7 +155,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                     $msg    = $msgs[$next];
                     $msgnum = $next;
                 } else {
-                    $msg    = $msgs[0] ?? __('無對話內容', 'mp-ukagaka');
+                    $msg    = $msgs[0] ?? __('ダイアログ内容がありません', 'mp-ukagaka');
                     $msgnum = 0;
                 }
             } else {
@@ -163,7 +163,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                     $msgnum = wp_rand(0, $total - 1);
                     $msg    = $msgs[$msgnum];
                 } else {
-                    $msg    = __('無對話內容', 'mp-ukagaka');
+                    $msg    = __('ダイアログ内容がありません', 'mp-ukagaka');
                     $msgnum = 0;
                 }
             }
@@ -189,7 +189,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         // [Fix] LLM 自發對話也會 push 到前端 mpuChatHistory，但後端未寫 checksum，
         // 導致下一輪 chat/user verify 400。僅在 LLM 成功回應時寫入。
         if ($is_llm_enabled && !$use_fallback && isset($msg) && $msg !== '' &&
-            $msg !== __('本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。', 'mp-ukagaka')) {
+            $msg !== __('ローカルの Ollama が起動していません。Ollama サービスが起動しているか確認してください。', 'mp-ukagaka')) {
             $chat_session_id_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
             $chat_session_id = function_exists('mpu_chat_integrity_normalize_session_id')
                 ? mpu_chat_integrity_normalize_session_id($chat_session_id_param)
@@ -243,30 +243,30 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         $file       = !empty($file_param) ? basename(sanitize_text_field($file_param)) : '';
 
         if ($file === '' || !preg_match('/^[a-zA-Z0-9_\-]+\.(json|txt)$/', $file)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $file_path = mpu_get_dialogs_dir() . '/' . $file;
         $content   = mpu_secure_file_read($file_path);
 
         if (is_wp_error($content)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $ext = pathinfo($file, PATHINFO_EXTENSION);
         if ($ext === 'json') {
             $json = json_decode($content, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+                return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
             }
             if (empty($json['messages']) || !is_array($json['messages']) || count($json['messages']) === 0) {
-                return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+                return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
             }
             $msg_array = $json['messages'];
         } else {
             $msg_array = mpu_str2array($content);
             if (empty($msg_array) || !is_array($msg_array) || count($msg_array) === 0) {
-                return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+                return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
             }
         }
 
@@ -359,7 +359,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             if ($prompt !== false) {
                 $prompts[$decoration_type] = $prompt;
             } else {
-                return $this->fail('rest_error', __('安全性驗證失敗', 'mp-ukagaka'), 400);
+                return $this->fail('rest_error', __('セキュリティ検証に失敗しました', 'mp-ukagaka'), 400);
             }
         } else {
             foreach ($decoration_types as $type) {
@@ -394,7 +394,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         if (empty($personality_id)) {
             return new WP_Error(
                 'rest_wake_ghost_missing_param',
-                __('缺少角色 ID 參數（personality_id / ukagaka_num）', 'mp-ukagaka'),
+                __('キャラクター ID パラメーター（personality_id / ukagaka_num）が不足しています', 'mp-ukagaka'),
                 ['status' => 400]
             );
         }
@@ -420,7 +420,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                 if ($is_deep_sleep) {
                     return $this->ok([
                         'success'        => true,
-                        'message'        => __('角色已被暫時喚醒（深度睡眠期間，刷新頁面將恢復睡眠）', 'mp-ukagaka'),
+                        'message'        => __('キャラクターが一時的に起こされました（深い眠り中。ページを更新すると再び眠ります）', 'mp-ukagaka'),
                         'personality_id' => $personality_id,
                         'is_temporary'   => true,
                     ]);
@@ -428,7 +428,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
 
                 return new WP_Error(
                     'rest_wake_ghost_unavailable',
-                    __('當前無法喚醒角色（可能未在賴床時間或未啟用賴床功能）', 'mp-ukagaka'),
+                    __('現在キャラクターを起こすことができません（二度寝時間外か、機能が無効の可能性があります）', 'mp-ukagaka'),
                     [
                         'status'         => 400,
                         'personality_id' => $personality_id,
@@ -440,7 +440,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
 
         return $this->ok([
             'success'        => true,
-            'message'        => __('角色已被喚醒', 'mp-ukagaka'),
+            'message'        => __('キャラクターが起こされました', 'mp-ukagaka'),
             'personality_id' => $personality_id,
         ]);
     }

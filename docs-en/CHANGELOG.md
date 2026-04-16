@@ -4,6 +4,25 @@
 
 ---
 
+## [2.13.2] - 2026-04-16
+
+### 🌐 Localization: System Messages Unified to Japanese
+
+- **Full i18n Overhaul**: Unified all hard-coded Chinese (zh-TW) system messages to Japanese across 18 PHP files (~200+ strings), ensuring a consistent language experience in all user-facing output.
+  - `includes/core/`: File operation, security validation, and rate-limiting error messages (`utility-functions.php`); frontend UI labels and `mpuL10n` localization strings (`frontend-functions.php`); dialogue file error messages (`ukagaka-functions.php`).
+  - `includes/rest/`: All REST API error and status messages (`class-mpu-rest-base.php`, `class-mpu-rest-chat.php`, `class-mpu-rest-dialog.php`, `class-mpu-rest-ghost.php`, `class-mpu-rest-test.php`, `class-mpu-rest-touch.php`).
+  - `includes/llm/`: All LLM provider error messages (`class-mpu-ai-provider-gemini.php`, `class-mpu-ai-provider-openai.php`, `class-mpu-ai-provider-claude.php`, `class-mpu-ai-provider-ollama.php`, `class-mpu-ai-provider-base.php`); diary, Ollama validation, and tool-loop messages (`diary-functions.php`, `llm-functions.php`, `tool-loop-guard.php`).
+  - `includes/admin-functions.php`: All admin panel notices and ZIP upload/validation messages.
+- **Extended `mpuL10n`**: Added new localization keys to the frontend JavaScript object (`loadingFailed`, `errorOccurred`, `duplicateRequest`, `requestFailed`, `securityVerificationFailed`, `animationLoadFailed`, `connectionError`, `chatExit`) so JS modules no longer rely on hard-coded fallback strings.
+- All strings remain wrapped in `__()` for future `.po`/`.mo` translation pack support.
+
+### 🐛 Bug Fix
+
+- **`mpuL10n` Key Mismatch**: `js/ukagaka-dialog.js` was referencing `mpuL10n.loadFailed` (undefined) instead of the correct key `mpuL10n.loadingFailed`, silently falling back to the built-in string. Fixed.
+- **Missing `chatExit` Key**: `js/ukagaka-chat.js` referenced `mpuL10n.chatExit` which was never registered in `wp_localize_script`. The key is now added to `frontend-functions.php`.
+
+---
+
 ## [2.13.1] - 2026-03-18
 
 ### 🔒 Security Hardening

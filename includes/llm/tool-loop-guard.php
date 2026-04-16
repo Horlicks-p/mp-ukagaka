@@ -107,7 +107,7 @@ function mpu_tool_loop_guard_check(&$state, $provider, $turn, $tool_name, $args)
 
     if ($state['consecutive_count'] >= $threshold) {
         $error_msg = sprintf(
-            __('偵測到工具呼叫迴圈：工具 "%s" 已連續重複呼叫 %d 次。中止以防止無限循環。', 'mp-ukagaka'),
+            __('ツール呼び出しのループを検出しました：ツール "%s" が %d 回連続して繰り返し呼び出されています。無限ループを防ぐため中止します。', 'mp-ukagaka'),
             $tool_name,
             $state['consecutive_count']
         );

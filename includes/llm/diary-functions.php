@@ -470,7 +470,7 @@ function mpu_generate_diary_content()
     $provider_settings = mpu_diary_get_provider_settings();
 
     if ($provider_settings === false) {
-        return new WP_Error('diary_not_configured', __('日記功能未正確設定', 'mp-ukagaka'));
+        return new WP_Error('diary_not_configured', __('日記機能が正しく設定されていません', 'mp-ukagaka'));
     }
 
     // 獲取提示詞和類別資訊
@@ -494,7 +494,7 @@ function mpu_generate_diary_content()
 
     // 使用統一的 AI API 調用函數
     if (!function_exists('mpu_call_ai_api')) {
-        return new WP_Error('ai_function_missing', __('AI 功能模組未載入', 'mp-ukagaka'));
+        return new WP_Error('ai_function_missing', __('AI 機能モジュールが読み込まれていません', 'mp-ukagaka'));
     }
 
     // 構建選項陣列供 mpu_call_ai_api() 使用
@@ -773,14 +773,14 @@ function mpu_ajax_test_diary_generate()
 
     // 檢查權限
     if (!current_user_can('manage_options')) {
-        wp_send_json_error(__('權限不足', 'mp-ukagaka'));
+        wp_send_json_error(__('権限が不足しています', 'mp-ukagaka'));
         return;
     }
 
     // 檢查設定
     $provider_settings = mpu_diary_get_provider_settings();
     if ($provider_settings === false) {
-        wp_send_json_error(__('日記功能未正確設定，請先設定 AI 供應商', 'mp-ukagaka'));
+        wp_send_json_error(__('日記機能が正しく設定されていません。先に AI プロバイダーを設定してください', 'mp-ukagaka'));
         return;
     }
 
@@ -788,7 +788,7 @@ function mpu_ajax_test_diary_generate()
     $diary_data = mpu_generate_diary_content();
 
     if (is_wp_error($diary_data)) {
-        wp_send_json_error(__('生成失敗：', 'mp-ukagaka') . $diary_data->get_error_message());
+        wp_send_json_error(__('生成に失敗しました：', 'mp-ukagaka') . $diary_data->get_error_message());
         return;
     }
 
@@ -796,14 +796,14 @@ function mpu_ajax_test_diary_generate()
     $post_id = mpu_publish_diary_post($diary_data);
 
     if (is_wp_error($post_id)) {
-        wp_send_json_error(__('發表失敗：', 'mp-ukagaka') . $post_id->get_error_message());
+        wp_send_json_error(__('投稿に失敗しました：', 'mp-ukagaka') . $post_id->get_error_message());
         return;
     }
 
     $post_url = get_permalink($post_id);
     $category_info = !empty($diary_data['category']) ? ' (' . $diary_data['category'] . ')' : '';
     wp_send_json_success(sprintf(
-        __('日記已發表！<a href="%s" target="_blank">查看文章</a>%s', 'mp-ukagaka'),
+        __('日記を投稿しました！<a href="%s" target="_blank">記事を見る</a>%s', 'mp-ukagaka'),
         esc_url($post_url),
         $category_info
     ));

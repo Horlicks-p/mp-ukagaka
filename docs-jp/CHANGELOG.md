@@ -4,6 +4,25 @@
 
 ---
 
+## [2.13.2] - 2026-04-16
+
+### 🌐 ローカライズ：システムメッセージを日本語に統一
+
+- **i18n 全面見直し**：18 個の PHP ファイルにわたり、ハードコードされた中国語（zh-TW）のシステムメッセージ（約 200 件以上）をすべて日本語に統一し、ユーザー向け出力の言語一貫性を確保しました。
+  - `includes/core/`：ファイル操作・セキュリティ検証・レート制限エラー（`utility-functions.php`）；フロントエンド UI ラベルと `mpuL10n` ローカライズ文字列（`frontend-functions.php`）；ダイアログファイルエラー（`ukagaka-functions.php`）。
+  - `includes/rest/`：すべての REST API エラー・ステータスメッセージ（`class-mpu-rest-base.php`, `class-mpu-rest-chat.php`, `class-mpu-rest-dialog.php`, `class-mpu-rest-ghost.php`, `class-mpu-rest-test.php`, `class-mpu-rest-touch.php`）。
+  - `includes/llm/`：全 LLM プロバイダーのエラーメッセージ（`class-mpu-ai-provider-gemini.php`, `class-mpu-ai-provider-openai.php`, `class-mpu-ai-provider-claude.php`, `class-mpu-ai-provider-ollama.php`, `class-mpu-ai-provider-base.php`）；日記・Ollama バリデーション・ツールループメッセージ（`diary-functions.php`, `llm-functions.php`, `tool-loop-guard.php`）。
+  - `includes/admin-functions.php`：全管理画面通知と ZIP アップロード/検証メッセージ。
+- **`mpuL10n` の拡充**：フロントエンド JavaScript オブジェクトに新しいローカライズキーを追加（`loadingFailed`, `errorOccurred`, `duplicateRequest`, `requestFailed`, `securityVerificationFailed`, `animationLoadFailed`, `connectionError`, `chatExit`）。JS モジュールがハードコードされたフォールバック文字列に依存しなくなりました。
+- すべての文字列は引き続き `__()` でラップされており、将来的な `.po`/`.mo` 翻訳パックに対応しています。
+
+### 🐛 バグ修正 (Bug Fix)
+
+- **`mpuL10n` キー名の不一致**：`js/ukagaka-dialog.js` が未定義の `mpuL10n.loadFailed` を参照していた問題（正しくは `mpuL10n.loadingFailed`）を修正。暗黙のフォールバックが発生していました。
+- **`chatExit` キーの未定義**：`js/ukagaka-chat.js` が参照する `mpuL10n.chatExit` が `wp_localize_script` に登録されていなかった問題を修正。`frontend-functions.php` にキーを追加しました。
+
+---
+
 ## [2.13.1] - 2026-03-18
 
 ### 🔒 セキュリティ強化 (Security)

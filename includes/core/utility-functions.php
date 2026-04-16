@@ -130,19 +130,19 @@ function mpu_secure_file_read($file_path)
 
     // 如果文件不存在，realpath 會返回 false
     if ($real_path === false) {
-        return new WP_Error('file_not_found', __('找不到指定的文件', 'mp-ukagaka'));
+        return new WP_Error('file_not_found', __('指定されたファイルが見つかりません', 'mp-ukagaka'));
     }
 
     // 確保文件在允許的目錄內（防止目錄遍歷攻擊）
     if ($real_allowed_dir !== false && !mpu_is_path_within_allowed_dir($real_path, $real_allowed_dir)) {
         mpu_log_warning('安全警告：嘗試讀取不允許的路徑: ' . $file_path);
-        return new WP_Error('path_not_allowed', __('不允許讀取該路徑', 'mp-ukagaka'));
+        return new WP_Error('path_not_allowed', __('このパスへのアクセスは許可されていません', 'mp-ukagaka'));
     }
 
     // 2. 檢查文件大小（限制 2MB）
     $file_size = filesize($real_path);
     if ($file_size === false || $file_size > 2 * 1024 * 1024) {
-        return new WP_Error('file_too_large', __('文件過大，無法讀取', 'mp-ukagaka'));
+        return new WP_Error('file_too_large', __('ファイルが大きすぎて読み込めません', 'mp-ukagaka'));
     }
 
     // 3. 嘗試使用 WordPress Filesystem API
@@ -163,7 +163,7 @@ function mpu_secure_file_read($file_path)
     // 4. 備用：使用原生 file_get_contents（已通過安全檢查）
     $content = @file_get_contents($real_path);
     if ($content === false) {
-        return new WP_Error('read_failed', __('無法讀取文件', 'mp-ukagaka'));
+        return new WP_Error('read_failed', __('ファイルを読み込めません', 'mp-ukagaka'));
     }
 
     return $content;
@@ -187,7 +187,7 @@ function mpu_secure_file_write($file_path, $content)
     // 確保目錄存在
     if (!file_exists($file_dir)) {
         if (!wp_mkdir_p($file_dir)) {
-            return new WP_Error('mkdir_failed', __('無法創建目錄', 'mp-ukagaka'));
+            return new WP_Error('mkdir_failed', __('ディレクトリを作成できません', 'mp-ukagaka'));
         }
     }
 
@@ -197,14 +197,14 @@ function mpu_secure_file_write($file_path, $content)
     if ($real_allowed_dir !== false && $real_file_dir !== false) {
         if (!mpu_is_path_within_allowed_dir($real_file_dir, $real_allowed_dir)) {
             mpu_log_warning('安全警告：嘗試寫入不允許的路徑: ' . $file_path);
-            return new WP_Error('path_not_allowed', __('不允許寫入該路徑', 'mp-ukagaka'));
+            return new WP_Error('path_not_allowed', __('このパスへの書き込みは許可されていません', 'mp-ukagaka'));
         }
     }
 
     // 2. 驗證文件名
     $filename = basename($file_path);
     if (!preg_match('/^[a-zA-Z0-9_\-]+\.(json|txt)$/', $filename)) {
-        return new WP_Error('invalid_filename', __('不合法的文件名', 'mp-ukagaka'));
+        return new WP_Error('invalid_filename', __('不正なファイル名です', 'mp-ukagaka'));
     }
 
     // 3. 嘗試使用 WordPress Filesystem API
@@ -225,7 +225,7 @@ function mpu_secure_file_write($file_path, $content)
     // 4. 備用：使用原生 file_put_contents（已通過安全檢查）
     $result = @file_put_contents($file_path, $content);
     if ($result === false) {
-        return new WP_Error('write_failed', __('無法寫入文件', 'mp-ukagaka'));
+        return new WP_Error('write_failed', __('ファイルに書き込めません', 'mp-ukagaka'));
     }
 
     return true;
@@ -985,7 +985,7 @@ function mpu_enforce_rate_limit($action, $max_requests = 10, $period = 60)
         wp_send_json_error([
             'code' => 'rate_limit_exceeded',
             'message' => sprintf(
-                __('請求過於頻繁，請 %d 秒後再試', 'mp-ukagaka'),
+                __('リクエストが多すぎます。%d 秒後に再試行してください', 'mp-ukagaka'),
                 $result['reset_in']
             ),
             'retry_after' => $result['reset_in'],
@@ -1019,7 +1019,7 @@ function mpu_rest_check_rate_limit($action, $max_requests = 10, $period = 60)
             [
                 'code'    => 'rest_rate_limit_exceeded',
                 'message' => sprintf(
-                    __('請求過於頻繁，請 %d 秒後再試', 'mp-ukagaka'),
+                    __('リクエストが多すぎます。%d 秒後に再試行してください', 'mp-ukagaka'),
                     $result['reset_in']
                 ),
                 'data'    => ['status' => 429, 'retry_after' => $result['reset_in']],
@@ -1093,7 +1093,7 @@ function mpu_verify_ajax_nonce(): bool
 {
     $request_data = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' ? $_POST : $_GET;
     if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-        wp_send_json(['error' => __('安全性驗證失敗', 'mp-ukagaka')]);
+        wp_send_json(['error' => __('セキュリティ検証に失敗しました', 'mp-ukagaka')]);
         return false;
     }
     return true;

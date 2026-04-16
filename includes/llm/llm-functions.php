@@ -115,7 +115,7 @@ function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
 function mpu_validate_ollama_endpoint($endpoint)
 {
     if (empty($endpoint)) {
-        return new WP_Error('empty_endpoint', __('Ollama 端點不能為空', 'mp-ukagaka'));
+        return new WP_Error('empty_endpoint', __('Ollama エンドポイントを空にすることはできません', 'mp-ukagaka'));
     }
 
     // 移除尾部斜線
@@ -123,18 +123,18 @@ function mpu_validate_ollama_endpoint($endpoint)
 
     // 驗證 URL 格式
     if (!preg_match('/^https?:\/\/.+/', $endpoint)) {
-        return new WP_Error('invalid_url_format', __('Ollama 端點必須是有效的 HTTP 或 HTTPS URL', 'mp-ukagaka'));
+        return new WP_Error('invalid_url_format', __('Ollama エンドポイントは有効な HTTP または HTTPS URL である必要があります', 'mp-ukagaka'));
     }
 
     // 驗證 URL 是否可解析
     $parsed = wp_parse_url($endpoint);
     if ($parsed === false || empty($parsed['scheme']) || empty($parsed['host'])) {
-        return new WP_Error('invalid_url', __('無法解析 Ollama 端點 URL', 'mp-ukagaka'));
+        return new WP_Error('invalid_url', __('Ollama エンドポイント URL を解析できません', 'mp-ukagaka'));
     }
 
     // 確保 scheme 是 http 或 https
     if (!in_array($parsed['scheme'], ['http', 'https'], true)) {
-        return new WP_Error('invalid_scheme', __('Ollama 端點必須使用 HTTP 或 HTTPS 協議', 'mp-ukagaka'));
+        return new WP_Error('invalid_scheme', __('Ollama エンドポイントは HTTP または HTTPS プロトコルを使用する必要があります', 'mp-ukagaka'));
     }
 
     return $endpoint;

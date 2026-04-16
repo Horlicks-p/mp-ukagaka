@@ -65,14 +65,14 @@ abstract class MPU_REST_Base {
         if (!is_user_logged_in()) {
             return new WP_Error(
                 'rest_not_logged_in',
-                __('請先登入', 'mp-ukagaka'),
+                __('先にログインしてください', 'mp-ukagaka'),
                 ['status' => 401]
             );
         }
         if (!current_user_can('manage_options')) {
             return new WP_Error(
                 'rest_forbidden',
-                __('權限不足', 'mp-ukagaka'),
+                __('権限が不足しています', 'mp-ukagaka'),
                 ['status' => 403]
             );
         }

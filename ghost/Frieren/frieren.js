@@ -1167,7 +1167,7 @@
 
                 this.waitForTypewriterAndRestore();
               } else {
-                const errorMsg = res?.error || "發生錯誤，請稍後再試";
+                const errorMsg = res?.error || ((window.mpuL10n && window.mpuL10n.errorOccurred) || "エラーが発生しました。後でもう一度お試しください。");
                 if (typeof mpu_typewriter !== "undefined") {
                   mpu_typewriter(errorMsg, "#ukagaka_msg");
                 }
@@ -1181,10 +1181,10 @@
               }
 
               if (typeof mpuLogger !== "undefined" && mpuLogger.error) {
-                mpuLogger.error("裝飾物對話請求失敗:", error);
+                mpuLogger.error("装飾品対話リクエストに失敗しました:", error);
               }
               if (typeof mpu_typewriter !== "undefined") {
-                mpu_typewriter("（…連線好像有點問題…）", "#ukagaka_msg");
+                mpu_typewriter((window.mpuL10n && window.mpuL10n.connectionError) || "（…通信状況が良くないみたいだ…）", "#ukagaka_msg");
               }
 
               this.waitForTypewriterAndRestore();

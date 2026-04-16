@@ -167,7 +167,7 @@ function mpu_handle_error(error, context, options = {}) {
     // 如果需要向用戶顯示錯誤
     if (showToUser) {
         const displayMessage = userMessage ||
-            (debugMode || window.mpuDebugMode ? errorMessage : '發生錯誤，請稍後再試');
+            (debugMode || window.mpuDebugMode ? errorMessage : ((window.mpuL10n && window.mpuL10n.errorOccurred) || 'エラーが発生しました。後でもう一度お試しください。'));
         const $msgBox = jQuery("#ukagaka_msg");
         if ($msgBox.length) {
             mpu_typewriter(displayMessage, $msgBox);
@@ -783,7 +783,7 @@ async function mpuFetch(url, options = {}) {
 
     if (config.dedupe && mpuRequestManager.activeRequests.has(requestId)) {
         mpuLogger.log(`請求去重，跳過: ${requestId}`);
-        return Promise.reject(new Error('重複請求已存在，請稍後再試'));
+        return Promise.reject(new Error((window.mpuL10n && window.mpuL10n.duplicateRequest) || '重複したリクエストが存在します。後でもう一度お試しください。'));
     }
 
     const controller = new AbortController();
@@ -902,7 +902,7 @@ async function mpuFetch(url, options = {}) {
         clearTimeout(timeoutId);
     }
     mpuRequestManager.cleanup(requestId);
-    throw lastError || new Error('請求失敗');
+    throw lastError || new Error((window.mpuL10n && window.mpuL10n.requestFailed) || 'リクエストに失敗しました');
 }
 
 function mpuCancelRequest(url, options = {}) {

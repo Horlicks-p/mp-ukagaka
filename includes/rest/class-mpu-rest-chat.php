@@ -65,13 +65,13 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $mpu_opt = mpu_get_option();
 
         if (empty($mpu_opt['ai_enabled'])) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $provider = mpu_get_current_provider($mpu_opt);
         $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
         if ($provider !== 'ollama' && empty($api_key)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $page_title_param   = $request->get_param('page_title');
@@ -93,7 +93,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         }
 
         if (empty($page_title) && empty($page_content)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $wp_info              = mpu_get_wordpress_info();
@@ -267,7 +267,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         );
 
         if (is_wp_error($result)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $max_length = 500;
@@ -341,16 +341,16 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $mpu_opt = mpu_get_option();
 
         if (empty($mpu_opt['ai_enabled'])) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
         if (empty($mpu_opt['ai_greet_first_visit'])) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $provider = mpu_get_current_provider($mpu_opt);
         $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
         if ($provider !== 'ollama' && empty($api_key)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $referrer_param      = $request->get_param('referrer');
@@ -478,7 +478,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         );
 
         if (is_wp_error($result)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $max_length = 500;
@@ -559,7 +559,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $message_param = $request->get_param('message');
         $user_message  = !empty($message_param) ? sanitize_text_field(wp_unslash($message_param)) : '';
         if (empty($user_message)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         if (mb_strlen($user_message, 'UTF-8') > 500) {
@@ -695,7 +695,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $provider = mpu_get_current_provider($mpu_opt);
         $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
         if ($provider !== 'ollama' && empty($api_key)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $ukagaka_name         = $mpu_opt['cur_ukagaka'] ?? 'default_1';
@@ -994,7 +994,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         );
 
         if (is_wp_error($result)) {
-            return $this->fail('rest_error', __('發生未知錯誤，請檢查日誌', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         // [Fix] 針對 Ollama 進行 Thinking 內容過濾，確保 Checksum 一致
@@ -1062,7 +1062,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         if (is_wp_error($provider_instance) || !$provider_instance || !$provider_instance->supports(MPU_AI_Provider_Base::FEATURE_STREAMING)) {
             // Fallback 到同步模式
             mpu_sse_init();
-            $msg = is_wp_error($provider_instance) ? $provider_instance->get_error_message() : __('當前 Provider 不支援串流模式', 'mp-ukagaka');
+            $msg = is_wp_error($provider_instance) ? $provider_instance->get_error_message() : __('現在のプロバイダーはストリーミングモードに対応していません', 'mp-ukagaka');
             mpu_sse_send_event('error', ['message' => $msg]);
             exit;
         }

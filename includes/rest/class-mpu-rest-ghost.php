@@ -227,9 +227,9 @@ class MPU_REST_Ghost extends MPU_REST_Base {
                 }
             }
             return $this->ok([
-                'heading'       => __('偽春菜們', 'mp-ukagaka'),
+                'heading'       => __('キャラクター一覧', 'mp-ukagaka'),
                 'items'         => $items,
-                'empty_message' => empty($items) ? __('沒有可供選擇的偽春菜', 'mp-ukagaka') : null,
+                'empty_message' => empty($items) ? __('選択可能なキャラクターがありません', 'mp-ukagaka') : null,
             ]);
         }
 
@@ -283,7 +283,7 @@ class MPU_REST_Ghost extends MPU_REST_Base {
         $rl = $this->rate_limit('extend', 10, 60);
         if ($rl !== null) return $rl;
 
-        return $this->ok(['label' => __('更換偽春菜', 'mp-ukagaka')]);
+        return $this->ok(['label' => __('キャラクターを変更', 'mp-ukagaka')]);
     }
 
     // =========================================================================

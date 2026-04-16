@@ -209,7 +209,7 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
             return; // 正常結束
         }
 
-        $err = $this->error('max_turns_exceeded', __('Ollama 工具調用次數過多', 'mp-ukagaka'));
+        $err = $this->error('max_turns_exceeded', __('Ollama のツール呼び出し回数が多すぎます', 'mp-ukagaka'));
         return $err;
     }
 
@@ -258,7 +258,7 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
         } else {
             $validated_endpoint = mpu_validate_ollama_endpoint($endpoint);
             if (is_wp_error($validated_endpoint)) {
-                return $this->error("invalid_endpoint", sprintf(__('Ollama 端點格式錯誤：%s', 'mp-ukagaka'), $validated_endpoint->get_error_message()));
+                return $this->error("invalid_endpoint", sprintf(__('Ollama エンドポイントの形式が正しくありません：%s', 'mp-ukagaka'), $validated_endpoint->get_error_message()));
             }
             $endpoint = $validated_endpoint;
             $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
@@ -342,7 +342,7 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
             $data = mpu_json_decode_assoc($response_body);
 
             if (empty($data["message"])) {
-                return $this->error("invalid_response", __('Ollama API 回應格式錯誤', 'mp-ukagaka'));
+                return $this->error("invalid_response", __('Ollama API レスポンス形式が正しくありません', 'mp-ukagaka'));
             }
 
             $message = $data["message"];
@@ -383,10 +383,10 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
                  return mpu_filter_thinking_content($message['content']);
             }
 
-            return $this->error("empty_content", __('Ollama API 回應內容為空', 'mp-ukagaka'));
+            return $this->error("empty_content", __('Ollama API レスポンスの内容が空です', 'mp-ukagaka'));
         }
 
-        return $this->error("max_turns_exceeded", __('Ollama API 工具調用次數過多', 'mp-ukagaka'));
+        return $this->error("max_turns_exceeded", __('Ollama API のツール呼び出し回数が多すぎます', 'mp-ukagaka'));
     }
 
     /**
@@ -402,19 +402,19 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
 
         if (strpos($error_message, 'timeout') !== false || strpos($error_message, 'timed out') !== false) {
             $msg = $is_remote
-                ? sprintf(__('Ollama 連接超時（已等待 %s 秒）。遠程連接可能需要更長時間，請檢查 Cloudflare Tunnel 或網絡狀況。', 'mp-ukagaka'), $timeout)
-                : sprintf(__('Ollama 連接超時（已等待 %s 秒）。請確認 Ollama 服務是否正常運行。', 'mp-ukagaka'), $timeout);
+                ? sprintf(__('Ollama 接続タイムアウト（%s 秒待機済み）。リモート接続は時間がかかる場合があります。Cloudflare Tunnel やネットワーク状態を確認してください。', 'mp-ukagaka'), $timeout)
+                : sprintf(__('Ollama 接続タイムアウト（%s 秒待機済み）。Ollama サービスが正常に動作しているか確認してください。', 'mp-ukagaka'), $timeout);
             return $this->error("api_request_failed", $msg);
         }
 
         if (strpos($error_message, 'Connection refused') !== false || strpos($error_message, 'couldn\'t connect') !== false) {
             $msg = $is_remote
-                ? sprintf(__('無法連接到遠程 Ollama 服務。請確認 Cloudflare Tunnel 是否正在運行，端點 URL 是否正確。錯誤：%s', 'mp-ukagaka'), $error_message)
-                : sprintf(__('無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。錯誤：%s', 'mp-ukagaka'), $error_message);
+                ? sprintf(__('リモート Ollama サービスに接続できません。Cloudflare Tunnel が動作しているか、エンドポイント URL が正しいか確認してください。エラー：%s', 'mp-ukagaka'), $error_message)
+                : sprintf(__('Ollama サービスに接続できません。Ollama が動作しているか確認してください。エラー：%s', 'mp-ukagaka'), $error_message);
             return $this->error("api_request_failed", $msg);
         }
 
-        return $this->error("api_request_failed", sprintf(__('Ollama API 請求失敗：%s', 'mp-ukagaka'), $error_message));
+        return $this->error("api_request_failed", sprintf(__('Ollama API リクエストに失敗しました：%s', 'mp-ukagaka'), $error_message));
     }
 
     /**
@@ -646,7 +646,7 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
 
         return $this->error(
             'ollama_empty',
-            sprintf(__('Ollama 未返回有效回應。請檢查模型響應格式或嘗試啟用思考模式。', 'mp-ukagaka'))
+            sprintf(__('Ollama から有効なレスポンスが返されませんでした。モデルのレスポンス形式を確認するか、思考モードの有効化をお試しください。', 'mp-ukagaka'))
         );
     }
 
@@ -670,7 +670,7 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
         if (!function_exists('mpu_validate_ollama_endpoint')) {
             $endpoint = rtrim($endpoint, '/');
             if (!preg_match('/^https?:\/\/.+/', $endpoint)) {
-                return $this->error('rest_error', __('端點格式無效，請輸入完整的 http:// 或 https:// URL', 'mp-ukagaka'), 400);
+                return $this->error('rest_error', __('エンドポイントの形式が無効です。完全な http:// または https:// URL を入力してください', 'mp-ukagaka'), 400);
             }
             $timeout   = 30;
             $is_remote = !preg_match('/localhost|127\.0\.0\.1|::1/', $endpoint);
@@ -706,20 +706,20 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
 
             if (strpos($error_message, 'timeout') !== false || strpos($error_message, 'timed out') !== false) {
                 $msg = $is_remote
-                    ? sprintf(__('連接超時（已等待 %s 秒）。遠程連接可能需要更長時間，請檢查 Cloudflare Tunnel 或網絡狀況。', 'mp-ukagaka'), $timeout)
-                    : sprintf(__('連接超時（已等待 %s 秒）。請確認 Ollama 服務是否正常運行。', 'mp-ukagaka'), $timeout);
+                    ? sprintf(__('接続タイムアウト（%s 秒待機済み）。リモート接続は時間がかかる場合があります。Cloudflare Tunnel やネットワーク状態を確認してください。', 'mp-ukagaka'), $timeout)
+                    : sprintf(__('接続タイムアウト（%s 秒待機済み）。Ollama サービスが正常に動作しているか確認してください。', 'mp-ukagaka'), $timeout);
                 return $this->error('rest_error', $msg, 400);
             }
 
             if (strpos($error_message, 'Connection refused') !== false || strpos($error_message, 'couldn\'t connect') !== false) {
                 $msg = $is_remote
-                    ? sprintf(__('無法連接到遠程 Ollama 服務。請確認 Cloudflare Tunnel 是否正在運行，端點 URL 是否正確。錯誤：%s', 'mp-ukagaka'), $error_message)
-                    : sprintf(__('無法連接到 Ollama 服務。請確認 Ollama 是否正在運行。錯誤：%s', 'mp-ukagaka'), $error_message);
+                    ? sprintf(__('リモート Ollama サービスに接続できません。Cloudflare Tunnel が動作しているか、エンドポイント URL が正しいか確認してください。エラー：%s', 'mp-ukagaka'), $error_message)
+                    : sprintf(__('Ollama サービスに接続できません。Ollama が動作しているか確認してください。エラー：%s', 'mp-ukagaka'), $error_message);
                 return $this->error('rest_error', $msg, 400);
             }
 
-            $connection_type_text = $is_remote ? __('遠程', 'mp-ukagaka') : __('本地', 'mp-ukagaka');
-            return $this->error('rest_error', sprintf(__('%s連接失敗：%s', 'mp-ukagaka'), $connection_type_text, $error_message), 400);
+            $connection_type_text = $is_remote ? __('リモート', 'mp-ukagaka') : __('ローカル', 'mp-ukagaka');
+            return $this->error('rest_error', sprintf(__('%s接続に失敗しました：%s', 'mp-ukagaka'), $connection_type_text, $error_message), 400);
         }
 
         $response_code = wp_remote_retrieve_response_code($response);
@@ -758,32 +758,32 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
                     set_transient($cache_key, 1, 5 * MINUTE_IN_SECONDS);
 
                     $preview              = mb_substr($content, 0, 50);
-                    $connection_type_text = $is_remote ? __('遠程', 'mp-ukagaka') : __('本地', 'mp-ukagaka');
+                    $connection_type_text = $is_remote ? __('リモート', 'mp-ukagaka') : __('ローカル', 'mp-ukagaka');
                     return new WP_REST_Response(['msg' => sprintf(
-                        __('連接成功（%s連接），模型響應正常（預覽：%s...）', 'mp-ukagaka'),
+                        __('接続成功（%s接続）。モデルが正常に応答しています（プレビュー：%s...）', 'mp-ukagaka'),
                         $connection_type_text,
                         $preview
                     )], 200);
                 } else {
                     $preview = mb_substr($content, 0, 50);
                     return new WP_REST_Response(['msg' => sprintf(
-                        __('連接成功，但模型只返回思考過程（預覽：%s...）。實際使用時應會生成內容。', 'mp-ukagaka'),
+                        __('接続成功。ただしモデルは思考過程のみを返しました（プレビュー：%s...）。実際の使用時にはコンテンツが生成されるはずです。', 'mp-ukagaka'),
                         $preview
                     )], 200);
                 }
             } else {
                 $response_keys = is_array($data) ? array_keys($data) : [];
-                $debug_info    = '響應鍵: [' . implode(', ', $response_keys) . ']';
+                $debug_info    = 'レスポンスキー: [' . implode(', ', $response_keys) . ']';
                 if (defined('WP_DEBUG') && WP_DEBUG) {
-                    $debug_info .= ' | 完整響應: ' . mb_substr($response_body, 0, 200);
+                    $debug_info .= ' | 完全なレスポンス: ' . mb_substr($response_body, 0, 200);
                 }
-                return $this->error('rest_error', sprintf(__('連接成功但回應格式異常，無法解析模型輸出。%s', 'mp-ukagaka'), $debug_info), 400, $response_body);
+                return $this->error('rest_error', sprintf(__('接続は成功しましたが、レスポンス形式が異常でモデル出力を解析できません。%s', 'mp-ukagaka'), $debug_info), 400, $response_body);
             }
         } else {
             $error_data    = json_decode($response_body, true);
             $error_message = isset($error_data['error'])
                 ? $error_data['error']
-                : sprintf(__('HTTP %s：請檢查 Ollama 是否運行且模型已下載', 'mp-ukagaka'), $response_code);
+                : sprintf(__('HTTP %s：Ollama が動作しているかモデルがダウンロード済みか確認してください', 'mp-ukagaka'), $response_code);
             return $this->error('rest_error', $error_message, 400, $response_body);
         }
     }

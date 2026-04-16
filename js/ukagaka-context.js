@@ -476,7 +476,8 @@ function mpu_chat_context() {
 
         // 檢查是否是速率限制錯誤
         const isRateLimit =
-          res && res.error && res.error.includes("請求過於頻繁");
+          (res && res.error && (res.error.includes("請求過於頻繁") || res.error.includes("リクエストが多すぎます"))) ||
+          (res && res.code === "rest_rate_limit_exceeded");
 
         if (isRateLimit) {
           const rateLimitMessage =

@@ -82,7 +82,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             document.body.style.cursor = "auto";
             return;
           }
-          mpu_typewriter("對話文件為空，請檢查對話文件內容", "#ukagaka_msg");
+          mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogEmpty) || "ダイアログファイルが空です。内容を確認してください", "#ukagaka_msg");
           mpu_showmsg(400);
           jQuery("#ukagaka").stop(true, true).fadeIn(200);
           document.body.style.cursor = "auto";
@@ -168,12 +168,12 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             showToUser: true,
             userMessage:
               debugMode || window.mpuDebugMode
-                ? `處理對話數據時出錯：${e.message}`
-                : "處理對話數據時出錯，請稍後再試。",
+                ? `処理データの読み込みに失敗しました：${e.message}`
+                : ((window.mpuL10n && window.mpuL10n.processingError) || "ダイアログデータの処理中にエラーが発生しました。後でもう一度お試しください。"),
           });
         }
       } else {
-        const errorMsg = resp && resp.error ? resp.error : "無法取得對話資料";
+        const errorMsg = resp && resp.error ? resp.error : ((window.mpuL10n && window.mpuL10n.loadingFailed) || "読み込みに失敗しました。後でもう一度お試しください。");
         jQuery("#ukagaka_msg").html(errorMsg);
 
         if (!window.mpuMsgList) {
@@ -197,8 +197,8 @@ function loadExternalDialog(file, skipFirstMessage = false) {
         showToUser: true,
         userMessage:
           debugMode || window.mpuDebugMode
-            ? `載入對話文件失敗：${error.message}`
-            : "載入對話文件失敗，請稍後再試。",
+            ? `ダイアログの読み込みに失敗しました：${error.message}`
+            : ((window.mpuL10n && window.mpuL10n.dialogLoadFailed) || "ダイアログファイルの読み込みに失敗しました。後でもう一度お試しください。"),
       });
 
       if (!window.mpuMsgList) {

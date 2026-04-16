@@ -755,7 +755,8 @@ function mpu_nextmsg(trigger) {
 
           // 檢查是否為速率限制錯誤（請求過於頻繁）
           const isRateLimit =
-            res && res.error && res.error.includes("請求過於頻繁");
+            (res && res.error && (res.error.includes("請求過於頻繁") || res.error.includes("リクエストが多すぎます"))) ||
+            (res && res.code === "rest_rate_limit_exceeded");
 
           if (isRateLimit) {
             const rateLimitMessage =
@@ -868,7 +869,7 @@ function mpu_nextmsg(trigger) {
       } else {
         window.__mpu_retry_count = 0;
         mpu_showMsgText();
-        mpu_typewriter("對話尚未載入，請稍候...", "#ukagaka_msg");
+        mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
         mpuLogger.warn("mpu_nextmsg: 對話載入超時，已重試 3 次");
       }
@@ -974,7 +975,7 @@ function mpu_nextmsg_fallback() {
       } else {
         window.__mpu_fallback_retry_count = 0;
         mpu_showMsgText();
-        mpu_typewriter("對話尚未載入，請稍候...", "#ukagaka_msg");
+        mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
         mpuLogger.warn("mpu_nextmsg_fallback: 對話載入超時，已重試 2 次");
       }
@@ -1035,7 +1036,7 @@ function mpuChange(num) {
   if (hasNum && typeof window.mpuCanvasManager === "undefined") {
     mpu_handle_error("Canvas 管理器未載入", "mpuChange:canvas_manager_check", {
       showToUser: true,
-      userMessage: "動畫模組載入失敗，無法切換角色。請刷新頁面後再試。",
+      userMessage: (window.mpuL10n && window.mpuL10n.animationLoadFailed) || "アニメーションモジュールの読み込みに失敗しました。ページを更新してください。",
     });
     return;
   }
@@ -1136,7 +1137,7 @@ function mpuChange(num) {
             "mpuChange:canvas_manager_fallback",
             {
               showToUser: true,
-              userMessage: "動畫模組載入失敗，請刷新頁面。",
+              userMessage: (window.mpuL10n && window.mpuL10n.animationLoadFailed) || "アニメーションモジュールの読み込みに失敗しました。ページを更新してください。",
             },
           );
         }
@@ -1193,8 +1194,8 @@ function mpuChange(num) {
         showToUser: true,
         userMessage:
           debugMode || window.mpuDebugMode
-            ? `載入失敗: ${error.message}`
-            : "載入失敗，請稍後再試。",
+            ? `読み込みに失敗しました: ${error.message}`
+            : ((window.mpuL10n && window.mpuL10n.loadingFailed) || "読み込みに失敗しました。後でもう一度お試しください。"),
       });
       jQuery("#ukagaka").stop(true, true).fadeIn(200);
       mpu_showmsg(200);

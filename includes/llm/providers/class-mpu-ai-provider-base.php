@@ -68,7 +68,7 @@ abstract class MPU_AI_Provider_Base implements MPU_AI_Provider_Interface {
         $provider_code = $this->get_slug() . '_error';
 
         if ($error_msg === '') {
-            $error_msg = sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $status);
+            $error_msg = sprintf(__('HTTP %s エラー', 'mp-ukagaka'), $status);
         }
 
         return $this->error($provider_code, $error_msg, $status, $body);

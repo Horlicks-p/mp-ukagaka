@@ -363,8 +363,8 @@ jQuery(document).ready(function () {
           showToUser: true,
           userMessage:
             debugMode || window.mpuDebugMode
-              ? `載入失敗: ${error.message}`
-              : "載入失敗，請稍後再試。",
+              ? `読み込みに失敗しました: ${error.message}`
+              : ((window.mpuL10n && window.mpuL10n.loadingFailed) || "読み込みに失敗しました。後でもう一度お試しください。"),
         });
         mpu_showmsg(400);
         document.body.style.cursor = "auto";

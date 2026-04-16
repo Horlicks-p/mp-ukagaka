@@ -175,7 +175,7 @@ function mpu_get_msg_arr($num = false)
         return [
             "msgall" => 0,
             "auto_msg" => "",
-            "msg" => ["載入失敗：遞迴限制"],
+            "msg" => [__("読み込み失敗：再帰制限", "mp-ukagaka")],
         ];
     }
 
@@ -206,7 +206,7 @@ function mpu_get_msg_arr($num = false)
         }
 
         if (empty($ukagaka["msg"]) || !is_array($ukagaka["msg"])) {
-            $ukagaka["msg"] = [__("找不到對話文件", "mp-ukagaka")];
+            $ukagaka["msg"] = [__("ダイアログファイルが見つかりません", "mp-ukagaka")];
         }
 
         $msgall = max(0, count($ukagaka["msg"]) - 1);
@@ -232,7 +232,7 @@ function mpu_get_msg_arr($num = false)
         return [
             "msgall" => 0,
             "auto_msg" => "",
-            "msg" => ["載入錯誤: " . $e->getMessage()],
+            "msg" => [__("読み込みエラー", "mp-ukagaka") . ': ' . $e->getMessage()],
         ];
     }
 }
@@ -424,7 +424,7 @@ function mpu_get_msg_from_file($filename_base)
     // 驗證文件名（只允許字母、數字、下劃線、連字符）
     if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $filename_base)) {
         mpu_log_error('不合法的對話文件名: ' . $filename_base);
-        return [__("不合法的對話文件名", "mp-ukagaka")];
+        return [__("不正なダイアログファイル名です", "mp-ukagaka")];
     }
 
     $file_path = mpu_get_dialogs_dir() . "/" . $filename_base . "." . $ext;
@@ -435,11 +435,11 @@ function mpu_get_msg_from_file($filename_base)
     if (is_wp_error($content)) {
         $error_code = $content->get_error_code();
         if ($error_code === 'file_not_found') {
-            return [__("找不到對話文件", "mp-ukagaka")];
+            return [__("ダイアログファイルが見つかりません", "mp-ukagaka")];
         } elseif ($error_code === 'file_too_large') {
-            return [__("對話文件過大，載入失敗", "mp-ukagaka")];
+            return [__("ダイアログファイルが大きすぎます。読み込みに失敗しました", "mp-ukagaka")];
         } else {
-            return [__("無法讀取對話文件", "mp-ukagaka")];
+            return [__("ダイアログファイルを読み込めません", "mp-ukagaka")];
         }
     }
 
@@ -452,7 +452,7 @@ function mpu_get_msg_from_file($filename_base)
             $cache[$filename_base] = $json["messages"];
             return $cache[$filename_base];
         }
-        return [__("JSON 檔案格式錯誤", "mp-ukagaka")];
+        return [__("JSONファイルの形式が正しくありません", "mp-ukagaka")];
     }
 
     $cache[$filename_base] = mpu_str2array($content);

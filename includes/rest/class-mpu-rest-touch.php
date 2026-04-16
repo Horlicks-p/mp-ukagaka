@@ -46,7 +46,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
         $mpu_opt = mpu_get_option();
 
         if (empty($mpu_opt['ai_enabled'])) {
-            return $this->fail('rest_error', __('AI 功能未啟用', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('AI機能が有効になっていません', 'mp-ukagaka'), 400);
         }
 
         $rl = $this->rate_limit('decoration_chat', 20, 60);
@@ -58,7 +58,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
             : '';
 
         if (empty($decoration_type)) {
-            return $this->fail('rest_error', __('未指定裝飾物類型', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('装飾の種類が指定されていません', 'mp-ukagaka'), 400);
         }
 
         $personality_id = function_exists('mpu_get_current_personality_id')
@@ -68,7 +68,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
         $user_prompt = mpu_get_decoration_prompt($decoration_type, $personality_id);
 
         if ($user_prompt === false) {
-            return $this->fail('rest_error', __('未知的裝飾物類型', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明な装飾の種類です', 'mp-ukagaka'), 400);
         }
 
         $ukagaka_name = $mpu_opt['ukagakas'][$mpu_opt['cur_ukagaka']]['name'] ?? 'キャラクター';
@@ -82,7 +82,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
         $provider = mpu_get_current_provider($mpu_opt);
         $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
         if ($provider !== 'ollama' && empty($api_key)) {
-            return $this->fail('rest_error', ucfirst($provider) . ' API Key 未設定', 400);
+            return $this->fail('rest_error', sprintf(__('%s API Key が設定されていません', 'mp-ukagaka'), ucfirst($provider)), 400);
         }
 
         $max_tokens = 800;
@@ -135,7 +135,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
         $mpu_opt = mpu_get_option();
 
         if (empty($mpu_opt['ai_enabled'])) {
-            return $this->fail('rest_error', __('AI 功能未啟用', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('AI機能が有効になっていません', 'mp-ukagaka'), 400);
         }
 
         $rl = $this->rate_limit('touch_zone_chat', 20, 60);
@@ -147,7 +147,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
             : '';
 
         if (empty($touch_zone)) {
-            return $this->fail('rest_error', __('未指定觸摸區域', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('タッチエリアが指定されていません', 'mp-ukagaka'), 400);
         }
 
         $ukagaka_name = $mpu_opt['ukagakas'][$mpu_opt['cur_ukagaka']]['name'] ?? 'キャラクター';
@@ -167,7 +167,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
 
         $zone_config = $touchzones['zones'][$touch_zone] ?? null;
         if (!$zone_config) {
-            return $this->fail('rest_error', __('未知的觸摸區域', 'mp-ukagaka'), 400);
+            return $this->fail('rest_error', __('不明なタッチエリアです', 'mp-ukagaka'), 400);
         }
 
         $prompt_categories = $zone_config['reactions'] ?? ['touch_body'];
@@ -197,7 +197,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
         $provider = mpu_get_current_provider($mpu_opt);
         $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
         if ($provider !== 'ollama' && empty($api_key)) {
-            return $this->fail('rest_error', ucfirst($provider) . ' API Key 未設定', 400);
+            return $this->fail('rest_error', sprintf(__('%s API Key が設定されていません', 'mp-ukagaka'), ucfirst($provider)), 400);
         }
 
         $max_tokens = 800;

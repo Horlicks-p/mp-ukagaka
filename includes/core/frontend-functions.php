@@ -248,7 +248,7 @@ function mpu_html($num = false)
         esc_attr(mpu_get_initial_message($ukagaka_num)) .
         '"></div>
                 <div id="ukagaka_chat_input" style="display:none;">
-                    <input type="text" id="mpu_user_input" placeholder="' . esc_attr__("輸入訊息...", "mp-ukagaka") . '" maxlength="500" />
+                    <input type="text" id="mpu_user_input" placeholder="' . esc_attr__("メッセージを入力...", "mp-ukagaka") . '" maxlength="500" />
                 </div>
                 <div id="ukagaka_msgnum" style="display:none;">0</div>
                 <div id="ukagaka_msglist" style="display:none;" data-file="' .
@@ -282,13 +282,13 @@ function mpu_html($num = false)
         <div id="ukagaka-dock">
             <ul>
                 <li class="gotop"><a id="toTop" href="#" title="転移">' .
-        __("回到頂部 ▼", "mp-ukagaka") .
+        __("トップへ戻る ▼", "mp-ukagaka") .
         '</a></li>
                 <li class="hide"><a id="remove" href="#" title="ログアウト？">' .
-        __("隱藏偽春菜 ▼", "mp-ukagaka") .
+        __("キャラを隠す ▼", "mp-ukagaka") .
         '</a></li>
                 <li class="change"><a id="mpu_chat_toggle" href="#" title="チャット">' .
-        __("對話", "mp-ukagaka") .
+        __("チャット", "mp-ukagaka") .
         '</a></li>
             </ul>
         </div>
@@ -543,14 +543,22 @@ function mpu_enqueue_frontend_assets()
         'apiMagicInsufficient' => __('…ちょっと待って。API魔力が足りない', 'mp-ukagaka'),
         'thinkingMessage' => __('（えっと…何を話せばいいかな…）', 'mp-ukagaka'),
         // 錯誤訊息
-        'dialogLoadFailed' => __('載入對話文件失敗，請稍後再試。', 'mp-ukagaka'),
-        'dialogEmpty' => __('對話文件為空，請檢查對話文件內容', 'mp-ukagaka'),
-        'dialogNotLoaded' => __('對話尚未載入，請稍候...', 'mp-ukagaka'),
-        'llmError' => __('LLM 連接失敗', 'mp-ukagaka'),
-        'processingError' => __('處理對話數據時出錯，請稍後再試。', 'mp-ukagaka'),
+        'dialogLoadFailed' => __('ダイアログファイルの読み込みに失敗しました。後でもう一度お試しください。', 'mp-ukagaka'),
+        'dialogEmpty' => __('ダイアログファイルが空です。内容を確認してください', 'mp-ukagaka'),
+        'dialogNotLoaded' => __('ダイアログがまだ読み込まれていません。お待ちください...', 'mp-ukagaka'),
+        'llmError' => __('LLM 接続に失敗しました', 'mp-ukagaka'),
+        'processingError' => __('ダイアログデータの処理中にエラーが発生しました。後でもう一度お試しください。', 'mp-ukagaka'),
+        'loadingFailed' => __('読み込みに失敗しました。後でもう一度お試しください。', 'mp-ukagaka'),
+        'errorOccurred' => __('エラーが発生しました。後でもう一度お試しください。', 'mp-ukagaka'),
+        'duplicateRequest' => __('重複したリクエストが存在します。後でもう一度お試しください。', 'mp-ukagaka'),
+        'requestFailed' => __('リクエストに失敗しました', 'mp-ukagaka'),
+        'securityVerificationFailed' => __('セキュリティ検証に失敗しました', 'mp-ukagaka'),
+        'animationLoadFailed' => __('アニメーションモジュールの読み込みに失敗しました。ページを更新してください。', 'mp-ukagaka'),
+        'connectionError' => __('（…通信状況が良くないみたいだ…）', 'mp-ukagaka'),
         // 互動對話模式
-        'chatWelcome' => __('有什麼想聊的嗎？', 'mp-ukagaka'),
-        'chatPlaceholder' => __('輸入訊息...', 'mp-ukagaka'),
+        'chatExit' => __('……', 'mp-ukagaka'),
+        'chatWelcome' => __('何か話したいことはありますか？', 'mp-ukagaka'),
+        'chatPlaceholder' => __('メッセージを入力...', 'mp-ukagaka'),
         'chatThinking' => __('…うーん、そうだね…', 'mp-ukagaka'),
         'executingTool' => __('（…%sを実行中…）', 'mp-ukagaka'),
     ]);
@@ -565,10 +573,10 @@ function mpu_head()
 
     $mpu_opt = mpu_get_option();
 
-    $robot_show = mpu_js_filter(__("顯示偽春菜 ▲", "mp-ukagaka"));
-    $robot_hide = mpu_js_filter(__("隱藏偽春菜 ▼", "mp-ukagaka"));
-    $msg_show = mpu_js_filter(__("顯示會話 ▲", "mp-ukagaka"));
-    $msg_hide = mpu_js_filter(__("隱藏會話 ▼", "mp-ukagaka"));
+    $robot_show = mpu_js_filter(__("キャラを表示 ▲", "mp-ukagaka"));
+    $robot_hide = mpu_js_filter(__("キャラを隠す ▼", "mp-ukagaka"));
+    $msg_show = mpu_js_filter(__("会話を表示 ▲", "mp-ukagaka"));
+    $msg_hide = mpu_js_filter(__("会話を隠す ▼", "mp-ukagaka"));
 
     echo "<script type=\"text/javascript\">\n";
     echo "var mpuRestUrl = '" . esc_url_raw(rest_url('mp-ukagaka/v1/')) . "';\n";

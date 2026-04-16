@@ -4,6 +4,25 @@
 
 ---
 
+## [2.13.2] - 2026-04-16
+
+### 🌐 本地化：系統訊息統一為日文
+
+- **全面 i18n 整理**：橫跨 18 個 PHP 文件，將所有硬編碼的繁體中文系統訊息（約 200+ 條）統一替換為日文，確保使用者介面輸出語言一致。
+  - `includes/core/`：檔案操作、安全驗證、速率限制錯誤訊息（`utility-functions.php`）；前端 UI 標籤與 `mpuL10n` 本地化字串（`frontend-functions.php`）；對話檔案錯誤訊息（`ukagaka-functions.php`）。
+  - `includes/rest/`：所有 REST API 錯誤與狀態訊息（`class-mpu-rest-base.php`、`class-mpu-rest-chat.php`、`class-mpu-rest-dialog.php`、`class-mpu-rest-ghost.php`、`class-mpu-rest-test.php`、`class-mpu-rest-touch.php`）。
+  - `includes/llm/`：所有 LLM 提供商錯誤訊息（`class-mpu-ai-provider-gemini.php`、`class-mpu-ai-provider-openai.php`、`class-mpu-ai-provider-claude.php`、`class-mpu-ai-provider-ollama.php`、`class-mpu-ai-provider-base.php`）；日記、Ollama 驗證與工具迴圈訊息（`diary-functions.php`、`llm-functions.php`、`tool-loop-guard.php`）。
+  - `includes/admin-functions.php`：所有後台管理通知與 ZIP 上傳/驗證訊息。
+- **擴充 `mpuL10n`**：在前端 JavaScript 物件中新增多個本地化 key（`loadingFailed`、`errorOccurred`、`duplicateRequest`、`requestFailed`、`securityVerificationFailed`、`animationLoadFailed`、`connectionError`、`chatExit`），JS 模組不再依賴硬編碼的備用字串。
+- 所有字串仍以 `__()` 包裹，支援未來的 `.po`/`.mo` 語言包。
+
+### 🐛 修復 (Bug Fix)
+
+- **`mpuL10n` Key 名稱不一致**：`js/ukagaka-dialog.js` 引用了未定義的 `mpuL10n.loadFailed`（正確應為 `mpuL10n.loadingFailed`），導致靜默回退至內建字串，現已修正。
+- **`chatExit` Key 未定義**：`js/ukagaka-chat.js` 引用的 `mpuL10n.chatExit` 從未在 `wp_localize_script` 中註冊，現已在 `frontend-functions.php` 補充此 key。
+
+---
+
 ## [2.13.1] - 2026-03-18
 
 ### 🔒 安全性強化 (Security)

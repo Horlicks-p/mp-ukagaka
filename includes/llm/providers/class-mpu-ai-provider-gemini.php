@@ -110,7 +110,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
                 mpu_build_http_args(mpu_get_provider_headers('gemini'), $request_body));
 
             if (is_wp_error($response)) {
-                return $this->error("api_request_failed", sprintf(__('Gemini API 請求失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
+                return $this->error("api_request_failed", sprintf(__('Gemini API リクエストに失敗しました：%s', 'mp-ukagaka'), $response->get_error_message()));
             }
 
             $response_code = wp_remote_retrieve_response_code($response);
@@ -136,7 +136,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
             $data = mpu_json_decode_assoc($response_body);
             
             if (empty($data["candidates"][0]["content"])) {
-                return $this->error("empty_response", __('Gemini API 回應為空', 'mp-ukagaka'));
+                return $this->error("empty_response", __('Gemini API レスポンスが空です', 'mp-ukagaka'));
             }
 
             $candidate_content = $data["candidates"][0]["content"];
@@ -186,10 +186,10 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
                 return trim($parts[0]["text"]);
             }
             
-            return $this->error("unknown_response_format", __('Gemini API 回應格式無法識別', 'mp-ukagaka'));
+            return $this->error("unknown_response_format", __('Gemini API レスポンス形式を識別できません', 'mp-ukagaka'));
         }
 
-        return $this->error("max_turns_exceeded", __('Gemini API 工具調用次數過多', 'mp-ukagaka'));
+        return $this->error("max_turns_exceeded", __('Gemini API のツール呼び出し回数が多すぎます', 'mp-ukagaka'));
     }
 
     /**
@@ -260,7 +260,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
                 mpu_build_http_args(mpu_get_provider_headers('gemini'), $request_body));
 
             if (is_wp_error($response)) {
-                return $this->error("api_request_failed", sprintf(__('Gemini API 請求失敗：%s', 'mp-ukagaka'), $response->get_error_message()));
+                return $this->error("api_request_failed", sprintf(__('Gemini API リクエストに失敗しました：%s', 'mp-ukagaka'), $response->get_error_message()));
             }
 
             $response_code = wp_remote_retrieve_response_code($response);
@@ -286,7 +286,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
             $data = mpu_json_decode_assoc($response_body);
             
             if (empty($data['candidates'][0]['content'])) {
-                 return $this->error('gemini_empty', __('Gemini 未返回有效回應', 'mp-ukagaka'));
+                 return $this->error('gemini_empty', __('Gemini から有効なレスポンスが返されませんでした', 'mp-ukagaka'));
             }
 
             $candidate_content = $data['candidates'][0]['content'];
@@ -341,10 +341,10 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
                 return trim($parts[0]['text']);
             }
             
-            return $this->error("unknown_response_format", __('Gemini API 回應格式無法識別', 'mp-ukagaka'));
+            return $this->error("unknown_response_format", __('Gemini API レスポンス形式を識別できません', 'mp-ukagaka'));
         }
 
-        return $this->error("max_turns_exceeded", __('Gemini API 工具調用次數過多', 'mp-ukagaka'));
+        return $this->error("max_turns_exceeded", __('Gemini API のツール呼び出し回数が多すぎます', 'mp-ukagaka'));
     }
 
     /**
@@ -370,7 +370,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
         }
 
         if (empty($api_key)) {
-            return $this->error('rest_error', __('Gemini API Key 未設定', 'mp-ukagaka'), 400);
+            return $this->error('rest_error', __('Gemini API キーが設定されていません', 'mp-ukagaka'), 400);
         }
 
         $api_url      = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($api_key);
@@ -386,7 +386,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
         ]);
 
         if (is_wp_error($response)) {
-            return $this->error('rest_error', sprintf(__('連接失敗：%s', 'mp-ukagaka'), $response->get_error_message()), 400);
+            return $this->error('rest_error', sprintf(__('接続に失敗しました：%s', 'mp-ukagaka'), $response->get_error_message()), 400);
         }
 
         $response_code = wp_remote_retrieve_response_code($response);
@@ -396,20 +396,20 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
             $data = json_decode($response_body, true);
             if (!empty($data['candidates'][0]['content']['parts'][0]['text'])) {
                 $preview = mb_substr(trim($data['candidates'][0]['content']['parts'][0]['text']), 0, 50);
-                return new WP_REST_Response(['msg' => sprintf(__('連接成功，模型響應正常（預覽：%s...）', 'mp-ukagaka'), $preview)], 200);
+                return new WP_REST_Response(['msg' => sprintf(__('接続成功。モデルが正常に応答しています（プレビュー：%s...）', 'mp-ukagaka'), $preview)], 200);
             } else {
-                return $this->error('rest_error', __('連接成功但回應格式異常，無法解析模型輸出', 'mp-ukagaka'), 400);
+                return $this->error('rest_error', __('接続は成功しましたが、レスポンス形式が異常でモデル出力を解析できません', 'mp-ukagaka'), 400);
             }
         } else {
             $error_data    = json_decode($response_body, true);
             $error_message = isset($error_data['error']['message'])
                 ? $error_data['error']['message']
-                : sprintf(__('HTTP %s 錯誤', 'mp-ukagaka'), $response_code);
+                : sprintf(__('HTTP %s エラー', 'mp-ukagaka'), $response_code);
 
             if ($response_code === 401 || $response_code === 403) {
-                return $this->error('rest_error', sprintf(__('API Key 無效或權限不足：%s', 'mp-ukagaka'), $error_message), 400, $response_body);
+                return $this->error('rest_error', sprintf(__('API キーが無効か、権限が不足しています：%s', 'mp-ukagaka'), $error_message), 400, $response_body);
             } elseif ($response_code === 404) {
-                return $this->error('rest_error', sprintf(__('模型不存在（%s）：%s', 'mp-ukagaka'), $model, $error_message), 400, $response_body);
+                return $this->error('rest_error', sprintf(__('モデルが存在しません（%s）：%s', 'mp-ukagaka'), $model, $error_message), 400, $response_body);
             } else {
                 return $this->error('rest_error', $error_message, 400, $response_body);
             }
@@ -425,7 +425,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
      * @return void|WP_Error
      */
     public function generate_chat_stream(array $args, $emit, array $context = []) {
-        $err = $this->error('unsupported', __('Gemini 目前不支援串流模式', 'mp-ukagaka'));
+        $err = $this->error('unsupported', __('Gemini は現在ストリーミングモードに対応していません', 'mp-ukagaka'));
         call_user_func($emit, 'error', ['message' => $err->get_error_message()]);
         return $err;
     }
