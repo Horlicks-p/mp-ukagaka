@@ -1523,3 +1523,15 @@ msgstr "すべてのログ記録をクリアしてもよろしいですか？こ
 msgid "清除 Log"
 msgstr "ログをクリア"
 
+
+msgid "自訂模型…"
+msgstr "カスタムモデル…"
+
+msgid "輸入完整模型 ID，例如：gemini-2.0-flash"
+msgstr "モデル ID を入力してください（例：gemini-2.0-flash）"
+
+msgid "輸入完整模型 ID，例如：gpt-4.1-2025-04-14"
+msgstr "モデル ID を入力してください（例：gpt-4.1-2025-04-14）"
+
+msgid "輸入完整模型 ID，例如：claude-opus-4-7"
+msgstr "モデル ID を入力してください（例：claude-opus-4-7）"

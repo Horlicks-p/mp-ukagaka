@@ -1272,3 +1272,15 @@ msgstr "最大輸出 Token (Max Output Tokens)："
 
 msgid "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"
 msgstr "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"
+
+msgid "自訂模型…"
+msgstr "自訂模型…"
+
+msgid "輸入完整模型 ID，例如：gemini-2.0-flash"
+msgstr "輸入完整模型 ID，例如：gemini-2.0-flash"
+
+msgid "輸入完整模型 ID，例如：gpt-4.1-2025-04-14"
+msgstr "輸入完整模型 ID，例如：gpt-4.1-2025-04-14"
+
+msgid "輸入完整模型 ID，例如：claude-opus-4-7"
+msgstr "輸入完整模型 ID，例如：claude-opus-4-7"

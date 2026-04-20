@@ -31,7 +31,16 @@ $diary_claude_key_exists = !empty($mpu_opt['diary_claude_api_key']);
 // 獲取模型設定
 $diary_gemini_model = isset($mpu_opt['diary_gemini_model']) ? $mpu_opt['diary_gemini_model'] : 'gemini-2.5-flash';
 $diary_openai_model = isset($mpu_opt['diary_openai_model']) ? $mpu_opt['diary_openai_model'] : 'gpt-4.1-mini-2025-04-14';
-$diary_claude_model = isset($mpu_opt['diary_claude_model']) ? $mpu_opt['diary_claude_model'] : 'claude-sonnet-4-5-20250929';
+$diary_claude_model = isset($mpu_opt['diary_claude_model']) ? $mpu_opt['diary_claude_model'] : 'claude-sonnet-4-6';
+
+// 各 provider 預設模型清單（用於判斷是否為自訂）
+$diary_gemini_preset_models = ['gemini-2.5-flash', 'gemini-2.5-pro'];
+$diary_openai_preset_models = ['gpt-4.1-mini-2025-04-14', 'gpt-4o-mini', 'gpt-4o'];
+$diary_claude_preset_models = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-7'];
+
+$diary_gemini_is_custom = !in_array($diary_gemini_model, $diary_gemini_preset_models, true);
+$diary_openai_is_custom = !in_array($diary_openai_model, $diary_openai_preset_models, true);
+$diary_claude_is_custom = !in_array($diary_claude_model, $diary_claude_preset_models, true);
 
 // Ollama 設定（可複用主設定或獨立設定）
 $diary_ollama_endpoint = isset($mpu_opt['diary_ollama_endpoint']) ? $mpu_opt['diary_ollama_endpoint'] : (isset($mpu_opt['ollama_endpoint']) ? $mpu_opt['ollama_endpoint'] : 'http://localhost:11434');
@@ -207,11 +216,18 @@ $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signatur
                     } ?></small>
                 </div>
                 <div class="mpu-field-group">
-                    <label for="diary_gemini_model"><?php _e('Gemini 模型：', 'mp-ukagaka'); ?></label>
-                    <select id="diary_gemini_model" name="diary_gemini_model" style="width: 100%; max-width: 400px;">
-                        <option value="gemini-2.5-flash" <?php echo $diary_gemini_model === 'gemini-2.5-flash' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Flash (推薦)', 'mp-ukagaka')); ?></option>
-                        <option value="gemini-2.5-pro" <?php echo $diary_gemini_model === 'gemini-2.5-pro' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Pro (更聰明，適合複雜推理)', 'mp-ukagaka')); ?></option>
+                    <label for="diary_gemini_model_picker"><?php _e('Gemini 模型：', 'mp-ukagaka'); ?></label>
+                    <input type="hidden" id="diary_gemini_model" name="diary_gemini_model" value="<?php echo esc_attr($diary_gemini_model); ?>" />
+                    <select id="diary_gemini_model_picker" style="width: 100%; max-width: 400px;">
+                        <option value="gemini-2.5-flash" <?php echo (!$diary_gemini_is_custom && $diary_gemini_model === 'gemini-2.5-flash') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Flash (推薦)', 'mp-ukagaka')); ?></option>
+                        <option value="gemini-2.5-pro" <?php echo (!$diary_gemini_is_custom && $diary_gemini_model === 'gemini-2.5-pro') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Pro (更聰明，適合複雜推理)', 'mp-ukagaka')); ?></option>
+                        <option value="__custom" <?php echo $diary_gemini_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
+                    <div id="diary_gemini_model_custom_wrap" style="display:<?php echo $diary_gemini_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
+                        <input type="text" id="diary_gemini_model_custom_input" style="width: 100%; max-width: 400px;"
+                            value="<?php echo $diary_gemini_is_custom ? esc_attr($diary_gemini_model) : ''; ?>"
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gemini-2.0-flash', 'mp-ukagaka'); ?>" />
+                    </div>
                 </div>
             </div>
 
@@ -226,12 +242,19 @@ $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signatur
                     } ?></small>
                 </div>
                 <div class="mpu-field-group">
-                    <label for="diary_openai_model"><?php _e('OpenAI 模型：', 'mp-ukagaka'); ?></label>
-                    <select id="diary_openai_model" name="diary_openai_model" style="width: 100%; max-width: 400px;">
-                        <option value="gpt-4.1-mini-2025-04-14" <?php echo $diary_openai_model === 'gpt-4.1-mini-2025-04-14' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4.1 Mini (推薦，速度快成本低)', 'mp-ukagaka')); ?></option>
-                        <option value="gpt-4o-mini" <?php echo $diary_openai_model === 'gpt-4o-mini' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o Mini (快速且經濟)', 'mp-ukagaka')); ?></option>
-                        <option value="gpt-4o" <?php echo $diary_openai_model === 'gpt-4o' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o (更聰明)', 'mp-ukagaka')); ?></option>
+                    <label for="diary_openai_model_picker"><?php _e('OpenAI 模型：', 'mp-ukagaka'); ?></label>
+                    <input type="hidden" id="diary_openai_model" name="diary_openai_model" value="<?php echo esc_attr($diary_openai_model); ?>" />
+                    <select id="diary_openai_model_picker" style="width: 100%; max-width: 400px;">
+                        <option value="gpt-4.1-mini-2025-04-14" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-4.1-mini-2025-04-14') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4.1 Mini (推薦，速度快成本低)', 'mp-ukagaka')); ?></option>
+                        <option value="gpt-4o-mini" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-4o-mini') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o Mini (快速且經濟)', 'mp-ukagaka')); ?></option>
+                        <option value="gpt-4o" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-4o') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o (更聰明)', 'mp-ukagaka')); ?></option>
+                        <option value="__custom" <?php echo $diary_openai_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
+                    <div id="diary_openai_model_custom_wrap" style="display:<?php echo $diary_openai_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
+                        <input type="text" id="diary_openai_model_custom_input" style="width: 100%; max-width: 400px;"
+                            value="<?php echo $diary_openai_is_custom ? esc_attr($diary_openai_model) : ''; ?>"
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gpt-4.1-2025-04-14', 'mp-ukagaka'); ?>" />
+                    </div>
                 </div>
             </div>
 
@@ -246,12 +269,19 @@ $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signatur
                     } ?></small>
                 </div>
                 <div class="mpu-field-group">
-                    <label for="diary_claude_model"><?php _e('Claude 模型：', 'mp-ukagaka'); ?></label>
-                    <select id="diary_claude_model" name="diary_claude_model" style="width: 100%; max-width: 400px;">
-                        <option value="claude-sonnet-4-5-20250929" <?php echo $diary_claude_model === 'claude-sonnet-4-5-20250929' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Sonnet 4.5 (推薦)', 'mp-ukagaka')); ?></option>
-                        <option value="claude-haiku-4-5-20251001" <?php echo $diary_claude_model === 'claude-haiku-4-5-20251001' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Haiku 4.5 (快速)', 'mp-ukagaka')); ?></option>
-                        <option value="claude-opus-4-5-20251101" <?php echo $diary_claude_model === 'claude-opus-4-5-20251101' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Opus 4.5 (進階)', 'mp-ukagaka')); ?></option>
+                    <label for="diary_claude_model_picker"><?php _e('Claude 模型：', 'mp-ukagaka'); ?></label>
+                    <input type="hidden" id="diary_claude_model" name="diary_claude_model" value="<?php echo esc_attr($diary_claude_model); ?>" />
+                    <select id="diary_claude_model_picker" style="width: 100%; max-width: 400px;">
+                        <option value="claude-sonnet-4-6" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-sonnet-4-6') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Sonnet 4.6 (推薦)', 'mp-ukagaka')); ?></option>
+                        <option value="claude-haiku-4-5-20251001" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-haiku-4-5-20251001') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Haiku 4.5 (快速)', 'mp-ukagaka')); ?></option>
+                        <option value="claude-opus-4-7" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-opus-4-7') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Opus 4.7 (進階)', 'mp-ukagaka')); ?></option>
+                        <option value="__custom" <?php echo $diary_claude_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
+                    <div id="diary_claude_model_custom_wrap" style="display:<?php echo $diary_claude_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
+                        <input type="text" id="diary_claude_model_custom_input" style="width: 100%; max-width: 400px;"
+                            value="<?php echo $diary_claude_is_custom ? esc_attr($diary_claude_model) : ''; ?>"
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：claude-opus-4-7', 'mp-ukagaka'); ?>" />
+                    </div>
                 </div>
             </div>
 
@@ -304,6 +334,34 @@ $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signatur
                 $('.mpu-diary-provider-content').removeClass('active');
                 $('.mpu-diary-provider-content[data-provider="' + provider + '"]').addClass('active');
             });
+
+            // 自訂模型選擇邏輯（通用）
+            function setupCustomModelPicker(pickerId, valueId, customWrapId, customInputId) {
+                var $picker = $('#' + pickerId);
+                var $value = $('#' + valueId);
+                var $wrap = $('#' + customWrapId);
+                var $input = $('#' + customInputId);
+
+                $picker.on('change', function() {
+                    if (this.value === '__custom') {
+                        $wrap.show();
+                        $input.focus();
+                        $value.val($input.val().trim());
+                    } else {
+                        $wrap.hide();
+                        $input.val('');
+                        $value.val(this.value);
+                    }
+                });
+
+                $input.on('input', function() {
+                    $value.val(this.value.trim());
+                });
+            }
+
+            setupCustomModelPicker('diary_gemini_model_picker', 'diary_gemini_model', 'diary_gemini_model_custom_wrap', 'diary_gemini_model_custom_input');
+            setupCustomModelPicker('diary_openai_model_picker', 'diary_openai_model', 'diary_openai_model_custom_wrap', 'diary_openai_model_custom_input');
+            setupCustomModelPicker('diary_claude_model_picker', 'diary_claude_model', 'diary_claude_model_custom_wrap', 'diary_claude_model_custom_input');
 
             // 機率滑桿數值顯示
             $('#diary_trigger_rate').on('input', function() {

@@ -22,7 +22,16 @@ $claude_key_exists = !empty($mpu_opt['llm_claude_api_key']) || !empty($mpu_opt['
 // 獲取模型設定（向後兼容）
 $gemini_model = isset($mpu_opt['llm_gemini_model']) ? $mpu_opt['llm_gemini_model'] : (isset($mpu_opt['gemini_model']) ? $mpu_opt['gemini_model'] : 'gemini-2.5-flash');
 $openai_model = isset($mpu_opt['llm_openai_model']) ? $mpu_opt['llm_openai_model'] : (isset($mpu_opt['openai_model']) ? $mpu_opt['openai_model'] : 'gpt-4.1-mini-2025-04-14');
-$claude_model = isset($mpu_opt['llm_claude_model']) ? $mpu_opt['llm_claude_model'] : (isset($mpu_opt['claude_model']) ? $mpu_opt['claude_model'] : 'claude-sonnet-4-5-20250929');
+$claude_model = isset($mpu_opt['llm_claude_model']) ? $mpu_opt['llm_claude_model'] : (isset($mpu_opt['claude_model']) ? $mpu_opt['claude_model'] : 'claude-sonnet-4-6');
+
+// 各 provider 預設模型清單（用於判斷是否為自訂）
+$gemini_preset_models = ['gemini-2.5-flash', 'gemini-2.5-pro'];
+$openai_preset_models = ['gpt-4.1-mini-2025-04-14', 'gpt-4o-mini', 'gpt-4o'];
+$claude_preset_models = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-7'];
+
+$gemini_is_custom = !in_array($gemini_model, $gemini_preset_models, true);
+$openai_is_custom = !in_array($openai_model, $openai_preset_models, true);
+$claude_is_custom = !in_array($claude_model, $claude_preset_models, true);
 
 // 檢查是否啟用頁面感知
 $ai_enabled = isset($mpu_opt['ai_enabled']) && $mpu_opt['ai_enabled'];
@@ -71,11 +80,18 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                                                                                                                                                                 } ?></small>
                 </div>
                 <div class="mpu-field-group">
-                    <label for="llm_gemini_model"><?php _e('Gemini 模型：', 'mp-ukagaka'); ?></label>
-                    <select id="llm_gemini_model" name="llm_gemini_model" style="width: 100%; max-width: 400px;">
-                        <option value="gemini-2.5-flash" <?php echo $gemini_model === 'gemini-2.5-flash' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Flash (推薦)', 'mp-ukagaka')); ?></option>
-                        <option value="gemini-2.5-pro" <?php echo $gemini_model === 'gemini-2.5-pro' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Pro (更聰明，適合複雜推理)', 'mp-ukagaka')); ?></option>
+                    <label for="llm_gemini_model_picker"><?php _e('Gemini 模型：', 'mp-ukagaka'); ?></label>
+                    <input type="hidden" id="llm_gemini_model" name="llm_gemini_model" value="<?php echo esc_attr($gemini_model); ?>" />
+                    <select id="llm_gemini_model_picker" style="width: 100%; max-width: 400px;">
+                        <option value="gemini-2.5-flash" <?php echo (!$gemini_is_custom && $gemini_model === 'gemini-2.5-flash') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Flash (推薦)', 'mp-ukagaka')); ?></option>
+                        <option value="gemini-2.5-pro" <?php echo (!$gemini_is_custom && $gemini_model === 'gemini-2.5-pro') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Pro (更聰明，適合複雜推理)', 'mp-ukagaka')); ?></option>
+                        <option value="__custom" <?php echo $gemini_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
+                    <div id="llm_gemini_model_custom_wrap" style="display:<?php echo $gemini_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
+                        <input type="text" id="llm_gemini_model_custom_input" style="width: 100%; max-width: 400px;"
+                            value="<?php echo $gemini_is_custom ? esc_attr($gemini_model) : ''; ?>"
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gemini-2.0-flash', 'mp-ukagaka'); ?>" />
+                    </div>
                 </div>
                 <div class="mpu-test-row">
                     <button type="button" id="test_gemini_connection" class="button"><?php _e('測試連接', 'mp-ukagaka'); ?></button>
@@ -94,12 +110,19 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                                                                                                                                                             } ?></small>
                 </div>
                 <div class="mpu-field-group">
-                    <label for="llm_openai_model"><?php _e('OpenAI 模型：', 'mp-ukagaka'); ?></label>
-                    <select id="llm_openai_model" name="llm_openai_model" style="width: 100%; max-width: 400px;">
-                        <option value="gpt-4.1-mini-2025-04-14" <?php echo $openai_model === 'gpt-4.1-mini-2025-04-14' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4.1 Mini (推薦，速度快成本低)', 'mp-ukagaka')); ?></option>
-                        <option value="gpt-4o-mini" <?php echo $openai_model === 'gpt-4o-mini' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o Mini (快速且經濟)', 'mp-ukagaka')); ?></option>
-                        <option value="gpt-4o" <?php echo $openai_model === 'gpt-4o' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o (更聰明)', 'mp-ukagaka')); ?></option>
+                    <label for="llm_openai_model_picker"><?php _e('OpenAI 模型：', 'mp-ukagaka'); ?></label>
+                    <input type="hidden" id="llm_openai_model" name="llm_openai_model" value="<?php echo esc_attr($openai_model); ?>" />
+                    <select id="llm_openai_model_picker" style="width: 100%; max-width: 400px;">
+                        <option value="gpt-4.1-mini-2025-04-14" <?php echo (!$openai_is_custom && $openai_model === 'gpt-4.1-mini-2025-04-14') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4.1 Mini (推薦，速度快成本低)', 'mp-ukagaka')); ?></option>
+                        <option value="gpt-4o-mini" <?php echo (!$openai_is_custom && $openai_model === 'gpt-4o-mini') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o Mini (快速且經濟)', 'mp-ukagaka')); ?></option>
+                        <option value="gpt-4o" <?php echo (!$openai_is_custom && $openai_model === 'gpt-4o') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o (更聰明)', 'mp-ukagaka')); ?></option>
+                        <option value="__custom" <?php echo $openai_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
+                    <div id="llm_openai_model_custom_wrap" style="display:<?php echo $openai_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
+                        <input type="text" id="llm_openai_model_custom_input" style="width: 100%; max-width: 400px;"
+                            value="<?php echo $openai_is_custom ? esc_attr($openai_model) : ''; ?>"
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gpt-4.1-2025-04-14', 'mp-ukagaka'); ?>" />
+                    </div>
                 </div>
                 <div class="mpu-test-row">
                     <button type="button" id="test_openai_connection" class="button"><?php _e('測試連接', 'mp-ukagaka'); ?></button>
@@ -118,12 +141,19 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                                                                                                                                                         } ?></small>
                 </div>
                 <div class="mpu-field-group">
-                    <label for="llm_claude_model"><?php _e('Claude 模型：', 'mp-ukagaka'); ?></label>
-                    <select id="llm_claude_model" name="llm_claude_model" style="width: 100%; max-width: 400px;">
-                        <option value="claude-sonnet-4-5-20250929" <?php echo $claude_model === 'claude-sonnet-4-5-20250929' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Sonnet 4.5 (推薦)', 'mp-ukagaka')); ?></option>
-                        <option value="claude-haiku-4-5-20251001" <?php echo $claude_model === 'claude-haiku-4-5-20251001' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Haiku 4.5 (快速)', 'mp-ukagaka')); ?></option>
-                        <option value="claude-opus-4-5-20251101" <?php echo $claude_model === 'claude-opus-4-5-20251101' ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Opus 4.5 (進階)', 'mp-ukagaka')); ?></option>
+                    <label for="llm_claude_model_picker"><?php _e('Claude 模型：', 'mp-ukagaka'); ?></label>
+                    <input type="hidden" id="llm_claude_model" name="llm_claude_model" value="<?php echo esc_attr($claude_model); ?>" />
+                    <select id="llm_claude_model_picker" style="width: 100%; max-width: 400px;">
+                        <option value="claude-sonnet-4-6" <?php echo (!$claude_is_custom && $claude_model === 'claude-sonnet-4-6') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Sonnet 4.6 (推薦)', 'mp-ukagaka')); ?></option>
+                        <option value="claude-haiku-4-5-20251001" <?php echo (!$claude_is_custom && $claude_model === 'claude-haiku-4-5-20251001') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Haiku 4.5 (快速)', 'mp-ukagaka')); ?></option>
+                        <option value="claude-opus-4-7" <?php echo (!$claude_is_custom && $claude_model === 'claude-opus-4-7') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Opus 4.7 (進階)', 'mp-ukagaka')); ?></option>
+                        <option value="__custom" <?php echo $claude_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
+                    <div id="llm_claude_model_custom_wrap" style="display:<?php echo $claude_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
+                        <input type="text" id="llm_claude_model_custom_input" style="width: 100%; max-width: 400px;"
+                            value="<?php echo $claude_is_custom ? esc_attr($claude_model) : ''; ?>"
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：claude-opus-4-7', 'mp-ukagaka'); ?>" />
+                    </div>
                 </div>
                 <div class="mpu-test-row">
                     <button type="button" id="test_claude_connection" class="button"><?php _e('測試連接', 'mp-ukagaka'); ?></button>
@@ -316,6 +346,34 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                 $('.mpu-provider-content').removeClass('active');
                 $('.mpu-provider-content[data-provider="' + provider + '"]').addClass('active');
             });
+
+            // 自訂模型選擇邏輯（通用）
+            function setupCustomModelPicker(pickerId, valueId, customWrapId, customInputId) {
+                var $picker = $('#' + pickerId);
+                var $value = $('#' + valueId);
+                var $wrap = $('#' + customWrapId);
+                var $input = $('#' + customInputId);
+
+                $picker.on('change', function() {
+                    if (this.value === '__custom') {
+                        $wrap.show();
+                        $input.focus();
+                        $value.val($input.val().trim());
+                    } else {
+                        $wrap.hide();
+                        $input.val('');
+                        $value.val(this.value);
+                    }
+                });
+
+                $input.on('input', function() {
+                    $value.val(this.value.trim());
+                });
+            }
+
+            setupCustomModelPicker('llm_gemini_model_picker', 'llm_gemini_model', 'llm_gemini_model_custom_wrap', 'llm_gemini_model_custom_input');
+            setupCustomModelPicker('llm_openai_model_picker', 'llm_openai_model', 'llm_openai_model_custom_wrap', 'llm_openai_model_custom_input');
+            setupCustomModelPicker('llm_claude_model_picker', 'llm_claude_model', 'llm_claude_model_custom_wrap', 'llm_claude_model_custom_input');
 
             // 連接測試函數（通用）
             function testConnection(provider, apiKeyId, modelId, resultId, buttonId) {

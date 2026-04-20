@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.3-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.13.1 の新機能
+## 🎉 v2.13.3 の新機能
 
-**セキュリティ強化**: 管理者専用コマンド (`/debug_mcp`, `/reset`, `/clear`) の非ログイン時の処理を改善。IP スプーフィング対策として proxy ヘッダーの検証を追加。`fail()` メソッドにデバッグ情報の保持機能を追加。
+**カスタムモデル選択**：LLM 設定ページおよび日記 AI 設定ページの Gemini・OpenAI・Claude モデル選択欄に「カスタムモデル…」オプションを追加。選択するとテキスト入力欄が表示され、プリセット一覧に縛られることなく任意のモデル ID を直接入力できます。
 
-**デッドコードのクリーンアップ (v2.13.0)**: 長期間使用されていなかった廢棄された関数やモジュールをコードベースから削除し、プラグインを軽量化しました。
+**Claude モデルバージョン更新**：Claude プリセット一覧を更新——Sonnet 4.5 → **Sonnet 4.6**、Opus 4.5 → **Opus 4.7**。Haiku 4.5 は 4.6 版がリリースされるまで現状維持。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

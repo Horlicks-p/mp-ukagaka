@@ -4,6 +4,18 @@
 
 ---
 
+## [2.13.3] - 2026-04-20
+
+### ✨ Enhancement: Custom Model Selection & Claude Version Update
+
+- **Custom Model Input**: Added free-text "Custom Model…" option to the model selector on both the **LLM Settings** page and the **Diary AI Settings** page for Gemini, OpenAI, and Claude providers. Selecting "Custom Model…" reveals a text input where any valid provider model ID can be entered directly, without being limited to the preset list. The selected value is stored identically to a preset selection — no backend changes required.
+- **Claude Model Versions Updated**: Refreshed the Claude preset model list to the latest available versions:
+  - Sonnet 4.5 → **Sonnet 4.6** (`claude-sonnet-4-6`)
+  - Opus 4.5 → **Opus 4.7** (`claude-opus-4-7`)
+  - Haiku 4.5 remains (`claude-haiku-4-5-20251001` — no 4.6 Haiku available yet)
+
+---
+
 ## [2.13.2] - 2026-04-16
 
 ### 🌐 Localization: System Messages Unified to Japanese

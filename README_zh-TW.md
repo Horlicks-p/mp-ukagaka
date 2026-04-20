@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.3-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.13.1 新功能
+## 🎉 v2.13.3 新功能
 
-**安全性強化**：管理員指令 (`/debug_mcp`, `/reset`, `/clear`) 在非登入狀態的處理改進。新增 IP 偽造防禦，對 proxy header 加入公開位址驗證。`fail()` 方法新增除錯資訊保留機制。
+**自訂模型選擇**：LLM 設定頁面與日記 AI 設定頁面的 Gemini、OpenAI、Claude 模型選擇器新增「自訂模型…」選項，選擇後顯示文字輸入框，可直接輸入任意合法的模型 ID，不再受限於預設清單。
 
-**死碼清理 (v2.13.0)**：移除了長期未使用且無呼叫的廢棄程式碼，包括 `mpu_html_decode`, `mpu_is_browser`, `mpu_should_trigger_ai` 等函數，提升了整體外掛代碼的輕量化。
+**Claude 模型版本更新**：更新 Claude 預設清單——Sonnet 4.5 → **Sonnet 4.6**、Opus 4.5 → **Opus 4.7**。Haiku 4.5 維持不變，待 4.6 版本釋出後更新。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

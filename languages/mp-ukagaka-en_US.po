@@ -1510,3 +1510,15 @@ msgstr "Are you sure you want to clear all log records? This action cannot be un
 msgid "清除 Log"
 msgstr "Clear Log"
 
+
+msgid "自訂模型…"
+msgstr "Custom model…"
+
+msgid "輸入完整模型 ID，例如：gemini-2.0-flash"
+msgstr "Enter full model ID, e.g. gemini-2.0-flash"
+
+msgid "輸入完整模型 ID，例如：gpt-4.1-2025-04-14"
+msgstr "Enter full model ID, e.g. gpt-4.1-2025-04-14"
+
+msgid "輸入完整模型 ID，例如：claude-opus-4-7"
+msgstr "Enter full model ID, e.g. claude-opus-4-7"

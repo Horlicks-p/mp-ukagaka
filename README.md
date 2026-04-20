@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.3-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,9 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.13.0
+## 🎉 What's New in v2.13.3
 
-**Dead Code Cleanup**: Cleaned up the codebase by removing obsolete functions and modules that haven't been in use for a long time. The cleanup includes `mpu_html_decode`, `mpu_is_browser`, `mpu_should_trigger_ai`, and more.
+**Custom Model Selection**: Added a "Custom model…" option to the model selector on both the LLM Settings page and the Diary AI Settings page (Gemini, OpenAI, Claude). Select it to reveal a free-text input and enter any valid model ID directly, without being limited to the preset list.
+
+**Claude Model Versions Updated**: Refreshed the Claude preset list — Sonnet 4.5 → **Sonnet 4.6**, Opus 4.5 → **Opus 4.7**. Haiku 4.5 remains until a 4.6 version is available.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
