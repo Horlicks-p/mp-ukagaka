@@ -151,7 +151,7 @@ function mpu_handle_options_save()
         $mpu_opt['openai_api_key'] = $current_opt['openai_api_key'] ?? '';
         $mpu_opt['openai_model'] = $current_opt['openai_model'] ?? 'gpt-4.1-mini-2025-04-14';
         $mpu_opt['claude_api_key'] = $current_opt['claude_api_key'] ?? '';
-        $mpu_opt['claude_model'] = $current_opt['claude_model'] ?? 'claude-sonnet-4-5-20250929';
+        $mpu_opt['claude_model'] = $current_opt['claude_model'] ?? 'claude-sonnet-4-6';
         $mpu_opt['ai_language'] = $current_opt['ai_language'] ?? 'zh-TW';
         $mpu_opt['ai_system_prompt'] = $current_opt['ai_system_prompt'] ?? '你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。';
         $mpu_opt['ai_probability'] = $current_opt['ai_probability'] ?? 10;

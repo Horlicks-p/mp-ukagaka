@@ -74,7 +74,7 @@ function mpu_diary_get_provider_settings()
             }
 
             $settings['api_key'] = mpu_decrypt_api_key($api_key);
-            $settings['model'] = isset($mpu_opt['diary_claude_model']) ? $mpu_opt['diary_claude_model'] : 'claude-sonnet-4-5-20250929';
+            $settings['model'] = isset($mpu_opt['diary_claude_model']) ? $mpu_opt['diary_claude_model'] : 'claude-sonnet-4-6';
             break;
 
         case 'ollama':
@@ -502,7 +502,7 @@ function mpu_generate_diary_content()
     $api_opt = [
         'llm_gemini_model' => $provider_settings['model'] ?? 'gemini-2.5-flash',
         'llm_openai_model' => $provider_settings['model'] ?? 'gpt-4.1-mini-2025-04-14',
-        'llm_claude_model' => $provider_settings['model'] ?? 'claude-sonnet-4-5-20250929',
+        'llm_claude_model' => $provider_settings['model'] ?? 'claude-sonnet-4-6',
         'ollama_endpoint'  => $provider_settings['endpoint'] ?? 'http://localhost:11434',
         'ollama_model'     => $provider_settings['model'] ?? 'qwen3:8b',
     ];

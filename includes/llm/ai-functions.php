@@ -89,7 +89,7 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
             $args['model'] = $mpu_opt["llm_openai_model"] ?? $mpu_opt["openai_model"] ?? "gpt-4.1-mini-2025-04-14";
             break;
         case "claude":
-            $args['model'] = $mpu_opt["llm_claude_model"] ?? $mpu_opt["claude_model"] ?? "claude-sonnet-4-5-20250929";
+            $args['model'] = $mpu_opt["llm_claude_model"] ?? $mpu_opt["claude_model"] ?? "claude-sonnet-4-6";
             break;
         case "ollama":
             $args['endpoint'] = $mpu_opt["ollama_endpoint"] ?? "http://localhost:11434";
@@ -170,7 +170,7 @@ function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $la
 /**
  * 調用 Claude API (Anthropic)
  * @param {string} $api_key - API 金鑰
- * @param {string} $model - 模型名稱（如 claude-sonnet-4-5-20250929）
+ * @param {string} $model - 模型名稱（如 claude-sonnet-4-6）
  * @param {string} $system_prompt - 系統提示詞
  * @param {string} $user_prompt - 用戶提示詞
  * @param {string} $language - 語言代碼

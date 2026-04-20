@@ -97,7 +97,7 @@ function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $mes
             $args['model'] = $options['llm_openai_model'] ?? 'gpt-4o-mini';
             break;
         case 'claude':
-            $args['model'] = $options['llm_claude_model'] ?? 'claude-sonnet-4-5-20250929';
+            $args['model'] = $options['llm_claude_model'] ?? 'claude-sonnet-4-6';
             break;
         case 'gemini':
             $args['model'] = $options['llm_gemini_model'] ?? 'gemini-2.5-flash';
@@ -161,7 +161,7 @@ function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $opt
 
     return $factory_result->generate_chat([
         'api_key'       => $api_key,
-        'model'         => $options['llm_claude_model'] ?? 'claude-sonnet-4-5-20250929',
+        'model'         => $options['llm_claude_model'] ?? 'claude-sonnet-4-6',
         'system_prompt' => $system_prompt,
         'messages'      => $messages,
         'language'      => $options['language'] ?? 'zh-TW',

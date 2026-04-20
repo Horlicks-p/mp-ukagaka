@@ -54,7 +54,7 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
      */
     public function generate_text(array $args) {
         $api_key       = $args['api_key'] ?? '';
-        $model         = $args['model'] ?? 'claude-sonnet-4-5-20250929';
+        $model         = $args['model'] ?? 'claude-sonnet-4-6';
         $system_prompt = $args['system_prompt'] ?? '';
         $user_prompt   = $args['user_prompt'] ?? '';
         $language      = $args['language'] ?? 'zh-TW';
@@ -190,7 +190,7 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
      */
     public function generate_chat(array $args) {
         $api_key       = $args['api_key'] ?? '';
-        $model         = $args['model'] ?? 'claude-sonnet-4-5-20250929';
+        $model         = $args['model'] ?? 'claude-sonnet-4-6';
         $messages      = $args['messages'] ?? [];
         $system_prompt = $args['system_prompt'] ?? '';
         $max_tokens    = $args['max_tokens'] ?? 1000;
@@ -326,7 +326,7 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
      */
     public function test_connection(array $args) {
         $api_key = $args['api_key'] ?? '';
-        $model   = $args['model'] ?? 'claude-sonnet-4-5-20250929';
+        $model   = $args['model'] ?? 'claude-sonnet-4-6';
 
         if (empty($api_key)) {
             $mpu_opt           = mpu_get_option();

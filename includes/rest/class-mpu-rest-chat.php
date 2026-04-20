@@ -903,7 +903,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
                 $provider_model = $mpu_opt['llm_openai_model'] ?? $mpu_opt['openai_model'] ?? 'gpt-4o-mini';
                 break;
             case 'claude':
-                $provider_model = $mpu_opt['llm_claude_model'] ?? $mpu_opt['claude_model'] ?? 'claude-sonnet-4-5-20250929';
+                $provider_model = $mpu_opt['llm_claude_model'] ?? $mpu_opt['claude_model'] ?? 'claude-sonnet-4-6';
                 break;
             case 'gemini':
                 $provider_model = $mpu_opt['llm_gemini_model'] ?? $mpu_opt['gemini_model'] ?? 'gemini-2.5-flash';
