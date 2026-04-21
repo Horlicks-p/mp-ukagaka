@@ -390,7 +390,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
         $api_url      = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($api_key);
         $request_body = [
             'contents'         => [['parts' => [['text' => 'Hi']]]],
-            'generationConfig' => ['maxOutputTokens' => 50],
+            'generationConfig' => ['maxOutputTokens' => 200],
         ];
 
         $response = wp_remote_post($api_url, [
