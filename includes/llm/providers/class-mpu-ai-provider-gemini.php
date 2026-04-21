@@ -182,10 +182,17 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
                 continue;
             }
 
-            if (isset($parts[0]["text"])) {
-                return trim($parts[0]["text"]);
+            $text = null;
+            foreach ($parts as $part) {
+                if (isset($part['text']) && empty($part['thought'])) {
+                    $text = $part['text'];
+                    break;
+                }
             }
-            
+            if ($text !== null) {
+                return trim($text);
+            }
+
             return $this->error("unknown_response_format", __('Gemini API レスポンス形式を識別できません', 'mp-ukagaka'));
         }
 
@@ -337,10 +344,17 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
                 continue;
             }
 
-            if (isset($parts[0]['text'])) {
-                return trim($parts[0]['text']);
+            $text = null;
+            foreach ($parts as $part) {
+                if (isset($part['text']) && empty($part['thought'])) {
+                    $text = $part['text'];
+                    break;
+                }
             }
-            
+            if ($text !== null) {
+                return trim($text);
+            }
+
             return $this->error("unknown_response_format", __('Gemini API レスポンス形式を識別できません', 'mp-ukagaka'));
         }
 
@@ -393,9 +407,17 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
         $response_body = wp_remote_retrieve_body($response);
 
         if ($response_code === 200) {
-            $data = json_decode($response_body, true);
-            if (!empty($data['candidates'][0]['content']['parts'][0]['text'])) {
-                $preview = mb_substr(trim($data['candidates'][0]['content']['parts'][0]['text']), 0, 50);
+            $data  = json_decode($response_body, true);
+            $parts = $data['candidates'][0]['content']['parts'] ?? [];
+            $text  = null;
+            foreach ($parts as $part) {
+                if (isset($part['text']) && empty($part['thought'])) {
+                    $text = $part['text'];
+                    break;
+                }
+            }
+            if ($text !== null) {
+                $preview = mb_substr(trim($text), 0, 50);
                 return new WP_REST_Response(['msg' => sprintf(__('接続成功。モデルが正常に応答しています（プレビュー：%s...）', 'mp-ukagaka'), $preview)], 200);
             } else {
                 return $this->error('rest_error', __('接続は成功しましたが、レスポンス形式が異常でモデル出力を解析できません', 'mp-ukagaka'), 400);
