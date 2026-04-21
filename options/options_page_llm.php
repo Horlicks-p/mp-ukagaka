@@ -25,7 +25,7 @@ $openai_model = isset($mpu_opt['llm_openai_model']) ? $mpu_opt['llm_openai_model
 $claude_model = isset($mpu_opt['llm_claude_model']) ? $mpu_opt['llm_claude_model'] : (isset($mpu_opt['claude_model']) ? $mpu_opt['claude_model'] : 'claude-sonnet-4-6');
 
 // 各 provider 預設模型清單（用於判斷是否為自訂）
-$gemini_preset_models = ['gemini-2.5-flash', 'gemini-2.5-pro'];
+$gemini_preset_models = ['gemini-2.5-flash'];
 $openai_preset_models = ['gpt-4.1-mini-2025-04-14', 'gpt-4o-mini', 'gpt-4o'];
 $claude_preset_models = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-7'];
 
@@ -84,7 +84,6 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <input type="hidden" id="llm_gemini_model" name="llm_gemini_model" value="<?php echo esc_attr($gemini_model); ?>" />
                     <select id="llm_gemini_model_picker" style="width: 100%; max-width: 400px;">
                         <option value="gemini-2.5-flash" <?php echo (!$gemini_is_custom && $gemini_model === 'gemini-2.5-flash') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Flash (推薦)', 'mp-ukagaka')); ?></option>
-                        <option value="gemini-2.5-pro" <?php echo (!$gemini_is_custom && $gemini_model === 'gemini-2.5-pro') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Pro (更聰明，適合複雜推理)', 'mp-ukagaka')); ?></option>
                         <option value="__custom" <?php echo $gemini_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
                     <div id="llm_gemini_model_custom_wrap" style="display:<?php echo $gemini_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
