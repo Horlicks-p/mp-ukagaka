@@ -73,7 +73,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
             <div class="mpu-provider-content <?php echo $current_provider === 'gemini' ? 'active' : ''; ?>" data-provider="gemini">
                 <div class="mpu-field-group">
                     <label for="llm_gemini_api_key"><?php _e('Gemini API Key：', 'mp-ukagaka'); ?></label>
-                    <input type="password" id="llm_gemini_api_key" name="llm_gemini_api_key" value="" placeholder="<?php echo $gemini_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 Google Gemini API Key', 'mp-ukagaka'); ?>" style="width: 100%; max-width: 400px;" autocomplete="off" />
+                    <input type="password" id="llm_gemini_api_key" name="llm_gemini_api_key" value="" placeholder="<?php echo $gemini_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 Google Gemini API Key', 'mp-ukagaka'); ?>" style="width: 100%; max-width: 400px;" autocomplete="new-password" />
                     <br />
                     <small><?php _e('請前往 <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a> 取得 API Key', 'mp-ukagaka'); ?> <?php if ($gemini_key_exists) {
                                                                                                                                                                     echo '<span class="mpu-key-set">✓ ' . __('已設定', 'mp-ukagaka') . '</span>';
@@ -103,7 +103,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
             <div class="mpu-provider-content <?php echo $current_provider === 'openai' ? 'active' : ''; ?>" data-provider="openai">
                 <div class="mpu-field-group">
                     <label for="llm_openai_api_key"><?php _e('OpenAI API Key：', 'mp-ukagaka'); ?></label>
-                    <input type="password" id="llm_openai_api_key" name="llm_openai_api_key" value="" placeholder="<?php echo $openai_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 OpenAI API Key', 'mp-ukagaka'); ?>" style="width: 100%; max-width: 400px;" autocomplete="off" />
+                    <input type="password" id="llm_openai_api_key" name="llm_openai_api_key" value="" placeholder="<?php echo $openai_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 OpenAI API Key', 'mp-ukagaka'); ?>" style="width: 100%; max-width: 400px;" autocomplete="new-password" />
                     <br />
                     <small><?php _e('請前往 <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a> 取得 API Key', 'mp-ukagaka'); ?> <?php if ($openai_key_exists) {
                                                                                                                                                                 echo '<span class="mpu-key-set">✓ ' . __('已設定', 'mp-ukagaka') . '</span>';
@@ -134,7 +134,7 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
             <div class="mpu-provider-content <?php echo $current_provider === 'claude' ? 'active' : ''; ?>" data-provider="claude">
                 <div class="mpu-field-group">
                     <label for="llm_claude_api_key"><?php _e('Claude API Key：', 'mp-ukagaka'); ?></label>
-                    <input type="password" id="llm_claude_api_key" name="llm_claude_api_key" value="" placeholder="<?php echo $claude_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 Claude API Key', 'mp-ukagaka'); ?>" style="width: 100%; max-width: 400px;" autocomplete="off" />
+                    <input type="password" id="llm_claude_api_key" name="llm_claude_api_key" value="" placeholder="<?php echo $claude_key_exists ? __('(已隱藏以確保安全)', 'mp-ukagaka') : __('請輸入 Claude API Key', 'mp-ukagaka'); ?>" style="width: 100%; max-width: 400px;" autocomplete="new-password" />
                     <br />
                     <small><?php _e('請前往 <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a> 取得 API Key', 'mp-ukagaka'); ?> <?php if ($claude_key_exists) {
                                                                                                                                                             echo '<span class="mpu-key-set">✓ ' . __('已設定', 'mp-ukagaka') . '</span>';
