@@ -90,7 +90,8 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <div id="llm_gemini_model_custom_wrap" style="display:<?php echo $gemini_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
                         <input type="text" id="llm_gemini_model_custom_input" style="width: 100%; max-width: 400px;"
                             value="<?php echo $gemini_is_custom ? esc_attr($gemini_model) : ''; ?>"
-                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gemini-2.0-flash', 'mp-ukagaka'); ?>" />
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gemini-2.0-flash', 'mp-ukagaka'); ?>"
+                            autocomplete="off" />
                     </div>
                 </div>
                 <div class="mpu-test-row">
@@ -121,7 +122,8 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <div id="llm_openai_model_custom_wrap" style="display:<?php echo $openai_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
                         <input type="text" id="llm_openai_model_custom_input" style="width: 100%; max-width: 400px;"
                             value="<?php echo $openai_is_custom ? esc_attr($openai_model) : ''; ?>"
-                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gpt-4.1-2025-04-14', 'mp-ukagaka'); ?>" />
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gpt-4.1-2025-04-14', 'mp-ukagaka'); ?>"
+                            autocomplete="off" />
                     </div>
                 </div>
                 <div class="mpu-test-row">
@@ -152,7 +154,8 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <div id="llm_claude_model_custom_wrap" style="display:<?php echo $claude_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
                         <input type="text" id="llm_claude_model_custom_input" style="width: 100%; max-width: 400px;"
                             value="<?php echo $claude_is_custom ? esc_attr($claude_model) : ''; ?>"
-                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：claude-opus-4-7', 'mp-ukagaka'); ?>" />
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：claude-opus-4-7', 'mp-ukagaka'); ?>"
+                            autocomplete="off" />
                     </div>
                 </div>
                 <div class="mpu-test-row">
