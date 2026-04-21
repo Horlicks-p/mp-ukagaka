@@ -4,6 +4,18 @@
 
 ---
 
+## [2.13.4] - 2026-04-21
+
+### 🐛 Bug Fix
+
+- **Browser Autofill on API Key Fields**: Changed `autocomplete="off"` to `autocomplete="new-password"` on all three API key password inputs (Gemini, OpenAI, Claude) in the LLM Settings page. Some browsers ignored `autocomplete="off"` and injected saved passwords into the fields, causing them to show `.......` instead of the placeholder text.
+- **Browser Username Autofill on Custom Model Inputs**: Added `autocomplete="off"` to the custom model text inputs for all three providers. The browser was treating the text input adjacent to a password field as a username field and auto-filling `admin`.
+- **Gemini 2.5 Pro: Thinking Parts Not Handled**: Gemini 2.5 Pro returns internal thinking blocks (`"thought": true`) in the `parts` array before the actual response text. The parser was only checking `parts[0].text` and failed when the first part was a thought block. Fixed by iterating all parts and skipping those with `thought: true` in `generate_text`, `generate_chat`, and `test_connection`.
+- **Gemini 2.5 Pro: MAX\_TOKENS in Test Connection**: The test connection request used `maxOutputTokens: 50`, which was exhausted entirely by Gemini 2.5 Pro's internal thinking (47 thinking tokens), leaving no room for actual output and returning an empty `content.parts`. Increased to `200`.
+- **Removed Gemini 2.5 Pro Preset**: Removed `gemini-2.5-pro` from the preset model list. Due to its mandatory thinking overhead, it is unreliable with the current token budget. Users who need it can still enter it via the custom model input.
+
+---
+
 ## [2.13.3] - 2026-04-20
 
 ### ✨ Enhancement: Custom Model Selection & Claude Version Update

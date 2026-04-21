@@ -4,6 +4,18 @@
 
 ---
 
+## [2.13.4] - 2026-04-21
+
+### 🐛 バグ修正 (Bug Fix)
+
+- **API キー欄のブラウザ自動入力問題**：LLM 設定ページの Gemini・OpenAI・Claude 3 つの API キー入力欄（`type="password"`）の `autocomplete="off"` を `autocomplete="new-password"` に変更しました。一部のブラウザが `autocomplete="off"` を無視して保存済みパスワードを注入し、プレースホルダーの代わりに `.......' が表示される問題を修正しました。
+- **カスタムモデル入力欄へのユーザー名自動入力問題**：3 プロバイダーすべてのカスタムモデルテキスト入力欄に `autocomplete="off"` を追加しました。パスワードフィールドに隣接するテキスト入力をブラウザがユーザー名欄と誤認し、`admin` を自動入力していた問題を修正しました。
+- **Gemini 2.5 Pro の thinking パート未処理**：Gemini 2.5 Pro は実際の返答テキストの前に、内部思考ブロック（`"thought": true`）を `parts` 配列に含めて返します。従来のコードは `parts[0].text` のみを確認していたため、先頭が thinking パートの場合に解析失敗していました。`generate_text`・`generate_chat`・`test_connection` の 3 箇所で、`thought: true` のパートをスキップして最初の通常テキストを取り出すよう修正しました。
+- **Gemini 2.5 Pro のテスト接続で MAX\_TOKENS 発生**：テスト接続リクエストの `maxOutputTokens` が `50` だったため、Gemini 2.5 Pro の内部 thinking（47 トークン）だけで使い切られ、実際の返答が出力されず `content.parts` が空になっていました。`200` に増やし解決しました。
+- **Gemini 2.5 Pro プリセットの削除**：プリセットモデル一覧から `gemini-2.5-pro` を削除しました。thinking の必須オーバーヘッドにより現在のトークンバジェットでは安定動作しないためです。自訂モデル入力欄から引き続き利用可能です。
+
+---
+
 ## [2.13.3] - 2026-04-20
 
 ### ✨ 機能強化：カスタムモデル選択 & Claude バージョン更新

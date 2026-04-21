@@ -4,6 +4,18 @@
 
 ---
 
+## [2.13.4] - 2026-04-21
+
+### 🐛 錯誤修正
+
+- **API 金鑰欄位的瀏覽器自動填入問題**：LLM 設定頁面中 Gemini、OpenAI、Claude 三個 API 金鑰輸入欄（`type="password"`）的 `autocomplete="off"` 改為 `autocomplete="new-password"`。部分瀏覽器會忽略 `autocomplete="off"` 而注入已儲存的密碼，導致欄位顯示 `.......' 而非提示文字，已修正。
+- **自訂模型輸入欄的使用者名稱自動填入問題**：為三個提供商的自訂模型文字輸入欄加入 `autocomplete="off"`。瀏覽器將密碼欄位旁的文字輸入誤判為帳號欄並自動填入 `admin`，已修正。
+- **Gemini 2.5 Pro 的 thinking 區塊未處理**：Gemini 2.5 Pro 在實際回應文字之前，會在 `parts` 陣列中加入內部思考區塊（`"thought": true`）。原本的程式碼僅檢查 `parts[0].text`，當第一個 part 為 thinking 區塊時會解析失敗。已在 `generate_text`、`generate_chat`、`test_connection` 三處修正，改為跳過 `thought: true` 的區塊並取得第一個正常文字。
+- **Gemini 2.5 Pro 測試連接發生 MAX\_TOKENS**：測試連接請求的 `maxOutputTokens` 設為 `50`，被 Gemini 2.5 Pro 的內部 thinking（47 個 token）全部耗盡，導致實際回應無法輸出、`content.parts` 為空。已調整為 `200`。
+- **移除 Gemini 2.5 Pro 預設選項**：從預設模型清單中移除 `gemini-2.5-pro`。由於其必要的 thinking 開銷在現有 token 預算下不穩定，仍可透過自訂模型輸入欄使用。
+
+---
+
 ## [2.13.3] - 2026-04-20
 
 ### ✨ 增強：自訂模型選擇 & Claude 版本更新
