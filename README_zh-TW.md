@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.3-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.13.3 新功能
+## 🎉 v2.13.5 新功能
 
-**自訂模型選擇**：LLM 設定頁面與日記 AI 設定頁面的 Gemini、OpenAI、Claude 模型選擇器新增「自訂模型…」選項，選擇後顯示文字輸入框，可直接輸入任意合法的模型 ID，不再受限於預設清單。
+**USER_GUIDE 全面重構**：使用者指南重新整理為「基本設定」「AI 功能設定」「靜態對話功能」三大部分，依使用情境閱讀會更直覺。
 
-**Claude 模型版本更新**：更新 Claude 預設清單——Sonnet 4.5 → **Sonnet 4.6**、Opus 4.5 → **Opus 4.7**。Haiku 4.5 維持不變，待 4.6 版本釋出後更新。
+**多語言文件同步**：補齊英文、繁中、日文版本間原本缺漏的章節，例如天氣感知與 ZIP 上傳，並移除不適合放在使用者指南中的開發者技術細節。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 
@@ -139,7 +139,7 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 ## 💬 支援
 
 - 訪問 [萌えログ.COM](https://www.moelog.com/)
-- 查看[使用者指南](docs/USER_GUIDE.md)和[疑難排解](docs/USER_GUIDE.md#疑難排解)
+- 查看 [使用者指南](docs/USER_GUIDE.md) 和 [常見問題](docs/USER_GUIDE.md#常見問題)
 - 在 GitHub 開立 Issue
 
 ## 👥 致謝

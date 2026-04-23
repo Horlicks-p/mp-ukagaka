@@ -83,7 +83,7 @@ After activation, go to **Settings** → **MP Ukagaka** to configure.
 ### 5-Minute Setup
 
 1. **Go to Settings**: WordPress Admin → Settings → MP Ukagaka
-2. **Confirm Default Ukagaka**: In "General Settings", ensure a "Default Ukagaka" is selected, then check "Default Show Ukagaka" and "Default Show Balloon"
+2. **Confirm Default Ukagaka**: In **⚙️ 通用設定** (`General Settings`), ensure a "Default Ukagaka" is selected, then check "Default Show Ukagaka" and "Default Show Balloon"
 3. **Save Settings**: Click the "Save" button
 4. **Check the Result**: Go to your site's frontend — you should see the Ukagaka character in the bottom right corner
 
@@ -91,7 +91,7 @@ After activation, go to **Settings** → **MP Ukagaka** to configure.
 
 ## Basic Settings
 
-Go to **Settings** → **MP Ukagaka** → **General Settings**
+Go to **Settings** → **MP Ukagaka** → **⚙️ 通用設定** (`General Settings`)
 
 ### Display Settings
 
@@ -148,7 +148,7 @@ Supports wildcard matching: add `(*)` at the end of the URL to match all subpage
 
 ### View Existing Ukagaka
 
-Go to **Settings** → **MP Ukagaka** → **Ukagaka**
+Go to **Settings** → **MP Ukagaka** → **👻 偽春菜們** (`Ukagaka`)
 
 On this page you can view all created Ukagaka, edit their name/image/dialogue, delete non-default Ukagaka, and set visibility.
 
@@ -168,7 +168,7 @@ The ZIP file must contain the following directly in its root directory:
 
 #### Upload Steps
 
-1. Go to **Settings** → **MP Ukagaka** → **Ukagaka**
+1. Go to **Settings** → **MP Ukagaka** → **👻 偽春菜們** (`Ukagaka`)
 2. Click the "**Upload ZIP**" button at the top of the page
 3. Select your prepared ZIP file
 4. Wait for the upload to complete — the system will automatically validate and install
@@ -178,7 +178,7 @@ The ZIP file must contain the following directly in its root directory:
 
 > 📘 **Advanced Guide**: For creating character personalities with full LLM support, refer to the [Character Creation Guide](GHOST_CREATE_GUIDE.md).
 
-Go to **Settings** → **MP Ukagaka** → **Create New Ukagaka**
+Go to **Settings** → **MP Ukagaka** → **✨ 創建新偽春菜** (`Create New Ukagaka`)
 
 #### Required Fields
 
@@ -257,7 +257,7 @@ Create the following structure in the character's folder (`ghost/CharacterID/`):
 
 ## LLM Settings (AI Dialogue Engine)
 
-Go to **Settings** → **MP Ukagaka** → **LLM Settings**
+Go to **Settings** → **MP Ukagaka** → **🤖 LLM 設定** (`LLM Settings`)
 
 The LLM (Large Language Model) feature allows Ukagaka to generate dialogue using AI, supporting four providers:
 
@@ -441,7 +441,7 @@ After confirming the tunnel URL, enter `https://your-domain.com` in the endpoint
 
 ## Page Awareness Feature
 
-Go to **Settings** → **MP Ukagaka** → **AI Settings**
+Go to **Settings** → **MP Ukagaka** → **🧠 AI 設定** (`AI Settings`)
 
 Page Awareness lets Ukagaka automatically generate AI comments related to article content on specific pages. **You must first configure an AI provider in LLM Settings.**
 
@@ -538,7 +538,7 @@ Interactive Chat Mode transforms the "Change Ukagaka" button into a real-time ch
 
 ### How to Enable
 
-1. Go to **Settings → MP Ukagaka → General Settings**
+1. Go to **Settings → MP Ukagaka → ⚙️ 通用設定** (`General Settings`)
 2. In the "💬 Dialogue Settings" section, check "**Enable Interactive Chat**"
 3. Click "Save"
 4. The "Change Ukagaka" button on the frontend will become a "💬 Chat" button
@@ -574,7 +574,7 @@ Conversation history is retained on the current page only (cleared after refresh
 | **Interactivity** | Two-way multi-turn dialogue | One-way comments |
 | **Context** | Full conversation history | Analyzes current page only |
 | **Token Consumption** | Accumulates per turn | Single comment |
-| **Enable Location** | General Settings → Dialogue Settings | AI Settings → Page Awareness |
+| **Enable Location** | `⚙️ 通用設定` → Dialogue Settings | `🧠 AI 設定` → Page Awareness |
 
 ---
 
@@ -601,7 +601,7 @@ Thinking Mode is **enabled by default** (`think = true`). AI thinks first then a
 
 If you need faster responses (at the cost of some accuracy):
 
-1. Go to **Settings → MP Ukagaka → LLM Settings**
+1. Go to **Settings → MP Ukagaka → 🤖 LLM 設定** (`LLM Settings`)
 2. In the **Ollama Settings** section, check "**Disable Thinking Mode (Qwen3, DeepSeek, etc.)**"
 3. Click "Save"
 
@@ -640,7 +640,7 @@ Uses the [Open-Meteo](https://open-meteo.com/) free API — **no API Key require
 
 > 📓 **v2.5.0 Feature**: Let your character automatically write diary posts!
 
-Go to **Settings** → **MP Ukagaka** → **Diary Settings**
+Go to **Settings** → **MP Ukagaka** → **📓 日記設定** (`Diary Settings`)
 
 ### What is the Automated Diary Feature?
 
@@ -703,7 +703,7 @@ Click "**Generate Diary Now (Test)**" at the bottom of the settings page to imme
 
 Ukagaka can load dialogue from external files, supporting TXT and JSON formats.
 
-**Enable:** In **General Settings**, check "Use External Dialogue File" and select the format (TXT or JSON).
+**Enable:** In **⚙️ 通用設定** (`General Settings`), check "Use External Dialogue File" and select the format (TXT or JSON).
 
 ### TXT Format
 
@@ -769,7 +769,7 @@ Recent posts: :recentpost[3]:
 
 ## Extensions
 
-Go to **Settings** → **MP Ukagaka** → **Extensions**
+Go to **Settings** → **MP Ukagaka** → **🔌 擴展** (`Extensions`)
 
 ### JS Area
 

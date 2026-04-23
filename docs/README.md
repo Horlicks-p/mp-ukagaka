@@ -32,8 +32,8 @@
 - [如何安裝外掛？](./USER_GUIDE.md#安裝與啟用)
 - [如何創建偽春菜？](./USER_GUIDE.md#創建新偽春菜)
 - [如何創建新人格？](./GHOST_CREATE_GUIDE.md#概述)
-- [如何設定 AI 功能？](./USER_GUIDE.md#ai-功能設定)
-- [如何添加外部對話檔案？](./USER_GUIDE.md#外部對話檔案格式)
+- [如何設定 AI 功能？](./USER_GUIDE.md#llm-設定ai-對話引擎)
+- [如何添加外部對話檔案？](./USER_GUIDE.md#外部對話檔案)
 - [如何設定 Canvas 動畫？](./CANVAS_CUSTOMIZATION.md#動畫設定方式)
 - [如何調整偽春菜位置？](./CANVAS_CUSTOMIZATION.md#css-位置調整)
 
@@ -48,8 +48,8 @@
 
 ## 📋 版本資訊
 
-- **目前版本**：2.13.3
-- **最後更新**：2026-04-20
+- **目前版本**：2.13.5
+- **最後更新**：2026-04-23
 - **WordPress 需求**：5.0+
 - **PHP 需求**：7.4+
 

@@ -30,10 +30,10 @@
 ### Common Tasks
 
 - [How to install the plugin?](./USER_GUIDE.md#installation-and-activation)
-- [How to create a new Ukagaka?](./USER_GUIDE.md#creating-a-new-ukagaka)
+- [How to create a new Ukagaka?](./USER_GUIDE.md#create-new-ukagaka)
 - [How to create a new personality?](./GHOST_CREATE_GUIDE.md#overview)
-- [How to configure AI features?](./USER_GUIDE.md#ai-feature-configuration)
-- [How to add external dialogue files?](./USER_GUIDE.md#external-dialogue-file-format)
+- [How to configure AI features?](./USER_GUIDE.md#llm-settings-ai-dialogue-engine)
+- [How to add external dialogue files?](./USER_GUIDE.md#external-dialogue-files)
 - [How to configure Canvas animations?](./CANVAS_CUSTOMIZATION.md#animation-configuration)
 - [How to adjust Ukagaka position?](./CANVAS_CUSTOMIZATION.md#css-position-adjustment)
 
@@ -48,8 +48,8 @@
 
 ## 📋 Version Information
 
-- **Current Version**: 2.13.3
-- **Last Updated**: 2026-04-20
+- **Current Version**: 2.13.5
+- **Last Updated**: 2026-04-23
 - **WordPress Requirement**: 5.0+
 - **PHP Requirement**: 7.4+
 

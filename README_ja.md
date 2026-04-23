@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.3-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.13.3 の新機能
+## 🎉 v2.13.5 の新機能
 
-**カスタムモデル選択**：LLM 設定ページおよび日記 AI 設定ページの Gemini・OpenAI・Claude モデル選択欄に「カスタムモデル…」オプションを追加。選択するとテキスト入力欄が表示され、プリセット一覧に縛られることなく任意のモデル ID を直接入力できます。
+**USER_GUIDE を全面再構成**：ユーザーガイドを「基本設定」「AI 機能設定」「静的ダイアログ機能」の 3 部構成に整理し、用途別に読みやすくしました。
 
-**Claude モデルバージョン更新**：Claude プリセット一覧を更新——Sonnet 4.5 → **Sonnet 4.6**、Opus 4.5 → **Opus 4.7**。Haiku 4.5 は 4.6 版がリリースされるまで現状維持。
+**各言語ドキュメントを同期**：英語・繁体字中国語・日本語の説明を見直し、天気感知や ZIP アップロードなどの不足章を補完し、ユーザー向けでない技術詳細も整理しました。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 
@@ -139,7 +139,7 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 ## 💬 サポート
 
 - [萌えログ.COM](https://www.moelog.com/) を訪問
-- [ユーザーガイド](docs-jp/USER_GUIDE.md) と [トラブルシューティング](docs-jp/USER_GUIDE.md#トラブルシューティング) を確認
+- [ユーザーガイド](docs-jp/USER_GUIDE.md) と [よくある質問](docs-jp/USER_GUIDE.md#よくある質問) を確認
 - GitHub で Issue を開く
 
 ## 👥 クレジット

@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.3-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.13.3
+## 🎉 What's New in v2.13.5
 
-**Custom Model Selection**: Added a "Custom model…" option to the model selector on both the LLM Settings page and the Diary AI Settings page (Gemini, OpenAI, Claude). Select it to reveal a free-text input and enter any valid model ID directly, without being limited to the preset list.
+**USER_GUIDE Full Restructure**: The user guide has been reorganized into three clearer sections: Basic Settings, AI Features, and Static Dialogue Features. This makes setup flows easier to follow for both AI and non-AI use cases.
 
-**Claude Model Versions Updated**: Refreshed the Claude preset list — Sonnet 4.5 → **Sonnet 4.6**, Opus 4.5 → **Opus 4.7**. Haiku 4.5 remains until a 4.6 version is available.
+**Cross-Language Docs Sync**: English, Traditional Chinese, and Japanese documentation were aligned, including missing Weather Awareness and ZIP Upload sections, plus cleanup of misplaced developer-only details.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
@@ -139,7 +139,7 @@ For detailed information, please refer to:
 ## 💬 Support
 
 - Visit [MOELOG.COM](https://www.moelog.com/)
-- Check [User Guide](docs-en/USER_GUIDE.md) and [Troubleshooting](docs-en/USER_GUIDE.md#troubleshooting)
+- Check [User Guide](docs-en/USER_GUIDE.md) and [FAQ](docs-en/USER_GUIDE.md#faq)
 - Open an issue on GitHub
 
 ## 👥 Credits
