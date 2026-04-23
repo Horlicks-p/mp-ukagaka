@@ -4,6 +4,22 @@
 
 ---
 
+## [2.13.5] - 2026-04-23
+
+### 📖 Docs: USER_GUIDE Full Restructure
+
+- **Three-Part Architecture**: Reorganized the user guide around use-cases rather than settings tabs:
+  1. **Basic Settings** (applies with or without AI): Installation, Ukagaka management, auto-dialogue, custom emoji system, etc.
+  2. **AI Features** (requires an AI provider): LLM settings, Page Awareness, Interactive Chat Mode, Thinking Mode, Weather Awareness, Automated Diary
+  3. **Static Dialogue Features** (without AI): External dialogue files, dialogue settings, special codes, extensions
+- **Emoji System Clarification**: Clarified that the emoji system works for both static and AI-generated dialogue; moved to Part 1 (previously placed incorrectly)
+- **Cross-Language Content Sync**:
+  - English (`docs-en/`): Added Weather Awareness and ZIP Upload sections (previously missing)
+  - Japanese (`docs-jp/`): Added ZIP Upload section (previously missing)
+- **Removed Developer-Only Content**: Removed the 35 dialogue categories listing, PHP dynamic weight code, Thinking Mode PHP snippets, and other developer-specific technical details from the user-facing guide (these belong in DEVELOPER_GUIDE)
+
+---
+
 ## [2.13.4] - 2026-04-21
 
 ### 🐛 Bug Fix
