@@ -1,6 +1,6 @@
 # MP Ukagaka API Reference
 
-> 📚 Complete reference for functions, Hooks, and AJAX endpoints
+> 📚 Complete Function, Hooks, and REST Endpoints Reference (v2.13.3)
 
 ---
 
@@ -8,7 +8,7 @@
 
 1. [PHP Functions](#php-functions)
 2. [WordPress Hooks](#wordpress-hooks)
-3. [AJAX Endpoints](#ajax-endpoints)
+3. [REST Endpoints](#rest-endpoints)
 4. [JavaScript Functions](#javascript-functions)
 5. [Special Codes](#special-codes)
 
@@ -20,13 +20,13 @@
 
 #### mpu_default_opt()
 
-Get default settings.
+Gets the default options.
 
 ```php
 /**
- * @return array Default settings array
+ * @return array Default options array
  */
-function mpu_default_opt(): array
+function mpu_default_opt()
 ```
 
 **Example:**
@@ -40,13 +40,13 @@ echo $defaults['auto_talk_interval']; // 8
 
 #### mpu_get_option()
 
-Get plugin options (with cache).
+Gets plugin options (cached).
 
 ```php
 /**
  * @return array Options array
  */
-function mpu_get_option(): array
+function mpu_get_option()
 ```
 
 **Example:**
@@ -54,7 +54,7 @@ function mpu_get_option(): array
 ```php
 $mpu_opt = mpu_get_option();
 if ($mpu_opt['ai_enabled']) {
-    // AI Enabled
+    // AI is enabled
 }
 ```
 
@@ -62,13 +62,13 @@ if ($mpu_opt['ai_enabled']) {
 
 #### mpu_count_total_msg()
 
-Count total messages of all Ukagakas.
+Calculates the total number of dialogue messages across all Ukagakas.
 
 ```php
 /**
- * @return int Total messages count
+ * @return int Total message count
  */
-function mpu_count_total_msg(): int
+function mpu_count_total_msg()
 ```
 
 ---
@@ -77,49 +77,49 @@ function mpu_count_total_msg(): int
 
 #### mpu_array2str()
 
-Convert array to string (separated by newlines).
+Converts an array to a string (separated by line breaks).
 
 ```php
 /**
  * @param array $arr Input array
  * @return string Output string
  */
-function mpu_array2str(array $arr): string
+function mpu_array2str($arr = [])
 ```
 
 **Example:**
 
 ```php
-$messages = ['Dialog 1', 'Dialog 2', 'Dialog 3'];
+$messages = ['Dialogue 1', 'Dialogue 2', 'Dialogue 3'];
 $str = mpu_array2str($messages);
 // Result:
-// Dialog 1
+// Dialogue 1
 //
-// Dialog 2
+// Dialogue 2
 //
-// Dialog 3
+// Dialogue 3
 ```
 
 ---
 
 #### mpu_str2array()
 
-Convert string to array (separated by empty lines).
+Converts a string to an array (separated by empty lines).
 
 ```php
 /**
  * @param string $str Input string
  * @return array Output array
  */
-function mpu_str2array(string $str): array
+function mpu_str2array($str = "")
 ```
 
 **Example:**
 
 ```php
-$str = "Dialog 1\n\nDialog 2\n\nDialog 3";
+$str = "Dialogue 1\n\nDialogue 2\n\nDialogue 3";
 $messages = mpu_str2array($str);
-// Result: ['Dialog 1', 'Dialog 2', 'Dialog 3']
+// Result: ['Dialogue 1', 'Dialogue 2', 'Dialogue 3']
 ```
 
 ---
@@ -133,7 +133,7 @@ HTML output filter.
  * @param string $str Input string
  * @return string Filtered string
  */
-function mpu_output_filter(string $str): string
+function mpu_output_filter($str)
 ```
 
 ---
@@ -147,36 +147,35 @@ JavaScript output filter (escapes quotes and special characters).
  * @param string $str Input string
  * @return string Filtered string
  */
-function mpu_js_filter(string $str): string
+function mpu_js_filter($str)
 ```
 
 ---
 
 #### mpu_input_filter()
 
-Input filter (Processing before saving).
+Input filter (preprocessing before saving).
 
 ```php
 /**
  * @param string $str Input string
  * @return string Filtered string
  */
-function mpu_input_filter(string $str): string
+function mpu_input_filter($str)
 ```
 
 ---
 
 #### mpu_secure_file_read()
 
-Secure file read.
+Safely reads a file.
 
 ```php
 /**
- * @param string $file_path File path
- * @param int $max_size Max file size (default 2MB)
+ * @param string $file_path File path (must be within the dialogs/ directory)
  * @return string|WP_Error File content or error
  */
-function mpu_secure_file_read(string $file_path, int $max_size = 2097152)
+function mpu_secure_file_read($file_path)
 ```
 
 **Example:**
@@ -192,18 +191,18 @@ if (is_wp_error($content)) {
 
 **Possible Errors:**
 
-| Error Code         | Description              |
-| ------------------ | ------------------------ |
-| `file_not_found`   | File not found           |
-| `path_not_allowed` | Path not allowed to read |
-| `file_too_large`   | File too large to read   |
-| `read_failed`      | Failed to read file      |
+| Error Code         | Description                    |
+| ------------------ | ------------------------------ |
+| `file_not_found`   | File not found                 |
+| `path_not_allowed` | Path not allowed to be read    |
+| `file_too_large`   | File is too large to read      |
+| `read_failed`      | Failed to read file            |
 
 ---
 
 #### mpu_secure_file_write()
 
-Secure file write.
+Safely writes to a file.
 
 ```php
 /**
@@ -211,44 +210,144 @@ Secure file write.
  * @param string $content File content
  * @return bool|WP_Error Success or error
  */
-function mpu_secure_file_write(string $file_path, string $content)
+function mpu_secure_file_write($file_path, $content)
 ```
 
 **Possible Errors:**
 
-| Error Code         | Description                |
-| ------------------ | -------------------------- |
-| `mkdir_failed`     | Failed to create directory |
-| `path_not_allowed` | Path not allowed to write  |
-| `invalid_filename` | Invalid filename           |
-| `write_failed`     | Failed to write file       |
+| Error Code         | Description                     |
+| ------------------ | ------------------------------- |
+| `mkdir_failed`     | Failed to create directory      |
+| `path_not_allowed` | Path not allowed to be written  |
+| `invalid_filename` | Invalid filename                |
+| `write_failed`     | Failed to write to file         |
 
 ---
 
 #### mpu_encrypt_api_key()
 
-Encrypt API Key using AES-256-CBC.
+Encrypts the API Key using AES-256-CBC.
 
 ```php
 /**
- * @param string $api_key Original API Key
+ * @param string $api_key Raw API Key
  * @return string Encrypted string
  */
-function mpu_encrypt_api_key(string $api_key): string
+function mpu_encrypt_api_key($api_key)
 ```
 
 ---
 
 #### mpu_decrypt_api_key()
 
-Decrypt API Key.
+Decrypts the API Key.
 
 ```php
 /**
  * @param string $encrypted Encrypted string
  * @return string Decrypted API Key
  */
-function mpu_decrypt_api_key(string $encrypted): string
+function mpu_decrypt_api_key($encrypted_key)
+```
+
+---
+
+#### mpu_get_client_ip()
+
+Gets the client's real IP address (supports reverse proxies).
+
+```php
+/**
+ * @return string Client IP address
+ */
+function mpu_get_client_ip()
+```
+
+---
+
+#### mpu_fetch_external_api()
+
+General external API request function (with caching).
+
+```php
+/**
+ * @param string $cache_key Cache key
+ * @param string $url API endpoint URL
+ * @param int $cache_duration Cache duration (seconds)
+ * @param array $options Additional options
+ * @return array|string|null API response data
+ */
+function mpu_fetch_external_api($cache_key, $url, $cache_duration = MPU_CACHE_DEFAULT, $options = [])
+```
+
+---
+
+#### mpu_render_prompt_template()
+
+Renders a prompt template, replacing `{{variable_name}}` with actual values.
+
+```php
+/**
+ * @param string $template Template string
+ * @param array $variables Variable array
+ * @return string Replaced string
+ */
+function mpu_render_prompt_template($template, $variables = [])
+```
+
+---
+
+#### mpu_get_current_user_info()
+
+Gets the current WordPress user's information.
+
+```php
+/**
+ * @return array Current user information array
+ */
+function mpu_get_current_user_info()
+```
+
+---
+
+#### mpu_get_wordpress_info()
+
+Gets WordPress site information (including basic info and statistics).
+
+```php
+/**
+ * @return array WordPress site information array
+ */
+function mpu_get_wordpress_info()
+```
+
+---
+
+#### mpu_get_provider_api_key()
+
+Gets the decrypted API Key for the specified AI provider.
+
+```php
+/**
+ * @param string $provider AI provider name (gemini, openai, claude, ollama)
+ * @param array|null $mpu_opt Options array
+ * @return string Decrypted API Key
+ */
+function mpu_get_provider_api_key($provider, $mpu_opt = null)
+```
+
+---
+
+#### mpu_get_current_provider()
+
+Gets the currently enabled AI provider name.
+
+```php
+/**
+ * @param array|null $mpu_opt Options array
+ * @return string AI provider name
+ */
+function mpu_get_current_provider($mpu_opt = null)
 ```
 
 ---
@@ -257,27 +356,27 @@ function mpu_decrypt_api_key(string $encrypted): string
 
 #### mpu_call_ai_api()
 
-Call AI API (Automatically select provider). Supports Gemini, OpenAI, Claude.
+Calls an AI API (automatically selects the provider). Supports Gemini, OpenAI, Claude.
 
 ```php
 /**
  * @param string $provider AI provider ('gemini', 'openai', 'claude', 'ollama')
  * @param string $api_key API Key
- * @param string $system_prompt System prompt (Personality settings)
+ * @param string $system_prompt System prompt (character setting)
  * @param string $user_prompt User prompt
  * @param string $language Language setting ('zh-TW', 'ja', 'en')
- * @param array|null $mpu_opt Plugin options (used to get model name)
+ * @param array|null $mpu_opt Plugin options (for getting model name)
  * @param int|null $max_tokens Max tokens (optional)
  * @return string|WP_Error AI response or error
  */
 function mpu_call_ai_api(
-    string $provider,
-    string $api_key,
-    string $system_prompt,
-    string $user_prompt,
-    string $language = 'zh-TW',
-    ?array $mpu_opt = null,
-    ?int $max_tokens = null
+    $provider,
+    $api_key,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $mpu_opt = null,
+    $max_tokens = null
 )
 ```
 
@@ -287,9 +386,9 @@ function mpu_call_ai_api(
 $response = mpu_call_ai_api(
     'gemini',
     $api_key,
-    'You are a friendly assistant, keep responses short.',
+    'You are a friendly assistant. Keep responses short.',
     'What is this article about?',
-    'zh-TW',
+    'en',
     $mpu_opt
 );
 if (!is_wp_error($response)) {
@@ -301,29 +400,29 @@ if (!is_wp_error($response)) {
 
 #### mpu_get_language_instruction()
 
-Get language instruction string.
+Gets the language instruction string.
 
 ```php
 /**
  * @param string $language Language code (zh-TW, ja, en)
  * @return string Language instruction
  */
-function mpu_get_language_instruction(string $language): string
+function mpu_get_language_instruction($language)
 ```
 
 **Return Values:**
 
-| Language Code | Return Value                 |
-| ------------- | ---------------------------- |
-| `zh-TW`       | `請用繁體中文回覆。`         |
-| `ja`          | `日本語で返答してください。` |
-| `en`          | `Please reply in English.`   |
+| Language Code | Return Value |
+| -------- | ---------------------------- |
+| `zh-TW`  | `請用繁體中文回覆。` |
+| `ja`     | `日本語で返答してください。` |
+| `en`     | `Please reply in English.` |
 
 ---
 
 #### mpu_call_gemini_api()
 
-Call Google Gemini API.
+Calls the Google Gemini API.
 
 ```php
 /**
@@ -336,12 +435,12 @@ Call Google Gemini API.
  * @return string|WP_Error AI response or error
  */
 function mpu_call_gemini_api(
-    string $api_key,
-    string $model,
-    string $system_prompt,
-    string $user_prompt,
-    string $language = 'zh-TW',
-    ?int $max_tokens = null
+    $api_key,
+    $model,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $max_tokens = null
 )
 ```
 
@@ -349,7 +448,7 @@ function mpu_call_gemini_api(
 
 #### mpu_call_openai_api()
 
-Call OpenAI API.
+Calls the OpenAI API.
 
 ```php
 /**
@@ -362,12 +461,12 @@ Call OpenAI API.
  * @return string|WP_Error AI response or error
  */
 function mpu_call_openai_api(
-    string $api_key,
-    string $model,
-    string $system_prompt,
-    string $user_prompt,
-    string $language = 'zh-TW',
-    ?int $max_tokens = null
+    $api_key,
+    $model,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $max_tokens = null
 )
 ```
 
@@ -375,7 +474,7 @@ function mpu_call_openai_api(
 
 #### mpu_call_claude_api()
 
-Call Anthropic Claude API.
+Calls the Anthropic Claude API.
 
 ```php
 /**
@@ -388,50 +487,82 @@ Call Anthropic Claude API.
  * @return string|WP_Error AI response or error
  */
 function mpu_call_claude_api(
-    string $api_key,
-    string $model,
-    string $system_prompt,
-    string $user_prompt,
-    string $language = 'zh-TW',
-    ?int $max_tokens = null
+    $api_key,
+    $model,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $max_tokens = null
 )
 ```
 
 ---
 
+#### mpu_call_ollama_api()
+
+Calls the Ollama API (local or remote).
+
+```php
+/**
+ * @param string $endpoint Ollama endpoint URL
+ * @param string $model Model name (e.g. 'qwen3:8b')
+ * @param string $system_prompt System prompt
+ * @param string $user_prompt User prompt
+ * @param string $language Language setting
+ * @param int|null $max_tokens Max tokens (optional)
+ * @return string|WP_Error AI response or error
+ */
+function mpu_call_ollama_api(
+    $endpoint,
+    $model,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $max_tokens = null
+)
+```
+
+**Features:**
+
+- Automatically detects local/remote connection
+- Adjusts timeout based on connection type
+- Supports disabling thinking mode (Qwen3, DeepSeek, etc.)
+
+---
+
 ### API Cache Functions (api-cache.php)
 
-> 💡 **v2.5.6 New**: API cache system uses WordPress Transient API to cache AI API responses, reducing duplicate requests and costs.
+> 💡 **New in v2.5.6**: API caching system. Uses WordPress Transient API to cache AI API responses, reducing duplicate requests and costs.
 
 #### mpu_is_api_cache_enabled()
 
-Check if API cache is enabled.
+Checks if API caching is enabled.
 
 ```php
 /**
  * @return bool
  */
-function mpu_is_api_cache_enabled(): bool
+function mpu_is_api_cache_enabled()
 ```
 
 ---
 
 #### mpu_get_api_cache_ttl()
 
-Get cache TTL (seconds).
+Gets the cache TTL (seconds).
 
 ```php
 /**
  * @return int Default 3600 seconds (1 hour), range 300-86400 seconds
  */
-function mpu_get_api_cache_ttl(): int
+function mpu_get_api_cache_ttl()
 ```
 
 ---
 
 #### mpu_generate_cache_key()
 
-Generate cache key.
+Generates a cache key.
 
 ```php
 /**
@@ -440,28 +571,28 @@ Generate cache key.
  * @param string $user_prompt User prompt
  * @return string Cache key
  */
-function mpu_generate_cache_key(string $provider, string $system_prompt, string $user_prompt): string
+function mpu_generate_cache_key($provider, $system_prompt, $user_prompt)
 ```
 
 ---
 
 #### mpu_get_cached_api_response()
 
-Get API response from cache.
+Gets an API response from cache.
 
 ```php
 /**
  * @param string $cache_key Cache key
  * @return string|false Cached response or false
  */
-function mpu_get_cached_api_response(string $cache_key)
+function mpu_get_cached_api_response($cache_key)
 ```
 
 ---
 
 #### mpu_set_cached_api_response()
 
-Store API response in cache.
+Stores an API response into the cache.
 
 ```php
 /**
@@ -469,51 +600,51 @@ Store API response in cache.
  * @param string $response API response
  * @return bool
  */
-function mpu_set_cached_api_response(string $cache_key, string $response): bool
+function mpu_set_cached_api_response($cache_key, $response)
 ```
 
 ---
 
 #### mpu_clear_all_api_cache()
 
-Clear all LLM API cache.
+Clears all LLM API caches.
 
 ```php
 /**
- * @return int Number of cache entries cleared
+ * @return int Number of cleared caches
  */
-function mpu_clear_all_api_cache(): int
+function mpu_clear_all_api_cache()
 ```
 
 ---
 
 #### mpu_get_api_cache_stats()
 
-Get API cache statistics.
+Gets API cache statistics.
 
 ```php
 /**
  * @return array ['count' => int, 'ttl' => int, 'enabled' => bool]
  */
-function mpu_get_api_cache_stats(): array
+function mpu_get_api_cache_stats()
 ```
 
 ---
 
 ### LLM Functions (llm-functions.php)
 
-> 💡 **v2.2.0 Update**: LLM functionality has been upgraded to a **Universal LLM Interface**, supporting four major AI services: Ollama, Gemini, OpenAI, and Claude.
+> 💡 **Updated in 2.2.0**: LLM functionality upgraded to a **Universal LLM Interface**, supporting Ollama, Gemini, OpenAI, and Claude.
 
 #### mpu_is_remote_endpoint()
 
-Detect if endpoint is a remote connection.
+Checks if an endpoint is a remote connection.
 
 ```php
 /**
  * @param string $endpoint Ollama endpoint URL
- * @return bool Is remote connection (true = Remote, false = Local)
+ * @return bool Is remote connection (true = remote, false = local)
  */
-function mpu_is_remote_endpoint(string $endpoint): bool
+function mpu_is_remote_endpoint($endpoint)
 ```
 
 **Example:**
@@ -527,7 +658,7 @@ $is_local = mpu_is_remote_endpoint('http://localhost:11434');  // false
 
 #### mpu_get_ollama_timeout()
 
-Get appropriate timeout based on endpoint type and operation type.
+Gets the appropriate timeout based on endpoint type and operation.
 
 ```php
 /**
@@ -535,7 +666,7 @@ Get appropriate timeout based on endpoint type and operation type.
  * @param string $operation_type Operation type: 'check', 'api_call', 'test'
  * @return int Timeout (seconds)
  */
-function mpu_get_ollama_timeout(string $endpoint, string $operation_type = 'api_call'): int
+function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
 ```
 
 **Example:**
@@ -549,14 +680,14 @@ $timeout = mpu_get_ollama_timeout('http://localhost:11434', 'check');      // 3
 
 #### mpu_validate_ollama_endpoint()
 
-Validate and normalize Ollama endpoint URL.
+Validates and normalizes an Ollama endpoint URL.
 
 ```php
 /**
  * @param string $endpoint Raw endpoint URL
  * @return string|WP_Error Normalized URL or error
  */
-function mpu_validate_ollama_endpoint(string $endpoint)
+function mpu_validate_ollama_endpoint($endpoint)
 ```
 
 **Example:**
@@ -574,15 +705,15 @@ if (is_wp_error($validated)) {
 
 #### mpu_check_ollama_available()
 
-Check if Ollama service is available (Fast check, using cache).
+Checks if the Ollama service is available (quick check, cached).
 
 ```php
 /**
  * @param string $endpoint Ollama endpoint
  * @param string $model Model name
- * @return bool Is service available
+ * @return bool Service availability
  */
-function mpu_check_ollama_available(string $endpoint, string $model): bool
+function mpu_check_ollama_available($endpoint, $model)
 ```
 
 **Example:**
@@ -597,17 +728,17 @@ if (mpu_check_ollama_available('https://your-domain.com', 'qwen3:8b')) {
 
 #### mpu_generate_llm_dialogue()
 
-Generate random dialogue using LLM (Replace built-in dialogue). Supports all AI providers (Ollama, Gemini, OpenAI, Claude).
+Generates random dialogue using LLMs (replaces built-in dialogue). Supports all AI providers (Ollama, Gemini, OpenAI, Claude).
 
 ```php
 /**
- * @param string $ukagaka_name Ukagaka name
- * @param string $last_response Last AI response (for avoiding repetitive dialogue)
- * @param array $response_history Response history array (recent responses for stricter repetition detection)
- * @param int $last_visit_hours Hours since last visit (default -1 means no data, v2.5.6 new)
- * @return string|false Generated dialogue content, or false on failure
+ * @param string $ukagaka_name Character name
+ * @param string $last_response Previous AI response (to avoid repetition)
+ * @param array $response_history Response history array (for stricter repetition detection)
+ * @param int $last_visit_hours Hours since last visit (-1 default means no data)
+ * @return string|false Generated dialogue content, false on failure
  */
-function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1', string $last_response = '', array $response_history = [], int $last_visit_hours = -1)
+function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response = '', $response_history = [], $last_visit_hours = -1)
 ```
 
 **Example:**
@@ -619,22 +750,22 @@ if ($dialogue !== false) {
 }
 
 // With repetition detection
-$dialogue = mpu_generate_llm_dialogue('frieren', 'Last response', ['Response 1', 'Response 2']);
+$dialogue = mpu_generate_llm_dialogue('frieren', 'Last response', ['Response1', 'Response2']);
 ```
 
-**Key Features:**
+**Features:**
 
-- Automatically uses optimized XML-structured System Prompt
+- Uses optimized XML-structured System Prompt
 - Supports anti-repetition mechanism (similarity detection)
-- Automatically integrates WordPress info, user info, visitor info
+- Automatically integrates WordPress info, user info, and visitor info
 - Supports 70+ Frieren-style dialogue examples
 
 **Available Filter Hooks (v2.5.7):**
 
-| Filter                  | Description                                                | Parameters                                                |
-| ----------------------- | ---------------------------------------------------------- | --------------------------------------------------------- |
-| `mpu_llm_system_prompt` | Modify System Prompt                                       | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
-| `mpu_llm_user_prompt`   | Inject additional context before conversation instructions | `$prompt`, `$ukagaka_name`, `$personality_id`             |
+| Filter | Description | Parameters |
+| ----------------------- | -------------------------- | --------------------------------------------------------- |
+| `mpu_llm_system_prompt` | Modifies System Prompt | `$prompt`, `$ukagaka_name`, `$personality_id`, `$context` |
+| `mpu_llm_user_prompt` | Injects extra context before chat instructions | `$prompt`, `$ukagaka_name`, `$personality_id` |
 
 **Usage Example (Security Alert Integration):**
 
@@ -652,24 +783,24 @@ add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_
 
 #### mpu_is_llm_replace_dialogue_enabled()
 
-Check if LLM replace built-in dialogue is enabled.
+Checks if LLM replacement of built-in dialogue is enabled.
 
 ```php
 /**
  * @return bool
  */
-function mpu_is_llm_replace_dialogue_enabled(): bool
+function mpu_is_llm_replace_dialogue_enabled()
 ```
 
 ---
 
 #### mpu_get_ollama_settings()
 
-Get Ollama settings.
+Gets Ollama settings.
 
 ```php
 /**
- * @return array|false Settings array, or false if not enabled
+ * @return array|false Settings array, false if disabled
  */
 function mpu_get_ollama_settings()
 ```
@@ -688,13 +819,13 @@ function mpu_get_ollama_settings()
 
 #### mpu_get_visitor_info_for_llm()
 
-Get visitor information (for LLM dialogue generation). Integrates Slimstat data, including BOT detection and geolocation information.
+Gets visitor info (for LLM dialogue generation). Integrates Slimstat data, including BOT detection and geolocation.
 
 ```php
 /**
- * @return array Visitor information array
+ * @return array Visitor info array
  */
-function mpu_get_visitor_info_for_llm(): array
+function mpu_get_visitor_info_for_llm()
 ```
 
 **Return Value:**
@@ -703,10 +834,10 @@ function mpu_get_visitor_info_for_llm(): array
 [
     'is_bot' => false,                    // Is BOT
     'browser_type' => 0,                  // Browser type (0=normal, 1=BOT, 2=mobile)
-    'browser_name' => 'Chrome',            // Browser name (BOT name)
-    'slimstat_enabled' => true,            // Is Slimstat enabled
-    'slimstat_country' => 'TW',            // Country code
-    'slimstat_city' => 'Taipei',           // City name
+    'browser_name' => 'Chrome',           // Browser name (BOT name)
+    'slimstat_enabled' => true,           // Is Slimstat enabled
+    'slimstat_country' => 'US',           // Country code
+    'slimstat_city' => 'New York',        // City name
 ]
 ```
 
@@ -714,14 +845,14 @@ function mpu_get_visitor_info_for_llm(): array
 
 #### mpu_get_visitor_status_text()
 
-Get visitor status text (BOT or geolocation).
+Gets visitor status text (BOT or geolocation).
 
 ```php
 /**
- * @param array $visitor_info Visitor information
+ * @param array $visitor_info Visitor info
  * @return string Visitor status description
  */
-function mpu_get_visitor_status_text(array $visitor_info): string
+function mpu_get_visitor_status_text($visitor_info)
 ```
 
 **Example:**
@@ -729,114 +860,38 @@ function mpu_get_visitor_status_text(array $visitor_info): string
 ```php
 $visitor_info = mpu_get_visitor_info_for_llm();
 $status = mpu_get_visitor_status_text($visitor_info);
-// May return: '🤖 BOT: Googlebot' or 'From TW / Taipei'
+// Could return: '🤖 BOT: Googlebot' or 'From US / New York'
 ```
 
 ---
 
 #### mpu_compress_context_info()
 
-Compress WordPress, user, and visitor information into compact XML format (for System Prompt).
+Compresses WordPress, user, and visitor info into a compact XML format (for System Prompt).
 
 ```php
 /**
- * @param array $wp_info WordPress information
- * @param array $user_info User information
- * @param array $visitor_info Visitor information
+ * @param array $wp_info WordPress info
+ * @param array $user_info User info
+ * @param array $visitor_info Visitor info
  * @return string Compressed XML format string
  */
-function mpu_compress_context_info(array $wp_info, array $user_info, array $visitor_info): string
-```
-
----
-
-#### mpu_build_frieren_style_examples()
-
-Build Frieren-style dialogue examples (70+ examples covering 12 categories).
-
-```php
-/**
- * @param array $wp_info WordPress information
- * @param array $visitor_info Visitor information
- * @param string $time_context Time context (morning/afternoon/evening/late night)
- * @param string $theme_name Theme name
- * @param string $theme_version Theme version
- * @param string $theme_author Theme author
- * @return string Formatted example text
- */
-function mpu_build_frieren_style_examples(
-    array $wp_info,
-    array $visitor_info,
-    string $time_context,
-    string $theme_name,
-    string $theme_version,
-    string $theme_author
-): string
-```
-
-**Example Categories:**
-
-- Greeting, Casual, Time-aware, Observation
-- Magic research, Tech observation, Statistics, Memory
-- Admin comments, Unexpected reactions, BOT detection, Silence
-
-**Special Features:**
-
-- **Observation category** automatically reads up to 5 lines from the current character's built-in dialogue file
-  - Automatically filters out empty strings and messages longer than 50 characters
-  - Randomly selects qualifying dialogues to add to examples
-  - Makes AI-generated dialogues closer to the character's actual style
-
----
-
-#### mpu_build_prompt_categories()
-
-Build User Prompt category instructions (corresponding to example categories).
-
-```php
-/**
- * @param array $wp_info WordPress information
- * @param array $visitor_info Visitor information
- * @param string $time_context Time context
- * @param string $theme_name Theme name
- * @param string $theme_version Theme version
- * @param string $theme_author Theme author
- * @return array Category instruction array
- */
-function mpu_build_prompt_categories(
-    array $wp_info,
-    array $visitor_info,
-    string $time_context,
-    string $theme_name,
-    string $theme_version,
-    string $theme_author
-): array
-```
-
-**Return Value:**
-
-```php
-[
-    'greeting' => ['Refer to greeting examples and lightly greet', ...],
-    'casual' => ['Refer to casual examples and say something plain', ...],
-    'time_aware' => ['Refer to time-aware examples and express {$time_context} time sense', ...],
-    // ... more categories
-]
+function mpu_compress_context_info($wp_info, $user_info, $visitor_info)
 ```
 
 ---
 
 #### mpu_weighted_random_select()
 
-Randomly select a category from a category array based on a weight array (weighted random selection).
+Randomly selects a category from a category array based on weights.
 
 ```php
 /**
  * @param array $categories Category array (key => value)
- * @param array $weights Weight array (key => weight), higher values have higher probability of being selected
+ * @param array $weights Weights array (key => weight), higher value = higher chance
  * @return string Selected category key
  */
-function mpu_weighted_random_select(array $categories, array $weights): string
+function mpu_weighted_random_select($categories, $weights)
 ```
 
 **Usage Example:**
@@ -851,58 +906,58 @@ $categories = [
 $weights = [
     'greeting' => 10,
     'casual' => 10,
-    'tech_observation' => 3,  // Lower weight for tech observation category
+    'tech_observation' => 3,  // Lower weight for tech observation
 ];
 
 $selected = mpu_weighted_random_select($categories, $weights);
-// May return: 'greeting', 'casual', or 'tech_observation'
-// tech_observation has approximately 30% probability compared to other categories
+// Could return: 'greeting', 'casual' or 'tech_observation'
+// tech_observation selection chance is approx 30% of others
 ```
 
 **Notes:**
 
-- If a category is not set in the weight array, the default weight is 5
-- If total weight is 0, uniform random selection (`array_rand()`) will be used
-- Higher weight values have higher probability of being selected
+- If a category is not set in weights, default is 5
+- If total weight is 0, uses uniform random selection (`array_rand()`)
+- Higher weight values increase selection chance
 
 ---
 
 #### mpu_build_optimized_system_prompt()
 
-Build optimized System Prompt (XML-structured version).
+Builds an optimized System Prompt (XML structured version).
 
 ```php
 /**
- * @param array $mpu_opt Plugin settings
- * @param array $wp_info WordPress information
- * @param array $user_info User information
- * @param array $visitor_info Visitor information
- * @param string $ukagaka_name Ukagaka name
+ * @param array $mpu_opt Plugin options
+ * @param array $wp_info WordPress info
+ * @param array $user_info User info
+ * @param array $visitor_info Visitor info
+ * @param string $ukagaka_name Character name
  * @param string $time_context Time context (morning/afternoon/evening/late night)
  * @param string $language Language setting
  * @return string Optimized system prompt
  */
 function mpu_build_optimized_system_prompt(
-    array $mpu_opt,
-    array $wp_info,
-    array $user_info,
-    array $visitor_info,
-    string $ukagaka_name,
-    string $time_context,
-    string $language
-): string
+    $mpu_opt,
+    $wp_info,
+    $user_info,
+    $visitor_info,
+    $ukagaka_name,
+    $time_context,
+    $language
+)
 ```
 
 **Returned XML Structure:**
 
 ```xml
 <character>
-Name: {Character name}
-Core settings: {System Prompt from backend}
-Style features: ...
+Name: {Character Name}
+Core Setting: {System Prompt from Admin}
+Style Traits: ...
 </character>
 <knowledge_base>
-{Compressed context information}
+{Compressed Context Info}
 </knowledge_base>
 <behavior_rules>
   <must_do>...</must_do>
@@ -910,11 +965,11 @@ Style features: ...
   <must_not_do>...</must_not_do>
 </behavior_rules>
 <response_style_examples>
-{70+ dialogue examples}
+{70+ Dialogue Examples}
 </response_style_examples>
 <current_context>
-Time: {Time context}
-Language: {Language setting}
+Time: {Time Context}
+Language: {Language Setting}
 </current_context>
 ```
 
@@ -922,24 +977,25 @@ Language: {Language setting}
 
 #### mpu_calculate_text_similarity()
 
-Calculate similarity between two texts (for preventing repetitive dialogue).
+Calculates similarity between two texts (for repetition prevention).
 
 ```php
 /**
  * @param string $text1 First text
  * @param string $text2 Second text
+ * @param bool $text1_normalized Is $text1 already normalized
  * @return float Similarity (0.0-1.0)
  */
-function mpu_calculate_text_similarity(string $text1, string $text2): float
+function mpu_calculate_text_similarity($text1, $text2, $text1_normalized = false)
 ```
 
 **Example:**
 
 ```php
-$similarity = mpu_calculate_text_similarity('Hello again.', 'Hello again.');
-// Returns: 1.0 (identical)
+$similarity = mpu_calculate_text_similarity('Hello there.', 'Hello there.');
+// Returns: 1.0 (exact match)
 
-$similarity = mpu_calculate_text_similarity('Hello again.', 'Long time no see.');
+$similarity = mpu_calculate_text_similarity('Hello there.', 'How are you?');
 // Returns: 0.0 (completely different)
 ```
 
@@ -947,130 +1003,223 @@ $similarity = mpu_calculate_text_similarity('Hello again.', 'Long time no see.')
 
 #### mpu_debug_system_prompt()
 
-Debug mode: Output System Prompt to WordPress debug log.
+Debug mode: Outputs System Prompt to WordPress debug log.
 
 ```php
 /**
- * @param string $system_prompt System prompt to debug
- * @param string $context Debug context description
+ * @param string $system_prompt System Prompt content
  * @return void
  */
-function mpu_debug_system_prompt(string $system_prompt, string $context = ''): void
+function mpu_debug_system_prompt($system_prompt)
 ```
 
-**Example:**
+**Usage Conditions:**
+
+- Only outputs when `WP_DEBUG` is `true`
+- Outputs to `wp-content/debug.log`
+- Includes System Prompt content, estimated token count, and character length
+
+---
+
+### Prompt Category Management (prompt-categories.php)
+
+> 💡 **New in v2.2.0**: Prompt category instruction management module, used for category instructions and dynamic weight configuration during LLM dialogue generation.
+
+#### mpu_get_static_prompt_categories()
+
+Gets static category instructions (uses cache to avoid rebuilds).
 
 ```php
-$system_prompt = mpu_build_optimized_system_prompt(...);
-mpu_debug_system_prompt($system_prompt, 'LLM Dialogue Generation');
-// Outputs to wp-content/debug.log if WP_DEBUG is enabled
+/**
+ * @param string|null $personality_id Personality ID (optional, defaults to current)
+ * @return array Static category instructions array
+ */
+function mpu_get_static_prompt_categories($personality_id = null)
 ```
+
+---
+
+#### mpu_add_statistics_prompts()
+
+Adds dynamic statistics category instructions. Generates dialogue instructions based on WordPress statistics.
+
+```php
+/**
+ * @param array &$categories Category array (passed by reference)
+ * @param array $wp_info WordPress info
+ * @param string|null $personality_id Personality ID (optional, defaults to current)
+ * @return void
+ */
+function mpu_add_statistics_prompts(&$categories, $wp_info, $personality_id = null)
+```
+
+---
+
+#### mpu_build_prompt_categories()
+
+Builds category instructions for User Prompt. This function generates dialogue instructions for different categories, used for the "Replace Built-in Dialogue with LLM" feature.
+
+```php
+/**
+ * @param array $wp_info WordPress info
+ * @param array $visitor_info Visitor info
+ * @param string $time_context Time context
+ * @param string $theme_name Theme name
+ * @param string $theme_version Theme version
+ * @param string $theme_author Theme author
+ * @return array Category instructions array
+ */
+function mpu_build_prompt_categories(
+    $wp_info,
+    $visitor_info,
+    $time_context,
+    $theme_name,
+    $theme_version,
+    $theme_author
+)
+```
+
+**Return Structure:**
+
+```php
+[
+    'greeting' => ['Casually greet based on greeting examples', ...],
+    'casual' => ['Say daily words flatly based on casual examples', ...],
+    'time_aware' => ['Express time perception based on time_aware examples', ...],
+    // ... 35 categories
+]
+```
+
+---
+
+#### mpu_get_dynamic_category_weights()
+
+Gets dynamic category weight configuration. Adjusts category weights based on time context and visitor info.
+
+```php
+/**
+ * @param string $time_context Time context
+ * @param array $visitor_info Visitor info
+ * @param array $context_vars Context variables (optional)
+ * @return array Weights array
+ */
+function mpu_get_dynamic_category_weights(
+    $time_context,
+    $visitor_info,
+    $context_vars = [],
+    $personality_id = null
+)
+```
+
+**Special Adjustments:**
+
+- Late night: `silence`, `philosophical`, `party_memories` weights increased
+- Morning: `daily_life` weight increased (character is weak in mornings)
+- BOT Visitors: `bot_detection` category weight significantly increased
+
+---
+
+#### mpu_get_decoration_prompt()
+
+Gets the prompt for decoration click dialogue. Returns corresponding User Prompt instruction when a user clicks a decoration.
+
+```php
+/**
+ * @param string $decoration_type Decoration type (suitcase, evil_horns, staff, books)
+ * @param string|null $personality_id Personality ID (optional, defaults to current)
+ * @return string|false Prompt, false if not found
+ */
+function mpu_get_decoration_prompt($decoration_type, $personality_id = null)
+```
+
+**Supported Decoration Types:**
+
+| Type | Description |
+| ------------ | -------------------- |
+| `suitcase` | Suitcase (Magic Collection Box) |
+| `evil_horns` | Evil Horns |
+| `staff` | Magic Staff |
+| `books` | Grimoire |
 
 ---
 
 ### Ukagaka Functions (ukagaka-functions.php)
 
-#### mpu_get_ukagakas()
-
-Get Ukagaka list HTML.
-
-```php
-/**
- * @return string HTML string
- */
-function mpu_get_ukagakas(): string
-```
-
----
-
 #### mpu_get_shell()
 
-Get Ukagaka shell image URL.
+Gets the shell image URL of the specified character.
 
 ```php
 /**
- * @param string $key Ukagaka key
- * @param bool $for_js Whether for JavaScript (default true)
+ * @param string|false $num Character key; false to use current character
+ * @param bool $echo Whether to output directly (default false, returns string)
  * @return string Image URL
  */
-function mpu_get_shell(string $key, bool $for_js = true): string
+function mpu_get_shell($num = false, $echo = false)
 ```
 
 ---
 
-#### mpu_get_msg_array()
+#### mpu_get_msg_arr()
 
-Get message array.
+Gets the message array structure of the specified character (includes `msgall`, `auto_msg`, `msg`, etc. keys).
 
 ```php
 /**
- * @param array $ukagaka Ukagaka data
+ * @param string $num Character key (e.g. 'default_1', 'frieren')
  * @return array Message array
  */
-function mpu_get_msg_array(array $ukagaka): array
+function mpu_get_msg_arr($num)
 ```
 
 ---
 
-#### mpu_process_msg_codes()
+#### mpu_msg_code()
 
-Process special codes in messages.
+Processes special codes in the message array (e.g. `:recentpost[n]:`, `:commenters[n]:`), replacing them with actual HTML.
 
 ```php
 /**
- * @param string $msg Original message
- * @return string Processed message
+ * @param array $msglist Message array
+ * @return array Processed message array
  */
-function mpu_process_msg_codes(string $msg): string
+function mpu_msg_code($msglist = [])
 ```
 
 ---
 
-#### mpu_load_dialog_file()
+#### mpu_get_msg_from_file()
 
-Load dialogue file.
+Loads dialogue files under the `dialogs/` directory (auto-detects `.txt` / `.json` formats).
 
 ```php
 /**
- * @param string $filename Filename (without extension)
- * @param string $format File format (txt/json)
+ * @param string $filename_base File name (without extension)
  * @return array Dialogue array
  */
-function mpu_load_dialog_file(string $filename, string $format): array
+function mpu_get_msg_from_file($filename_base)
 ```
 
 **Example:**
 
 ```php
-$messages = mpu_load_dialog_file('frieren', 'json');
+$messages = mpu_get_msg_from_file('frieren');
 ```
 
 ---
 
 ### Frontend Functions (frontend-functions.php)
 
-#### mpu_is_hide()
+#### mpu_html()
 
-Check if Ukagaka should be hidden.
-
-```php
-/**
- * @return bool Should hide
- */
-function mpu_is_hide(): bool
-```
-
----
-
-#### mpu_generate_html()
-
-Generate Ukagaka HTML and output.
+Generates and outputs the Ukagaka HTML.
 
 ```php
 /**
+ * @param string|false $num Character key; false to use current character
  * @return void
  */
-function mpu_generate_html(): void
+function mpu_html($num = false)
 ```
 
 ---
@@ -1079,76 +1228,29 @@ function mpu_generate_html(): void
 
 #### mpu_generate_dialog_file()
 
-Generate dialogue file.
+Writes the message array out to a dialogue file (`.txt` or `.json`).
 
 ```php
 /**
- * @param string $key Ukagaka key
- * @param array $ukagaka Ukagaka data
- * @return bool Success or not
+ * @param string $filename File name (without extension)
+ * @param array $msg_array Message array
+ * @param string $ext Extension ('txt' or 'json')
+ * @return bool Success status
  */
-function mpu_generate_dialog_file(string $key, array $ukagaka): bool
+function mpu_generate_dialog_file($filename, $msg_array, $ext)
 ```
 
 ---
 
 ## WordPress Hooks
 
-### Actions
-
-#### mpu_loaded
-
-Triggered after plugin modules are loaded.
-
-```php
-add_action('mpu_loaded', function() {
-    // Plugin loaded
-});
-```
-
----
-
-#### mpu_before_html
-
-Triggered before Ukagaka HTML generation.
-
-```php
-add_action('mpu_before_html', function() {
-    // Output content before Ukagaka HTML
-});
-```
-
----
-
-#### mpu_after_html
-
-Triggered after Ukagaka HTML generation.
-
-```php
-add_action('mpu_after_html', function() {
-    // Output content after Ukagaka HTML
-});
-```
-
----
-
-#### mpu_settings_saved
-
-Triggered after settings are saved.
-
-```php
-add_action('mpu_settings_saved', function($mpu_opt) {
-    // Settings saved, $mpu_opt contains new settings
-}, 10, 1);
-```
-
----
+> 📌 Since v2.9.2 REST refactoring, all plugin-level `do_action()` hooks (`mpu_loaded`, `mpu_before_html`, `mpu_after_html`, `mpu_settings_saved`) and `apply_filters()` hooks (`mpu_options`, `mpu_messages`, `mpu_ai_response`, `mpu_ukagaka_html`) have been removed. Only 4 filters related to LLM prompt construction remain.
 
 ### Filters
 
 #### mpu_llm_system_prompt
 
-Filter LLM system prompt.
+Filters the LLM System Prompt (including personality card, WordPress context, behavior rules, etc. in complete XML structure).
 
 ```php
 add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personality_id, $context) {
@@ -1160,10 +1262,14 @@ add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personalit
 
 #### mpu_llm_user_prompt
 
-Filter user chat prompt (inject additional context before instructions).
+Filters the User Prompt (injects extra context before chat instructions, e.g. security alerts, event messages).
 
 ```php
 add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
+    $attack_info = get_transient('mpu_llar_attack_info');
+    if ($attack_info) {
+        return $prompt . "\n【Security Alert】\n" . $attack_info;
+    }
     return $prompt;
 }, 10, 3);
 ```
@@ -1172,7 +1278,7 @@ add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_
 
 #### mpu_prompt_categories
 
-Filter prompt dialogue category definitions.
+Filters the category definitions for LLM auto-talk (Greeting, Casual, Time Aware, Statistics Observation, etc. 35+ categories).
 
 ```php
 add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_info, $time_context) {
@@ -1184,421 +1290,137 @@ add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_inf
 
 #### mpu_category_weights
 
-Filter random weight configuration for dialogue categories.
+Filters the weighted random weights of dialogue categories. Higher value means more easily selected; default is 5.
 
 ```php
 add_filter('mpu_category_weights', function($weights, $time_context, $visitor_info, $context_vars) {
+    // Increase philosophical thoughts probability during late night
+    if ($time_context === '深夜') {
+        $weights['philosophical'] = 15;
+    }
     return $weights;
 }, 10, 4);
 ```
 
 ---
 
-#### mpu_options
+## REST Endpoints
 
-Filter settings.
+> 💡 **Since v2.9.2**: The plugin's endpoint architecture fully migrated from AJAX to REST API, with unified rate limiting and error handling. Frontend calls require an `X-WP-Nonce` (provided via `mpuRestNonce` through `wp_localize_script`).
 
-```php
-add_filter('mpu_options', function($mpu_opt) {
-    // Modify settings
-    $mpu_opt['auto_talk_interval'] = 10;
-    return $mpu_opt;
-});
+### Basic Info
+
+- **Namespace**: `/wp-json/mp-ukagaka/v1`
+- **Permissions**: Most endpoints are public (`__return_true`), only testing/cache management endpoints are admin-only.
+- **Rate Limit**: Counted independently per endpoint, returns HTTP 429 when exceeded.
+- **Response Format**: Except for `/chat/user-stream` (SSE), all are JSON; structured as `{ success, data, ... }` or `WP_Error`.
+
+### Character / Settings
+
+| Endpoint | Method | Permission | Parameters (All Optional) | Rate Limit | Description |
+| --- | --- | --- | --- | --- | --- |
+| `/init` | GET | Public | `ukagaka_num` | 30/60s | Unified initialization endpoint to get shell, decorations, emojis, touchzones, and settings at once |
+| `/settings` | GET | Public | — | 30/60s | Gets frontend settings object (`auto_talk`, `typewriter_speed`, `ai_*`, etc.) |
+| `/change` | POST | Public | `mpu_num` | 10/60s | If empty, returns list of available characters; if provided, switches character (and Set-Cookie) |
+| `/shell-info` | GET / POST | Public | `ukagaka_num` | 30/60s | Gets appearance info for specified character |
+| `/decoration-config` | GET / POST | Public | — | 30/60s | Gets decoration base URL, settings, touchzones, visibility flags |
+| `/emoji-config` | GET / POST | Public | — | 30/60s | Gets emoji base URL, support list, and keyword mapping |
+| `/extend` | GET / POST | Public | — | 10/60s | Character extension tag locations (Reserved endpoint) |
+
+### Dialogue
+
+| Endpoint | Method | Permission | Parameters | Rate Limit | Description |
+| --- | --- | --- | --- | --- | --- |
+| `/nextmsg` | POST | Public | `cur_num`, `cur_msgnum`, `last_response`, `response_history`, `last_visit_hours`, `session_id`, `history` | 20/60s | Auto-talk rotation: Calls AI generation if LLM replace mode is on, else draws from built-in dialogues |
+| `/dialog` | GET / POST | Public | `file` (required) | 30/60s | Reads dialogue file under `dialogs/`; returns `{msgall, auto_msg, msg, next_msg, default_msg}` |
+| `/visitor-info` | GET | Public | — | 30/60s | Returns visitor info such as referrer, search engine, Slimstat country/city, etc. |
+| `/decoration-prompts` | GET / POST | Public | `decoration_type` | 20/60s | Gets prompts for decoration click dialogue |
+| `/wake-ghost` | POST | Public | `personality_id` or `ukagaka_num` (at least one) | 10/60s | Temporarily wakes up a sleeping character; WP_Error codes: `rest_wake_ghost_missing_param`, `rest_wake_ghost_unavailable` |
+
+### AI Chat
+
+| Endpoint | Method | Permission | Parameters | Rate Limit | Description |
+| --- | --- | --- | --- | --- | --- |
+| `/chat/context` | POST | Public | `page_title`, `page_content`, `publish_date`, `session_id`, `history` | 5/60s | Page aware dialogue, triggers AI comments based on current article content; max 500 chars |
+| `/chat/greet` | POST | Public | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `session_id`, `history` | 10/60s | First-time visitor greeting, customized by source country/search engine |
+| `/chat/user` | POST | Public | `message` (required), `history`, `page_title`, `page_content`, `session_id` | 30/60s | Multi-turn interactive chat (non-streaming), supports MCP Tool/Abilities calls; returns `{msg, emoji}` |
+| `/chat/user-stream` | POST | Public | Same as `/chat/user` | 30/60s | SSE streaming version, outputs token-by-token if supported by Provider |
+
+### Touch Interactions
+
+| Endpoint | Method | Permission | Parameters | Rate Limit | Description |
+| --- | --- | --- | --- | --- | --- |
+| `/touch/decoration` | POST | Public | `decoration_type` (required) | 20/60s | AI reaction when clicking decorations; returns `{msg, emoji}` |
+| `/touch/zone` | POST | Public | `touch_zone` (required) | 20/60s | Petting reaction when clicking character body zones; returns `{msg, emoji, zone}` |
+
+### Admin Testing & Management (Admin Only)
+
+| Endpoint | Method | Permission | Parameters | Rate Limit | Description |
+| --- | --- | --- | --- | --- | --- |
+| `/test-connection/{provider}` | POST | Admin | `provider` (Path param: gemini/openai/claude/ollama/weather), `api_key`, `model`, `endpoint`; weather additionally takes `latitude`, `longitude` | 10/60s | Unified Provider connection test endpoint |
+| `/clear-cache` | POST | Admin | — | 10/60s | Clears LLM API response caches |
+
+---
+
+### `/chat/user-stream` SSE Event Format
+
+Starting from v2.12.x, interactive chat supports Server-Sent Events. The stream sends events in a fixed sequence using the `text/event-stream` format:
+
+| Event | Fired When | Data Content |
+| --- | --- | --- |
+| `start` | Stream starts | `{"provider": "gemini", "model": "gemini-2.5-flash"}` |
+| `nonce` | Immediately after `start` | `{"new_token": "<nonce>", "new_nonce": "<nonce>"}` — Provides a new nonce for the next request |
+| `delta` | When AI generates tokens (multiple triggers) | `{"text": "Yes"}` — Single token/chunk |
+| `done` | Stream ends | `{"msg": "Full message", "emoji": "smile"}` — Final result after length truncation and emoji analysis |
+| `error` | Provider doesn't support streaming, or error occurs | `{"message": "<error_message>"}` |
+
+**Raw Stream Example**:
+
+```
+event: start
+data: {"provider":"gemini","model":"gemini-2.5-flash"}
+
+event: nonce
+data: {"new_token":"a1b2c3","new_nonce":"a1b2c3"}
+
+event: delta
+data: {"text":"今日"}
+
+event: delta
+data: {"text":"はいい天気"}
+
+event: delta
+data: {"text":"ですね。"}
+
+event: done
+data: {"msg":"今日はいい天気ですね。","emoji":"happy"}
 ```
 
 ---
 
-#### mpu_messages
+### Retained AJAX Endpoints
 
-Filter message array.
+A few non-chat actions are still executed via `admin-ajax.php`, mainly for internal integrations:
 
-```php
-add_filter('mpu_messages', function($messages, $ukagaka_key) {
-    // Add extra messages for specific Ukagaka
-    if ($ukagaka_key === 'frieren') {
-        $messages[] = 'Magic requires time to study.';
-    }
-    return $messages;
-}, 10, 2);
-```
+| Action | Handler | Description |
+| --- | --- | --- |
+| `wp_ajax_mpu_test_diary_generate` | `mpu_ajax_test_diary_generate` | Manually triggers diary generation test from admin (Admin only) |
+| `wp_ajax_nopriv_slimtrack` / `wp_ajax_slimtrack` | `mpu_bb_intercept_slimstat` | Bot Blocker intercepts Slimstat tracking (priority 0) |
+| `wp_ajax_nopriv_mbb_js_flag` / `wp_ajax_mbb_js_flag` | `mpu_bb_js_flag_handler` | Bot Blocker JS execution flag detection |
 
----
-
-#### mpu_ai_response
-
-Filter AI response.
-
-```php
-add_filter('mpu_ai_response', function($response, $prompt) {
-    // Modify AI response
-    return $response . ' ✨';
-}, 10, 2);
-```
-
----
-
-#### mpu_ukagaka_html
-
-Filter Ukagaka HTML.
-
-```php
-add_filter('mpu_ukagaka_html', function($html) {
-    // Modify HTML
-    return $html;
-});
-```
-
----
-
-## AJAX Endpoints
-
-### mpu_nextmsg
-
-Get next message.
-
-**Action:** `mpu_nextmsg`
-
-**Request Parameters:**
-
-| Parameter | Type   | Description           |
-| --------- | ------ | --------------------- |
-| `ukagaka` | string | Ukagaka key           |
-| `current` | int    | Current message index |
-| `mode`    | string | `next` or `random`    |
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "msg": "Dialogue content",
-    "index": 1
-  }
-}
-```
-
----
-
-### mpu_change
-
-Switch Ukagaka.
-
-**Action:** `mpu_change`
-
-**Request Parameters:**
-
-| Parameter | Type   | Description        |
-| --------- | ------ | ------------------ |
-| `ukagaka` | string | Target Ukagaka key |
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "name": "Frieren",
-    "shell": "https://.../frieren.png",
-    "messages": ["Dialog 1", "Dialog 2"]
-  }
-}
-```
-
----
-
-### mpu_get_settings
-
-Get frontend settings.
-
-**Action:** `mpu_get_settings`
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "autoTalk": true,
-    "autoTalkInterval": 8000,
-    "typewriterSpeed": 40,
-    "clickBehavior": 0
-  }
-}
-```
-
----
-
-### mpu_test_ollama_connection (BETA)
-
-> ⚠️ **Note**: This endpoint is in **BETA**.
-
-Test Ollama connection.
-
-**Request:**
-
-```javascript
-{
-    action: 'mpu_test_ollama_connection',
-    endpoint: 'https://your-domain.com',  // Ollama endpoint
-    model: 'qwen3:8b',                     // Model name
-    nonce: '...'                           // WordPress nonce
-}
-```
-
-**Response (Success):**
-
-```javascript
-{
-    success: true,
-    data: 'Connection successful (Remote), model response normal (Preview: Hello...)'
-}
-```
-
-**Response (Failure):**
-
-```javascript
-{
-    success: false,
-    data: 'Connection failed: Unable to connect to remote Ollama service...'
-}
-```
-
----
-
-### mpu_load_dialog
-
-Load external dialogue file.
-
-**Action:** `mpu_load_dialog`
-
-**Request Parameters:**
-
-| Parameter  | Type   | Description     |
-| ---------- | ------ | --------------- |
-| `filename` | string | Filename        |
-| `format`   | string | `txt` or `json` |
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "messages": ["Dialog 1", "Dialog 2", "Dialog 3"]
-  }
-}
-```
-
----
-
-### mpu_chat_context
-
-AI page awareness chat.
-
-**Action:** `mpu_chat_context`
-
-**Request Parameters:**
-
-| Parameter | Type   | Description    |
-| --------- | ------ | -------------- |
-| `title`   | string | Post Title     |
-| `content` | string | Post Content   |
-| `nonce`   | string | Security nonce |
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "AI Generated Comment"
-  }
-}
-```
-
----
-
-### mpu_get_visitor_info
-
-Get visitor info (Requires Slimstat).
-
-**Action:** `mpu_get_visitor_info`
-
-**Request Parameters:**
-
-| Parameter | Type   | Description    |
-| --------- | ------ | -------------- |
-| `nonce`   | string | Security nonce |
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "country": "TW",
-    "city": "Taipei",
-    "referer": "https://google.com",
-    "searchterms": "Search terms",
-    "browser": "Chrome",
-    "platform": "Windows"
-  }
-}
-```
-
----
-
-### mpu_chat_greet
-
-AI first visitor greeting.
-
-**Action:** `mpu_chat_greet`
-
-**Request Parameters:**
-
-| Parameter      | Type   | Description    |
-| -------------- | ------ | -------------- |
-| `visitor_info` | object | Visitor Info   |
-| `nonce`        | string | Security nonce |
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Welcome friend from Taiwan!"
-  }
-}
-```
-
----
-
-### mpu_user_chat (v2.3.0)
-
-User interactive chat request. Process user input in interactive chat mode.
-
-**Action:** `mpu_user_chat`
-
-**Request Parameters:**
-
-| Parameter | Type   | Description                |
-| --------- | ------ | -------------------------- |
-| `message` | string | User input message         |
-| `history` | array  | Conversation history array |
-| `nonce`   | string | Security nonce             |
-
-**Conversation History Format:**
-
-```json
-[
-  { "role": "user", "content": "Hello" },
-  {
-    "role": "assistant",
-    "content": "Hello! What would you like to chat about?"
-  }
-]
-```
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "AI generated response"
-  }
-}
-```
-
----
-
-### mpu_decoration_chat (v2.3.0)
-
-Decoration click dialogue request. Generate related dialogue when user clicks character decorations.
-
-**Action:** `mpu_decoration_chat`
-
-**Request Parameters:**
-
-| Parameter         | Type   | Description                                          |
-| ----------------- | ------ | ---------------------------------------------------- |
-| `decoration_type` | string | Decoration type (suitcase, evil_horns, staff, books) |
-| `nonce`           | string | Security nonce                                       |
-
-**Success Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "About this suitcase... it contains collected magic."
-  }
-}
-```
-
----
-
-### mpu_touch_zone_chat (v2.3.0)
-
-Character touch zone click request. Generate touching reaction dialogue.
-
-**Action:** `mpu_touch_zone_chat`
-
----
-
-### mpu_check_spam_event
-
-Akismet blocked spam comment event notification.
-
-**Action:** `mpu_check_spam_event`
-
----
-
-### mpu_wake_ghost
-
-Manually wake up Ukagaka.
-
-**Action:** `mpu_wake_ghost`
-
----
-
-### mpu_init
-
-Resources needed for frontend Ukagaka initialization.
-
-**Action:** `mpu_init`
-
----
-
-### mpu_clear_api_cache (Admin)
-
-Clear all LLM API cache.
-
-**Action:** `mpu_clear_api_cache`
-
----
-
-### mpu_test_weather_api (Admin)
-
-Test weather API connection.
-
-**Action:** `mpu_test_weather_api`
-
----
+> 📌 AJAX actions from older versions (v2.9.x and below) such as `mpu_nextmsg`, `mpu_change`, `mpu_chat_*`, `mpu_test_*_connection`, `mpu_load_dialog`, `mpu_get_visitor_info`, `mpu_wake_ghost`, `mpu_init`, `mpu_get_settings`, `mpu_clear_api_cache`, `mpu_check_spam_event` have all been removed. Please use the corresponding REST endpoints from the table above instead.
 
 ## JavaScript Functions
 
 ### Core Functions
 
-#### mpu_nextmsg(mode)
+#### mpu_nextmsg(trigger)
 
-Show next message.
+Displays the next message.
 
 ```javascript
 /**
- * @param {string} mode - 'next' sequential / 'random' random / '' use setting
+ * @param {string} trigger - 'next' sequential / 'random' random / '' use setting value
  */
 mpu_nextmsg("next");
 ```
@@ -1607,7 +1429,7 @@ mpu_nextmsg("next");
 
 #### mpu_hidemsg()
 
-Hide balloon.
+Hides the dialogue box.
 
 ```javascript
 mpu_hidemsg();
@@ -1617,7 +1439,7 @@ mpu_hidemsg();
 
 #### mpu_showmsg()
 
-Show balloon.
+Shows the dialogue box.
 
 ```javascript
 mpu_showmsg();
@@ -1625,107 +1447,79 @@ mpu_showmsg();
 
 ---
 
-#### mpu_hideukagaka()
+#### mpu_hiderobot()
 
-Hide Ukagaka.
+Hides the character.
 
 ```javascript
-mpu_hideukagaka();
+mpu_hiderobot();
 ```
 
 ---
 
-#### mpu_showukagaka()
+#### mpu_showrobot()
 
-Show Ukagaka.
+Shows the character.
 
 ```javascript
-mpu_showukagaka();
+mpu_showrobot();
 ```
 
 ---
 
-#### mpuChange()
+#### mpuChange(num)
 
-Open Ukagaka switch menu.
-
-```javascript
-mpuChange();
-```
-
----
-
-#### mpu_showMessage(message, options)
-
-Show specific message (with typewriter effect).
+Opens the character switch menu, or switches directly to the specified character if param provided.
 
 ```javascript
 /**
- * @param {string} message - Message content
- * @param {object} options - Options
- * @param {string} options.color - Text color
- * @param {boolean} options.typewriter - Whether to use typewriter effect
+ * @param {string} [num] - Target character key; omits to open menu
  */
-mpu_showMessage("Welcome!", {
-  color: "#ff6b6b",
-  typewriter: true,
-});
+mpuChange();            // Opens menu
+mpuChange("default_2"); // Switches directly
 ```
 
 ---
 
-### AI Functions
+### Global Variables
 
-#### mpu_triggerAIContext()
+Upon frontend loading, data passed via `wp_localize_script` and returned by the `/init` endpoint are written to the following `window` globals:
 
-Trigger AI page awareness.
+| Variable | Source | Description |
+| --- | --- | --- |
+| `window.mpuRestUrl` | `wp_localize_script` | REST base URL (e.g. `/wp-json/mp-ukagaka/v1/`) |
+| `window.mpuRestNonce` | `wp_localize_script` | `X-WP-Nonce` used for REST requests |
+| `window.mpuL10n` | `wp_localize_script` | Translated string set for frontend display |
+| `window.mpuSettings` | `/init` return | Character behavior settings object (see below) |
+| `window.mpuInitData` | `/init` return | Complete original init response object |
+| `window.mpuPersonalityId` | `/init` return | Current personality ID |
+| `window.mpuCanvasManager` | `ukagaka-anime.js` | Canvas animation manager |
+| `window.mpuChatHistory` | `ukagaka-chat.js` | Multi-turn chat history array (max 40 items) |
+| `window.mpuChatModeActive` | `ukagaka-chat.js` | Interactive chat mode flag |
+| `window.mpuDecorationsBaseUrl` / `mpuDecorationConfig` / `mpuTouchZones` / `mpuShowDecorations` | `/init` return | Decoration and touchzone related info |
+| `window.mpuEmojiBaseUrl` / `mpuSupportedEmojis` / `mpuEmojiMappings` | `/init` return | Emoji system related data |
 
-```javascript
-mpu_triggerAIContext();
-```
+#### window.mpuSettings
 
----
-
-#### mpu_triggerAIGreeting()
-
-Trigger AI first visitor greeting.
-
-```javascript
-mpu_triggerAIGreeting();
-```
-
----
-
-#### mpu_pauseAutoTalk(duration)
-
-Pause auto talk.
-
-```javascript
-/**
- * @param {number} duration - Pause duration (ms)
- */
-mpu_pauseAutoTalk(10000); // Pause for 10 seconds
-```
-
----
-
-### Global Settings Object
+Populated by the `settings` block returned from `/wp-json/mp-ukagaka/v1/init`:
 
 ```javascript
 window.mpuSettings = {
-  ajaxUrl: "/wp-admin/admin-ajax.php",
-  nonce: "xxx",
-  autoTalk: true,
-  autoTalkInterval: 8000, // ms
-  typewriterSpeed: 40, // ms/char
-  clickBehavior: 0, // 0=Next, 1=No Action
-  nextMode: 0, // 0=Sequential, 1=Random
-  aiEnabled: true,
-  aiTextColor: "#ff6b6b",
-  aiDisplayDuration: 8000, // ms
-  aiGreetEnabled: true,
-  useExternalFile: false,
-  externalFileFormat: "txt",
+  auto_talk: true,
+  auto_talk_interval: 8,            // seconds
+  typewriter_speed: 40,             // ms/character
+  ai_enabled: true,
+  ai_probability: 10,               // 0-100, AI trigger probability
+  ai_trigger_pages: "is_single",    // Page type condition
+  ai_text_color: "#000000",
+  ai_display_duration: 8,           // seconds
+  ai_greet_first_visit: true,
+  ollama_replace_dialogue: false,   // Replace built-in dialogue with LLM
+  enable_chat_mode: false,          // Enable interactive chat mode
+  sleep_mode: {
+    enabled: false,
+    frequency_multiplier: 1.0
+  }
 };
 ```
 
@@ -1733,31 +1527,31 @@ window.mpuSettings = {
 
 ## Special Codes
 
-You can use the following special codes in dialogue content:
+The following special codes can be used in dialogue content, which are processed server-side by `mpu_msg_code()` before sending to frontend. Supports two formats: `:code[n]:` or `(:code[n]:)` (inside parentheses).
 
-### :recentpost[n]
+### :recentpost[n]: / :recentposts[n]:
 
-Show list of recent n posts.
-
-```
-Recent Posts: :recentpost[5]:
-```
-
----
-
-### :randompost[n]
-
-Show list of random n posts.
+Displays a list of the recent n posts. The singular form lists them line by line, while the plural form (`recentposts`) concatenates them with `<br>`.
 
 ```
-Recommended: :randompost[3]:
+Recent posts: :recentpost[5]:
 ```
 
 ---
 
-### :commenters[n]
+### :randompost[n]: / :randomposts[n]:
 
-Show recent n commenters.
+Displays a list of n random posts. The singular form lists them line by line, while the plural form concatenates them with `<br>`.
+
+```
+Recommended reading: :randompost[3]:
+```
+
+---
+
+### :commenters[n]:
+
+Displays the recent n unique commenters (separated by commas).
 
 ```
 Thanks for commenting: :commenters[5]:
@@ -1765,38 +1559,8 @@ Thanks for commenting: :commenters[5]:
 
 ---
 
-### 📅
-
-Show today's date.
-
-```
-Today is :date:
-```
+**📌 Note:** The above are the only codes actually supported by `mpu_msg_code()`. The `:date:`, `:time:`, and `:sitename:` codes mentioned in older docs **are currently not implemented**; if you need such variable replacements, please use `mpu_render_prompt_template()` to process `{{variable}}` placeholders instead.
 
 ---
 
-### :time:
-
-Show current time.
-
-```
-Current time is :time:
-```
-
----
-
-### :sitename:
-
-Show site name.
-
-```
-Welcome to :sitename:!
-```
-
----
-
-**📌 Note:** Special codes are processed on the server side, converted to actual content before being sent to the frontend.
-
----
-
-**Documentation Version: 2.5.6**
+**Document Version: 2.13.3**

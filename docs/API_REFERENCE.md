@@ -1,6 +1,6 @@
 # MP Ukagaka API 參考
 
-> 📚 完整的函數、Hooks、AJAX 端點參考
+> 📚 完整的函數、Hooks、REST 端點參考（v2.13.3）
 
 ---
 
@@ -8,7 +8,7 @@
 
 1. [PHP 函數](#php-函數)
 2. [WordPress Hooks](#wordpress-hooks)
-3. [AJAX 端點](#ajax-端點)
+3. [REST 端點](#rest-端點)
 4. [JavaScript 函數](#javascript-函數)
 5. [特殊代碼](#特殊代碼)
 
@@ -26,7 +26,7 @@
 /**
  * @return array 預設設定陣列
  */
-function mpu_default_opt(): array
+function mpu_default_opt()
 ```
 
 **範例：**
@@ -46,7 +46,7 @@ echo $defaults['auto_talk_interval']; // 8
 /**
  * @return array 設定陣列
  */
-function mpu_get_option(): array
+function mpu_get_option()
 ```
 
 **範例：**
@@ -68,7 +68,7 @@ if ($mpu_opt['ai_enabled']) {
 /**
  * @return int 總對話數
  */
-function mpu_count_total_msg(): int
+function mpu_count_total_msg()
 ```
 
 ---
@@ -84,7 +84,7 @@ function mpu_count_total_msg(): int
  * @param array $arr 輸入陣列
  * @return string 輸出字串
  */
-function mpu_array2str(array $arr): string
+function mpu_array2str($arr = [])
 ```
 
 **範例：**
@@ -111,7 +111,7 @@ $str = mpu_array2str($messages);
  * @param string $str 輸入字串
  * @return array 輸出陣列
  */
-function mpu_str2array(string $str): array
+function mpu_str2array($str = "")
 ```
 
 **範例：**
@@ -133,7 +133,7 @@ HTML 輸出過濾。
  * @param string $str 輸入字串
  * @return string 過濾後字串
  */
-function mpu_output_filter(string $str): string
+function mpu_output_filter($str)
 ```
 
 ---
@@ -147,7 +147,7 @@ JavaScript 輸出過濾（跳脫引號和特殊字元）。
  * @param string $str 輸入字串
  * @return string 過濾後字串
  */
-function mpu_js_filter(string $str): string
+function mpu_js_filter($str)
 ```
 
 ---
@@ -161,7 +161,7 @@ function mpu_js_filter(string $str): string
  * @param string $str 輸入字串
  * @return string 過濾後字串
  */
-function mpu_input_filter(string $str): string
+function mpu_input_filter($str)
 ```
 
 ---
@@ -172,11 +172,10 @@ function mpu_input_filter(string $str): string
 
 ```php
 /**
- * @param string $file_path 檔案路徑
- * @param int $max_size 最大檔案大小（預設 2MB）
+ * @param string $file_path 檔案路徑（必須位於 dialogs/ 目錄內）
  * @return string|WP_Error 檔案內容或錯誤
  */
-function mpu_secure_file_read(string $file_path, int $max_size = 2097152)
+function mpu_secure_file_read($file_path)
 ```
 
 **範例：**
@@ -211,7 +210,7 @@ if (is_wp_error($content)) {
  * @param string $content 檔案內容
  * @return bool|WP_Error 成功或錯誤
  */
-function mpu_secure_file_write(string $file_path, string $content)
+function mpu_secure_file_write($file_path, $content)
 ```
 
 **可能的錯誤：**
@@ -234,7 +233,7 @@ function mpu_secure_file_write(string $file_path, string $content)
  * @param string $api_key 原始 API Key
  * @return string 加密後的字串
  */
-function mpu_encrypt_api_key(string $api_key): string
+function mpu_encrypt_api_key($api_key)
 ```
 
 ---
@@ -248,7 +247,7 @@ function mpu_encrypt_api_key(string $api_key): string
  * @param string $encrypted 加密的字串
  * @return string 解密後的 API Key
  */
-function mpu_decrypt_api_key(string $encrypted): string
+function mpu_decrypt_api_key($encrypted_key)
 ```
 
 ---
@@ -261,7 +260,7 @@ function mpu_decrypt_api_key(string $encrypted): string
 /**
  * @return string 客戶端 IP 地址
  */
-function mpu_get_client_ip(): string
+function mpu_get_client_ip()
 ```
 
 ---
@@ -278,7 +277,7 @@ function mpu_get_client_ip(): string
  * @param array $options 額外選項
  * @return array|string|null API 回應資料
  */
-function mpu_fetch_external_api(string $cache_key, string $url, int $cache_duration = 3600, array $options = [])
+function mpu_fetch_external_api($cache_key, $url, $cache_duration = MPU_CACHE_DEFAULT, $options = [])
 ```
 
 ---
@@ -293,7 +292,7 @@ function mpu_fetch_external_api(string $cache_key, string $url, int $cache_durat
  * @param array $variables 變數陣列
  * @return string 替換後的字串
  */
-function mpu_render_prompt_template(string $template, array $variables = []): string
+function mpu_render_prompt_template($template, $variables = [])
 ```
 
 ---
@@ -306,7 +305,7 @@ function mpu_render_prompt_template(string $template, array $variables = []): st
 /**
  * @return array 當前用戶資訊陣列
  */
-function mpu_get_current_user_info(): array
+function mpu_get_current_user_info()
 ```
 
 ---
@@ -319,7 +318,7 @@ function mpu_get_current_user_info(): array
 /**
  * @return array WordPress 網站資訊陣列
  */
-function mpu_get_wordpress_info(): array
+function mpu_get_wordpress_info()
 ```
 
 ---
@@ -334,7 +333,7 @@ function mpu_get_wordpress_info(): array
  * @param array|null $mpu_opt 選項陣列
  * @return string 解密後的 API Key
  */
-function mpu_get_provider_api_key(string $provider, ?array $mpu_opt = null): string
+function mpu_get_provider_api_key($provider, $mpu_opt = null)
 ```
 
 ---
@@ -348,7 +347,7 @@ function mpu_get_provider_api_key(string $provider, ?array $mpu_opt = null): str
  * @param array|null $mpu_opt 選項陣列
  * @return string AI 提供商名稱
  */
-function mpu_get_current_provider(?array $mpu_opt = null): string
+function mpu_get_current_provider($mpu_opt = null)
 ```
 
 ---
@@ -371,13 +370,13 @@ function mpu_get_current_provider(?array $mpu_opt = null): string
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_ai_api(
-    string $provider,
-    string $api_key,
-    string $system_prompt,
-    string $user_prompt,
-    string $language = 'zh-TW',
-    ?array $mpu_opt = null,
-    ?int $max_tokens = null
+    $provider,
+    $api_key,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $mpu_opt = null,
+    $max_tokens = null
 )
 ```
 
@@ -408,7 +407,7 @@ if (!is_wp_error($response)) {
  * @param string $language 語言代碼 (zh-TW, ja, en)
  * @return string 語言指令
  */
-function mpu_get_language_instruction(string $language): string
+function mpu_get_language_instruction($language)
 ```
 
 **返回值：**
@@ -436,12 +435,12 @@ function mpu_get_language_instruction(string $language): string
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_gemini_api(
-    string $api_key,
-    string $model,
-    string $system_prompt,
-    string $user_prompt,
-    string $language = 'zh-TW',
-    ?int $max_tokens = null
+    $api_key,
+    $model,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $max_tokens = null
 )
 ```
 
@@ -462,12 +461,12 @@ function mpu_call_gemini_api(
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_openai_api(
-    string $api_key,
-    string $model,
-    string $system_prompt,
-    string $user_prompt,
-    string $language = 'zh-TW',
-    ?int $max_tokens = null
+    $api_key,
+    $model,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $max_tokens = null
 )
 ```
 
@@ -488,12 +487,12 @@ function mpu_call_openai_api(
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_claude_api(
-    string $api_key,
-    string $model,
-    string $system_prompt,
-    string $user_prompt,
-    string $language = 'zh-TW',
-    ?int $max_tokens = null
+    $api_key,
+    $model,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $max_tokens = null
 )
 ```
 
@@ -514,12 +513,12 @@ function mpu_call_claude_api(
  * @return string|WP_Error AI 回應或錯誤
  */
 function mpu_call_ollama_api(
-    string $endpoint,
-    string $model,
-    string $system_prompt,
-    string $user_prompt,
-    string $language = 'zh-TW',
-    ?int $max_tokens = null
+    $endpoint,
+    $model,
+    $system_prompt,
+    $user_prompt,
+    $language = 'zh-TW',
+    $max_tokens = null
 )
 ```
 
@@ -543,7 +542,7 @@ function mpu_call_ollama_api(
 /**
  * @return bool
  */
-function mpu_is_api_cache_enabled(): bool
+function mpu_is_api_cache_enabled()
 ```
 
 ---
@@ -556,7 +555,7 @@ function mpu_is_api_cache_enabled(): bool
 /**
  * @return int 預設 3600 秒（1 小時），範圍 300-86400 秒
  */
-function mpu_get_api_cache_ttl(): int
+function mpu_get_api_cache_ttl()
 ```
 
 ---
@@ -572,7 +571,7 @@ function mpu_get_api_cache_ttl(): int
  * @param string $user_prompt 用戶提示詞
  * @return string 快取鍵
  */
-function mpu_generate_cache_key(string $provider, string $system_prompt, string $user_prompt): string
+function mpu_generate_cache_key($provider, $system_prompt, $user_prompt)
 ```
 
 ---
@@ -586,7 +585,7 @@ function mpu_generate_cache_key(string $provider, string $system_prompt, string 
  * @param string $cache_key 快取鍵
  * @return string|false 快取的回應或 false
  */
-function mpu_get_cached_api_response(string $cache_key)
+function mpu_get_cached_api_response($cache_key)
 ```
 
 ---
@@ -601,7 +600,7 @@ function mpu_get_cached_api_response(string $cache_key)
  * @param string $response API 回應
  * @return bool
  */
-function mpu_set_cached_api_response(string $cache_key, string $response): bool
+function mpu_set_cached_api_response($cache_key, $response)
 ```
 
 ---
@@ -614,7 +613,7 @@ function mpu_set_cached_api_response(string $cache_key, string $response): bool
 /**
  * @return int 清除的快取數量
  */
-function mpu_clear_all_api_cache(): int
+function mpu_clear_all_api_cache()
 ```
 
 ---
@@ -627,7 +626,7 @@ function mpu_clear_all_api_cache(): int
 /**
  * @return array ['count' => int, 'ttl' => int, 'enabled' => bool]
  */
-function mpu_get_api_cache_stats(): array
+function mpu_get_api_cache_stats()
 ```
 
 ---
@@ -645,7 +644,7 @@ function mpu_get_api_cache_stats(): array
  * @param string $endpoint Ollama 端點 URL
  * @return bool 是否為遠程連接（true = 遠程，false = 本地）
  */
-function mpu_is_remote_endpoint(string $endpoint): bool
+function mpu_is_remote_endpoint($endpoint)
 ```
 
 **範例：**
@@ -667,7 +666,7 @@ $is_local = mpu_is_remote_endpoint('http://localhost:11434');  // false
  * @param string $operation_type 操作類型：'check'（服務檢查）、'api_call'（API 調用）、'test'（測試連接）
  * @return int 超時時間（秒）
  */
-function mpu_get_ollama_timeout(string $endpoint, string $operation_type = 'api_call'): int
+function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
 ```
 
 **範例：**
@@ -688,7 +687,7 @@ $timeout = mpu_get_ollama_timeout('http://localhost:11434', 'check');      // 3
  * @param string $endpoint 原始端點 URL
  * @return string|WP_Error 標準化後的 URL 或錯誤
  */
-function mpu_validate_ollama_endpoint(string $endpoint)
+function mpu_validate_ollama_endpoint($endpoint)
 ```
 
 **範例：**
@@ -714,7 +713,7 @@ if (is_wp_error($validated)) {
  * @param string $model 模型名稱
  * @return bool 服務是否可用
  */
-function mpu_check_ollama_available(string $endpoint, string $model): bool
+function mpu_check_ollama_available($endpoint, $model)
 ```
 
 **範例：**
@@ -739,7 +738,7 @@ if (mpu_check_ollama_available('https://your-domain.com', 'qwen3:8b')) {
  * @param int $last_visit_hours 最後訪問距今的小時數（預設 -1 表示無資料，v2.5.6 新增）
  * @return string|false 生成的對話內容，失敗時返回 false
  */
-function mpu_generate_llm_dialogue(string $ukagaka_name = 'default_1', string $last_response = '', array $response_history = [], int $last_visit_hours = -1)
+function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response = '', $response_history = [], $last_visit_hours = -1)
 ```
 
 **範例：**
@@ -790,7 +789,7 @@ add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_
 /**
  * @return bool
  */
-function mpu_is_llm_replace_dialogue_enabled(): bool
+function mpu_is_llm_replace_dialogue_enabled()
 ```
 
 ---
@@ -826,7 +825,7 @@ function mpu_get_ollama_settings()
 /**
  * @return array 訪客資訊陣列
  */
-function mpu_get_visitor_info_for_llm(): array
+function mpu_get_visitor_info_for_llm()
 ```
 
 **返回值：**
@@ -853,7 +852,7 @@ function mpu_get_visitor_info_for_llm(): array
  * @param array $visitor_info 訪客資訊
  * @return string 訪客狀態描述
  */
-function mpu_get_visitor_status_text(array $visitor_info): string
+function mpu_get_visitor_status_text($visitor_info)
 ```
 
 **範例：**
@@ -877,83 +876,7 @@ $status = mpu_get_visitor_status_text($visitor_info);
  * @param array $visitor_info 訪客資訊
  * @return string 壓縮後的 XML 格式字串
  */
-function mpu_compress_context_info(array $wp_info, array $user_info, array $visitor_info): string
-```
-
----
-
-#### mpu_build_frieren_style_examples()
-
-建構芙莉蓮風格的對話範例（70+ 個範例，涵蓋 12 個類別）。
-
-```php
-/**
- * @param array $wp_info WordPress 資訊
- * @param array $visitor_info 訪客資訊
- * @param string $time_context 時間情境（早上/下午/晚上/深夜）
- * @param string $theme_name 主題名稱
- * @param string $theme_version 主題版本
- * @param string $theme_author 主題作者
- * @return string 格式化的範例文字
- */
-function mpu_build_frieren_style_examples(
-    array $wp_info,
-    array $visitor_info,
-    string $time_context,
-    string $theme_name,
-    string $theme_version,
-    string $theme_author
-): string
-```
-
-**範例類別：**
-
-- 問候類、閒聊類、時間感知類、觀察思考類
-- 魔法研究類、技術觀察類、統計觀察類、回憶類
-- 管理員評語類、意外反應類、BOT 檢測類、沉默類
-
-**特殊功能：**
-
-- **觀察思考類**會自動從當前春菜的內建對話文件中讀取最多 5 條台詞
-  - 自動過濾空字串和超過 50 字元的訊息
-  - 隨機選擇符合條件的台詞加入到範例中
-  - 讓 AI 生成的對話更貼近角色的實際風格
-
----
-
-#### mpu_build_prompt_categories()
-
-建構 User Prompt 的類別指令（與範例類別對應）。
-
-```php
-/**
- * @param array $wp_info WordPress 資訊
- * @param array $visitor_info 訪客資訊
- * @param string $time_context 時間情境
- * @param string $theme_name 主題名稱
- * @param string $theme_version 主題版本
- * @param string $theme_author 主題作者
- * @return array 類別指令陣列
- */
-function mpu_build_prompt_categories(
-    array $wp_info,
-    array $visitor_info,
-    string $time_context,
-    string $theme_name,
-    string $theme_version,
-    string $theme_author
-): array
-```
-
-**返回值：**
-
-```php
-[
-    'greeting' => ['問候類の会話例を参考に、軽く挨拶する', ...],
-    'casual' => ['閒聊類の会話例を参考に、淡々とした日常の言葉を言う', ...],
-    'time_aware' => ['時間感知類の会話例を参考に、{$time_context}の時間感覚を表現する', ...],
-    // ... 更多類別
-]
+function mpu_compress_context_info($wp_info, $user_info, $visitor_info)
 ```
 
 ---
@@ -968,7 +891,7 @@ function mpu_build_prompt_categories(
  * @param array $weights 權重陣列（key => weight），數值越高被選中的機率越大
  * @return string 選中的類別 key
  */
-function mpu_weighted_random_select(array $categories, array $weights): string
+function mpu_weighted_random_select($categories, $weights)
 ```
 
 **使用範例：**
@@ -1015,14 +938,14 @@ $selected = mpu_weighted_random_select($categories, $weights);
  * @return string 優化後的 system prompt
  */
 function mpu_build_optimized_system_prompt(
-    array $mpu_opt,
-    array $wp_info,
-    array $user_info,
-    array $visitor_info,
-    string $ukagaka_name,
-    string $time_context,
-    string $language
-): string
+    $mpu_opt,
+    $wp_info,
+    $user_info,
+    $visitor_info,
+    $ukagaka_name,
+    $time_context,
+    $language
+)
 ```
 
 **返回的 XML 結構：**
@@ -1058,11 +981,12 @@ function mpu_build_optimized_system_prompt(
 
 ```php
 /**
- * @param string $text1 第一個文字
- * @param string $text2 第二個文字
+ * @param string $text1              第一個文字
+ * @param string $text2              第二個文字
+ * @param bool   $text1_normalized   $text1 是否已經過正規化（減少重複工作）
  * @return float 相似度（0.0-1.0）
  */
-function mpu_calculate_text_similarity(string $text1, string $text2): float
+function mpu_calculate_text_similarity($text1, $text2, $text1_normalized = false)
 ```
 
 **範例：**
@@ -1086,7 +1010,7 @@ Debug 模式：輸出 System Prompt 到 WordPress debug log。
  * @param string $system_prompt System Prompt 內容
  * @return void
  */
-function mpu_debug_system_prompt(string $system_prompt): void
+function mpu_debug_system_prompt($system_prompt)
 ```
 
 **使用條件：**
@@ -1107,9 +1031,10 @@ function mpu_debug_system_prompt(string $system_prompt): void
 
 ```php
 /**
+ * @param string|null $personality_id 人格 ID（可選，預設為當前人格）
  * @return array 靜態類別指令陣列
  */
-function mpu_get_static_prompt_categories(): array
+function mpu_get_static_prompt_categories($personality_id = null)
 ```
 
 ---
@@ -1120,11 +1045,12 @@ function mpu_get_static_prompt_categories(): array
 
 ```php
 /**
- * @param array &$categories 類別陣列（引用傳遞）
- * @param array $wp_info WordPress 資訊
+ * @param array       &$categories     類別陣列（引用傳遞）
+ * @param array        $wp_info        WordPress 資訊
+ * @param string|null  $personality_id 人格 ID（可選，預設為當前人格）
  * @return void
  */
-function mpu_add_statistics_prompts(array &$categories, array $wp_info): void
+function mpu_add_statistics_prompts(&$categories, $wp_info, $personality_id = null)
 ```
 
 ---
@@ -1144,13 +1070,13 @@ function mpu_add_statistics_prompts(array &$categories, array $wp_info): void
  * @return array 類別指令陣列
  */
 function mpu_build_prompt_categories(
-    array $wp_info,
-    array $visitor_info,
-    string $time_context,
-    string $theme_name,
-    string $theme_version,
-    string $theme_author
-): array
+    $wp_info,
+    $visitor_info,
+    $time_context,
+    $theme_name,
+    $theme_version,
+    $theme_author
+)
 ```
 
 **返回值結構：**
@@ -1178,10 +1104,11 @@ function mpu_build_prompt_categories(
  * @return array 權重陣列
  */
 function mpu_get_dynamic_category_weights(
-    string $time_context,
-    array $visitor_info,
-    array $context_vars = []
-): array
+    $time_context,
+    $visitor_info,
+    $context_vars = [],
+    $personality_id = null
+)
 ```
 
 **特殊調整邏輯：**
@@ -1198,10 +1125,11 @@ function mpu_get_dynamic_category_weights(
 
 ```php
 /**
- * @param string $decoration_type 裝飾物類型（suitcase, evil_horns, staff, books）
+ * @param string      $decoration_type 裝飾物類型（suitcase, evil_horns, staff, books）
+ * @param string|null $personality_id  人格 ID（可選，預設為當前人格）
  * @return string|false 提示詞，若未找到則返回 false
  */
-function mpu_get_decoration_prompt(string $decoration_type)
+function mpu_get_decoration_prompt($decoration_type, $personality_id = null)
 ```
 
 **支援的裝飾物類型：**
@@ -1217,107 +1145,81 @@ function mpu_get_decoration_prompt(string $decoration_type)
 
 ### 春菜函數 (ukagaka-functions.php)
 
-#### mpu_get_ukagakas()
-
-取得春菜列表 HTML。
-
-```php
-/**
- * @return string HTML 字串
- */
-function mpu_get_ukagakas(): string
-```
-
----
-
 #### mpu_get_shell()
 
-取得春菜圖片 URL。
+取得指定角色的 shell 圖片 URL。
 
 ```php
 /**
- * @param string $key 春菜鍵值
- * @param bool $for_js 是否用於 JavaScript（預設 true）
+ * @param string|false $num   角色鍵值；false 表示使用當前角色
+ * @param bool         $echo  是否直接輸出（預設 false，回傳字串）
  * @return string 圖片 URL
  */
-function mpu_get_shell(string $key, bool $for_js = true): string
+function mpu_get_shell($num = false, $echo = false)
 ```
 
 ---
 
-#### mpu_get_msg_array()
+#### mpu_get_msg_arr()
 
-取得訊息陣列。
+取得指定角色的訊息陣列結構（含 `msgall`、`auto_msg`、`msg` 等鍵）。
 
 ```php
 /**
- * @param array $ukagaka 春菜資料
+ * @param string $num 角色鍵值（如 'default_1'、'frieren'）
  * @return array 訊息陣列
  */
-function mpu_get_msg_array(array $ukagaka): array
+function mpu_get_msg_arr($num)
 ```
 
 ---
 
-#### mpu_process_msg_codes()
+#### mpu_msg_code()
 
-處理訊息中的特殊代碼。
+處理訊息陣列中的特殊代碼（`:recentpost[n]:`、`:commenters[n]:` 等），替換為實際 HTML。
 
 ```php
 /**
- * @param string $msg 原始訊息
- * @return string 處理後的訊息
+ * @param array $msglist 訊息陣列
+ * @return array 處理後的訊息陣列
  */
-function mpu_process_msg_codes(string $msg): string
+function mpu_msg_code($msglist = [])
 ```
 
 ---
 
-#### mpu_load_dialog_file()
+#### mpu_get_msg_from_file()
 
-載入對話檔案。
+載入 `dialogs/` 目錄下的對話檔案（自動判別 `.txt` / `.json` 格式）。
 
 ```php
 /**
- * @param string $filename 檔案名稱（不含副檔名）
- * @param string $format 檔案格式（txt/json）
+ * @param string $filename_base 檔案名稱（不含副檔名）
  * @return array 對話陣列
  */
-function mpu_load_dialog_file(string $filename, string $format): array
+function mpu_get_msg_from_file($filename_base)
 ```
 
 **範例：**
 
 ```php
-$messages = mpu_load_dialog_file('frieren', 'json');
+$messages = mpu_get_msg_from_file('frieren');
 ```
 
 ---
 
 ### 前端函數 (frontend-functions.php)
 
-#### mpu_is_hide()
+#### mpu_html()
 
-檢查是否應隱藏春菜。
-
-```php
-/**
- * @return bool 是否隱藏
- */
-function mpu_is_hide(): bool
-```
-
----
-
-#### mpu_generate_html()
-
-生成春菜 HTML 並輸出。
+生成並輸出春菜 HTML。
 
 ```php
 /**
+ * @param string|false $num 角色鍵值；false 表示使用當前角色
  * @return void
  */
-function mpu_generate_html(): void
+function mpu_html($num = false)
 ```
 
 ---
@@ -1326,76 +1228,29 @@ function mpu_generate_html(): void
 
 #### mpu_generate_dialog_file()
 
-生成對話檔案。
+將訊息陣列寫出為對話檔案（`.txt` 或 `.json`）。
 
 ```php
 /**
- * @param string $key 春菜鍵值
- * @param array $ukagaka 春菜資料
+ * @param string $filename  檔案名稱（不含副檔名）
+ * @param array  $msg_array 訊息陣列
+ * @param string $ext       副檔名（'txt' 或 'json'）
  * @return bool 是否成功
  */
-function mpu_generate_dialog_file(string $key, array $ukagaka): bool
+function mpu_generate_dialog_file($filename, $msg_array, $ext)
 ```
 
 ---
 
 ## WordPress Hooks
 
-### Actions
-
-#### mpu_loaded
-
-外掛模組載入完成後觸發。
-
-```php
-add_action('mpu_loaded', function() {
-    // 外掛已載入
-});
-```
-
----
-
-#### mpu_before_html
-
-春菜 HTML 生成前觸發。
-
-```php
-add_action('mpu_before_html', function() {
-    // 在春菜 HTML 之前輸出內容
-});
-```
-
----
-
-#### mpu_after_html
-
-春菜 HTML 生成後觸發。
-
-```php
-add_action('mpu_after_html', function() {
-    // 在春菜 HTML 之後輸出內容
-});
-```
-
----
-
-#### mpu_settings_saved
-
-設定儲存後觸發。
-
-```php
-add_action('mpu_settings_saved', function($mpu_opt) {
-    // 設定已儲存，$mpu_opt 是新的設定值
-}, 10, 1);
-```
-
----
+> 📌 自 v2.9.2 REST 重構起，已移除所有外掛層級的 `do_action()` hook（`mpu_loaded`、`mpu_before_html`、`mpu_after_html`、`mpu_settings_saved`）以及 `apply_filters()` hook（`mpu_options`、`mpu_messages`、`mpu_ai_response`、`mpu_ukagaka_html`）。目前僅保留與 LLM 提示詞建構相關的 4 個 filter。
 
 ### Filters
 
 #### mpu_llm_system_prompt
 
-過濾 LLM 系統提示詞。
+過濾 LLM 系統提示詞（含人格卡、WordPress 上下文、行為規則等完整 XML 結構化內容）。
 
 ```php
 add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personality_id, $context) {
@@ -1407,10 +1262,14 @@ add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personalit
 
 #### mpu_llm_user_prompt
 
-過濾用戶對話提示詞（在會話指示前注入額外上下文）。
+過濾用戶對話提示詞（在會話指示前注入額外上下文，例如安全警報、活動訊息）。
 
 ```php
 add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
+    $attack_info = get_transient('mpu_llar_attack_info');
+    if ($attack_info) {
+        return $prompt . "\n【安全警報】\n" . $attack_info;
+    }
     return $prompt;
 }, 10, 3);
 ```
@@ -1419,7 +1278,7 @@ add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_
 
 #### mpu_prompt_categories
 
-過濾 Prompt 的對話類別定義。
+過濾 LLM 自動對話的類別定義（問候、閒聊、時間感知、統計觀察等 35+ 類別）。
 
 ```php
 add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_info, $time_context) {
@@ -1431,528 +1290,137 @@ add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_inf
 
 #### mpu_category_weights
 
-過濾對話類別的隨機權重配置。
+過濾對話類別的加權隨機權重配置。權重數值越高越容易被選中；預設為 5。
 
 ```php
 add_filter('mpu_category_weights', function($weights, $time_context, $visitor_info, $context_vars) {
+    // 深夜時提升沉思類對話機率
+    if ($time_context === '深夜') {
+        $weights['philosophical'] = 15;
+    }
     return $weights;
 }, 10, 4);
 ```
 
 ---
 
-#### mpu_options
+## REST 端點
 
-過濾設定值。
+> 💡 **v2.9.2 起**：外掛的端點架構全面從 AJAX 遷移到 REST API，並統一套用速率限制與錯誤處理。前端呼叫時需帶 `X-WP-Nonce`（由 `wp_localize_script` 透過 `mpuRestNonce` 提供）。
 
-```php
-add_filter('mpu_options', function($mpu_opt) {
-    // 修改設定值
-    $mpu_opt['auto_talk_interval'] = 10;
-    return $mpu_opt;
-});
+### 基礎資訊
+
+- **Namespace**：`/wp-json/mp-ukagaka/v1`
+- **權限**：多數端點公開（`__return_true`），僅測試/快取管理端點限管理員。
+- **速率限制**：每端點獨立計數，超限時回傳 HTTP 429。
+- **回應格式**：除 `/chat/user-stream`（SSE）外，一律為 JSON；結構為 `{ success, data, ... }` 或 `WP_Error`。
+
+### 角色 / 設定類
+
+| 端點 | 方法 | 權限 | 參數（全部為可選） | Rate Limit | 說明 |
+| --- | --- | --- | --- | --- | --- |
+| `/init` | GET | 公開 | `ukagaka_num` | 30/60s | 一次取得 shell、裝飾、表情、touchzone 與 settings 的統一初始化端點 |
+| `/settings` | GET | 公開 | — | 30/60s | 取得前端使用的設定物件（`auto_talk`、`typewriter_speed`、`ai_*` 等） |
+| `/change` | POST | 公開 | `mpu_num` | 10/60s | 無參數時回傳可切換的春菜列表；有參數時切換角色（同時 Set-Cookie） |
+| `/shell-info` | GET / POST | 公開 | `ukagaka_num` | 30/60s | 取得指定角色的外觀資訊 |
+| `/decoration-config` | GET / POST | 公開 | — | 30/60s | 取得裝飾物基礎 URL、設定、touchzone、可見旗標 |
+| `/emoji-config` | GET / POST | 公開 | — | 30/60s | 取得表情符號基礎 URL、支援清單與關鍵字對應 |
+| `/extend` | GET / POST | 公開 | — | 10/60s | 角色擴充標籤位置（保留端點） |
+
+### 對話類
+
+| 端點 | 方法 | 權限 | 參數 | Rate Limit | 說明 |
+| --- | --- | --- | --- | --- | --- |
+| `/nextmsg` | POST | 公開 | `cur_num`, `cur_msgnum`, `last_response`, `response_history`, `last_visit_hours`, `session_id`, `history` | 20/60s | 自動對話輪播：LLM 取代模式會呼叫 AI 生成，否則從內建對話抽取 |
+| `/dialog` | GET / POST | 公開 | `file`（必填） | 30/60s | 讀取 `dialogs/` 下的對話檔；回傳 `{msgall, auto_msg, msg, next_msg, default_msg}` |
+| `/visitor-info` | GET | 公開 | — | 30/60s | 回傳 referrer、search engine、Slimstat 國家／城市等訪客資訊 |
+| `/decoration-prompts` | GET / POST | 公開 | `decoration_type` | 20/60s | 取得裝飾物點擊對話的提示詞 |
+| `/wake-ghost` | POST | 公開 | `personality_id` 或 `ukagaka_num`（至少一個） | 10/60s | 暫時喚醒處於睡眠模式的角色；WP_Error codes：`rest_wake_ghost_missing_param`、`rest_wake_ghost_unavailable` |
+
+### AI 對話類（Chat）
+
+| 端點 | 方法 | 權限 | 參數 | Rate Limit | 說明 |
+| --- | --- | --- | --- | --- | --- |
+| `/chat/context` | POST | 公開 | `page_title`, `page_content`, `publish_date`, `session_id`, `history` | 5/60s | 頁面感知對話，依當前文章內容觸發 AI 評論；最大 500 字 |
+| `/chat/greet` | POST | 公開 | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `session_id`, `history` | 10/60s | 首訪訪客打招呼，根據來源國家／搜尋引擎客製 |
+| `/chat/user` | POST | 公開 | `message`（必填）、`history`, `page_title`, `page_content`, `session_id` | 30/60s | 多輪互動對話（非串流），支援 MCP Tool/Abilities 呼叫；回傳 `{msg, emoji}` |
+| `/chat/user-stream` | POST | 公開 | 同 `/chat/user` | 30/60s | SSE 串流版本，Provider 支援時逐字輸出 |
+
+### 觸摸互動類
+
+| 端點 | 方法 | 權限 | 參數 | Rate Limit | 說明 |
+| --- | --- | --- | --- | --- | --- |
+| `/touch/decoration` | POST | 公開 | `decoration_type`（必填） | 20/60s | 點擊裝飾物時觸發的 AI 反應；回傳 `{msg, emoji}` |
+| `/touch/zone` | POST | 公開 | `touch_zone`（必填） | 20/60s | 點擊角色身體區塊的撫摸反應；回傳 `{msg, emoji, zone}` |
+
+### 後台測試與管理類（限管理員）
+
+| 端點 | 方法 | 權限 | 參數 | Rate Limit | 說明 |
+| --- | --- | --- | --- | --- | --- |
+| `/test-connection/{provider}` | POST | 管理員 | `provider`（路徑參數：gemini／openai／claude／ollama／weather）、`api_key`, `model`, `endpoint`；weather 另接 `latitude`, `longitude` | 10/60s | 統一的 Provider 連線測試端點 |
+| `/clear-cache` | POST | 管理員 | — | 10/60s | 清除 LLM API 回應快取 |
+
+---
+
+### `/chat/user-stream` SSE 事件格式
+
+v2.12.x 起，互動對話支援 Server-Sent Events。串流以固定順序發送事件，使用 `text/event-stream` 格式：
+
+| 事件 | 發送時機 | data 內容 |
+| --- | --- | --- |
+| `start` | 串流啟動 | `{"provider": "gemini", "model": "gemini-2.5-flash"}` |
+| `nonce` | `start` 之後立即發送 | `{"new_token": "<nonce>", "new_nonce": "<nonce>"}` — 提供下一次請求用的新 nonce |
+| `delta` | AI 逐字產生時（多次觸發） | `{"text": "是"}` — 單個 token／片段 |
+| `done` | 串流結束 | `{"msg": "完整訊息", "emoji": "smile"}` — 經長度截斷與 emoji 分析後的最終結果 |
+| `error` | Provider 不支援串流、或中途發生錯誤 | `{"message": "<error_message>"}` |
+
+**原始串流範例**：
+
+```
+event: start
+data: {"provider":"gemini","model":"gemini-2.5-flash"}
+
+event: nonce
+data: {"new_token":"a1b2c3","new_nonce":"a1b2c3"}
+
+event: delta
+data: {"text":"今日"}
+
+event: delta
+data: {"text":"はいい天気"}
+
+event: delta
+data: {"text":"ですね。"}
+
+event: done
+data: {"msg":"今日はいい天気ですね。","emoji":"happy"}
 ```
 
 ---
 
-#### mpu_messages
+### 仍保留的 AJAX 端點
 
-過濾訊息陣列。
+少數非對話類動作仍以 `admin-ajax.php` 執行，主要屬於內部整合：
 
-```php
-add_filter('mpu_messages', function($messages, $ukagaka_key) {
-    // 為特定春菜添加額外訊息
-    if ($ukagaka_key === 'frieren') {
-        $messages[] = '魔法是需要時間研究的。';
-    }
-    return $messages;
-}, 10, 2);
-```
+| Action | Handler | 說明 |
+| --- | --- | --- |
+| `wp_ajax_mpu_test_diary_generate` | `mpu_ajax_test_diary_generate` | 後台手動觸發日記生成測試（限管理員） |
+| `wp_ajax_nopriv_slimtrack` / `wp_ajax_slimtrack` | `mpu_bb_intercept_slimstat` | Bot Blocker 攔截 Slimstat 追蹤（priority 0） |
+| `wp_ajax_nopriv_mbb_js_flag` / `wp_ajax_mbb_js_flag` | `mpu_bb_js_flag_handler` | Bot Blocker 的 JS 執行旗標偵測 |
 
----
-
-#### mpu_ai_response
-
-過濾 AI 回應。
-
-```php
-add_filter('mpu_ai_response', function($response, $prompt) {
-    // 修改 AI 回應
-    return $response . ' ✨';
-}, 10, 2);
-```
-
----
-
-#### mpu_ukagaka_html
-
-過濾春菜 HTML。
-
-```php
-add_filter('mpu_ukagaka_html', function($html) {
-    // 修改 HTML
-    return $html;
-});
-```
-
----
-
-## AJAX 端點
-
-### mpu_nextmsg
-
-取得下一條訊息。
-
-**Action:** `mpu_nextmsg`
-
-**請求參數：**
-
-| 參數      | 類型   | 說明               |
-| --------- | ------ | ------------------ |
-| `ukagaka` | string | 春菜鍵值           |
-| `current` | int    | 目前訊息索引       |
-| `mode`    | string | `next` 或 `random` |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "msg": "對話內容",
-    "index": 1
-  }
-}
-```
-
----
-
-### mpu_change
-
-切換春菜。
-
-**Action:** `mpu_change`
-
-**請求參數：**
-
-| 參數      | 類型   | 說明         |
-| --------- | ------ | ------------ |
-| `ukagaka` | string | 目標春菜鍵值 |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "name": "芙莉蓮",
-    "shell": "https://.../frieren.png",
-    "messages": ["對話1", "對話2"]
-  }
-}
-```
-
----
-
-### mpu_get_settings
-
-取得前端設定。
-
-**Action:** `mpu_get_settings`
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "autoTalk": true,
-    "autoTalkInterval": 8000,
-    "typewriterSpeed": 40,
-    "clickBehavior": 0
-  }
-}
-```
-
----
-
-### mpu_test_ollama_connection
-
-測試 Ollama 連接。
-
-**Action:** `mpu_test_ollama_connection`
-
-**請求參數：**
-
-| 參數       | 類型   | 說明            |
-| ---------- | ------ | --------------- |
-| `endpoint` | string | Ollama 端點 URL |
-| `model`    | string | 模型名稱        |
-| `nonce`    | string | WordPress nonce |
-
-**請求範例：**
-
-```javascript
-{
-    action: 'mpu_test_ollama_connection',
-    endpoint: 'https://your-domain.com',
-    model: 'qwen3:8b',
-    nonce: '...'
-}
-```
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": "連接成功（遠程連接），模型響應正常（預覽：Hello...）"
-}
-```
-
-**失敗回應：**
-
-```json
-{
-  "success": false,
-  "data": "連接失敗：無法連接到遠程 Ollama 服務..."
-}
-```
-
----
-
-### mpu_test_gemini_connection
-
-測試 Google Gemini API 連接。
-
-**Action:** `mpu_test_gemini_connection`
-
-**請求參數：**
-
-| 參數      | 類型   | 說明                                           |
-| --------- | ------ | ---------------------------------------------- |
-| `api_key` | string | Gemini API Key（可選，如未提供則從設定中讀取） |
-| `model`   | string | 模型名稱（可選，如未提供則從設定中讀取）       |
-| `nonce`   | string | WordPress nonce                                |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": "連接成功，API Key 有效"
-}
-```
-
-**失敗回應：**
-
-```json
-{
-  "success": false,
-  "data": "連接失敗：API Key 無效或網路錯誤"
-}
-```
-
----
-
-### mpu_test_openai_connection
-
-測試 OpenAI API 連接。
-
-**Action:** `mpu_test_openai_connection`
-
-**請求參數：**
-
-| 參數      | 類型   | 說明                                           |
-| --------- | ------ | ---------------------------------------------- |
-| `api_key` | string | OpenAI API Key（可選，如未提供則從設定中讀取） |
-| `model`   | string | 模型名稱（可選，如未提供則從設定中讀取）       |
-| `nonce`   | string | WordPress nonce                                |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": "連接成功，API Key 有效"
-}
-```
-
-**失敗回應：**
-
-```json
-{
-  "success": false,
-  "data": "連接失敗：API Key 無效或網路錯誤"
-}
-```
-
----
-
-### mpu_test_claude_connection
-
-測試 Claude (Anthropic) API 連接。
-
-**Action:** `mpu_test_claude_connection`
-
-**請求參數：**
-
-| 參數      | 類型   | 說明                                           |
-| --------- | ------ | ---------------------------------------------- |
-| `api_key` | string | Claude API Key（可選，如未提供則從設定中讀取） |
-| `model`   | string | 模型名稱（可選，如未提供則從設定中讀取）       |
-| `nonce`   | string | WordPress nonce                                |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": "連接成功，API Key 有效"
-}
-```
-
-**失敗回應：**
-
-```json
-{
-  "success": false,
-  "data": "連接失敗：API Key 無效或網路錯誤"
-}
-```
-
----
-
-### mpu_load_dialog
-
-載入外部對話檔案。
-
-**Action:** `mpu_load_dialog`
-
-**請求參數：**
-
-| 參數       | 類型   | 說明            |
-| ---------- | ------ | --------------- |
-| `filename` | string | 檔案名稱        |
-| `format`   | string | `txt` 或 `json` |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "messages": ["對話1", "對話2", "對話3"]
-  }
-}
-```
-
----
-
-### mpu_chat_context
-
-AI 頁面感知對話。
-
-**Action:** `mpu_chat_context`
-
-**請求參數：**
-
-| 參數      | 類型   | 說明       |
-| --------- | ------ | ---------- |
-| `title`   | string | 文章標題   |
-| `content` | string | 文章內容   |
-| `nonce`   | string | 安全驗證碼 |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "AI 生成的評論"
-  }
-}
-```
-
----
-
-### mpu_get_visitor_info
-
-取得訪客資訊（需要 Slimstat）。
-
-**Action:** `mpu_get_visitor_info`
-
-**請求參數：**
-
-| 參數    | 類型   | 說明       |
-| ------- | ------ | ---------- |
-| `nonce` | string | 安全驗證碼 |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "country": "TW",
-    "city": "Taipei",
-    "referer": "https://google.com",
-    "searchterms": "搜尋關鍵字",
-    "browser": "Chrome",
-    "platform": "Windows"
-  }
-}
-```
-
----
-
-### mpu_chat_greet
-
-AI 首次訪客打招呼。
-
-**Action:** `mpu_chat_greet`
-
-**請求參數：**
-
-| 參數           | 類型   | 說明       |
-| -------------- | ------ | ---------- |
-| `visitor_info` | object | 訪客資訊   |
-| `nonce`        | string | 安全驗證碼 |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "歡迎來自台灣的朋友！"
-  }
-}
-```
-
----
-
-### mpu_user_chat (v2.3.0)
-
-用戶互動對話請求。處理互動對話模式中的用戶輸入。
-
-**Action:** `mpu_user_chat`
-
-**請求參數：**
-
-| 參數      | 類型   | 說明           |
-| --------- | ------ | -------------- |
-| `message` | string | 用戶輸入的訊息 |
-| `history` | array  | 對話歷史陣列   |
-| `nonce`   | string | 安全驗證碼     |
-
-**對話歷史格式：**
-
-```json
-[
-  { "role": "user", "content": "你好" },
-  { "role": "assistant", "content": "你好！有什麼想聊的嗎？" }
-]
-```
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "AI 生成的回應"
-  }
-}
-```
-
----
-
-### mpu_decoration_chat (v2.3.0)
-
-裝飾物點擊對話請求。當用戶點擊角色的裝飾物時生成相關對話。
-
-**Action:** `mpu_decoration_chat`
-
-**請求參數：**
-
-| 參數              | 類型   | 說明                                             |
-| ----------------- | ------ | ------------------------------------------------ |
-| `decoration_type` | string | 裝飾物類型（suitcase, evil_horns, staff, books） |
-| `nonce`           | string | 安全驗證碼                                       |
-
-**成功回應：**
-
-```json
-{
-  "success": true,
-  "data": {
-    "message": "關於這個行李箱...裡面裝的都是收集的魔法。"
-  }
-}
-```
-
----
-
-### mpu_touch_zone_chat (v2.3.0)
-
-角色點擊撫摸區塊請求。產生撫摸反應對話。
-
-**Action:** `mpu_touch_zone_chat`
-
----
-
-### mpu_check_spam_event
-
-Akismet 阻擋垃圾留言事件通知。
-
-**Action:** `mpu_check_spam_event`
-
----
-
-### mpu_wake_ghost
-
-手動喚醒春菜。
-
-**Action:** `mpu_wake_ghost`
-
----
-
-### mpu_init
-
-前端春菜初始化所需資源。
-
-**Action:** `mpu_init`
-
----
-
-### mpu_clear_api_cache (Admin)
-
-清空 LLM API 快取。
-
-**Action:** `mpu_clear_api_cache`
-
----
-
-### mpu_test_weather_api (Admin)
-
-測試天氣 API 連線。
-
-**Action:** `mpu_test_weather_api`
-
----
+> 📌 舊版（v2.9.x 以前）的 `mpu_nextmsg`、`mpu_change`、`mpu_chat_*`、`mpu_test_*_connection`、`mpu_load_dialog`、`mpu_get_visitor_info`、`mpu_wake_ghost`、`mpu_init`、`mpu_get_settings`、`mpu_clear_api_cache`、`mpu_check_spam_event` 等 AJAX action 皆已移除，請改用上表對應的 REST 端點。
 
 ## JavaScript 函數
 
 ### 核心函數
 
-#### mpu_nextmsg(mode)
+#### mpu_nextmsg(trigger)
 
 顯示下一條訊息。
 
 ```javascript
 /**
- * @param {string} mode - 'next' 順序 / 'random' 隨機 / '' 使用設定值
+ * @param {string} trigger - 'next' 順序 / 'random' 隨機 / '' 使用設定值
  */
 mpu_nextmsg("next");
 ```
@@ -1979,107 +1447,79 @@ mpu_showmsg();
 
 ---
 
-#### mpu_hideukagaka()
+#### mpu_hiderobot()
 
 隱藏春菜。
 
 ```javascript
-mpu_hideukagaka();
+mpu_hiderobot();
 ```
 
 ---
 
-#### mpu_showukagaka()
+#### mpu_showrobot()
 
 顯示春菜。
 
 ```javascript
-mpu_showukagaka();
+mpu_showrobot();
 ```
 
 ---
 
-#### mpuChange()
+#### mpuChange(num)
 
-開啟春菜切換選單。
-
-```javascript
-mpuChange();
-```
-
----
-
-#### mpu_showMessage(message, options)
-
-顯示指定訊息（帶打字效果）。
+開啟春菜切換選單，或在帶參數時直接切換到指定角色。
 
 ```javascript
 /**
- * @param {string} message - 訊息內容
- * @param {object} options - 選項
- * @param {string} options.color - 文字顏色
- * @param {boolean} options.typewriter - 是否使用打字效果
+ * @param {string} [num] - 目標角色鍵值；省略則開啟選單
  */
-mpu_showMessage("歡迎光臨！", {
-  color: "#ff6b6b",
-  typewriter: true,
-});
+mpuChange();            // 開啟選單
+mpuChange("default_2"); // 直接切換
 ```
 
 ---
 
-### AI 功能函數
+### 全域變數
 
-#### mpu_triggerAIContext()
+前端載入時，透過 `wp_localize_script` 與 `/init` 端點回傳的資料，會寫入以下 `window` 全域：
 
-觸發 AI 頁面感知。
+| 變數 | 來源 | 說明 |
+| --- | --- | --- |
+| `window.mpuRestUrl` | `wp_localize_script` | REST 基礎 URL（例：`/wp-json/mp-ukagaka/v1/`） |
+| `window.mpuRestNonce` | `wp_localize_script` | REST 請求用的 `X-WP-Nonce` |
+| `window.mpuL10n` | `wp_localize_script` | 前端顯示用的翻譯字串集 |
+| `window.mpuSettings` | `/init` 回傳 | 角色行為設定物件（見下方） |
+| `window.mpuInitData` | `/init` 回傳 | 完整 init 回應原物件 |
+| `window.mpuPersonalityId` | `/init` 回傳 | 當前人格 ID |
+| `window.mpuCanvasManager` | `ukagaka-anime.js` | Canvas 動畫管理器 |
+| `window.mpuChatHistory` | `ukagaka-chat.js` | 多輪對話歷史陣列（最多 40 筆） |
+| `window.mpuChatModeActive` | `ukagaka-chat.js` | 互動對話模式旗標 |
+| `window.mpuDecorationsBaseUrl` / `mpuDecorationConfig` / `mpuTouchZones` / `mpuShowDecorations` | `/init` 回傳 | 裝飾物與 touchzone 相關資訊 |
+| `window.mpuEmojiBaseUrl` / `mpuSupportedEmojis` / `mpuEmojiMappings` | `/init` 回傳 | 表情符號系統相關資料 |
 
-```javascript
-mpu_triggerAIContext();
-```
+#### window.mpuSettings
 
----
-
-#### mpu_triggerAIGreeting()
-
-觸發 AI 首次訪客打招呼。
-
-```javascript
-mpu_triggerAIGreeting();
-```
-
----
-
-#### mpu_pauseAutoTalk(duration)
-
-暫停自動對話。
-
-```javascript
-/**
- * @param {number} duration - 暫停時間（毫秒）
- */
-mpu_pauseAutoTalk(10000); // 暫停 10 秒
-```
-
----
-
-### 全域設定物件
+由 `/wp-json/mp-ukagaka/v1/init` 回傳的 `settings` 區塊填入：
 
 ```javascript
 window.mpuSettings = {
-  ajaxUrl: "/wp-admin/admin-ajax.php",
-  nonce: "xxx",
-  autoTalk: true,
-  autoTalkInterval: 8000, // 毫秒
-  typewriterSpeed: 40, // 毫秒/字
-  clickBehavior: 0, // 0=下一條, 1=無操作
-  nextMode: 0, // 0=順序, 1=隨機
-  aiEnabled: true,
-  aiTextColor: "#ff6b6b",
-  aiDisplayDuration: 8000, // 毫秒
-  aiGreetEnabled: true,
-  useExternalFile: false,
-  externalFileFormat: "txt",
+  auto_talk: true,
+  auto_talk_interval: 8,            // 秒
+  typewriter_speed: 40,             // 毫秒／字
+  ai_enabled: true,
+  ai_probability: 10,               // 0-100，AI 觸發機率
+  ai_trigger_pages: "is_single",    // 頁面類型條件
+  ai_text_color: "#000000",
+  ai_display_duration: 8,           // 秒
+  ai_greet_first_visit: true,
+  ollama_replace_dialogue: false,   // 是否以 LLM 取代內建對話
+  enable_chat_mode: false,          // 是否啟用互動對話模式
+  sleep_mode: {
+    enabled: false,
+    frequency_multiplier: 1.0
+  }
 };
 ```
 
@@ -2087,11 +1527,11 @@ window.mpuSettings = {
 
 ## 特殊代碼
 
-在對話內容中可使用以下特殊代碼：
+在對話內容中可使用以下特殊代碼，由 `mpu_msg_code()` 於伺服器端處理後再送到前端。支援兩種格式：`:code[n]:` 或 `(:code[n]:)`（括號內含）。
 
-### :recentpost[n]:
+### :recentpost[n]: / :recentposts[n]:
 
-顯示最近 n 篇文章列表。
+顯示最近 n 篇文章列表。單數形為逐行列出，複數形（`recentposts`）為以 `<br>` 串接。
 
 ```
 最近的文章：:recentpost[5]:
@@ -2099,9 +1539,9 @@ window.mpuSettings = {
 
 ---
 
-### :randompost[n]:
+### :randompost[n]: / :randomposts[n]:
 
-顯示隨機 n 篇文章列表。
+顯示隨機 n 篇文章列表。單數形為逐行列出，複數形為以 `<br>` 串接。
 
 ```
 推薦閱讀：:randompost[3]:
@@ -2111,7 +1551,7 @@ window.mpuSettings = {
 
 ### :commenters[n]:
 
-顯示最近 n 位留言者。
+顯示最近 n 位不重複留言者（以頓號分隔）。
 
 ```
 感謝留言：:commenters[5]:
@@ -2119,38 +1559,8 @@ window.mpuSettings = {
 
 ---
 
-### 📅
-
-顯示今天日期。
-
-```
-今天是 :date:
-```
+**📌 注意：** 以上為 `mpu_msg_code()` 實際支援的全部代碼。舊版文件中提到的 `:date:`、`:time:`、`:sitename:` **目前並未實作**；若需要這類變數替換，請改用 `mpu_render_prompt_template()` 處理 `{{variable}}` 佔位符。
 
 ---
 
-### :time:
-
-顯示目前時間。
-
-```
-現在時間是 :time:
-```
-
----
-
-### :sitename:
-
-顯示網站名稱。
-
-```
-歡迎來到 :sitename:！
-```
-
----
-
-**📌 注意：** 特殊代碼會在伺服器端處理，轉換為實際內容後再傳送到前端。
-
----
-
-**文檔版本：2.5.6**
+**文檔版本：2.13.3**
