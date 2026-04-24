@@ -1,35 +1,43 @@
 # WordPress Abilities API 整合說明
 
-**MP Ukagaka** 利用 WordPress 6.9+ 核心內建的 **Abilities API**，賦予您的 AI 角色 (Ukagaka) 直接與 WordPress 網站互動的能力。
+**MP Ukagaka** 透過 **Abilities API**，賦予您的 AI 角色 (Ukagaka) 直接與 WordPress 網站互動的能力。
 
 這項功能允許 AI 角色使用已註冊的「能力 (Abilities)」，例如查詢網站資訊、管理文章、或執行其他 WordPress 功能，從而從單純的聊天機器人進化為網站管理助理。
 
 ## 什麼是 Abilities API？
 
-**Abilities API** 是 WordPress 6.9（發布於 2025 年 12 月 2 日）引入的核心功能。它提供了一個標準化的方式來註冊和發現 WordPress 的功能（Abilities）。
+**Abilities API** 提供了一個標準化的方式來註冊、發現與執行 WordPress 能力（Abilities）。
 
-- **過去 (WP < 6.9)**: 需要依賴 **MCP Adapter** 外掛來提供註冊表功能。
-- **現在 (WP >= 6.9)**: 註冊表已成為 WordPress 核心的一部分。
+對 MP Ukagaka 而言，這代表角色可以把 WordPress 端已註冊的能力轉成 LLM 可調用的 tools，讓角色在適當情境下查詢網站資訊或觸發受控操作。
 
-因此，只要您的 WordPress 版本為 6.9 以上，**不需要安裝任何額外外掛**，MP Ukagaka 就能直接使用這些功能。
+## Abilities API 與 MCP 命名的關係
 
-## 為什麼不需要 MCP Adapter？
+目前插件**對外概念上**已以 Abilities API 為主，但**內部實作命名**仍保留一部分 MCP 字樣，這是為了向後相容與降低重構風險。
 
-因為 `mp-ukagaka` 呼叫了核心函式 `wp_register_ability()`，直接將能力（如「讀取熱門文章」）註冊到了 WordPress 核心。
+例如：
 
-AI 的邏輯會直接從這個核心註冊表讀取能力，並將其作為 Tools 傳給 Gemini/Claude/OpenAI/Ollama。「註冊」和「發現」的機制已經內建了，因此不再需要 MCP Adapter 作為中間人。
+- 整合檔案仍為 `includes/integrations/abilities-integration.php`
+- 內部函式名稱仍為 `mpu_get_mcp_tools_for_llm()`、`mpu_execute_mcp_tool()`
+- 內部目錄仍使用 `includes/mcp-tools/`
 
-- **內部使用 (Internal Agent)**: 給偽春菜使用 → **不需要 MCP Adapter** (直接存取核心 API)。
-- **外部使用 (External Agent)**: 給 Cursor 或 Claude Desktop 使用 → **可能需要 MCP Adapter** (將核心能力轉為 MCP 協議暴露給外部)。
+這不表示插件仍依賴舊式 MCP Adapter，而是表示：
+
+- **對內**：沿用既有 MCP 命名作為實作層過渡
+- **對外**：以 WordPress Abilities API 作為註冊與發現能力的正式介面
+
+如果您是讓 MP Ukagaka 在站內直接使用這些能力，應以 **Abilities API** 為準。
+如果您要把站內能力再暴露給站外 agent（例如其他支援 MCP 的工具），那才可能需要額外的轉接層。
 
 ## 支援的模型
 
-目前本插件支援以下 AI 模型的工具調用 (Tool Calling)：
+目前本插件支援多個具備 Tool Calling 能力的 provider，包含：
 
-- **Google Gemini**: Gemini 2.0 Flash (推薦), Gemini 1.5 Pro 等。
-- **Anthropic Claude**: Claude 3.5 Sonnet 等。
-- **OpenAI**: GPT-4o, GPT-4o-mini 等。
-- **Ollama**: Qwen 2.5, Llama 3.1 等支援 Tool Calling 的模型。
+- **Google Gemini**
+- **Anthropic Claude**
+- **OpenAI**
+- **Ollama**
+
+實際可用模型仍以插件當前設定與對應 provider 實作為準。
 
 ## 權限與安全
 
@@ -37,7 +45,7 @@ AI 的邏輯會直接從這個核心註冊表讀取能力，並將其作為 Tool
 
 ![權限攔截示意圖](../screenshot6.PNG)
 
-_權限控制：非管理員角色觸發 MCP 指令時的系統反應_
+_權限控制：非管理員角色觸發工具呼叫時的系統反應_
 
 ## 如何新增能力 (開發者指南)
 
@@ -90,8 +98,8 @@ includes/mcp-tools/
 **執行流程：**
 
 1. `manager.php` → `register_abilities()` → 在 `wp_abilities_api_init` 時呼叫您的 `YourClass::register()`。
-2. `abilities-integration.php` → `mpu_get_mcp_tools_for_llm()` → 根據不同 LLM 格式化工具 Schema。
-3. LLM 請求調用工具 → `mpu_execute_mcp_tool()` → `$ability->execute($args)` → 呼叫您定義的 Callback。
+2. `abilities-integration.php` → `mpu_get_mcp_tools_for_llm()` → 根據不同 LLM provider 格式化工具 Schema。
+3. LLM 請求調用工具 → `mpu_execute_mcp_tool()` → `$ability->execute($args)` → 呼叫您定義的 callback。
 
 **管理員權限限制：** 工具的定義**不會**發送給非管理員訪客。只有 `current_user_can('manage_options')` 的使用者能觸發工具呼叫。此限制在整合層強制執行，而非能力本身。
 

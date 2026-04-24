@@ -1,49 +1,49 @@
-# Canvas Animation & CSS Customization Guide
+# Canvas Animation Features and CSS Customization Guide
 
-> 🎨 Explains how to implement MP Ukagaka's Canvas animation features and how to adjust Ukagaka positioning via CSS
+> 🎨 Explains how the MP Ukagaka Canvas animation feature is implemented, and how to use CSS to adjust the character's position.
 
 ---
 
 ## 📑 Table of Contents
 
-1. [Canvas Animation Features Introduction](#canvas-animation-features-introduction)
-2. [Animation Setup](#animation-setup)
-3. [Frieren's Exclusive Decorations System](#frierens-exclusive-decorations-system)
+1. [Introduction to Canvas Animation](#introduction-to-canvas-animation)
+2. [Animation Configuration](#animation-configuration)
+3. [Frieren's Exclusive Decoration System](#frierens-exclusive-decoration-system)
 4. [Technical Implementation Details](#technical-implementation-details)
-5. [CSS Position Adjustment](#css-position-adjustment)
-6. [FAQ](#faq)
+5. [CSS Position Adjustments](#css-position-adjustments)
+6. [Frequently Asked Questions](#frequently-asked-questions)
 
 ---
 
-## Canvas Animation Features Introduction
+## Introduction to Canvas Animation
 
-Starting from version 2.1.6, MP Ukagaka supports Canvas animation features, replacing the original static `<img>` tag. This feature allows:
+Starting from version 2.1.6, MP Ukagaka supports Canvas animations, replacing the original static `<img>` tags. This feature can:
 
-- ✅ **Support for Single Static Image**: Backward compatible with original single image settings.
-- ✅ **Support for Multi-Image Animation**: Automatically detects folders and plays frame animation.
-- ✅ **Play Only When Speaking**: Saves resources and improves performance.
-- ✅ **Auto Load Image Sequence**: No need to manually specify image order.
+- ✅ **Support single static images**: Backward compatible with the original single image settings.
+- ✅ **Support multi-image animation**: Automatically detects folders and plays frame animations.
+- ✅ **Play only when speaking**: Saves resources and improves performance.
+- ✅ **Automatically load image sequences**: No need to manually specify the image order.
 
 ### Animation Characteristics
 
-- **Frame Interval**: 100 ms/frame (Fixed).
-- **Playback Timing**: Plays only when the character is speaking.
-- **Supported Formats**: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`.
-- **Image Sorting**: Uses natural sort to ensure correct order.
+- **Frame Interval**: 180 milliseconds/frame (fixed)
+- **Playback Timing**: Plays only when the character is speaking
+- **Supported Formats**: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`
+- **Image Sorting**: Uses natural sort to ensure the correct order
 
 ---
 
-## Animation Setup
+## Animation Configuration
 
 ### Single Image Mode
 
-In the backend Ukagaka settings, enter the **image file path** in the `shell` field:
+When setting up the character in the admin panel, enter the **image file path** in the `shell` field:
 
 ```
 images/shell/character.png
 ```
 
-Or relative to the WordPress upload directory:
+Or relative to the WordPress uploads directory:
 
 ```
 2024/12/character.png
@@ -51,45 +51,47 @@ Or relative to the WordPress upload directory:
 
 ### Multi-Image Animation Mode
 
-In the backend Ukagaka settings, enter the **folder path** in the `shell` field:
+When setting up the character in the admin panel, enter the **folder path** in the `shell` field:
 
 ```
 images/shell/Frieren/
 ```
 
 The system will automatically:
-
-1. Detect if the path is a directory.
-2. Scan all supported image files in the directory.
-3. Sort by filename naturally (e.g., `frame1.png`, `frame2.png`, ..., `frame12.png`).
-4. Load all images and prepare for animation playback.
+1. Check if the path is a folder.
+2. Scan all supported image files in the folder.
+3. Sort the files using natural sort (e.g., `frame1.png`, `frame2.png`, ..., `frame12.png`).
+4. Load all images and prepare the animation for playback.
 
 **Notes:**
-
-- Folder path must end with `/`.
+- The folder path must end with a `/`.
 - Supported image formats: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`.
-- Image filenames are recommended to use numeric sequences for correct sorting.
+- It is recommended to use numeric sequence names for images to ensure correct sorting.
 
 ---
 
-## Frieren's Exclusive Decorations System
+## Frieren's Exclusive Decoration System
 
-> 🎨 **v2.2.1+ New Feature**: Default character Frieren (`default_1`) has an exclusive decorations system
+> 🎨 Frieren's (`default_1`) decorations are now driven by `ghost/Frieren/decorations.json`, replacing the hard-coded trio from earlier versions.
 
-### Decorations Overview
+### Decoration Overview
 
-Frieren character automatically loads three exclusive decorations (アクセサリー) without manual configuration:
+The Frieren character will automatically load decorations based on `ghost/Frieren/decorations.json`:
 
-| Decoration | Filename | Position | Z-Index | Purpose |
+| Decoration | File Name | Position | Z-Index | Purpose |
 |------|---------|------|-----|------|
-| Suitcase | `suitcase.png` | Right front | `z-index: 10` | Frieren's travel suitcase |
-| Giant Skull | `evil_horns.png` | Left back | `z-index: -1` | Don't know what it's useful for |
-| Magic Book | `magic_book.png` | Right back top | `z-index: -1` | Frieren's spellbook |
-| Magic Staff | `magic_staff.png` | Right back bottom | `z-index: -1` | Frieren's magic staff |
+| Suitcase | `suitcase.png` | Front Right | `z-index: 10` | Frieren's travel suitcase |
+| Evil Horns | `evil_horns.png` | Back Left | `z-index: -1` | Unknown purpose |
+| Dark Dragon Horn | `dark_dragon_horn.png` | Front Left | Per JSON | Frieren's collected materials |
+| Books | `books.png` | Back Right | Per JSON | Frieren's stack of magic books |
+| Staff | `staff.png` | Back Right | Per JSON | Frieren's common staff |
+| Potion | `potion.png` | Right Side | Per JSON | Special interaction item |
 
-> 🖌️ **Interactive Feature**: Click on any decoration and Frieren will introduce the item!
+> 🖌️ **Interactive Features**: Click on any decoration, and Frieren will introduce the item!
 
-### Decoration Position & Size
+### Decoration Positions and Sizes
+
+The following values are just examples from the current `ghost/Frieren/decorations.json`. The actual configuration should refer to the JSON file.
 
 #### 1. Suitcase
 
@@ -97,73 +99,90 @@ Frieren character automatically loads three exclusive decorations (アクセサ�
 {
     type: 'suitcase',
     src: decorationsBaseUrl + 'suitcase.png',
-    top: '82%',        // Vertical position: 82% from top
-    right: '-62px',    // Horizontal position: 62px to the right outside
+    top: '82%',        // Vertical position: 82% from the top
+    right: '-62px',    // Horizontal position: 62px to the outside right
     width: '90px',     // Width
-    height: 'auto',    // Height auto
+    height: 'auto',    // Height automatic
     transform: 'translateY(-50%)', // Vertical center
-    zIndex: 10         // In front of character image
+    zIndex: 10         // In front of the character image
 }
 ```
 
-#### 2. Giant Skull
+#### 2. Evil Horns
 
 ```javascript
 {
     type: 'evil_horns',
     src: decorationsBaseUrl + 'evil_horns.png',
-    top: '42%',        // Vertical position: 42% from top
-    left: '-65px',     // Horizontal position: 65px to the left outside
+    top: '42%',        // Vertical position: 42% from the top
+    left: '-65px',     // Horizontal position: 65px to the outside left
     width: '135px',    // Width
-    height: 'auto',    // Height auto
+    height: 'auto',    // Height automatic
     transform: 'translateY(-50%)', // Vertical center
-    zIndex: -1         // Behind character image
+    zIndex: -1         // Behind the character image
 }
 ```
 
-#### 3. Books & Staff
+#### 3. Staff
 
 ```javascript
 {
-    type: 'books_staff',
-    src: decorationsBaseUrl + 'books_staff.png',
-    top: '25%',        // Vertical position: 25% from top
-    right: '-60px',    // Horizontal position: 60px to the right outside
-    width: '135px',    // Width
-    height: 'auto',    // Height auto
+    type: 'staff',
+    src: decorationsBaseUrl + 'staff.png',
+    top: '25%',        // Vertical position: 25% from the top
+    right: '-40px',    // Horizontal position: 40px to the outside right
+    width: '110px',    // Width
+    height: 'auto',    // Height automatic
     transform: 'translateY(-50%)', // Vertical center
-    zIndex: -1         // Behind character image
+    zIndex: 8
 }
 ```
 
-### Decoration File Path
+#### 4. Books
 
-Decoration images are stored by default in:
+```javascript
+{
+    type: 'books',
+    src: decorationsBaseUrl + 'books.png',
+    top: '38%',
+    right: '-58px',
+    width: '115px',
+    height: 'auto',
+    transform: 'translateY(-50%)',
+    zIndex: 6
+}
+```
+
+### Decoration File Paths
+
+Decoration images are stored by default at:
 
 ```
-images/decorations/
-├── suitcase.png       # Suitcase
-├── evil_horns.png     # Giant skull
-├── magic_book.png     # Magic Book
-└── magic_staff.png    # Magic Staff
+ghost/Frieren/decorations/
+├── suitcase.png
+├── evil_horns.png
+├── dark_dragon_horn.png
+├── staff.png
+├── books.png
+└── potion.png
 ```
 
-System automatically derives decoration paths from the following sources:
+The system will automatically derive the decoration paths from the following sources:
 
-1. **PHP Global Variable** (Priority): `window.mpuDecorationsBaseUrl`
-2. **Shell Path Derivation**: Derive from `shell/Frieren/` to `decorations/`
-3. **Script Path Derivation** (Fallback): Derive from `js/ukagaka-anime.js`
+1. **Initialization Data** (Priority): `decorations_base_url` returned by `/init`.
+2. **Frontend Global Variable**: `window.mpuDecorationsBaseUrl`.
+3. **Frieren Manager Fallback**: Wait for the `mpuInitComplete` event and fetch settings if necessary.
 
-### Enable/Disable Decorations
+### Enabling/Disabling Decorations
 
-**Method 1: Using Backend Settings (Recommended)**
+**Method 1: Using the Admin Panel (Recommended)**
 
-1. Go to **Settings** → **MP Ukagaka** → **Ukagaka Management**
-2. Find the Frieren character (`default_1`)
-3. Check or uncheck the "**Show Exclusive Decorations**" option
-4. Save settings
+1. Go to **Settings** → **MP Ukagaka** → **Ukagaka Management**.
+2. Find the Frieren character (`default_1`).
+3. Check or uncheck `show_decorations` for this character.
+4. Save the settings.
 
-**Method 2: Hide Specific Decorations with CSS (Advanced)**
+**Method 2: Using CSS to Hide Specific Decorations (Advanced)**
 
 ```css
 /* Hide all decorations */
@@ -171,42 +190,42 @@ System automatically derives decoration paths from the following sources:
     display: none !important;
 }
 
-/* Or hide specific decoration */
+/* Or hide a specific decoration */
 .frieren-decoration.suitcase {
     display: none !important;
 }
 ```
 
-> 💡 **Tip**: CSS method is suitable when you need to hide some decorations but keep others.
+> 💡 **Tip**: The CSS method is suitable when you need to hide some decorations while keeping others.
 
-### Adjusting Decoration Position
+### Adjusting Decoration Positions
 
-#### Adjust Suitcase Position
+#### Adjusting the Suitcase Position
 
 ```css
 .frieren-decoration.suitcase {
-    top: 85% !important;    /* Move down */
+    top: 85% !important;    /* Move downwards */
     right: -55px !important; /* Move left (reduce negative value) */
     width: 100px !important; /* Enlarge */
 }
 ```
 
-#### Adjust Giant Skull Position
+#### Adjusting the Evil Horns Position
 
 ```css
 .frieren-decoration.evil_horns {
-    top: 40% !important;    /* Move up */
+    top: 40% !important;    /* Move upwards */
     left: -70px !important; /* Move left (increase negative value) */
     width: 120px !important; /* Shrink */
 }
 ```
 
-#### Adjust Books & Staff Position
+#### Adjusting the Books Position
 
 ```css
-.frieren-decoration.books_staff {
-    top: 30% !important;    /* Move down */
-    right: -50px !important; /* Move left (reduce negative value) */
+.frieren-decoration.books {
+    top: 40% !important;
+    right: -50px !important;
     opacity: 0.8;           /* Adjust opacity */
 }
 ```
@@ -216,53 +235,53 @@ System automatically derives decoration paths from the following sources:
 #### Decoration Loading Flow
 
 1. **Check Character**: `mpuCanvasManager.isFrieren(num, name)`
-   - Check `num === 'default_1'`
-   - Check `name` contains 'フリーレン' or 'Frieren'
+   - Prioritizes checking if `num === 'default_1'`.
+   - Also checks if the name contains `フリーレン` or `Frieren`.
 
 2. **Initialize Frieren Mode**: `initFrierenMode()`
-   - Set container to relative positioning
-   - Call `loadFrierenDecorations()`
+   - Sets the container to relative positioning.
+   - Calls `loadFrierenDecorations()`.
 
 3. **Load Decorations**: `loadFrierenDecorations()`
-   - Check if `window.mpuShowDecorations` is enabled
-   - Derive decoration image base URL
-   - Add decoration elements one by one
+   - Prioritizes using `window.mpuDecorationConfig` and `window.mpuDecorationsBaseUrl` returned and written by `/init`.
+   - Checks if `window.mpuShowDecorations` is enabled.
+   - Creates elements one by one based on `items` in `decorations.json`.
 
 4. **Add Decoration**: `addFrierenDecoration(config)`
-   - Create `<img>` element
-   - Set `frieren-decoration` CSS class
-   - Apply absolute positioning styles
-   - Append to `#ukagaka_img` container
+   - Creates an `<img>` element.
+   - Sets the `frieren-decoration` CSS class.
+   - Applies absolute positioning styles.
+   - Appends to the `#ukagaka_img` container.
 
 #### Decoration HTML Structure
 
 ```html
 <div id="ukagaka_img" style="position: relative;">
-    <!-- Ukagaka Canvas or img -->
+    <!-- Character Canvas or img -->
     <canvas id="cur_ukagaka">...</canvas>
     
-    <!-- Decoration elements (automatically added) -->
+    <!-- Decoration elements (added automatically based on decorations.json) -->
     <img class="frieren-decoration suitcase" 
-         src=".../decorations/suitcase.png"
+         src=".../ghost/Frieren/decorations/suitcase.png"
          style="position: absolute; top: 82%; right: -62px; ...">
     
     <img class="frieren-decoration evil_horns" 
-         src=".../decorations/evil_horns.png"
+         src=".../ghost/Frieren/decorations/evil_horns.png"
          style="position: absolute; top: 42%; left: -65px; ...">
     
-    <img class="frieren-decoration books_staff" 
-         src=".../decorations/books_staff.png"
-         style="position: absolute; top: 25%; right: -60px; ...">
+    <img class="frieren-decoration books" 
+         src=".../ghost/Frieren/decorations/books.png"
+         style="position: absolute; top: 38%; right: -58px; ...">
 </div>
 ```
 
 #### JavaScript API
 
 ```javascript
-// Check if it's Frieren
+// Check if it is Frieren
 mpuCanvasManager.isFrieren(num, name);
 
-// Manually add decoration (advanced usage)
+// Manually add a decoration (advanced usage)
 mpuCanvasManager.addFrierenDecoration({
     type: 'custom_accessory',
     src: 'path/to/accessory.png',
@@ -272,7 +291,7 @@ mpuCanvasManager.addFrierenDecoration({
     zIndex: 5
 });
 
-// Remove specific decoration
+// Remove a specific decoration
 mpuCanvasManager.removeFrierenDecoration('suitcase');
 
 // Clear all decorations
@@ -281,26 +300,26 @@ mpuCanvasManager.clearFrierenDecorations();
 
 ### Custom Decoration Examples
 
-#### Adding New Decoration
+#### Adding a New Decoration
 
 ```javascript
-// Add in loadFrierenDecorations() function in ukagaka-anime.js
+// It is recommended to add to ghost/Frieren/decorations.json instead of hardcoding JS
 mpuCanvasManager.addFrierenDecoration({
     type: 'custom_hat',
     src: decorationsBaseUrl + 'custom_hat.png',
     top: '10%',
     left: '50%',
     width: '60px',
-    transform: 'translateX(-50%)', // Horizontal center
+    transform: 'translateX(-50%)', // Horizontally center
     zIndex: 20
 });
 ```
 
-#### Dynamic Decoration Control
+#### Dynamically Controlling Decorations
 
 ```javascript
-// Add decoration on specific event
-document.addEventListener('someEvent', function() {
+// Add a decoration on a specific event
+document.addEventListener('some_event', function() {
     if (mpuCanvasManager.isFrierenMode) {
         mpuCanvasManager.addFrierenDecoration({
             type: 'special_effect',
@@ -321,14 +340,14 @@ document.addEventListener('someEvent', function() {
 
 ### Decoration Compatibility
 
-- ✅ **Character Switching Support**: Decorations automatically clear when switching to other characters
-- ✅ **Responsive Support**: Decorations use percentage positioning to adapt to different screen sizes
-- ✅ **Opacity Support**: Decoration opacity adjustable via CSS `opacity`
-- ✅ **Z-index Support**: Freely adjust decoration layers (foreground/background)
+- ✅ **Supports Character Switching**: Decorations are automatically cleared when switching to other characters.
+- ✅ **Supports Responsive Design**: Decorations use percentage positioning, automatically adapting to different screen sizes.
+- ✅ **Supports Opacity**: Decoration opacity can be adjusted via CSS `opacity`.
+- ✅ **Supports Z-Index**: Decoration layering (foreground/background) can be freely adjusted.
 
 ### Common Customization Needs
 
-#### 1. Hide Suitcase, Keep Other Decorations
+#### 1. Hide the suitcase, keep others
 
 ```css
 .frieren-decoration.suitcase {
@@ -336,7 +355,7 @@ document.addEventListener('someEvent', function() {
 }
 ```
 
-#### 2. Put All Decorations in Background
+#### 2. Send all decorations to the background
 
 ```css
 .frieren-decoration {
@@ -344,7 +363,7 @@ document.addEventListener('someEvent', function() {
 }
 ```
 
-#### 3. Adjust Opacity of All Decorations
+#### 3. Adjust opacity of all decorations
 
 ```css
 .frieren-decoration {
@@ -352,7 +371,7 @@ document.addEventListener('someEvent', function() {
 }
 ```
 
-#### 4. Hide Decorations on Small Screens
+#### 4. Hide decorations on small screens
 
 ```css
 @media (max-width: 768px) {
@@ -373,16 +392,16 @@ document.addEventListener('someEvent', function() {
 ```html
 <div id="ukagaka_img">
     <canvas id="cur_ukagaka" 
-            data-title="Ukagaka Name"
-            data-alt="Ukagaka Name"
-            data-shell="Image path or Folder path">
+            data-title="Character Name"
+            data-alt="Character Name"
+            data-shell="Image path or folder path">
     </canvas>
 </div>
 ```
 
 #### 2. JavaScript Manager
 
-The animation feature is managed by the `mpuCanvasManager` object in `ukagaka-anime.js`:
+The animation functionality is managed by the `mpuCanvasManager` object in `ukagaka-anime.js`:
 
 ```javascript
 // Initialize Canvas
@@ -390,9 +409,9 @@ window.mpuCanvasManager.init(shellInfo, name);
 
 // shellInfo structure:
 {
-    type: 'single' | 'folder',  // Single image or Folder
-    url: 'URL of image or folder',
-    images: ['frame1.png', 'frame2.png', ...]  // Only has value in folder mode
+    type: 'single' | 'folder',  // Single image or folder
+    url: 'Image or folder URL',
+    images: ['frame1.png', 'frame2.png', ...]  // Only present in folder mode
 }
 ```
 
@@ -402,101 +421,94 @@ window.mpuCanvasManager.init(shellInfo, name);
 - **Stop Playback**: `mpuCanvasManager.stopAnimation()`
 - **Check Mode**: `mpuCanvasManager.isAnimationMode()`
 
-Animation will automatically play when:
-
-- Character starts speaking (`mpu_typewriter` function triggered).
-- Excluding system messages (e.g., "Thinking...", "(Umm... what should I say...)").
+Animations will automatically play in the following situations:
+- The character starts speaking (Triggered by the `mpu_typewriter` function).
+- System messages are excluded (e.g., "Thinking...", "(Umm... what should I say...)").
 
 #### 4. Backend Functions
 
-PHP function `mpu_get_shell_info($num)` is responsible for:
-
-- Detecting if `shell` path is a file or folder.
-- Scanning image files in the folder.
-- Returning `shell_info` structure to frontend.
+The PHP function `mpu_get_shell_info($num)` is currently located in `includes/core/ukagaka-functions.php` and is responsible for:
+- Detecting whether the `shell` path is a file or a folder.
+- Scanning for image files in the folder.
+- Returning the `shell_info` structure to the frontend.
 
 ---
 
-## CSS Position Adjustment
+## CSS Position Adjustments
 
 ### Main CSS Selectors
 
-#### 1. Ukagaka Shell Position (Entire Block)
+#### 1. Character Shell Position (Entire Block)
 
 ```css
 #ukagaka_shell {
-    position: fixed;    /* Fixed to page */
-    right: 0;          /* Align right */
-    bottom: 20px;      /* Distance from bottom 20px */
-    margin: 0 20px 0 0; /* Right margin 20px */
-    z-index: 10000;    /* Z-index */
+    position: fixed;    /* Fixed on the page */
+    right: 0;          /* Align to the right */
+    bottom: 20px;      /* 20px from the bottom */
+    margin: 0 20px 0 0; /* 20px right margin */
+    z-index: 10000;    /* Layering */
 }
 ```
 
-**How to Adjust:**
+**Adjustment methods:**
+- `bottom`: Adjust the vertical position (Increase to move up, decrease to move down).
+- `right`: Adjust the horizontal position (Increase to move left, decrease to move right).
+- `margin`: Adjust the outer margins.
 
-- `bottom`: Adjust vertical position (Increase to move up, decrease to move down).
-- `right`: Adjust horizontal position (Increase to move left, decrease to move right).
-- `margin`: Adjust margins.
-
-#### 2. Ukagaka Image Container Position
+#### 2. Character Image Container Position
 
 ```css
 #ukagaka_img {
     margin-bottom: -10px; /* Vertical offset */
-    /* margin-left: 30px; Add this property to move image right */
+    /* margin-left: 30px; You can add this to move the image to the right */
 }
 ```
 
-**How to Adjust:**
+**Adjustment methods:**
+- `margin-bottom`: Adjust the vertical position (Negative values move up, positive values move down).
+- `margin-left`: Move the image to the right (Add this property and set the value).
+- `margin-right`: Move the image to the left.
 
-- `margin-bottom`: Adjust vertical position (Negative moves up, positive moves down).
-- `margin-left`: Move image right (Add this and set value).
-- `margin-right`: Move image left.
-
-#### 3. Canvas Element Style
+#### 3. Canvas Element Styles
 
 ```css
 #ukagaka_img canvas {
-    opacity: 0.85; /* Opacity 85% */
+    opacity: 0.85; /* 85% opacity */
 }
 ```
 
-**How to Adjust:**
-
+**Adjustment methods:**
 - `opacity`: Opacity (0.0 fully transparent ~ 1.0 fully opaque).
 
-#### 4. Balloon Position
+#### 4. Dialog Box Position
 
 ```css
 #ukagaka_msgbox {
     position: absolute;
     top: 50%;          /* Vertically center */
-    left: -200px;      /* Offset left 200px (Display on left of Ukagaka) */
-    transform: translateY(-50%); /* Vertical center adjustment */
+    left: -200px;      /* Offset 200px to the left (displays on the left of the character) */
+    transform: translateY(-50%); /* Vertical centering adjustment */
 }
 ```
 
-**How to Adjust:**
-
-- `left`: Adjust distance between balloon and Ukagaka (Negative moves left, positive moves right).
-- `top`: Adjust vertical position.
+**Adjustment methods:**
+- `left`: Adjust the distance between the dialog box and the character (Negative values move left, positive values move right).
+- `top`: Adjust the vertical position.
 
 #### 5. Main Container Padding
 
 ```css
 #ukagaka {
-    padding-right: 40px; /* Right padding, space for balloon */
+    padding-right: 40px; /* Right padding, leaves space for the dialog box */
 }
 ```
 
-**How to Adjust:**
-
-- `padding-right`: Adjust right padding (Affects spacing between balloon and Ukagaka).
+**Adjustment methods:**
+- `padding-right`: Adjust the right padding (Affects the spacing between the dialog box and the character).
 
 ### Practical Adjustment Examples
 
-#### Example 1: Move Ukagaka Right by 20px
+#### Example 1: Move the character 20px to the right
 
 ```css
 #ukagaka_img {
@@ -512,22 +524,22 @@ PHP function `mpu_get_shell_info($num)` is responsible for:
 }
 ```
 
-#### Example 3: Adjust Vertical Position
+#### Example 3: Adjust vertical position
 
 ```css
 #ukagaka_img {
-    margin-bottom: -20px; /* Move up more */
+    margin-bottom: -20px; /* Move further upwards */
 }
 ```
 
-#### Example 4: Adjust Distance Between Balloon and Ukagaka
+#### Example 4: Adjust distance between dialog box and character
 
 ```css
 #ukagaka_msgbox {
-    left: -180px; /* Decrease distance (Closer to Ukagaka) */
+    left: -180px; /* Decrease distance (closer to character) */
 }
 
-/* Also adjust main container padding */
+/* Simultaneously adjust the main container padding */
 #ukagaka {
     padding-right: 30px; /* Decrease padding */
 }
@@ -535,62 +547,62 @@ PHP function `mpu_get_shell_info($num)` is responsible for:
 
 ---
 
-## FAQ
+## Frequently Asked Questions
 
 ### Q: Animation is not playing?
 
 **A:** Please check:
-
-1. If all images are loaded completely (Check browser console for errors).
-2. If the character is speaking (Animation only plays when speaking).
-3. If the message is a system message (System messages do not trigger animation).
+1. Are all images fully loaded? (Check the browser console for errors).
+2. Is the character speaking? (Animations only play when speaking).
+3. Is the message a system message? (System messages do not trigger animations).
 
 ### Q: Image order is incorrect?
 
-**A:** Please ensure image filenames use numeric sequences, for example:
-
+**A:** Please ensure the image file names use numeric sequences, for example:
 - ✅ `frame1.png`, `frame2.png`, ..., `frame12.png`
 - ✅ `001.png`, `002.png`, ..., `012.png`
-- ❌ `frame_a.png`, `frame_b.png` (Alphabetical sort might be incorrect)
+- ❌ `frame_a.png`, `frame_b.png` (Alphabetical sorting might not be correct)
 
-The system uses natural sort, so numbers will sort correctly.
+The system will use natural sort, so numbers will be ordered correctly.
 
-### Q: How to go back to using `<img>` tag?
+### Q: How do I go back to using the `<img>` tag?
 
-**A:** The Canvas feature has completely replaced the `<img>` tag, but single images are still supported. To use a single image, just enter the image file path (not folder) in the `shell` field.
+**A:** The Canvas functionality has completely replaced the `<img>` tag, but it still supports single images. If you need to use a single image, just enter the image file path (not a folder) in the `shell` field.
 
-### Q: Can I adjust animation playback speed?
+### Q: Can I adjust the animation playback speed?
 
-**A:** Currently the frame interval is fixed at 100 ms/frame. To adjust, you can modify the `frameInterval` property in `ukagaka-anime.js`:
+**A:** Currently, the animation frame interval is fixed at 180 milliseconds/frame. If you need to adjust it, you can modify the `frameInterval` property in `ukagaka-anime.js`:
 
 ```javascript
-frameInterval: 100, // Change to other value (Unit: ms)
+frameInterval: 180, // Change to another value (in milliseconds)
 ```
 
-### Q: CSS changes are not taking effect?
+### Q: CSS modifications did not take effect?
 
 **A:** Please check:
-
-1. If `!important` is being used to override your settings (Some themes might use it).
-2. If browser cache is cleared.
-3. If CSS selectors are correct.
-4. If other CSS rules are overriding your settings.
+1. Are you overriding with `!important`? (Some themes might use `!important`).
+2. Has the browser cache been cleared?
+3. Is the CSS selector correct?
+4. Are there other CSS rules overriding your settings?
 
 ---
 
 ## Related Files
 
-- `ukagaka-anime.js` - Canvas Animation Manager
-- `mpu_style.css` - Main Stylesheet
-- `includes/ukagaka-functions.php` - `mpu_get_shell_info()` function
-- `includes/frontend-functions.php` - HTML Generation and Canvas Initialization
-- `ukagaka-core.js` - Animation Trigger Logic
+- `js/ukagaka-anime.js` - Canvas animation manager
+- `mpu_style.css` - Main stylesheet file
+- `ghost/Frieren/frieren.js` - Frieren's exclusive decoration and interaction logic
+- `ghost/Frieren/decorations.json` - Decoration configurations
+- `includes/core/ukagaka-functions.php` - `mpu_get_shell_info()` function
+- `includes/core/frontend-functions.php` - HTML generation and initialization data injection
+- `js/ukagaka-core.js` - Animation trigger logic
 
 ---
 
-## Update History
+## Changelog
 
-- **2.1.6** (2025-12-13) - Initial implementation of Canvas animation features
+- **2.1.6** - Initially implemented Canvas animation functionality
+- **2.12.x+** - Frieren's decorations are now driven by `ghost/Frieren/decorations.json`
 
 ---
 

@@ -72,22 +72,26 @@ images/shell/Frieren/
 
 ## 芙莉蓮專屬配件系統
 
-> 🎨 **v2.2.1+ 新功能**：預設角色芙莉蓮（`default_1`）擁有專屬的裝飾配件系統
+> 🎨 芙莉蓮（`default_1`）的裝飾物已改為由 `ghost/Frieren/decorations.json` 驅動，不再是文件早期版本中的固定硬編碼三件組。
 
 ### 配件概覽
 
-芙莉蓮角色會自動載入三個專屬裝飾配件（アクセサリー），無需手動設定：
+芙莉蓮角色會依 `ghost/Frieren/decorations.json` 自動載入裝飾配件：
 
 | 配件 | 檔案名稱 | 位置 | 層級 | 用途 |
 |------|---------|------|-----|------|
 | 皮箱 | `suitcase.png` | 右前方 | `z-index: 10` | 芙莉蓮的旅行皮箱 |
 | 巨大頭蓋骨 | `evil_horns.png` | 左後方 | `z-index: -1` | 不知道能用來幹嘛 |
-| 魔導書 | `magic_book.png` | 右後方上 | `z-index: -1` | 芙莉蓮的魔法書 |
-| 魔法杖 | `magic_staff.png` | 右後方下 | `z-index: -1` | 芙莉蓮的魔法杖 |
+| 暗黑龍的角 | `dark_dragon_horn.png` | 左前方 | 依 JSON 配置 | 芙莉蓮收藏的素材 |
+| 魔導書 | `books.png` | 右後方 | 依 JSON 配置 | 芙莉蓮的魔導書堆 |
+| 魔法杖 | `staff.png` | 右後方 | 依 JSON 配置 | 芙莉蓮常用法杖 |
+| 藥水 | `potion.png` | 右側 | 依 JSON 配置 | 特殊互動道具 |
 
 > 🖌️ **互動功能**：點擊任何配件，芙莉蓮會介紹該物品！
 
 ### 配件位置與尺寸
+
+以下數值僅為目前 `ghost/Frieren/decorations.json` 的範例，實際應以 JSON 配置為準。
 
 #### 1. 手提箱（Suitcase）
 
@@ -119,18 +123,33 @@ images/shell/Frieren/
 }
 ```
 
-#### 3. 魔法杖與書（Books & Staff）
+#### 3. 魔法杖（Staff）
 
 ```javascript
 {
-    type: 'books_staff',
-    src: decorationsBaseUrl + 'books_staff.png',
+    type: 'staff',
+    src: decorationsBaseUrl + 'staff.png',
     top: '25%',        // 垂直位置：25% 從上方
-    right: '-60px',    // 水平位置：向右外側 60px
-    width: '135px',    // 寬度
+    right: '-40px',    // 水平位置：向右外側 40px
+    width: '110px',    // 寬度
     height: 'auto',    // 高度自動
     transform: 'translateY(-50%)', // 垂直置中
-    zIndex: -1         // 在角色圖片後方
+    zIndex: 8
+}
+```
+
+#### 4. 魔導書（Books）
+
+```javascript
+{
+    type: 'books',
+    src: decorationsBaseUrl + 'books.png',
+    top: '38%',
+    right: '-58px',
+    width: '115px',
+    height: 'auto',
+    transform: 'translateY(-50%)',
+    zIndex: 6
 }
 ```
 
@@ -139,18 +158,20 @@ images/shell/Frieren/
 配件圖片預設存放於：
 
 ```
-images/decorations/
-├── suitcase.png       # 皮箱
-├── evil_horns.png     # 惡魔角
-├── magic_book.png     # 魔導書
-└── magic_staff.png    # 魔法杖
+ghost/Frieren/decorations/
+├── suitcase.png
+├── evil_horns.png
+├── dark_dragon_horn.png
+├── staff.png
+├── books.png
+└── potion.png
 ```
 
 系統會自動從以下來源推導配件路徑：
 
-1. **PHP 全域變數**（優先）：`window.mpuDecorationsBaseUrl`
-2. **Shell 路徑推導**：從 `shell/Frieren/` 推導到 `decorations/`
-3. **腳本路徑推導**（備用）：從 `js/ukagaka-anime.js` 推導
+1. **初始化資料**（優先）：`/init` 回傳的 `decorations_base_url`
+2. **前端全域變數**：`window.mpuDecorationsBaseUrl`
+3. **芙莉蓮管理器備援流程**：等待 `mpuInitComplete` 事件，必要時再補抓設定
 
 ### 啟用/停用配件
 
@@ -158,7 +179,7 @@ images/decorations/
 
 1. 前往 **設定** → **MP Ukagaka** → **伺か管理**
 2. 找到芙莉蓮角色（`default_1`）
-3. 勾選或取消勾選「**顯示專屬配件**」選項
+3. 勾選或取消勾選該角色的 `show_decorations`
 4. 保存設定
 
 **方法 2：使用 CSS 隱藏特定配件（進階）**
@@ -199,12 +220,12 @@ images/decorations/
 }
 ```
 
-#### 調整魔法杖與書位置
+#### 調整魔導書位置
 
 ```css
-.frieren-decoration.books_staff {
-    top: 30% !important;    /* 向下移動 */
-    right: -50px !important; /* 向左移動（減少負值）*/
+.frieren-decoration.books {
+    top: 40% !important;
+    right: -50px !important;
     opacity: 0.8;           /* 調整透明度 */
 }
 ```
@@ -214,17 +235,17 @@ images/decorations/
 #### 配件載入流程
 
 1. **檢查角色**：`mpuCanvasManager.isFrieren(num, name)`
-   - 檢查 `num === 'default_1'`
-   - 檢查 `name` 包含 'フリーレン' 或 'Frieren'
+   - 優先檢查 `num === 'default_1'`
+   - 也會檢查名稱是否包含 `フリーレン` 或 `Frieren`
 
 2. **初始化芙莉蓮模式**：`initFrierenMode()`
    - 設定容器為相對定位
    - 調用 `loadFrierenDecorations()`
 
 3. **載入配件**：`loadFrierenDecorations()`
+   - 優先使用 `/init` 回傳後寫入的 `window.mpuDecorationConfig`、`window.mpuDecorationsBaseUrl`
    - 檢查 `window.mpuShowDecorations` 是否啟用
-   - 推導配件圖片基礎 URL
-   - 逐一添加配件元素
+   - 依 `decorations.json` 的 `items` 逐一建立元素
 
 4. **添加配件**：`addFrierenDecoration(config)`
    - 創建 `<img>` 元素
@@ -239,18 +260,18 @@ images/decorations/
     <!-- 春菜 Canvas 或 img -->
     <canvas id="cur_ukagaka">...</canvas>
     
-    <!-- 配件元素（自動添加）-->
+    <!-- 配件元素（依 decorations.json 自動添加）-->
     <img class="frieren-decoration suitcase" 
-         src=".../decorations/suitcase.png"
+         src=".../ghost/Frieren/decorations/suitcase.png"
          style="position: absolute; top: 82%; right: -62px; ...">
     
     <img class="frieren-decoration evil_horns" 
-         src=".../decorations/evil_horns.png"
+         src=".../ghost/Frieren/decorations/evil_horns.png"
          style="position: absolute; top: 42%; left: -65px; ...">
     
-    <img class="frieren-decoration books_staff" 
-         src=".../decorations/books_staff.png"
-         style="position: absolute; top: 25%; right: -60px; ...">
+    <img class="frieren-decoration books" 
+         src=".../ghost/Frieren/decorations/books.png"
+         style="position: absolute; top: 38%; right: -58px; ...">
 </div>
 ```
 
@@ -282,7 +303,7 @@ mpuCanvasManager.clearFrierenDecorations();
 #### 添加新配件
 
 ```javascript
-// 在 ukagaka-anime.js 的 loadFrierenDecorations() 函數中添加
+// 建議新增到 ghost/Frieren/decorations.json，而不是直接硬改 JS
 mpuCanvasManager.addFrierenDecoration({
     type: 'custom_hat',
     src: decorationsBaseUrl + 'custom_hat.png',
@@ -406,7 +427,7 @@ window.mpuCanvasManager.init(shellInfo, name);
 
 #### 4. 後端函數
 
-PHP 函數 `mpu_get_shell_info($num)` 負責：
+PHP 函數 `mpu_get_shell_info($num)` 目前位於 `includes/core/ukagaka-functions.php`，負責：
 - 檢測 `shell` 路徑是檔案還是資料夾
 - 掃描資料夾內的圖片檔案
 - 返回 `shell_info` 結構給前端
@@ -568,19 +589,21 @@ frameInterval: 180, // 改為其他數值（單位：毫秒）
 
 ## 相關檔案
 
-- `ukagaka-anime.js` - Canvas 動畫管理器
+- `js/ukagaka-anime.js` - Canvas 動畫管理器
 - `mpu_style.css` - 主要樣式檔案
-- `includes/ukagaka-functions.php` - `mpu_get_shell_info()` 函數
-- `includes/frontend-functions.php` - HTML 生成與 Canvas 初始化
-- `ukagaka-core.js` - 動畫觸發邏輯
+- `ghost/Frieren/frieren.js` - 芙莉蓮專屬裝飾物與互動邏輯
+- `ghost/Frieren/decorations.json` - 裝飾物配置
+- `includes/core/ukagaka-functions.php` - `mpu_get_shell_info()` 函數
+- `includes/core/frontend-functions.php` - HTML 生成與初始化資料注入
+- `js/ukagaka-core.js` - 動畫觸發邏輯
 
 ---
 
 ## 更新記錄
 
-- **2.1.6** (2025-12-13) - 初始實裝 Canvas 動畫功能
+- **2.1.6** - 初始實裝 Canvas 動畫功能
+- **2.12.x+** - 芙莉蓮裝飾物改為由 `ghost/Frieren/decorations.json` 驅動
 
 ---
 
 **Made with ❤ for WordPress**
-

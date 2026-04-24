@@ -1,4 +1,4 @@
-# Character Personality Creation Guide
+# Ghost Creation Guide
 
 > 🎭 How to create a new character personality for MP Ukagaka
 
@@ -9,31 +9,33 @@
 1. [Overview](#overview)
 2. [Required Files](#required-files)
 3. [Folder Structure](#folder-structure)
-4. [manifest.json Format](#manifestjson-format)
-5. [system_prompt.md Usage](#system_promptmd-usage)
-6. [prompts.json Format (LLM Mode)](#promptsjson-format-llm-mode)
-7. [weights.json Format (LLM Mode)](#weightsjson-format-llm-mode)
-8. [decorations.json Format (Optional)](#decorationsjson-format-optional)
-9. [Shell Images](#shell-images)
+4. [manifest.json Format Guide](#manifestjson-format-guide)
+5. [Personality Prompt Structure](#personality-prompt-structure)
+6. [prompts.json Format Guide (LLM Mode)](#promptsjson-format-guide-llm-mode)
+7. [weights.json Format Guide (LLM Mode)](#weightsjson-format-guide-llm-mode)
+8. [decorations.json Format Guide (Optional)](#decorationsjson-format-guide-optional)
+9. [Shell Image Files](#shell-image-files)
 10. [JavaScript Scripts (Optional)](#javascript-scripts-optional)
-11. [Upload &amp; Usage](#upload--usage)
-12. [Full Example](#full-example)
+11. [Upload and Use](#upload-and-use)
+12. [Complete Example](#complete-example)
 
 ---
 
 ## Overview
 
-In MP Ukagaka, each character personality is stored in the `ghost/` directory within an independent folder named after the Personality ID. A complete personality includes the following:
+In MP Ukagaka, each character personality is stored under the `ghost/` folder in an independent folder named after its personality ID. A complete personality usually contains the following:
 
-- **Required Files**: `manifest.json`, `shell/` folder (containing character images)
-- **LLM Mode Files** (when using AI): `prompts.json`, `weights.json`, `system_prompt.md` (or the `system_prompt` field in `manifest.json`)
-- **Optional Files**: `decorations.json`, `decorations/` folder, JavaScript scripts, `dynamics.json`
+- **Required Files**: `manifest.json`, `shell/` folder (contains character images).
+- **Core Files for LLM Mode** (When using AI): `prompts.json`, `weights.json`, and personality prompt files.
+- **Currently Recommended Personality Prompt Structure**: `instructions.md` + `personality.md`.
+- **Legacy Compatibility Approach**: `system_prompt.md` or the `system_prompt` field in `manifest.json`.
+- **Optional Files**: `dynamics.json`, `decorations.json`, `decorations/`, `touchzones.json`, `sleep_mode.json`, `calendar.json`, `emoji-keywords.json`, `diary.json`, JavaScript scripts.
 
 ---
 
 ## Required Files
 
-To create a new personality, **you need at least the following files**:
+To create a new personality, **the following files are required at a minimum**:
 
 1. **`manifest.json`** - Personality metadata and settings
 2. **`shell/{PersonalityID}/{PersonalityID}.png`** - The character's main image (at least one)
@@ -57,12 +59,14 @@ The complete personality folder structure is as follows:
 
 ```
 ghost/
-└── {PersonalityID}/        # Personality folder (e.g., Frieren, Sakura_Laurel)
+└── {PersonalityID}/              # Personality folder (e.g., Frieren, Sakura_Laurel)
     ├── manifest.json       # Required: Metadata and settings
-    ├── system_prompt.md    # Recommended: System Prompt (Markdown format)
+    ├── instructions.md     # Recommended: Behavioral rules / Dialogue protocols
+    ├── personality.md      # Recommended: Personality background / Character description
+    ├── system_prompt.md    # Legacy compat: Legacy prompt fallback
     │
     ├── shell/              # Required: Character image folder
-    │   └── {PersonalityID}/ # Image subfolder (usually same as Personality ID)
+    │   └── {PersonalityID}/       # Image subfolder (usually the same name as the Personality ID)
     │       ├── {PersonalityID}.png          # Main image (Required)
     │       ├── {PersonalityID}[0].png       # Animation frame (Optional)
     │       ├── {PersonalityID}[1].png       # Animation frame (Optional)
@@ -76,47 +80,53 @@ ghost/
     ├── weights.json        # LLM Mode: Category weight configuration
     ├── dynamics.json       # LLM Mode: Dynamic templates (Optional)
     ├── decorations.json    # Optional: Decoration configuration
-    └── {PersonalityID}.js  # Optional: JavaScript animation script
+    ├── touchzones.json     # Optional: Touch zone configuration
+    ├── sleep_mode.json     # Optional: Sleep mode configuration
+    ├── calendar.json       # Optional: Holiday / Anniversary configuration
+    ├── diary.json          # Optional: AI Diary configuration
+    ├── emoji-keywords.json # Optional: Emoji keyword configuration
+    └── {PersonalityID}.js         # Optional: JavaScript animation script
 ```
 
 ---
 
-## manifest.json Format
+## manifest.json Format Guide
 
-`manifest.json` is the core configuration file for a personality, defining basic information and settings.
+`manifest.json` is the core configuration file for the personality, defining its basic information and settings.
 
 ### Required Fields
 
-- `id`: Unique identifier for the personality (Alphanumeric, underscores, hyphens; CamelCase starting with an uppercase letter is recommended)
-- `name`: Character display name (Default language)
-- `shell_folder`: Name of the shell image folder (Usually same as `id`)
+- `id`: The unique identifier for the personality (alphanumeric, underscores, hyphens; PascalCase is recommended).
+- `name`: Character display name (default language).
+- `shell_folder`: Name of the shell image folder (usually the same as `id`).
 
-### Full Field Description
+### Complete Field Descriptions
 
 ```json
 {
-  "id": "MyCharacter",                    // Required: Personality ID (Unique Identifier)
-  "name": "Character Name",               // Required: Character Display Name
-  "name_en": "Character Name",            // Optional: English Name
-  "name_zh": "Character Name",            // Optional: Chinese Name
-  "version": "1.0.0",                     // Optional: Version Number
-  "author": "Author Name",                // Optional: Author Information
-  "description": "Character Description", // Optional: Character Introduction
-  "description_en": "Character description", // Optional: English Description
-  "language": "en",                       // Optional: Primary Language (ja/zh-TW/en)
-  "shell_folder": "MyCharacter",          // Required: Shell Image Folder Name
-  "decorations_folder": "decorations",    // Optional: Decoration Folder Name (Default "decorations")
-  "script": "mycharacter.js",             // Optional: JavaScript Script Filename
+  "id": "MyCharacter",                    // Required: Personality ID (Unique identifier)
+  "name": "Character Name",               // Required: Character display name
+  "name_en": "Character Name",            // Optional: English name
+  "name_zh": "Character Name",            // Optional: Chinese name
+  "version": "1.0.0",                     // Optional: Version number
+  "author": "Author Name",                // Optional: Author information
+  "description": "Character description", // Optional: Character introduction
+  "description_en": "Character description",  // Optional: English description
+  "language": "ja",                       // Optional: Primary language (ja/zh-TW/en)
+  "shell_folder": "MyCharacter",          // Required: Shell image folder name
+  "decorations_folder": "decorations",    // Optional: Decoration folder name (Default "decorations")
+  "script": "mycharacter.js",             // Optional: Old format, single JavaScript script
+  "scripts": ["mycharacter.js"],          // Optional: New format, supports multiple scripts
   
-  "settings": {                           // Optional: Behavior Settings
-    "max_response_length": 500,           // Response Length Limit (Characters, default 500)
-    "max_tokens": 800,                     // Token Limit for API Calls (default 800)
-    "speech_style": "Casual",             // Speech Style (Metadata, currently unused)
-    "tone": "Calm",                       // Tone (Metadata, currently unused)
-    "emoji_style": "minimal"              // Emoji Style (Metadata, currently unused)
+  "settings": {                           // Optional: Behavior settings
+    "max_response_length": 500,           // Response length limit (characters, default 500)
+    "max_tokens": 800,                     // Token limit during API call (default 800)
+    "speech_style": "常体",                // Speech style (metadata, currently not actively used)
+    "tone": "淡々とした",                  // Tone (metadata, currently not actively used)
+    "emoji_style": "minimal"              // Emoji style (metadata, currently not actively used)
   },
   
-  "character_traits": {                   // Optional: Character Traits (Metadata, currently unused)
+  "character_traits": {                   // Optional: Character traits (metadata, currently not actively used)
     "age": "18",
     "race": "Human",
     "occupation": "Student",
@@ -124,8 +134,8 @@ ghost/
     "aliases": ["Nickname1", "Nickname2"]
   },
   
-  "system_prompt": "You are...",          // Optional: System Prompt (String or Array)
-                                           // Note: Using system_prompt.md file is recommended
+  "system_prompt": "You are...",          // Optional: Old format prompt fallback (string or array)
+                                           // Recommended to use instructions.md + personality.md instead
 }
 ```
 
@@ -134,21 +144,21 @@ ghost/
 ```json
 {
   "id": "Frieren",
-  "name": "Frieren",
+  "name": "フリーレン",
   "name_en": "Frieren",
   "name_zh": "芙莉蓮",
   "version": "1.0.0",
-  "author": "Horlicks-JP",
-  "description": "An elven mage who has lived for over a thousand years. Speaks in a calm tone and collects magic as a hobby.",
-  "language": "en",
+  "author": "和製ホーリックス",
+  "description": "An elven mage who has lived for over a thousand years. She speaks in a flat tone and enjoys collecting magic.",
+  "language": "ja",
   "shell_folder": "Frieren",
   "decorations_folder": "decorations",
   "script": "frieren.js",
   "settings": {
     "max_response_length": 500,
     "max_tokens": 800,
-    "speech_style": "Casual",
-    "tone": "Calm",
+    "speech_style": "常体",
+    "tone": "淡々とした",
     "emoji_style": "minimal"
   }
 }
@@ -156,47 +166,47 @@ ghost/
 
 ### settings Field Description
 
-The `settings` object contains behavior settings for the character, and the response length limiting mechanism has been unified into a three-layer protection system:
+The `settings` object contains the behavioral settings of the character, where the word count limitation mechanism has been unified into three layers of protection:
 
-#### Response Length Settings
+#### Character Limit Settings
 
 - **`max_response_length`** (Default: 500)
 
-  - Backend truncation limit (character count)
-  - When AI responses exceed this length, the system will automatically truncate and add `...`
-  - Applied to all dialogue types (page awareness, first visit greeting, interactive chat, touch zones, decoration clicks, spontaneous dialogue)
+  - Backend truncation limit (character count).
+  - When the AI response exceeds this length, the system will automatically truncate it and append `...`.
+  - This limit applies to all dialogue types (page-aware, first-time visitor, interactive dialogue, touch zones, decoration clicks, spontaneous dialogues).
 - **`max_tokens`** (Default: 800)
 
-  - Token limit for API calls
-  - Controls the maximum number of tokens the AI model can generate
-  - Approximately equals 600-800 characters (depending on language and content)
-  - Used by all AI dialogue types
+  - Token limit for API calls.
+  - Controls the maximum number of tokens generated by the AI model's response.
+  - Roughly equals 600-800 characters (depending on language and content).
+  - Used for all AI dialogue types.
 
 #### Three-Layer Protection Mechanism
 
-The system implements a unified three-layer response length limiting mechanism:
+The system implements a unified three-layer character limit mechanism:
 
-1. **Prompt Suggestion**: 30-250 characters (soft guidance)
+1. **Prompt Recommendation**: 30-150 words (soft guidance).
 
-   - Suggests to AI in System Prompt and User Prompt to stay within 30-250 characters
-2. **API max_tokens**: 800 (configurable via `max_tokens`)
+   - Instructs the AI in the System Prompt and User Prompt to keep the response within the 30-250 word range.
+2. **API max_tokens**: 800 (Configurable via `max_tokens`).
 
-   - Limits the maximum tokens the AI model can generate
-   - Read from `manifest.json`'s `settings.max_tokens`, default 800
-3. **Backend Truncation**: 500 characters (configurable via `max_response_length`)
+   - Limits the maximum tokens generated by the AI model.
+   - Read from `settings.max_tokens` in `manifest.json`, default is 800.
+3. **Backend Truncation**: 150 words (Configurable via `max_response_length`).
 
-   - Final safety layer
-   - Read from `manifest.json`'s `settings.max_response_length`, default 500
+   - The final safety net.
+   - Read from `settings.max_response_length` in `manifest.json`, default is 500.
 
-### JSON Format Rules
+### JSON Formatting Rules
 
-1. **Encoding**: Must use UTF-8 encoding.
+1. **File Encoding**: Must use UTF-8 encoding.
 2. **Syntax**:
-   - Strings must be enclosed in double quotes `"`.
-   - No comma after the last property.
-   - No comma after the last element in an array or object.
-3. **Comments**: Standard JSON does not support comments, but you can use `_comment` field for notes.
-4. **Validation**: Use online JSON validation tools to check syntax.
+   - Use double quotes `"` to wrap strings.
+   - Do **not** place a comma after the last property.
+   - Do **not** place a comma after the last element of an array or object.
+3. **Comments**: The JSON standard does not support comments, but you can use the `_comment` field for explanation.
+4. **Validation**: You can use online JSON validation tools to check the syntax.
 
 **Correct Example:**
 
@@ -225,90 +235,106 @@ The system implements a unified three-layer response length limiting mechanism:
 
 ---
 
-## system_prompt.md Usage
+## Personality Prompt Structure
 
-`system_prompt.md` is a Markdown file used to define the character's System Prompt, which has the highest priority.
+It is currently recommended to use the **modular prompt** structure to define the character:
+
+- `instructions.md`: Behavioral rules, tone, formatting restrictions, dialogue protocols.
+- `personality.md`: Background setting, worldview, preferences, supplementary personality details.
+
+The system will read `instructions.md` first, followed by `personality.md`. This is currently the **highest priority**.
 
 ### Priority Order
 
-1. **`system_prompt.md`** (Highest Priority) ⭐
-2. `system_prompt` field in `manifest.json`
-3. Backend Global Settings (Fallback)
+1. **`instructions.md` + `personality.md`** (Currently Recommended) ⭐
+2. `system_prompt.md` (Legacy fallback)
+3. `system_prompt` field in `manifest.json` (Legacy fallback)
+4. Global settings in the admin panel (Fallback)
 
-### File Location
+### File Locations
 
-```
-ghost/{PersonalityID}/system_prompt.md
+```text
+ghost/{PersonalityID}/instructions.md
+ghost/{PersonalityID}/personality.md
 ```
 
 ### Format Requirements
 
 - **Encoding**: UTF-8
-- **Format**: Plain Markdown text file
-- **Content**: The character's complete System Prompt. Markdown format can be used to enhance readability.
+- **Format**: Plain Markdown text files
+- **Content Suggestions**:
+  - `instructions.md` focuses on rules and output constraints.
+  - `personality.md` focuses on personality and background.
 
-### Markdown Format Recommendations
+### Suggested Approaches
 
-Using Markdown makes the System Prompt more structured and readable:
+`instructions.md`
 
 ```markdown
-# Character Definition
+# Dialogue Protocol
 
-You are "Character Name". You must follow the rules below.
-
-## Dialogue Protocol
-
-1. **Response Length**: Must be within 40 words.
-2. **First Person**: Always use "I".
-3. **Tone**: Casual only.
-
-## Background Settings
-
-- Character Background Description
-- Personality Traits
-- Speaking Style
-
-## Behavioral Rules
-
-- Rule 1
-- Rule 2
+- Keep responses concise.
+- Use casual speech.
+- Use "私" for the first person.
+- Avoid breaking character.
 ```
+
+`personality.md`
+
+```markdown
+# Character Setting
+
+You are "Character Name".
+
+- Quiet personality.
+- Distinct preferences for specific topics.
+- Slower pace of speaking.
+```
+
+### Legacy Compatibility
+
+If you want to maintain the old personality format, you can still use either of the following methods:
+
+- `ghost/{PersonalityID}/system_prompt.md`
+- `system_prompt` in `manifest.json`
+
+However, when creating new personalities, it is recommended to directly use `instructions.md + personality.md`.
 
 ### Variable Support
 
-System Prompt supports the following variable substitutions:
+Personality prompts support the following variable replacements:
 
-- `{{ukagaka_display_name}}`: Character Name
-- `{{language}}`: Response Language (zh-TW, ja, en)
-- `{{time_context}}`: Time Context (e.g., "Jan 2 (Thu) - Winter Morning")
-- `{{wp_version}}`: WordPress Version
-- `{{php_version}}`: PHP Version
-- `{{theme_name}}`: Theme Name
-- `{{theme_version}}`: Theme Version
-- `{{theme_author}}`: Theme Author
-- `{{post_count}}`: Post Count
-- `{{comment_count}}`: Comment Count
-- `{{category_count}}`: Category Count
-- `{{tag_count}}`: Tag Count
-- `{{days_operating}}`: Days the website has been operating
+- `{{ukagaka_display_name}}`: Character name
+- `{{language}}`: Response language (zh-TW, ja, en)
+- `{{time_context}}`: Time context (e.g., "1月2日（木曜日）・冬の朝")
+- `{{wp_version}}`: WordPress version
+- `{{php_version}}`: PHP version
+- `{{theme_name}}`: Theme name
+- `{{theme_version}}`: Theme version
+- `{{theme_author}}`: Theme author
+- `{{post_count}}`: Number of posts
+- `{{comment_count}}`: Number of comments
+- `{{category_count}}`: Number of categories
+- `{{tag_count}}`: Number of tags
+- `{{days_operating}}`: Days the site has been operating
 
 **Example:**
 
 ```markdown
-You are a character named "{{ukagaka_display_name}}".
+You are the character "{{ukagaka_display_name}}".
 
 The current time is {{time_context}}.
 ```
 
-### Full Example
+### Complete Example
 
-Refer to `example/system-prompt-markdown-example.md` for a complete Markdown format example.
+Refer to `example/system-prompt-markdown-example.md` to understand the Markdown prompt format. If you want to align with the current architecture, it is recommended to split the content into `instructions.md` and `personality.md`.
 
 ---
 
-## prompts.json Format (LLM Mode)
+## prompts.json Format Guide (LLM Mode)
 
-`prompts.json` defines categories of prompts used when the LLM generates dialogue. Each category contains multiple prompt templates, which the system randomly selects based on weights.
+`prompts.json` defines the prompt categories used when the LLM generates spontaneous dialogue. Each category contains multiple prompt templates, and the system selects one randomly based on weights.
 
 ### File Structure
 
@@ -321,34 +347,34 @@ Refer to `example/system-prompt-markdown-example.md` for a complete Markdown for
   ],
   
   "category_name": [
-    "Prompt Template 1",
-    "Prompt Template 2",
-    "Prompt Template 3"
+    "Prompt template 1",
+    "Prompt template 2",
+    "Prompt template 3"
   ]
 }
 ```
 
-### Category Naming Recommendations
+### Suggested Category Naming
 
 - `greeting`: Greetings
-- `casual`: Casual Chat
+- `casual`: Casual chat
 - `observation`: Observations
 - `memory`: Memories
-- `time_aware`: Time Awareness
-- `magic_collection`: Magic Collection (or character-specific interests)
-- `self_awareness`: Self Awareness
-- `emotional_density`: Emotional Density
+- `time_aware`: Time-awareness
+- `magic_collection`: Magic collection (or corresponding character interests)
+- `self_awareness`: Self-awareness
+- `emotional_density`: Emotional density
 - etc...
 
 ### Variable Placeholders
 
-You can use variable placeholders in prompts, which the system will automatically substitute:
+You can use variable placeholders in the prompts, and the system will automatically replace them:
 
-- `{time_context}`: Time Context
-- `{wp_version}`: WordPress Version
-- `{theme_name}`: Theme Name
-- `{visitor_country}`: Visitor Country
-- `{bot_name}`: BOT Name (if detected)
+- `{time_context}`: Time context
+- `{wp_version}`: WordPress version
+- `{theme_name}`: Theme name
+- `{visitor_country}`: Visitor's country
+- `{bot_name}`: BOT name (if detected)
 - etc...
 
 ### Example
@@ -359,27 +385,27 @@ You can use variable placeholders in prompts, which the system will automaticall
   "_format_version": "1.0",
   
   "greeting": [
-    "Acknowledge the return visit lightly with a calm attitude",
-    "Show slight surprise with an 'Eh' at the visit after a long time"
+    "Acknowledge the revisit lightly with a flat attitude.",
+    "Show slight surprise with an 'Eh?' at the first visit in a while."
   ],
   
   "casual": [
-    "State a calm impression about something noticed",
-    "Mutter something suddenly remembered that has no particular meaning"
+    "Give a flat impression about something that catches your eye.",
+    "Mutter something suddenly remembered, with no particular meaning."
   ],
   
   "time_aware": [
-    "State the realization that time is too short for humans",
-    "Treat a period of 'just 10 years' as a very short time"
+    "Express that time for humans feels too short.",
+    "Treat the period of 'just 10 years' as a very brief moment."
   ]
 }
 ```
 
 ---
 
-## weights.json Format (LLM Mode)
+## weights.json Format Guide (LLM Mode)
 
-`weights.json` defines the weights for each dialogue category. The higher the weight, the greater the probability that the category will be selected.
+`weights.json` defines the weights for each dialogue category. The higher the weight, the greater the chance that category is selected.
 
 ### File Structure
 
@@ -394,10 +420,10 @@ You can use variable placeholders in prompts, which the system will automaticall
   },
   
   "time_adjustments": {
-    "Morning": {
+    "朝": {
       "category_name": 20
     },
-    "Night": {
+    "夜": {
       "category_name": 5
     }
   }
@@ -406,22 +432,22 @@ You can use variable placeholders in prompts, which the system will automaticall
 
 ### base_weights
 
-Base weights used across all time periods. Recommended range: 1-20.
+Base weights used across all time periods. Recommended value range: **1-20**.
 
-- Higher value = Higher probability of selection
-- Recommended for frequent categories: 10-15
-- Recommended for rare categories: 1-5
+- Higher value = higher chance of being selected.
+- Recommended to set frequently used categories to 10-15.
+- Rarely used categories to 1-5.
 
 ### time_adjustments
 
-Adjust weights based on time periods, merged with `base_weights`.
+Adjusts weights based on the time period. Will be merged with `base_weights`.
 
-**Supported Time Periods (Keys correspond to internal logic, use these keys):**
+**Supported time periods:**
 
 - `深夜` (Late Night): 23:00-04:59
 - `睡眠時間帯` (Sleep Time): 00:00-05:59
 - `朝` (Morning): 05:00-11:59
-- `昼` (Afternoon): 12:00-17:59
+- `昼` (Noon/Afternoon): 12:00-17:59
 - `夜` (Evening): 18:00-22:59
 
 ### Example
@@ -455,7 +481,7 @@ Adjust weights based on time periods, merged with `base_weights`.
 
 ---
 
-## decorations.json Format (Optional)
+## decorations.json Format Guide (Optional)
 
 `decorations.json` defines the character's decorations (clickable interactive elements).
 
@@ -483,7 +509,7 @@ Adjust weights based on time periods, merged with `base_weights`.
       },
       "transform": "translateY(-50%)",
       "z_index": 10,
-      "prompt": "Prompt for LLM when user clicks this decoration (within 50 words)"
+      "prompt": "LLM prompt when the user clicks this decoration (within 50 characters)"
     }
   ]
 }
@@ -491,13 +517,13 @@ Adjust weights based on time periods, merged with `base_weights`.
 
 ### Field Description
 
-- `type`: Decoration Type (Unique Identifier)
-- `image`: Image Filename (Stored in `decorations/` folder)
-- `position`: CSS Positioning (`top`, `left`, `right`)
-- `size`: Image Size (`width`, `height`)
-- `transform`: CSS transform (Optional)
-- `z_index`: Layer Order
-- `prompt`: LLM prompt on click
+- `type`: Decoration type (unique identifier).
+- `image`: Image file name (stored in the `decorations/` folder).
+- `position`: CSS positioning (`top`, `left`, `right`).
+- `size`: Image size (`width`, `height`).
+- `transform`: CSS transform (optional).
+- `z_index`: Layer order.
+- `prompt`: LLM prompt upon clicking.
 
 ### Example
 
@@ -523,7 +549,7 @@ Adjust weights based on time periods, merged with `base_weights`.
       },
       "transform": "translateY(-50%)",
       "z_index": 10,
-      "prompt": "User clicked the suitcase. Please talk about this suitcase (within 50 words)."
+      "prompt": "The user clicked the suitcase. Please talk about this suitcase (within 50 characters)."
     }
   ]
 }
@@ -531,44 +557,44 @@ Adjust weights based on time periods, merged with `base_weights`.
 
 ---
 
-## Shell Images
+## Shell Image Files
 
 Shell images are the visual representation of the character, stored in the `shell/{PersonalityID}/` folder.
 
 ### Required Files
 
-- **`{PersonalityID}.png`**: Main Image (Required)
+- **`{PersonalityID}.png`**: Main image (Required)
 
-### Optional Files (Animation)
+### Optional Files (Animations)
 
-- `{PersonalityID}[0].png`, `{PersonalityID}[1].png`, ...: Animation Frames
-- `{PersonalityID}[s].png`: Special State Image
-- `{PersonalityID}[w1].png`, `{PersonalityID}[w2].png`, ...: Wake-up Animation Frames
+- `{PersonalityID}[0].png`, `{PersonalityID}[1].png`, ...: Animation frames
+- `{PersonalityID}[s].png`: Special state image
+- `{PersonalityID}[w1].png`, `{PersonalityID}[w2].png`, ...: Wake-up animation frames
 
-### Naming Convention
+### Naming Conventions
 
-1. **Main Image**: `{PersonalityID}.png` (e.g., `Frieren.png`)
-2. **Animation Frames**: `{PersonalityID}[Number].png` (e.g., `Frieren[0].png`, `Frieren[1].png`)
-3. **Special State**: `{PersonalityID}[Letter].png` (e.g., `Frieren[s].png`)
+1. **Main image**: `{PersonalityID}.png` (e.g., `Frieren.png`)
+2. **Animation frames**: `{PersonalityID}[Number].png` (e.g., `Frieren[0].png`, `Frieren[1].png`)
+3. **Special states**: `{PersonalityID}[Letter].png` (e.g., `Frieren[s].png`)
 
-### Image Format
+### Image Formats
 
 - **Format**: PNG (Recommended) or JPG
-- **Dimensions**: Recommended 200-400px width, height customizable
-- **Background**: Transparent background recommended (PNG)
+- **Size**: Recommended 200-400px width, height is custom
+- **Background**: Transparent background is recommended (PNG)
 
-### File Structure Example
+### Example File Structure
 
 ```
 shell/
 └── Frieren/
-    ├── Frieren.png        # Main Image (Required)
-    ├── Frieren[0].png     # Animation Frame 0
-    ├── Frieren[1].png     # Animation Frame 1
-    ├── Frieren[2].png     # Animation Frame 2
-    ├── Frieren[s].png     # Special State
-    ├── Frieren[w1].png    # Wake-up Animation 1
-    ├── Frieren[w2].png    # Wake-up Animation 2
+    ├── Frieren.png        # Main image (Required)
+    ├── Frieren[0].png     # Animation frame 0
+    ├── Frieren[1].png     # Animation frame 1
+    ├── Frieren[2].png     # Animation frame 2
+    ├── Frieren[s].png     # Special state
+    ├── Frieren[w1].png    # Wake-up animation 1
+    ├── Frieren[w2].png    # Wake-up animation 2
     └── ...
 ```
 
@@ -576,15 +602,15 @@ shell/
 
 ## JavaScript Scripts (Optional)
 
-If you need custom animation or interaction behavior, you can create a JavaScript script.
+If you need custom animations or interactive behaviors, you can create JavaScript scripts.
 
-### File Location
+### File Locations
 
+```text
+ghost/{PersonalityID}/*.js
 ```
-ghost/{PersonalityID}/{PersonalityID}.js
-```
 
-### Specifying in manifest.json
+### Specify in manifest.json
 
 ```json
 {
@@ -593,37 +619,47 @@ ghost/{PersonalityID}/{PersonalityID}.js
 }
 ```
 
+Or use the newer multi-script format:
+
+```json
+{
+  "id": "MyCharacter",
+  "scripts": ["mycharacter.js", "mycharacter-extra.js"]
+}
+```
+
 ### Basic Structure
 
-The JavaScript script needs to register with `window.mpuFrierenManager` (or a similar character manager). Refer to `ghost/Frieren/frieren.js` for a complete example.
+A personality can contain one or more frontend scripts. General interaction scripts can be loaded via `script` or `scripts`; emoji scripts matching the `*-emoji.js` naming convention are independently detected and loaded by the emoji system. See `ghost/Frieren/frieren.js` and `ghost/Frieren/frieren-emoji.js` for full examples.
 
 ---
 
-## Upload & Usage
+## Upload and Use
 
 ### Method 1: ZIP Upload (Recommended)
 
 1. Package all personality files into a ZIP file.
-2. Log in to WordPress Admin → **Settings** → **MP Ukagaka** → **Create New Ukagaka**.
-3. Select the ZIP file and upload.
-4. The system will automatically unzip and verify.
+2. Log in to the WordPress admin panel → **Settings** → **MP Ukagaka** → **Create New Ukagaka**.
+3. Select the ZIP file and upload it.
+4. The system will automatically extract and verify it.
 5. After confirming the preview information is correct, click "Confirm and Create".
 
 ### Method 2: Manual Upload
 
-1. Via FTP or File Manager, upload the personality folder to `wp-content/plugins/mp-ukagaka/ghost/`.
-2. Log in to WordPress Admin → **Settings** → **MP Ukagaka** → **Ukagakas**.
-3. Manually add the new character configuration.
+1. Use FTP or a file manager to upload the personality folder to `wp-content/plugins/mp-ukagaka/ghost/`.
+2. Log in to the WordPress admin panel → **Settings** → **MP Ukagaka** → **Ukagakas**.
+3. Manually add the new character settings.
 
 ### ZIP File Structure Requirements
 
-The ZIP file, when unzipped, should directly contain `manifest.json` and the `shell/` folder:
+After extracting the ZIP file, it should directly contain the `manifest.json` and the `shell/` folder:
 
 ```
 MyCharacter.zip
-└── (Unzipped)
+└── (After extraction)
     ├── manifest.json
-    ├── system_prompt.md
+    ├── instructions.md
+    ├── personality.md
     ├── shell/
     │   └── MyCharacter/
     │       └── MyCharacter.png
@@ -631,13 +667,13 @@ MyCharacter.zip
     └── weights.json
 ```
 
-**Note**: The ZIP file **should not** contain a top-level folder name (e.g., `MyCharacter/manifest.json`); it should be the files themselves.
+**Note**: The ZIP file must **not** contain the top-level folder name (e.g., `MyCharacter/manifest.json`); it should directly contain the files.
 
 ---
 
-## Full Example
+## Complete Example
 
-Here is a minimal character example:
+Here is a minimal personality example:
 
 ### 1. Folder Structure
 
@@ -660,18 +696,23 @@ ghost/
 }
 ```
 
-### 3. system_prompt.md (Optional, Recommended)
+### 3. instructions.md / personality.md (Optional, Recommended)
+
+```markdown
+# Dialogue Protocol
+
+- Keep responses within 50 characters.
+- Use casual speech (no honorifics).
+- Use "私" for the first person.
+```
 
 ```markdown
 # Character Definition
 
-You are "Simple Character". Please interact with visitors in a concise and friendly tone.
+You are "Simple Character". Please interact with the visitor in a concise and friendly tone.
 
-## Dialogue Rules
-
-- Keep responses within 50 words
-- Use casual tone (no honorifics)
-- Use "I" for first person
+- Quiet personality.
+- Likes to observe surroundings.
 ```
 
 ### 4. prompts.json (LLM Mode, Optional)
@@ -682,12 +723,12 @@ You are "Simple Character". Please interact with visitors in a concise and frien
   "_format_version": "1.0",
   
   "greeting": [
-    "Greet with a calm attitude",
-    "Call out lightly to the visitor"
+    "Greet lightly with a flat attitude",
+    "Call out to the visitor briefly"
   ],
   
   "casual": [
-    "State an opinion on something noticed",
+    "Give an impression of something that caught your eye",
     "Mutter something suddenly remembered"
   ]
 }
@@ -715,12 +756,12 @@ Basic steps to create a new personality:
 
 1. ✅ Create `manifest.json` (Required)
 2. ✅ Prepare `shell/{PersonalityID}/{PersonalityID}.png` (Required)
-3. ⭐ Create `system_prompt.md` (Recommended, for defining character behavior)
-4. 📝 Create `prompts.json` and `weights.json` (For LLM Mode)
+3. ⭐ Create `instructions.md` and `personality.md` (Recommended, used to define character behavior)
+4. 📝 Create `prompts.json` and `weights.json` (Used in LLM mode)
 5. 🎨 Add `decorations.json` and decoration images (Optional)
-6. 📦 Package into ZIP and upload
+6. 📦 Package into a ZIP and upload
 
-**Reference Example**: Check the `ghost/Frieren/` folder to understand the full personality structure.
+**Reference Example**: View the `ghost/Frieren/` folder to understand the complete personality structure; when creating a new personality, please prioritize matching the modular prompt structure.
 
 ---
 

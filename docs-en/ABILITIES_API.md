@@ -1,58 +1,67 @@
-# WordPress Abilities API Integration Guide (English)
+# WordPress Abilities API Integration Guide
 
-**MP Ukagaka** leverages the **Abilities API** built into the WordPress 6.9+ core, granting your AI characters (Ukagaka) the ability to interact directly with your WordPress site.
+**MP Ukagaka** uses the **Abilities API** to give your AI character (Ukagaka) the ability to interact directly with your WordPress site.
 
-This feature allows AI characters to use registered "Abilities," such as querying site information, managing posts, or executing other WordPress functions, evolving them from simple chatbots into site management assistants.
+This feature allows the AI character to use registered "Abilities", such as querying site information, managing posts, or executing other WordPress functions, transforming it from a simple chatbot into a site management assistant.
 
 ## What is the Abilities API?
 
-The **Abilities API** is a core feature introduced in WordPress 6.9 (released December 2, 2025). It provides a standardized way to register and discover WordPress functionalities (Abilities).
+The **Abilities API** provides a standardized way to register, discover, and execute WordPress abilities.
 
-- **Past (WP < 6.9)**: Depended on the **MCP Adapter** plugin to provide registry functionality.
-- **Present (WP >= 6.9)**: The registry is now part of the WordPress core.
+For MP Ukagaka, this means the character can convert abilities registered on the WordPress side into tools callable by the LLM, allowing the character to query site information or trigger controlled actions in appropriate contexts.
 
-Therefore, as long as your WordPress version is 6.9 or higher, **no additional plugins are required** for MP Ukagaka to utilize these functions.
+## Relationship between Abilities API and MCP Naming
 
-## Why is the MCP Adapter not needed?
+Currently, the plugin **externally** relies primarily on the Abilities API, but the **internal implementation naming** still retains some MCP terminology. This is to maintain backward compatibility and reduce refactoring risks.
 
-Because `mp-ukagaka` calls the core function `wp_register_ability()`, directly registering abilities (e.g., "Get Popular Posts") into the WordPress core registry.
+For example:
 
-The AI logic reads abilities directly from this core registry and passes them as "Tools" to models like Gemini, Claude, OpenAI, and Ollama. Since the registration and discovery mechanisms are built-in, the MCP Adapter is no longer required as an intermediary.
+- The integration file is still `includes/integrations/abilities-integration.php`
+- Internal function names are still `mpu_get_mcp_tools_for_llm()`, `mpu_execute_mcp_tool()`
+- The internal directory still uses `includes/mcp-tools/`
 
-- **Internal Use (Internal Agent)**: For Ukagaka use → **No MCP Adapter needed** (direct access to Core API).
-- **External Use (External Agent)**: For Cursor or Claude Desktop → **May need MCP Adapter** (exposing core abilities via standard MCP protocol).
+This does not mean the plugin still relies on the legacy MCP Adapter, but rather indicates:
+
+- **Internally**: Continuing to use existing MCP naming as a transition layer for the implementation.
+- **Externally**: Using the WordPress Abilities API as the official interface for registering and discovering abilities.
+
+If you are letting MP Ukagaka use these abilities directly within the site, you should adhere to the **Abilities API**.
+If you want to expose in-site abilities to an external agent (like other tools supporting MCP), then you might need an additional adapter layer.
 
 ## Supported Models
 
-The following AI models currently support tool calling in this plugin:
+Currently, this plugin supports multiple providers with Tool Calling capabilities, including:
 
-- **Google Gemini**: Gemini 2.0 Flash (Recommended), Gemini 1.5 Pro, etc.
-- **Anthropic Claude**: Claude 3.5 Sonnet, etc.
-- **OpenAI**: GPT-4o, GPT-4o-mini, etc.
-- **Ollama**: Qwen 2.5, Llama 3.1, etc. (Models supporting Tool Calling).
+- **Google Gemini**
+- **Anthropic Claude**
+- **OpenAI**
+- **Ollama**
+
+The actually available models depend on the plugin's current settings and the corresponding provider implementation.
 
 ## Permissions and Security
 
-Core abilities involving sensitive operations (File operations, Delete posts, etc.) are automatically restricted. If triggered by non-admin users, the system will intercept the request and return an "Insufficient Permissions" notice to ensure security.
+Core abilities involving sensitive operations (such as file operations, deleting posts, etc.) will be automatically intercepted if triggered by non-admin users. The system will return an insufficient permissions prompt to ensure security.
 
-![Permission Block Example](../screenshot6.PNG)
+![Permission Interception Diagram](../screenshot6.PNG)
 
-_Permission Control: System reaction when non-admin users trigger sensitive MCP commands_
+*Permission Control: System reaction when a non-admin role triggers a tool call*
 
 ## How to Add Abilities (Developer Guide)
 
-MP Ukagaka automatically detects and uses all Abilities registered to the WordPress core. You can add abilities using two methods:
+MP Ukagaka will automatically detect and use all Abilities registered to the WordPress core.
+You can add abilities in two ways:
 
-### Method 1: Standard WordPress Method (For any Plugin/Theme)
+### Method 1: Standard WordPress Way (Suitable for any plugin/theme)
 
-This is the official WordPress standard. Any plugin can register abilities this way, and MP Ukagaka will automatically read and use them.
+This is the official WordPress standard approach. Any plugin can register abilities this way, and MP Ukagaka will automatically read and use them.
 
 ```php
-// In your custom plugin or theme's functions.php
+// In the functions.php of your custom plugin or theme
 add_action( 'wp_abilities_api_init', function() {
     if ( function_exists( 'wp_register_ability' ) ) {
         wp_register_ability(
-            'my-plugin/say-hello', // Unique identifier
+            'my-plugin/say-hello', // Unique identifier for the ability
             array(
                 'label'       => 'Say Hello',
                 'description' => 'A simple ability that says hello.',
@@ -72,9 +81,9 @@ add_action( 'wp_abilities_api_init', function() {
 } );
 ```
 
-### Method 2: MP Ukagaka Modular Method (Recommended for internal development)
+### Method 2: MP Ukagaka Modular Way (Recommended for developing this plugin / AI capability building guide)
 
-If you are developing the `mp-ukagaka` plugin itself, we recommend using our built-in modular architecture. Based on the development experience with `class-wp-postviews-ability.php` and `class-wp-bot-blocker-ability.php`, here is the **Step-by-Step SOP and Pitfall Avoidance Guide**.
+If you are developing the `mp-ukagaka` plugin itself, it is recommended to align with our built-in modular architecture. The following is a **step-by-step development guide (SOP) and pitfall avoidance guide** compiled based on the development experience of `class-wp-postviews-ability.php` and `class-wp-bot-blocker-ability.php`.
 
 #### 1. Architecture Overview
 
@@ -83,18 +92,18 @@ includes/mcp-tools/
 ├── manager.php                  # Automatically discovers and registers all ability classes
 └── abilities/
     ├── class-wp-postviews-ability.php     # Example: Read-only, no parameters
-    └── class-wp-bot-blocker-ability.php   # Example: Multiple abilities, with params & Enum
+    └── class-wp-bot-blocker-ability.php   # Example: Multiple abilities, with parameters and Enums
 ```
 
 **Execution Flow:**
 
 1. `manager.php` → `register_abilities()` → calls your `YourClass::register()` during `wp_abilities_api_init`.
-2. `abilities-integration.php` → `mpu_get_mcp_tools_for_llm()` → formats tool schemas according to different LLMs.
-3. LLM requests tool call → `mpu_execute_mcp_tool()` → `$ability->execute($args)` → calls your defined Callback.
+2. `abilities-integration.php` → `mpu_get_mcp_tools_for_llm()` → Formats the tool schema according to different LLM providers.
+3. LLM request invokes the tool → `mpu_execute_mcp_tool()` → `$ability->execute($args)` → Calls your defined callback.
 
-**Admin Permission Restriction:** Tool definitions are **not** sent to non-admin visitors. Only users who `current_user_can('manage_options')` can trigger tool calls. This restriction is enforced at the integration layer, not within the ability itself.
+**Admin Permission Restriction:** The tool definition is **not** sent to non-admin visitors. Only users with `current_user_can('manage_options')` can trigger a tool call. This restriction is enforced at the integration layer, not within the ability itself.
 
-#### 2. Step-by-Step SOP
+#### 2. Step-by-Step Development Guide (SOP)
 
 **Step 1: Create the Ability Class File**
 
@@ -109,26 +118,26 @@ class Wp_YourFeature_Ability
 {
     public static function register()
     {
-        // Guard: ensure wp_register_ability exists
+        // Guard: Ensure wp_register_ability exists
         if (!function_exists('wp_register_ability')) {
             return;
         }
 
-        // Guard: check external plugin dependencies (if any)
+        // Guard: Check external plugin dependencies (if any)
         if (!function_exists('your_plugin_function')) {
             return;
         }
 
         wp_register_ability('mp-ukagaka/your-ability-name', array(
-            'label'               => __('Human readable ability name', 'mp-ukagaka'),
-            'description'         => __('What this ability does. Semantics must be extremely precise.', 'mp-ukagaka'),
+            'label'               => __('Human-readable ability name', 'mp-ukagaka'),
+            'description'         => __('What this ability does. The semantics must be extremely precise.', 'mp-ukagaka'),
             'category'            => 'mp-ukagaka',
             'input_schema'        => array(
                 'type'       => 'object',
                 'properties' => array(
                     'param_name' => array(
                         'type'        => 'string',
-                        'description' => __('Precise parameter description. If Enum, add "Use this value when... " for each value.', 'mp-ukagaka'),
+                        'description' => __('Precise parameter description. If it is an Enum, add "Use this value when..." for each value.', 'mp-ukagaka'),
                     ),
                 ),
                 'required' => array('param_name'),
@@ -146,7 +155,7 @@ class Wp_YourFeature_Ability
 }
 ```
 
-**Step 2: Register the Class in manager.php**
+**Step 2: Register the class in manager.php**
 
 Add the full class namespace to the `$abilities` array in `includes/mcp-tools/manager.php`:
 
@@ -160,39 +169,39 @@ protected static $abilities = [
 
 **Step 3: Verify Registration**
 
-Log in to WordPress as an administrator, and type `/debug_mcp` in the Frieren chat window. Ensure that:
+Log in to WordPress as an administrator and enter `/debug_mcp` in the Frieren chat window. Confirm that:
 
 - Your ability name appears in the "Tools found:" list.
-- The "Tool count" has increased by the number of abilities you added.
+- "Tool count" has increased by the number you added.
 
-**Step 4: Chat Testing**
+**Step 4: Dialogue Testing**
 
-Ask Frieren to use the ability. After she responds, verify the actual data source (database, Option, etc.) to ensure the result is correct.
+Ask Frieren to use the ability. After her response, go to the actual data source (Database, Option, etc.) to verify if the result is correct.
 
 #### 3. Required Fields
 
-The following 5 fields are **absolutely required** (missing any will lead to a silent error):
+The following 5 fields are **absolutely required** (missing any of them will result in a silent error):
 
-| Field                 | Required | Description                                                                                                 |
-| --------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `label`               | **YES**  | If missing, an `InvalidArgumentException` is thrown (swallowed internally), and the ability won't register. |
-| `description`         | **YES**  | The sole basis for the LLM to decide when to call this tool.                                                |
-| `category`            | **YES**  | Must be set to `'mp-ukagaka'`.                                                                              |
-| `execute_callback`    | **YES**  | Please use the `[self::class, 'method_name']` array format.                                                 |
-| `permission_callback` | **YES**  | Write `function () { return true; }` (Admin check is already done externally).                              |
+| Field                 | Required | Description                                                                                          |
+| --------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| `label`               | **YES**  | If missing, an `InvalidArgumentException` will be thrown (swallowed by the underlying layer), and the ability won't be registered. |
+| `description`         | **YES**  | The only basis for the LLM to determine when to call this tool.                                      |
+| `category`            | **YES**  | Must be set to `'mp-ukagaka'`.                                                                       |
+| `execute_callback`    | **YES**  | Please use the `[self::class, 'method_name']` array format.                                          |
+| `permission_callback` | **YES**  | Please write `function () { return true; }` (Admin check is verified in the outer call).             |
 
 #### 4. input_schema Rules
 
-**Abilities without parameters "MUST" define an input_schema:**
+**Abilities without parameters "must" define input_schema:**
 
 ```php
-// ✅ Correct approach — LLM sends {}, validate_input sees defined schema → Pass
+// ✅ Correct writing — LLM sends {}, validate_input sees defined schema → passes
 'input_schema' => array(
     'type'       => 'object',
-    'properties' => new \stdClass(),  // ← Must use stdClass, not [] ([] becomes an array, not an object)
+    'properties' => new \stdClass(),  // ← Must use stdClass, cannot use [] ([] will be converted to an array, not an object)
 ),
 
-// ❌ Incorrect approach — LLM sends {} (not null), validate_input receives it and returns WP_Error → Frieren will say "I couldn't get the information"
+// ❌ Incorrect writing — LLM sends {} (not null), validate_input receives it and returns WP_Error → Frieren will say "I couldn't get the information"
 // (Completely omitting input_schema is wrong)
 ```
 
@@ -211,12 +220,12 @@ The following 5 fields are **absolutely required** (missing any will lead to a s
 ),
 ```
 
-#### 5. Writing Precise Descriptions for the LLM
+#### 5. Writing Precise Descriptions to Guide the LLM
 
 This is the most critical step. Vague descriptions will cause the LLM to choose the wrong tool or parameters.
 
-**Ability-level descriptions:**
-Clearly state **what it does** and **when to use it**:
+**Ability-level description:**
+Clearly explain **what it does** and **when to use it**:
 
 ```php
 // ❌ Too vague
@@ -226,59 +235,59 @@ Clearly state **what it does** and **when to use it**:
 'description' => 'Clear the Moelog Bot Blocker intercept records or reset the IP ban list.'
 ```
 
-**Enum parameter descriptions:**
-Always add a **"Use this when..."** guide for each Enum value:
+**Enum parameter description:**
+Always add **"Use this when..."** guidance for each Enum value:
 
 ```php
-// ❌ Will cause the LLM to guess
+// ❌ Will cause the LLM to guess wildly
 'description' => 'What to clear: "logs", "ips", or "both".'
 
-// ✅ Precisely guides the LLM based on user intent
+// ✅ Precisely guides based on user intent
 'description' =>
     '"logs" — Deletes all intercept records in the database. Use this when the user asks to clear records, history, logs, or intercept data. ' .
-    '"ips" — Only clears the IP ban list. Use this when the user asks to unblock IPs or reset the ban list. ' .
+    '"ips" — Clears only the IP blacklist. Use this when the user asks to unblock IPs or reset the ban list. ' .
     '"both" — Clears both.'
 ```
 
-**Action Vocabulary (Action vs. Query):**
+**Action vocabulary (Action vs. Query):**
 Avoid using file system metaphors to describe database operations:
 
 - ❌ "log file" 👉 ✅ "log records in the database"
 - ❌ "config file" 👉 ✅ "settings stored in WordPress options"
 - ❌ "reset file" 👉 ✅ "delete records from the table"
 
-**Post-operation Validation Return Value:**
-If the ability modifies data, please return the validation result so the LLM can accurately report back:
+**Post-operation validation return value:**
+If the ability modifies data, please return a validation result so the LLM can report accurately:
 
 ```php
 public static function clear_callback($args)
 {
     moelog_bot_blocker_clear_logs();
-    return 'Cleared the intercept log table. All records deleted.'; // Lets the LLM know it succeeded
+    return 'Cleared the intercept log table. All records deleted.'; // Let the LLM know it succeeded
 }
 ```
 
 #### 6. Naming Conventions
 
-- **Ability name format:** `mp-ukagaka/{slug}` — Only lowercase letters, numbers, and hyphens (`-`) are allowed.
-  - Strictly adhere to the regex: `/^[a-z0-9-]+\/[a-z0-9-]+$/`
-  - **No underscores (`_`) allowed**.
+- **Ability name format:** `mp-ukagaka/{slug}` — Only use lowercase letters, numbers, and hyphens (`-`).
+  - Strictly adhere to the regular expression: `/^[a-z0-9-]+\/[a-z0-9-]+$/`
+  - **Underscores (`_`) are prohibited**.
   - ✅ `mp-ukagaka/get-bot-blocker-stats`
   - ❌ `mp-ukagaka/get_bot_blocker_stats`
 - **Class name:** `Wp_{Feature}_Ability` (PascalCase with underscores).
 - **File name:** `class-{slug}-ability.php` (kebab-case).
-- **Note:** `abilities-integration.php` automatically converts `/` to `__` when sending to the LLM (to comply with OpenAI's regex limits).
+- **Note:** When `abilities-integration.php` sends the schema to the LLM, it automatically converts `/` to `__` (to comply with OpenAI's regex limitations).
 
 #### 7. External Plugin Integration Pattern
 
-**Prioritize calling the plugin's own public functions**, avoiding direct manipulation of the DB or Options:
+**Prioritize calling the plugin's public functions**, avoiding direct manipulation of DB or Options:
 
 ```php
-// ✅ Calling plugin's own function — Ensures internal log rotation, transients, and action hooks are triggered
+// ✅ Calling the plugin's own function — Ensures triggering of internal log rotation, Transients, and Action hooks
 moelog_bot_blocker_ban_ip($ip);
 moelog_bot_blocker_log('MANUAL_BAN', ['source' => 'Frieren API', 'ip' => $ip]);
 
-// ❌ Direct option modification — Bypasses plugin core logic
+// ❌ Directly modifying option — Bypasses core plugin logic
 $banned = get_option('moelog_bot_blocker_banned_ips', []);
 $banned[] = $ip;
 update_option('moelog_bot_blocker_banned_ips', $banned);
@@ -286,12 +295,12 @@ update_option('moelog_bot_blocker_banned_ips', $banned);
 
 #### 8. Checklist Before Shipping
 
-- [ ] Class file created in `includes/mcp-tools/abilities/`.
-- [ ] Class added to the `$abilities` array in `manager.php`.
+- [ ] Created the class file in `includes/mcp-tools/abilities/`.
+- [ ] Added the class to the `$abilities` array in `manager.php`.
 - [ ] All 5 required fields are set (`label`, `description`, `category`, `execute_callback`, `permission_callback`).
-- [ ] `input_schema` defined (even for parameter-less abilities using `new \stdClass()`).
-- [ ] Ability is named `mp-ukagaka/{kebab-case}` with no underscores.
-- [ ] Plugin dependency guards added (`function_exists()`).
-- [ ] Precise semantics in descriptions — Enum values include "Use this when..." guidance.
+- [ ] `input_schema` is defined (even parameterless abilities use `new \stdClass()`).
+- [ ] Ability is named `mp-ukagaka/{kebab-case}` and has no underscores.
+- [ ] Plugin dependency guard (`function_exists()`) is added.
+- [ ] Description semantics are precise — Enum values have "Use this when..." guidance.
 - [ ] `/debug_mcp` confirms the tool appears in the list.
-- [ ] End-to-end chat testing passed, and data is modified correctly.
+- [ ] End-to-end dialogue test passed, and data changed correctly.

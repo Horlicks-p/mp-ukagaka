@@ -4,6 +4,22 @@
 
 ---
 
+## [2.13.6] - 2026-04-24
+
+### 📖 ドキュメント更新：開発者向け文書の補完と多言語同期
+
+- **昨日反映しきれていなかった開発者向け文書を補完**：`API_REFERENCE.md`、`DEVELOPER_GUIDE.md`、`CANVAS_CUSTOMIZATION.md`、`DEBUG_SLIMSTAT.md`、`ABILITIES_API.md`、`GHOST_CREATE_GUIDE.md` を全面的に見直し、現在のコード構造と一致するよう更新しました。
+- **REST / Abilities / Personality アーキテクチャに整合**：
+  - 古い AJAX、旧 hooks、旧グローバル変数、廃止済みモジュール説明を、現在の REST controller ベース構成に更新しました。
+  - 対外的な Abilities API の概念と、実装内部に一部残っている MCP 由来の命名との違いを明確化しました。
+  - ゴースト作成ガイドを `instructions.md + personality.md` を主構成とする内容に改め、`system_prompt.md` / `manifest.json.system_prompt` は legacy fallback として整理しました。
+- **現在サポートされている personality / frontend 構成を追記**：
+  - `touchzones.json`、`sleep_mode.json`、`calendar.json`、`diary.json`、`emoji-keywords.json`、`scripts` など、現行構成の説明を追加しました。
+  - canvas 装飾システム、Slimstat / visitor-info デバッグ手順、初期化データ、フロントエンド script 読み込み説明を更新しました。
+- **3 言語同期完了**：繁体字中国語・英語・日本語の開発者向け文書と changelog が同期され、内容が一致しました。
+
+---
+
 ## [2.13.5] - 2026-04-23
 
 ### 📖 ドキュメント：USER_GUIDE 全面再構成

@@ -4,6 +4,22 @@
 
 ---
 
+## [2.13.6] - 2026-04-24
+
+### 📖 Docs: Developer Documentation Catch-Up & Cross-Language Sync
+
+- **Completed the missing developer doc updates from yesterday**: Fully reviewed and updated `API_REFERENCE.md`, `DEVELOPER_GUIDE.md`, `CANVAS_CUSTOMIZATION.md`, `DEBUG_SLIMSTAT.md`, `ABILITIES_API.md`, and `GHOST_CREATE_GUIDE.md` so they now match the current codebase structure.
+- **Aligned REST / Abilities / Personality architecture docs**:
+  - Replaced outdated AJAX, old hooks, legacy globals, and obsolete module descriptions with the current REST controller architecture.
+  - Clarified the distinction between the public Abilities API concept and the internal MCP-era naming that still remains in parts of the implementation.
+  - Updated the ghost creation guide to use `instructions.md + personality.md` as the primary prompt structure, while keeping `system_prompt.md` / `manifest.json.system_prompt` documented as legacy fallback behavior.
+- **Documented the currently supported personality / frontend structure**:
+  - Added coverage for `touchzones.json`, `sleep_mode.json`, `calendar.json`, `diary.json`, `emoji-keywords.json`, `scripts`, and related current-era files.
+  - Refreshed the canvas decoration system, Slimstat/visitor-info debugging flow, init payload notes, and frontend script-loading documentation.
+- **Three-language sync complete**: Traditional Chinese, English, and Japanese developer docs and changelogs are now aligned.
+
+---
+
 ## [2.13.5] - 2026-04-23
 
 ### 📖 Docs: USER_GUIDE Full Restructure

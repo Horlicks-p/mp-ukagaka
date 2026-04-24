@@ -10,7 +10,7 @@
 2. [必要檔案](#必要檔案)
 3. [資料夾結構](#資料夾結構)
 4. [manifest.json 格式說明](#manifestjson-格式說明)
-5. [system_prompt.md 使用方法](#system_promptmd-使用方法)
+5. [人格提示詞結構](#人格提示詞結構)
 6. [prompts.json 格式說明（LLM 模式）](#promptsjson-格式說明llm-模式)
 7. [weights.json 格式說明（LLM 模式）](#weightsjson-格式說明llm-模式)
 8. [decorations.json 格式說明（可選）](#decorationsjson-格式說明可選)
@@ -23,11 +23,13 @@
 
 ## 概述
 
-在 MP Ukagaka 中，每個角色人格都存放在 `ghost/` 資料夾下，以人格 ID 為名稱的獨立資料夾中。一個完整的人格包含以下內容：
+在 MP Ukagaka 中，每個角色人格都存放在 `ghost/` 資料夾下，以人格 ID 為名稱的獨立資料夾中。一個完整的人格通常包含以下內容：
 
 - **必要檔案**：`manifest.json`、`shell/` 資料夾（包含角色圖片）
-- **LLM 模式檔案**（使用 AI 時）：`prompts.json`、`weights.json`、`system_prompt.md`（或 `manifest.json` 中的 `system_prompt` 欄位）
-- **可選檔案**：`decorations.json`、`decorations/` 資料夾、JavaScript 腳本、`dynamics.json`
+- **LLM 模式核心檔案**（使用 AI 時）：`prompts.json`、`weights.json`，以及人格提示詞檔案
+- **目前推薦的人格提示詞結構**：`instructions.md` + `personality.md`
+- **舊版相容寫法**：`system_prompt.md` 或 `manifest.json` 中的 `system_prompt`
+- **可選檔案**：`dynamics.json`、`decorations.json`、`decorations/`、`touchzones.json`、`sleep_mode.json`、`calendar.json`、`emoji-keywords.json`、`diary.json`、JavaScript 腳本
 
 ---
 
@@ -59,7 +61,9 @@ ghost/
 ghost/
 └── {人格ID}/              # 人格資料夾（例如：Frieren、Sakura_Laurel）
     ├── manifest.json       # 必要：元數據與設定
-    ├── system_prompt.md    # 推薦：System Prompt（Markdown 格式）
+    ├── instructions.md     # 推薦：行為規則 / 對話協議
+    ├── personality.md      # 推薦：人格背景 / 角色描述
+    ├── system_prompt.md    # 舊版相容：legacy prompt fallback
     │
     ├── shell/              # 必要：角色圖片資料夾
     │   └── {人格ID}/       # 圖片子資料夾（名稱通常與人格 ID 相同）
@@ -76,6 +80,11 @@ ghost/
     ├── weights.json        # LLM 模式：類別權重配置
     ├── dynamics.json       # LLM 模式：動態模板（可選）
     ├── decorations.json    # 可選：裝飾物配置
+    ├── touchzones.json     # 可選：觸摸區域配置
+    ├── sleep_mode.json     # 可選：睡眠模式配置
+    ├── calendar.json       # 可選：節日 / 紀念日配置
+    ├── diary.json          # 可選：AI 日記配置
+    ├── emoji-keywords.json # 可選：表情關鍵字配置
     └── {人格ID}.js         # 可選：JavaScript 動畫腳本
 ```
 
@@ -106,7 +115,8 @@ ghost/
   "language": "ja",                       // 可選：主要語言（ja/zh-TW/en）
   "shell_folder": "MyCharacter",          // 必要：shell 圖片資料夾名稱
   "decorations_folder": "decorations",    // 可選：裝飾物資料夾名稱（預設 "decorations"）
-  "script": "mycharacter.js",             // 可選：JavaScript 腳本檔名
+  "script": "mycharacter.js",             // 可選：舊格式，單一 JavaScript 腳本
+  "scripts": ["mycharacter.js"],          // 可選：新格式，支援多個腳本
   
   "settings": {                           // 可選：行為設定
     "max_response_length": 500,           // 回應長度限制（字符數，預設 500）
@@ -124,8 +134,8 @@ ghost/
     "aliases": ["暱稱1", "暱稱2"]
   },
   
-  "system_prompt": "你是...",             // 可選：System Prompt（字串或陣列）
-                                           // 注意：建議使用 system_prompt.md 檔案
+  "system_prompt": "你是...",             // 可選：舊格式 prompt fallback（字串或陣列）
+                                           // 建議改用 instructions.md + personality.md
 }
 ```
 
@@ -179,10 +189,10 @@ ghost/
 1. **Prompt 建議**：30-150字（軟性引導）
 
    - 在 System Prompt 和 User Prompt 中建議 AI 保持在 30-250 字範圍內
-2. **API max_tokens**：600（可配置 `max_tokens`）
+2. **API max_tokens**：800（可配置 `max_tokens`）
 
    - 限制 AI 模型生成的最大 token 數
-   - 從 `manifest.json` 的 `settings.max_tokens` 讀取，預設 600
+   - 從 `manifest.json` 的 `settings.max_tokens` 讀取，預設 800
 3. **後端截斷**：150 字（可配置 `max_response_length`）
 
    - 最終的安全防護層
@@ -225,58 +235,74 @@ ghost/
 
 ---
 
-## system_prompt.md 使用方法
+## 人格提示詞結構
 
-`system_prompt.md` 是用於定義角色 System Prompt 的 Markdown 檔案，具有最高優先級。
+目前建議使用 **modular prompt** 結構來定義角色：
+
+- `instructions.md`：行為規則、語氣、格式限制、對話協議
+- `personality.md`：背景設定、世界觀、偏好、性格補充
+
+系統會先讀取 `instructions.md`，再接上 `personality.md`。這是目前的**最高優先級**。
 
 ### 優先級順序
 
-1. **`system_prompt.md`**（最高優先級）⭐
-2. `manifest.json` 中的 `system_prompt` 欄位
-3. 後台全域設定（Fallback）
+1. **`instructions.md` + `personality.md`**（目前推薦）⭐
+2. `system_prompt.md`（legacy fallback）
+3. `manifest.json` 中的 `system_prompt` 欄位（legacy fallback）
+4. 後台全域設定（fallback）
 
 ### 檔案位置
 
-```
-ghost/{人格ID}/system_prompt.md
+```text
+ghost/{人格ID}/instructions.md
+ghost/{人格ID}/personality.md
 ```
 
 ### 格式要求
 
 - **編碼**：UTF-8
 - **格式**：純 Markdown 文字檔案
-- **內容**：角色的完整 System Prompt，可以使用 Markdown 格式增強可讀性
+- **內容建議**：
+  - `instructions.md` 專注於規則與輸出限制
+  - `personality.md` 專注於人格與背景
 
-### Markdown 格式建議
+### 建議寫法
 
-使用 Markdown 可以讓 System Prompt 更結構化、易讀：
+`instructions.md`
 
 ```markdown
-# 角色定義
+# 對話協議
 
-你是「角色名稱」。以下規則必須遵守。
-
-## 對話協議
-
-1. **回應長度**：必ず40文字以内で収まること。
-2. **第一人称**：必ず「私」を使用すること。
-3. **口調**：常体のみ使用。
-
-## 背景設定
-
-- 角色背景說明
-- 性格特徵
-- 說話風格
-
-## 行為規則
-
-- 規則1
-- 規則2
+- 回應保持簡潔
+- 使用常體
+- 第一人稱使用「私」
+- 避免跳出角色
 ```
+
+`personality.md`
+
+```markdown
+# 角色設定
+
+你是「角色名稱」。
+
+- 性格沉靜
+- 對特定主題有明顯偏好
+- 說話節奏偏慢
+```
+
+### Legacy 相容
+
+如果您要維持舊有人格格式，仍可使用下列任一方式：
+
+- `ghost/{人格ID}/system_prompt.md`
+- `manifest.json` 中的 `system_prompt`
+
+但新建人格時，建議直接使用 `instructions.md + personality.md`。
 
 ### 變數支援
 
-System Prompt 支援以下變數替換：
+人格提示詞支援以下變數替換：
 
 - `{{ukagaka_display_name}}`：角色名稱
 - `{{language}}`：回應語言（zh-TW、ja、en）
@@ -302,7 +328,7 @@ System Prompt 支援以下變數替換：
 
 ### 完整範例
 
-參考 `example/system-prompt-markdown-example.md` 查看完整的 Markdown 格式範例。
+參考 `example/system-prompt-markdown-example.md` 可了解 Markdown prompt 寫法；若要對齊目前架構，建議把內容拆分到 `instructions.md` 與 `personality.md`。
 
 ---
 
@@ -580,8 +606,8 @@ shell/
 
 ### 檔案位置
 
-```
-ghost/{人格ID}/{人格ID}.js
+```text
+ghost/{人格ID}/*.js
 ```
 
 ### 在 manifest.json 中指定
@@ -593,9 +619,18 @@ ghost/{人格ID}/{人格ID}.js
 }
 ```
 
+或使用較新的多腳本格式：
+
+```json
+{
+  "id": "MyCharacter",
+  "scripts": ["mycharacter.js", "mycharacter-extra.js"]
+}
+```
+
 ### 基本結構
 
-JavaScript 腳本需要註冊到 `window.mpuFrierenManager`（或類似的角色管理器）中。參考 `ghost/Frieren/frieren.js` 查看完整範例。
+人格可包含一個或多個前端腳本。一般互動腳本可透過 `script` 或 `scripts` 載入；符合 `*-emoji.js` 命名的表情腳本則由表情系統獨立偵測與載入。參考 `ghost/Frieren/frieren.js` 與 `ghost/Frieren/frieren-emoji.js` 查看完整範例。
 
 ---
 
@@ -623,7 +658,8 @@ ZIP 檔案解壓後應該直接包含 `manifest.json` 和 `shell/` 資料夾：
 MyCharacter.zip
 └── (解壓後)
     ├── manifest.json
-    ├── system_prompt.md
+    ├── instructions.md
+    ├── personality.md
     ├── shell/
     │   └── MyCharacter/
     │       └── MyCharacter.png
@@ -660,18 +696,23 @@ ghost/
 }
 ```
 
-### 3. system_prompt.md（可選，推薦）
+### 3. instructions.md / personality.md（可選，推薦）
+
+```markdown
+# 對話協議
+
+- 回應保持在 50 字以內
+- 使用常體（不使用敬語）
+- 第一人称使用「私」
+```
 
 ```markdown
 # 角色定義
 
 你是「簡單角色」。請以簡潔、友善的語氣與訪客互動。
 
-## 對話規則
-
-- 回應保持在 50 字以內
-- 使用常體（不使用敬語）
-- 第一人称使用「私」
+- 性格安靜
+- 喜歡觀察周圍
 ```
 
 ### 4. prompts.json（LLM 模式，可選）
@@ -715,12 +756,12 @@ ghost/
 
 1. ✅ 創建 `manifest.json`（必要）
 2. ✅ 準備 `shell/{人格ID}/{人格ID}.png`（必要）
-3. ⭐ 創建 `system_prompt.md`（推薦，用於定義角色行為）
+3. ⭐ 創建 `instructions.md` 與 `personality.md`（推薦，用於定義角色行為）
 4. 📝 創建 `prompts.json` 和 `weights.json`（LLM 模式時使用）
 5. 🎨 添加 `decorations.json` 和裝飾物圖片（可選）
 6. 📦 打包成 ZIP 並上傳
 
-**參考範例**：查看 `ghost/Frieren/` 資料夾了解完整的人格結構。
+**參考範例**：查看 `ghost/Frieren/` 資料夾了解完整的人格結構；新建人格時請優先比照 modular prompt 結構。
 
 ---
 

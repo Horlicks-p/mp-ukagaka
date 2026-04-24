@@ -4,6 +4,22 @@
 
 ---
 
+## [2.13.6] - 2026-04-24
+
+### 📖 文件更新：開發文件補完與多語同步
+
+- **補齊昨天遺漏的開發文件更新**：完成 `API_REFERENCE.md`、`DEVELOPER_GUIDE.md`、`CANVAS_CUSTOMIZATION.md`、`DEBUG_SLIMSTAT.md`、`ABILITIES_API.md`、`GHOST_CREATE_GUIDE.md` 的全面校對與修正，讓文件內容與目前程式碼結構一致。
+- **REST / Abilities / Personality 架構對齊**：
+  - 將開發文件中過時的 AJAX、舊 hooks、舊全域變數與舊模組描述，統一更新為現行 REST controller 架構。
+  - 明確區分 Abilities API 的對外概念與內部仍保留的 MCP 命名過渡層，避免文件與實作落差。
+  - 將人格製作指南更新為以 `instructions.md + personality.md` 為主，並保留 `system_prompt.md` / `manifest.json.system_prompt` 的 legacy fallback 說明。
+- **補齊目前實際支援的 personality / frontend 文件內容**：
+  - 補上 `touchzones.json`、`sleep_mode.json`、`calendar.json`、`diary.json`、`emoji-keywords.json`、`scripts` 等現行結構。
+  - 更新 canvas 裝飾系統、Slimstat/訪客資訊除錯流程、初始化資料與前端腳本載入說明。
+- **三語文件同步**：繁中、英文、日文三套開發文件與 changelog 已同步更新，內容保持一致。
+
+---
+
 ## [2.13.5] - 2026-04-23
 
 ### 📖 文件更新：USER_GUIDE 全面重構
