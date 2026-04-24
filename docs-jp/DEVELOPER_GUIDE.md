@@ -1,117 +1,119 @@
 # MP Ukagaka 開発者ガイド
 
-> 🛠️ アーキテクチャ説明、拡張開発、API リファレンス
+> 🛠️ アーキテクチャの概要、拡張開発、および API リファレンス
 
 ---
 
 ## 📑 目次
 
-1. [アーキテクチャ概要](#アーキテクチャ概要)
-2. [モジュール説明](#モジュール説明)
+1. [アーキテクチャの概要](#アーキテクチャの概要)
+2. [モジュールの説明](#モジュールの説明)
 3. [データ構造](#データ構造)
-4. [Hooks と Filters](#hooks-と-filters)
-5. [AJAX エンドポイント](#ajax-エンドポイント)
+4. [フックとフィルター](#フックとフィルター)
+5. [REST エンドポイント](#rest-エンドポイント)
 6. [JavaScript API](#javascript-api)
 7. [拡張開発](#拡張開発)
-8. [セキュリティ考慮事項](#セキュリティ考慮事項)
-9. [開発規約](#開発規約)
+8. [セキュリティの考慮事項](#セキュリティの考慮事項)
+9. [開発標準](#開発標準)
 
 ---
 
-## アーキテクチャ概要
+## アーキテクチャの概要
 
 ### ディレクトリ構造
 
 ```text
 mp-ukagaka/
-├── mp-ukagaka.php          # メインエントリーポイント
+├── mp-ukagaka.php          # メインプラグインエントリポイント
 ├── css/                    # スタイルシート
 │   ├── mpu_style.css           # フロントエンドスタイルシート
 │   └── admin-style.css         # 管理画面スタイルシート
 ├── includes/               # PHP モジュール
 │   ├── core/                   # コア機能モジュール
-│   │   ├── debug-functions.php     # ログシステム（最初に読み込む必要あり）
+│   │   ├── debug-functions.php     # ログシステム（最初に読み込む必要があります）
 │   │   ├── core-functions.php      # コア機能（設定管理）
 │   │   ├── utility-functions.php   # ユーティリティ関数
 │   │   ├── ukagaka-functions.php   # 伺か管理
 │   │   └── frontend-functions.php  # フロントエンド機能
-│   ├── rest/                   # REST API 処理モジュール（OO アーキテクチャ）
-│   │   ├── bootstrap.php           # REST Controller 登録エントリーポイント
-│   │   ├── class-mpu-rest-base.php # 基本クラス
-│   │   ├── class-mpu-rest-chat.php # LLM 対話エンドポイント
-│   │   ├── class-mpu-rest-ghost.php# 核心/パーソナリティエンドポイント
-│   │   ├── class-mpu-rest-dialog.php# 対話管理エンドポイント
-│   │   ├── class-mpu-rest-touch.php# タッチ相互作用エンドポイント
+│   ├── rest/                   # REST API 処理モジュール（オブジェクト指向アーキテクチャ）
+│   │   ├── bootstrap.php           # REST Controller 登録エントリ
+│   │   ├── class-mpu-rest-base.php # 基底クラス
+│   │   ├── class-mpu-rest-chat.php # LLM 会話エンドポイント
+│   │   ├── class-mpu-rest-ghost.php# コア / 人格エンドポイント
+│   │   ├── class-mpu-rest-dialog.php# 会話管理エンドポイント
+│   │   ├── class-mpu-rest-touch.php# タッチインタラクションエンドポイント
 │   │   └── class-mpu-rest-test.php # API テストエンドポイント
-│   ├── ajax/                   # AJAX ハンドラーモジュール
-│   │   └── chat-api-handlers.php   # 対話モード API ハンドラー（複数ターン対話ラッパー）
-│   ├── personality/            # パーソナリティシステムモジュール
-│   │   ├── personality-loader.php  # パーソナリティシステム（JSON ローダー）
-│   │   ├── personality-prompts.php # パーソナリティプロンプトモジュール
+│   ├── ajax/                   # AJAX ハンドラモジュール
+│   │   └── chat-api-handlers.php   # 会話モード API ハンドラ（複数ターン会話のカプセル化）
+│   ├── personality/            # 人格（Personality）システムモジュール
+│   │   ├── personality-loader.php  # 人格システム（JSON ローダー）
+│   │   ├── personality-prompts.php # 人格プロンプトモジュール
 │   │   ├── personality-decorations.php # 装飾品システム
-│   │   ├── personality-emoji.php   # 表情システム
-│   │   └── emoji-mapper.php        # 表情マッピングと感情分析
+│   │   ├── personality-emoji.php   # 絵文字システム
+│   │   └── emoji-mapper.php        # 絵文字マッピングと感情分析
 │   ├── llm/                    # LLM/AI 機能モジュール
 │   │   ├── api-cache.php           # API キャッシュシステム
 │   │   ├── ai-functions.php        # AI 機能（クラウド API：Gemini、OpenAI、Claude）
 │   │   ├── llm-functions.php       # LLM 機能（Ollama 専用）
-│   │   ├── llm-context-builder.php # LLM コンテキスト構築
+│   │   ├── llm-context-builder.php # LLM コンテキストビルダー
 │   │   ├── llm-slimstat.php        # LLM Slimstat 統合
-│   │   ├── prompt-categories.php   # Prompt カテゴリ指示管理
-│   │   ├── chat-integrity.php      # チャット履歴チェックサム検証
-│   │   ├── request-state.php       # リクエスト単位の状態管理
+│   │   ├── prompt-categories.php   # プロンプトカテゴリ指示管理
+│   │   ├── chat-integrity.php      # 会話履歴チェックサム検証
+│   │   ├── request-state.php       # リクエストレベルのステータス管理
 │   │   ├── provider-helpers.php    # AI プロバイダー補助関数
-│   │   ├── streaming-helpers.php   # SSE ストリーミングヘルパー
+│   │   ├── streaming-helpers.php   # SSE ストリーミング補助関数
 │   │   ├── provider-stream-http.php# cURL ストリーミング HTTP クライアント
-│   │   ├── tool-loop-guard.php     # ツール呼び出しループ保護メカニズム
+│   │   ├── tool-loop-guard.php     # ツール呼び出しループ防止メカニズム
 │   │   ├── weather-functions.php   # 天気機能（Open-Meteo API）
 │   │   ├── diary-functions.php     # AI 日記機能
-│   │   └── providers/              # AI プロバイダーファクトリモジュール
+│   │   └── providers/              # AI プロバイダーファクトリ モジュール
 │   │       ├── bootstrap.php       # ローダー
 │   │       ├── interface-mpu-ai-provider.php # インターフェース
-│   │       ├── class-mpu-ai-provider-base.php # 基本クラス
+│   │       ├── class-mpu-ai-provider-base.php # 基底クラス
 │   │       ├── class-mpu-ai-provider-factory.php # ファクトリクラス
 │   │       ├── class-mpu-ai-provider-gemini.php # Gemini プロバイダー
 │   │       ├── class-mpu-ai-provider-openai.php # OpenAI プロバイダー
 │   │       ├── class-mpu-ai-provider-claude.php # Claude プロバイダー
 │   │       └── class-mpu-ai-provider-ollama.php # Ollama プロバイダー
 │   ├── stats/                  # 統計モジュール
-│   │   ├── stats-collector.php     # 利用統計収集
+│   │   ├── stats-collector.php     # 利用統計の収集
 │   │   └── stats-analyzer.php      # 統計分析
-│   ├── mcp-tools/              # アビリティ/ツール呼び出し実装
-│   │   ├── manager.php             # アビリティマネージャー
+│   ├── mcp-tools/              # アビリティ/ツール呼び出しの実装
+│   │   ├── manager.php             # アビリティ マネージャー
 │   │   └── abilities/
-│   │       ├── class-wp-bot-blocker-ability.php # ボットブロッカーアビリティ
-│   │       └── class-wp-postviews-ability.php   # 投稿ビューアビリティ
+│   │       ├── class-wp-bot-blocker-ability.php # Bot ブロッカーアビリティ
+│   │       └── class-wp-postviews-ability.php   # 記事閲覧数アビリティ
 │   ├── integrations/           # 統合機能モジュール
 │   │   ├── abilities-integration.php   # アビリティ API 統合
-│   │   ├── akismet-integration.php     # Akismet スパムブロック統合
-│   │   ├── bot-blocker-integration.php # ボットブロッカー統合
-│   │   └── turnstile-integration.php   # Turnstile 統合
+│   │   ├── akismet-integration.php     # Akismet スパム対策統合
+│   │   ├── bot-blocker-integration.php # Bot ブロッカー統合
+│   │   └── turnstile-integration.php   # Turnstile 検証統合
 │   └── admin-functions.php     # 管理画面機能
-├── ghost/                  # キャラクターパーソナリティ設定
+├── ghost/                  # キャラクター人格設定
 │   ├── Frieren/
 │   │   ├── shell/              # キャラクター画像
 │   │   ├── decorations/        # 装飾品画像
-│   │   ├── emojis/             # キャラクター表情画像
+│   │   ├── emojis/             # キャラクター絵文字画像
 │   │   ├── manifest.json       # メタデータと設定
-│   │   ├── personality.md      # コアパーソナリティ説明
-│   │   ├── instructions.md     # 行動ルールと指示
-│   │   ├── prompts.json        # 静的ダイアログカテゴリ
-│   │   ├── dynamics.json       # 動的テンプレート（変数置換付き）
-│   │   ├── weights.json        # カテゴリ重み設定
-│   │   ├── sleep_mode.json     # スリープモード設定
-│   │   ├── calendar.json       # カレンダー/祝日イベント
+│   │   ├── personality.md      # コア人格の説明
+│   │   ├── instructions.md     # 動作ルールと指示
+│   │   ├── prompts.json        # 静的会話カテゴリ
+│   │   ├── dynamics.json       # 動的テンプレート（変数を含む）
+│   │   ├── weights.json        # カテゴリの重み設定
+│   │   ├── sleep_mode.json     # 睡眠モード設定
+│   │   ├── calendar.json       # カレンダー/休日イベント
 │   │   ├── touchzones.json     # タッチゾーン設定
-│   │   ├── decorations.json    # 装飾品クリックプロンプト
+│   │   ├── decorations.json    # 装飾品クリック時のプロンプト
 │   │   ├── diary.json          # AI 日記設定
-│   │   ├── emoji-keywords.json # 表情キーワード設定
+│   │   ├── emoji-keywords.json # 絵文字キーワード設定
 │   │   ├── frieren.js          # キャラクター専用 JavaScript
-│   │   └── frieren-emoji.js    # Frieren 専用表情システム
-│   └── [その他のキャラクター...]/
-├── dialogs/                # ダイアログファイル
-├── images/                 # 画像リソース
-├── languages/              # 言語ファイル
+│   │   └── frieren-emoji.js    # Frieren 専用絵文字システム
+│   └── [他のキャラクター...]/
+│       ├── shell/              # キャラクター画像
+│       └── decorations/        # 装飾品画像（オプション）
+├── dialogs/                # 会話ファイル
+├── images/                 # 共通画像リソース
+├── languages/              # 翻訳ファイル
 ├── docs/                   # ドキュメント
 ├── options/                # 管理画面設定ページ
 │   ├── options.php             # 管理画面ページフレームワーク
@@ -123,230 +125,337 @@ mp-ukagaka/
 │   ├── options_page_ai.php     # AI 機能設定ページ
 │   ├── options_page_llm.php    # LLM 機能設定ページ
 │   ├── options_page_diary.php  # 日記機能設定ページ
-│   ├── options_page_bot_blocker.php # ボットブロッカー設定ページ
+│   ├── options_page_bot_blocker.php # Bot ブロッカー設定ページ
 │   └── options_page_stats.php  # 統計設定ページ
 ├── js/                     # フロントエンド JavaScript モジュール
-│   ├── dist/                   # ビルド出力ディレクトリ（本番用）
-│   │   ├── ukagaka-bundle.js       # 非圧縮バンドル
-│   │   ├── ukagaka-bundle.min.js   # 結合・圧縮されたコアバンドル
-│   │   └── ukagaka-textarearesizer.min.js  # 管理画面ツール（圧縮版）
-│   ├── ukagaka-base.js         # 基盤層（設定 + ユーティリティ + AJAX）
-│   ├── ukagaka-core.js         # フロントエンドコア JS（メッセージ表示、伺か切り替えなど）
-│   ├── ukagaka-features.js     # フロントエンド機能 JS（設定配置、イベント監視）
-│   ├── ukagaka-context.js      # ページコンテキスト AI ダイアログ機能
-│   ├── ukagaka-greeting.js     # 初回訪問者挨拶機能
-│   ├── ukagaka-chat.js         # チャット機能フロントエンド（インタラクティブチャット）
-│   ├── ukagaka-dialog.js       # 外部ダイアログの読み込みとフォールバック処理
+│   ├── dist/                   # バンドル出力ディレクトリ（本番環境用）
+│   │   ├── ukagaka-bundle.js       # 圧縮前バンドル
+│   │   ├── ukagaka-bundle.min.js   # 圧縮済みコアバンドル
+│   │   └── ukagaka-textarearesizer.min.js  # 管理ツール（圧縮済み）
+│   ├── ukagaka-base.js         # ベース層（設定 + ユーティリティ + AJAX）
+│   ├── ukagaka-core.js         # フロントエンドコア JS（メッセージ表示、伺かの切り替えなど）
+│   ├── ukagaka-features.js     # フロントエンド機能 JS（設定、イベントリスナー）
+│   ├── ukagaka-context.js      # ページ認識 AI 会話機能
+│   ├── ukagaka-greeting.js     # 初回訪問者への挨拶機能
+│   ├── ukagaka-chat.js         # チャット機能のフロントエンド（インタラクティブな会話）
+│   ├── ukagaka-dialog.js       # 外部会話ファイルの読み込みとフォールバック
 │   ├── ukagaka-anime.js        # Canvas アニメーションマネージャー（画像シーケンス再生）
-│   ├── ukagaka-emoji.js        # 表情設定ローダー
-│   └── ukagaka-textarearesizer.js  # 管理画面テキストエリアリサイザー
-└── readme.txt              # WordPress プラグインディレクトリ説明ファイル
+│   ├── ukagaka-emoji.js        # 絵文字設定ローダー
+│   └── ukagaka-textarearesizer.js  # 管理画面のテキストエリアリサイズツール
+└── readme.txt              # WordPress プラグインディレクトリの readme
 ```
 
-### モジュール読み込み順序
+### モジュールの読み込み順序
 
-プラグインは条件付き読み込み機構を採用し、実行環境（フロントエンド/管理画面）に応じて対応するモジュールを読み込みます：
+プラグインは実行環境（フロントエンド/管理画面）に基づいて、対応するモジュールを条件付きで読み込むメカニズムを採用しています。
 
 ```php
-// mp-ukagaka.php の読み込みロジック
+// mp-ukagaka.php 内の読み込みロジック
 
 // コアモジュール：フロントエンドと管理画面の両方で必要
 $core_modules = [
-    'core/debug-functions.php',     // 0. ログシステム（最初に読み込む必要あり）
+    'core/debug-functions.php',     // 0. ログシステム（最初に読み込む必要があります）
     'core/core-functions.php',      // 1. コア機能（設定管理）
     'core/utility-functions.php',   // 2. ユーティリティ関数
-    'personality/personality-loader.php',  // 3. パーソナリティシステム（JSON ローダー）
-    'personality/personality-prompts.php', // 4. パーソナリティプロンプトモジュール
+    'personality/personality-loader.php',  // 3. 人格システム（JSON ローダー、他の personality モジュールより先に読み込む）
+    'personality/personality-prompts.php', // 4. 人格プロンプトモジュール（動的プロンプト、変数の置換）
     'personality/personality-decorations.php', // 5. 装飾品システム
-    'personality/personality-emoji.php',   // 6. 表情システム
-    'stats/stats-collector.php',   // 7. 統計コレクター（ai-functions.php より前に読み込み）
-    'stats/stats-analyzer.php',    // 8. 統計アナライザー
-    'llm/api-cache.php',           // 9. API キャッシュシステム（v2.5.6，ai-functions.php より前に読み込み）
-    'llm/provider-helpers.php',    // 10. プロバイダー共通ヘルパー（v2.10.0）
-    'llm/tool-loop-guard.php',     // 11. ツール呼び出しループ保護メカニズム（v2.10.0）
-    'llm/providers/bootstrap.php', // 12. AI プロバイダーファクトリとクラス（v2.10.0）
-    'llm/ai-functions.php',        // 13. AI 機能（クラウド API：Gemini, OpenAI, Claude）
-    'llm/prompt-categories.php',   // 14. Prompt カテゴリ指示管理（llm-functions.php より前に読み込み）
-    'llm/llm-slimstat.php',        // 15. LLM Slimstat 統合（llm-context-builder.php より前に読み込み）
-    'llm/llm-context-builder.php', // 16. LLM コンテキスト構築（llm-functions.php より前に読み込み）
-    'llm/weather-functions.php',   // 17. 天気機能（Open-Meteo API）
-    'llm/diary-functions.php',     // 18. AI 日記機能（v2.5.0）
-    'llm/llm-functions.php',       // 19. LLM 機能（ローカル LLM：Ollama）
-    'personality/emoji-mapper.php',        // 17. 表情マッピング（AJAX 処理より前に読み込み）
-    'core/ukagaka-functions.php',   // 18. 伺か管理
-    'rest/bootstrap.php',           // 19. REST OO Controller 登録エントリーポイント
-    'ajax/chat-api-handlers.php',   // 20. 対話モード API ハンドラー（互換レイヤー）
-    'integrations/akismet-integration.php', // 24. Akismet スパムブロック統合
-    'integrations/turnstile-integration.php', // 25. Turnstile 統合
+    'personality/personality-emoji.php',   // 6. 絵文字システム
+    'stats/stats-collector.php',   // 7. 統計収集器（ai-functions.php より先に読み込む）
+    'stats/stats-analyzer.php',    // 8. 統計分析器
+    'llm/api-cache.php',           // 9. API キャッシュシステム
+    'llm/provider-helpers.php',    // 10. Provider 共有ヘルパー
+    'llm/chat-integrity.php',      // 11. 会話履歴の整合性チェックサム
+    'llm/request-state.php',       // 12. リクエストレベルのステータス管理
+    'llm/tool-loop-guard.php',     // 13. ツール呼び出しループ防止メカニズム
+    'llm/streaming-helpers.php',   // 14. SSE ストリーミング補助関数
+    'llm/provider-stream-http.php', // 15. Provider ストリーミング HTTP クライアント
+    'llm/providers/bootstrap.php', // 16. AI Providers ファクトリパターンとクラス
+    'llm/ai-functions.php',        // 17. AI 機能（クラウド API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 18. プロンプトカテゴリ指示管理
+    'llm/llm-slimstat.php',        // 19. LLM Slimstat 統合
+    'llm/llm-context-builder.php', // 20. LLM コンテキストビルダー
+    'llm/weather-functions.php',   // 21. 天気機能（Open-Meteo API）
+    'llm/diary-functions.php',     // 22. AI 日記機能
+    'llm/llm-functions.php',       // 23. LLM 機能（ローカル / リモート LLM）
+    'personality/emoji-mapper.php', // 24. 絵文字マッピングと感情分析
+    'core/ukagaka-functions.php',   // 25. 伺か管理
+    'rest/bootstrap.php',           // 26. REST OO Controller 登録エントリ
+    'ajax/chat-api-handlers.php',   // 27. 会話モードカプセル化 / 互換性レイヤー
+    'integrations/akismet-integration.php', // 28. Akismet スパム対策統合
+    'integrations/turnstile-integration.php', // 29. Turnstile 検証統合
+    'integrations/abilities-integration.php', // 30. アビリティ API 統合
+    'integrations/bot-blocker-integration.php', // 31. Bot Blocker 統合
 ];
 
-// フロントエンド専用モジュール（非管理画面環境でのみ読み込み）
+// フロントエンド専用モジュール（管理画面以外の環境でのみ読み込む）
 $frontend_modules = [
     'core/frontend-functions.php',  // フロントエンド機能
 ];
 
-// 管理画面専用モジュール（管理画面環境でのみ読み込み）
+// 管理画面専用モジュール（管理画面環境でのみ読み込む）
 $admin_modules = [
     'admin-functions.php',     // 管理画面機能
 ];
 ```
 
-**読み込みタイミング：**
+**読み込みのタイミング：**
 
-- すべてのコアモジュールは `plugins_loaded` action（優先度 1）で読み込み
-- フロントエンドモジュールは `!is_admin()` の場合のみ読み込み
-- 管理画面モジュールは `is_admin()` の場合のみ読み込み
+- すべてのコアモジュールは `plugins_loaded` アクション（優先度 1）で読み込まれます。
+- フロントエンドモジュールは `!is_admin()` の場合のみ読み込まれます。
+- 管理画面モジュールは `is_admin()` の場合のみ読み込まれます。
 
-### 定数定義
+### 定義された定数
 
-| 定数            | 説明                 | 値         |
-| --------------- | -------------------- | ---------- |
-| `MPU_VERSION`   | プラグインバージョン | `"2.5.6"`  |
-| `MPU_MAIN_FILE` | メインファイルパス   | `__FILE__` |
+| 定数            | 説明            | 値                  |
+| --------------- | --------------- | ------------------- |
+| `MPU_VERSION`   | プラグインバージョン | `"2.13.3-20260420"` |
+| `MPU_MAIN_FILE` | メインファイルパス | `__FILE__`          |
 
 ---
 
-## モジュール説明
+## モジュールの説明
 
 ### core-functions.php
 
-コア機能モジュール、設定管理を担当。
+コア機能モジュール。設定管理を担当します。
 
-#### 主要関数
+#### 主な関数
 
 ```php
 /**
- * デフォルト設定値を取得
- * @return array デフォルト設定配列
+ * デフォルト設定値を取得します。
+ * @return array デフォルト設定の配列
  */
-function mpu_default_opt(): array
+function mpu_default_opt()
 
 /**
- * プラグイン設定を取得（キャッシュ付き）
- * @return array 設定配列
+ * プラグイン設定を取得します（キャッシュ対応）。
+ * @return array 設定の配列
  */
-function mpu_get_option(): array
+function mpu_get_option()
 ```
 
-**注意：** `mpu_count_total_msg()` は `ukagaka-functions.php` モジュールにあります。
+**注意：** `mpu_count_total_msg()` は `ukagaka-functions.php` モジュールに配置されています。
+
+### utility-functions.php
+
+ユーティリティ関数モジュール。さまざまな補助機能（文字列処理、フィルタリング、ファイル操作、暗号化など）を提供します。
+
+#### 文字列/配列の変換
+
+```php
+/**
+ * 配列を文字列に変換します（2つの改行で区切る）。
+ * @param array $arr 入力配列
+ * @return string 出力文字列
+ */
+function mpu_array2str($arr = [])
+
+/**
+ * 文字列を配列に変換します（改行で区切り、空行を除外）。
+ * @param string $str 入力文字列
+ * @return array 出力配列
+ */
+function mpu_str2array($str = "")
+```
+
+#### 出力フィルタリング
+
+```php
+/**
+ * HTML 出力フィルター（esc_html を使用）
+ * @param string $str 入力文字列
+ * @return string フィルタリングされた文字列
+ */
+function mpu_output_filter($str)
+
+/**
+ * JavaScript 出力フィルター（esc_js を使用）
+ * @param string $str 入力文字列
+ * @return string フィルタリングされた文字列
+ */
+function mpu_js_filter($str)
+```
+
+#### 安全なファイル操作
+
+```php
+/**
+ * ファイルを安全に読み込みます（WordPress Filesystem API を使用）
+ * @param string $file_path ファイルパス
+ * @return string|WP_Error ファイル内容またはエラー
+ */
+function mpu_secure_file_read($file_path)
+
+/**
+ * ファイルを安全に書き込みます（WordPress Filesystem API を使用）
+ * @param string $file_path ファイルパス
+ * @param string $content ファイル内容
+ * @return bool|WP_Error 成功またはエラー
+ */
+function mpu_secure_file_write($file_path, $content)
+
+/**
+ * 会話ファイルのディレクトリパスを取得します
+ * @return string ディレクトリパス
+ */
+function mpu_get_dialogs_dir()
+
+/**
+ * 会話ファイルディレクトリの存在を確保します
+ * @return bool 成功したかどうか
+ */
+function mpu_ensure_dialogs_dir()
+```
+
+#### API Key 暗号化
+
+```php
+/**
+ * 暗号化キーを取得します（WordPress の AUTH_KEY に基づく）
+ * @return string 暗号化キー
+ */
+function mpu_get_encryption_key()
+
+/**
+ * API Key を暗号化します（AES-256-CBC）
+ * @param string $api_key 元の API Key
+ * @return string 暗号化された文字列
+ */
+function mpu_encrypt_api_key($api_key)
+
+/**
+ * API Key を復号化します
+ * @param string $encrypted_key 暗号化された文字列
+ * @return string|false 復号化された API Key、または false
+ */
+function mpu_decrypt_api_key($encrypted_key)
+
+/**
+ * API Key が暗号化されているか確認します
+ * @param string $api_key API Key の文字列
+ * @return bool 暗号化されているかどうか
+ */
+function mpu_is_api_key_encrypted($api_key)
+```
 
 ### personality-loader.php (v2.4.0)
 
-Personality システムローダーモジュール、JSON ベースのキャラクター設定システムを提供します。異なるキャラクターが PHP コードを変更することなく、JSON ファイルを通じて人格を定義できるようにします。
+人格（Personality）システムローダーモジュール。JSON ベースのキャラクター設定システムを提供します。PHP コードを変更することなく、JSON ファイルを通じて異なるキャラクターの人格を定義できるようにします。
 
-#### personality-loader.php 主要関数
+#### personality-loader.php の主な関数
 
 ```php
 /**
- * ghost ディレクトリパスを取得（personalities ディレクトリ）
+ * ghost ディレクトリパスを取得します（personalities ディレクトリ）
  * @return string 絶対パス
  */
-function mpu_get_personalities_dir(): string
+function mpu_get_personalities_dir()
 
 /**
- * 現在の personality ID を取得
- * @return string Personality ID（フォルダ名）
+ * 現在の人格 ID を取得します
+ * @return string 人格 ID（フォルダー名）
  */
-function mpu_get_current_personality_id(): string
+function mpu_get_current_personality_id()
 
 /**
- * personality が存在するか確認
- * @param string $personality_id Personality フォルダ名
- * @return bool 存在するか
+ * 人格が存在するかどうかを確認します
+ * @param string $personality_id 人格のフォルダー名
+ * @return bool 存在するかどうか
  */
-function mpu_personality_exists($personality_id): bool
+function mpu_personality_exists($personality_id)
 
 /**
- * 利用可能なすべての personalities を取得
- * @param bool $include_placeholders プレースホルダーを含むか
- * @return array Personality ID => manifest の連想配列
+ * 利用可能なすべての人格を取得します
+ * @param bool $include_placeholders プレースホルダーキャラクターを含めるかどうか
+ * @return array 人格 ID => manifest の連想配列
  */
-function mpu_get_available_personalities($include_placeholders = false): array
+function mpu_get_available_personalities($include_placeholders = false)
 
 /**
- * personality manifest を読み込み
- * @param string|null $personality_id Personality ID，null は現在
+ * 人格の manifest を読み込みます
+ * @param string|null $personality_id 人格 ID、null の場合は現在の人格
  * @return array Manifest データ
  */
-function mpu_load_personality_manifest($personality_id = null): array
+function mpu_load_personality_manifest($personality_id = null)
 
 /**
- * personality prompts を読み込み
- * @param string|null $personality_id Personality ID，null は現在
- * @return array プロンプトカテゴリアレイ
+ * 人格のプロンプトを読み込みます
+ * @param string|null $personality_id 人格 ID、null の場合は現在の人格
+ * @return array プロンプトカテゴリの配列
  */
-function mpu_load_personality_prompts($personality_id = null): array
+function mpu_load_personality_prompts($personality_id = null)
 
 /**
- * personality weights を読み込み
- * @param string|null $personality_id Personality ID，null は現在
- * @return array 重み設定アレイ
+ * 人格の重み設定を読み込みます
+ * @param string|null $personality_id 人格 ID、null の場合は現在の人格
+ * @return array 重み設定の配列
  */
-function mpu_load_personality_weights($personality_id = null): array
+function mpu_load_personality_weights($personality_id = null)
 
 /**
- * personality decorations 設定を読み込み
- * @param string|null $personality_id Personality ID，null は現在
- * @return array 装飾品設定アレイ
+ * 人格の装飾品設定を読み込みます
+ * @param string|null $personality_id 人格 ID、null の場合は現在の人格
+ * @return array 装飾品設定の配列
  */
-function mpu_load_personality_decorations($personality_id = null): array
+function mpu_load_personality_decorations($personality_id = null)
 
 /**
- * personality dynamic prompts を読み込み
- * @param string|null $personality_id Personality ID，null は現在
- * @return array 動的プロンプト設定アレイ
+ * 人格の動的プロンプトを読み込みます
+ * @param string|null $personality_id 人格 ID、null の場合は現在の人格
+ * @return array 動的プロンプト設定の配列
  */
-function mpu_load_personality_dynamic_prompts($personality_id = null): array
+function mpu_load_personality_dynamic_prompts($personality_id = null)
 
 /**
- * personality emoji keywords を読み込み
- * @param string|null $personality_id Personality ID，null は現在
- * @return array 表情キーワード設定アレイ
+ * 人格の絵文字キーワードを読み込みます
+ * @param string|null $personality_id 人格 ID、null の場合は現在の人格
+ * @return array 絵文字キーワード設定の配列
  */
-function mpu_load_personality_emoji_keywords($personality_id = null): array
+function mpu_load_personality_emoji_keywords($personality_id = null)
 ```
 
-#### Personality ファイル構造
+#### 人格ファイルの構造
 
-各 personality フォルダには以下を含める必要があります：
+各人格フォルダーには以下を含める必要があります：
 
 - **manifest.json**（必須）：メタデータと設定
-  - `id`：Personality ID
-  - `name`、`name_en`、`name_zh`：多言語名
+  - `id`：人格 ID
+  - `name`、`name_en`、`name_zh`：多言語対応の名前
   - `version`：バージョン番号
   - `settings`：キャラクター設定（例：`max_response_length`、`speech_style`、`tone`）
-  - `character_traits`：キャラクター特性（例：`age`、`race`、`occupation`、`personality`）
+  - `character_traits`：キャラクターの特性（例：`age`、`race`、`occupation`、`personality`）
 
-- **prompts.json**（オプション）：静的ダイアログカテゴリ
-  - キーはカテゴリ名、値はプロンプト配列
+- **prompts.json**（オプション）：静的な会話カテゴリ
+  - キーはカテゴリ名、値はプロンプトの配列
 
-- **dynamics.json**（オプション）：動的テンプレート（変数置換付き）
-  - `{variable_name}` 変数置換をサポート
+- **dynamics.json**（オプション）：動的テンプレート（変数の置換を含む）
+  - `{variable_name}` による変数の置換をサポート
   - `time_aware_dynamic`、`tech_observation`、`bot_detection` などのカテゴリを含む
 
-- **weights.json**（オプション）：カテゴリ重み設定
-  - `base_weights`：基本重み
-  - `time_adjustments`：時間帯ごとの調整
+- **weights.json**（オプション）：カテゴリの重み設定
+  - `base_weights`：基本の重み
+  - `time_adjustments`：時間帯による調整
 
-- **decorations.json**（オプション）：装飾品クリックプロンプト
-  - `items`：装飾品設定配列、各項目には以下が含まれます：
+- **decorations.json**（オプション）：装飾品クリック時のプロンプト
+  - `items`：装飾品設定の配列。各要素には以下が含まれます：
     - `id`：装飾品 ID
-    - `image`：画像パス（`decorations/` フォルダからの相対パス）
+    - `image`：画像パス（`decorations/` フォルダーからの相対パス）
     - `position`：位置設定（例：`{"bottom": "0px", "right": "0px"}`）
     - `size`：サイズ設定（例：`{"width": "100px", "height": "auto"}`）
-    - `z_index`：Z-index（数値）
+    - `z_index`：Z インデックス（数値）
     - `prompt`：クリック時のプロンプト
-    - `transform`：CSS 変形（オプション、例：`scale(1)`）
+    - `transform`：CSS 変換（オプション、例：`scale(1)`）
 
-- **emoji-keywords.json**（オプション，v2.4.0）：表情トリガーキーワード
-  - `mappings`：表情タイプとキーワードのマッピング
-  - フォーマット例：
-
+- **emoji-keywords.json**（オプション、v2.4.0）：絵文字トリガーキーワード
+  - `mappings`：絵文字タイプとキーワードのマッピング
+  - 形式の例：
     ```json
     {
       "mappings": {
         "happy": {
-          "keywords": ["嬉しい", "happy"],
+          "keywords": ["開心", "happy"],
           "file": "happy.png",
           "weight": 10
         }
@@ -354,152 +463,234 @@ function mpu_load_personality_emoji_keywords($personality_id = null): array
     }
     ```
 
-    - **diary.json**（オプション、v2.5.0）：AI 日記設定
-      - `categories`：日記カテゴリ設定
-      - フォーマット例：
-        ```json
-        {
-          "categories": {
-            "daily": {
-              "weight": 10,
-              "title_themes": ["日常"],
-              "prompts": ["日常に関する日記を書いてください"]
-            }
-          }
-        }
-        ```
+- **script**（オプション）：キャラクター専用の JavaScript ファイル
+  - 例：`frieren.js`。フロントエンドによって自動的に読み込まれます。
 
-- **script**（オプション）：キャラクター専用 JavaScript ファイル
-  - 例：`frieren.js`、フロントエンドによって自動的に読み込まれます
-
-### utility-functions.php
-
-ユーティリティ関数モジュール、各種ヘルパー機能を提供（文字列処理、フィルター、ファイル操作、暗号化など）。
-
-#### 文字列/配列変換
+#### 使用例
 
 ```php
-/**
- * 配列を文字列に変換（二重改行で区切り）
- * @param array $arr 入力配列
- * @return string 出力文字列
- */
-function mpu_array2str($arr = []): string
+// 現在の人格のプロンプトを取得する
+$prompts = mpu_load_personality_prompts();
 
-/**
- * 文字列を配列に変換（改行で区切り、空行をフィルター）
- * @param string $str 入力文字列
- * @return array 出力配列
- */
-function mpu_str2array($str = ""): array
-```
+// 特定の人格の manifest を取得する
+$manifest = mpu_load_personality_manifest('Frieren');
 
-#### 出力フィルター
+// 人格が存在するかどうかを確認する
+if (mpu_personality_exists('Frieren')) {
+    // Frieren の人格が存在する
+}
 
-```php
-/**
- * HTML 出力フィルター（esc_html を使用）
- */
-function mpu_output_filter($str): string
-
-/**
- * JavaScript 出力フィルター（esc_js を使用）
- */
-function mpu_js_filter($str): string
-
-/**
- * 入力フィルター（stripslashes）
- */
-function mpu_input_filter($str): string
-
-```
-
-#### 安全なファイル操作
-
-```php
-/**
- * 安全なファイル読み込み（WordPress Filesystem API を使用）
- * @param string $file_path ファイルパス
- * @return string|WP_Error ファイル内容またはエラー
- */
-function mpu_secure_file_read($file_path)
-
-/**
- * 安全なファイル書き込み（WordPress Filesystem API を使用）
- * @param string $file_path ファイルパス
- * @param string $content ファイル内容
- * @return bool|WP_Error 成功またはエラー
- */
-function mpu_secure_file_write($file_path, $content)
-```
-
-#### API Key 暗号化
-
-```php
-/**
- * API Key を暗号化（AES-256-CBC）
- */
-function mpu_encrypt_api_key($api_key): string
-
-/**
- * API Key を復号
- */
-function mpu_decrypt_api_key($encrypted_key)
-
-/**
- * API Key が暗号化されているか確認
- */
-function mpu_is_api_key_encrypted($api_key): bool
+// 利用可能なすべての人格を取得する
+$personalities = mpu_get_available_personalities();
+foreach ($personalities as $id => $manifest) {
+    echo $manifest['name'];
+}
 ```
 
 ### ai-functions.php
 
-AI 機能モジュール、クラウド AI API 呼び出し（Gemini、OpenAI、Claude）と Ollama 統合を処理。
+AI 機能モジュール。クラウド AI API の呼び出し（Gemini、OpenAI、Claude）および Ollama の統合を処理します。
 
-#### サポートされている AI プロバイダー
-
-| プロバイダー | 関数                    | API エンドポイント                     | モデル選択 |
-| ------------ | ----------------------- | -------------------------------------- | ---------- |
-| Gemini       | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com`    | サポート   |
-| OpenAI       | `mpu_call_openai_api()` | `api.openai.com`                       | サポート   |
-| Claude       | `mpu_call_claude_api()` | `api.anthropic.com`                    | サポート   |
-| Ollama       | `mpu_call_ollama_api()` | ローカルまたはリモート Ollama サービス | サポート   |
-
-### llm-functions.php (BETA)
-
-> ⚠️ **注意**：このモジュールは**テスト段階（BETA）**で、API が変更される可能性があります。
-
-LLM 機能モジュール、Ollama ローカル LLM 統合を専門に処理。
-
-#### タイムアウト設定
-
-| 操作タイプ                 | ローカル接続 | リモート接続 |
-| -------------------------- | ------------ | ------------ |
-| サービスチェック (`check`) | 3 秒         | 10 秒        |
-| API 呼び出し (`api_call`)  | 60 秒        | 90 秒        |
-| 接続テスト (`test`)        | 30 秒        | 45 秒        |
-
-### chat-api-handlers.php (互換レイヤー)
-
-対話モード API ハンドラー。新しい REST Controller 向けに複数ターンの対話 AI 呼び出しラッパーを提供し、複雑なプロバイダー設定の処理を分離します。
-
-#### 主要関数
+#### ai-functions.php の主な関数
 
 ```php
 /**
- * AI API 呼び出し（複数ターンの対話に対応。Factory クラスを自動的に利用）
+ * AI API を呼び出します（統合エントリポイント）
+ * @param string $provider プロバイダー（gemini/openai/claude/ollama）
+ * @param string $api_key API キー（Ollama の場合は不要）
+ * @param string $system_prompt システムプロンプト（キャラクター設定）
+ * @param string $user_prompt ユーザープロンプト
+ * @param string $language 言語コード
+ * @param array|null $mpu_opt 設定配列（オプション）
+ * @return string|WP_Error AI の応答またはエラー
+ */
+function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt = null)
+
+/**
+ * Gemini API を呼び出します
+ * @param string $api_key API キー
+ * @param string $model モデル名（例：gemini-2.5-flash）
+ * @param string $system_prompt システムプロンプト
+ * @param string $user_prompt ユーザープロンプト
+ * @param string $language 言語コード
+ * @return string|WP_Error 生成されたテキストまたはエラー
+ */
+function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language)
+
+/**
+ * OpenAI API を呼び出します
+ * @param string $api_key API キー
+ * @param string $model モデル名（例：gpt-4o-mini）
+ * @param string $system_prompt システムプロンプト
+ * @param string $user_prompt ユーザープロンプト
+ * @param string $language 言語コード
+ * @return string|WP_Error 生成されたテキストまたはエラー
+ */
+function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $language)
+
+/**
+ * Claude API を呼び出します
+ * @param string $api_key API キー
+ * @param string $model モデル名（例：claude-sonnet-4-5-20250929）
+ * @param string $system_prompt システムプロンプト
+ * @param string $user_prompt ユーザープロンプト
+ * @param string $language 言語コード
+ * @return string|WP_Error 生成されたテキストまたはエラー
+ */
+function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $language)
+
+/**
+ * Ollama API を呼び出します（ローカルまたはリモート）
+ * @param string $endpoint Ollama エンドポイント URL
+ * @param string $model モデル名（例：qwen3:8b）
+ * @param string $system_prompt システムプロンプト
+ * @param string $user_prompt ユーザープロンプト
+ * @param string $language 言語コード
+ * @return string|WP_Error 生成されたテキストまたはエラー
+ */
+function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language)
+
+/**
+ * 言語の指示を取得します
+ * @param string $language 言語コード
+ * @return string 言語の指示
+ */
+function mpu_get_language_instruction($language)
+
+/**
+ * 許可されている条件タグのリストを取得します
+ * @return array 条件タグの配列
+ */
+function mpu_get_allowed_conditional_tags()
+```
+
+#### サポートされている AI プロバイダー
+
+| プロバイダー | 関数 | API エンドポイント | モデル選択 |
+| -------- | -------- | ------------ | --------------- |
+| Gemini | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | サポートあり（gemini-2.5-flash, gemini-2.5-pro など） |
+| OpenAI | `mpu_call_openai_api()` | `api.openai.com` | サポートあり（gpt-4o-mini, gpt-4o など） |
+| Claude | `mpu_call_claude_api()` | `api.anthropic.com` | サポートあり（claude-sonnet-4-5-20250929 など） |
+| Ollama | `mpu_call_ollama_api()` | ローカルまたはリモートの Ollama サービス | サポートあり（任意の Ollama モデル） |
+
+#### AI の安定性とセキュリティ
+
+LLM がツール呼び出しの無限ループに陥るのを防ぐため、システムには以下の保護メカニズムが組み込まれています：
+
+1. **ターン制限 (Turn Limit)**：`MPU_MAX_TOOL_TURNS` によって定義され、1回のリクエストで最大 5 回のツール呼び出しを許可します。
+2. **ループ防止 (Loop Guard)**：
+   - 検出対象：同じパラメータで同じツールが連続して繰り返し呼び出されるシナリオ。
+   - しきい値：`MPU_MAX_TOOL_REPEAT_SAME_CALL` によって定義（デフォルトは 2）。
+   - 動作：ループが検出されると、システムは直ちに `tool_call_loop_detected` エラーを返し、ループを中断します。
+   - 実装：`includes/llm/tool-loop-guard.php`。
+
+### llm-functions.php (BETA)
+
+> ⚠️ **注意**：このモジュールは **BETA（テスト段階）** です。API は変更される可能性があります。
+
+LLM 機能モジュール。Ollama のローカル LLM 統合を専門に処理します。
+
+#### llm-functions.php の主な関数
+
+```php
+/**
+ * エンドポイントがリモート接続であるかどうかを確認します
+ * @param string $endpoint Ollama エンドポイント URL
+ * @return bool リモート接続かどうか（true = リモート、false = ローカル）
+ */
+function mpu_is_remote_endpoint($endpoint)
+
+/**
+ * エンドポイントのタイプと操作のタイプに基づいて適切なタイムアウトを取得します
+ * @param string $endpoint Ollama エンドポイント URL
+ * @param string $operation_type 操作のタイプ：'check'、'api_call'、'test'
+ * @return int タイムアウト時間（秒）
+ */
+function mpu_get_ollama_timeout($endpoint, $operation_type = 'api_call')
+
+/**
+ * Ollama エンドポイント URL を検証および正規化します
+ * @param string $endpoint 元のエンドポイント URL
+ * @return string|WP_Error 正規化された URL またはエラー
+ */
+function mpu_validate_ollama_endpoint($endpoint)
+
+/**
+ * Ollama サービスが利用可能かどうかを確認します（クイックチェック、キャッシュを使用）
+ * @param string $endpoint Ollama エンドポイント
+ * @param string $model モデル名
+ * @return bool サービスが利用可能かどうか
+ */
+function mpu_check_ollama_available($endpoint, $model)
+
+/**
+ * LLM を使用してランダムな会話を生成します（組み込みの会話を置き換えます）
+ * @param string $ukagaka_name 伺かの名前
+ * @return string|false 生成された会話内容、失敗時は false
+ */
+function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
+
+/**
+ * LLM による組み込み会話の置き換えが有効になっているかどうかを確認します
+ * @return bool
+ */
+function mpu_is_llm_replace_dialogue_enabled()
+
+/**
+ * Ollama 設定を取得します
+ * @return array|false 設定配列、無効時は false
+ */
+function mpu_get_ollama_settings()
+```
+
+#### タイムアウト設定
+
+| 操作のタイプ | ローカル接続 | リモート接続 |
+| -------------- | ---------------- | ----------------- |
+| サービスチェック (`check`) | 3秒 | 10秒 |
+| API 呼び出し (`api_call`) | 60秒 | 90秒 |
+| 接続テスト (`test`) | 30秒 | 45秒 |
+
+#### 使用例
+
+```php
+// サービスが利用可能かどうかを確認する
+$endpoint = 'https://your-domain.com';
+$model = 'qwen3:8b';
+if (mpu_check_ollama_available($endpoint, $model)) {
+    // サービスは利用可能、会話を生成できる
+    $dialogue = mpu_generate_llm_dialogue('default_1');
+    if ($dialogue !== false) {
+        echo $dialogue;
+    }
+}
+
+// 接続のタイプを検出する
+$is_remote = mpu_is_remote_endpoint($endpoint);
+$timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
+```
+
+### chat-api-handlers.php (互換性レイヤー)
+
+会話モード API ハンドラ。新しい REST Controller のために、複数ターンの会話の AI 呼び出しをカプセル化し、複雑な Provider のオプション処理を分離します。
+
+#### 主な関数
+
+```php
+/**
+ * AI API を呼び出します（複数ターン会話の統合エントリ、ファクトリクラスへの自動ディスパッチ）
  * @param string $provider プロバイダー
  * @param string $api_key API キー
  * @param string $system_prompt システムプロンプト
- * @param array $messages 対話履歴
+ * @param array $messages 会話の履歴
  * @param string $language 言語
- * @param array $options オプション（max_tokens, temperature など）
+ * @param array $options オプション（max_tokens、temperature など）
  * @return string|WP_Error AI の応答
  */
 function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
 
 /**
- * 特定プロバイダー専用のラッパー
+ * 特定の Provider 専用のラッパー
  */
 function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
 function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $options = [])
@@ -507,241 +698,168 @@ function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $opt
 function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $options = [])
 ```
 
-### REST API モジュール (OO アーキテクチャ)
-
-v2.12.0 から導入され、`bootstrap.php` によって一括管理されています。すべての Controller は `MPU_REST_Base` を継承しています。
-
-#### 主要クラスの役割
-
-- **MPU_REST_Chat**: AI 対話に関連するすべてのエンドポイントを集中処理します。
-  - `/chat/context` (ページ感知)
-  - `/chat/greet` (初回挨拶)
-  - `/chat/user` (同期対話)
-  - `/chat/user-stream` (SSE ストリーム対話)
-- **MPU_REST_Ghost**: パーソナリティリストと初期設定を処理します。
-- **MPU_REST_Dialog**: 静的およびローカルダイアログの読み込みを管理します。
-- **MPU_REST_Touch**: タッチポイントの相互作用を処理します。
-- **MPU_REST_Test**: 管理画面の接続テスト機能を提供します。
-
-### diary-functions.php (v2.5.0)
-
-AI 日記機能モジュール、キャラクター日記の自動生成と投稿を担当。
-
-#### diary-functions.php 主要関数
+#### 会話メッセージの形式
 
 ```php
-/**
- * 日記タイトルプレフィックスを取得
- * @param string|null $personality_id パーソナリティ ID
- * @return string プレフィックス（例："[フリーレン手記] "）
- */
-function mpu_get_diary_title_prefix($personality_id = null): string
-
-/**
- * 日記をトリガーすべきか判定（確率と1日1回制限に基づく）
- * @return bool トリガーすべきか
- */
-function mpu_should_trigger_diary(): bool
-
-/**
- * 日記コンテンツを生成
- * @return array|WP_Error 日記データまたはエラー
- */
-function mpu_generate_diary_content()
-
-/**
- * 日記投稿を公開
- * @param array $diary_data 日記データ
- * @return int|WP_Error 投稿 ID またはエラー
- */
-function mpu_publish_diary_post($diary_data)
+// 会話履歴の配列形式
+$messages = [
+    [
+        'role' => 'user',      // 'user' または 'assistant'
+        'content' => 'こんにちは'   // メッセージ内容
+    ],
+    [
+        'role' => 'assistant',
+        'content' => 'こんにちは！何かお手伝いできることはありますか？'
+    ],
+    // ... さらにメッセージが続く
+];
 ```
 
-### ukagaka-functions.php
+#### 動的コンテキストの注入
 
-伺か管理モジュール、キャラクター関連操作とダイアログ管理を処理。
-
-#### ukagaka-functions.php 主要関数
+システムはユーザーのメッセージ内容に基づいて、WordPress の統計情報を注入するかどうかを決定します：
 
 ```php
+// キーワードリスト（繁体字中国語/日本語/英語）
+$stats_keywords = [
+    '文章', '記事', 'article', 'post',
+    '留言', 'コメント', 'comment',
+    '網站', 'サイト', 'site', 'website',
+    'php', 'wordpress', '外掛', 'plugins', 'プラグイン',
+    '主題', 'テーマ', 'theme'
+];
 
-/**
- * 伺かデータを取得
- * @param string|false $num 伺かキー（false は現在の伺か）
- * @return array|false 伺かデータまたは false
- */
-function mpu_get_ukagaka($num = false)
-
-/**
- * 伺かのシェル画像 URL を取得
- * @param string|false $num 伺かキー（false は現在の伺か）
- * @param bool $echo 直接出力するかどうか
- * @return string 画像 URL
- */
-function mpu_get_shell($num = false, $echo = false): string
-
-/**
- * 指定したメッセージを取得
- * @param int $msgnum メッセージインデックス
- * @param string|false $num 伺かキー
- * @param bool $echo 直接出力するかどうか
- * @return string メッセージ内容
- */
-function mpu_get_msg($msgnum = 0, $num = false, $echo = false): string
-
-/**
- * ランダムなメッセージを取得
- * @param string|false $num 伺かキー
- * @param bool $echo 直接出力するかどうか
- * @return string メッセージ内容
- */
-function mpu_get_random_msg($num = false, $echo = false): string
-
-
-/**
- * 共通メッセージを取得
- * @return string 共通メッセージ内容
- */
-function mpu_common_msg(): string
-
-/**
- * メッセージ配列を取得
- * @param string|false $num 伺かキー
- * @return array メッセージ配列
- */
-function mpu_get_msg_arr($num = false): array
-
-
-/**
- * メッセージ内の特殊コードを処理
- * @param array $msglist メッセージ配列
- * @return array 処理後のメッセージ配列
- */
-function mpu_msg_code($msglist = []): array
+// ユーザーのメッセージにこれらのキーワードが含まれている場合のみ、統計情報を追加する
 ```
 
-### ajax-handlers.php
+**メリット**：
 
-AJAX 処理モジュール、すべての AJAX リクエストを処理。
+- トークン消費を 70%+ 削減
+- API コストの削減
+- 応答速度の向上
 
-#### ajax-handlers.php 主要関数
+#### 思考モードのサポート (Ollama)
 
 ```php
-/**
- * 次のメッセージリクエストを処理
- */
-function mpu_ajax_nextmsg()
+// mpu_call_ollama_with_messages() 内
+$is_thinking_model = (strpos(strtolower($model), 'qwen3') !== false)
+    || (strpos(strtolower($model), 'frieren') !== false)
+    || (strpos(strtolower($model), 'deepseek') !== false);
 
-/**
- * 拡張機能リクエストを処理
- */
-function mpu_ajax_extend()
+// デフォルトで思考モードを有効にする
+$enable_thinking = $is_thinking_model && !(isset($options['ollama_disable_thinking']) && $options['ollama_disable_thinking']);
 
-/**
- * 伺か切り替えリクエストを処理
- */
-function mpu_ajax_change()
+if ($enable_thinking) {
+    $request_body['think'] = true;
+    $request_body['options']['num_ctx'] = 8192;  // コンテキストウィンドウを拡大
+} else {
+    $request_body['think'] = false;
+    $request_body['options']['num_ctx'] = 4096;
+}
+```
 
-/**
- * 設定取得リクエストを処理
- */
-function mpu_ajax_get_settings()
+#### 応答の長さ制限
 
-/**
- * ダイアログ読み込みリクエストを処理
- */
-function mpu_ajax_load_dialog()
+すべての AI プロバイダーは **300 トークン** に統一して制限されています：
 
-/**
- * 訪問者情報取得リクエストを処理（Slimstat が必要）
- */
-function mpu_ajax_get_visitor_info()
+```php
+// Ollama
+$request_body['options']['num_predict'] = 300;
+
+// OpenAI
+'max_tokens' => 300,
+
+// Gemini
+'generationConfig' => ['maxOutputTokens' => 300],
+
+// Claude
+'max_tokens' => 300,
 ```
 
 ### frontend-functions.php
 
-フロントエンド機能モジュール、ページ表示とリソース読み込みを担当。
+フロントエンド機能モジュール。ページの表示とリソースの読み込みを担当します。
 
-#### frontend-functions.php 主要関数
+#### frontend-functions.php の主な関数
 
 ```php
 /**
- * 現在のページに表示すべきか確認
- * @return bool 表示すべきか
+ * 現在のページに表示すべきかどうかを確認します
+ * @return bool 表示するかどうか
  */
-function mpu_is_show_page(): bool
+function mpu_is_show_page()
 
 /**
- * 出力バッファコールバック（HTML 挿入用）
+ * 出力バッファコールバック（伺かの HTML を挿入するために使用）
  * @param string $buffer ページ内容
- * @return string 処理後の内容
+ * @return string 処理された内容
  */
-function mpu_ob_callback($buffer): string
+function mpu_ob_callback($buffer)
 
 /**
- * シャットダウン時のコールバック（HTML 挿入を保証）
+ * シャットダウンコールバック（HTML が挿入されることを保証します）
  */
-function mpu_shutdown_callback(): void
+function mpu_shutdown_callback()
 
 /**
- * 伺か HTML を生成
- * @param string|false $num 伺かキー
+ * 伺かの HTML を生成します
+ * @param string|false $num 伺かのキー
  * @return string HTML 文字列
  */
-function mpu_html($num = false): string
+function mpu_html($num = false)
 
 /**
- * 伺か HTML を出力
+ * 伺かの HTML を出力します
  */
-function mpu_echo_html(): void
+function mpu_echo_html()
 
 /**
- * フロントエンドリソース（CSS/JS）を読み込み
+ * フロントエンドリソース（CSS/JS）をキューに入れます
  */
-function mpu_enqueue_frontend_assets(): void
+function mpu_enqueue_frontend_assets()
 
 /**
- * head 内に設定（JavaScript 変数）を出力
+ * head 内に設定を出力します（JavaScript 変数）
  */
-function mpu_head(): void
+function mpu_head()
 ```
 
 ### admin-functions.php
 
-管理画面機能モジュール、設定保存と管理画面インターフェースを処理。
+管理画面機能モジュール。設定の保存と管理画面のインターフェースを処理します。
 
-#### admin-functions.php 主要関数
+#### admin-functions.php の主な関数
 
 ```php
 /**
- * 管理画面リソース（CSS/JS）を読み込み
- * @param string $hook_suffix 現在のページフック
+ * 管理画面リソース（CSS/JS）をキューに入れます
+ * @param string $hook_suffix 現在のページのフック
  */
-function mpu_admin_enqueue_scripts($hook_suffix): void
+function mpu_admin_enqueue_scripts($hook_suffix)
 
 /**
- * 設定保存を処理
+ * 設定の保存を処理します
  */
-function mpu_handle_options_save(): void
+function mpu_handle_options_save()
 
 /**
- * ダイアログファイルを生成（TXT または JSON）
+ * 会話ファイルを生成します（TXT または JSON 形式）
  * @param string $filename ファイル名（拡張子なし）
  * @param array $msg_array メッセージ配列
  * @param string $ext 拡張子（txt または json）
- * @return bool 成功したか
+ * @return bool 成功したかどうか
  */
-function mpu_generate_dialog_file($filename, $msg_array, $ext): bool
+function mpu_generate_dialog_file($filename, $msg_array, $ext)
 
 /**
- * 設定ページ HTML を表示
+ * 管理メニューページの HTML
  */
-function mpu_options_page_html(): void
+function mpu_options_page_html()
 
 /**
- * 管理メニューを登録
+ * 管理メニューを登録します
  */
-function mpu_options(): void
+function mpu_options()
 ```
 
 ---
@@ -752,43 +870,58 @@ function mpu_options(): void
 
 ```php
 $mpu_opt = [
-    // 基本設定
+    // 一般設定
     'cur_ukagaka' => 'default_1',      // 現在の伺か
-    'show_ukagaka' => true,             // 伺かを表示するか
-    'show_msg' => true,                 // 吹き出しを表示するか
-    'default_msg' => 0,                 // 0=ランダム, 1=最初の一つ
-    'next_msg' => 0,                    // 0=順序, 1=ランダム
-    'click_ukagaka' => 0,               // 0=次へ, 1=何もしない
+    'show_ukagaka' => true,             // 伺かを表示する
+    'show_msg' => true,                 // ダイアログボックスを表示する
+    'default_msg' => 0,                 // 0=ランダム, 1=最初のメッセージ
+    'next_msg' => 0,                    // 0=順番, 1=ランダム
+    'click_ukagaka' => 0,               // 0=次のメッセージ, 1=何もしない
+    'insert_html' => 0,                 // HTML の挿入位置
+    'no_style' => false,                // カスタムスタイルを使用する
+    'no_page' => '',                    // 除外するページのリスト
 
-    // 自動ダイアログ
-    'auto_talk' => true,                // 自動ダイアログを有効化
-    'auto_talk_interval' => 8,          // 自動ダイアログ間隔（秒）
-    'typewriter_speed' => 40,           // タイプ速度（ミリ秒/文字）
+    // 自動会話
+    'auto_talk' => true,                // 自動会話を有効にする
+    'auto_talk_interval' => 8,          // 自動会話の間隔（秒）
+    'typewriter_speed' => 40,           // タイピング速度（ミリ秒/文字）
 
-    // 外部ダイアログファイル
-    'use_external_file' => true,        // 外部ファイルを使用
+    // 外部会話ファイル
+    'use_external_file' => true,        // 外部ファイルを使用する（システムで強制的に true）
     'external_file_format' => 'txt',     // ファイル形式（txt/json）
 
-    // AI 設定（ページ感知機能）
-    'ai_enabled' => false,              // AI を有効化
-    'ai_provider' => 'gemini',          // AI プロバイダー
-    'ai_api_key' => '',                 // Gemini API Key（暗号化）
+    // 会話設定
+    'auto_msg' => '',                   // 固定メッセージ
+    'common_msg' => '',                 // 共通の会話
+
+    // AI 設定（ページ認識機能）
+    'ai_enabled' => false,              // AI を有効にする
+    'ai_provider' => 'gemini',          // AI プロバイダー（gemini/openai/claude/ollama）
+    'ai_api_key' => '',                 // Gemini API キー（暗号化）
     'gemini_model' => 'gemini-2.5-flash', // Gemini モデル
-    'openai_api_key' => '',             // OpenAI API Key（暗号化）
-    'openai_model' => 'gpt-4.1-mini-2025-04-14',    // OpenAI モデル
-    'claude_api_key' => '',             // Claude API Key（暗号化）
+    'openai_api_key' => '',             // OpenAI API キー（暗号化）
+    'openai_model' => 'gpt-4o-mini',    // OpenAI モデル
+    'claude_api_key' => '',             // Claude API キー（暗号化）
     'claude_model' => 'claude-sonnet-4-5-20250929', // Claude モデル
-    'ai_language' => 'zh-TW',           // AI 応答言語
-    'ai_system_prompt' => '',           // AI 人格設定
-    'ai_probability' => 10,             // AI トリガー確率（0-100）
-    'ai_trigger_pages' => 'is_single',  // トリガーページ条件
+    'ai_language' => 'zh-TW',           // AI の応答言語
+    'ai_system_prompt' => '',           // AI の人格設定
+    'ai_probability' => 10,             // AI のトリガー確率（0-100）
+    'ai_trigger_pages' => 'is_single',  // トリガーするページの条件
+    'ai_text_color' => '#ff6b6b',       // AI テキストの色
     'ai_display_duration' => 8,         // AI 表示時間（秒）
+    'ai_greet_enabled' => false,        // 初回訪問者への挨拶
+    'ai_greet_prompt' => '',            // 挨拶のプロンプト
 
     // LLM 設定 (BETA)
     'ollama_endpoint' => 'http://localhost:11434',  // Ollama エンドポイント
     'ollama_model' => 'qwen3:8b',                   // Ollama モデル
-    'ollama_replace_dialogue' => false,              // LLM で内蔵ダイアログを置換
-    'ollama_disable_thinking' => true,               // 思考モードを無効化
+    'ollama_replace_dialogue' => false,              // 組み込みの会話を LLM で置き換える
+    'ollama_disable_thinking' => true,               // 思考モードを無効にする
+
+    // 拡張機能
+    'extend' => [
+        'js_area' => '',                // カスタム JavaScript
+    ],
 
     // 伺かリスト
     'ukagakas' => [
@@ -808,221 +941,433 @@ $mpu_opt = [
 
 ```php
 $ukagaka = [
-    'name' => 'フリーレン',               // 名前
+    'name' => 'フリーレン',            // 名前
     'shell' => 'https://...png',      // 画像 URL
-    'msg' => [                        // ダイアログ配列
-        'ダイアログ 1',
-        'ダイアログ 2',
+    'msg' => [                        // 会話配列
+        '会話 1',
+        '会話 2',
     ],
-    'show' => true,                   // 表示するか
-    'dialog_filename' => 'frieren',   // ダイアログファイル名
+    'show' => true,                   // 表示可能か
+    'dialog_filename' => 'frieren',   // 会話ファイル名
 ];
 ```
 
 ---
 
-## Hooks と Filters
+## フックとフィルター
 
-### Actions
+`v2.9.2` の REST リファクタリング以降、プラグインレベルの `do_action()` フック（`mpu_loaded`、`mpu_before_html`、`mpu_after_html`、`mpu_settings_saved`）および `apply_filters()` フック（`mpu_options`、`mpu_messages`、`mpu_ai_response`、`mpu_ukagaka_html`）はすべて削除されました。
+
+現在残っている機能的なフィルターは、LLM のプロンプト構築に関連する以下の 4 つです：
+
+### mpu_llm_system_prompt
+
+LLM に送信されるシステムプロンプトを変更するために使用されます。完全な構造の中で、人格カード、WordPress のコンテキスト、および行動ルールが含まれています。
 
 ```php
-// プラグイン読み込み後
-do_action('mpu_loaded');
-
-// 伺か HTML 生成前
-do_action('mpu_before_html');
-
-// 伺か HTML 生成後
-do_action('mpu_after_html');
-
-// 設定保存後
-do_action('mpu_settings_saved', $mpu_opt);
+add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personality_id, $context) {
+    return $prompt;
+}, 10, 4);
 ```
 
-### Filters
+### mpu_llm_user_prompt
+
+ユーザーのプロンプトの前に、セキュリティ警告、イベント情報、外部システムメッセージなどの追加コンテキストを付与するために使用されます。
 
 ```php
-// 設定配列をフィルター
-$mpu_opt = apply_filters('mpu_options', $mpu_opt);
+add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
+    $attack_info = get_transient('mpu_llar_attack_info');
+    if ($attack_info) {
+        return $prompt . "\n【セキュリティ警告】\n" . $attack_info;
+    }
+    return $prompt;
+}, 10, 3);
+```
 
-// 伺か HTML をフィルター
-$html = apply_filters('mpu_html', $html, $ukagaka);
+### mpu_prompt_categories
 
-// メッセージをフィルター
-$message = apply_filters('mpu_message', $message, $ukagaka_key);
+LLM の自動会話のカテゴリ定義（挨拶、雑談、時間認識、統計観察など）を調整するために使用されます。
 
-// AI 応答をフィルター
-$response = apply_filters('mpu_ai_response', $response, $provider);
+```php
+add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_info, $time_context) {
+    return $categories;
+}, 10, 4);
+```
+
+### mpu_category_weights
+
+会話カテゴリの重み付きランダムの重みを調整するために使用されます。
+
+```php
+add_filter('mpu_category_weights', function($weights, $time_context, $visitor_info, $context_vars) {
+    if ($time_context === '深夜') {
+        $weights['philosophical'] = 15;
+    }
+    return $weights;
+}, 10, 4);
 ```
 
 ---
 
-## AJAX エンドポイント
+## REST エンドポイント
 
-### 公開エンドポイント（wp*ajax_nopriv*\*）
+現在、フロントエンドとほとんどの管理画面でのテストプロセスは主に REST API に依存しています。ベースの名前空間は `mp-ukagaka/v1` で、完全なプレフィックスは `/wp-json/mp-ukagaka/v1/` になります。フロントエンドのリクエストには、`mpuRestNonce` から提供される `X-WP-Nonce` が必要です。
 
-| アクション             | 説明                         | パラメータ                   |
-| ---------------------- | ---------------------------- | ---------------------------- |
-| `mpu_nextmsg`          | 次のメッセージを取得         | `cur_num`, `cur_msgnum`      |
-| `mpu_extend`           | 拡張機能を実行               | 状況による                   |
-| `mpu_change`           | 伺かを切り替え               | `new_num`                    |
-| `mpu_get_settings`     | 設定を取得                   | なし                         |
-| `mpu_load_dialog`      | ダイアログファイルを読み込み | `filename`, `format`         |
-| `mpu_chat_context`     | AI ページ感知                | `post_content`, `post_title` |
-| `mpu_get_visitor_info` | 訪問者情報を取得             | なし                         |
-| `mpu_chat_greet`       | 初回訪問者挨拶               | `visitor_info`               |
+### キャラクター / 設定系
 
-### 管理画面エンドポイント（wp*ajax*\*）
+| エンドポイント | メソッド | 説明 |
+| --- | --- | --- |
+| `/init` | GET | シェル、装飾品、絵文字、タッチゾーン、設定などの初期化データを取得します |
+| `/settings` | GET | フロントエンドの設定オブジェクトを取得します |
+| `/change` | POST | キャラクターを切り替えるか、パラメータが渡されていない場合は利用可能なキャラクターのリストを返します |
+| `/shell-info` | GET / POST | 特定のキャラクターの外観情報を取得します |
+| `/decoration-config` | GET / POST | 装飾品の設定を取得します |
+| `/emoji-config` | GET / POST | 絵文字の設定を取得します |
+| `/extend` | GET / POST | 拡張エントリポイント。フロントエンドでクリック可能なタグを返します |
 
-| アクション        | 説明              |
-| ----------------- | ----------------- |
-| `mpu_test_ollama` | Ollama 接続テスト |
-| `mpu_test_gemini` | Gemini 接続テスト |
-| `mpu_test_openai` | OpenAI 接続テスト |
-| `mpu_test_claude` | Claude 接続テスト |
+### 会話系
+
+| エンドポイント | メソッド | 説明 |
+| --- | --- | --- |
+| `/nextmsg` | POST | 次のメッセージを取得します。LLM 置換モードが有効な場合は AI 生成を使用します |
+| `/dialog` | GET / POST | `dialogs/` 配下の会話ファイルを読み込みます |
+| `/visitor-info` | GET | 訪問元の情報や Slimstat 関連の情報を取得します |
+| `/decoration-prompts` | GET / POST | 装飾品をクリックしたときのプロンプトを取得します |
+| `/wake-ghost` | POST | 睡眠中のキャラクターを起こします |
+
+### AI 会話系
+
+| エンドポイント | メソッド | 説明 |
+| --- | --- | --- |
+| `/chat/context` | POST | ページを認識する AI 会話 |
+| `/chat/greet` | POST | 初回訪問者への挨拶 |
+| `/chat/user` | POST | 複数ターンのインタラクティブチャット（非ストリーミング） |
+| `/chat/user-stream` | POST | SSE ストリーミングインタラクティブチャット |
+
+### タッチインタラクション系
+
+| エンドポイント | メソッド | 説明 |
+| --- | --- | --- |
+| `/touch/decoration` | POST | 装飾品をクリックしたときの AI の反応 |
+| `/touch/zone` | POST | キャラクターの領域をクリックしたときのインタラクション反応 |
+
+### 管理画面テスト系
+
+| エンドポイント | メソッド | 説明 |
+| --- | --- | --- |
+| `/test-connection/{provider}` | POST | 統合されたプロバイダーの接続テスト |
+| `/clear-cache` | POST | LLM API のキャッシュをクリアします |
+
+### 保持されている AJAX エンドポイント
+
+メインアーキテクチャは REST に移行しましたが、いくつかの内部統合は引き続き `admin-ajax.php` を使用します：
+
+| アクション | ハンドラ | 説明 |
+| --- | --- | --- |
+| `wp_ajax_mpu_test_diary_generate` | `mpu_ajax_test_diary_generate` | 管理画面から日記生成をテストします |
+| `wp_ajax_nopriv_slimtrack` / `wp_ajax_slimtrack` | `mpu_bb_intercept_slimstat` | Bot Blocker が Slimstat を傍受します |
+| `wp_ajax_nopriv_mbb_js_flag` / `wp_ajax_mbb_js_flag` | `mpu_bb_js_flag_handler` | Bot Blocker の JS フラグ検出 |
 
 ---
 
 ## JavaScript API
 
-### グローバルオブジェクト
+### グローバル変数
+
+フロントエンドの初期化後、以下のグローバル変数が公開されます：
 
 ```javascript
-// 設定オブジェクト
-window.mpuConfig = {
-  ajaxUrl: "/wp-admin/admin-ajax.php",
-  nonce: "xxx",
-  currentUkagaka: "default_1",
-  autoTalkInterval: 8000,
-  typewriterSpeed: 40,
-  // ...
-};
+window.mpuRestUrl;         // REST ベース URL（例：/wp-json/mp-ukagaka/v1/）
+window.mpuRestNonce;       // REST 用 Nonce
+window.mpuL10n;            // フロントエンドの翻訳文字列
+window.mpuSettings;        // /init から返された settings
+window.mpuInitData;        // /init からの完全な応答
+window.mpuPersonalityId;   // 現在の人格 ID
+window.mpuMsgList;         // 会話データ
+window.mpuChatHistory;     // 複数ターンの会話履歴
+window.mpuChatModeActive;  // インタラクティブ会話モードがアクティブかどうか
+window.mpuCanvasManager;   // Canvas アニメーションマネージャー
+window.mpuDecorationConfig;
+window.mpuTouchZones;
+window.mpuEmojiBaseUrl;
+window.mpuSupportedEmojis;
+window.mpuEmojiMappings;
+```
 
-// Canvas マネージャー
-window.mpuCanvasManager = {
-  init(shellInfo, name) {},
-  playAnimation() {},
-  stopAnimation() {},
-  isAnimationMode() {},
-  // ...
+`window.mpuSettings` のデータは `/init` から返された `settings` ブロックから取得され、以下のような形式になります：
+
+```javascript
+window.mpuSettings = {
+  auto_talk: true,
+  auto_talk_interval: 8,
+  typewriter_speed: 40,
+  ai_enabled: true,
+  ai_probability: 10,
+  ai_trigger_pages: "is_single",
+  ai_text_color: "#000000",
+  ai_display_duration: 8,
+  ai_greet_first_visit: true,
+  ollama_replace_dialogue: false,
+  enable_chat_mode: false,
+  sleep_mode: {
+    enabled: false,
+    frequency_multiplier: 1.0
+  }
 };
 ```
 
-### 主要関数
+### コア関数
 
 ```javascript
-// メッセージを表示（タイプライター効果）
-mpu_typewriter(message, element, speed);
+function mpu_nextmsg(trigger)
+function mpu_hidemsg()
+function mpu_showmsg()
+function mpu_hiderobot()
+function mpu_showrobot()
+function mpuChange(num)
+```
 
-// 伺かを切り替え
-mpuChange(newUkagakaKey);
+### AI / インタラクション関数
 
-// 次のメッセージを取得
-mpuNextMsg();
+```javascript
+function mpu_chat_context()
+function mpu_greet_first_visitor(settings)
+function mpu_sendUserMessage()
+function mpu_toggleChatMode(enable)
+```
 
-// AI ページ感知を実行（ukagaka-context.js）
-mpu_chat_context();
+### Canvas マネージャー
 
-// 初回訪問者に挨拶（ukagaka-greeting.js）
-mpu_greet_first_visitor(settings);
+```javascript
+window.mpuCanvasManager = {
+  init: function(shellInfo, name),
+  playAnimation: function(),
+  stopAnimation: function(),
+  isAnimationMode: function()
+};
 ```
 
 ---
 
 ## 拡張開発
 
-### 新しい AI プロバイダーを追加
+### 新しい AI プロバイダーの追加
 
-1. `ai-functions.php` に API 呼び出し関数を追加：
+現在のプロバイダーアーキテクチャは `includes/llm/providers/` の下にあります。`ai-functions.php` に手続き型のケース（case 文）を直接追加するのではなく、プロバイダーファクトリと統合することをお勧めします。
+
+基本的な手順：
+
+1. `class-mpu-ai-provider-*.php` を追加する
+2. 既存の provider インターフェースを実装する
+3. `class-mpu-ai-provider-factory.php` に登録する
+4. 必要に応じて `provider-helpers.php` と管理画面の設定ページに対応するフィールドを追加する
+5. `/test-connection/{provider}` が新しいプロバイダーをテストできるようにする
+
+### 新しいメッセージコードの追加
+
+メッセージの特殊コードは引き続き `mpu_msg_code()` によって処理されます。新しい `:newcode[n]:` タイプを追加するには、その処理フローに対応する置換ルールを挿入します。
 
 ```php
-function mpu_call_newprovider_api($api_key, $model, $system_prompt, $user_prompt, $language) {
-    // API 呼び出しロジックを実装
+if (preg_match('/:newcode\[(\d+)\]:/', $msg, $matches)) {
+    $param = intval($matches[1]);
+    $replacement = my_custom_function($param);
+    $msg = str_replace($matches[0], $replacement, $msg);
 }
 ```
 
-2\. `mpu_call_ai_api()` にプロバイダー分岐を追加
+### 新しい REST エンドポイントの追加
 
-3\. 管理画面に設定フィールドを追加
-
-### 新しい AJAX エンドポイントを追加
+古い AJAX アクションを追加する代わりに、`includes/rest/` 配下のコントローラーアーキテクチャを優先して使用してください。
 
 ```php
-// includes/ajax-handlers.php に追加
-function mpu_ajax_custom_action() {
-    check_ajax_referer('mpu_nonce', 'nonce');
+class MPU_REST_Custom extends MPU_REST_Base {
+    public function register_routes() {
+        register_rest_route($this->namespace, '/custom', [
+            [
+                'methods' => 'POST',
+                'callback' => [$this, 'handle_custom'],
+                'permission_callback' => '__return_true',
+            ],
+        ]);
+    }
 
-    // ロジックを実装
-
-    wp_send_json_success(['data' => $result]);
+    public function handle_custom(WP_REST_Request $request) {
+        return rest_ensure_response([
+            'success' => true,
+            'data' => ['message' => 'ok'],
+        ]);
+    }
 }
-add_action('wp_ajax_mpu_custom_action', 'mpu_ajax_custom_action');
-add_action('wp_ajax_nopriv_mpu_custom_action', 'mpu_ajax_custom_action');
 ```
 
+次に、新しいコントローラーを `includes/rest/bootstrap.php` に登録します。
+
+### 会話カテゴリの重みのカスタマイズ
+
+会話カテゴリと重みは現在、`includes/llm/prompt-categories.php` に集約されています。これらは `mpu_prompt_categories` と `mpu_category_weights` フィルターを通じて調整できます。これは `llm-functions.php` を直接変更するよりも安定しています。
+
+### 観察系会話サンプルのカスタマイズ
+
+組み込みの会話ファイルからサンプルを抽出する戦略を変更するには、`includes/llm/llm-functions.php` でサンプルセリフを構築する関数を確認し、`dialog_filename` と personality / ukagaka のマッピングロジックに注意してください。
+
+### 今後の展望：汎用キャラクターマネージャーのサポート
+
+**現在のステータス：**
+
+現在のシステムでは、キャラクター固有のアニメーションやインタラクションのロジック（フリーレンの起床アニメーション、ページめくりアニメーション、睡眠モードなど）は、ハードコーディングされた `window.mpuFrierenManager` を通じて実装されています。これは以下のことを意味します：
+
+- フリーレン（Frieren）の人格だけが専用のキャラクターマネージャーを持っています。
+- 他のキャラクターは、同様の専用アニメーションやインタラクション機能を使用できません。
+- キャラクターマネージャーへのすべての参照は、直接 `mpuFrierenManager` を指しています。
+
+**改善の方向性：**
+
+将来的には、複数のキャラクターをサポートし、それぞれが専用のアニメーションやインタラクションロジックを持つことができる、汎用のキャラクターマネージャーシステムを実装することができます：
+
+1. **動的マネージャー検索メカニズム**
+   - `ukagaka-anime.js` に `getCurrentCharacterManager()` メソッドを実装する。
+   - 現在のキャラクターの `dialog_filename` または personality ID に基づいて、対応するマネージャーを動的に検索する。
+   - 命名規則を使用する：`window.mpu{PersonalityId}Manager`（例：`mpuFrierenManager`、`mpuSakuraManager`）。
+
+2. **統一インターフェース標準**
+   - 標準的なキャラクターマネージャーのインターフェース（メソッド名とプロパティ）を定義する。
+   - すべてのキャラクターマネージャーは `initMode()`, `triggerSpeaking()`, `isCharacterMode` などを実装しなければならない。
+   - 下位互換性を確保する（`mpuFrierenManager` へのサポートを維持する）。
+
+3. **実装場所**
+   - 主な変更点：`js/ukagaka-anime.js`（約20箇所の参照を変更する必要がある）。
+   - 副次的な変更点：`js/ukagaka-chat.js` と `js/ukagaka-core.js`（少数の参照）。
+   - 見積もり作業量：約 2-3 時間（テストを含む）。
+
+4. **トリガーのタイミング**
+   - 2人目のキャラクターが専用のアニメーションやインタラクションを必要とするときに、一緒に実装することができる。
+   - または、フリーレンの専用機能を抽象化する必要があるときにリファクタリングを行う。
+
+**技術的な要点：**
+
+- 現在のキャラクター情報は `dialog_filename` または personality ID から取得する必要がある。
+- 既存のフリーレンの機能が正常に動作するように、下位互換性を維持する必要がある。
+- 実装例として `ghost/Frieren/frieren.js` 内の `mpuFrierenManager` を参考にすることができる。
+
 ---
 
-## セキュリティ考慮事項
+## セキュリティの考慮事項
 
-### 入力検証
+### API Key のセキュリティ
 
-- すべてのユーザー入力を `sanitize_*` 関数でサニタイズ
-- ファイルパスを検証してディレクトリトラバーサルを防止
-- nonce を使用して CSRF を防止
+- すべての API Key は AES-256-CBC を使用して暗号化され、保存されます。
+- WordPress の `AUTH_KEY` を暗号化キーとして使用します。
+- 管理画面での表示時は `type="password"` を使用して非表示にします。
 
-### 出力エスケープ
+### 入力の検証
 
-- HTML 出力に `esc_html()` を使用
-- 属性に `esc_attr()` を使用
-- URL に `esc_url()` を使用
-- JavaScript に `esc_js()` を使用
+```php
+// フィルタリングには常に WordPress の関数を使用する
+$input = sanitize_text_field($_POST['input']);
+$html = wp_kses_post($_POST['html']);
+$url = esc_url($_POST['url']);
+```
 
-### API Key 保護
+### 出力のエスケープ
 
-- すべての API Key を AES-256-CBC で暗号化
-- 平文で API Key を保存しない
-- API Key をログに記録しない
+```php
+// HTML の出力
+echo esc_html($text);
+
+// 属性の出力
+echo esc_attr($value);
+
+// URL の出力
+echo esc_url($url);
+
+// JavaScript の出力
+echo wp_json_encode($data);
+```
+
+### Nonce の検証
+
+```php
+// フォームに Nonce を追加
+wp_nonce_field('mp_ukagaka_settings');
+
+// Nonce を検証
+if (!wp_verify_nonce($_POST['_wpnonce'], 'mp_ukagaka_settings')) {
+    wp_die('セキュリティチェックに失敗しました');
+}
+```
+
+### ファイル操作
+
+- `mpu_secure_file_read()` と `mpu_secure_file_write()` を使用します。
+- ファイルパスが許可されたディレクトリ内にあることを検証します。
+- ファイルサイズの制限をチェックします。
 
 ---
 
-## 開発規約
-
-### 命名規約
-
-- 関数：`mpu_` プレフィックス + snake_case
-- フック：`mpu_` プレフィックス + snake_case
-- JavaScript：camelCase
-- CSS クラス：`mpu-` プレフィックス + kebab-case
+## 開発標準
 
 ### コードスタイル
 
-- PHP：WordPress Coding Standards に従う
-- JavaScript：ESLint 推奨ルールに従う
-- インデント：タブ（スペース 4 つ相当）
+- [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/) に従います。
+- インデントには 4 つのスペースを使用します。
+- 関数名には `mpu_` のプレフィックスを使用します。
 
-### ドキュメント
+### コメント標準
 
-- すべての公開関数に PHPDoc を追加
-- 複雑なロジックにコメントを追加
-- README とドキュメントを更新
+```php
+/**
+ * 関数の簡単な説明
+ *
+ * 詳細な説明（オプション）
+ *
+ * @since 2.1.0
+ * @param string $param1 パラメータの説明
+ * @param int    $param2 パラメータの説明
+ * @return string 戻り値の説明
+ */
+function mpu_example_function($param1, $param2 = 0) {
+    // ...
+}
+```
+
+### 国際化
+
+```php
+// 翻訳可能な文字列
+__('文字列', 'mp-ukagaka')
+
+// 直接出力される翻訳可能な文字列
+_e('文字列', 'mp-ukagaka')
+
+// プレースホルダーを含む文字列
+sprintf(__('ようこそ %s', 'mp-ukagaka'), $name)
+```
+
+### テスト
+
+1. 開発環境ですべての機能をテストする。
+2. エラーを確認するために `WP_DEBUG` を使用する。
+3. 複数の AI プロバイダーをテストする。
+4. 多言語環境をテストする。
+5. ブラウザのコンソールにエラーがないことを確認する。
 
 ---
 
-## SPA（シングルページアプリケーション）統合
+## SPA (シングルページアプリケーション) の統合
 
-MP Ukagaka は SPA ナビゲーションをサポートしています。テーマが完全なページリフレッシュではなく AJAX でページコンテンツを読み込む場合、プラグインに再初期化を通知する必要があります。
+MP Ukagaka は SPA ナビゲーションをサポートしています。テーマがページ全体を更新する代わりに AJAX を使用してページコンテンツを読み込む場合、再初期化を行うようにプラグインに通知する必要があります。
 
-### イベントトリガー
+### イベントのトリガー
 
-テーマは SPA ナビゲーション完了後に `mpu:spaReady` イベントをディスパッチする必要があります：
+テーマは SPA ナビゲーションの完了後に `mpu:spaReady` イベントをトリガーする必要があります：
 
 ```javascript
-// SPA ナビゲーション完了後にディスパッチ
+// SPA ナビゲーションの完了後にトリガー
 document.dispatchEvent(
   new CustomEvent("mpu:spaReady", {
     detail: {
-      url: window.location.href, // オプション：現在の URL
-      title: document.title, // オプション：ページタイトル
+      url: window.location.href, // オプション: 現在の URL
+      title: document.title, // オプション: ページのタイトル
     },
   }),
 );
@@ -1032,14 +1377,14 @@ document.dispatchEvent(
 
 プラグインはこのイベントをリッスンし、以下を実行します：
 
-1. 自動対話タイマーを停止して再起動
-2. ページ感知 AI を再トリガー（有効な場合）
-3. ページコンテキスト情報を更新
+1. 自動会話のタイマーを停止して再起動します。
+2. ページ認識 AI を再トリガーします（有効な場合）。
+3. ページのコンテキスト情報を更新します。
 
-### テーマ統合例
+### 統合例（テーマ）
 
 ```javascript
-// History API を使用した SPA ナビゲーション例
+// History API を使用した SPA ナビゲーションの例
 document.addEventListener("click", function (e) {
   const link = e.target.closest("a");
   if (!link || link.target === "_blank") return;
@@ -1050,7 +1395,7 @@ document.addEventListener("click", function (e) {
   fetch(link.href)
     .then((response) => response.text())
     .then((html) => {
-      // ページコンテンツを更新
+      // ページ内容を更新
       document.getElementById("content").innerHTML = html;
       history.pushState({}, "", link.href);
 
@@ -1061,17 +1406,27 @@ document.addEventListener("click", function (e) {
 
 // ブラウザの戻る/進むを処理
 window.addEventListener("popstate", function () {
-  // ページコンテンツ読み込み後...
+  // 対応するページコンテンツを読み込んだ後...
   document.dispatchEvent(new CustomEvent("mpu:spaReady"));
 });
 ```
 
 ### 注意事項
 
-- DOM 更新が完了した後にイベントをディスパッチしてください
-- プラグインは自動的に対話状態を維持します
-- チャット履歴は同じセッション内で保持されます
+- イベントは DOM の更新が完了した後にトリガーする必要があります。
+- プラグインは会話のステータスの保持を自動的に処理します。
+- 会話履歴は同じセッション内に保持されます。
 
 ---
 
-### Made with ❤ for WordPress
+## 関連リソース
+
+- [WordPress Plugin Handbook](https://developer.wordpress.org/plugins/)
+- [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
+- [Gemini API ドキュメント](https://ai.google.dev/docs)
+- [OpenAI API ドキュメント](https://platform.openai.com/docs)
+- [Claude API ドキュメント](https://docs.anthropic.com/)
+
+---
+
+### Happy Coding! 🎉
