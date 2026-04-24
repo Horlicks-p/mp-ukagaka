@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.5-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.6-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.13.5 の新機能
+## 🎉 v2.13.6 の新機能
 
-**USER_GUIDE を全面再構成**：ユーザーガイドを「基本設定」「AI 機能設定」「静的ダイアログ機能」の 3 部構成に整理し、用途別に読みやすくしました。
+**開発者向けドキュメントの補完**：REST アーキテクチャ、Abilities API、ゴースト作成フロー、Canvas カスタマイズ、Slimstat デバッグなど、現在のコード構造に合わせて開発者向け文書群を全面更新しました。
 
-**各言語ドキュメントを同期**：英語・繁体字中国語・日本語の説明を見直し、天気感知や ZIP アップロードなどの不足章を補完し、ユーザー向けでない技術詳細も整理しました。
+**多言語ドキュメント同期**：繁体字中国語・英語・日本語の開発者向け文書と changelog を同期し、内容を一致させました。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

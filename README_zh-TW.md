@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.5-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.6-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.13.5 新功能
+## 🎉 v2.13.6 新功能
 
-**USER_GUIDE 全面重構**：使用者指南重新整理為「基本設定」「AI 功能設定」「靜態對話功能」三大部分，依使用情境閱讀會更直覺。
+**開發文件全面補完**：REST 架構、Abilities API、人格製作流程、Canvas 自訂、Slimstat 除錯等開發者文件已全面更新，內容和目前程式碼一致。
 
-**多語言文件同步**：補齊英文、繁中、日文版本間原本缺漏的章節，例如天氣感知與 ZIP 上傳，並移除不適合放在使用者指南中的開發者技術細節。
+**多語言文件同步**：繁中、英文、日文三套開發文件與 changelog 已同步完成。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 
