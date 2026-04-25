@@ -281,7 +281,7 @@ function mpu_html($num = false)
         <div class="mpu-clear"></div>
         <div id="ukagaka-dock">
             <ul>
-                <li class="gotop"><a id="toTop" href="#" title="転移">' .
+                <li class="gotop"><a id="toTop" href="#" title="転移" data-spa-ignore>' .
         __("トップへ戻る ▼", "mp-ukagaka") .
         '</a></li>
                 <li class="hide"><a id="remove" href="#" title="ログアウト？">' .

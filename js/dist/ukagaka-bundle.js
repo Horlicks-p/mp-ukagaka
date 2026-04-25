@@ -5252,6 +5252,7 @@ jQuery(document).ready(function () {
   // [!] 移除 scroll fadeIn/fadeOut 邏輯
   jQuery("#toTop").on("click", function (e) {
     e.preventDefault();
+    e.stopPropagation(); // 防止 SPA 攔截此錨點點擊
     const startY = window.pageYOffset;
     const duration = 600;
     const startTime = performance.now();
