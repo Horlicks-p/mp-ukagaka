@@ -53,6 +53,11 @@ function mpu_get_mcp_tools_for_llm($provider = 'openai')
         $description = $ability->get_description();
         $input_schema = $ability->get_input_schema();
 
+        // Normalize for LLM: convert union types like ['object','null'] → 'object'
+        if (!empty($input_schema)) {
+            $input_schema = mpu_normalize_schema_for_llm($input_schema);
+        }
+
         // Ensure input_schema is an object for JSON encoding if empty
         if (empty($input_schema)) {
             $input_schema = new stdClass();
@@ -114,8 +119,43 @@ function mpu_get_mcp_tools_for_llm($provider = 'openai')
 }
 
 /**
+ * Normalize JSON Schema for LLM compatibility.
+ * LLM providers require `type` to be a plain string; JSON Schema union types
+ * like ['object', 'null'] are not accepted. This picks the first non-null type.
+ *
+ * @param array|object $schema
+ * @return array|object
+ */
+function mpu_normalize_schema_for_llm($schema)
+{
+    $was_object = is_object($schema);
+    if ($was_object) {
+        $schema = (array) $schema;
+    }
+
+    if (!is_array($schema)) {
+        return $schema;
+    }
+
+    if (isset($schema['type']) && is_array($schema['type'])) {
+        $non_null = array_values(array_filter($schema['type'], function ($t) {
+            return $t !== 'null';
+        }));
+        $schema['type'] = !empty($non_null) ? $non_null[0] : 'object';
+    }
+
+    foreach ($schema as $key => $value) {
+        if (is_array($value) || is_object($value)) {
+            $schema[$key] = mpu_normalize_schema_for_llm($value);
+        }
+    }
+
+    return $was_object ? (object) $schema : $schema;
+}
+
+/**
  * Remove 'additionalProperties' from schema recursively
- * 
+ *
  * @param array|object $schema
  * @return array|object
  */

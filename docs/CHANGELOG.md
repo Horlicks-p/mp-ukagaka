@@ -4,6 +4,15 @@
 
 ---
 
+## [2.13.7] - 2026-04-25
+
+### 🐛 錯誤修正：Akismet 5.7 相容性 — AI 對話無法生成
+
+- **根本原因**：Akismet 5.7 新增了 `akismet/get-stats` ability（WordPress Abilities API），其 input schema 使用了 JSON Schema 聯合型別：`type: ['object', 'null']`。mp-ukagaka 透過 `wp_get_abilities()` 收集所有已註冊的 ability 並作為 tool 定義送給 LLM，此聯合型別陣列導致整個 API 呼叫被拒絕——Gemini、OpenAI、Claude 均要求 `type` 為純字串（如 `"object"`），不接受陣列。
+- **症狀**：啟用 Akismet 後 AI 對話完全無法生成，角色退回使用內建靜態對話。關閉 Akismet 後 AI 對話立即恢復正常。
+- **修正**：在 `abilities-integration.php` 新增 `mpu_normalize_schema_for_llm()`，遞迴走訪 ability input schema，將聯合型別陣列（如 `['object', 'null']`）轉換為單一字串（取第一個非 null 型別），在送給任何 LLM provider 之前套用。
+
+---
 ## [2.13.6] - 2026-04-24
 
 ### 📖 文件更新：開發文件補完與多語同步

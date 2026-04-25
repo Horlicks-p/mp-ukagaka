@@ -4,6 +4,15 @@
 
 ---
 
+## [2.13.7] - 2026-04-25
+
+### 🐛 Bug Fix: Akismet 5.7 Compatibility — AI Dialogue Broken
+
+- **Root Cause**: Akismet 5.7 introduced the `akismet/get-stats` ability (WordPress Abilities API) with an input schema using a JSON Schema union type: `type: ['object', 'null']`. When mp-ukagaka collects all registered abilities via `wp_get_abilities()` and forwards them as tool definitions to the LLM provider, this union-type array caused the entire API call to be rejected — Gemini, OpenAI, and Claude all require `type` to be a plain string (e.g. `"object"`), not an array.
+- **Symptom**: With Akismet active, AI dialogue stopped generating entirely and the character fell back to built-in static dialogue. Disabling Akismet restored AI dialogue immediately.
+- **Fix**: Added `mpu_normalize_schema_for_llm()` in `abilities-integration.php`. This function recursively walks any ability's input schema and converts union `type` arrays (e.g. `['object', 'null']`) to a single string (the first non-null type), before the schema is sent to any LLM provider.
+
+---
 ## [2.13.6] - 2026-04-24
 
 ### 📖 Docs: Developer Documentation Catch-Up & Cross-Language Sync

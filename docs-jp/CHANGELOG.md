@@ -4,6 +4,15 @@
 
 ---
 
+## [2.13.7] - 2026-04-25
+
+### 🐛 バグ修正：Akismet 5.7 互換性 — AI ダイアログが生成されない問題
+
+- **根本原因**：Akismet 5.7 が WordPress Abilities API に `akismet/get-stats` ability を追加しました。この ability の input schema には JSON Schema のユニオン型 `type: ['object', 'null']` が使われています。mp-ukagaka は `wp_get_abilities()` で登録済みの ability をすべて収集し、ツール定義として LLM プロバイダーに送信しますが、このユニオン型配列により API 呼び出し全体が拒否されていました。Gemini・OpenAI・Claude はいずれも `type` に配列ではなく文字列（例：`"object"`）を要求します。
+- **症状**：Akismet を有効化すると AI ダイアログが一切生成されなくなり、キャラクターが内蔵の静的ダイアログにフォールバックしていました。Akismet を無効化すると即座に AI ダイアログが復元されました。
+- **修正**：`abilities-integration.php` に `mpu_normalize_schema_for_llm()` を追加しました。この関数は ability の input schema を再帰的に走査し、ユニオン型配列（例：`['object', 'null']`）を単一の文字列（最初の非 null 型）に変換してから、LLM プロバイダーに送信します。
+
+---
 ## [2.13.6] - 2026-04-24
 
 ### 📖 ドキュメント更新：開発者向け文書の補完と多言語同期
