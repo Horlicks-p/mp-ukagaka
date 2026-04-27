@@ -236,6 +236,79 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
         }
     }
 
+    // AI 爬蟲檢查（獨立冷卻 30 分鐘）
+    $ai_crawler = function_exists('mpu_check_recent_ai_crawler') ? mpu_check_recent_ai_crawler(60) : false;
+
+    if ($ai_crawler !== false && get_transient('mpu_ai_crawler_cooldown') === false) {
+        set_transient('mpu_ai_crawler_cooldown', true, 30 * MINUTE_IN_SECONDS);
+
+        $message = function_exists('mpu_generate_ai_crawler_reaction_llm')
+            ? mpu_generate_ai_crawler_reaction_llm($ai_crawler)
+            : false;
+
+        if ($message !== false) {
+            if (function_exists('mpu_record_conversation')) {
+                mpu_record_conversation('auto_talk');
+            }
+            if (function_exists('mpu_debug_log')) {
+                mpu_debug_log('AI Crawler: 偵測到 ' . $ai_crawler['name'] . ' (' . $ai_crawler['company'] . ')，觸發反應（冷卻 30 分鐘）');
+            }
+            mpu_store_spam_event_checksum($request, $message);
+            return new WP_REST_Response([
+                'has_event' => true,
+                'msg' => $message,
+                'action' => 'ai_crawler_alert',
+                'crawler' => $ai_crawler['name'],
+                'company' => $ai_crawler['company'],
+            ], 200);
+        }
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log('AI Crawler: LLM 生成失敗，跳過反應');
+        }
+    }
+
+    // 訪客脈動檢查（獨立冷卻 60 分鐘，避免太囉嗦）
+    // 先檢查冷卻才呼叫 detect，避免冷卻期間的純查詢消耗 DB
+    if (get_transient('mpu_visitor_pulse_cooldown') === false) {
+        $pulse_event = function_exists('mpu_detect_visitor_pulse_event') ? mpu_detect_visitor_pulse_event() : false;
+
+        if ($pulse_event !== false) {
+            set_transient('mpu_visitor_pulse_cooldown', true, 60 * MINUTE_IN_SECONDS);
+
+            $message = function_exists('mpu_generate_visitor_pulse_reaction_llm')
+                ? mpu_generate_visitor_pulse_reaction_llm($pulse_event)
+                : false;
+
+            if ($message !== false) {
+                // LLM 成功才把新國家寫入 seen 清單，避免「偵測命中但失敗 → 永遠不再播報」
+                if (
+                    isset($pulse_event['commit_on_success']['seen_countries'])
+                    && is_array($pulse_event['commit_on_success']['seen_countries'])
+                    && function_exists('mpu_visitor_pulse_commit_seen_countries')
+                ) {
+                    mpu_visitor_pulse_commit_seen_countries($pulse_event['commit_on_success']['seen_countries']);
+                }
+
+                if (function_exists('mpu_record_conversation')) {
+                    mpu_record_conversation('auto_talk');
+                }
+                if (function_exists('mpu_debug_log')) {
+                    mpu_debug_log('Visitor Pulse: 觸發訊號 ' . $pulse_event['type'] . '（冷卻 60 分鐘）');
+                }
+                mpu_store_spam_event_checksum($request, $message);
+                return new WP_REST_Response([
+                    'has_event' => true,
+                    'msg' => $message,
+                    'action' => 'visitor_pulse_alert',
+                    'pulse_type' => $pulse_event['type'],
+                ], 200);
+            }
+            if (function_exists('mpu_debug_log')) {
+                mpu_debug_log('Visitor Pulse: LLM 生成失敗，跳過反應');
+            }
+        }
+    }
+
     return new WP_REST_Response([
         'has_event' => false
     ], 200);
@@ -275,9 +348,9 @@ function mpu_generate_spam_reaction_llm($count = 1)
     $category_instruction = mpu_get_spam_prompt_from_json($personality_id);
     if ($category_instruction === false) {
         if (function_exists('mpu_debug_log')) {
-            mpu_debug_log('Akismet Integration: prompts.json 中找不到 akismet_spam_reactions');
+            mpu_debug_log('Akismet Integration: prompts.json 中找不到 akismet_spam_reactions，使用通用 fallback');
         }
-        return false;
+        $category_instruction = mpu_get_spam_prompt_fallback($count);
     }
 
     // 建構 System Prompt
@@ -405,6 +478,27 @@ function mpu_get_spam_prompt_from_json($personality_id = null)
 }
 
 /**
+ * Akismet spam 反應的通用 fallback 提示詞。
+ *
+ * 只有在目前人格沒有 prompts.json / akismet_spam_reactions 時使用。
+ * 需保持人格中立，避免寫入特定角色世界觀。
+ *
+ * @param int $count spam 件數
+ * @return string
+ */
+function mpu_get_spam_prompt_fallback($count = 1)
+{
+    $fallbacks = [
+        "スパムを{$count}件検知し、処理済みであることを短く報告する",
+        "迷惑なコメントを{$count}件ブロックしたことを冷静に伝える",
+        "不要な投稿を{$count}件取り除いたことを淡々と述べる",
+        "Akismet が{$count}件のスパムを検出したことを簡潔に知らせる",
+    ];
+
+    return $fallbacks[array_rand($fallbacks)];
+}
+
+/**
  * 使用 LLM 生成 Bot 警報反應台詞
  * 
  * 使用 dynamics.json 中的 bot_detection 模板。
@@ -464,7 +558,7 @@ function mpu_generate_bot_alert_llm($bot_name)
 
     $user_prompt = "【状況】\nサイトに Bot（{$bot_name}）がアクセスしている。\n\n";
     $user_prompt .= "【指示】\n{$instruction}\n";
-    $user_prompt .= "【制約】50字以内で淡々と。魔族の侵入を見逃さない姿勢で、冷静に述べること";
+    $user_prompt .= "【制約】50字以内で淡々と。自動アクセスを検知した事実として冷静に述べること";
 
     // 取得 API Key
     $api_key = '';
@@ -572,7 +666,7 @@ function mpu_generate_mbb_reaction_llm($count)
         $instruction = mpu_replace_single_prompt_variables($template, $vars);
     } else {
         // fallback - 通用的描述
-        $instruction = "防衛魔法で{$count}体の魔族（ボット）の侵入を阻止したことを報告する";
+        $instruction = "Bot Blocker が怪しいアクセスを{$count}件遮断したことを報告する";
     }
 
     // 從 prompts.json 讀取 moelog_bot_blocker_reactions 提示詞
@@ -585,12 +679,12 @@ function mpu_generate_mbb_reaction_llm($count)
         }
     }
 
-    $user_prompt = "【状況】\nサイトの防衛魔法（Bot Blocker）が起動し、{$count}件の怪しいアクセスを遮断した。\n\n";
+    $user_prompt = "【状況】\nBot Blocker が起動し、{$count}件の怪しいアクセスを遮断した。\n\n";
     $user_prompt .= "【指示】\n{$instruction}\n";
     if ($category_instruction !== '') {
         $user_prompt .= $category_instruction;
     }
-    $user_prompt .= "\n【制約】50字以内で淡々と。魔族の侵入を阻止したという設定で、冷静に述べること";
+    $user_prompt .= "\n【制約】50字以内で淡々と。怪しいアクセスを遮断した事実として冷静に述べること";
 
     // 取得 API Key
     $api_key = '';
@@ -632,6 +726,320 @@ function mpu_generate_mbb_reaction_llm($count)
     }
 
     // 限制回應長度
+    $max_length = 150;
+    if (function_exists('mpu_get_personality_max_response_length')) {
+        $max_length = mpu_get_personality_max_response_length($personality_id, $cur_num);
+    }
+    if (mb_strlen($result, 'UTF-8') > $max_length) {
+        $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
+    }
+
+    return $result;
+}
+
+/**
+ * 使用 LLM 生成 AI 爬蟲反應台詞
+ *
+ * 使用 dynamics.json 中的 ai_crawler_report 模板，
+ * 並從 prompts.json 的 ai_crawler_reactions 取參考台詞。
+ *
+ * @param array $crawler 命中爬蟲定義 ['id','name','company','purpose']
+ * @return string|false
+ */
+function mpu_generate_ai_crawler_reaction_llm($crawler)
+{
+    if (empty($crawler) || empty($crawler['name'])) {
+        return false;
+    }
+
+    $mpu_opt  = mpu_get_option();
+    $cur_num = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+    $personality_id = null;
+    if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
+        $personality_id = mpu_get_personality_id_from_ukagaka_name($cur_num);
+    }
+
+    // 睡眠時段：抽夢話池（既有 bot_dreams 意境契合「魔族氣息」），不呼叫 LLM
+    if (function_exists('mpu_pick_sleep_dream_line')) {
+        $dream = mpu_pick_sleep_dream_line($personality_id, 'bot_dreams');
+        if ($dream !== false) {
+            if (function_exists('mpu_debug_log')) {
+                mpu_debug_log('AI Crawler: 睡眠時段，抽 bot_dreams 夢話替代 LLM');
+            }
+            return $dream;
+        }
+    }
+
+    $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
+    $language = $mpu_opt['ai_language'] ?? 'zh-TW';
+
+    $wp_info      = function_exists('mpu_get_wordpress_info') ? mpu_get_wordpress_info() : [];
+    $user_info    = function_exists('mpu_get_current_user_info') ? mpu_get_current_user_info() : [];
+    $visitor_info = function_exists('mpu_get_visitor_info_for_llm') ? mpu_get_visitor_info_for_llm() : [];
+    $time_context = function_exists('mpu_get_time_context') ? mpu_get_time_context($personality_id) : '';
+
+    $system_prompt = '';
+    if (function_exists('mpu_build_optimized_system_prompt')) {
+        $system_prompt = mpu_build_optimized_system_prompt(
+            $mpu_opt,
+            $wp_info,
+            $user_info,
+            $visitor_info,
+            $cur_num,
+            $time_context,
+            $language,
+            $personality_id
+        );
+    }
+
+    $dynamics = function_exists('mpu_load_personality_dynamic_prompts')
+        ? mpu_load_personality_dynamic_prompts($personality_id)
+        : [];
+
+    $vars = [
+        'crawler_name' => $crawler['name'],
+        'company'      => $crawler['company'] ?? '',
+        'purpose'      => $crawler['purpose'] ?? '',
+    ];
+
+    $templates = $dynamics['ai_crawler_report'] ?? [];
+    if (!empty($templates) && is_array($templates)) {
+        $template    = $templates[array_rand($templates)];
+        $instruction = mpu_replace_single_prompt_variables($template, $vars);
+    } else {
+        $instruction = "{$crawler['name']}（{$crawler['company']} のクローラー）が訪れたことを淡々と報告する";
+    }
+
+    $category_instruction = '';
+    if (function_exists('mpu_load_personality_prompts')) {
+        $all_prompts = mpu_load_personality_prompts($personality_id);
+        if (!empty($all_prompts['ai_crawler_reactions'])) {
+            $reactions = $all_prompts['ai_crawler_reactions'];
+            $category_instruction = "\n【参考セリフ】\n「" . $reactions[array_rand($reactions)] . "」";
+        }
+    }
+
+    $user_prompt  = "【状況】\nクローラー（{$crawler['name']} / {$crawler['company']}、目的：{$crawler['purpose']}）が訪れている。\n\n";
+    $user_prompt .= "【指示】\n{$instruction}\n";
+    if ($category_instruction !== '') {
+        $user_prompt .= $category_instruction;
+    }
+    $user_prompt .= "\n【制約】50字以内で淡々と。サイトへの自動巡回を検知した事実として述べること";
+
+    $api_key = '';
+    if ($provider !== 'ollama') {
+        switch ($provider) {
+            case 'gemini':
+                $api_key = !empty($mpu_opt['llm_gemini_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_gemini_api_key']) : (!empty($mpu_opt['ai_api_key']) ? mpu_decrypt_api_key($mpu_opt['ai_api_key']) : '');
+                break;
+            case 'openai':
+                $api_key = !empty($mpu_opt['llm_openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_openai_api_key']) : (!empty($mpu_opt['openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['openai_api_key']) : '');
+                break;
+            case 'claude':
+                $api_key = !empty($mpu_opt['llm_claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_claude_api_key']) : (!empty($mpu_opt['claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['claude_api_key']) : '');
+                break;
+        }
+    }
+
+    if (function_exists('mpu_call_ai_api')) {
+        $result = mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt, 200);
+    } else {
+        return false;
+    }
+
+    if (is_wp_error($result)) {
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log('AI Crawler: LLM API Error - ' . $result->get_error_message());
+        }
+        return false;
+    }
+
+    if (!empty($result) && is_string($result) && function_exists('mpu_filter_thinking_content')) {
+        $result = mpu_filter_thinking_content($result);
+    }
+
+    if (empty($result)) {
+        return false;
+    }
+
+    $max_length = 150;
+    if (function_exists('mpu_get_personality_max_response_length')) {
+        $max_length = mpu_get_personality_max_response_length($personality_id, $cur_num);
+    }
+    if (mb_strlen($result, 'UTF-8') > $max_length) {
+        $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
+    }
+
+    return $result;
+}
+
+/**
+ * 使用 LLM 生成訪客脈動反應台詞
+ *
+ * 使用 dynamics.json 中的 visitor_pulse_report（按 type 子鍵）模板，
+ * 並從 prompts.json 的 visitor_pulse_reactions 取參考台詞。
+ *
+ * @param array $event ['type' => string, 'data' => array]
+ * @return string|false
+ */
+function mpu_generate_visitor_pulse_reaction_llm($event)
+{
+    if (empty($event['type'])) {
+        return false;
+    }
+
+    $mpu_opt  = mpu_get_option();
+    $cur_num = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+    $personality_id = null;
+    if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
+        $personality_id = mpu_get_personality_id_from_ukagaka_name($cur_num);
+    }
+
+    // 睡眠時段：抽 visitor_dreams 夢話池，不呼叫 LLM
+    // late_night_visitor 必然在 0–4 觸發，與 23–07 的睡眠時段重疊，故必走此路徑
+    if (function_exists('mpu_pick_sleep_dream_line')) {
+        $dream = mpu_pick_sleep_dream_line($personality_id, 'visitor_dreams');
+        if ($dream !== false) {
+            if (function_exists('mpu_debug_log')) {
+                mpu_debug_log('Visitor Pulse: 睡眠時段，抽 visitor_dreams 夢話替代 LLM（type=' . $event['type'] . '）');
+            }
+            return $dream;
+        }
+    }
+
+    $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');
+    $language = $mpu_opt['ai_language'] ?? 'zh-TW';
+
+    $wp_info      = function_exists('mpu_get_wordpress_info') ? mpu_get_wordpress_info() : [];
+    $user_info    = function_exists('mpu_get_current_user_info') ? mpu_get_current_user_info() : [];
+    $visitor_info = function_exists('mpu_get_visitor_info_for_llm') ? mpu_get_visitor_info_for_llm() : [];
+    $time_context = function_exists('mpu_get_time_context') ? mpu_get_time_context($personality_id) : '';
+
+    $system_prompt = '';
+    if (function_exists('mpu_build_optimized_system_prompt')) {
+        $system_prompt = mpu_build_optimized_system_prompt(
+            $mpu_opt,
+            $wp_info,
+            $user_info,
+            $visitor_info,
+            $cur_num,
+            $time_context,
+            $language,
+            $personality_id
+        );
+    }
+
+    $dynamics = function_exists('mpu_load_personality_dynamic_prompts')
+        ? mpu_load_personality_dynamic_prompts($personality_id)
+        : [];
+
+    $type = (string) $event['type'];
+    $data = is_array($event['data'] ?? null) ? $event['data'] : [];
+
+    // visitor_pulse_report 在 dynamics.json 是按 type 分子鍵
+    $type_templates = [];
+    $pulse_block    = $dynamics['visitor_pulse_report'] ?? [];
+    if (is_array($pulse_block)) {
+        if (isset($pulse_block[$type]) && is_array($pulse_block[$type])) {
+            $type_templates = $pulse_block[$type];
+        } elseif (!empty($pulse_block) && array_keys($pulse_block) === range(0, count($pulse_block) - 1)) {
+            $type_templates = $pulse_block;
+        }
+    }
+
+    $vars      = [];
+    $situation = '';
+    switch ($type) {
+        case 'foreign_visitor':
+            $vars = [
+                'country_name' => $data['country_name'] ?? '',
+                'country_code' => $data['country_code'] ?? '',
+            ];
+            $situation = "見慣れない国（{$vars['country_name']}）からの訪問者が現れた。";
+            break;
+        case 'traffic_spike':
+            $vars = [
+                'current'  => $data['current']  ?? 0,
+                'previous' => $data['previous'] ?? 0,
+                'ratio'    => $data['ratio']    ?? 1,
+            ];
+            $situation = "過去 1 時間で訪問者が前の 1 時間の {$vars['ratio']} 倍（{$vars['previous']} → {$vars['current']} 人）に急増している。";
+            break;
+        case 'late_night_visitor':
+            $vars = [
+                'count' => $data['count'] ?? 0,
+                'hour'  => $data['hour']  ?? 0,
+            ];
+            $situation = "深夜（{$vars['hour']} 時台）にもかかわらず {$vars['count']} 人の訪問者がいる。";
+            break;
+        default:
+            return false;
+    }
+
+    if (!empty($type_templates)) {
+        $template    = $type_templates[array_rand($type_templates)];
+        $instruction = mpu_replace_single_prompt_variables($template, $vars);
+    } else {
+        $fallbacks = [
+            'foreign_visitor'    => "{$vars['country_name']}からの訪問者がいることを淡々と述べる",
+            'traffic_spike'      => "訪問者が急に増えたことを淡々と述べる",
+            'late_night_visitor' => "深夜なのに訪問者がいることに、人間は眠らないものだと感想を述べる",
+        ];
+        $instruction = $fallbacks[$type];
+    }
+
+    $category_instruction = '';
+    if (function_exists('mpu_load_personality_prompts')) {
+        $all_prompts = mpu_load_personality_prompts($personality_id);
+        if (!empty($all_prompts['visitor_pulse_reactions'])) {
+            $reactions = $all_prompts['visitor_pulse_reactions'];
+            $category_instruction = "\n【参考セリフ】\n「" . $reactions[array_rand($reactions)] . "」";
+        }
+    }
+
+    $user_prompt  = "【状況】\n{$situation}\n\n";
+    $user_prompt .= "【指示】\n{$instruction}\n";
+    if ($category_instruction !== '') {
+        $user_prompt .= $category_instruction;
+    }
+    $user_prompt .= "\n【制約】50字以内で淡々と。訪問者の動きを観察した事実として述べること";
+
+    $api_key = '';
+    if ($provider !== 'ollama') {
+        switch ($provider) {
+            case 'gemini':
+                $api_key = !empty($mpu_opt['llm_gemini_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_gemini_api_key']) : (!empty($mpu_opt['ai_api_key']) ? mpu_decrypt_api_key($mpu_opt['ai_api_key']) : '');
+                break;
+            case 'openai':
+                $api_key = !empty($mpu_opt['llm_openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_openai_api_key']) : (!empty($mpu_opt['openai_api_key']) ? mpu_decrypt_api_key($mpu_opt['openai_api_key']) : '');
+                break;
+            case 'claude':
+                $api_key = !empty($mpu_opt['llm_claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['llm_claude_api_key']) : (!empty($mpu_opt['claude_api_key']) ? mpu_decrypt_api_key($mpu_opt['claude_api_key']) : '');
+                break;
+        }
+    }
+
+    if (function_exists('mpu_call_ai_api')) {
+        $result = mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt, 200);
+    } else {
+        return false;
+    }
+
+    if (is_wp_error($result)) {
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log('Visitor Pulse: LLM API Error - ' . $result->get_error_message());
+        }
+        return false;
+    }
+
+    if (!empty($result) && is_string($result) && function_exists('mpu_filter_thinking_content')) {
+        $result = mpu_filter_thinking_content($result);
+    }
+
+    if (empty($result)) {
+        return false;
+    }
+
     $max_length = 150;
     if (function_exists('mpu_get_personality_max_response_length')) {
         $max_length = mpu_get_personality_max_response_length($personality_id, $cur_num);

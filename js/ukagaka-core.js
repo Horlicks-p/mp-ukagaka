@@ -354,10 +354,27 @@ function mpu_checkSpamEvent(callback) {
             "🛡️ Moelog Bot Blocker：偵測到防禦魔法攔截事件，攔截數量:",
             res.block_count,
           );
-        } else {
+        } else if (res.action === "ai_crawler_alert") {
+          mpuLogger.log(
+            "🤖 AI Crawler：偵測到 AI 爬蟲訪問，crawler:",
+            res.crawler,
+            "company:",
+            res.company,
+          );
+        } else if (res.action === "visitor_pulse_alert") {
+          mpuLogger.log(
+            "🌍 Visitor Pulse：訪客脈動訊號，pulse_type:",
+            res.pulse_type,
+          );
+        } else if (res.action === "spam_alert") {
           mpuLogger.log(
             "🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量:",
             res.spam_count,
+          );
+        } else {
+          mpuLogger.log(
+            "🛡️ Auto-talk 事件（未分類 action）:",
+            res.action,
           );
         }
 

@@ -4,6 +4,34 @@
 
 ---
 
+## [2.13.8] - 2026-04-27
+
+### ✨ New: Visitor Pulse and AI Crawler Signals
+
+- **AI crawler detection added**: `llm-slimstat.php` now includes an AI crawler signature table and helper functions to detect recent GPTBot, ClaudeBot, Google-Extended, PerplexityBot, and other AI / LLM crawlers from Slimstat bot records.
+- **Visitor Pulse signals added**: three new Slimstat-backed site signals were introduced:
+  - `foreign_visitor`: a country appearing for the first time in the recent 60-minute window
+  - `traffic_spike`: a meaningful increase in human visitors compared with the previous hour
+  - `late_night_visitor`: human visitors still present during late-night hours
+- **New auto-talk event branches**: `/check-spam-event` now handles `ai_crawler_alert` and `visitor_pulse_alert`, allowing Frieren to react to these site signals with spontaneous dialogue.
+- **New Abilities tools**: added two read-only tools, `mp-ukagaka/get-recent-ai-crawlers` and `mp-ukagaka/get-visitor-pulse`, so the LLM can actively query recent crawler activity and visitor pulse summaries.
+
+### 💤 Personality Consistency: Sleep Mode for Event Pushes
+
+- **Sleep-time dream fallback**: added the shared helper `mpu_pick_sleep_dream_line()`. When the character is inside the deep sleep window (default `00:00–06:00`, with optional oversleep extension), new event reactions no longer call the LLM and instead use dream lines from `sleep_mode.json`.
+- **New `visitor_dreams` pool**: `ghost/Frieren/sleep_mode.json` now includes visitor-pulse dream lines, while AI crawler reactions reuse the existing `bot_dreams`.
+- **Sleep-mode conflict resolved**: fixed the issue where late-night visitor events could generate fully awake analytical dialogue while Frieren was supposed to be asleep.
+
+### 🔒 Security and Stability Fixes
+
+- **Foreign-visitor dedupe timing fixed**: `mpu_detect_visitor_pulse_event()` is now query-only and no longer writes seen countries during detection. Seen countries are committed only after a message is successfully generated via `mpu_visitor_pulse_commit_seen_countries()`, preventing new countries from being silently consumed by cooldown.
+- **Abilities permissions tightened**: the two new abilities now use `current_user_can('manage_options')` for `permission_callback`, preventing unauthorized access to visitor pulse and crawler metadata through the Core Abilities API REST endpoints.
+- **IP spoofing protection hardened**: added `mpu_get_client_ip_strict()` and switched rate limiting plus `/visitor-info` Slimstat lookups to strict IP resolution, preventing forged `X-Forwarded-For` / `CF-Connecting-IP` headers from bypassing LLM endpoint quotas or probing visitor data for arbitrary IPs.
+- **Dead weight config removed**: `weights.json` keeps the effective `ai_crawler_reactions` / `visitor_pulse_reactions` category weights and the `is_bot` adjustment, while removing the non-functional `is_foreign_visitor` / `is_late_night` context blocks.
+- **Frontend event routing completed**: `ukagaka-core.js` now logs `ai_crawler_alert`, `visitor_pulse_alert`, and `spam_alert` explicitly instead of misclassifying new actions as Akismet spam.
+
+---
+
 ## [2.13.7] - 2026-04-25
 
 ### 🐛 Bug Fix: Akismet 5.7 Compatibility — AI Dialogue Broken

@@ -49,6 +49,8 @@
     "lesson_learned": 2,
     "bot_detection": 1,
     "moelog_bot_blocker_reactions": 1,
+    "ai_crawler_reactions": 1,
+    "visitor_pulse_reactions": 2,
     "error_problem": 1,
     "success_achievement": 2,
     "future_plans": 2,
@@ -212,6 +214,7 @@
     "is_bot": {
       "bot_detection": 25,
       "moelog_bot_blocker_reactions": 12,
+      "ai_crawler_reactions": 18,
       "demon_related": 15,
       "observation": 10
     }

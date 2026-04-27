@@ -778,6 +778,66 @@ function mpu_get_client_ip()
     return '';
 }
 
+/**
+ * 取得客戶端 IP（嚴格安全版本）
+ *
+ * 與 mpu_get_client_ip() 的差異：本函式**只在 REMOTE_ADDR 為私有/保留 IP**
+ * （即連線來自本機反向代理 / CDN 出口）時才信任 CF-Connecting-IP / X-Forwarded-For。
+ * 若 REMOTE_ADDR 是公開 IP（直連客戶端），任何 forwarded header 一律忽略，
+ * 直接使用 REMOTE_ADDR——避免攻擊者偽造 forwarded header 來繞過安全判定。
+ *
+ * 使用情境（必須用 strict）：
+ *   - Rate limit 計數鍵
+ *   - IP 黑名單比對
+ *   - 用 IP 反查資料庫的端點（如 /visitor-info 查 Slimstat）
+ *
+ * 使用情境（用原版 mpu_get_client_ip() 即可）：
+ *   - 顯示給訪客自己看的資訊
+ *   - 訪客 country 上下文 enrichment
+ *   - 一般 log（追蹤目的而非安全判定）
+ *
+ * 取捨：CDN（如 Cloudflare）後面的網站，REMOTE_ADDR 通常是 CDN 出口 IP，
+ * 屬於公開 IP，本函式會回 CDN IP 而非真實使用者 IP——這對 rate limit 等於
+ * 「整個 CDN 出口共用一個配額」，可能誤殺合法使用者；但比起被 spoof 燒爆 API
+ * 額度可接受。完整解法應建立可信 proxy/CDN IP 白名單。
+ *
+ * 邏輯沿用 includes/integrations/bot-blocker-integration.php 內的 mpu_bb_get_ip()。
+ *
+ * @since 2.13.x
+ * @return string 客戶端 IP 地址（保證為合法 IP 字串，或在無 REMOTE_ADDR 時回 '0.0.0.0'）
+ */
+function mpu_get_client_ip_strict()
+{
+    $remote_addr = isset($_SERVER['REMOTE_ADDR'])
+        ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']))
+        : '0.0.0.0';
+
+    // 安全策略：只有當 REMOTE_ADDR 是私有/保留 IP（即連線來自本機反向代理）時，
+    // 才信任 proxy header。若 REMOTE_ADDR 是公開 IP，直接使用，不信任任何 proxy header。
+    $remote_is_local_proxy = filter_var(
+        $remote_addr,
+        FILTER_VALIDATE_IP,
+        FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+    ) === false;
+
+    if ($remote_is_local_proxy) {
+        $candidate = '';
+        if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+            $candidate = sanitize_text_field(wp_unslash($_SERVER['HTTP_CF_CONNECTING_IP']));
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ips       = explode(',', sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR'])));
+            $candidate = trim($ips[0]);
+        } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+            $candidate = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_REAL_IP']));
+        }
+        if ($candidate && filter_var($candidate, FILTER_VALIDATE_IP)) {
+            return $candidate;
+        }
+    }
+
+    return $remote_addr;
+}
+
 // ========================================
 // 外部 API 請求函數
 // ========================================
@@ -920,7 +980,8 @@ function mpu_clear_api_cache($cache_key)
  */
 function mpu_check_rate_limit($action, $max_requests = 10, $period = 60)
 {
-    $ip = mpu_get_client_ip();
+    // 安全敏感：rate limit 必須用 strict 版，避免 spoofed forwarded header 繞過配額
+    $ip = mpu_get_client_ip_strict();
     $transient_key = 'mpu_rl_' . sanitize_key($action) . '_' . md5($ip);
     
     $data = get_transient($transient_key);
@@ -972,7 +1033,7 @@ function mpu_enforce_rate_limit($action, $max_requests = 10, $period = 60)
             mpu_debug_log(sprintf(
                 'Rate limit exceeded: action=%s, ip=%s, count=%d, max=%d',
                 $action,
-                mpu_get_client_ip(),
+                mpu_get_client_ip_strict(), // 與 rate limit 計數鍵一致
                 $result['count'],
                 $max_requests
             ));

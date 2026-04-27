@@ -4,6 +4,34 @@
 
 ---
 
+## [2.13.8] - 2026-04-27
+
+### ✨ 新機能：訪問者脈動と AI クローラーシグナル
+
+- **AI クローラー検出を追加**：`llm-slimstat.php` に AI crawler のシグネチャ表と検索関数を追加し、Slimstat の bot 記録から GPTBot、ClaudeBot、Google-Extended、PerplexityBot などの AI / LLM crawler を識別できるようになりました。
+- **Visitor Pulse シグナルを追加**：Slimstat をデータ源とする 3 種類のサイトシグナルを追加しました。
+  - `foreign_visitor`：直近 60 分で初めて現れた国
+  - `traffic_spike`：前の 1 時間と比べて人間の訪問者が大きく増加
+  - `late_night_visitor`：深夜帯にも人間の訪問者がいる状態
+- **auto-talk 用イベント分岐を追加**：`/check-spam-event` REST handler に `ai_crawler_alert` と `visitor_pulse_alert` を追加し、Frieren がこれらのサイトシグナルへ自発的に反応できるようにしました。
+- **Abilities tool を追加**：`mp-ukagaka/get-recent-ai-crawlers` と `mp-ukagaka/get-visitor-pulse` の 2 つの read-only tool を追加し、LLM が最近の crawler 活動と visitor pulse 要約を自発的に参照できるようにしました。
+
+### 💤 人格整合性の修正：Sleep mode とイベント push の統合
+
+- **睡眠時の寝言フォールバック**：共通 helper `mpu_pick_sleep_dream_line()` を追加しました。キャラクターが deep sleep window（デフォルト `00:00–06:00`、oversleep により延長可）にいる場合、新イベント反応は LLM を呼ばず、`sleep_mode.json` の寝言を返します。
+- **`visitor_dreams` を追加**：`ghost/Frieren/sleep_mode.json` に visitor pulse 専用の寝言プールを追加しました。AI crawler は既存の `bot_dreams` を流用します。
+- **sleep mode との衝突を解消**：深夜訪問者イベントが、設定上は寝ている Frieren に覚醒した分析台詞を言わせてしまう問題を修正しました。
+
+### 🔒 セキュリティと安定性の修正
+
+- **foreign visitor の重複記録タイミングを修正**：`mpu_detect_visitor_pulse_event()` を純粋な問い合わせ関数に変更し、検出段階では seen countries を書き込まないようにしました。`mpu_visitor_pulse_commit_seen_countries()` により、メッセージ生成成功後のみ commit されます。これにより cooldown 中に新しい国が消費される問題を防ぎます。
+- **Abilities の権限を強化**：2 つの新 abilities の `permission_callback` を `current_user_can('manage_options')` に変更し、Core Abilities API の REST endpoint 経由で訪問者情報や crawler 情報が未認可で読まれるのを防ぎました。
+- **IP spoofing 防御を強化**：`mpu_get_client_ip_strict()` を追加し、rate limit と `/visitor-info` の Slimstat 逆引きを厳格な IP 判定へ切り替えました。これにより、偽造された `X-Forwarded-For` / `CF-Connecting-IP` header による LLM endpoint の quota 回避や、任意 IP の訪問者情報探索を防ぎます。
+- **無効な weight 設定を削除**：`weights.json` では有効な `ai_crawler_reactions` / `visitor_pulse_reactions` のカテゴリ重みと `is_bot` 調整のみを残し、機能していなかった `is_foreign_visitor` / `is_late_night` context 設定を削除しました。
+- **フロントエンドのイベント分流を補完**：`ukagaka-core.js` に `ai_crawler_alert`、`visitor_pulse_alert`、`spam_alert` の明示的な log 分岐を追加し、新イベントが Akismet spam と誤表示されないようにしました。
+
+---
+
 ## [2.13.7] - 2026-04-25
 
 ### 🐛 バグ修正：Akismet 5.7 互換性 — AI ダイアログが生成されない問題

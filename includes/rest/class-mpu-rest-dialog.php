@@ -293,7 +293,11 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         if ($rl !== null) return $rl;
 
         $referrer = isset($_SERVER['HTTP_REFERER']) ? esc_url_raw($_SERVER['HTTP_REFERER']) : '';
-        $ip       = mpu_get_client_ip(); // 僅供 Slimstat 查詢，不回傳至前端
+        // 安全敏感：本端點以 IP 反查 Slimstat 既有紀錄（country/city/referer），
+        // 必須用 strict 版，避免攻擊者用偽造 forwarded header 探詢任意 IP 的隱私資料
+        $ip       = function_exists('mpu_get_client_ip_strict')
+            ? mpu_get_client_ip_strict()
+            : mpu_get_client_ip();
 
         $visitor_info = [
             'referrer'         => $referrer,

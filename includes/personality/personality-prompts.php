@@ -99,6 +99,48 @@ function mpu_load_personality_sleep_mode($personality_id = null)
 }
 
 /**
+ * 在睡眠時段從角色 sleep_mode.json 抽一條夢話（不呼叫 LLM）
+ *
+ * 使用情境：事件推送類訊號（auto_talk 推送）想在睡眠時段給「夢話版」回應，
+ * 而非用 LLM 生成清醒對話，避免人格設定矛盾且節省 API 成本。
+ *
+ * 行為：
+ *   - 若角色不在 deep_sleep_time 或 sleep_mode 未啟用，回 false（呼叫端應走原本 LLM 路徑）
+ *   - 命中時，從指定子類別 + basic 池合併隨機抽一條，附加 <!-- mpu-sleep --> 標記
+ *
+ * @param string|null $personality_id 角色 ID（null 取當前）
+ * @param string      $category       sleep_mode.json 內主類別鍵（如 bot_dreams、visitor_dreams）
+ * @param bool        $merge_basic    是否混入 basic 池增加多樣性（預設 true）
+ * @return string|false
+ */
+function mpu_pick_sleep_dream_line($personality_id, $category, $merge_basic = true)
+{
+    if (!function_exists('mpu_is_deep_sleep_time') || !mpu_is_deep_sleep_time($personality_id)) {
+        return false;
+    }
+
+    $sleep_config = mpu_load_personality_sleep_mode($personality_id);
+    if (empty($sleep_config['enabled'])) {
+        return false;
+    }
+
+    $pool = [];
+    if (!empty($sleep_config[$category]) && is_array($sleep_config[$category])) {
+        $pool = array_merge($pool, $sleep_config[$category]);
+    }
+    if ($merge_basic && !empty($sleep_config['basic']) && is_array($sleep_config['basic'])) {
+        $pool = array_merge($pool, $sleep_config['basic']);
+    }
+
+    if (empty($pool)) {
+        return false;
+    }
+
+    $line = $pool[array_rand($pool)];
+    return $line . '<!-- mpu-sleep -->';
+}
+
+/**
  * Load personality calendar configuration
  * 
  * Calendar includes holidays, custom anniversaries, and dynamic holidays.

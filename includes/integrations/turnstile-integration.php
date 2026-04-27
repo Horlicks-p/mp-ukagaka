@@ -139,12 +139,12 @@ function mpu_generate_turnstile_reaction_llm($count = 1)
         $instruction = mpu_replace_single_prompt_variables($template, $vars);
     } else {
         // fallback
-        $instruction = "防御結界（Turnstile）を突破できなかった攻撃者があることを報告する";
+        $instruction = "Cloudflare Turnstileで不審なアクセスを{$count}件ブロックしたことを報告する";
     }
 
-    $user_prompt = "【状況】\nサイトの防御結界（Cloudflare Turnstile）を突破できずに弾かれた攻撃が{$count}件ありました。\n\n";
+    $user_prompt = "【状況】\nCloudflare Turnstile が不審なアクセスを{$count}件ブロックしました。\n\n";
     $user_prompt .= "【指示】\n{$instruction}\n";
-    $user_prompt .= "- 千年生きた魔法使いの余裕ある態度で50字以内で淡々と言うこと。\n";
+    $user_prompt .= "- 50字以内で淡々と、検知とブロックの事実を述べること。\n";
 
     // 取得 API Key
     $api_key = '';

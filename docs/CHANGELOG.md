@@ -4,6 +4,34 @@
 
 ---
 
+## [2.13.8] - 2026-04-27
+
+### ✨ 新功能：訪客脈動與 AI 爬蟲訊號
+
+- **新增 AI 爬蟲偵測**：在 `llm-slimstat.php` 新增 AI crawler UA 對照表與查詢函式，能從 Slimstat 最近的 bot 記錄中辨識 GPTBot、ClaudeBot、Google-Extended、PerplexityBot 等 AI / LLM crawler。
+- **新增 Visitor Pulse 訊號**：加入三種以 Slimstat 為資料源的訪客脈動事件：
+  - `foreign_visitor`：最近 60 分鐘首次出現的國家
+  - `traffic_spike`：最近 1 小時人類訪客相較前 1 小時顯著上升
+  - `late_night_visitor`：深夜時段仍有真人訪客
+- **新 auto-talk 事件分支**：`/check-spam-event` REST handler 新增 `ai_crawler_alert` 與 `visitor_pulse_alert` 兩條分支，讓 Frieren 可對這些站點訊號產生自發對話。
+- **新 Abilities tools**：新增 `mp-ukagaka/get-recent-ai-crawlers` 與 `mp-ukagaka/get-visitor-pulse` 兩個唯讀工具，供 LLM 主動查詢近期 AI crawler 與訪客脈動摘要。
+
+### 💤 人格一致性修正：Sleep mode 與事件推送整合
+
+- **睡眠時段夢話分支**：新增 `mpu_pick_sleep_dream_line()` helper。當角色處於 deep sleep window（預設 00:00–06:00，並可延伸 oversleep）時，新事件不再呼叫 LLM，而是改從 `sleep_mode.json` 抽夢話。
+- **新增 `visitor_dreams` 夢話池**：`ghost/Frieren/sleep_mode.json` 新增訪客脈動專用夢話；AI 爬蟲則沿用既有 `bot_dreams`。
+- **避免人格矛盾**：修正深夜訪客事件在睡眠時段仍產生清醒分析台詞的問題，讓 sleep mode 與事件推送邏輯一致。
+
+### 🔒 安全性與穩定性修正
+
+- **修正 foreign visitor 去重時機**：`mpu_detect_visitor_pulse_event()` 改為純查詢，不再在偵測階段直接寫入 seen countries。只有在訊息成功生成後，才由 `mpu_visitor_pulse_commit_seen_countries()` 提交，避免新國家被冷卻「吃掉」後永遠不再播報。
+- **Abilities 權限收緊**：兩個新 abilities 的 `permission_callback` 改為 `current_user_can('manage_options')`，避免透過 Core Abilities API REST 端點未授權讀取訪客脈動與 crawler 資訊。
+- **強化 IP spoofing 防護**：新增 `mpu_get_client_ip_strict()`，並將 rate limit 與 `/visitor-info` 的 Slimstat 反查改用嚴格 IP 判定，避免攻擊者偽造 `X-Forwarded-For` / `CF-Connecting-IP` 繞過 LLM endpoint 配額或探詢任意 IP 的訪客資訊。
+- **移除無效權重配置**：`weights.json` 保留有效的 `ai_crawler_reactions` / `visitor_pulse_reactions` 類別權重與 `is_bot` 調整，移除原先不會生效的 `is_foreign_visitor` / `is_late_night` context 配置。
+- **前端事件分流補完**：`ukagaka-core.js` 為 `ai_crawler_alert`、`visitor_pulse_alert`、`spam_alert` 新增明確 log 分支，不再把新事件誤標成 Akismet spam。
+
+---
+
 ## [2.13.7] - 2026-04-25
 
 ### 🐛 錯誤修正：Akismet 5.7 相容性 — AI 對話無法生成
