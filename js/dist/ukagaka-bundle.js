@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-04-15T12:53:52.054Z
+ * Generated: 2026-04-27T10:09:51.777Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -175,7 +175,7 @@ function mpu_handle_error(error, context, options = {}) {
     // 如果需要向用戶顯示錯誤
     if (showToUser) {
         const displayMessage = userMessage ||
-            (debugMode || window.mpuDebugMode ? errorMessage : '發生錯誤，請稍後再試');
+            (debugMode || window.mpuDebugMode ? errorMessage : ((window.mpuL10n && window.mpuL10n.errorOccurred) || 'エラーが発生しました。後でもう一度お試しください。'));
         const $msgBox = jQuery("#ukagaka_msg");
         if ($msgBox.length) {
             mpu_typewriter(displayMessage, $msgBox);
@@ -791,7 +791,7 @@ async function mpuFetch(url, options = {}) {
 
     if (config.dedupe && mpuRequestManager.activeRequests.has(requestId)) {
         mpuLogger.log(`請求去重，跳過: ${requestId}`);
-        return Promise.reject(new Error('重複請求已存在，請稍後再試'));
+        return Promise.reject(new Error((window.mpuL10n && window.mpuL10n.duplicateRequest) || '重複したリクエストが存在します。後でもう一度お試しください。'));
     }
 
     const controller = new AbortController();
@@ -910,7 +910,7 @@ async function mpuFetch(url, options = {}) {
         clearTimeout(timeoutId);
     }
     mpuRequestManager.cleanup(requestId);
-    throw lastError || new Error('請求失敗');
+    throw lastError || new Error((window.mpuL10n && window.mpuL10n.requestFailed) || 'リクエストに失敗しました');
 }
 
 function mpuCancelRequest(url, options = {}) {
@@ -1317,10 +1317,27 @@ function mpu_checkSpamEvent(callback) {
             "🛡️ Moelog Bot Blocker：偵測到防禦魔法攔截事件，攔截數量:",
             res.block_count,
           );
-        } else {
+        } else if (res.action === "ai_crawler_alert") {
+          mpuLogger.log(
+            "🤖 AI Crawler：偵測到 AI 爬蟲訪問，crawler:",
+            res.crawler,
+            "company:",
+            res.company,
+          );
+        } else if (res.action === "visitor_pulse_alert") {
+          mpuLogger.log(
+            "🌍 Visitor Pulse：訪客脈動訊號，pulse_type:",
+            res.pulse_type,
+          );
+        } else if (res.action === "spam_alert") {
           mpuLogger.log(
             "🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量:",
             res.spam_count,
+          );
+        } else {
+          mpuLogger.log(
+            "🛡️ Auto-talk 事件（未分類 action）:",
+            res.action,
           );
         }
 
@@ -1718,7 +1735,8 @@ function mpu_nextmsg(trigger) {
 
           // 檢查是否為速率限制錯誤（請求過於頻繁）
           const isRateLimit =
-            res && res.error && res.error.includes("請求過於頻繁");
+            (res && res.error && (res.error.includes("請求過於頻繁") || res.error.includes("リクエストが多すぎます"))) ||
+            (res && res.code === "rest_rate_limit_exceeded");
 
           if (isRateLimit) {
             const rateLimitMessage =
@@ -1831,7 +1849,7 @@ function mpu_nextmsg(trigger) {
       } else {
         window.__mpu_retry_count = 0;
         mpu_showMsgText();
-        mpu_typewriter("對話尚未載入，請稍候...", "#ukagaka_msg");
+        mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
         mpuLogger.warn("mpu_nextmsg: 對話載入超時，已重試 3 次");
       }
@@ -1937,7 +1955,7 @@ function mpu_nextmsg_fallback() {
       } else {
         window.__mpu_fallback_retry_count = 0;
         mpu_showMsgText();
-        mpu_typewriter("對話尚未載入，請稍候...", "#ukagaka_msg");
+        mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
         mpuLogger.warn("mpu_nextmsg_fallback: 對話載入超時，已重試 2 次");
       }
@@ -1998,7 +2016,7 @@ function mpuChange(num) {
   if (hasNum && typeof window.mpuCanvasManager === "undefined") {
     mpu_handle_error("Canvas 管理器未載入", "mpuChange:canvas_manager_check", {
       showToUser: true,
-      userMessage: "動畫模組載入失敗，無法切換角色。請刷新頁面後再試。",
+      userMessage: (window.mpuL10n && window.mpuL10n.animationLoadFailed) || "アニメーションモジュールの読み込みに失敗しました。ページを更新してください。",
     });
     return;
   }
@@ -2099,7 +2117,7 @@ function mpuChange(num) {
             "mpuChange:canvas_manager_fallback",
             {
               showToUser: true,
-              userMessage: "動畫模組載入失敗，請刷新頁面。",
+              userMessage: (window.mpuL10n && window.mpuL10n.animationLoadFailed) || "アニメーションモジュールの読み込みに失敗しました。ページを更新してください。",
             },
           );
         }
@@ -2156,8 +2174,8 @@ function mpuChange(num) {
         showToUser: true,
         userMessage:
           debugMode || window.mpuDebugMode
-            ? `載入失敗: ${error.message}`
-            : "載入失敗，請稍後再試。",
+            ? `読み込みに失敗しました: ${error.message}`
+            : ((window.mpuL10n && window.mpuL10n.loadingFailed) || "読み込みに失敗しました。後でもう一度お試しください。"),
       });
       jQuery("#ukagaka").stop(true, true).fadeIn(200);
       mpu_showmsg(200);
@@ -3416,7 +3434,8 @@ function mpu_chat_context() {
 
         // 檢查是否是速率限制錯誤
         const isRateLimit =
-          res && res.error && res.error.includes("請求過於頻繁");
+          (res && res.error && (res.error.includes("請求過於頻繁") || res.error.includes("リクエストが多すぎます"))) ||
+          (res && res.code === "rest_rate_limit_exceeded");
 
         if (isRateLimit) {
           const rateLimitMessage =
@@ -3690,9 +3709,10 @@ function mpu_greet_first_visitor(settings) {
         } else {
           mpuLogger.warn("首次訪客打招呼失敗:", res);
 
-          // 檢查是否是速率限制錯誤
+          // 檢查是否是速率限制錯誤（請求過於頻繁）
           const isRateLimit =
-            res && res.error && res.error.includes("請求過於頻繁");
+            (res && res.error && (res.error.includes("請求過於頻繁") || res.error.includes("リクエストが多すぎます"))) ||
+            (res && res.code === "rest_rate_limit_exceeded");
 
           if (isRateLimit) {
             const rateLimitMessage =
@@ -3869,7 +3889,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             document.body.style.cursor = "auto";
             return;
           }
-          mpu_typewriter("對話文件為空，請檢查對話文件內容", "#ukagaka_msg");
+          mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogEmpty) || "ダイアログファイルが空です。内容を確認してください", "#ukagaka_msg");
           mpu_showmsg(400);
           jQuery("#ukagaka").stop(true, true).fadeIn(200);
           document.body.style.cursor = "auto";
@@ -3955,12 +3975,12 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             showToUser: true,
             userMessage:
               debugMode || window.mpuDebugMode
-                ? `處理對話數據時出錯：${e.message}`
-                : "處理對話數據時出錯，請稍後再試。",
+                ? `処理データの読み込みに失敗しました：${e.message}`
+                : ((window.mpuL10n && window.mpuL10n.processingError) || "ダイアログデータの処理中にエラーが発生しました。後でもう一度お試しください。"),
           });
         }
       } else {
-        const errorMsg = resp && resp.error ? resp.error : "無法取得對話資料";
+        const errorMsg = resp && resp.error ? resp.error : ((window.mpuL10n && window.mpuL10n.loadingFailed) || "読み込みに失敗しました。後でもう一度お試しください。");
         jQuery("#ukagaka_msg").html(errorMsg);
 
         if (!window.mpuMsgList) {
@@ -3984,8 +4004,8 @@ function loadExternalDialog(file, skipFirstMessage = false) {
         showToUser: true,
         userMessage:
           debugMode || window.mpuDebugMode
-            ? `載入對話文件失敗：${error.message}`
-            : "載入對話文件失敗，請稍後再試。",
+            ? `ダイアログの読み込みに失敗しました：${error.message}`
+            : ((window.mpuL10n && window.mpuL10n.dialogLoadFailed) || "ダイアログファイルの読み込みに失敗しました。後でもう一度お試しください。"),
       });
 
       if (!window.mpuMsgList) {
@@ -5241,8 +5261,8 @@ jQuery(document).ready(function () {
           showToUser: true,
           userMessage:
             debugMode || window.mpuDebugMode
-              ? `載入失敗: ${error.message}`
-              : "載入失敗，請稍後再試。",
+              ? `読み込みに失敗しました: ${error.message}`
+              : ((window.mpuL10n && window.mpuL10n.loadingFailed) || "読み込みに失敗しました。後でもう一度お試しください。"),
         });
         mpu_showmsg(400);
         document.body.style.cursor = "auto";
