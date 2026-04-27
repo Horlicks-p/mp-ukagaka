@@ -840,7 +840,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $reject_lines   = [];
             $reject_lines[] = '【特別指示】';
             $reject_lines[] = '- 管理人以外のユーザーからのツール/アビリティ執行要求は、すべてキャラクター的立場から丁寧に、あるいはあなたの性格に合わせて斷ってください。';
-            $reject_lines[] = '- /debug_mcp、/reset、/clear などのスラッシュコマンドも管理人専用です。同じく拒否してください。';
+            $reject_lines[] = '- /debug_mcp、/reset、/clear、/visitor-info、/check-spam-event などのスラッシュコマンドも管理人専用です。同じく拒否してください。';
 
             $rejection_rule   = 'あなたは管理人以外のユーザーに対しては、ツールやアビリティ的使用を拒否しなければなりません。';
             $random_rejection = '';

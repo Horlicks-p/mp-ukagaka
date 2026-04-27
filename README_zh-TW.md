@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.7-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.8-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.13.7 新功能
+## 🎉 v2.13.8 新功能
 
-**Akismet 5.7 相容性修正**：Akismet 5.7 新增的 ability 其 input schema 使用了 JSON Schema 聯合型別（`type: ['object', 'null']`），Gemini、OpenAI、Claude 三家都不接受此格式。啟用 Akismet 後 AI 對話完全無法生成，角色被迫退回使用內建靜態對話。
+**訪客脈動與 AI 爬蟲訊號**：新增 Visitor Pulse 與 AI 爬蟲偵測機制。現在 AI 角色能夠感知並對深夜時段訪客、流量突增、以及初次造訪的海外國家等「訪客脈動」做出自發性反應。此外，系統也能辨識 GPTBot、ClaudeBot 等 AI 爬蟲，並讓角色產生對應的特殊互動。
 
-**修正方式**：在 `abilities-integration.php` 新增 `mpu_normalize_schema_for_llm()`，遞迴走訪 ability 的 input schema，把聯合型別陣列轉為單一字串後，再送給任何 LLM provider — 維持啟用 Akismet 的同時恢復 AI 對話運作。
+**睡眠模式一致性**：現在角色處於深層睡眠時段（預設 00:00–06:00）時，不再被新事件喚醒，而是會直接透過 `sleep_mode.json` 講出對應的夢話，進一步提升角色扮演的沉浸感。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

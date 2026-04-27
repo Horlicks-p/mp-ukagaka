@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.13.7
+Stable tag: 2.13.8
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -182,6 +182,12 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-04-27 =
+* v2.13.8
+* [NEW] Visitor Pulse & AI Crawler Signals: AI character can now react to late-night visitors, traffic spikes, and foreign countries. Added AI crawler detection (GPTBot, ClaudeBot, etc.).
+* [IMPROVE] Personality Consistency: Added deep sleep window logic where new events trigger sleep_mode dream talks instead of waking up the character.
+* [SECURITY] IP spoofing mitigation: Enhanced IP validation to prevent spoofing via proxy headers.
 
 = 2026-04-25 =
 * v2.13.7

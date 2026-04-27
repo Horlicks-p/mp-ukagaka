@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.7-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.8-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.13.7 の新機能
+## 🎉 v2.13.8 の新機能
 
-**Akismet 5.7 互換性修正**：Akismet 5.7 が追加した ability の input schema は JSON Schema のユニオン型（`type: ['object', 'null']`）を使用しており、Gemini・OpenAI・Claude のいずれもこの形式を受け付けません。Akismet を有効化すると AI ダイアログが一切生成されなくなり、キャラクターは内蔵の静的ダイアログにフォールバックしていました。
+**訪問者の鼓動（Visitor Pulse）と AI クローラーシグナル**：Visitor Pulse と AI クローラー検出の新しいメカニズムを追加しました。AI キャラクターが深夜の訪問者、トラフィックの急増、海外からの初訪問などの「訪問者の鼓動」を感知し、自発的に反応するようになりました。また、システムが GPTBot や ClaudeBot などの AI クローラーを識別し、キャラクターによる特別なインタラクションを引き起こします。
 
-**修正内容**：`abilities-integration.php` に `mpu_normalize_schema_for_llm()` を追加し、ability の input schema を再帰的に走査してユニオン型配列を単一の文字列に変換した上で LLM プロバイダーに送信します。これにより Akismet を有効化したまま AI ダイアログが復元されました。
+**睡眠モードの一貫性**：キャラクターが深い睡眠時間帯（デフォルト 00:00-06:00）にある場合、新しいイベントで目を覚ますことはなくなり、代わりに `sleep_mode.json` から対応する寝言を話し、ロールプレイの没入感をさらに高めます。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

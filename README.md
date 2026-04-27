@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.7-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.8-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.13.7
+## 🎉 What's New in v2.13.8
 
-**Akismet 5.7 Compatibility Fix**: Akismet 5.7 introduced an ability whose input schema uses a JSON Schema union type (`type: ['object', 'null']`), which Gemini, OpenAI, and Claude all reject. With Akismet active, AI dialogue stopped generating entirely and the character fell back to built-in static dialogue.
+**Visitor Pulse & AI Crawler Signals**: Added new mechanisms for Visitor Pulse and AI crawler detection. The AI character can now sense and react to "visitor pulses" such as late-night visitors, traffic spikes, and first-time visits from foreign countries. Additionally, the system can identify AI crawlers like GPTBot and ClaudeBot, triggering special interactions from the character.
 
-**The Fix**: A new `mpu_normalize_schema_for_llm()` helper in `abilities-integration.php` recursively walks every ability's input schema and converts union `type` arrays to a single string before forwarding the schema to any LLM provider — restoring AI dialogue while keeping Akismet enabled.
+**Sleep Mode Consistency**: When the character is in deep sleep window (default 00:00-06:00), new events will no longer wake the character up, but instead trigger corresponding sleep talk from `sleep_mode.json`, further enhancing the roleplay immersion.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

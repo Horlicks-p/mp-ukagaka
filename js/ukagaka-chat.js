@@ -408,11 +408,18 @@ function mpu_sendUserMessage() {
     // 非管理員：不攔截，讓訊息流入下方 AI 路徑，由 visitor_rejection 引導角色拒絕
   }
 
+  // /visitor-info と /check-spam-event は管理員専用
+  // 非管理員：不攔截，讓訊息流入下方 AI 路徑，由 visitor_rejection 引導角色拒絕
+
   // 指令攔截：/help 顯示可用指令
   if (message === "/help") {
     $input.val("");
-    const helpText =
-      "【可用指令】\n/reset - 清除對話歷史\n/clear - 同上\n/help - 顯示此說明";
+    let helpText =
+      "【コマンド一覧】\n\n/reset - 会話履歴を消去\n\n/clear - 同上\n\n/help - このヘルプを表示";
+    if (mpuPreSettings && mpuPreSettings.is_admin) {
+      helpText +=
+        "\n\n【管理者専用】\n\n/visitor-info - 訪客情報を照会\n\n/check-spam-event - スパム状況を確認\n\n/debug_mcp - MCPツール診断";
+    }
     mpu_typewriter(helpText, "#ukagaka_msg");
     return;
   }
