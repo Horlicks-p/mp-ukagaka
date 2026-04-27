@@ -759,15 +759,12 @@ function mpu_generate_ai_crawler_reaction_llm($crawler)
         $personality_id = mpu_get_personality_id_from_ukagaka_name($cur_num);
     }
 
-    // 睡眠時段：抽夢話池（既有 bot_dreams 意境契合「魔族氣息」），不呼叫 LLM
-    if (function_exists('mpu_pick_sleep_dream_line')) {
-        $dream = mpu_pick_sleep_dream_line($personality_id, 'bot_dreams');
-        if ($dream !== false) {
-            if (function_exists('mpu_debug_log')) {
-                mpu_debug_log('AI Crawler: 睡眠時段，抽 bot_dreams 夢話替代 LLM');
-            }
-            return $dream;
+    // 睡眠時段：AI crawler 在 Frieren 設定中是低風險的「同族」気配，不喚醒也不抽 bot_dreams。
+    if (function_exists('mpu_is_deep_sleep_time') && mpu_is_deep_sleep_time($personality_id)) {
+        if (function_exists('mpu_debug_log')) {
+            mpu_debug_log('AI Crawler: 睡眠時段，低優先度事件をスキップ');
         }
+        return false;
     }
 
     $provider = isset($mpu_opt['llm_provider']) ? $mpu_opt['llm_provider'] : (isset($mpu_opt['ai_provider']) ? $mpu_opt['ai_provider'] : 'gemini');

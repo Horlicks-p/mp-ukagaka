@@ -19,7 +19,7 @@
 ### 💤 人格一致性修正：Sleep mode 與事件推送整合
 
 - **睡眠時段夢話分支**：新增 `mpu_pick_sleep_dream_line()` helper。當角色處於 deep sleep window（預設 00:00–06:00，並可延伸 oversleep）時，新事件不再呼叫 LLM，而是改從 `sleep_mode.json` 抽夢話。
-- **新增 `visitor_dreams` 夢話池**：`ghost/Frieren/sleep_mode.json` 新增訪客脈動專用夢話；AI 爬蟲則沿用既有 `bot_dreams`。
+- **新增 `visitor_dreams` 夢話池**：`ghost/Frieren/sleep_mode.json` 新增訪客脈動專用夢話；AI 爬蟲在睡眠時段視為低優先度事件，直接略過不播報。
 - **避免人格矛盾**：修正深夜訪客事件在睡眠時段仍產生清醒分析台詞的問題，讓 sleep mode 與事件推送邏輯一致。
 
 ### 🔒 安全性與穩定性修正

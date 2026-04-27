@@ -19,7 +19,7 @@
 ### 💤 Personality Consistency: Sleep Mode for Event Pushes
 
 - **Sleep-time dream fallback**: added the shared helper `mpu_pick_sleep_dream_line()`. When the character is inside the deep sleep window (default `00:00–06:00`, with optional oversleep extension), new event reactions no longer call the LLM and instead use dream lines from `sleep_mode.json`.
-- **New `visitor_dreams` pool**: `ghost/Frieren/sleep_mode.json` now includes visitor-pulse dream lines, while AI crawler reactions reuse the existing `bot_dreams`.
+- **New `visitor_dreams` pool**: `ghost/Frieren/sleep_mode.json` now includes visitor-pulse dream lines, while AI crawler reactions are skipped during sleep mode as low-priority events.
 - **Sleep-mode conflict resolved**: fixed the issue where late-night visitor events could generate fully awake analytical dialogue while Frieren was supposed to be asleep.
 
 ### 🔒 Security and Stability Fixes

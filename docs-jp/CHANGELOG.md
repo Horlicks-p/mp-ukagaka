@@ -19,7 +19,7 @@
 ### 💤 人格整合性の修正：Sleep mode とイベント push の統合
 
 - **睡眠時の寝言フォールバック**：共通 helper `mpu_pick_sleep_dream_line()` を追加しました。キャラクターが deep sleep window（デフォルト `00:00–06:00`、oversleep により延長可）にいる場合、新イベント反応は LLM を呼ばず、`sleep_mode.json` の寝言を返します。
-- **`visitor_dreams` を追加**：`ghost/Frieren/sleep_mode.json` に visitor pulse 専用の寝言プールを追加しました。AI crawler は既存の `bot_dreams` を流用します。
+- **`visitor_dreams` を追加**：`ghost/Frieren/sleep_mode.json` に visitor pulse 専用の寝言プールを追加しました。AI crawler は sleep mode 中の低優先度イベントとして、反応をスキップします。
 - **sleep mode との衝突を解消**：深夜訪問者イベントが、設定上は寝ている Frieren に覚醒した分析台詞を言わせてしまう問題を修正しました。
 
 ### 🔒 セキュリティと安定性の修正
