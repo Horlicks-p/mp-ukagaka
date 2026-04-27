@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.6-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.7-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.13.6 新功能
+## 🎉 v2.13.7 新功能
 
-**開發文件全面補完**：REST 架構、Abilities API、人格製作流程、Canvas 自訂、Slimstat 除錯等開發者文件已全面更新，內容和目前程式碼一致。
+**Akismet 5.7 相容性修正**：Akismet 5.7 新增的 ability 其 input schema 使用了 JSON Schema 聯合型別（`type: ['object', 'null']`），Gemini、OpenAI、Claude 三家都不接受此格式。啟用 Akismet 後 AI 對話完全無法生成，角色被迫退回使用內建靜態對話。
 
-**多語言文件同步**：繁中、英文、日文三套開發文件與 changelog 已同步完成。
+**修正方式**：在 `abilities-integration.php` 新增 `mpu_normalize_schema_for_llm()`，遞迴走訪 ability 的 input schema，把聯合型別陣列轉為單一字串後，再送給任何 LLM provider — 維持啟用 Akismet 的同時恢復 AI 對話運作。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

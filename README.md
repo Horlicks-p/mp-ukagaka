@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.6-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.13.7-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.13.6
+## 🎉 What's New in v2.13.7
 
-**Developer Documentation Catch-Up**: The developer-facing documentation set was fully updated to match the current codebase, including the REST architecture, Abilities API notes, ghost creation flow, canvas customization, and Slimstat debugging guides.
+**Akismet 5.7 Compatibility Fix**: Akismet 5.7 introduced an ability whose input schema uses a JSON Schema union type (`type: ['object', 'null']`), which Gemini, OpenAI, and Claude all reject. With Akismet active, AI dialogue stopped generating entirely and the character fell back to built-in static dialogue.
 
-**Cross-Language Sync**: Traditional Chinese, English, and Japanese versions of the updated developer documents and changelogs are now aligned.
+**The Fix**: A new `mpu_normalize_schema_for_llm()` helper in `abilities-integration.php` recursively walks every ability's input schema and converts union `type` arrays to a single string before forwarding the schema to any LLM provider — restoring AI dialogue while keeping Akismet enabled.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.13.6
+Stable tag: 2.13.7
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -182,6 +182,11 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-04-25 =
+* v2.13.7
+* [FIX] Akismet 5.7 compatibility: AI dialogue stopped generating when Akismet 5.7 was active because its `akismet/get-stats` ability uses a JSON Schema union type (`type: ['object', 'null']`) that Gemini, OpenAI, and Claude all reject
+* [FIX] Added mpu_normalize_schema_for_llm() in abilities-integration.php that recursively walks ability input schemas and converts union-type arrays to a single string before forwarding to any LLM provider
 
 = 2026-03-18 =
 * v2.13.1

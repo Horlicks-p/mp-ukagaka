@@ -209,7 +209,7 @@ $admin_modules = [
 
 | Constant        | Description     | Value                |
 | --------------- | --------------- | -------------------- |
-| `MPU_VERSION`   | Plugin version  | `"2.13.6-20260424"`  |
+| `MPU_VERSION`   | Plugin version  | `"2.13.7-20260425"`  |
 | `MPU_MAIN_FILE` | Main file path  | `__FILE__`           |
 
 ---
