@@ -12,6 +12,11 @@
 - **症狀**：啟用 Akismet 後 AI 對話完全無法生成，角色退回使用內建靜態對話。關閉 Akismet 後 AI 對話立即恢復正常。
 - **修正**：在 `abilities-integration.php` 新增 `mpu_normalize_schema_for_llm()`，遞迴走訪 ability input schema，將聯合型別陣列（如 `['object', 'null']`）轉換為單一字串（取第一個非 null 型別），在送給任何 LLM provider 之前套用。
 
+### 🐛 錯誤修正：SPA 模式下 gotop 按鈕被攔截
+
+- **症狀**：當 WordPress 主題啟用 SPA（Single Page Application）模式時，偽春菜 dock 上的「回到頂部」（gotop）按鈕點擊事件會被 SPA 路由攔截，導致按鈕無法正常運作。
+- **修正**：在 `frontend-functions.php` 為 `#toTop` 錨點加上 `data-spa-ignore` 屬性，並在 `ukagaka-features.js` 的點擊處理中加入 `e.stopPropagation()`，防止 SPA 框架攔截此錨點點擊。
+
 ---
 ## [2.13.6] - 2026-04-24
 

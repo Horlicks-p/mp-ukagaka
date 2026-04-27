@@ -12,6 +12,11 @@
 - **Symptom**: With Akismet active, AI dialogue stopped generating entirely and the character fell back to built-in static dialogue. Disabling Akismet restored AI dialogue immediately.
 - **Fix**: Added `mpu_normalize_schema_for_llm()` in `abilities-integration.php`. This function recursively walks any ability's input schema and converts union `type` arrays (e.g. `['object', 'null']`) to a single string (the first non-null type), before the schema is sent to any LLM provider.
 
+### 🐛 Bug Fix: gotop Button Intercepted Under SPA Mode
+
+- **Symptom**: When the WordPress theme has SPA (Single Page Application) mode enabled, clicks on the "back to top" (gotop) button in the ukagaka dock were intercepted by the SPA router, preventing the button from working.
+- **Fix**: Added the `data-spa-ignore` attribute to the `#toTop` anchor in `frontend-functions.php`, and added `e.stopPropagation()` to the click handler in `ukagaka-features.js` to prevent SPA frameworks from intercepting the anchor click.
+
 ---
 ## [2.13.6] - 2026-04-24
 

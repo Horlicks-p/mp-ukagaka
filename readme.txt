@@ -187,6 +187,7 @@ This plugin uses a modular architecture for better maintainability:
 * v2.13.7
 * [FIX] Akismet 5.7 compatibility: AI dialogue stopped generating when Akismet 5.7 was active because its `akismet/get-stats` ability uses a JSON Schema union type (`type: ['object', 'null']`) that Gemini, OpenAI, and Claude all reject
 * [FIX] Added mpu_normalize_schema_for_llm() in abilities-integration.php that recursively walks ability input schemas and converts union-type arrays to a single string before forwarding to any LLM provider
+* [FIX] gotop button intercepted under SPA mode: added data-spa-ignore attribute to #toTop anchor and e.stopPropagation() to its click handler, preventing SPA frameworks from intercepting the back-to-top action
 
 = 2026-03-18 =
 * v2.13.1

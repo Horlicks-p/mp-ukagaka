@@ -12,6 +12,11 @@
 - **症状**：Akismet を有効化すると AI ダイアログが一切生成されなくなり、キャラクターが内蔵の静的ダイアログにフォールバックしていました。Akismet を無効化すると即座に AI ダイアログが復元されました。
 - **修正**：`abilities-integration.php` に `mpu_normalize_schema_for_llm()` を追加しました。この関数は ability の input schema を再帰的に走査し、ユニオン型配列（例：`['object', 'null']`）を単一の文字列（最初の非 null 型）に変換してから、LLM プロバイダーに送信します。
 
+### 🐛 バグ修正：SPA モードで gotop ボタンが動作しない問題
+
+- **症状**：WordPress テーマで SPA（Single Page Application）モードを有効にしている場合、伺か dock 上の「トップへ戻る」（gotop）ボタンのクリックイベントが SPA ルーターに横取りされ、ボタンが正常に動作しませんでした。
+- **修正**：`frontend-functions.php` の `#toTop` アンカーに `data-spa-ignore` 属性を追加し、`ukagaka-features.js` のクリックハンドラに `e.stopPropagation()` を追加して、SPA フレームワークによるアンカークリックの横取りを防ぎます。
+
 ---
 ## [2.13.6] - 2026-04-24
 
