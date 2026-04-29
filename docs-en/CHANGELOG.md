@@ -4,6 +4,25 @@
 
 ---
 
+## [2.14.0] - 2026-04-29
+
+### LLM Streaming Expansion: Gemini / Claude
+
+- **Gemini streaming added**: the `gemini` provider now implements `generate_chat_stream()` using the `streamGenerateContent?alt=sse` endpoint. Plain text responses are forwarded to the frontend as SSE `delta` events.
+- **Claude streaming added**: the `claude` provider now implements `generate_chat_stream()` for the Anthropic Messages API, handling `content_block_start`, `content_block_delta`, and `content_block_stop`, including buffered `input_json_delta` tool arguments.
+- **Tool-call safety retained**: when MCP tools are available for Claude, streamed text is buffered until the turn is known to be tool-free. If a tool call occurs, pre-tool text is not emitted, keeping frontend display, backend checksum, and final tool output aligned.
+- **Gemini tools fallback**: Gemini streaming currently supports plain-text streaming first. When MCP tools are available, it falls back to synchronous `generate_chat()` and emits the final result as a single `delta`, preventing tool support from silently disappearing in streaming mode.
+
+### Streaming Stability and Frontend Display
+
+- **Shared SSE parser**: added `mpu_stream_sse_events()` to handle cross-chunk line merging, multi-line `data:` payloads, blank-line dispatch, and final event flushing when a stream does not end with a blank line.
+- **Claude tool-loop protection**: Claude streaming now returns `max_turns_exceeded` when `MPU_MAX_TOOL_TURNS` is exhausted instead of ending as an empty successful response.
+- **Claude tool argument guard**: failed JSON decoding for streamed Claude tool input is logged for debugging and passed as empty arguments so the tool can return an error result instead of running with malformed input.
+- **Frontend streaming typewriter queue**: chat-mode streaming display now uses a local timer and pending queue, respects the admin `typewriter_speed` setting, and guards against duplicate finalization.
+- **Bundle rebuilt**: updated `js/dist/ukagaka-bundle.js` and `js/dist/ukagaka-bundle.min.js`.
+
+---
+
 ## [2.13.9] - 2026-04-29
 
 ### 🧹 Dead Code Removal (Phase 1 & 2)

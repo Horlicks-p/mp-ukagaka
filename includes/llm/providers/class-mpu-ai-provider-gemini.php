@@ -35,6 +35,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
         return in_array($feature, [
             self::FEATURE_TOOLS,
             self::FEATURE_CHAT,
+            self::FEATURE_STREAMING,
         ]);
     }
 
@@ -447,8 +448,71 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
      * @return void|WP_Error
      */
     public function generate_chat_stream(array $args, $emit, array $context = []) {
-        $err = $this->error('unsupported', __('Gemini は現在ストリーミングモードに対応していません', 'mp-ukagaka'));
-        call_user_func($emit, 'error', ['message' => $err->get_error_message()]);
-        return $err;
+        $api_key       = $args['api_key'] ?? '';
+        $model         = $args['model'] ?? 'gemini-2.5-flash';
+        $system_prompt = $args['system_prompt'] ?? '';
+        $max_tokens    = $args['max_tokens'] ?? 1000;
+        $temperature   = $args['temperature'] ?? 0.8;
+        $messages      = $args['messages'] ?? [];
+
+        // MCP tools 可用時，fallback 到同步 generate_chat()，保留工具呼叫能力
+        $tools_config = [];
+        if (function_exists('mpu_get_mcp_tools_for_llm')) {
+            $mcp_tools = mpu_get_mcp_tools_for_llm('gemini');
+            if (!empty($mcp_tools)) {
+                $tools_config = $mcp_tools;
+            }
+        }
+
+        if (!empty($tools_config)) {
+            $sync_result = $this->generate_chat($args);
+            if (is_wp_error($sync_result)) {
+                call_user_func($emit, 'error', ['message' => $sync_result->get_error_message()]);
+                return $sync_result;
+            }
+            call_user_func($emit, 'delta', ['text' => $sync_result]);
+            return null;
+        }
+
+        $api_url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}"
+                 . ":streamGenerateContent?alt=sse&key=" . urlencode($api_key);
+
+        $contents = [];
+        foreach ($messages as $msg) {
+            $role       = $msg['role'] === 'user' ? 'user' : 'model';
+            $contents[] = ['role' => $role, 'parts' => [['text' => $msg['content']]]];
+        }
+
+        $request_body = [
+            'systemInstruction' => ['parts' => [['text' => $system_prompt]]],
+            'contents'          => $contents,
+            'generationConfig'  => [
+                'maxOutputTokens' => intval($max_tokens),
+                'temperature'     => $temperature,
+            ],
+        ];
+
+        $error = mpu_stream_sse_events(
+            $api_url,
+            mpu_build_http_args(mpu_get_provider_headers('gemini'), $request_body),
+            function($event_type, $data_str) use ($emit) {
+                $data = json_decode($data_str, true);
+                if (empty($data)) return;
+
+                $parts = $data['candidates'][0]['content']['parts'] ?? [];
+                foreach ($parts as $part) {
+                    if (isset($part['text']) && empty($part['thought'])) {
+                        call_user_func($emit, 'delta', ['text' => $part['text']]);
+                    }
+                }
+            }
+        );
+
+        if (is_wp_error($error)) {
+            call_user_func($emit, 'error', ['message' => $error->get_error_message()]);
+            return $error;
+        }
+
+        return null;
     }
 }

@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.8-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.14.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -41,7 +41,7 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 
 - **複数キャラクター対応**：複数のゴーストキャラクターを作成・管理
 - **AI コンテキスト認識**：Gemini、OpenAI、Claude、Ollama を使用したインテリジェントな応答
-- **インタラクティブ対話モード**：訪問者とのリアルタイム対話
+- **インタラクティブ対話モード**：訪問者とのリアルタイム対話、SSE streaming 応答をサポート
 - **外部ダイアログファイル**：TXT および JSON 形式のダイアログをサポート
 - **Canvas アニメーション**：単一の画像または複数フレームアニメーションをサポート
 - **多言語対応**：英語、繁体中国語、日本語
@@ -98,11 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.13.8 の新機能
+## 🎉 v2.14.0 の新機能
 
-**訪問者の鼓動（Visitor Pulse）と AI クローラーシグナル**：Visitor Pulse と AI クローラー検出の新しいメカニズムを追加しました。AI キャラクターが深夜の訪問者、トラフィックの急増、海外からの初訪問などの「訪問者の鼓動」を感知し、自発的に反応するようになりました。また、システムが GPTBot や ClaudeBot などの AI クローラーを識別し、キャラクターによる特別なインタラクションを引き起こします。
+**Gemini / Claude streaming 対応**：対話モードで Gemini と Claude の SSE streaming をサポートしました。Gemini は `streamGenerateContent` による純テキスト streaming、Claude は Anthropic content block events と streaming tool argument fragments に対応します。
 
-**睡眠モードの一貫性**：キャラクターが深い睡眠時間帯（デフォルト 00:00-06:00）にある場合、新しいイベントで目を覚ますことはなくなり、代わりに `sleep_mode.json` から対応する寝言を話し、ロールプレイの没入感をさらに高めます。
+**Streaming 安定性の改善**：共通 SSE parser、stream 終端 event flush、Claude tool-loop protection、Gemini の MCP tools 利用時の synchronous fallback、管理画面の typewriter speed に従う frontend typewriter queue を追加しました。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

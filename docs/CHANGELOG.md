@@ -4,6 +4,25 @@
 
 ---
 
+## [2.14.0] - 2026-04-29
+
+### LLM 串流支援擴充：Gemini / Claude
+
+- **新增 Gemini streaming**：`gemini` provider 追加 `generate_chat_stream()`，使用 `streamGenerateContent?alt=sse` 端點，純文字回覆會以 SSE `delta` 逐步送回前端。
+- **新增 Claude streaming**：`claude` provider 追加 `generate_chat_stream()`，支援 Anthropic Messages API 的 `content_block_start`、`content_block_delta`、`content_block_stop` 事件，並能累積 `input_json_delta` 完成 tool call 參數。
+- **保留 tool call 安全性**：Claude 在啟用 MCP tools 時會先緩衝文字，若本輪發生 tool call，不會先輸出 pre-tool text，避免前端顯示內容、後端 checksum 與最終工具結果不一致。
+- **Gemini tools fallback**：Gemini streaming 目前先支援純文字。偵測到 MCP tools 可用時會 fallback 到同步 `generate_chat()`，再以單一 `delta` 回傳結果，避免 tool 能力在 streaming 模式下靜默失效。
+
+### Streaming 穩定性與前端顯示
+
+- **共用 SSE parser**：新增 `mpu_stream_sse_events()`，統一處理跨 chunk 行合併、多行 `data:` 拼接、空行 dispatch，以及串流末尾未以空行結束時的最後 event flush。
+- **Claude tool loop 防護**：Claude streaming 達到 `MPU_MAX_TOOL_TURNS` 時會回傳 `max_turns_exceeded`，不再以空白成功回應結束。
+- **Claude tool 參數防護**：Claude streaming 解析 tool input JSON 失敗時會記錄 debug log，並以空參數交由工具回傳錯誤結果，避免使用不完整或錯誤參數執行。
+- **前端串流打字佇列**：對話模式的 streaming 顯示改為局部 timer 與 pending queue，遵守後台 `typewriter_speed` 設定，並加入完成保護避免重複 finalize。
+- **Bundle 已重建**：同步更新 `js/dist/ukagaka-bundle.js` 與 `js/dist/ukagaka-bundle.min.js`。
+
+---
+
 ## [2.13.9] - 2026-04-29
 
 ### 🧹 死碼清除（第一、二階段）

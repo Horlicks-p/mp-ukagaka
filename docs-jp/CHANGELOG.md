@@ -4,6 +4,25 @@
 
 ---
 
+## [2.14.0] - 2026-04-29
+
+### LLM ストリーミング対応拡張：Gemini / Claude
+
+- **Gemini streaming を追加**：`gemini` provider に `generate_chat_stream()` を追加し、`streamGenerateContent?alt=sse` エンドポイントを使用するようにしました。通常のテキスト応答は SSE の `delta` としてフロントエンドへ順次送信されます。
+- **Claude streaming を追加**：`claude` provider に `generate_chat_stream()` を追加し、Anthropic Messages API の `content_block_start`、`content_block_delta`、`content_block_stop` を処理できるようにしました。tool call の `input_json_delta` もバッファして復元します。
+- **tool call の安全性を維持**：Claude で MCP tools が利用可能な場合、本ターンが tool call なしと確定するまでテキストをバッファします。tool call が発生した場合は pre-tool text を出力せず、フロント表示・バックエンド checksum・最終 tool 結果の不整合を防ぎます。
+- **Gemini tools fallback**：Gemini streaming はまず純テキスト応答を対象とします。MCP tools が利用可能な場合は同期版 `generate_chat()` に fallback し、結果を単一の `delta` として返すことで、streaming mode で tool 機能が静かに無効化されることを防ぎます。
+
+### Streaming の安定性とフロントエンド表示
+
+- **共通 SSE parser を追加**：`mpu_stream_sse_events()` を追加し、chunk 境界をまたぐ行結合、複数行 `data:` の結合、空行による dispatch、末尾に空行がない stream の最後の event flush を共通処理化しました。
+- **Claude tool loop 保護**：Claude streaming で `MPU_MAX_TOOL_TURNS` を使い切った場合、空の成功応答ではなく `max_turns_exceeded` を返すようにしました。
+- **Claude tool 引数の保護**：streaming された Claude tool input の JSON decode に失敗した場合は debug log に記録し、空引数として tool 側に渡してエラー結果を返せるようにしました。不完全な引数で実行されることを避けます。
+- **フロントエンドの streaming typewriter queue**：会話モードの streaming 表示を局所 timer と pending queue に変更し、管理画面の `typewriter_speed` 設定に従うようにしました。重複 finalize を防ぐ guard も追加しています。
+- **Bundle を再ビルド**：`js/dist/ukagaka-bundle.js` と `js/dist/ukagaka-bundle.min.js` を更新しました。
+
+---
+
 ## [2.13.9] - 2026-04-29
 
 ### 🧹 デッドコード削除（フェーズ 1 & 2）

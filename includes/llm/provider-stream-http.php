@@ -81,3 +81,64 @@ function mpu_stream_api_request($url, $args, $on_chunk) {
 
     return true;
 }
+
+/**
+ * 解析 SSE 串流，每收到一個完整 event 就呼叫 $callback。
+ *
+ * 跨 chunk 邊界的行合併、多行 data: 拼接、空行 dispatch 均在此處理，
+ * 讓各 Provider 的 generate_chat_stream() 不需各自維護 line parser。
+ *
+ * @param string   $url      API endpoint URL
+ * @param array    $http_args mpu_build_http_args() 格式（headers, body, timeout）
+ * @param callable $callback function(string $event_type, string $data_str): void
+ * @return WP_Error|null  成功回傳 null，失敗回傳 WP_Error
+ */
+function mpu_stream_sse_events(string $url, array $http_args, callable $callback): ?WP_Error {
+    $chunk_buffer  = '';
+    $current_event = '';
+    $data_lines    = [];
+
+    $result = mpu_stream_api_request(
+        $url,
+        $http_args,
+        function($chunk) use (&$chunk_buffer, &$current_event, &$data_lines, $callback) {
+            $chunk_buffer .= $chunk;
+
+            while (($pos = strpos($chunk_buffer, "\n")) !== false) {
+                $line = substr($chunk_buffer, 0, $pos);
+                $chunk_buffer = substr($chunk_buffer, $pos + 1);
+                $line = rtrim($line, "\r");
+
+                if ($line === '') {
+                    // 空行：dispatch 一個完整 event
+                    if (!empty($data_lines)) {
+                        $data_str = implode("\n", $data_lines);
+                        if ($data_str !== '[DONE]') {
+                            call_user_func($callback, $current_event, $data_str);
+                        }
+                    }
+                    $current_event = '';
+                    $data_lines    = [];
+                } elseif (strncmp($line, 'event:', 6) === 0) {
+                    $current_event = trim(substr($line, 6));
+                } elseif (strncmp($line, 'data:', 5) === 0) {
+                    $data_lines[] = ltrim(substr($line, 5));
+                }
+                // id:, retry: 等欄位忽略
+            }
+        }
+    );
+
+    // 連線結束後 flush 最後未以空行結尾的 event（防止末尾缺空行時資料遺失）
+    if (!empty($data_lines)) {
+        $data_str = implode("\n", $data_lines);
+        if ($data_str !== '[DONE]') {
+            call_user_func($callback, $current_event, $data_str);
+        }
+    }
+
+    if (is_wp_error($result)) {
+        return $result;
+    }
+    return null;
+}

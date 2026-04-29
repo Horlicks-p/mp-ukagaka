@@ -474,6 +474,57 @@ function mpu_sendUserMessage() {
     const $msg = jQuery("#ukagaka_msg");
     $msg.html('（…えっと<span class="mpu-thinking"></span>）');
 
+    // Streaming typewriter queue — 區域 timer，絕不碰全域 mpuTypewriterTimer
+    let streamTypewriterTimer = null;
+    let streamDisplayedText = "";
+    let streamPendingText = "";
+    let streamDone = false;
+    let streamDoneData = null;
+    let streamFinalized = false;
+
+    function streamStartDrain() {
+      if (streamTypewriterTimer !== null) return;
+      streamTickDrain();
+    }
+
+    function streamTickDrain() {
+      if (streamPendingText.length === 0) {
+        streamTypewriterTimer = null;
+        if (streamDone) streamFinalize(streamDoneData);
+        return;
+      }
+      const chunkSize = Math.min(4, Math.max(1, Math.floor(streamPendingText.length / 80)));
+      streamDisplayedText += streamPendingText.slice(0, chunkSize);
+      streamPendingText = streamPendingText.slice(chunkSize);
+      $msg.html(mpu_parseMarkdown(streamDisplayedText));
+      streamTypewriterTimer = setTimeout(streamTickDrain, mpuTypewriterSpeed);
+    }
+
+    function streamFinalize(data) {
+      if (streamFinalized) return;
+      streamFinalized = true;
+      const finalMsg = data.msg || fullResponse;
+      window.mpuChatHistory.push({
+        role: "assistant",
+        content: finalMsg,
+        type: "chat",
+        timestamp: Date.now(),
+      });
+      mpu_saveChatHistory();
+      mpuChatRequesting = false;
+      $input.prop("disabled", false);
+      if (window.mpuChatModeActive) $input.focus();
+      if (data.emoji && typeof window.mpuEmojiManager !== "undefined") {
+        window.mpuEmojiManager.showEmoji(data.emoji);
+      }
+      if (
+        typeof window.mpuCanvasManager !== "undefined" &&
+        window.mpuCanvasManager.isCharacterMode
+      ) {
+        window.mpuCanvasManager.triggerCharacterAnimation(true);
+      }
+    }
+
     mpuFetchSSE(
       mpuRestUrl + "chat/user-stream",
       {
@@ -488,6 +539,9 @@ function mpu_sendUserMessage() {
         onDelta: (data) => {
           if (data.text) {
             fullResponse += data.text;
+            if (streamDisplayedText === "" && streamPendingText === "") $msg.empty();
+            streamPendingText += data.text;
+            streamStartDrain();
           }
         },
         onStatus: (data) => {
@@ -510,38 +564,18 @@ function mpu_sendUserMessage() {
           }
         },
         onDone: (data) => {
-          mpuChatRequesting = false;
-          $input.prop("disabled", false);
-          if (window.mpuChatModeActive) $input.focus();
-
-          const finalMsg = data.msg || "";
-          window.mpuChatHistory.push({
-            role: "assistant",
-            content: finalMsg,
-            type: "chat",
-            timestamp: Date.now(),
-          });
-          mpu_saveChatHistory();
-
-          const displayMsg = fullResponse || finalMsg;
-          if (displayMsg) {
-            mpu_typewriter(mpu_parseMarkdown(displayMsg), "#ukagaka_msg", null, true);
+          streamDone = true;
+          streamDoneData = data;
+          if (streamTypewriterTimer === null && streamPendingText.length === 0) {
+            streamFinalize(data);
           }
-
-          // 觸發角色動畫
-          if (
-            typeof window.mpuCanvasManager !== "undefined" &&
-            window.mpuCanvasManager.isCharacterMode
-          ) {
-            window.mpuCanvasManager.triggerCharacterAnimation(true);
-          }
-
-          // 顯示表情
-          if (data.emoji && typeof window.mpuEmojiManager !== "undefined") {
-            window.mpuEmojiManager.showEmoji(data.emoji);
-          }
+          // 否則 streamTickDrain 跑完後自動呼叫 streamFinalize
         },
         onError: (error) => {
+          clearTimeout(streamTypewriterTimer);
+          streamTypewriterTimer = null;
+          streamPendingText = "";
+          streamDone = false;
           mpuChatRequesting = false;
           $input.prop("disabled", false);
           if (window.mpuChatModeActive) $input.focus();
@@ -559,6 +593,10 @@ function mpu_sendUserMessage() {
           mpuLogger.error("SSE Error:", error);
         },
         onAbort: () => {
+          clearTimeout(streamTypewriterTimer);
+          streamTypewriterTimer = null;
+          streamPendingText = "";
+          streamDone = false;
           // [Fix 漏洞 8] abort 時撤回已 push 的 user 訊息，防止後端已寫 checksum 但前端缺少 assistant
           if (
             window.mpuChatHistory.length > 0 &&

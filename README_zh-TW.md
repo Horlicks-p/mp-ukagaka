@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.13.8-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.14.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -41,7 +41,7 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 
 - **多角色支援**：創建和管理多個春菜角色
 - **AI 頁面感知**：使用 Gemini、OpenAI、Claude 或 Ollama 生成智慧回應
-- **互動對話模式**：訪客可即時與角色對話
+- **互動對話模式**：訪客可即時與角色對話，支援 SSE 串流回應
 - **外部對話檔案**：支援 TXT 和 JSON 格式對話
 - **Canvas 動畫**：支援單張圖片或多幀動畫
 - **多語言支援**：繁體中文、日文、英文
@@ -98,11 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.13.8 新功能
+## 🎉 v2.14.0 新功能
 
-**訪客脈動與 AI 爬蟲訊號**：新增 Visitor Pulse 與 AI 爬蟲偵測機制。現在 AI 角色能夠感知並對深夜時段訪客、流量突增、以及初次造訪的海外國家等「訪客脈動」做出自發性反應。此外，系統也能辨識 GPTBot、ClaudeBot 等 AI 爬蟲，並讓角色產生對應的特殊互動。
+**Gemini / Claude 串流支援**：對話模式現在支援 Gemini 與 Claude 的 SSE streaming。Gemini 使用 `streamGenerateContent` 進行純文字串流，Claude 則能處理 Anthropic content block 事件與串流工具參數片段。
 
-**睡眠模式一致性**：現在角色處於深層睡眠時段（預設 00:00–06:00）時，不再被新事件喚醒，而是會直接透過 `sleep_mode.json` 講出對應的夢話，進一步提升角色扮演的沉浸感。
+**串流穩定性改善**：新增共用 SSE parser、串流末尾 event flush、Claude tool-loop 防護、Gemini 在 MCP tools 可用時 fallback 到同步生成，以及遵守後台打字速度設定的前端 typewriter queue。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

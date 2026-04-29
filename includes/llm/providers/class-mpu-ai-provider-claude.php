@@ -35,6 +35,7 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
         return in_array($feature, [
             self::FEATURE_TOOLS,
             self::FEATURE_CHAT,
+            self::FEATURE_STREAMING,
         ]);
     }
 
@@ -392,7 +393,164 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
      * @return void|WP_Error
      */
     public function generate_chat_stream(array $args, $emit, array $context = []) {
-        $err = $this->error('unsupported', __('Claude は現在ストリーミングモードに対応していません', 'mp-ukagaka'));
+        $api_key       = $args['api_key'] ?? '';
+        $model         = $args['model'] ?? 'claude-sonnet-4-6';
+        $system_prompt = $args['system_prompt'] ?? '';
+        $max_tokens    = $args['max_tokens'] ?? 1000;
+        $temperature   = $args['temperature'] ?? 0.8;
+        $messages      = $args['messages'] ?? [];
+
+        $api_url = 'https://api.anthropic.com/v1/messages';
+
+        $claude_messages = [];
+        foreach ($messages as $msg) {
+            $claude_messages[] = ['role' => $msg['role'], 'content' => $msg['content']];
+        }
+
+        // Get MCP tools（僅管理員可得到 tools）
+        $tools_config = [];
+        if (function_exists('mpu_get_mcp_tools_for_llm')) {
+            $mcp_tools = mpu_get_mcp_tools_for_llm('claude');
+            if (!empty($mcp_tools)) {
+                $tools_config = $mcp_tools;
+            }
+        }
+
+        $max_turns   = MPU_MAX_TOOL_TURNS;
+        $current_turn = 0;
+        $loop_state  = [];
+
+        while ($current_turn < $max_turns) {
+            $request_body = [
+                'model'       => $model,
+                'max_tokens'  => intval($max_tokens),
+                'temperature' => $temperature,
+                'system'      => $system_prompt,
+                'messages'    => $claude_messages,
+                'stream'      => true,
+            ];
+
+            if (!empty($tools_config)) {
+                $request_body['tools'] = $tools_config;
+            }
+
+            // SSE content block 狀態機（per-turn）
+            $current_turn_content = [];
+            $current_block_type   = null;
+            $current_block_idx    = null;
+
+            // tools 未配置時直接 emit delta（真正串流）；有 tools 時 buffer 再判斷
+            $emit_delta_inline = empty($tools_config);
+
+            $error = mpu_stream_sse_events(
+                $api_url,
+                mpu_build_http_args(mpu_get_provider_headers('claude', $api_key), $request_body),
+                function($event_type, $data_str) use (
+                    &$current_turn_content, &$current_block_type, &$current_block_idx,
+                    $emit, $emit_delta_inline
+                ) {
+                    $data = json_decode($data_str, true);
+                    if (empty($data)) return;
+
+                    if ($event_type === 'content_block_start') {
+                        $block = $data['content_block'] ?? [];
+                        if (($block['type'] ?? '') === 'text') {
+                            $current_block_type   = 'text';
+                            $current_turn_content[] = ['type' => 'text', 'text' => ''];
+                            $current_block_idx    = count($current_turn_content) - 1;
+                        } elseif (($block['type'] ?? '') === 'tool_use') {
+                            $current_block_type   = 'tool_use';
+                            $current_turn_content[] = [
+                                'type'  => 'tool_use',
+                                'id'    => $block['id'],
+                                'name'  => $block['name'],
+                                'input' => '',
+                            ];
+                            $current_block_idx = count($current_turn_content) - 1;
+                        }
+                    } elseif ($event_type === 'content_block_delta') {
+                        $delta = $data['delta'] ?? [];
+                        if (($delta['type'] ?? '') === 'text_delta' && $current_block_type === 'text' && $current_block_idx !== null) {
+                            $text = $delta['text'];
+                            $current_turn_content[$current_block_idx]['text'] .= $text;
+                            if ($emit_delta_inline) {
+                                call_user_func($emit, 'delta', ['text' => $text]);
+                            }
+                        } elseif (($delta['type'] ?? '') === 'input_json_delta' && $current_block_type === 'tool_use' && $current_block_idx !== null) {
+                            $current_turn_content[$current_block_idx]['input'] .= $delta['partial_json'] ?? '';
+                        }
+                    } elseif ($event_type === 'content_block_stop') {
+                        if ($current_block_type === 'tool_use' && $current_block_idx !== null) {
+                            $raw = $current_turn_content[$current_block_idx]['input'];
+                            $decoded = json_decode($raw, true);
+                            if ($decoded === null && $raw !== '' && $raw !== 'null') {
+                                mpu_debug_log("Claude streaming: tool input JSON decode failed (idx={$current_block_idx}). raw=" . substr($raw, 0, 200));
+                                // 用空陣列讓工具回傳錯誤結果，避免以垃圾參數執行
+                                $current_turn_content[$current_block_idx]['input'] = [];
+                            } else {
+                                $current_turn_content[$current_block_idx]['input'] = $decoded ?? [];
+                            }
+                        }
+                        $current_block_type = null;
+                    }
+                }
+            );
+
+            if (is_wp_error($error)) {
+                call_user_func($emit, 'error', ['message' => $error->get_error_message()]);
+                return $error;
+            }
+
+            // 收集 tool_use blocks
+            $tool_blocks = array_values(array_filter(
+                $current_turn_content,
+                fn($b) => ($b['type'] ?? '') === 'tool_use'
+            ));
+
+            if (empty($tool_blocks)) {
+                // 無工具呼叫——若先前 buffer 了文字，現在一次 emit
+                if (!$emit_delta_inline) {
+                    foreach ($current_turn_content as $block) {
+                        if (($block['type'] ?? '') === 'text' && !empty($block['text'])) {
+                            call_user_func($emit, 'delta', ['text' => $block['text']]);
+                        }
+                    }
+                }
+                return null;
+            }
+
+            // 工具呼叫迴圈
+            if (function_exists('mpu_mark_request_mcp_tool_executed')) {
+                mpu_mark_request_mcp_tool_executed();
+            }
+
+            $tool_results_for_next = [];
+            foreach ($tool_blocks as $block) {
+                $function_name = $block['name'];
+                $tool_args     = $block['input'];
+
+                $guard = mpu_tool_loop_guard_check($loop_state, $this->get_slug(), $current_turn, $function_name, $tool_args);
+                if (is_wp_error($guard)) {
+                    call_user_func($emit, 'error', ['message' => $guard->get_error_message()]);
+                    return $guard;
+                }
+
+                call_user_func($emit, 'status', ['type' => 'executing_tool', 'tool' => $function_name]);
+
+                $tool_result = function_exists('mpu_execute_mcp_tool')
+                    ? mpu_execute_mcp_tool($function_name, $tool_args)
+                    : ['error' => 'Tool execution function missing'];
+
+                $tool_results_for_next[] = mpu_build_claude_tool_result_block($block['id'], $tool_result);
+            }
+
+            $claude_messages[] = ['role' => 'assistant', 'content' => $current_turn_content];
+            $claude_messages[] = ['role' => 'user',      'content' => $tool_results_for_next];
+
+            $current_turn++;
+        }
+
+        $err = $this->error('max_turns_exceeded', __('Claude のツール呼び出し回数が多すぎます', 'mp-ukagaka'));
         call_user_func($emit, 'error', ['message' => $err->get_error_message()]);
         return $err;
     }
