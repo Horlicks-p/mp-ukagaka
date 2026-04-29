@@ -299,9 +299,6 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
         'language' => $language,
     ]);
 
-    // System Prompt 會在 mpu_call_ai_api() 中記錄，這裡不需要重複記錄
-    // mpu_debug_system_prompt($system_prompt);
-
     // 3. 繼續傳遞給 Categories（使用已解析的 ID）
     $prompt_categories = mpu_build_prompt_categories(
         $wp_info,
@@ -569,8 +566,6 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
             $max_tokens = mpu_get_personality_max_tokens($personality_id, $ukagaka_name);
         }
 
-        // 使用 mpu_call_ai_api() 而不是直接調用 mpu_call_ollama_api()
-        // 這樣可以統一記錄提示詞日誌
         $result = mpu_call_ai_api($provider, '', $system_prompt, $user_prompt, $language, $mpu_opt, $max_tokens);
 
         mpu_release_ollama_lock($endpoint, $model);
@@ -730,48 +725,3 @@ function mpu_is_llm_replace_dialogue_enabled()
     }
 }
 
-/**
- * 獲取 Ollama 設定
- * * @return array|false 設定陣列，未啟用時返回 false
- */
-function mpu_get_ollama_settings()
-{
-    $mpu_opt = mpu_get_option();
-
-    if ($mpu_opt['ai_provider'] !== 'ollama') {
-        return false;
-    }
-
-    return [
-        'endpoint' => $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434',
-        'model' => $mpu_opt['ollama_model'] ?? 'qwen3:8b',
-        'replace_dialogue' => !empty($mpu_opt['ollama_replace_dialogue']),
-    ];
-}
-
-/**
- * Debug 工具：輸出 System Prompt 供檢查
- * 使用方式：在 WordPress Debug 模式下會自動記錄到日誌
- * * @param string $system_prompt System prompt 內容
- */
-function mpu_debug_system_prompt($system_prompt)
-{
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        $char_count = mb_strlen($system_prompt, 'UTF-8');
-
-        preg_match_all('/[\x{4e00}-\x{9fa5}]/u', $system_prompt, $chinese_chars);
-        $chinese_count = count($chinese_chars[0]);
-
-        $english_count = $char_count - $chinese_count;
-
-        $estimated_tokens = ($chinese_count / 2) + ($english_count / 4);
-
-        // 使用 mpu_debug_log 確保 UTF-8 文字正確顯示
-        mpu_debug_log('=== MP Ukagaka - System Prompt Debug ===');
-        mpu_debug_log('估算 Token 數: ' . (int)ceil($estimated_tokens));
-        mpu_debug_log('字符長度: ' . $char_count);
-        mpu_debug_log('--- Prompt 內容 ---');
-        mpu_debug_log($system_prompt);
-        mpu_debug_log('=== End Debug ===');
-    }
-}

@@ -632,25 +632,6 @@ function mpu_getHoursSinceLastVisit() {
     return Math.floor(hours);
 }
 
-/**
- * 初始化訪問時間追蹤
- * 在頁面載入時記錄當前訪問時間
- */
-function mpu_init_visit_tracking() {
-    // 先獲取上次訪問時間（供後續 LLM 請求使用）
-    const hoursSince = mpu_getHoursSinceLastVisit();
-    if (hoursSince === -1) {
-        mpuLogger.log('首次訪問，無上次訪問記錄');
-    } else {
-        mpuLogger.log('距離上次訪問:', hoursSince, '小時');
-    }
-    
-    // 更新訪問時間為當前時間
-    mpu_updateLastVisitTime();
-    
-    return hoursSince;
-}
-
 if (typeof jQuery !== 'undefined') {
     mpu_init_jquery_cookie();
     mpu_init_idle_detection();

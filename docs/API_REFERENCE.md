@@ -152,20 +152,6 @@ function mpu_js_filter($str)
 
 ---
 
-#### mpu_input_filter()
-
-輸入過濾（儲存前處理）。
-
-```php
-/**
- * @param string $str 輸入字串
- * @return string 過濾後字串
- */
-function mpu_input_filter($str)
-```
-
----
-
 #### mpu_secure_file_read()
 
 安全讀取檔案。
@@ -417,116 +403,6 @@ function mpu_get_language_instruction($language)
 | `zh-TW`  | `請用繁體中文回覆。`         |
 | `ja`     | `日本語で返答してください。` |
 | `en`     | `Please reply in English.`   |
-
----
-
-#### mpu_call_gemini_api()
-
-呼叫 Google Gemini API。
-
-```php
-/**
- * @param string $api_key Gemini API Key
- * @param string $model 模型名稱（如 'gemini-2.5-flash'）
- * @param string $system_prompt 系統提示
- * @param string $user_prompt 使用者提示
- * @param string $language 語言設定
- * @param int|null $max_tokens 最大 token 數（可選）
- * @return string|WP_Error AI 回應或錯誤
- */
-function mpu_call_gemini_api(
-    $api_key,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
----
-
-#### mpu_call_openai_api()
-
-呼叫 OpenAI API。
-
-```php
-/**
- * @param string $api_key OpenAI API Key
- * @param string $model 模型名稱（如 'gpt-4o-mini'）
- * @param string $system_prompt 系統提示
- * @param string $user_prompt 使用者提示
- * @param string $language 語言設定
- * @param int|null $max_tokens 最大 token 數（可選）
- * @return string|WP_Error AI 回應或錯誤
- */
-function mpu_call_openai_api(
-    $api_key,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
----
-
-#### mpu_call_claude_api()
-
-呼叫 Anthropic Claude API。
-
-```php
-/**
- * @param string $api_key Claude API Key
- * @param string $model 模型名稱（如 'claude-sonnet-4-5-20250929'）
- * @param string $system_prompt 系統提示
- * @param string $user_prompt 使用者提示
- * @param string $language 語言設定
- * @param int|null $max_tokens 最大 token 數（可選）
- * @return string|WP_Error AI 回應或錯誤
- */
-function mpu_call_claude_api(
-    $api_key,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
----
-
-#### mpu_call_ollama_api()
-
-呼叫 Ollama API（本機或遠程）。
-
-```php
-/**
- * @param string $endpoint Ollama 端點 URL
- * @param string $model 模型名稱（如 'qwen3:8b'）
- * @param string $system_prompt 系統提示
- * @param string $user_prompt 使用者提示
- * @param string $language 語言設定
- * @param int|null $max_tokens 最大 token 數（可選）
- * @return string|WP_Error AI 回應或錯誤
- */
-function mpu_call_ollama_api(
-    $endpoint,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
-**功能特點：**
-
-- 自動檢測本地/遠程連接
-- 根據連接類型調整超時時間
-- 支援關閉思考模式（Qwen3、DeepSeek 等模型）
 
 ---
 
@@ -794,29 +670,6 @@ function mpu_is_llm_replace_dialogue_enabled()
 
 ---
 
-#### mpu_get_ollama_settings()
-
-獲取 Ollama 設定。
-
-```php
-/**
- * @return array|false 設定陣列，未啟用時返回 false
- */
-function mpu_get_ollama_settings()
-```
-
-**返回值：**
-
-```php
-[
-    'endpoint' => 'http://localhost:11434',
-    'model' => 'qwen3:8b',
-    'replace_dialogue' => true,
-]
-```
-
----
-
 #### mpu_get_visitor_info_for_llm()
 
 獲取訪客資訊（用於 LLM 對話生成）。整合 Slimstat 資料，包含 BOT 檢測和地理位置資訊。
@@ -861,22 +714,6 @@ function mpu_get_visitor_status_text($visitor_info)
 $visitor_info = mpu_get_visitor_info_for_llm();
 $status = mpu_get_visitor_status_text($visitor_info);
 // 可能返回：'🤖 BOT: Googlebot' 或 '來自 TW / Taipei'
-```
-
----
-
-#### mpu_compress_context_info()
-
-壓縮 WordPress、用戶、訪客資訊為緊湊的 XML 格式（用於 System Prompt）。
-
-```php
-/**
- * @param array $wp_info WordPress 資訊
- * @param array $user_info 用戶資訊
- * @param array $visitor_info 訪客資訊
- * @return string 壓縮後的 XML 格式字串
- */
-function mpu_compress_context_info($wp_info, $user_info, $visitor_info)
 ```
 
 ---
@@ -998,26 +835,6 @@ $similarity = mpu_calculate_text_similarity('また来たのね。', 'また来�
 $similarity = mpu_calculate_text_similarity('また来たのね。', '久しぶり。');
 // 返回：0.0（完全不同）
 ```
-
----
-
-#### mpu_debug_system_prompt()
-
-Debug 模式：輸出 System Prompt 到 WordPress debug log。
-
-```php
-/**
- * @param string $system_prompt System Prompt 內容
- * @return void
- */
-function mpu_debug_system_prompt($system_prompt)
-```
-
-**使用條件：**
-
-- 僅在 `WP_DEBUG` 為 `true` 時輸出
-- 輸出到 `wp-content/debug.log`
-- 包含 System Prompt 內容、估計 token 數、字元長度
 
 ---
 

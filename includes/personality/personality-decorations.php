@@ -65,18 +65,6 @@ function mpu_get_personality_decoration_prompt($decoration_type, $personality_id
 }
 
 /**
- * Get all decoration configurations for current personality
- * 
- * @param string|null $personality_id Personality ID, or null for current
- * @return array Array of decoration configurations
- */
-function mpu_get_personality_all_decorations($personality_id = null)
-{
-    $decorations = mpu_load_personality_decorations($personality_id);
-    return $decorations['items'] ?? [];
-}
-
-/**
  * Get available decoration types from personality
  * 
  * @param string|null $personality_id Personality ID, or null for current

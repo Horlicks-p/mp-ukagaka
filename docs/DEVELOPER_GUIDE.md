@@ -506,71 +506,23 @@ AI 功能模組，處理雲端 AI API 呼叫（Gemini、OpenAI、Claude）和 Ol
 function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt = null)
 
 /**
- * 呼叫 Gemini API
- * @param string $api_key API 金鑰
- * @param string $model 模型名稱（如 gemini-2.5-flash）
- * @param string $system_prompt 系統提示
- * @param string $user_prompt 使用者提示
- * @param string $language 語言代碼
- * @return string|WP_Error 生成的文本或錯誤
- */
-function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language)
-
-/**
- * 呼叫 OpenAI API
- * @param string $api_key API 金鑰
- * @param string $model 模型名稱（如 gpt-4o-mini）
- * @param string $system_prompt 系統提示
- * @param string $user_prompt 使用者提示
- * @param string $language 語言代碼
- * @return string|WP_Error 生成的文本或錯誤
- */
-function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $language)
-
-/**
- * 呼叫 Claude API
- * @param string $api_key API 金鑰
- * @param string $model 模型名稱（如 claude-sonnet-4-5-20250929）
- * @param string $system_prompt 系統提示
- * @param string $user_prompt 使用者提示
- * @param string $language 語言代碼
- * @return string|WP_Error 生成的文本或錯誤
- */
-function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $language)
-
-/**
- * 呼叫 Ollama API（本機或遠程）
- * @param string $endpoint Ollama 端點 URL
- * @param string $model 模型名稱（如 qwen3:8b）
- * @param string $system_prompt 系統提示
- * @param string $user_prompt 使用者提示
- * @param string $language 語言代碼
- * @return string|WP_Error 生成的文本或錯誤
- */
-function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language)
-
-/**
  * 取得語言指令
  * @param string $language 語言代碼
  * @return string 語言指令
  */
 function mpu_get_language_instruction($language)
-
-/**
- * 取得允許的條件標籤列表
- * @return array 條件標籤陣列
- */
-function mpu_get_allowed_conditional_tags()
 ```
 
 #### 支援的 AI 提供商
 
-| 提供商 | 函數                    | API 端點                            | 模型選擇                                    |
-| ------ | ----------------------- | ----------------------------------- | ------------------------------------------- |
-| Gemini | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | 支援（gemini-2.5-flash, gemini-2.5-pro 等） |
-| OpenAI | `mpu_call_openai_api()` | `api.openai.com`                    | 支援（gpt-4o-mini, gpt-4o 等）              |
-| Claude | `mpu_call_claude_api()` | `api.anthropic.com`                 | 支援（claude-sonnet-4-5-20250929 等）       |
-| Ollama | `mpu_call_ollama_api()` | 本地或遠程 Ollama 服務              | 支援（任何 Ollama 模型）                    |
+所有提供商皆通過 `MPU_AI_Provider_Factory::create($provider_slug)->generate_text($args)` 路由。統一入口請使用 `mpu_call_ai_api()`。
+
+| 提供商 | Slug | API 端點                            | 模型選擇                                    |
+| ------ | ---- | ----------------------------------- | ------------------------------------------- |
+| Gemini | `gemini` | `generativelanguage.googleapis.com` | 支援（gemini-2.5-flash, gemini-2.5-pro 等） |
+| OpenAI | `openai` | `api.openai.com`                    | 支援（gpt-4o-mini, gpt-4o 等）              |
+| Claude | `claude` | `api.anthropic.com`                 | 支援（claude-sonnet-4-6 等）                |
+| Ollama | `ollama` | 本地或遠程 Ollama 服務              | 支援（任何 Ollama 模型）                    |
 
 #### AI 穩定性與安全 (Stability & Security)
 
@@ -634,12 +586,6 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
  * @return bool
  */
 function mpu_is_llm_replace_dialogue_enabled()
-
-/**
- * 獲取 Ollama 設定
- * @return array|false 設定陣列，未啟用時返回 false
- */
-function mpu_get_ollama_settings()
 ```
 
 #### 超時時間設定
@@ -687,14 +633,6 @@ $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
  * @return string|WP_Error AI 回應
  */
 function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
-
-/**
- * 特定 Provider 專用封裝
- */
-function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
-function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $options = [])
-function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $options = [])
-function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $options = [])
 ```
 
 ### REST API 模組 (OO 架構)
@@ -962,27 +900,7 @@ function mpu_get_msg_from_file($filename_base)
  * @param array  $options       Provider / model / api_key 等選項
  * @return string|WP_Error AI 回應或錯誤
  */
-function mpu_call_ai_api_with_messages($system_prompt, $messages, $options = [])
-
-/**
- * 以 messages 格式呼叫 Ollama
- */
-function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
-
-/**
- * 以 messages 格式呼叫 Gemini
- */
-function mpu_call_gemini_with_messages($api_key, $model, $system_prompt, $messages, $language)
-
-/**
- * 以 messages 格式呼叫 OpenAI
- */
-function mpu_call_openai_with_messages($api_key, $model, $system_prompt, $messages, $language)
-
-/**
- * 以 messages 格式呼叫 Claude
- */
-function mpu_call_claude_with_messages($api_key, $model, $system_prompt, $messages, $language)
+function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
 ```
 
 #### 對話訊息格式
@@ -1027,23 +945,7 @@ $stats_keywords = [
 
 #### 思考模式支援（Ollama）
 
-```php
-// 在 mpu_call_ollama_with_messages() 中
-$is_thinking_model = (strpos(strtolower($model), 'qwen3') !== false)
-    || (strpos(strtolower($model), 'frieren') !== false)
-    || (strpos(strtolower($model), 'deepseek') !== false);
-
-// 預設啟用思考模式
-$enable_thinking = $is_thinking_model && !(isset($options['ollama_disable_thinking']) && $options['ollama_disable_thinking']);
-
-if ($enable_thinking) {
-    $request_body['think'] = true;
-    $request_body['options']['num_ctx'] = 8192;  // 擴大 context window
-} else {
-    $request_body['think'] = false;
-    $request_body['options']['num_ctx'] = 4096;
-}
-```
+Ollama provider 會自動偵測思考模型（Qwen3、DeepSeek 等），並設定 `think: true` / `num_ctx: 8192`。可透過 `ollama_disable_thinking` 選項關閉。
 
 #### 回應長度限制
 

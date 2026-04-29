@@ -573,17 +573,6 @@ function mpu_get_personality_weather_adjustments($personality_id = null)
 }
 
 /**
- * Check if current personality is Frieren
- * 
- * @return bool True if current personality is Frieren
- */
-function mpu_is_frieren_personality()
-{
-    $personality_id = mpu_get_current_personality_id();
-    return strtolower($personality_id) === 'frieren';
-}
-
-/**
  * Get personality setting
  * 
  * @param string $key Setting key
@@ -597,25 +586,6 @@ function mpu_get_personality_setting($key, $default = null, $personality_id = nu
 
     if (isset($manifest['settings'][$key])) {
         return $manifest['settings'][$key];
-    }
-
-    return $default;
-}
-
-/**
- * Get personality character trait
- * 
- * @param string $key Trait key
- * @param mixed $default Default value if not found
- * @param string|null $personality_id Personality ID, or null for current
- * @return mixed Trait value
- */
-function mpu_get_personality_trait($key, $default = null, $personality_id = null)
-{
-    $manifest = mpu_load_personality_manifest($personality_id);
-
-    if (isset($manifest['character_traits'][$key])) {
-        return $manifest['character_traits'][$key];
     }
 
     return $default;

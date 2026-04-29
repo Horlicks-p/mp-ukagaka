@@ -85,16 +85,6 @@ function mpu_js_filter($str)
     return esc_js($str);
 }
 
-/**
- * 輸入過濾器
- * この関数は stripslashes のためだけに残します。
- * 保存時のサニタイズは mpu_handle_options_save で行います。
- */
-function mpu_input_filter($str)
-{
-    return stripslashes_deep($str);
-}
-
 // ========================================
 // 安全性強化函數
 // ========================================
@@ -1012,54 +1002,6 @@ function mpu_check_rate_limit($action, $max_requests = 10, $period = 60)
 }
 
 /**
- * 執行速率限制
- * 
- * 檢查請求是否超過限制，如果超過則直接返回 429 錯誤並終止。
- * 適用於 AJAX 處理器，簡化限制檢查流程。
- * 
- * @since 2.5.7
- * @param string $action 動作標識
- * @param int $max_requests 時間週期內最大請求數
- * @param int $period 時間週期（秒）
- * @return array Rate limit 結果（僅在允許時返回）
- */
-function mpu_enforce_rate_limit($action, $max_requests = 10, $period = 60)
-{
-    $result = mpu_check_rate_limit($action, $max_requests, $period);
-    
-    if (!$result['allowed']) {
-        // 記錄日誌（可選）
-        if (function_exists('mpu_debug_log')) {
-            mpu_debug_log(sprintf(
-                'Rate limit exceeded: action=%s, ip=%s, count=%d, max=%d',
-                $action,
-                mpu_get_client_ip_strict(), // 與 rate limit 計數鍵一致
-                $result['count'],
-                $max_requests
-            ));
-        }
-        
-        // 設置 HTTP 429 狀態碼和 Retry-After header
-        status_header(429);
-        header('Retry-After: ' . $result['reset_in']);
-        
-        wp_send_json_error([
-            'code' => 'rate_limit_exceeded',
-            'message' => sprintf(
-                __('リクエストが多すぎます。%d 秒後に再試行してください', 'mp-ukagaka'),
-                $result['reset_in']
-            ),
-            'retry_after' => $result['reset_in'],
-        ], 429);
-        
-        // 不應該到達這裡，但以防萬一
-        exit;
-    }
-    
-    return $result;
-}
-
-/**
  * REST API 速率限制檢查（REST pipeline 相容版）
  *
  * 與 mpu_enforce_rate_limit() 不同，此函式會回傳 REST response 物件，
@@ -1142,22 +1084,6 @@ function mpu_resolve_personality_id($ukagaka_name = null): ?string
         return mpu_get_current_personality_id();
     }
     return null;
-}
-
-/**
- * 驗證 AJAX Nonce（POST 請求專用）
- * 失敗時自動送出錯誤回應，呼叫方只需檢查回傳值即可
- *
- * @return bool 驗證成功返回 true，失敗返回 false（已送出錯誤回應）
- */
-function mpu_verify_ajax_nonce(): bool
-{
-    $request_data = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' ? $_POST : $_GET;
-    if (!isset($request_data['mpu_nonce']) || !wp_verify_nonce($request_data['mpu_nonce'], 'mpu_ajax_nonce')) {
-        wp_send_json(['error' => __('セキュリティ検証に失敗しました', 'mp-ukagaka')]);
-        return false;
-    }
-    return true;
 }
 
 /**

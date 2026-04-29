@@ -312,7 +312,6 @@ function mpu_handle_options_save()
         // 處理擴展設定
         $extend = $_POST['extend'] ?? [];
         // js_area 為特殊欄位，直接保存（供管理員使用）
-        // 使用 stripslashes 處理，與原 mpu_input_filter 保持兼容
         $mpu_opt['extend']['js_area'] = isset($extend['js_area']) ? stripslashes_deep($extend['js_area']) : '';
         $text = '<div class="updated"><p><strong>' . __('設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
     } elseif (isset($_POST['submit5'])) {

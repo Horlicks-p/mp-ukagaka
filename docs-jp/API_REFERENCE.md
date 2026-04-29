@@ -152,20 +152,6 @@ function mpu_js_filter($str)
 
 ---
 
-#### mpu_input_filter()
-
-入力フィルター（保存前の処理）。
-
-```php
-/**
- * @param string $str 入力文字列
- * @return string フィルタリングされた文字列
- */
-function mpu_input_filter($str)
-```
-
----
-
 #### mpu_secure_file_read()
 
 ファイルを安全に読み込みます。
@@ -417,116 +403,6 @@ function mpu_get_language_instruction($language)
 | `zh-TW`  | `請用繁體中文回覆。` |
 | `ja`     | `日本語で返答してください。` |
 | `en`     | `Please reply in English.` |
-
----
-
-#### mpu_call_gemini_api()
-
-Google Gemini APIを呼び出します。
-
-```php
-/**
- * @param string $api_key Gemini APIキー
- * @param string $model モデル名（例: 'gemini-2.5-flash'）
- * @param string $system_prompt システムプロンプト
- * @param string $user_prompt ユーザープロンプト
- * @param string $language 言語設定
- * @param int|null $max_tokens 最大トークン数（オプション）
- * @return string|WP_Error AIの応答またはエラー
- */
-function mpu_call_gemini_api(
-    $api_key,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
----
-
-#### mpu_call_openai_api()
-
-OpenAI APIを呼び出します。
-
-```php
-/**
- * @param string $api_key OpenAI APIキー
- * @param string $model モデル名（例: 'gpt-4o-mini'）
- * @param string $system_prompt システムプロンプト
- * @param string $user_prompt ユーザープロンプト
- * @param string $language 言語設定
- * @param int|null $max_tokens 最大トークン数（オプション）
- * @return string|WP_Error AIの応答またはエラー
- */
-function mpu_call_openai_api(
-    $api_key,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
----
-
-#### mpu_call_claude_api()
-
-Anthropic Claude APIを呼び出します。
-
-```php
-/**
- * @param string $api_key Claude APIキー
- * @param string $model モデル名（例: 'claude-sonnet-4-5-20250929'）
- * @param string $system_prompt システムプロンプト
- * @param string $user_prompt ユーザープロンプト
- * @param string $language 言語設定
- * @param int|null $max_tokens 最大トークン数（オプション）
- * @return string|WP_Error AIの応答またはエラー
- */
-function mpu_call_claude_api(
-    $api_key,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
----
-
-#### mpu_call_ollama_api()
-
-Ollama API（ローカルまたはリモート）を呼び出します。
-
-```php
-/**
- * @param string $endpoint Ollama エンドポイント URL
- * @param string $model モデル名（例: 'qwen3:8b'）
- * @param string $system_prompt システムプロンプト
- * @param string $user_prompt ユーザープロンプト
- * @param string $language 言語設定
- * @param int|null $max_tokens 最大トークン数（オプション）
- * @return string|WP_Error AIの応答またはエラー
- */
-function mpu_call_ollama_api(
-    $endpoint,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
-**機能の特徴：**
-
-- ローカル/リモート接続の自動検出
-- 接続タイプに応じたタイムアウトの調整
-- 思考モードの無効化対応（Qwen3、DeepSeek等のモデル）
 
 ---
 
@@ -794,29 +670,6 @@ function mpu_is_llm_replace_dialogue_enabled()
 
 ---
 
-#### mpu_get_ollama_settings()
-
-Ollama設定を取得します。
-
-```php
-/**
- * @return array|false 設定配列、無効時は false
- */
-function mpu_get_ollama_settings()
-```
-
-**戻り値：**
-
-```php
-[
-    'endpoint' => 'http://localhost:11434',
-    'model' => 'qwen3:8b',
-    'replace_dialogue' => true,
-]
-```
-
----
-
 #### mpu_get_visitor_info_for_llm()
 
 訪問者情報を取得します（LLM会話生成用）。Slimstatデータと統合し、BOT検出や位置情報を含みます。
@@ -861,22 +714,6 @@ function mpu_get_visitor_status_text($visitor_info)
 $visitor_info = mpu_get_visitor_info_for_llm();
 $status = mpu_get_visitor_status_text($visitor_info);
 // 戻り値の例：'🤖 BOT: Googlebot' または 'JP / Tokyo から'
-```
-
----
-
-#### mpu_compress_context_info()
-
-WordPress、ユーザー、および訪問者情報をシステムプロンプト用のコンパクトなXML形式に圧縮します。
-
-```php
-/**
- * @param array $wp_info WordPress情報
- * @param array $user_info ユーザー情報
- * @param array $visitor_info 訪問者情報
- * @return string 圧縮されたXML形式の文字列
- */
-function mpu_compress_context_info($wp_info, $user_info, $visitor_info)
 ```
 
 ---
@@ -998,26 +835,6 @@ $similarity = mpu_calculate_text_similarity('また来たのね。', 'また来�
 $similarity = mpu_calculate_text_similarity('また来たのね。', '久しぶり。');
 // 戻り値：0.0（全く異なる）
 ```
-
----
-
-#### mpu_debug_system_prompt()
-
-デバッグモード：システムプロンプトをWordPressのデバッグログに出力します。
-
-```php
-/**
- * @param string $system_prompt システムプロンプトの内容
- * @return void
- */
-function mpu_debug_system_prompt($system_prompt)
-```
-
-**使用条件：**
-
-- `WP_DEBUG` が `true` の場合のみ出力します。
-- `wp-content/debug.log` に出力されます。
-- システムプロンプトの内容、推定トークン数、文字数が含まれます。
 
 ---
 

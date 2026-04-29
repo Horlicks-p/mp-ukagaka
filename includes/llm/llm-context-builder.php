@@ -765,83 +765,6 @@ function mpu_get_random_posts_for_llm($count = 2)
 }
 
 /**
- * 壓縮上下文資訊為緊湊格式（節省 Token）
- * 
- * @param array $wp_info WordPress 資訊
- * @param array $user_info 用戶資訊
- * @param array $visitor_info 訪客資訊
- * @return string 壓縮後的上下文資訊
- */
-function mpu_compress_context_info($wp_info, $user_info, $visitor_info)
-{
-    $context_lines = [];
-
-    // 1. 網站核心資訊（單行）
-    $site_info = sprintf(
-        "WP %s | Theme: %s v%s | PHP %s",
-        $wp_info['wp_version'],
-        $wp_info['theme_name'],
-        $wp_info['theme_version'],
-        $wp_info['php_version']
-    );
-    $context_lines[] = "<site>{$site_info}</site>";
-
-    // 2. 統計資訊（單行，使用簡寫）
-    $stats_info = sprintf(
-        "文章:%d 留言:%d 垃圾:%d 分類:%d 標籤:%d 運營:%d天",
-        $wp_info['post_count'],
-        $wp_info['comment_count'],
-        $wp_info['spam_count'] ?? 0,
-        $wp_info['category_count'],
-        $wp_info['tag_count'],
-        $wp_info['days_operating']
-    );
-    $context_lines[] = "<stats>{$stats_info}</stats>";
-
-    // 3. 外掛資訊（只取前 5 個，避免過長）
-    if (!empty($wp_info['active_plugins_list']) && is_array($wp_info['active_plugins_list'])) {
-        $plugins_count = $wp_info['active_plugins_count'] ?? 0;
-        $top_plugins = array_slice($wp_info['active_plugins_list'], 0, 5);
-        $plugins_text = implode('、', $top_plugins);
-
-        if ($plugins_count > 5) {
-            $plugins_info = "主要プラグイン: {$plugins_text}...等 (総計{$plugins_count}個)";
-        } else {
-            $plugins_info = "プラグイン: {$plugins_text} (総計{$plugins_count}個)";
-        }
-        $context_lines[] = "<plugins>{$plugins_info}</plugins>";
-    }
-
-    // 4. 用戶狀態（單行）
-    if ($user_info['is_logged_in']) {
-        $role_labels = [
-            'administrator' => '管理員',
-            'editor' => '編集',
-            'author' => '作者',
-            'contributor' => '貢献者',
-            'subscriber' => '購読者',
-        ];
-        $role = $role_labels[$user_info['primary_role']] ?? $user_info['primary_role'];
-        $user_status = sprintf(
-            "%s (%s)",
-            $user_info['display_name'],
-            $role
-        );
-    } else {
-        $user_status = "訪問者（未ログイン）";
-    }
-    $context_lines[] = "<user>{$user_status}</user>";
-
-    // 5. 訪客資訊（BOT 檢測或地理位置）
-    $visitor_status = mpu_get_visitor_status_text($visitor_info);
-    if (!empty($visitor_status)) {
-        $context_lines[] = "<visitor>{$visitor_status}</visitor>";
-    }
-
-    return implode("\n", $context_lines);
-}
-
-/**
  * 加權隨機選擇函數
  * 
  * 根據權重陣列，從類別陣列中隨機選擇一個類別
@@ -964,35 +887,4 @@ function mpu_build_optimized_system_prompt(
     return $system_prompt;
 }
 
-/**
- * 獲取上下文資訊標籤（用於動態描述統計/系統資訊）
- * 
- * 從人格的 dynamics.json 讀取 context_labels，
- * 讓各人格可以自訂統計資訊的描述方式。
- * 
- * @param string $key 標籤鍵名（如 'post_count', 'wp_version' 等）
- * @param string|null $personality_id 角色 ID（可選）
- * @return string 標籤描述文字，如果不存在則返回空字串
- */
-function mpu_get_context_label($key, $personality_id = null)
-{
-    static $labels_cache = [];
-
-    // 使用快取避免重複讀取
-    $cache_key = $personality_id ?? 'default';
-    
-    if (!isset($labels_cache[$cache_key])) {
-        $labels_cache[$cache_key] = [];
-        
-        if (function_exists('mpu_load_personality_dynamics')) {
-            $dynamics = mpu_load_personality_dynamics($personality_id);
-            
-            if (!empty($dynamics['context_labels']) && is_array($dynamics['context_labels'])) {
-                $labels_cache[$cache_key] = $dynamics['context_labels'];
-            }
-        }
-    }
-
-    return $labels_cache[$cache_key][$key] ?? '';
-}
 

@@ -507,71 +507,23 @@ AI functions module, handles cloud AI API calls (Gemini, OpenAI, Claude) and Oll
 function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt = null)
 
 /**
- * Calls Gemini API
- * @param string $api_key API Key
- * @param string $model Model name (e.g., gemini-2.5-flash)
- * @param string $system_prompt System prompt
- * @param string $user_prompt User prompt
- * @param string $language Language code
- * @return string|WP_Error Generated text or error
- */
-function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language)
-
-/**
- * Calls OpenAI API
- * @param string $api_key API Key
- * @param string $model Model name (e.g., gpt-4o-mini)
- * @param string $system_prompt System prompt
- * @param string $user_prompt User prompt
- * @param string $language Language code
- * @return string|WP_Error Generated text or error
- */
-function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $language)
-
-/**
- * Calls Claude API
- * @param string $api_key API Key
- * @param string $model Model name (e.g., claude-sonnet-4-5-20250929)
- * @param string $system_prompt System prompt
- * @param string $user_prompt User prompt
- * @param string $language Language code
- * @return string|WP_Error Generated text or error
- */
-function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $language)
-
-/**
- * Calls Ollama API (Local or Remote)
- * @param string $endpoint Ollama endpoint URL
- * @param string $model Model name (e.g., qwen3:8b)
- * @param string $system_prompt System prompt
- * @param string $user_prompt User prompt
- * @param string $language Language code
- * @return string|WP_Error Generated text or error
- */
-function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language)
-
-/**
  * Gets language instruction
  * @param string $language Language code
  * @return string Language instruction
  */
 function mpu_get_language_instruction($language)
-
-/**
- * Gets list of allowed conditional tags
- * @return array Array of conditional tags
- */
-function mpu_get_allowed_conditional_tags()
 ```
 
 #### Supported AI Providers
 
-| Provider | Function | API Endpoint | Model Selection |
-| -------- | -------- | ------------ | --------------- |
-| Gemini | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | Supported (gemini-2.5-flash, gemini-2.5-pro, etc.) |
-| OpenAI | `mpu_call_openai_api()` | `api.openai.com` | Supported (gpt-4o-mini, gpt-4o, etc.) |
-| Claude | `mpu_call_claude_api()` | `api.anthropic.com` | Supported (claude-sonnet-4-5-20250929, etc.) |
-| Ollama | `mpu_call_ollama_api()` | Local or Remote Ollama Service | Supported (Any Ollama model) |
+All providers are routed through `MPU_AI_Provider_Factory::create($provider_slug)->generate_text($args)`. Use `mpu_call_ai_api()` as the unified entry point.
+
+| Provider | Slug | API Endpoint | Model Selection |
+| -------- | ---- | ------------ | --------------- |
+| Gemini | `gemini` | `generativelanguage.googleapis.com` | Supported (gemini-2.5-flash, gemini-2.5-pro, etc.) |
+| OpenAI | `openai` | `api.openai.com` | Supported (gpt-4o-mini, gpt-4o, etc.) |
+| Claude | `claude` | `api.anthropic.com` | Supported (claude-sonnet-4-6, etc.) |
+| Ollama | `ollama` | Local or Remote Ollama Service | Supported (Any Ollama model) |
 
 #### AI Stability & Security
 
@@ -635,12 +587,6 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
  * @return bool
  */
 function mpu_is_llm_replace_dialogue_enabled()
-
-/**
- * Gets Ollama settings
- * @return array|false Settings array, false if not enabled
- */
-function mpu_get_ollama_settings()
 ```
 
 #### Timeout Settings
@@ -688,14 +634,6 @@ Chat mode API handler, provides an AI call wrapper for the new REST Controllers 
  * @return string|WP_Error AI response
  */
 function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
-
-/**
- * Specific Provider Wrappers
- */
-function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
-function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $options = [])
-function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $options = [])
-function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $options = [])
 ```
 
 ### REST API Modules (OO Architecture)
@@ -963,27 +901,7 @@ Handles admin testing and management endpoints:
  * @param array  $options       Provider / model / api_key options, etc.
  * @return string|WP_Error AI response or error
  */
-function mpu_call_ai_api_with_messages($system_prompt, $messages, $options = [])
-
-/**
- * Calls Ollama using messages format
- */
-function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
-
-/**
- * Calls Gemini using messages format
- */
-function mpu_call_gemini_with_messages($api_key, $model, $system_prompt, $messages, $language)
-
-/**
- * Calls OpenAI using messages format
- */
-function mpu_call_openai_with_messages($api_key, $model, $system_prompt, $messages, $language)
-
-/**
- * Calls Claude using messages format
- */
-function mpu_call_claude_with_messages($api_key, $model, $system_prompt, $messages, $language)
+function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
 ```
 
 #### Conversation Message Format
@@ -1028,23 +946,7 @@ $stats_keywords = [
 
 #### Thinking Mode Support (Ollama)
 
-```php
-// In mpu_call_ollama_with_messages()
-$is_thinking_model = (strpos(strtolower($model), 'qwen3') !== false)
-    || (strpos(strtolower($model), 'frieren') !== false)
-    || (strpos(strtolower($model), 'deepseek') !== false);
-
-// Default enable thinking mode
-$enable_thinking = $is_thinking_model && !(isset($options['ollama_disable_thinking']) && $options['ollama_disable_thinking']);
-
-if ($enable_thinking) {
-    $request_body['think'] = true;
-    $request_body['options']['num_ctx'] = 8192;  // Expand context window
-} else {
-    $request_body['think'] = false;
-    $request_body['options']['num_ctx'] = 4096;
-}
-```
+Ollama provider automatically detects thinking models (Qwen3, DeepSeek, etc.) and sets `think: true` / `num_ctx: 8192` accordingly. Disable via the `ollama_disable_thinking` option.
 
 #### Response Length Limit
 

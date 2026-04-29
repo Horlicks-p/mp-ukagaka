@@ -4,6 +4,34 @@
 
 ---
 
+## [2.13.9] - 2026-04-29
+
+### 🧹 Dead Code Removal (Phase 1 & 2)
+
+Removed all orphan functions confirmed to have zero runtime callers across PHP and JS source. No behaviour change.
+
+**PHP removed (13 functions across 8 files):**
+
+- `utility-functions.php`: `mpu_enforce_rate_limit`, `mpu_verify_ajax_nonce`, `mpu_input_filter`
+- `ai-functions.php`: `mpu_call_gemini_api`, `mpu_call_openai_api`, `mpu_call_claude_api`, `mpu_call_ollama_api`, `mpu_get_allowed_conditional_tags`
+- `chat-api-handlers.php`: `mpu_call_ollama_with_messages`, `mpu_call_openai_with_messages`, `mpu_call_claude_with_messages`, `mpu_call_gemini_with_messages` (unified entry `mpu_call_ai_api_with_messages` retained)
+- `llm-context-builder.php`: `mpu_compress_context_info`, `mpu_get_context_label` (depended on non-existent `mpu_load_personality_dynamics`)
+- `llm-functions.php`: `mpu_get_ollama_settings`, `mpu_debug_system_prompt`
+- `personality-prompts.php`: `mpu_get_dynamic_prompt_templates`
+- `personality-decorations.php`: `mpu_get_personality_all_decorations`
+- `personality-loader.php`: `mpu_is_frieren_personality`, `mpu_get_personality_trait`
+- `weather-functions.php`: `mpu_get_weather_info`
+
+**JS removed (4 functions across 3 source files):**
+
+- `ukagaka-base.js`: `mpu_init_visit_tracking`
+- `ukagaka-core.js`: `mpu_hideMsgText`, `mpuMoe`
+- `ukagaka-chat.js`: `mpu_escapeHTML`
+
+**Docs updated:** API_REFERENCE and DEVELOPER_GUIDE across all three language sets (EN / TW / JP) have been updated to reflect removals.
+
+---
+
 ## [2.13.8] - 2026-04-27
 
 ### ✨ New: Visitor Pulse and AI Crawler Signals
@@ -46,6 +74,7 @@
 - **Fix**: Added the `data-spa-ignore` attribute to the `#toTop` anchor in `frontend-functions.php`, and added `e.stopPropagation()` to the click handler in `ukagaka-features.js` to prevent SPA frameworks from intercepting the anchor click.
 
 ---
+
 ## [2.13.6] - 2026-04-24
 
 ### 📖 Docs: Developer Documentation Catch-Up & Cross-Language Sync
@@ -85,7 +114,7 @@
 - **Browser Autofill on API Key Fields**: Changed `autocomplete="off"` to `autocomplete="new-password"` on all three API key password inputs (Gemini, OpenAI, Claude) in the LLM Settings page. Some browsers ignored `autocomplete="off"` and injected saved passwords into the fields, causing them to show `.......` instead of the placeholder text.
 - **Browser Username Autofill on Custom Model Inputs**: Added `autocomplete="off"` to the custom model text inputs for all three providers. The browser was treating the text input adjacent to a password field as a username field and auto-filling `admin`.
 - **Gemini 2.5 Pro: Thinking Parts Not Handled**: Gemini 2.5 Pro returns internal thinking blocks (`"thought": true`) in the `parts` array before the actual response text. The parser was only checking `parts[0].text` and failed when the first part was a thought block. Fixed by iterating all parts and skipping those with `thought: true` in `generate_text`, `generate_chat`, and `test_connection`.
-- **Gemini 2.5 Pro: MAX\_TOKENS in Test Connection**: The test connection request used `maxOutputTokens: 50`, which was exhausted entirely by Gemini 2.5 Pro's internal thinking (47 thinking tokens), leaving no room for actual output and returning an empty `content.parts`. Increased to `200`.
+- **Gemini 2.5 Pro: MAX_TOKENS in Test Connection**: The test connection request used `maxOutputTokens: 50`, which was exhausted entirely by Gemini 2.5 Pro's internal thinking (47 thinking tokens), leaving no room for actual output and returning an empty `content.parts`. Increased to `200`.
 - **Removed Gemini 2.5 Pro Preset**: Removed `gemini-2.5-pro` from the preset model list. Due to its mandatory thinking overhead, it is unreliable with the current token budget. Users who need it can still enter it via the custom model input.
 
 ---

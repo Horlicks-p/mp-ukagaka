@@ -4,6 +4,32 @@
 
 ---
 
+## [2.13.9] - 2026-04-29
+
+### 🧹 死碼清除（第一、二階段）
+
+移除所有確認在 PHP 與 JS source 中完全無 runtime 呼叫者的孤兒函數，無任何行為變更。
+
+**PHP 移除（共 21 個函數，涵蓋 8 個檔案）：**
+
+- `utility-functions.php`：`mpu_enforce_rate_limit`、`mpu_verify_ajax_nonce`、`mpu_input_filter`
+- `ai-functions.php`：`mpu_call_gemini_api`、`mpu_call_openai_api`、`mpu_call_claude_api`、`mpu_call_ollama_api`、`mpu_get_allowed_conditional_tags`
+- `chat-api-handlers.php`：`mpu_call_ollama_with_messages`、`mpu_call_openai_with_messages`、`mpu_call_claude_with_messages`、`mpu_call_gemini_with_messages`（統一入口 `mpu_call_ai_api_with_messages` 保留）
+- `llm-context-builder.php`：`mpu_compress_context_info`、`mpu_get_context_label`（依賴不存在的 `mpu_load_personality_dynamics`）
+- `llm-functions.php`：`mpu_get_ollama_settings`、`mpu_debug_system_prompt`
+- `personality-prompts.php`：`mpu_get_dynamic_prompt_templates`
+- `personality-decorations.php`：`mpu_get_personality_all_decorations`
+- `personality-loader.php`：`mpu_is_frieren_personality`、`mpu_get_personality_trait`
+- `weather-functions.php`：`mpu_get_weather_info`
+
+**JS 移除（共 4 個函數，涵蓋 3 個 source 檔案）：**
+
+- `ukagaka-base.js`：`mpu_init_visit_tracking`
+- `ukagaka-core.js`：`mpu_hideMsgText`、`mpuMoe`
+- `ukagaka-chat.js`：`mpu_escapeHTML`
+
+---
+
 ## [2.13.8] - 2026-04-27
 
 ### ✨ 新功能：訪客脈動與 AI 爬蟲訊號
@@ -46,6 +72,7 @@
 - **修正**：在 `frontend-functions.php` 為 `#toTop` 錨點加上 `data-spa-ignore` 屬性，並在 `ukagaka-features.js` 的點擊處理中加入 `e.stopPropagation()`，防止 SPA 框架攔截此錨點點擊。
 
 ---
+
 ## [2.13.6] - 2026-04-24
 
 ### 📖 文件更新：開發文件補完與多語同步
@@ -86,7 +113,7 @@
 - **API 金鑰欄位的瀏覽器自動填入問題**：LLM 設定頁面中 Gemini、OpenAI、Claude 三個 API 金鑰輸入欄（`type="password"`）的 `autocomplete="off"` 改為 `autocomplete="new-password"`。部分瀏覽器會忽略 `autocomplete="off"` 而注入已儲存的密碼，導致欄位顯示 `.......' 而非提示文字，已修正。
 - **自訂模型輸入欄的使用者名稱自動填入問題**：為三個提供商的自訂模型文字輸入欄加入 `autocomplete="off"`。瀏覽器將密碼欄位旁的文字輸入誤判為帳號欄並自動填入 `admin`，已修正。
 - **Gemini 2.5 Pro 的 thinking 區塊未處理**：Gemini 2.5 Pro 在實際回應文字之前，會在 `parts` 陣列中加入內部思考區塊（`"thought": true`）。原本的程式碼僅檢查 `parts[0].text`，當第一個 part 為 thinking 區塊時會解析失敗。已在 `generate_text`、`generate_chat`、`test_connection` 三處修正，改為跳過 `thought: true` 的區塊並取得第一個正常文字。
-- **Gemini 2.5 Pro 測試連接發生 MAX\_TOKENS**：測試連接請求的 `maxOutputTokens` 設為 `50`，被 Gemini 2.5 Pro 的內部 thinking（47 個 token）全部耗盡，導致實際回應無法輸出、`content.parts` 為空。已調整為 `200`。
+- **Gemini 2.5 Pro 測試連接發生 MAX_TOKENS**：測試連接請求的 `maxOutputTokens` 設為 `50`，被 Gemini 2.5 Pro 的內部 thinking（47 個 token）全部耗盡，導致實際回應無法輸出、`content.parts` 為空。已調整為 `200`。
 - **移除 Gemini 2.5 Pro 預設選項**：從預設模型清單中移除 `gemini-2.5-pro`。由於其必要的 thinking 開銷在現有 token 預算下不穩定，仍可透過自訂模型輸入欄使用。
 
 ---

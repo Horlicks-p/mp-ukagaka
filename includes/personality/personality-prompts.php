@@ -252,25 +252,6 @@ function mpu_replace_single_prompt_variables($prompt, $variables)
 }
 
 /**
- * Get dynamic prompt templates for a specific category
- * 
- * @param string $category Category name (e.g., 'time_aware_dynamic', 'tech_observation')
- * @param string|null $personality_id Personality ID, or null for current
- * @return array Array of prompt templates, or empty array if not found
- */
-function mpu_get_dynamic_prompt_templates($category, $personality_id = null)
-{
-    $dynamic = mpu_load_personality_dynamic_prompts($personality_id);
-
-    if (empty($dynamic[$category])) {
-        return [];
-    }
-
-    $result = $dynamic[$category];
-    return is_array($result) ? $result : [$result];
-}
-
-/**
  * Get statistics mappings from dynamic prompts
  * 
  * @param string|null $personality_id Personality ID, or null for current

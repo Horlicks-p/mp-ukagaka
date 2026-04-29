@@ -4,6 +4,34 @@
 
 ---
 
+## [2.13.9] - 2026-04-29
+
+### 🧹 デッドコード削除（フェーズ 1 & 2）
+
+PHP と JS ソース全体でランタイム呼び出し元がゼロと確認された孤立関数をすべて削除。動作変更なし。
+
+**PHP 削除（8 ファイルにわたる計 21 関数）：**
+
+- `utility-functions.php`：`mpu_enforce_rate_limit`、`mpu_verify_ajax_nonce`、`mpu_input_filter`
+- `ai-functions.php`：`mpu_call_gemini_api`、`mpu_call_openai_api`、`mpu_call_claude_api`、`mpu_call_ollama_api`、`mpu_get_allowed_conditional_tags`
+- `chat-api-handlers.php`：`mpu_call_ollama_with_messages`、`mpu_call_openai_with_messages`、`mpu_call_claude_with_messages`、`mpu_call_gemini_with_messages`（統合エントリ `mpu_call_ai_api_with_messages` は保持）
+- `llm-context-builder.php`：`mpu_compress_context_info`、`mpu_get_context_label`（存在しない `mpu_load_personality_dynamics` に依存）
+- `llm-functions.php`：`mpu_get_ollama_settings`、`mpu_debug_system_prompt`
+- `personality-prompts.php`：`mpu_get_dynamic_prompt_templates`
+- `personality-decorations.php`：`mpu_get_personality_all_decorations`
+- `personality-loader.php`：`mpu_is_frieren_personality`、`mpu_get_personality_trait`
+- `weather-functions.php`：`mpu_get_weather_info`
+
+**JS 削除（3 ソースファイルにわたる計 4 関数）：**
+
+- `ukagaka-base.js`：`mpu_init_visit_tracking`
+- `ukagaka-core.js`：`mpu_hideMsgText`、`mpuMoe`
+- `ukagaka-chat.js`：`mpu_escapeHTML`
+
+**ドキュメント更新：** 3 言語セット（EN / TW / JP）の API_REFERENCE と DEVELOPER_GUIDE を同期更新済み。
+
+---
+
 ## [2.13.8] - 2026-04-27
 
 ### ✨ 新機能：訪問者脈動と AI クローラーシグナル
@@ -46,6 +74,7 @@
 - **修正**：`frontend-functions.php` の `#toTop` アンカーに `data-spa-ignore` 属性を追加し、`ukagaka-features.js` のクリックハンドラに `e.stopPropagation()` を追加して、SPA フレームワークによるアンカークリックの横取りを防ぎます。
 
 ---
+
 ## [2.13.6] - 2026-04-24
 
 ### 📖 ドキュメント更新：開発者向け文書の補完と多言語同期
@@ -85,7 +114,7 @@
 - **API キー欄のブラウザ自動入力問題**：LLM 設定ページの Gemini・OpenAI・Claude 3 つの API キー入力欄（`type="password"`）の `autocomplete="off"` を `autocomplete="new-password"` に変更しました。一部のブラウザが `autocomplete="off"` を無視して保存済みパスワードを注入し、プレースホルダーの代わりに `.......' が表示される問題を修正しました。
 - **カスタムモデル入力欄へのユーザー名自動入力問題**：3 プロバイダーすべてのカスタムモデルテキスト入力欄に `autocomplete="off"` を追加しました。パスワードフィールドに隣接するテキスト入力をブラウザがユーザー名欄と誤認し、`admin` を自動入力していた問題を修正しました。
 - **Gemini 2.5 Pro の thinking パート未処理**：Gemini 2.5 Pro は実際の返答テキストの前に、内部思考ブロック（`"thought": true`）を `parts` 配列に含めて返します。従来のコードは `parts[0].text` のみを確認していたため、先頭が thinking パートの場合に解析失敗していました。`generate_text`・`generate_chat`・`test_connection` の 3 箇所で、`thought: true` のパートをスキップして最初の通常テキストを取り出すよう修正しました。
-- **Gemini 2.5 Pro のテスト接続で MAX\_TOKENS 発生**：テスト接続リクエストの `maxOutputTokens` が `50` だったため、Gemini 2.5 Pro の内部 thinking（47 トークン）だけで使い切られ、実際の返答が出力されず `content.parts` が空になっていました。`200` に増やし解決しました。
+- **Gemini 2.5 Pro のテスト接続で MAX_TOKENS 発生**：テスト接続リクエストの `maxOutputTokens` が `50` だったため、Gemini 2.5 Pro の内部 thinking（47 トークン）だけで使い切られ、実際の返答が出力されず `content.parts` が空になっていました。`200` に増やし解決しました。
 - **Gemini 2.5 Pro プリセットの削除**：プリセットモデル一覧から `gemini-2.5-pro` を削除しました。thinking の必須オーバーヘッドにより現在のトークンバジェットでは安定動作しないためです。自訂モデル入力欄から引き続き利用可能です。
 
 ---

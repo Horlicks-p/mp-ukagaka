@@ -152,20 +152,6 @@ function mpu_js_filter($str)
 
 ---
 
-#### mpu_input_filter()
-
-Input filter (preprocessing before saving).
-
-```php
-/**
- * @param string $str Input string
- * @return string Filtered string
- */
-function mpu_input_filter($str)
-```
-
----
-
 #### mpu_secure_file_read()
 
 Safely reads a file.
@@ -417,116 +403,6 @@ function mpu_get_language_instruction($language)
 | `zh-TW`  | `請用繁體中文回覆。` |
 | `ja`     | `日本語で返答してください。` |
 | `en`     | `Please reply in English.` |
-
----
-
-#### mpu_call_gemini_api()
-
-Calls the Google Gemini API.
-
-```php
-/**
- * @param string $api_key Gemini API Key
- * @param string $model Model name (e.g. 'gemini-2.5-flash')
- * @param string $system_prompt System prompt
- * @param string $user_prompt User prompt
- * @param string $language Language setting
- * @param int|null $max_tokens Max tokens (optional)
- * @return string|WP_Error AI response or error
- */
-function mpu_call_gemini_api(
-    $api_key,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
----
-
-#### mpu_call_openai_api()
-
-Calls the OpenAI API.
-
-```php
-/**
- * @param string $api_key OpenAI API Key
- * @param string $model Model name (e.g. 'gpt-4o-mini')
- * @param string $system_prompt System prompt
- * @param string $user_prompt User prompt
- * @param string $language Language setting
- * @param int|null $max_tokens Max tokens (optional)
- * @return string|WP_Error AI response or error
- */
-function mpu_call_openai_api(
-    $api_key,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
----
-
-#### mpu_call_claude_api()
-
-Calls the Anthropic Claude API.
-
-```php
-/**
- * @param string $api_key Claude API Key
- * @param string $model Model name (e.g. 'claude-sonnet-4-5-20250929')
- * @param string $system_prompt System prompt
- * @param string $user_prompt User prompt
- * @param string $language Language setting
- * @param int|null $max_tokens Max tokens (optional)
- * @return string|WP_Error AI response or error
- */
-function mpu_call_claude_api(
-    $api_key,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
----
-
-#### mpu_call_ollama_api()
-
-Calls the Ollama API (local or remote).
-
-```php
-/**
- * @param string $endpoint Ollama endpoint URL
- * @param string $model Model name (e.g. 'qwen3:8b')
- * @param string $system_prompt System prompt
- * @param string $user_prompt User prompt
- * @param string $language Language setting
- * @param int|null $max_tokens Max tokens (optional)
- * @return string|WP_Error AI response or error
- */
-function mpu_call_ollama_api(
-    $endpoint,
-    $model,
-    $system_prompt,
-    $user_prompt,
-    $language = 'zh-TW',
-    $max_tokens = null
-)
-```
-
-**Features:**
-
-- Automatically detects local/remote connection
-- Adjusts timeout based on connection type
-- Supports disabling thinking mode (Qwen3, DeepSeek, etc.)
 
 ---
 
@@ -794,29 +670,6 @@ function mpu_is_llm_replace_dialogue_enabled()
 
 ---
 
-#### mpu_get_ollama_settings()
-
-Gets Ollama settings.
-
-```php
-/**
- * @return array|false Settings array, false if disabled
- */
-function mpu_get_ollama_settings()
-```
-
-**Return Value:**
-
-```php
-[
-    'endpoint' => 'http://localhost:11434',
-    'model' => 'qwen3:8b',
-    'replace_dialogue' => true,
-]
-```
-
----
-
 #### mpu_get_visitor_info_for_llm()
 
 Gets visitor info (for LLM dialogue generation). Integrates Slimstat data, including BOT detection and geolocation.
@@ -861,22 +714,6 @@ function mpu_get_visitor_status_text($visitor_info)
 $visitor_info = mpu_get_visitor_info_for_llm();
 $status = mpu_get_visitor_status_text($visitor_info);
 // Could return: '🤖 BOT: Googlebot' or 'From US / New York'
-```
-
----
-
-#### mpu_compress_context_info()
-
-Compresses WordPress, user, and visitor info into a compact XML format (for System Prompt).
-
-```php
-/**
- * @param array $wp_info WordPress info
- * @param array $user_info User info
- * @param array $visitor_info Visitor info
- * @return string Compressed XML format string
- */
-function mpu_compress_context_info($wp_info, $user_info, $visitor_info)
 ```
 
 ---
@@ -998,26 +835,6 @@ $similarity = mpu_calculate_text_similarity('Hello there.', 'Hello there.');
 $similarity = mpu_calculate_text_similarity('Hello there.', 'How are you?');
 // Returns: 0.0 (completely different)
 ```
-
----
-
-#### mpu_debug_system_prompt()
-
-Debug mode: Outputs System Prompt to WordPress debug log.
-
-```php
-/**
- * @param string $system_prompt System Prompt content
- * @return void
- */
-function mpu_debug_system_prompt($system_prompt)
-```
-
-**Usage Conditions:**
-
-- Only outputs when `WP_DEBUG` is `true`
-- Outputs to `wp-content/debug.log`
-- Includes System Prompt content, estimated token count, and character length
 
 ---
 

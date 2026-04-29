@@ -223,25 +223,6 @@ function mpu_get_weather_context()
 }
 
 /**
- * 獲取詳細天氣資訊（供除錯或進階使用）
- * 
- * @return array|null 完整天氣資料陣列
- */
-function mpu_get_weather_info()
-{
-    $mpu_opt = mpu_get_option();
-
-    if (empty($mpu_opt['weather_enabled'])) {
-        return null;
-    }
-
-    $latitude = isset($mpu_opt['weather_latitude']) ? floatval($mpu_opt['weather_latitude']) : 25.0330;
-    $longitude = isset($mpu_opt['weather_longitude']) ? floatval($mpu_opt['weather_longitude']) : 121.5654;
-
-    return mpu_get_weather_forecast($latitude, $longitude);
-}
-
-/**
  * 清除天氣快取
  * 
  * @param float|null $latitude 緯度（可選，不指定則清除所有）

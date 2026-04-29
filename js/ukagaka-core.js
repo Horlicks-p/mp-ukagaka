@@ -40,14 +40,6 @@ function mpu_hidemsg(speed = 400) {
   }
 }
 
-/**
- * 隱藏/顯示訊息文字（保留高度，避免視窗縮動）
- * - 用在睡眠模式按 OK 喚醒時，避免 ZZZ 閃現 & 清空文字導致訊息框「縮一下」
- */
-function mpu_hideMsgText() {
-  const $msg = jQuery("#ukagaka_msg");
-  if ($msg.length) $msg.css("visibility", "hidden");
-}
 function mpu_showMsgText() {
   const $msg = jQuery("#ukagaka_msg");
   if ($msg.length) $msg.css("visibility", "visible");
@@ -257,59 +249,6 @@ function stopAutoTalk() {
 function setAutoTalkUI() {
   const $btn = jQuery("#toggleAutoTalk");
   if ($btn.length) $btn.text(mpuAutoTalk ? "停止自動對話" : "開始自動對話");
-}
-
-// ====== 指令處理 ======
-/**
- * 處理春菜指令
- * @param {string} command - 指令字串，例如 "(:next)"、"(:showmsg)" 等
- * @returns {boolean} 是否成功處理指令
- */
-function mpuMoe(command) {
-  if (!command) return false;
-
-  const commands = {
-    "(:next)": () => mpu_nextmsg(),
-    "(:showmsg)": () => mpu_showmsg(400),
-    "(:hidemsg)": () => mpu_hidemsg(400),
-    "(:showrobot)": () => mpu_showrobot(400),
-    "(:hiderobot)": () => mpu_hiderobot(400),
-    "(:previous)": () => debugLog("(:previous) is not implemented."),
-  };
-
-  if (commands[command]) {
-    commands[command]();
-    return;
-  }
-
-  // (:msg[n])
-  const m = command.match(/^\(:msg\[(\d+)\]\)$/);
-  if (m) {
-    const idx = parseInt(m[1], 10) - 1;
-    if (window.mpuMsgList && Array.isArray(window.mpuMsgList.msg)) {
-      const msgArr = window.mpuMsgList.msg;
-      const auto = window.mpuMsgList.auto_msg || "";
-      const safeIdx = idx >= 0 && idx < msgArr.length ? idx : 0;
-      const safeMsg = msgArr[safeIdx] + auto;
-
-      mpu_beforemsg(400);
-      mpu_showmsg(400);
-      setTimeout(() => {
-        mpu_typewriter(mpu_unescapeHTML(safeMsg), "#ukagaka_msg");
-      }, 510);
-    }
-    return;
-  }
-
-  // 直接發話（會附 auto_msg）
-  if (window.mpuMsgList) {
-    const auto = window.mpuMsgList.auto_msg || "";
-    mpu_beforemsg(400);
-    mpu_showmsg(400);
-    setTimeout(() => {
-      mpu_typewriter(mpu_unescapeHTML(command + auto), "#ukagaka_msg");
-    }, 510);
-  }
 }
 
 /**

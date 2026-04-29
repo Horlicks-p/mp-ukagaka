@@ -507,71 +507,23 @@ AI 機能モジュール。クラウド AI API の呼び出し（Gemini、OpenAI
 function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt = null)
 
 /**
- * Gemini API を呼び出します
- * @param string $api_key API キー
- * @param string $model モデル名（例：gemini-2.5-flash）
- * @param string $system_prompt システムプロンプト
- * @param string $user_prompt ユーザープロンプト
- * @param string $language 言語コード
- * @return string|WP_Error 生成されたテキストまたはエラー
- */
-function mpu_call_gemini_api($api_key, $model, $system_prompt, $user_prompt, $language)
-
-/**
- * OpenAI API を呼び出します
- * @param string $api_key API キー
- * @param string $model モデル名（例：gpt-4o-mini）
- * @param string $system_prompt システムプロンプト
- * @param string $user_prompt ユーザープロンプト
- * @param string $language 言語コード
- * @return string|WP_Error 生成されたテキストまたはエラー
- */
-function mpu_call_openai_api($api_key, $model, $system_prompt, $user_prompt, $language)
-
-/**
- * Claude API を呼び出します
- * @param string $api_key API キー
- * @param string $model モデル名（例：claude-sonnet-4-5-20250929）
- * @param string $system_prompt システムプロンプト
- * @param string $user_prompt ユーザープロンプト
- * @param string $language 言語コード
- * @return string|WP_Error 生成されたテキストまたはエラー
- */
-function mpu_call_claude_api($api_key, $model, $system_prompt, $user_prompt, $language)
-
-/**
- * Ollama API を呼び出します（ローカルまたはリモート）
- * @param string $endpoint Ollama エンドポイント URL
- * @param string $model モデル名（例：qwen3:8b）
- * @param string $system_prompt システムプロンプト
- * @param string $user_prompt ユーザープロンプト
- * @param string $language 言語コード
- * @return string|WP_Error 生成されたテキストまたはエラー
- */
-function mpu_call_ollama_api($endpoint, $model, $system_prompt, $user_prompt, $language)
-
-/**
  * 言語の指示を取得します
  * @param string $language 言語コード
  * @return string 言語の指示
  */
 function mpu_get_language_instruction($language)
-
-/**
- * 許可されている条件タグのリストを取得します
- * @return array 条件タグの配列
- */
-function mpu_get_allowed_conditional_tags()
 ```
 
 #### サポートされている AI プロバイダー
 
-| プロバイダー | 関数 | API エンドポイント | モデル選択 |
-| -------- | -------- | ------------ | --------------- |
-| Gemini | `mpu_call_gemini_api()` | `generativelanguage.googleapis.com` | サポートあり（gemini-2.5-flash, gemini-2.5-pro など） |
-| OpenAI | `mpu_call_openai_api()` | `api.openai.com` | サポートあり（gpt-4o-mini, gpt-4o など） |
-| Claude | `mpu_call_claude_api()` | `api.anthropic.com` | サポートあり（claude-sonnet-4-5-20250929 など） |
-| Ollama | `mpu_call_ollama_api()` | ローカルまたはリモートの Ollama サービス | サポートあり（任意の Ollama モデル） |
+すべてのプロバイダーは `MPU_AI_Provider_Factory::create($provider_slug)->generate_text($args)` を通じてルーティングされます。統一エントリーポイントとして `mpu_call_ai_api()` を使用してください。
+
+| プロバイダー | スラッグ | API エンドポイント | モデル選択 |
+| -------- | ---- | ------------ | --------------- |
+| Gemini | `gemini` | `generativelanguage.googleapis.com` | サポートあり（gemini-2.5-flash, gemini-2.5-pro など） |
+| OpenAI | `openai` | `api.openai.com` | サポートあり（gpt-4o-mini, gpt-4o など） |
+| Claude | `claude` | `api.anthropic.com` | サポートあり（claude-sonnet-4-6 など） |
+| Ollama | `ollama` | ローカルまたはリモートの Ollama サービス | サポートあり（任意の Ollama モデル） |
 
 #### AI の安定性とセキュリティ
 
@@ -635,12 +587,6 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
  * @return bool
  */
 function mpu_is_llm_replace_dialogue_enabled()
-
-/**
- * Ollama 設定を取得します
- * @return array|false 設定配列、無効時は false
- */
-function mpu_get_ollama_settings()
 ```
 
 #### タイムアウト設定
@@ -688,14 +634,6 @@ $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
  * @return string|WP_Error AI の応答
  */
 function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
-
-/**
- * 特定の Provider 専用のラッパー
- */
-function mpu_call_ollama_with_messages($system_prompt, $messages, $options = [])
-function mpu_call_openai_with_messages($api_key, $system_prompt, $messages, $options = [])
-function mpu_call_claude_with_messages($api_key, $system_prompt, $messages, $options = [])
-function mpu_call_gemini_with_messages($api_key, $system_prompt, $messages, $options = [])
 ```
 
 #### 会話メッセージの形式
@@ -740,23 +678,7 @@ $stats_keywords = [
 
 #### 思考モードのサポート (Ollama)
 
-```php
-// mpu_call_ollama_with_messages() 内
-$is_thinking_model = (strpos(strtolower($model), 'qwen3') !== false)
-    || (strpos(strtolower($model), 'frieren') !== false)
-    || (strpos(strtolower($model), 'deepseek') !== false);
-
-// デフォルトで思考モードを有効にする
-$enable_thinking = $is_thinking_model && !(isset($options['ollama_disable_thinking']) && $options['ollama_disable_thinking']);
-
-if ($enable_thinking) {
-    $request_body['think'] = true;
-    $request_body['options']['num_ctx'] = 8192;  // コンテキストウィンドウを拡大
-} else {
-    $request_body['think'] = false;
-    $request_body['options']['num_ctx'] = 4096;
-}
-```
+Ollama プロバイダーは思考モデル（Qwen3、DeepSeek など）を自動検出し、`think: true` / `num_ctx: 8192` を設定します。`ollama_disable_thinking` オプションで無効化できます。
 
 #### 応答の長さ制限
 

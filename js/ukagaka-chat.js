@@ -649,19 +649,6 @@ function mpu_sendUserMessage() {
   }
 }
 
-/**
- * HTML 轉義
- */
-function mpu_escapeHTML(str) {
-  if (!str) return "";
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
 // 綁定對話模式事件
 jQuery(document).ready(function () {
   // 初始化：載入對話歷史
