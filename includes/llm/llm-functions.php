@@ -385,6 +385,22 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
                     }
                 }
             }
+
+            // 節日期間（holiday_periods）補充：當固定節日同時屬於某期間（如ゴールデンウィーク）時，
+            // mpu_get_holiday_config 只會回傳固定節日名，此處另行補充期間資訊讓 LLM 知情。
+            if (function_exists('mpu_get_active_holiday_period')) {
+                $active_period = mpu_get_active_holiday_period($month, $day, $personality_id);
+                if (!empty($active_period['name'])) {
+                    $period_name         = $active_period['name'];
+                    $existing_name       = isset($holiday_config['name']) ? $holiday_config['name'] : '';
+                    if ($period_name !== $existing_name) {
+                        $today_holiday_info .= "また、{$period_name}期間中です。";
+                        if (!empty($active_period['description'])) {
+                            $today_holiday_info .= "({$active_period['description']})";
+                        }
+                    }
+                }
+            }
         }
     }
 

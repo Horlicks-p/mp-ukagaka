@@ -341,6 +341,12 @@
       "memory": 12
     },
 
+    "お正月": {
+      "memory": 10,
+      "philosophical": 8,
+      "daily_life": 8
+    },
+
     "大晦日": {
       "holiday_new_year": 25,
       "philosophical": 15,

@@ -261,8 +261,57 @@ function mpu_get_holiday_config($month, $day, $personality_id = null)
 }
 
 /**
+ * 獲取指定日期所在的節日期間（僅檢查 holiday_periods，不觸發 early-return 的固定節日查詢）
+ *
+ * 用於補充 mpu_get_holiday_config 的不足：當某天同時是固定節日（如昭和の日）
+ * 且屬於某個期間（如ゴールデンウィーク）時，mpu_get_holiday_config 只會回傳固定節日，
+ * 此函數可獨立取得期間資訊。
+ *
+ * @param int $month 月份（1-12）
+ * @param int $day 日期（1-31）
+ * @param string|null $personality_id 角色 ID（可選）
+ * @return array|null 節日期間配置陣列，或 null
+ */
+function mpu_get_active_holiday_period($month, $day, $personality_id = null)
+{
+    if (!function_exists('mpu_load_personality_calendar')) {
+        return null;
+    }
+    $calendar = mpu_load_personality_calendar($personality_id);
+    if (empty($calendar['holiday_periods']) || !is_array($calendar['holiday_periods'])) {
+        return null;
+    }
+
+    $tz      = wp_timezone();
+    $year    = (int) wp_date('Y');
+    $current = (new DateTimeImmutable('now', $tz))
+        ->setDate($year, (int) $month, (int) $day)
+        ->setTime(0, 0, 0);
+
+    foreach ($calendar['holiday_periods'] as $period_config) {
+        if (empty($period_config['start']) || empty($period_config['end'])) {
+            continue;
+        }
+        [$sm, $sd] = array_map('intval', explode('-', $period_config['start']));
+        [$em, $ed] = array_map('intval', explode('-', $period_config['end']));
+
+        $start = (new DateTimeImmutable('now', $tz))->setDate($year, $sm, $sd)->setTime(0, 0, 0);
+        $end   = (new DateTimeImmutable('now', $tz))->setDate($year, $em, $ed)->setTime(23, 59, 59);
+
+        if ($end < $start) {
+            $current >= $start ? $end = $end->modify('+1 year') : $start = $start->modify('-1 year');
+        }
+
+        if ($current >= $start && $current <= $end) {
+            return $period_config;
+        }
+    }
+    return null;
+}
+
+/**
  * 獲取動態節日的配置 key
- * 
+ *
  * @param int $month 月份
  * @param int $day 日期
  * @return string|null 動態節日 key（格式：月-第N週-星期），或 null

@@ -347,6 +347,18 @@ function mpu_get_dynamic_category_weights($time_context, $visitor_info, $context
                     if (!empty($holiday_adjustments[$holiday_name])) {
                         $weights = array_merge($weights, $holiday_adjustments[$holiday_name]);
                     }
+
+                    // 3. 若固定節日同時屬於某 holiday_period（如昭和の日 ⊂ ゴールデンウィーク），
+                    //    額外套用期間的 holiday_adjustments（journey_adventure 等加成）。
+                    if (function_exists('mpu_get_active_holiday_period')) {
+                        $active_period = mpu_get_active_holiday_period($month, $day, $personality_id);
+                        if (!empty($active_period['name']) && $active_period['name'] !== $holiday_name) {
+                            $period_adj_key = $active_period['name'];
+                            if (!empty($holiday_adjustments[$period_adj_key])) {
+                                $weights = array_merge($weights, $holiday_adjustments[$period_adj_key]);
+                            }
+                        }
+                    }
                 }
             }
         }
