@@ -301,6 +301,7 @@ python3 languages/compile_po.py
 
 ## Common Pitfalls
 
+- **Extend existing functions before adding new ones** — Before adding any new features based on instructions, always check if it's possible to extend existing functions instead of creating new ones. Maintain a unified code format. This is especially critical for the **abilities** section to avoid future maintenance difficulties.
 - **Don't use procedural REST handlers** — all REST routes must go through the OO controller system (`MPU_REST_Base`).
 - **Don't bypass the factory** — always use `MPU_AI_Provider_Factory::create()` for AI calls, not direct provider instantiation.
 - **Mind the load order** — adding a `require_once` out of order in `mpu_load_modules()` will cause fatal errors.

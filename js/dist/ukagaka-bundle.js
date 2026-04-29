@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-04-29T04:22:02.362Z
+ * Generated: 2026-04-29T07:53:52.111Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -4363,10 +4363,10 @@ function mpu_sendUserMessage() {
   if (message === "/help") {
     $input.val("");
     let helpText =
-      "【コマンド一覧】\n\n/reset - 会話履歴を消去\n\n/clear - 同上\n\n/help - このヘルプを表示";
+      "【コマンド一覧】<br>/reset - 会話履歴を消去<br>/clear - 同上<br>/help - このヘルプを表示";
     if (mpuPreSettings && mpuPreSettings.is_admin) {
       helpText +=
-        "\n\n【管理者専用】\n\n/visitor-info - 訪客情報を照会\n\n/check-spam-event - スパム状況を確認\n\n/debug_mcp - MCPツール診断";
+        "<br>【管理者専用】<br>/visitor-info - 訪客情報を照会<br>/check-spam-event - スパム状況を確認<br>/debug_mcp - MCPツール診断";
     }
     mpu_typewriter(helpText, "#ukagaka_msg");
     return;
@@ -4435,9 +4435,7 @@ function mpu_sendUserMessage() {
         },
         onDelta: (data) => {
           if (data.text) {
-            if (fullResponse === "") $msg.empty(); // 清除思考中狀態
             fullResponse += data.text;
-            $msg.html(mpu_parseMarkdown(fullResponse));
           }
         },
         onStatus: (data) => {
@@ -4473,8 +4471,9 @@ function mpu_sendUserMessage() {
           });
           mpu_saveChatHistory();
 
-          if (finalMsg && !fullResponse) {
-            $msg.html(mpu_parseMarkdown(finalMsg));
+          const displayMsg = fullResponse || finalMsg;
+          if (displayMsg) {
+            mpu_typewriter(mpu_parseMarkdown(displayMsg), "#ukagaka_msg", null, true);
           }
 
           // 觸發角色動畫
@@ -4550,7 +4549,7 @@ function mpu_sendUserMessage() {
             timestamp: Date.now(),
           });
           mpu_saveChatHistory();
-          jQuery("#ukagaka_msg").html(mpu_parseMarkdown(aiResponse));
+          mpu_typewriter(mpu_parseMarkdown(aiResponse), "#ukagaka_msg", null, true);
 
           if (
             typeof window.mpuCanvasManager !== "undefined" &&
