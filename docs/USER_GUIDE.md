@@ -576,6 +576,46 @@ AI 生成的評論自動消失前的顯示時間。
 | **Token 消耗** | 每輪累積 | 單次評論 |
 | **啟用位置** | 通用設定 → 對話設定 | AI 設定 → 頁面感知 |
 
+### Abilities（能力系統）
+
+> 🛠️ **v2.8.0 新功能**：讓角色能夠執行網站管理任務。
+
+Abilities 是角色在對話中可以自動呼叫的伺服器端功能。管理員只需在對話模式中用自然語言提出要求，角色就會執行對應的後台工具並回報結果。不需要特殊指令 — 正常對話即可。
+
+![Abilities 使用範例：芙莉蓮回報 Bot Blocker 統計](../screenshot7.PNG)
+
+_「最近魔族の侵入状況を教えて」— 芙莉蓮以角色口吻回報 Bot Blocker 的統計數據_
+
+> ⚠️ 管理類 Ability（IP 封鎖、資料清除等）僅限以 WordPress 管理員身分登入時才能使用。一般訪客請求這些操作時，角色會以角色口吻拒絕。
+
+#### 使用範例
+
+在對話模式中直接跟角色說即可：
+
+| 想做的事 | 對話範例 |
+| --- | --- |
+| 查看人氣文章 | 「最近最多人看的文章是哪些？」 |
+| 封鎖 IP | 「幫我 BAN 掉 192.168.1.100」 |
+| 查看 Bot 統計 | 「最近的機器人攔截狀況怎樣？」 |
+| 清除日誌 | 「把 Bot Blocker 的日誌清一下」 |
+| 偵測 AI 爬蟲 | 「最近有 AI 爬蟲來過嗎？」 |
+| 訪客脈動 | 「最近一小時的流量如何？」 |
+
+#### 內建 Abilities 一覽
+
+| Ability | 說明 | 需要的外掛 |
+| --- | --- | --- |
+| **取得人氣文章** | 依瀏覽數排名文章（最多 10 篇，可指定日期範圍） | [WP-PostViews](https://wordpress.org/plugins/wp-postviews/) |
+| **Bot Blocker 統計** | 顯示已封鎖 IP 數量、依類型分類的攔截統計 | Moelog Bot Blocker |
+| **封鎖 IP 位址** | 手動將指定 IP 加入封鎖清單 | Moelog Bot Blocker |
+| **清除 Blocker 資料** | 清除攔截日誌或重設 IP 封鎖清單 | Moelog Bot Blocker |
+| **AI 爬蟲偵測** | 偵測最近來訪的 AI 訓練爬蟲（GPTBot、ClaudeBot、Bytespider 等） | [Slimstat Analytics](https://wordpress.org/plugins/wp-slimstat/) |
+| **訪客脈動** | 顯示近期請求數、不重複 IP、國家分布、Bot/人類比例 | [Slimstat Analytics](https://wordpress.org/plugins/wp-slimstat/) |
+
+> 💡 未安裝所需外掛的 Ability 會自動跳過。在對話模式中使用 `/debug_mcp` 指令，可查看目前可用的 Abilities 清單。
+
+> 📚 開發者文件（如何建立自訂 Ability 等）請參閱 [Abilities API 參考](ABILITIES_API.md)。
+
 ---
 
 ## 思考模式

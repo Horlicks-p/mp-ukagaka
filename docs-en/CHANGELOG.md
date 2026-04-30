@@ -4,6 +4,31 @@
 
 ---
 
+## [2.14.1] - 2026-04-30
+
+### ✨ Admin Profile: Backend Management
+
+- **New admin fields**: Added "Admin full nickname", "Admin short name", and "Admin birthday" fields to the **General Settings** page (`options_general.php`). Admin nickname, short name, and birthday can now be configured directly from the WordPress admin panel — no more manual editing of `personality.md` or `calendar.json`.
+- **Automatic System Prompt injection**: Added `mpu_get_admin_profile_prompt_block()` to `core-functions.php`. During System Prompt rendering, `{{admin_nickname}}`, `{{admin_name}}`, and `{{admin_birthday}}` are automatically replaced with the backend values, and an override instruction block is appended.
+- **Dynamic calendar.json override**: Added logic in `personality-prompts.php` to automatically remove the `"MM-DD"` placeholder from `calendar.json` and replace it with the actual birthday when configured in the backend — no file editing required.
+- **Birthday format validation**: Added `mpu_normalize_admin_birthday()` to `admin-functions.php`, enforcing `MM-DD` format validation and normalization on save.
+
+### 🎌 Holiday Periods Support
+
+- **New holiday_periods mechanism**: `calendar.json` now supports date-range holiday definitions. The system automatically determines whether the current date falls within a specified period and triggers the corresponding holiday reactions.
+- **Built-in holiday periods**:
+  - **Golden Week** (4/29–5/5): Character displays dedicated holiday reactions during Golden Week
+  - **New Year** (1/1–1/7): Character displays dedicated holiday reactions during the New Year period
+- **Prompt and Weight support**: Added corresponding holiday period prompt categories and weight configurations to `prompts.json` and `weights.json`.
+
+### 📖 Documentation Updates
+
+- **Abilities section added to USER_GUIDE**: Added an "Abilities" subsection to the Interactive Chat Mode chapter across all three language versions (ZH-TW, EN, JP). Documents the 6 built-in abilities (popular posts query, IP ban, Bot Blocker stats/clear, AI crawler detection, visitor pulse) with usage examples and required plugin list.
+- **README updates**: Updated admin profile setup instructions in all three language versions to reflect the new backend configuration approach.
+- **New screenshot**: `screenshot7.PNG` — Abilities feature demo (character reporting Bot Blocker statistics in-character).
+
+---
+
 ## [2.14.0] - 2026-04-29
 
 ### LLM Streaming Expansion: Gemini / Claude

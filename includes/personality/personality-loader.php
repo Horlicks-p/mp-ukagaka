@@ -395,6 +395,9 @@ function mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name, $va
     if (!isset($variables['ukagaka_display_name'])) {
         $variables['ukagaka_display_name'] = $ukagaka_name;
     }
+    if (function_exists('mpu_get_admin_profile_prompt_variables')) {
+        $variables = array_merge($variables, mpu_get_admin_profile_prompt_variables($mpu_opt));
+    }
 
     $system_prompt = null;
 
@@ -427,6 +430,13 @@ function mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name, $va
     // Render template variables
     if (function_exists('mpu_render_prompt_template')) {
         $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
+    }
+
+    if (function_exists('mpu_get_admin_profile_prompt_block')) {
+        $admin_profile_block = mpu_get_admin_profile_prompt_block($mpu_opt);
+        if ($admin_profile_block !== '') {
+            $system_prompt .= "\n\n" . $admin_profile_block;
+        }
     }
 
     // --- 注入情感觸發 (Emotion Trigger) 指令 ---
@@ -645,4 +655,3 @@ function mpu_get_personality_max_tokens($personality_id = null, $ukagaka_name = 
 
     return $max_tokens;
 }
-

@@ -132,6 +132,9 @@ function mpu_handle_options_save()
         $mpu_opt['auto_talk'] = isset($_POST['auto_talk']);
         $mpu_opt['auto_talk_interval'] = isset($_POST['auto_talk_interval']) ? max(3, min(30, intval($_POST['auto_talk_interval']))) : 8;
         $mpu_opt['typewriter_speed'] = isset($_POST['typewriter_speed']) ? max(10, min(200, intval($_POST['typewriter_speed']))) : 40;
+        $mpu_opt['admin_nickname'] = isset($_POST['admin_nickname']) ? sanitize_text_field(wp_unslash($_POST['admin_nickname'])) : '';
+        $mpu_opt['admin_name'] = isset($_POST['admin_name']) ? sanitize_text_field(wp_unslash($_POST['admin_name'])) : '';
+        $mpu_opt['admin_birthday'] = isset($_POST['admin_birthday']) ? mpu_normalize_admin_birthday(wp_unslash($_POST['admin_birthday'])) : '';
         
         // 保存人格選擇
         if (isset($_POST['current_personality'])) {

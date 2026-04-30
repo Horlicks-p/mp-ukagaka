@@ -162,6 +162,10 @@ function mpu_load_personality_calendar($personality_id = null)
     $path = mpu_get_personalities_dir() . '/' . $personality_id . '/calendar.json';
     $calendar = mpu_load_json_file($path);
 
+    if (function_exists('mpu_apply_admin_profile_calendar') && is_array($calendar)) {
+        $calendar = mpu_apply_admin_profile_calendar($calendar);
+    }
+
     return $calendar ?? [];
 }
 

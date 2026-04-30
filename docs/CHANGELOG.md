@@ -4,6 +4,31 @@
 
 ---
 
+## [2.14.1] - 2026-04-30
+
+### ✨ 管理人個人化設定後台化
+
+- **後台欄位新增**：在 **通用設定** 頁面新增「Admin full nickname」、「Admin short name」、「Admin birthday」三個欄位（`options_general.php`），管理人的暱稱、簡稱和生日改為直接在 WordPress 後台設定，不再需要手動編輯 `personality.md` 和 `calendar.json`。
+- **System Prompt 自動注入**：`core-functions.php` 新增 `mpu_get_admin_profile_prompt_block()`，在 System Prompt 渲染時自動將後台設定的 `{{admin_nickname}}`、`{{admin_name}}`、`{{admin_birthday}}` 替換為真實值，並附加覆寫指示段落。
+- **calendar.json 動態覆蓋**：`personality-prompts.php` 新增邏輯，當後台設定了生日時，自動移除 `calendar.json` 中的 `"MM-DD"` 佔位符並以實際生日替換，無需手動修改檔案。
+- **生日格式驗證**：`admin-functions.php` 新增 `mpu_normalize_admin_birthday()`，在儲存時強制驗證並標準化為 `MM-DD` 格式。
+
+### 🎌 節日期間（Holiday Periods）支援
+
+- **新增 holiday_periods 機制**：在 `calendar.json` 中支援特定期間的節日定義，系統會自動判斷當天日期是否落在指定期間內並觸發對應的節日反應。
+- **內建節日期間**：
+  - **ゴールデンウィーク**（4/29–5/5）：黃金週期間角色會有專屬的節日反應
+  - **お正月**（1/1–1/7）：新年期間角色會有專屬的節日反應
+- **Prompt 與 Weight 支援**：在 `prompts.json` 和 `weights.json` 中新增對應節日期間的 prompt 類別和權重設定。
+
+### 📖 文件更新
+
+- **USER_GUIDE 追加 Abilities 說明**：在三語版本（繁中、英文、日文）的 USER_GUIDE 互動對話模式章節中，新增「Abilities」子章節，說明內建的 6 個 Abilities（人氣文章查詢、IP 封鎖、Bot Blocker 統計/清除、AI 爬蟲偵測、訪客脈動），附使用範例與所需外掛清單。
+- **README 更新**：三語版 README 更新管理人設定說明，改為後台設定方式。
+- **新增截圖**：`screenshot7.PNG` — Abilities 功能展示（角色以角色口吻回報 Bot Blocker 統計）。
+
+---
+
 ## [2.14.0] - 2026-04-29
 
 ### LLM 串流支援擴充：Gemini / Claude

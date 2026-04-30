@@ -1522,3 +1522,25 @@ msgstr "Enter full model ID, e.g. gpt-4.1-2025-04-14"
 
 msgid "輸入完整模型 ID，例如：claude-opus-4-7"
 msgstr "Enter full model ID, e.g. claude-opus-4-7"
+
+# ========================================
+# General Settings Page - Admin Profile
+# ========================================
+
+msgid "Admin full nickname:"
+msgstr "Admin full nickname:"
+
+msgid "Used for {{admin_nickname}} in personality prompts."
+msgstr "Used for {{admin_nickname}} in personality prompts."
+
+msgid "Admin short name:"
+msgstr "Admin short name:"
+
+msgid "Used for {{admin_name}} in personality prompts."
+msgstr "Used for {{admin_name}} in personality prompts."
+
+msgid "Admin birthday:"
+msgstr "Admin birthday:"
+
+msgid "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."
+msgstr "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."

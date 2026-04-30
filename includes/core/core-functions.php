@@ -35,6 +35,9 @@ function mpu_default_opt()
         "auto_talk" => true,
         "auto_talk_interval" => 8,
         "typewriter_speed" => 40,
+        "admin_nickname" => "",
+        "admin_name" => "",
+        "admin_birthday" => "",
         "ukagakas" => [
             "default_1" => [
                 "name" => "フリーレン",
@@ -115,6 +118,134 @@ function mpu_get_option()
     }
 
     return $mpu_opt;
+}
+
+/**
+ * Normalize an MM-DD style birthday value for calendar lookups.
+ *
+ * @param string $birthday Birthday value from admin settings.
+ * @return string Normalized m-d value, or empty string when invalid.
+ */
+function mpu_normalize_admin_birthday($birthday)
+{
+    $birthday = trim((string) $birthday);
+    if ($birthday === '') {
+        return '';
+    }
+
+    if (!preg_match('/^(\d{1,2})-(\d{1,2})$/', $birthday, $matches)) {
+        return '';
+    }
+
+    $month = (int) $matches[1];
+    $day   = (int) $matches[2];
+
+    if (!checkdate($month, $day, 2000)) {
+        return '';
+    }
+
+    return $month . '-' . $day;
+}
+
+/**
+ * Get admin profile settings used by personality prompts.
+ *
+ * @param array|null $mpu_opt Plugin options.
+ * @return array
+ */
+function mpu_get_admin_profile_settings($mpu_opt = null)
+{
+    if ($mpu_opt === null) {
+        $mpu_opt = mpu_get_option();
+    }
+
+    return [
+        'admin_nickname' => isset($mpu_opt['admin_nickname']) ? sanitize_text_field($mpu_opt['admin_nickname']) : '',
+        'admin_name'     => isset($mpu_opt['admin_name']) ? sanitize_text_field($mpu_opt['admin_name']) : '',
+        'admin_birthday' => isset($mpu_opt['admin_birthday']) ? mpu_normalize_admin_birthday($mpu_opt['admin_birthday']) : '',
+    ];
+}
+
+/**
+ * Get template variables for admin profile placeholders.
+ *
+ * @param array|null $mpu_opt Plugin options.
+ * @return array
+ */
+function mpu_get_admin_profile_prompt_variables($mpu_opt = null)
+{
+    $profile = mpu_get_admin_profile_settings($mpu_opt);
+
+    return [
+        'admin_nickname' => $profile['admin_nickname'],
+        'admin_name'     => $profile['admin_name'],
+        'admin_birthday' => $profile['admin_birthday'],
+    ];
+}
+
+/**
+ * Build a short system prompt block from admin profile settings.
+ *
+ * @param array|null $mpu_opt Plugin options.
+ * @return string
+ */
+function mpu_get_admin_profile_prompt_block($mpu_opt = null)
+{
+    $profile = mpu_get_admin_profile_settings($mpu_opt);
+    $lines = [];
+
+    if ($profile['admin_nickname'] !== '') {
+        $lines[] = '- admin_nickname: ' . $profile['admin_nickname'];
+    }
+    if ($profile['admin_name'] !== '') {
+        $lines[] = '- admin_name: ' . $profile['admin_name'];
+    }
+    if ($profile['admin_birthday'] !== '') {
+        $lines[] = '- admin_birthday: ' . $profile['admin_birthday'];
+    }
+
+    if (empty($lines)) {
+        return '';
+    }
+
+    return "Admin profile overrides from WordPress settings:\n" . implode("\n", $lines) . "\nUse these values as authoritative if personality files contain older admin profile values.";
+}
+
+/**
+ * Apply admin birthday settings to a personality calendar.
+ *
+ * @param array $calendar Personality calendar config.
+ * @param array|null $mpu_opt Plugin options.
+ * @return array
+ */
+function mpu_apply_admin_profile_calendar($calendar, $mpu_opt = null)
+{
+    if (!is_array($calendar)) {
+        return $calendar;
+    }
+
+    $profile = mpu_get_admin_profile_settings($mpu_opt);
+    if ($profile['admin_birthday'] === '') {
+        return $calendar;
+    }
+
+    if (empty($calendar['anniversaries']) || !is_array($calendar['anniversaries'])) {
+        $calendar['anniversaries'] = [];
+    }
+
+    foreach ($calendar['anniversaries'] as $key => $event) {
+        if (is_array($event) && !empty($event['prompts']) && in_array('anniversary_admin_birthday', (array) $event['prompts'], true)) {
+            unset($calendar['anniversaries'][$key]);
+        }
+    }
+
+    $calendar['anniversaries'][$profile['admin_birthday']] = [
+        'name'        => '管理人の誕生日',
+        'prompts'     => ['anniversary_admin_birthday'],
+        'description' => 'Configured from WordPress admin profile settings.',
+    ];
+
+    return $calendar;
 }
 
 /**

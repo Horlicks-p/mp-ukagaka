@@ -576,6 +576,46 @@ Conversation history is retained on the current page only (cleared after refresh
 | **Token Consumption** | Accumulates per turn | Single comment |
 | **Enable Location** | `⚙️ 通用設定` → Dialogue Settings | `🧠 AI 設定` → Page Awareness |
 
+### Abilities
+
+> 🛠️ **v2.8.0 Feature**: Your character can now perform site management tasks.
+
+Abilities are server-side functions that the character can automatically invoke during conversations. As an admin, simply make a request in natural language through Chat Mode — the character will execute the appropriate backend tool and report the results. No special commands required — just talk naturally.
+
+![Abilities Demo: Frieren reporting bot blocker stats](../screenshot7.PNG)
+
+_"Tell me about recent demon invasions" — Frieren reports Bot Blocker statistics in-character_
+
+> ⚠️ Administrative abilities (IP banning, data clearing, etc.) are only available when logged in as a WordPress administrator. If a regular visitor requests these operations, the character will refuse in-character.
+
+#### Usage Examples
+
+Simply talk to the character in Chat Mode:
+
+| What You Want | Example Message |
+| --- | --- |
+| Check popular posts | "What are the most-read articles recently?" |
+| Block an IP | "Ban 192.168.1.100" |
+| Check bot stats | "Show me the bot blocker statistics" |
+| Clear logs | "Clear the bot blocker logs" |
+| Detect AI crawlers | "Have any AI crawlers visited recently?" |
+| Visitor pulse | "How's the traffic in the last hour?" |
+
+#### Built-in Abilities
+
+| Ability | Description | Required Plugin |
+| --- | --- | --- |
+| **Get Popular Posts** | Rank posts by view count (up to 10, with date range filter) | [WP-PostViews](https://wordpress.org/plugins/wp-postviews/) |
+| **Bot Blocker Stats** | Display banned IP count and intercept statistics by type | Moelog Bot Blocker |
+| **Ban IP Address** | Manually add an IP to the block list | Moelog Bot Blocker |
+| **Clear Blocker Data** | Clear intercept logs or reset the IP ban list | Moelog Bot Blocker |
+| **AI Crawler Detection** | Detect recent visits from AI training crawlers (GPTBot, ClaudeBot, Bytespider, etc.) | [Slimstat Analytics](https://wordpress.org/plugins/wp-slimstat/) |
+| **Visitor Pulse** | Show recent request counts, unique IPs, country distribution, and bot/human ratio | [Slimstat Analytics](https://wordpress.org/plugins/wp-slimstat/) |
+
+> 💡 Abilities whose required plugins are not installed will be automatically skipped. Use the `/debug_mcp` command in Chat Mode to see which abilities are currently available.
+
+> 📚 For developer documentation (creating custom abilities, etc.), see the [Abilities API Reference](ABILITIES_API.md).
+
 ---
 
 ## Thinking Mode

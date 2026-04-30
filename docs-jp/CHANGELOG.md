@@ -4,6 +4,31 @@
 
 ---
 
+## [2.14.1] - 2026-04-30
+
+### ✨ 管理人プロフィールのバックエンド管理化
+
+- **管理画面に入力欄を追加**：**通用設定** ページに「Admin full nickname」「Admin short name」「Admin birthday」の 3 つの入力欄を追加（`options_general.php`）。管理人のニックネーム・短縮名・誕生日を WordPress 管理画面から直接設定できるようになり、`personality.md` や `calendar.json` を手動で編集する必要がなくなりました。
+- **System Prompt への自動注入**：`core-functions.php` に `mpu_get_admin_profile_prompt_block()` を追加。System Prompt レンダリング時に `{{admin_nickname}}`・`{{admin_name}}`・`{{admin_birthday}}` を管理画面の設定値で自動置換し、オーバーライド指示ブロックを付加します。
+- **calendar.json の動的オーバーライド**：`personality-prompts.php` にロジックを追加。管理画面で誕生日が設定されている場合、`calendar.json` の `"MM-DD"` プレースホルダーを自動的に削除し、実際の誕生日で置き換えます。ファイルの手動編集は不要です。
+- **誕生日フォーマット検証**：`admin-functions.php` に `mpu_normalize_admin_birthday()` を追加。保存時に `MM-DD` フォーマットを検証・正規化します。
+
+### 🎌 祝日期間（Holiday Periods）サポート
+
+- **holiday_periods メカニズムを追加**：`calendar.json` で特定期間の祝日定義をサポート。システムは現在の日付が指定期間内かどうかを自動判定し、対応する祝日反応をトリガーします。
+- **内蔵祝日期間**：
+  - **ゴールデンウィーク**（4/29–5/5）：GW 期間中にキャラクターが専用の祝日反応を表示
+  - **お正月**（1/1–1/7）：正月期間中にキャラクターが専用の祝日反応を表示
+- **Prompt と Weight の対応**：`prompts.json` と `weights.json` に祝日期間用の prompt カテゴリとウェイト設定を追加。
+
+### 📖 ドキュメント更新
+
+- **USER_GUIDE に Abilities 説明を追加**：3 言語（繁体字中国語・英語・日本語）の USER_GUIDE のインタラクティブチャットモードセクションに「アビリティ」サブセクションを追加。内蔵 6 アビリティ（人気記事照会・IP BAN・Bot Blocker 統計/クリア・AI クローラー検出・訪問者パルス）の使用例と必要プラグイン一覧を記載。
+- **README 更新**：3 言語版の README で管理人設定の説明を更新、バックエンド設定方式に変更。
+- **スクリーンショット追加**：`screenshot7.PNG` — アビリティ機能のデモ（キャラクターが Bot Blocker 統計をキャラクターらしく報告）。
+
+---
+
 ## [2.14.0] - 2026-04-29
 
 ### LLM ストリーミング対応拡張：Gemini / Claude

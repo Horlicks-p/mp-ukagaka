@@ -1535,3 +1535,25 @@ msgstr "モデル ID を入力してください（例：gpt-4.1-2025-04-14）"
 
 msgid "輸入完整模型 ID，例如：claude-opus-4-7"
 msgstr "モデル ID を入力してください（例：claude-opus-4-7）"
+
+# ========================================
+# 通用設定ページ - 管理人プロフィール
+# ========================================
+
+msgid "Admin full nickname:"
+msgstr "管理人フルネーム："
+
+msgid "Used for {{admin_nickname}} in personality prompts."
+msgstr "人格プロンプト内の {{admin_nickname}} に使用されます。"
+
+msgid "Admin short name:"
+msgstr "管理人略称："
+
+msgid "Used for {{admin_name}} in personality prompts."
+msgstr "人格プロンプト内の {{admin_name}} に使用されます。"
+
+msgid "Admin birthday:"
+msgstr "管理人の誕生日："
+
+msgid "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."
+msgstr "MM-DD 形式（例：10-18）。calendar.json の anniversary_admin_birthday を上書きします。"

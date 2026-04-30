@@ -42,6 +42,22 @@
             </div>
             <?php endif; ?>
             <?php endif; ?>
+
+            <div class="mpu-field-group">
+                <label for="admin_nickname"><?php _e('Admin full nickname:', 'mp-ukagaka'); ?></label>
+                <input type="text" id="admin_nickname" name="admin_nickname" value="<?php echo isset($mpu_opt['admin_nickname']) ? esc_attr($mpu_opt['admin_nickname']) : ''; ?>" style="width: 100%; max-width: 300px;" />
+                <small><?php _e('Used for {{admin_nickname}} in personality prompts.', 'mp-ukagaka'); ?></small>
+            </div>
+            <div class="mpu-field-group">
+                <label for="admin_name"><?php _e('Admin short name:', 'mp-ukagaka'); ?></label>
+                <input type="text" id="admin_name" name="admin_name" value="<?php echo isset($mpu_opt['admin_name']) ? esc_attr($mpu_opt['admin_name']) : ''; ?>" style="width: 100%; max-width: 300px;" />
+                <small><?php _e('Used for {{admin_name}} in personality prompts.', 'mp-ukagaka'); ?></small>
+            </div>
+            <div class="mpu-field-group">
+                <label for="admin_birthday"><?php _e('Admin birthday:', 'mp-ukagaka'); ?></label>
+                <input type="text" id="admin_birthday" name="admin_birthday" value="<?php echo isset($mpu_opt['admin_birthday']) ? esc_attr($mpu_opt['admin_birthday']) : ''; ?>" placeholder="10-18" pattern="\d{1,2}-\d{1,2}" style="width: 100%; max-width: 120px;" />
+                <small><?php _e('MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json.', 'mp-ukagaka'); ?></small>
+            </div>
             
             <div class="mpu-field-group">
                 <label><input id="show_ukagaka" name="show_ukagaka" type="checkbox" value="true" <?php if ($mpu_opt['show_ukagaka']) {

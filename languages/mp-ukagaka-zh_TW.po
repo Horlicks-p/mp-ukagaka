@@ -1284,3 +1284,25 @@ msgstr "輸入完整模型 ID，例如：gpt-4.1-2025-04-14"
 
 msgid "輸入完整模型 ID，例如：claude-opus-4-7"
 msgstr "輸入完整模型 ID，例如：claude-opus-4-7"
+
+# ========================================
+# 通用設定頁面 - 管理人個人資料
+# ========================================
+
+msgid "Admin full nickname:"
+msgstr "管理人全名暱稱："
+
+msgid "Used for {{admin_nickname}} in personality prompts."
+msgstr "用於人格提示詞中的 {{admin_nickname}}。"
+
+msgid "Admin short name:"
+msgstr "管理人短稱："
+
+msgid "Used for {{admin_name}} in personality prompts."
+msgstr "用於人格提示詞中的 {{admin_name}}。"
+
+msgid "Admin birthday:"
+msgstr "管理人生日："
+
+msgid "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."
+msgstr "格式：MM-DD，例如 10-18。此設定會覆蓋 calendar.json 中的 anniversary_admin_birthday 條目。"
