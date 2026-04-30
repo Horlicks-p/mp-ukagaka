@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.14.0
+Stable tag: 2.14.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -185,7 +185,7 @@ This plugin uses a modular architecture for better maintainability:
 == Changelog ==
 
 = 2026-04-29 =
-* v2.14.0
+* v2.14.1
 * [NEW] Gemini and Claude SSE Streaming: Added streaming support for Gemini streamGenerateContent and Claude Messages API content block events.
 * [IMPROVE] Provider streaming stability: Added shared SSE parser, final event flushing, Claude tool-loop protection, and Gemini tool fallback to synchronous generation when MCP tools are available.
 * [IMPROVE] Chat display: Streaming chat now uses a local typewriter queue that respects the admin typewriter speed setting and avoids duplicate finalization.

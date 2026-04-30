@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.14.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.14.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,7 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.14.0 新功能
+## 🎉 v2.14.1 新功能
 
 **Gemini / Claude 串流支援**：對話模式現在支援 Gemini 與 Claude 的 SSE streaming。Gemini 使用 `streamGenerateContent` 進行純文字串流，Claude 則能處理 Anthropic content block 事件與串流工具參數片段。
 

@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.14.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.14.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,7 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.14.0 の新機能
+## 🎉 v2.14.1 の新機能
 
 **Gemini / Claude streaming 対応**：対話モードで Gemini と Claude の SSE streaming をサポートしました。Gemini は `streamGenerateContent` による純テキスト streaming、Claude は Anthropic content block events と streaming tool argument fragments に対応します。
 
