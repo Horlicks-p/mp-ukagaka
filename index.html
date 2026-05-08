@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MP Ukagaka – AI-Powered WordPress Companion Plugin</title>
+<meta name="description" content="Add an interactive AI-powered ukagaka character to your WordPress site. Powered by Gemini, OpenAI, Claude, or Ollama. Features chat mode, SSE streaming, canvas animation, and multi-language support.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0d1117;
+    --bg2:      #161b27;
+    --card:     rgba(255,255,255,0.04);
+    --border:   rgba(255,255,255,0.08);
+    --teal:     #7ecfca;
+    --lavender: #b8a9e8;
+    --gold:     #e8d4a0;
+    --text:     #dde3ee;
+    --muted:    #8b95a8;
+    --radius:   14px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6rem 1.5rem 4rem;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(126,207,202,0.15) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(184,169,232,0.10) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .stars {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 65% 15%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(2px 2px at 90% 10%, rgba(184,169,232,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 35% 45%, rgba(126,207,202,0.4) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .hero-inner {
+    position: relative;
+    max-width: 780px;
+    width: 100%;
+  }
+
+  .badge-version {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    font-size: 0.78rem;
+    color: var(--teal);
+    background: rgba(126,207,202,0.06);
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .hero h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, #fff 20%, var(--teal) 60%, var(--lavender) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    color: var(--lavender);
+    letter-spacing: 0.1em;
+    margin-bottom: 1.2rem;
+    font-weight: 300;
+  }
+
+  .hero p {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 560px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.8;
+  }
+
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .badges img { height: 20px; }
+
+  .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.7rem 1.6rem;
+    border-radius: 99px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--teal), var(--lavender));
+    color: #0d1117;
+    box-shadow: 0 4px 24px rgba(126,207,202,0.25);
+  }
+  .btn-primary:hover { box-shadow: 0 6px 32px rgba(126,207,202,0.4); }
+
+  .btn-secondary {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* ── SCREENSHOT ── */
+  .screenshot-section {
+    padding: 2rem 1.5rem 5rem;
+    text-align: center;
+  }
+
+  .screenshot-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 820px;
+    width: 100%;
+  }
+
+  .screenshot-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(135deg, var(--teal), var(--lavender), var(--teal));
+    border-radius: calc(var(--radius) + 1px);
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  .screenshot-wrap img {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    border-radius: var(--radius);
+    display: block;
+  }
+
+  /* ── SECTION COMMON ── */
+  section { padding: 5rem 1.5rem; }
+
+  .container { max-width: 1060px; margin: 0 auto; }
+
+  .section-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--teal);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.8rem;
+  }
+
+  .section-desc {
+    color: var(--muted);
+    max-width: 520px;
+    margin-bottom: 3rem;
+  }
+
+  /* ── FEATURES ── */
+  #features { background: var(--bg2); }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.6rem;
+    transition: border-color .2s, transform .2s;
+  }
+  .feature-card:hover { border-color: rgba(126,207,202,0.3); transform: translateY(-3px); }
+
+  .feature-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .feature-card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.4rem;
+  }
+
+  .feature-card p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* ── AI PROVIDERS ── */
+  .providers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .provider-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    transition: border-color .2s;
+  }
+  .provider-card:hover { border-color: rgba(184,169,232,0.4); }
+
+  .provider-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #fff;
+  }
+  .provider-cost {
+    font-size: 0.78rem;
+    color: var(--teal);
+  }
+  .provider-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* ── SCREENSHOTS GALLERY ── */
+  #screenshots { background: var(--bg2); }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .gallery-item {
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--card);
+    transition: transform .2s, border-color .2s;
+  }
+  .gallery-item:hover { transform: scale(1.02); border-color: rgba(126,207,202,0.3); }
+
+  .gallery-item img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .gallery-item p {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  /* ── INSTALL ── */
+  .install-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.2rem;
+    counter-reset: step;
+  }
+
+  .install-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    position: relative;
+    counter-increment: step;
+  }
+
+  .install-step::before {
+    content: counter(step);
+    position: absolute;
+    top: -0.6rem;
+    left: 1.2rem;
+    background: linear-gradient(135deg, var(--teal), var(--lavender));
+    color: #0d1117;
+    font-weight: 700;
+    font-size: 0.78rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .install-step h3 {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.35rem;
+  }
+
+  .install-step p {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  code {
+    background: rgba(126,207,202,0.1);
+    border: 1px solid rgba(126,207,202,0.2);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+    font-size: 0.85em;
+    color: var(--teal);
+    font-family: 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+  }
+
+  footer p {
+    color: var(--muted);
+    font-size: 0.83rem;
+    line-height: 1.8;
+  }
+
+  footer a { color: var(--teal); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+  }
+
+  .footer-links a {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .footer-links a:hover { color: var(--teal); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    max-width: 1060px;
+    margin: 0 auto;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .hero { padding: 5rem 1rem 3rem; }
+    section { padding: 3.5rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="stars"></div>
+  <div class="hero-inner">
+    <div class="badge-version">✦ v2.14.1 · Latest Release</div>
+    <h1>MP Ukagaka</h1>
+    <p class="hero-sub">AI-Powered WordPress Companion</p>
+    <p>Bring an interactive <strong style="color:var(--text)">ukagaka (伺か) character</strong> to your WordPress site. Reads page content, chats with visitors, and responds with personality — powered by your choice of AI model.</p>
+    <div class="badges">
+      <img src="https://img.shields.io/badge/WordPress-5.0%2B-21759b?style=flat&logo=wordpress&logoColor=white" alt="WordPress">
+      <img src="https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat&logo=php&logoColor=white" alt="PHP">
+      <img src="https://img.shields.io/badge/Gemini-supported-4285f4?style=flat&logo=google&logoColor=white" alt="Gemini">
+      <img src="https://img.shields.io/badge/OpenAI-supported-412991?style=flat&logo=openai&logoColor=white" alt="OpenAI">
+      <img src="https://img.shields.io/badge/Claude-supported-d4a27f?style=flat" alt="Claude">
+      <img src="https://img.shields.io/badge/Ollama-supported-333?style=flat" alt="Ollama">
+    </div>
+    <div class="btn-group">
+      <a href="https://www.moelog.com" class="btn btn-primary" target="_blank" rel="noopener">
+        ✦ Live Demo
+      </a>
+      <a href="https://github.com/Horlicks-p/mp-ukagaka" class="btn btn-secondary" target="_blank" rel="noopener">
+        ⬡ GitHub
+      </a>
+      <a href="https://github.com/Horlicks-p/mp-ukagaka/archive/refs/heads/main.zip" class="btn btn-secondary">
+        ↓ Download ZIP
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- HERO SCREENSHOT -->
+<div class="screenshot-section">
+  <div class="screenshot-wrap">
+    <img
+      src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot.PNG"
+      alt="MP Ukagaka – Frieren character displaying AI dialogue on a WordPress post"
+      loading="lazy"
+    >
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="section-label">Core Features</div>
+    <h2 class="section-title">Everything in one plugin</h2>
+    <p class="section-desc">A complete ukagaka experience for WordPress — no JavaScript framework required.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>Page-Aware AI Dialogue</h3>
+        <p>The character reads your article content and generates contextually relevant responses using your chosen LLM provider.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3>Interactive Chat Mode</h3>
+        <p>Real-time multi-turn conversations with visitors via SSE streaming — with a typewriter effect and conversation history.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>Canvas Animation</h3>
+        <p>Smooth character animations with single-image or multi-frame sprite support. Fully customizable via settings.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔑</div>
+        <h3>API Key Encryption</h3>
+        <p>All API keys are stored with AES-256-CBC encryption derived from WordPress salts. Never stored in plaintext.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <h3>Multi-Language</h3>
+        <p>Built-in translations for English, Traditional Chinese (zh-TW), and Japanese. Full i18n/l10n support.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧩</div>
+        <h3>Modular Architecture</h3>
+        <p>Clean PHP OO design with REST API controllers, provider factory pattern, and 40+ hooks for extensibility.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <h3>Calendar & Events</h3>
+        <p>Character reacts to real-world events, seasons, and holidays via <code>calendar.json</code> — including your birthday.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>Security-First</h3>
+        <p>CSRF nonce verification, XSS prevention via <code>wp_kses</code>, Turnstile and Akismet integrations.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📖</div>
+        <h3>Dialog Files</h3>
+        <p>Load dialogues from external <code>.txt</code> or <code>.json</code> files. Built-in Frieren personality and memory included.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI PROVIDERS -->
+<section id="providers">
+  <div class="container">
+    <div class="section-label">AI Integration</div>
+    <h2 class="section-title">Choose your AI provider</h2>
+    <p class="section-desc">Switch providers anytime from the admin settings. Keys are encrypted on save.</p>
+    <div class="providers-grid">
+      <div class="provider-card">
+        <div class="provider-name">🦙 Ollama</div>
+        <div class="provider-cost">Free · Local</div>
+        <div class="provider-desc">Run models locally or on a remote server. Zero API cost.</div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">✦ Gemini</div>
+        <div class="provider-cost">Paid API</div>
+        <div class="provider-desc">Google Gemini 2.5 Flash — fast, affordable, streaming support.</div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">⬡ OpenAI</div>
+        <div class="provider-cost">Paid API</div>
+        <div class="provider-desc">GPT-4o mini recommended for cost/quality balance.</div>
+      </div>
+      <div class="provider-card">
+        <div class="provider-name">◈ Claude</div>
+        <div class="provider-cost">Paid API</div>
+        <div class="provider-desc">Anthropic Claude — expressive, nuanced character dialogue.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SCREENSHOTS -->
+<section id="screenshots">
+  <div class="container">
+    <div class="section-label">Screenshots</div>
+    <h2 class="section-title">See it in action</h2>
+    <p class="section-desc">Frontend character display and admin interface.</p>
+    <div class="gallery">
+      <div class="gallery-item">
+        <img
+          src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot2.PNG"
+          alt="General Settings and LLM Settings pages"
+          loading="lazy"
+        >
+        <p>General &amp; LLM Settings</p>
+      </div>
+      <div class="gallery-item">
+        <img
+          src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot3.PNG"
+          alt="Interactive Chat Mode"
+          loading="lazy"
+        >
+        <p>Interactive Chat Mode</p>
+      </div>
+      <div class="gallery-item">
+        <img
+          src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot4.PNG"
+          alt="Character configuration"
+          loading="lazy"
+        >
+        <p>Character Configuration</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="container">
+    <div class="section-label">Getting Started</div>
+    <h2 class="section-title">Up and running in minutes</h2>
+    <p class="section-desc">No build step required — drop into your plugins folder and activate.</p>
+    <div class="install-steps">
+      <div class="install-step">
+        <h3>Download</h3>
+        <p>Clone or download this repo into <code>wp-content/plugins/mp-ukagaka/</code></p>
+      </div>
+      <div class="install-step">
+        <h3>Activate</h3>
+        <p>Go to <strong>WordPress Admin → Plugins</strong> and activate <em>MP Ukagaka</em>.</p>
+      </div>
+      <div class="install-step">
+        <h3>Configure</h3>
+        <p>Visit <strong>Settings → MP Ukagaka</strong> to choose a character and set your AI provider.</p>
+      </div>
+      <div class="install-step">
+        <h3>(Optional) Add AI Key</h3>
+        <p>Enter a Gemini, OpenAI, or Claude API key to enable context-aware dialogue generation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="https://github.com/Horlicks-p/mp-ukagaka" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/USER_GUIDE.md" target="_blank" rel="noopener">User Guide</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/DEVELOPER_GUIDE.md" target="_blank" rel="noopener">Developer Guide</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+    <a href="https://www.moelog.com" target="_blank" rel="noopener">Demo Site</a>
+  </div>
+  <p>
+    MP Ukagaka is open source software licensed under <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/LICENSE" target="_blank" rel="noopener">GPL v2 or later</a>.<br>
+    Built with AI-assisted development (Vibe Coding) · <a href="https://www.moelog.com" target="_blank" rel="noopener">moelog.com</a>
+  </p>
+</footer>
+
+</body>
+</html>
