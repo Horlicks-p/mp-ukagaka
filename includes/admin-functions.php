@@ -422,6 +422,17 @@ function mpu_handle_options_save()
             return;
         }
 
+        // realpath 驗證：confirm 流程讀取 transient 後直接 rename，必須再次確認
+        // temp_dir 仍位於 ghost 目錄內，避免 symlink/路徑被竄改後搬移到任意位置
+        $real_temp  = realpath($temp_dir);
+        $real_ghost = realpath($ghost_dir);
+        if ($real_ghost === false || $real_temp === false || strpos($real_temp, $real_ghost) !== 0) {
+            mpu_recursive_rmdir($temp_dir);
+            delete_transient($pending_key);
+            add_settings_error('mpu_options', 'invalid_temp_path', __('一時ディレクトリのパスが不正です。再度アップロードしてください。', 'mp-ukagaka'));
+            return;
+        }
+
         // 原子替換：先把舊目錄 rename 成 backup，再把 temp rename 到正式位置
         // 若 rename(temp→target) 失敗，可從 backup 還原，避免留下空目錄
         $backup_dir = null;
