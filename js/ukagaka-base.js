@@ -51,6 +51,29 @@ let mpuTypewriterTimer = null;          // 打字效果計時器
 let mpuTypewriterSpeed = 40;            // 打字速度（毫秒/字元），將從後台設定讀取
 let mpuOllamaReplaceDialogue = false;   // 是否使用 LLM 取代內建對話
 
+// Session token 懶取得 — 避免 server-render token 被 full-page cache 污染
+let _mpuSessionTokenPromise = null;
+async function mpuEnsureSessionToken() {
+    if (typeof mpuSessionToken === 'string' && mpuSessionToken) return mpuSessionToken;
+    if (!_mpuSessionTokenPromise) {
+        _mpuSessionTokenPromise = (async () => {
+            if (typeof mpuRestUrl === 'undefined') return '';
+            try {
+                const resp = await fetch(mpuRestUrl + 'session-token', {
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                });
+                const data = await resp.json();
+                window.mpuSessionToken = data.token || '';
+                return window.mpuSessionToken;
+            } catch (_) {
+                return '';
+            }
+        })();
+    }
+    return _mpuSessionTokenPromise;
+}
+
 // 從後台設定初始化變數
 if (typeof mpuPreSettings !== 'undefined') {
     if (typeof mpuPreSettings.typewriter_speed !== 'undefined') {
@@ -784,12 +807,15 @@ async function mpuFetch(url, options = {}) {
         signal: controller.signal
     };
 
-    // 自動注入 REST API Nonce
-    if (typeof mpuRestUrl !== 'undefined' && url.startsWith(mpuRestUrl) && typeof mpuRestNonce !== 'undefined') {
+    // 自動注入 REST API Nonce 與 Session Token
+    if (typeof mpuRestUrl !== 'undefined' && url.startsWith(mpuRestUrl)) {
         fetchOptions.headers = fetchOptions.headers || {};
-        // 只有在未手動設定 X-WP-Nonce 時才注入
-        if (!fetchOptions.headers['X-WP-Nonce']) {
+        if (typeof mpuRestNonce !== 'undefined' && !fetchOptions.headers['X-WP-Nonce']) {
             fetchOptions.headers['X-WP-Nonce'] = mpuRestNonce;
+        }
+        if (!fetchOptions.headers['X-MPU-Session-Token']) {
+            const tok = await mpuEnsureSessionToken();
+            if (tok) fetchOptions.headers['X-MPU-Session-Token'] = tok;
         }
     }
 

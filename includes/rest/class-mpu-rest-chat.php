@@ -51,6 +51,12 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'callback'            => [$this, 'user_chat_stream'],
             'permission_callback' => '__return_true',
         ]);
+
+        register_rest_route($this->namespace, '/session-token', [
+            'methods'             => WP_REST_Server::READABLE,
+            'callback'            => [$this, 'get_session_token'],
+            'permission_callback' => '__return_true',
+        ]);
     }
 
     // =========================================================================
@@ -59,6 +65,8 @@ class MPU_REST_Chat extends MPU_REST_Base {
     // =========================================================================
 
     public function chat_context(WP_REST_Request $request) {
+        $st = $this->check_session_token($request);
+        if ($st !== null) return $st;
         $rl = $this->rate_limit('chat_context', 5, 60);
         if ($rl !== null) return $rl;
 
@@ -293,37 +301,12 @@ class MPU_REST_Chat extends MPU_REST_Base {
         // [Fix] 點擊裝飾品/身體後的頁面感知 AI 會把回覆 push 到前端歷史，
         // 但後端從未為此寫入 checksum，導致下一輪 chat/user verify 必定 400。
         // 因此在 chat/context 成功後，也同步寫入 checksum。
-        $chat_session_id_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
-        $chat_session_id = function_exists('mpu_chat_integrity_normalize_session_id')
-            ? mpu_chat_integrity_normalize_session_id($chat_session_id_param)
-            : '';
-
-        if (!empty($chat_session_id) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
-            // 讀取前端送來的歷史（若有），解碼後加上本次 assistant 回覆，再寫入 checksum
-            $prior_history = [];
-            $history_param = $request->get_param('history');
-            if (!empty($history_param)) {
-                $decoded = is_string($history_param) ? json_decode(wp_unslash($history_param), true) : (array) $history_param;
-                if (is_array($decoded)) {
-                    foreach ($decoded as $msg) {
-                        if (is_array($msg) && isset($msg['role'], $msg['content'])) {
-                            $role    = ($msg['role'] === 'user') ? 'user' : 'assistant';
-                            $content = sanitize_textarea_field(wp_unslash($msg['content']));
-                            if ($content !== '') {
-                                $type = isset($msg['type']) && in_array($msg['type'], ['chat', 'synthetic', 'auto_talk', 'greet', 'context', 'event', 'touch_decoration', 'touch_zone'], true)
-                                    ? (string) $msg['type'] : 'chat';
-                                $prior_history[] = ['role' => $role, 'content' => $content, 'type' => $type];
-                            }
-                        }
-                    }
-                }
-            }
-            $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($result), 'type' => 'context'];
-            mpu_chat_integrity_store_history(
-                $chat_session_id,
-                mpu_chat_integrity_slice_for_store($prior_history, 10)
-            );
-        }
+        MPU_Chat_History_Service::store_after_auto(
+            MPU_Chat_History_Service::get_session_id($request),
+            MPU_Chat_History_Service::parse_history_from_request($request),
+            $result,
+            'context'
+        );
 
         return $this->ok(['msg' => $result, 'emoji' => $emoji]);
     }
@@ -335,6 +318,8 @@ class MPU_REST_Chat extends MPU_REST_Base {
     // =========================================================================
 
     public function chat_greet(WP_REST_Request $request) {
+        $st = $this->check_session_token($request);
+        if ($st !== null) return $st;
         $rl = $this->rate_limit('chat_greet', 10, 60);
         if ($rl !== null) return $rl;
 
@@ -500,36 +485,12 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         // [Fix] chat/greet 也會 push assistant 到前端 mpuChatHistory，但後端未寫 checksum
         // 導致下一輪 chat/user verify 400。
-        $chat_session_id_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
-        $chat_session_id = function_exists('mpu_chat_integrity_normalize_session_id')
-            ? mpu_chat_integrity_normalize_session_id($chat_session_id_param)
-            : '';
-
-        if (!empty($chat_session_id) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
-            $prior_history = [];
-            $history_param = $request->get_param('history');
-            if (!empty($history_param)) {
-                $decoded = is_string($history_param) ? json_decode(wp_unslash($history_param), true) : (array) $history_param;
-                if (is_array($decoded)) {
-                    foreach ($decoded as $msg) {
-                        if (is_array($msg) && isset($msg['role'], $msg['content'])) {
-                            $role    = ($msg['role'] === 'user') ? 'user' : 'assistant';
-                            $content = sanitize_textarea_field(wp_unslash($msg['content']));
-                            if ($content !== '') {
-                                $type = isset($msg['type']) && in_array($msg['type'], ['chat', 'synthetic', 'auto_talk', 'greet', 'context', 'event', 'touch_decoration', 'touch_zone'], true)
-                                    ? (string) $msg['type'] : 'chat';
-                                $prior_history[] = ['role' => $role, 'content' => $content, 'type' => $type];
-                            }
-                        }
-                    }
-                }
-            }
-            $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($result), 'type' => 'greet'];
-            mpu_chat_integrity_store_history(
-                $chat_session_id,
-                mpu_chat_integrity_slice_for_store($prior_history, 10)
-            );
-        }
+        MPU_Chat_History_Service::store_after_auto(
+            MPU_Chat_History_Service::get_session_id($request),
+            MPU_Chat_History_Service::parse_history_from_request($request),
+            $result,
+            'greet'
+        );
 
         return $this->ok(['msg' => $result, 'emoji' => $emoji]);
     }
@@ -547,14 +508,14 @@ class MPU_REST_Chat extends MPU_REST_Base {
      * @return array|WP_Error|WP_REST_Response
      */
     protected function prepare_user_chat_args(WP_REST_Request $request) {
+        $st = $this->check_session_token($request);
+        if ($st !== null) return $st;
         $rl = $this->rate_limit('user_chat', 30, 60);
         // 如果 rate_limit 返回 Response（報錯時），直接傳回，避免呼叫端誤用為陣列
         if ($rl !== null) return $rl;
 
         $mpu_opt = mpu_get_option();
-        $chat_session_id = mpu_chat_integrity_normalize_session_id(
-            $request->get_param('session_id') ?: $request->get_param('chat_session_id')
-        );
+        $chat_session_id = MPU_Chat_History_Service::get_session_id($request);
 
         $message_param = $request->get_param('message');
         $user_message  = !empty($message_param) ? sanitize_text_field(wp_unslash($message_param)) : '';
@@ -672,12 +633,9 @@ class MPU_REST_Chat extends MPU_REST_Base {
         // 正規化後取最後 20 筆（synthetic+assistant 各佔一則，20 entries = 10 個互動事件）
         $chat_history = array_slice($normalized_history, -20);
 
-        if (!empty($chat_session_id) && function_exists('mpu_chat_integrity_verify_history')) {
-            $history_for_verify = mpu_chat_integrity_slice_for_store($chat_history, 10);
-            $integrity_check = mpu_chat_integrity_verify_history($chat_session_id, $history_for_verify);
-            if (is_wp_error($integrity_check)) {
-                return $this->fail('rest_error', $integrity_check->get_error_message(), 400);
-            }
+        $integrity_check = MPU_Chat_History_Service::verify($chat_session_id, $chat_history);
+        if (is_wp_error($integrity_check)) {
+            return $this->fail('rest_error', $integrity_check->get_error_message(), 400);
         }
 
         $page_title_param   = $request->get_param('page_title');
@@ -970,15 +928,13 @@ class MPU_REST_Chat extends MPU_REST_Base {
                 . '</div>';
 
             // [Fix] 更新 Checksum
-            if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
-                $raw_history   = $args['chat_history'];
-                $raw_history[] = ['role' => 'user', 'content' => $args['user_message']];
-                $raw_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($report)];
-                mpu_chat_integrity_store_history(
-                    $args['chat_session_id'],
-                    mpu_chat_integrity_slice_for_store($raw_history, 10)
-                );
-            }
+            MPU_Chat_History_Service::store_after_user_chat(
+                $args['chat_session_id'],
+                $args['chat_history'],
+                $args['user_message'],
+                $report,
+                false
+            );
 
             return $this->ok(['msg' => $report]);
         }
@@ -1022,24 +978,13 @@ class MPU_REST_Chat extends MPU_REST_Base {
             mpu_record_conversation('interactive');
         }
 
-        if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
-            // [Fix] 儲存 Checksum 時與驗證端對齊處理邏輯
-            $integrity_result = sanitize_textarea_field($result);
-            $raw_history      = $args['chat_history'];
-            
-            // [Fix 2026-02-27] 偵測 Double-Append：如果歷史末尾已經是當前 user 訊息，則不重複添加
-            $last_msg = end($raw_history);
-            if (!($last_msg && $last_msg['role'] === 'user' && trim($last_msg['content'] ?? '') === trim($args['user_message']))) {
-                $raw_history[] = ['role' => 'user', 'content' => $args['user_message']];
-            }
-            $raw_history[] = ['role' => 'assistant', 'content' => $integrity_result];
-
-            // [Fix] slice 後再正規化：完美對稱 verify 端。
-            mpu_chat_integrity_store_history(
-                $args['chat_session_id'],
-                mpu_chat_integrity_slice_for_store($raw_history, 10)
-            );
-        }
+        // [Fix] 儲存 Checksum，含 Double-Append 防護
+        MPU_Chat_History_Service::store_after_user_chat(
+            $args['chat_session_id'],
+            $args['chat_history'],
+            $args['user_message'],
+            $result
+        );
 
         return $this->ok(['msg' => $result, 'emoji' => $emoji]);
     }
@@ -1133,25 +1078,13 @@ class MPU_REST_Chat extends MPU_REST_Base {
             mpu_record_conversation('interactive');
         }
 
-        // 寫入 Checksum
-        if (!empty($args['chat_session_id']) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
-            // [Fix] 儲存 Checksum 時與驗證端對齊處理邏輯
-            $integrity_result = sanitize_textarea_field($result);
-            $raw_history      = $args['chat_history'];
-            
-            // [Fix 2026-02-27] 偵測 Double-Append：如果歷史末尾已經是當前 user 訊息，則不重複添加
-            $last_msg = end($raw_history);
-            if (!($last_msg && $last_msg['role'] === 'user' && trim($last_msg['content'] ?? '') === trim($args['user_message']))) {
-                $raw_history[] = ['role' => 'user', 'content' => $args['user_message']];
-            }
-            $raw_history[] = ['role' => 'assistant', 'content' => $integrity_result];
-
-            // [Fix] slice 後再正規化：完美對稱 verify 端。
-            mpu_chat_integrity_store_history(
-                $args['chat_session_id'],
-                mpu_chat_integrity_slice_for_store($raw_history, 10)
-            );
-        }
+        // 寫入 Checksum，含 Double-Append 防護
+        MPU_Chat_History_Service::store_after_user_chat(
+            $args['chat_session_id'],
+            $args['chat_history'],
+            $args['user_message'],
+            $result
+        );
 
         // 發送完成事件
         mpu_sse_send_event('done', [
@@ -1160,5 +1093,49 @@ class MPU_REST_Chat extends MPU_REST_Base {
         ]);
 
         exit;
+    }
+
+    // =========================================================================
+    // Session Token 驗證（訪客請求防濫用）
+    // =========================================================================
+
+    /**
+     * 驗證前台 session token。
+     * 登入使用者直接通過；匿名訪客需帶有效 token，否則直接回傳 403。
+     * 無效與缺少 token 回傳相同錯誤訊息，避免資訊洩漏。
+     */
+    protected function check_session_token(WP_REST_Request $request): ?WP_REST_Response {
+        if (is_user_logged_in()) {
+            return null;
+        }
+        $token = $request->get_header('X-MPU-Session-Token') ?: (string) $request->get_param('session_token');
+        if (!empty($token) && function_exists('mpu_validate_session_token') && mpu_validate_session_token($token)) {
+            return null;
+        }
+        return new WP_REST_Response(
+            ['code' => 'missing_session_token', 'message' => __('有効なセッショントークンが必要です。', 'mp-ukagaka')],
+            403
+        );
+    }
+
+    /**
+     * GET /session-token
+     * 為匿名訪客動態生成 IP 綁定的 session token，帶 no-store 快取標頭。
+     * 登入使用者不需要 token，直接回傳空字串。
+     * 每 IP 每 60 秒最多 10 次，避免持續寫入 transient 的 DB 濫用。
+     */
+    public function get_session_token(WP_REST_Request $request) {
+        if (is_user_logged_in()) {
+            return $this->ok(['token' => '']);
+        }
+        $rl = $this->rate_limit('session_token_issue', 10, 60);
+        if ($rl !== null) return $rl;
+        if (!function_exists('mpu_generate_session_token')) {
+            return $this->fail('unavailable', __('セッショントークンは利用できません。', 'mp-ukagaka'), 503);
+        }
+        $response = $this->ok(['token' => mpu_generate_session_token()]);
+        $response->header('Cache-Control', 'private, no-store, no-cache');
+        $response->header('Pragma', 'no-cache');
+        return $response;
     }
 }

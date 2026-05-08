@@ -273,12 +273,14 @@ async function mpuFetchSSE(url, options, handlers) {
   const signal = controller.signal;
 
   try {
+    const sessionTok = typeof mpuEnsureSessionToken === 'function' ? await mpuEnsureSessionToken() : (window.mpuSessionToken || '');
     const response = await fetch(url, {
       ...options,
       signal,
       headers: {
         ...options.headers,
         "X-WP-Nonce": typeof mpuRestNonce !== "undefined" ? mpuRestNonce : "",
+        "X-MPU-Session-Token": sessionTok,
       },
     });
 

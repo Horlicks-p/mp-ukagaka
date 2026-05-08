@@ -1086,6 +1086,48 @@ function mpu_resolve_personality_id($ukagaka_name = null): ?string
     return null;
 }
 
+// ========================================
+// Session Token（訪客請求驗證）
+// ========================================
+
+/**
+ * 為當前頁面載入產生 IP-bound session token。
+ * 存入 transient（TTL 2 小時），與 IP hash 綁定。
+ * 用途：驗證 AI REST 端點請求確實來自頁面載入，而非直接 API 呼叫。
+ */
+function mpu_generate_session_token(): string
+{
+    $ip = mpu_get_client_ip_strict();
+    try {
+        $token = bin2hex(random_bytes(16));
+    } catch (Exception $e) {
+        $token = md5(uniqid('mpu_sess_', true) . wp_rand());
+    }
+    set_transient('mpu_sess_' . $token, [
+        'ip_hash' => md5($ip . wp_salt('auth')),
+        'created' => time(),
+    ], 2 * HOUR_IN_SECONDS);
+    return $token;
+}
+
+/**
+ * 驗證 session token 是否合法且與當前 IP 匹配。
+ *
+ * @param string $token 32 字元十六進制 token
+ */
+function mpu_validate_session_token(string $token): bool
+{
+    if (empty($token) || !preg_match('/^[0-9a-f]{32}$/', $token)) {
+        return false;
+    }
+    $data = get_transient('mpu_sess_' . $token);
+    if ($data === false || !is_array($data)) {
+        return false;
+    }
+    $ip = mpu_get_client_ip_strict();
+    return isset($data['ip_hash']) && $data['ip_hash'] === md5($ip . wp_salt('auth'));
+}
+
 /**
  * 建構用戶資訊的 User Prompt 區塊
  * 格式化登入狀態、角色、管理員身份為 LLM 可讀的文字

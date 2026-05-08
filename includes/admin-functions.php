@@ -48,6 +48,266 @@ function mpu_admin_enqueue_scripts($hook_suffix)
 add_action('admin_enqueue_scripts', 'mpu_admin_enqueue_scripts');
 
 
+// =========================================================================
+// Admin Settings Save Helpers — 各設定頁面儲存邏輯
+// 每個 helper 修改 $mpu_opt（by reference）並回傳成功提示訊息 HTML。
+// =========================================================================
+
+function mpu_save_general_settings(array &$mpu_opt): string {
+    $mpu_opt['show_ukagaka']  = isset($_POST['show_ukagaka']);
+    $mpu_opt['show_msg']      = isset($_POST['show_msg']);
+    $mpu_opt['default_msg']   = isset($_POST['default_msg'][0]) ? intval($_POST['default_msg'][0]) : 0;
+    $mpu_opt['next_msg']      = isset($_POST['next_msg'][0]) ? intval($_POST['next_msg'][0]) : 0;
+    $mpu_opt['click_ukagaka'] = isset($_POST['click_ukagaka'][0]) ? intval($_POST['click_ukagaka'][0]) : 0;
+    $cur = isset($_POST['cur_ukagaka']) ? mpu_sanitize_personality_id(sanitize_text_field($_POST['cur_ukagaka'])) : '';
+    $mpu_opt['cur_ukagaka']   = !empty($cur) ? $cur : 'default_1';
+    $mpu_opt['no_style']      = isset($_POST['no_style']);
+    $mpu_opt['custom_style_link'] = isset($_POST['custom_style_link']) ? wp_kses($_POST['custom_style_link'], [
+        'link' => ['rel' => true, 'href' => true, 'type' => true, 'media' => true, 'id' => true],
+    ]) : '';
+    $mpu_opt['no_page']              = isset($_POST['no_page']) ? sanitize_textarea_field($_POST['no_page']) : '';
+    $mpu_opt['use_external_file']    = true;
+    $mpu_opt['external_file_format'] = (isset($_POST['external_file_format'][0]) && in_array($_POST['external_file_format'][0], ['txt', 'json'], true))
+        ? $_POST['external_file_format'][0] : 'txt';
+    $mpu_opt['auto_talk']          = isset($_POST['auto_talk']);
+    $mpu_opt['auto_talk_interval'] = isset($_POST['auto_talk_interval']) ? max(3, min(30, intval($_POST['auto_talk_interval']))) : 8;
+    $mpu_opt['typewriter_speed']   = isset($_POST['typewriter_speed']) ? max(10, min(200, intval($_POST['typewriter_speed']))) : 40;
+    $mpu_opt['admin_nickname']     = isset($_POST['admin_nickname']) ? sanitize_text_field(wp_unslash($_POST['admin_nickname'])) : '';
+    $mpu_opt['admin_name']         = isset($_POST['admin_name']) ? sanitize_text_field(wp_unslash($_POST['admin_name'])) : '';
+    $mpu_opt['admin_birthday']     = isset($_POST['admin_birthday']) ? mpu_normalize_admin_birthday(wp_unslash($_POST['admin_birthday'])) : '';
+
+    if (isset($_POST['current_personality'])) {
+        $mpu_opt['current_personality'] = sanitize_file_name($_POST['current_personality']);
+    }
+    if (isset($_POST['insert_html'])) {
+        $mpu_opt['insert_html'] = (int) $_POST['insert_html'][0];
+    }
+
+    // 保留 AI 設定（不在此處處理）
+    $current_opt = mpu_get_option();
+    $mpu_opt['ai_enabled']        = $current_opt['ai_enabled'] ?? false;
+    $mpu_opt['ai_provider']       = $current_opt['ai_provider'] ?? 'gemini';
+    $mpu_opt['ai_api_key']        = $current_opt['ai_api_key'] ?? '';
+    $mpu_opt['gemini_model']      = $current_opt['gemini_model'] ?? 'gemini-2.5-flash';
+    $mpu_opt['openai_api_key']    = $current_opt['openai_api_key'] ?? '';
+    $mpu_opt['openai_model']      = $current_opt['openai_model'] ?? 'gpt-4.1-mini-2025-04-14';
+    $mpu_opt['claude_api_key']    = $current_opt['claude_api_key'] ?? '';
+    $mpu_opt['claude_model']      = $current_opt['claude_model'] ?? 'claude-sonnet-4-6';
+    $mpu_opt['ai_language']       = $current_opt['ai_language'] ?? 'zh-TW';
+    $mpu_opt['ai_system_prompt']  = $current_opt['ai_system_prompt'] ?? '你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。';
+    $mpu_opt['ai_probability']    = $current_opt['ai_probability'] ?? 10;
+    $mpu_opt['ai_trigger_pages']  = $current_opt['ai_trigger_pages'] ?? 'is_single';
+    $mpu_opt['ai_text_color']     = $current_opt['ai_text_color'] ?? '#000000';
+    $mpu_opt['ai_display_duration']   = $current_opt['ai_display_duration'] ?? 8;
+    $mpu_opt['ai_greet_first_visit']  = $current_opt['ai_greet_first_visit'] ?? false;
+    $mpu_opt['ai_greet_prompt']       = $current_opt['ai_greet_prompt'] ?? 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。';
+
+    return '<div class="updated"><p><strong>' . __('設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
+}
+
+function mpu_save_ukagaka_settings(array &$mpu_opt): string {
+    $ukagakas_raw       = $_POST['ukagakas'] ?? [];
+    $ukagakas_sanitized = [];
+
+    foreach ($ukagakas_raw as $key => $value) {
+        $key = mpu_sanitize_personality_id(sanitize_text_field($key));
+        if (empty($key)) continue;
+        $ukagakas_sanitized[$key]['msg']             = mpu_str2array(sanitize_textarea_field($value['msg']));
+        $ukagakas_sanitized[$key]['name']            = sanitize_text_field($value['name']);
+        $ukagakas_sanitized[$key]['shell']           = esc_url_raw($value['shell']);
+        $ukagakas_sanitized[$key]['show']            = isset($value['show']);
+        $ukagakas_sanitized[$key]['dialog_filename'] = isset($value['dialog_filename']) ? sanitize_file_name($value['dialog_filename']) : $key;
+
+        if ($key === 'default_1') {
+            $ukagakas_sanitized[$key]['show_decorations'] = isset($value['show_decorations']);
+        }
+        if (isset($_POST['generate_dialog_file'][$key]) && $_POST['generate_dialog_file'][$key] == 'true') {
+            mpu_generate_dialog_file(
+                $ukagakas_sanitized[$key]['dialog_filename'],
+                $ukagakas_sanitized[$key]['msg'],
+                $mpu_opt['external_file_format'] ?? 'txt'
+            );
+        }
+    }
+    $mpu_opt['ukagakas'] = $ukagakas_sanitized;
+
+    $message = __('キャラクター設定を更新しました', 'mp-ukagaka');
+    if (isset($_POST['generate_dialog_file'])) {
+        $message .= __('。ダイアログファイルを生成しました', 'mp-ukagaka');
+    }
+    return '<div class="updated"><p><strong>' . $message . '</strong></p></div>';
+}
+
+function mpu_save_ai_settings(array &$mpu_opt): string {
+    $current_opt = mpu_get_option();
+
+    // 保留通用設定（不在 AI 設定頁面處理）
+    foreach (['show_ukagaka', 'show_msg', 'default_msg', 'next_msg', 'click_ukagaka',
+              'cur_ukagaka', 'no_style', 'no_page', 'external_file_format', 'auto_talk',
+              'auto_talk_interval', 'typewriter_speed', 'insert_html', 'ukagakas', 'extend',
+              'auto_msg', 'common_msg'] as $key) {
+        $mpu_opt[$key] = $current_opt[$key] ?? null;
+    }
+    $mpu_opt['use_external_file'] = true;
+
+    $mpu_opt['ai_language']       = isset($_POST['ai_language']) ? sanitize_text_field($_POST['ai_language']) : 'zh-TW';
+    $mpu_opt['ai_system_prompt']  = isset($_POST['ai_system_prompt']) ? wp_kses_post(wp_unslash($_POST['ai_system_prompt'])) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。必ずこのキャラクターとして振る舞い、一人称は「私」を使用してください。回答は日本語で、50文字以内の短い一言で返してください。自分が AI や Qwen だと言わないでください。';
+    $mpu_opt['ai_probability']    = isset($_POST['ai_probability']) ? max(1, min(100, intval($_POST['ai_probability']))) : 10;
+    $mpu_opt['ai_max_tokens']     = isset($_POST['ai_max_tokens']) ? max(100, min(8192, intval($_POST['ai_max_tokens']))) : 1000;
+    $mpu_opt['ai_trigger_pages']  = isset($_POST['ai_trigger_pages']) ? sanitize_text_field($_POST['ai_trigger_pages']) : 'is_single';
+    $mpu_opt['ai_text_color']     = isset($_POST['ai_text_color']) ? sanitize_hex_color($_POST['ai_text_color']) : '#000000';
+    $mpu_opt['ai_display_duration']  = isset($_POST['ai_display_duration']) ? max(1, min(60, intval($_POST['ai_display_duration']))) : 8;
+    $mpu_opt['ai_greet_first_visit'] = !empty($_POST['ai_greet_first_visit']);
+    $mpu_opt['ai_greet_prompt']      = isset($_POST['ai_greet_prompt']) ? wp_kses_post(wp_unslash($_POST['ai_greet_prompt'])) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。';
+
+    return '<div class="updated"><p><strong>' . __('AI 設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
+}
+
+function mpu_save_llm_settings(array &$mpu_opt): string {
+    $mpu_opt['ai_enabled'] = !empty($_POST['ai_enabled']);
+
+    if (isset($_POST['llm_provider'])) {
+        $allowed = ['gemini', 'openai', 'claude', 'ollama'];
+        $provider = in_array($_POST['llm_provider'], $allowed, true) ? $_POST['llm_provider'] : 'gemini';
+        $mpu_opt['llm_provider'] = $provider;
+        $mpu_opt['ai_provider']  = $provider;
+    }
+
+    $gemini_key = isset($_POST['llm_gemini_api_key']) ? sanitize_text_field($_POST['llm_gemini_api_key']) : '';
+    $openai_key = isset($_POST['llm_openai_api_key']) ? sanitize_text_field($_POST['llm_openai_api_key']) : '';
+    $claude_key = isset($_POST['llm_claude_api_key']) ? sanitize_text_field($_POST['llm_claude_api_key']) : '';
+
+    if (!empty($gemini_key) && !mpu_is_api_key_encrypted($gemini_key)) {
+        $mpu_opt['llm_gemini_api_key'] = mpu_encrypt_api_key($gemini_key);
+        $mpu_opt['ai_api_key']         = $mpu_opt['llm_gemini_api_key'];
+    }
+    if (!empty($openai_key) && !mpu_is_api_key_encrypted($openai_key)) {
+        $mpu_opt['llm_openai_api_key'] = mpu_encrypt_api_key($openai_key);
+        $mpu_opt['openai_api_key']     = $mpu_opt['llm_openai_api_key'];
+    }
+    if (!empty($claude_key) && !mpu_is_api_key_encrypted($claude_key)) {
+        $mpu_opt['llm_claude_api_key'] = mpu_encrypt_api_key($claude_key);
+        $mpu_opt['claude_api_key']     = $mpu_opt['llm_claude_api_key'];
+    }
+
+    if (isset($_POST['llm_gemini_model'])) {
+        $mpu_opt['llm_gemini_model'] = sanitize_text_field($_POST['llm_gemini_model']);
+        $mpu_opt['gemini_model']     = $mpu_opt['llm_gemini_model'];
+    }
+    if (isset($_POST['llm_openai_model'])) {
+        $mpu_opt['llm_openai_model'] = sanitize_text_field($_POST['llm_openai_model']);
+        $mpu_opt['openai_model']     = $mpu_opt['llm_openai_model'];
+    }
+    if (isset($_POST['llm_claude_model'])) {
+        $mpu_opt['llm_claude_model'] = sanitize_text_field($_POST['llm_claude_model']);
+        $mpu_opt['claude_model']     = $mpu_opt['llm_claude_model'];
+    }
+
+    if (isset($_POST['ollama_endpoint'])) {
+        $validated = mpu_validate_ollama_endpoint(esc_url_raw(wp_unslash($_POST['ollama_endpoint'])));
+        $mpu_opt['ollama_endpoint'] = is_wp_error($validated) ? 'http://localhost:11434' : $validated;
+    }
+    if (isset($_POST['ollama_model'])) {
+        $mpu_opt['ollama_model'] = sanitize_text_field($_POST['ollama_model']);
+    }
+    $mpu_opt['ollama_disable_thinking'] = !empty($_POST['ollama_disable_thinking']);
+
+    $mpu_opt['llm_replace_dialogue'] = !empty($_POST['llm_replace_dialogue']);
+    if ($mpu_opt['llm_replace_dialogue'] && isset($mpu_opt['llm_provider']) && $mpu_opt['llm_provider'] === 'ollama') {
+        $mpu_opt['ollama_replace_dialogue'] = true;
+    }
+
+    $mpu_opt['enable_chat_mode'] = !empty($_POST['enable_chat_mode']);
+
+    $mpu_opt['weather_enabled']   = !empty($_POST['weather_enabled']);
+    $mpu_opt['weather_latitude']  = isset($_POST['weather_latitude']) ? max(-90.0, min(90.0, floatval($_POST['weather_latitude']))) : 25.0330;
+    $mpu_opt['weather_longitude'] = isset($_POST['weather_longitude']) ? max(-180.0, min(180.0, floatval($_POST['weather_longitude']))) : 121.5654;
+
+    $mpu_opt['api_cache_enabled'] = !empty($_POST['api_cache_enabled']);
+    $mpu_opt['api_cache_ttl']     = isset($_POST['api_cache_ttl']) ? max(60, min(604800, intval($_POST['api_cache_ttl']))) : 3600;
+
+    return '<div class="updated"><p><strong>' . __('LLM 設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
+}
+
+function mpu_save_diary_settings(array &$mpu_opt): string {
+    $mpu_opt['diary_enabled']      = !empty($_POST['diary_enabled']);
+    $mpu_opt['diary_category']     = isset($_POST['diary_category']) ? intval($_POST['diary_category']) : 0;
+    $mpu_opt['diary_author']       = isset($_POST['diary_author']) ? intval($_POST['diary_author']) : get_current_user_id();
+    $mpu_opt['diary_trigger_rate'] = isset($_POST['diary_trigger_rate']) ? max(1, min(10, intval($_POST['diary_trigger_rate']))) : 2;
+    $mpu_opt['diary_signature']    = isset($_POST['diary_signature']) ? sanitize_text_field($_POST['diary_signature']) : '';
+
+    if (isset($_POST['diary_provider'])) {
+        $allowed = ['gemini', 'openai', 'claude', 'ollama'];
+        $mpu_opt['diary_provider'] = in_array($_POST['diary_provider'], $allowed, true) ? $_POST['diary_provider'] : 'gemini';
+    }
+
+    $diary_gemini_key = isset($_POST['diary_gemini_api_key']) ? sanitize_text_field($_POST['diary_gemini_api_key']) : '';
+    $diary_openai_key = isset($_POST['diary_openai_api_key']) ? sanitize_text_field($_POST['diary_openai_api_key']) : '';
+    $diary_claude_key = isset($_POST['diary_claude_api_key']) ? sanitize_text_field($_POST['diary_claude_api_key']) : '';
+
+    if (!empty($diary_gemini_key) && !mpu_is_api_key_encrypted($diary_gemini_key)) {
+        $mpu_opt['diary_gemini_api_key'] = mpu_encrypt_api_key($diary_gemini_key);
+    }
+    if (!empty($diary_openai_key) && !mpu_is_api_key_encrypted($diary_openai_key)) {
+        $mpu_opt['diary_openai_api_key'] = mpu_encrypt_api_key($diary_openai_key);
+    }
+    if (!empty($diary_claude_key) && !mpu_is_api_key_encrypted($diary_claude_key)) {
+        $mpu_opt['diary_claude_api_key'] = mpu_encrypt_api_key($diary_claude_key);
+    }
+
+    if (isset($_POST['diary_gemini_model'])) $mpu_opt['diary_gemini_model'] = sanitize_text_field($_POST['diary_gemini_model']);
+    if (isset($_POST['diary_openai_model'])) $mpu_opt['diary_openai_model'] = sanitize_text_field($_POST['diary_openai_model']);
+    if (isset($_POST['diary_claude_model'])) $mpu_opt['diary_claude_model'] = sanitize_text_field($_POST['diary_claude_model']);
+
+    if (isset($_POST['diary_ollama_endpoint'])) {
+        $raw = trim(esc_url_raw(wp_unslash($_POST['diary_ollama_endpoint'])));
+        if (empty($raw)) {
+            $mpu_opt['diary_ollama_endpoint'] = '';
+        } else {
+            $validated = mpu_validate_ollama_endpoint($raw);
+            $mpu_opt['diary_ollama_endpoint'] = is_wp_error($validated) ? '' : $validated;
+        }
+    }
+    if (isset($_POST['diary_ollama_model'])) {
+        $mpu_opt['diary_ollama_model'] = sanitize_text_field($_POST['diary_ollama_model']);
+    }
+
+    return '<div class="updated"><p><strong>' . __('日記設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
+}
+
+function mpu_save_bot_blocker_settings(array &$mpu_opt): string {
+    $current_opt = mpu_get_option();
+    $bb = isset($current_opt['bot_blocker']) && is_array($current_opt['bot_blocker'])
+        ? $current_opt['bot_blocker'] : [];
+
+    $bb['enabled']     = !empty($_POST['bot_blocker_enabled']);
+    $bb['auto_ban_ip'] = !empty($_POST['bot_blocker_auto_ban_ip']);
+
+    if (isset($_POST['bot_blocker_banned_fingerprints'])) {
+        $lines = explode("\n", sanitize_textarea_field($_POST['bot_blocker_banned_fingerprints']));
+        $bb['banned_fingerprints'] = array_values(array_filter(
+            array_map('trim', $lines),
+            function($h) { return preg_match('/^[a-f0-9]{32}$/i', $h); }
+        ));
+    }
+    if (isset($_POST['bot_blocker_suspicious_resolutions'])) {
+        $lines = explode("\n", sanitize_textarea_field($_POST['bot_blocker_suspicious_resolutions']));
+        $bb['suspicious_resolutions'] = array_values(array_filter(
+            array_map('trim', $lines),
+            function($r) { return preg_match('/^\d+x\d+$/i', $r); }
+        ));
+    }
+
+    $bb['block_status']         = isset($_POST['bot_blocker_block_status']) ? max(400, min(599, intval($_POST['bot_blocker_block_status']))) : 403;
+    $bb['hot_transient_ttl']    = isset($_POST['bot_blocker_hot_transient_ttl']) ? max(60, min(86400, intval($_POST['bot_blocker_hot_transient_ttl']))) : 600;
+    $bb['rate_limit_threshold'] = isset($_POST['bot_blocker_rate_limit_threshold']) ? max(0, min(1000, intval($_POST['bot_blocker_rate_limit_threshold']))) : 40;
+    $bb['max_log_rows']         = isset($_POST['bot_blocker_max_log_rows']) ? max(100, min(10000, intval($_POST['bot_blocker_max_log_rows']))) : 1000;
+
+    $mpu_opt['bot_blocker'] = $bb;
+
+    return '<div class="updated"><p><strong>' . __('Bot 防護設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
+}
+
 /**
  * 處理選項保存（在 admin_init 中執行）
  * 增加頁面和表單檢查，確保只在儲存本外掛的選項時才執行驗證
@@ -88,6 +348,7 @@ function mpu_handle_options_save()
         || isset($_POST['submit_diary'])     // 日記設定
         || isset($_POST['submit_reset'])     // 重置設定
         || isset($_POST['submit_upload_zip']) // ZIP 上傳
+        || isset($_POST['submit_confirm_ghost_overwrite']) // ZIP 覆蓋確認
         || isset($_POST['submit_bot_blocker']); // Bot 防護
 
     if (! $is_our_submit) {
@@ -107,102 +368,9 @@ function mpu_handle_options_save()
     $text = ''; // 用於顯示訊息
 
     if (isset($_POST['submit1'])) {
-        // 處理通用設定
-        $mpu_opt['show_ukagaka'] = isset($_POST['show_ukagaka']);
-        $mpu_opt['show_msg'] = isset($_POST['show_msg']);
-        $mpu_opt['default_msg'] = isset($_POST['default_msg'][0]) ? intval($_POST['default_msg'][0]) : 0;
-        $mpu_opt['next_msg'] = isset($_POST['next_msg'][0]) ? intval($_POST['next_msg'][0]) : 0;
-        $mpu_opt['click_ukagaka'] = isset($_POST['click_ukagaka'][0]) ? intval($_POST['click_ukagaka'][0]) : 0;
-        $cur = isset($_POST['cur_ukagaka']) ? mpu_sanitize_personality_id(sanitize_text_field($_POST['cur_ukagaka'])) : '';
-        $mpu_opt['cur_ukagaka'] = !empty($cur) ? $cur : 'default_1';
-        $mpu_opt['no_style'] = isset($_POST['no_style']);
-        $mpu_opt['custom_style_link'] = isset($_POST['custom_style_link']) ? wp_kses($_POST['custom_style_link'], [
-            'link' => [
-                'rel' => true,
-                'href' => true,
-                'type' => true,
-                'media' => true,
-                'id' => true,
-            ],
-        ]) : '';
-        $mpu_opt['no_page'] = isset($_POST['no_page']) ? sanitize_textarea_field($_POST['no_page']) : '';
-        // 系統已固定使用外部對話文件
-        $mpu_opt['use_external_file'] = true;
-        $mpu_opt['external_file_format'] = (isset($_POST['external_file_format'][0]) && in_array($_POST['external_file_format'][0], ['txt', 'json'], true)) ? $_POST['external_file_format'][0] : 'txt';
-        $mpu_opt['auto_talk'] = isset($_POST['auto_talk']);
-        $mpu_opt['auto_talk_interval'] = isset($_POST['auto_talk_interval']) ? max(3, min(30, intval($_POST['auto_talk_interval']))) : 8;
-        $mpu_opt['typewriter_speed'] = isset($_POST['typewriter_speed']) ? max(10, min(200, intval($_POST['typewriter_speed']))) : 40;
-        $mpu_opt['admin_nickname'] = isset($_POST['admin_nickname']) ? sanitize_text_field(wp_unslash($_POST['admin_nickname'])) : '';
-        $mpu_opt['admin_name'] = isset($_POST['admin_name']) ? sanitize_text_field(wp_unslash($_POST['admin_name'])) : '';
-        $mpu_opt['admin_birthday'] = isset($_POST['admin_birthday']) ? mpu_normalize_admin_birthday(wp_unslash($_POST['admin_birthday'])) : '';
-        
-        // 保存人格選擇
-        if (isset($_POST['current_personality'])) {
-            $mpu_opt['current_personality'] = sanitize_file_name($_POST['current_personality']);
-        }
-
-        if (isset($_POST['insert_html'])) {
-            $mpu_opt['insert_html'] = (int)$_POST['insert_html'][0];
-        }
-
-        // 保留 AI 設定（不在此處處理）
-        $current_opt = mpu_get_option();
-        $mpu_opt['ai_enabled'] = $current_opt['ai_enabled'] ?? false;
-        $mpu_opt['ai_provider'] = $current_opt['ai_provider'] ?? 'gemini';
-        $mpu_opt['ai_api_key'] = $current_opt['ai_api_key'] ?? '';
-        $mpu_opt['gemini_model'] = $current_opt['gemini_model'] ?? 'gemini-2.5-flash';
-        $mpu_opt['openai_api_key'] = $current_opt['openai_api_key'] ?? '';
-        $mpu_opt['openai_model'] = $current_opt['openai_model'] ?? 'gpt-4.1-mini-2025-04-14';
-        $mpu_opt['claude_api_key'] = $current_opt['claude_api_key'] ?? '';
-        $mpu_opt['claude_model'] = $current_opt['claude_model'] ?? 'claude-sonnet-4-6';
-        $mpu_opt['ai_language'] = $current_opt['ai_language'] ?? 'zh-TW';
-        $mpu_opt['ai_system_prompt'] = $current_opt['ai_system_prompt'] ?? '你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。';
-        $mpu_opt['ai_probability'] = $current_opt['ai_probability'] ?? 10;
-        $mpu_opt['ai_trigger_pages'] = $current_opt['ai_trigger_pages'] ?? 'is_single';
-        $mpu_opt['ai_text_color'] = $current_opt['ai_text_color'] ?? '#000000';
-        $mpu_opt['ai_display_duration'] = $current_opt['ai_display_duration'] ?? 8;
-        $mpu_opt['ai_greet_first_visit'] = $current_opt['ai_greet_first_visit'] ?? false;
-        $mpu_opt['ai_greet_prompt'] = $current_opt['ai_greet_prompt'] ?? 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。';
-
-        $message = __('設定を保存しました', 'mp-ukagaka');
-        $text = '<div class="updated"><p><strong>' . $message . '</strong></p></div>';
+        $text = mpu_save_general_settings($mpu_opt);
     } elseif (isset($_POST['submit2'])) {
-        // 處理偽春菜設定更新
-        $ukagakas_raw = $_POST['ukagakas'] ?? [];
-        $ukagakas_sanitized = [];
-
-        foreach ($ukagakas_raw as $key => $value) {
-            $key = mpu_sanitize_personality_id(sanitize_text_field($key));
-            if (empty($key)) {
-                continue;
-            }
-            // 使用 sanitize_textarea_field 處理傳入的字串，再轉換為陣列
-            $ukagakas_sanitized[$key]['msg'] = mpu_str2array(sanitize_textarea_field($value['msg']));
-            $ukagakas_sanitized[$key]['name'] = sanitize_text_field($value['name']);
-            $ukagakas_sanitized[$key]['shell'] = esc_url_raw($value['shell']);
-            $ukagakas_sanitized[$key]['show'] = isset($value['show']);
-            $ukagakas_sanitized[$key]['dialog_filename'] = isset($value['dialog_filename']) ? sanitize_file_name($value['dialog_filename']) : $key;
-
-            // 處理芙莉蓮專屬的裝飾配件設定
-            if ($key === 'default_1') {
-                $ukagakas_sanitized[$key]['show_decorations'] = isset($value['show_decorations']);
-            }
-
-            if (isset($_POST['generate_dialog_file'][$key]) && $_POST['generate_dialog_file'][$key] == 'true') {
-                mpu_generate_dialog_file(
-                    $ukagakas_sanitized[$key]['dialog_filename'],
-                    $ukagakas_sanitized[$key]['msg'],
-                    $mpu_opt['external_file_format'] ?? 'txt'
-                );
-            }
-        }
-        $mpu_opt['ukagakas'] = $ukagakas_sanitized;
-
-        $message = __('キャラクター設定を更新しました', 'mp-ukagaka');
-        if (isset($_POST['generate_dialog_file'])) {
-            $message .= __('。ダイアログファイルを生成しました', 'mp-ukagaka');
-        }
-        $text = '<div class="updated"><p><strong>' . $message . '</strong></p></div>';
+        $text = mpu_save_ukagaka_settings($mpu_opt);
     } elseif (isset($_POST['submit_upload_zip'])) {
         // 處理 ZIP 文件上傳
         if (!function_exists('mpu_handle_ghost_zip_upload')) {
@@ -213,6 +381,12 @@ function mpu_handle_options_save()
         $upload_result = mpu_handle_ghost_zip_upload();
 
         if (is_wp_error($upload_result)) {
+            // 特殊錯誤碼：需要覆蓋確認，轉至確認頁面而非顯示錯誤
+            if ($upload_result->get_error_code() === 'ghost_exists_pending_confirm') {
+                $redirect_url = admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=2&overwrite_pending=1');
+                wp_safe_redirect($redirect_url);
+                exit;
+            }
             add_settings_error('mpu_options', 'zip_upload_error', $upload_result->get_error_message());
             return;
         }
@@ -222,6 +396,77 @@ function mpu_handle_options_save()
         set_transient($transient_key, $upload_result, HOUR_IN_SECONDS); // 1 小時有效期
 
         // 重定向到預覽頁面
+        $redirect_url = admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=2&preview=1');
+        wp_safe_redirect($redirect_url);
+        exit;
+
+    } elseif (isset($_POST['submit_confirm_ghost_overwrite'])) {
+        // 管理員確認後，將暫存目錄原子搬移至正式目錄
+        $pending_key = 'mpu_ghost_overwrite_' . get_current_user_id();
+        $pending = get_transient($pending_key);
+
+        if (!$pending || empty($pending['temp_dir']) || empty($pending['ghost_id'])) {
+            add_settings_error('mpu_options', 'overwrite_expired', __('確認データが期限切れです。再度アップロードしてください。', 'mp-ukagaka'));
+            return;
+        }
+
+        $temp_dir     = $pending['temp_dir'];
+        $ghost_id     = $pending['ghost_id'];
+        $manifest_data = $pending['manifest'];
+        $ghost_dir    = mpu_get_personalities_dir();
+        $target_dir   = $ghost_dir . '/' . sanitize_file_name($ghost_id);
+
+        if (!is_dir($temp_dir)) {
+            delete_transient($pending_key);
+            add_settings_error('mpu_options', 'temp_missing', __('一時ディレクトリが見つかりません。再度アップロードしてください。', 'mp-ukagaka'));
+            return;
+        }
+
+        // 原子替換：先把舊目錄 rename 成 backup，再把 temp rename 到正式位置
+        // 若 rename(temp→target) 失敗，可從 backup 還原，避免留下空目錄
+        $backup_dir = null;
+        if (file_exists($target_dir)) {
+            $backup_dir = $target_dir . '_bak_' . time();
+            if (!rename($target_dir, $backup_dir)) {
+                mpu_recursive_rmdir($temp_dir);
+                delete_transient($pending_key);
+                add_settings_error('mpu_options', 'backup_failed', __('既存 Personality のバックアップに失敗しました。', 'mp-ukagaka'));
+                return;
+            }
+        }
+
+        if (!rename($temp_dir, $target_dir)) {
+            // 還原 backup（rollback）
+            if ($backup_dir && is_dir($backup_dir)) {
+                rename($backup_dir, $target_dir);
+            }
+            mpu_recursive_rmdir($temp_dir);
+            delete_transient($pending_key);
+            add_settings_error('mpu_options', 'move_failed', __('Personality ディレクトリの移動に失敗しました。', 'mp-ukagaka'));
+            return;
+        }
+
+        // 成功：清除 backup
+        if ($backup_dir && is_dir($backup_dir)) {
+            mpu_recursive_rmdir($backup_dir);
+        }
+
+        delete_transient($pending_key);
+
+        // 建立預覽資料並轉至預覽頁面
+        $main_file = defined('MPU_MAIN_FILE') ? MPU_MAIN_FILE : dirname(dirname(__FILE__)) . '/mp-ukagaka.php';
+        $shell_url = plugins_url("ghost/{$ghost_id}/shell/", $main_file);
+        $preview_data = [
+            'id'          => $ghost_id,
+            'name'        => !empty($manifest_data['name_zh']) ? $manifest_data['name_zh'] : (!empty($manifest_data['name']) ? $manifest_data['name'] : $ghost_id),
+            'name_en'     => $manifest_data['name_en'] ?? '',
+            'shell_url'   => $shell_url,
+            'version'     => $manifest_data['version'] ?? '',
+            'author'      => $manifest_data['author'] ?? '',
+            'description' => !empty($manifest_data['description_zh']) ? $manifest_data['description_zh'] : ($manifest_data['description'] ?? ''),
+        ];
+        $transient_key = 'mpu_ghost_zip_preview_' . get_current_user_id();
+        set_transient($transient_key, $preview_data, HOUR_IN_SECONDS);
         $redirect_url = admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=2&preview=1');
         wp_safe_redirect($redirect_url);
         exit;
@@ -314,8 +559,11 @@ function mpu_handle_options_save()
     } elseif (isset($_POST['submit4'])) {
         // 處理擴展設定
         $extend = $_POST['extend'] ?? [];
-        // js_area 為特殊欄位，直接保存（供管理員使用）
-        $mpu_opt['extend']['js_area'] = isset($extend['js_area']) ? stripslashes_deep($extend['js_area']) : '';
+        // js_area 輸出 raw JavaScript，需要 unfiltered_html 權限才能儲存；
+        // 無權限時保留既有內容，避免切換站點模式造成資料遺失。
+        if (current_user_can('unfiltered_html')) {
+            $mpu_opt['extend']['js_area'] = isset($extend['js_area']) ? stripslashes_deep($extend['js_area']) : '';
+        }
         $text = '<div class="updated"><p><strong>' . __('設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
     } elseif (isset($_POST['submit5'])) {
         // 處理會話設定
@@ -323,181 +571,11 @@ function mpu_handle_options_save()
         $mpu_opt['common_msg'] = isset($_POST['common_msg']) ? sanitize_textarea_field($_POST['common_msg']) : '';
         $text = '<div class="updated"><p><strong>' . __('設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
     } elseif (isset($_POST['submit_ai'])) {
-        // 處理 AI 設定
-        $current_opt = mpu_get_option();
-
-        // 保留通用設定（不在 AI 設定頁面處理）
-        $mpu_opt['show_ukagaka'] = $current_opt['show_ukagaka'] ?? true;
-        $mpu_opt['show_msg'] = $current_opt['show_msg'] ?? true;
-        $mpu_opt['default_msg'] = $current_opt['default_msg'] ?? 0;
-        $mpu_opt['next_msg'] = $current_opt['next_msg'] ?? 0;
-        $mpu_opt['click_ukagaka'] = $current_opt['click_ukagaka'] ?? 0;
-        $mpu_opt['cur_ukagaka'] = $current_opt['cur_ukagaka'] ?? 'default_1';
-        $mpu_opt['no_style'] = $current_opt['no_style'] ?? false;
-        $mpu_opt['no_page'] = $current_opt['no_page'] ?? '';
-        // 系統已固定使用外部對話文件
-        $mpu_opt['use_external_file'] = true;
-        $mpu_opt['external_file_format'] = $current_opt['external_file_format'] ?? 'txt';
-        $mpu_opt['auto_talk'] = $current_opt['auto_talk'] ?? true;
-        $mpu_opt['auto_talk_interval'] = $current_opt['auto_talk_interval'] ?? 8;
-        $mpu_opt['typewriter_speed'] = $current_opt['typewriter_speed'] ?? 40;
-        $mpu_opt['insert_html'] = $current_opt['insert_html'] ?? 0;
-        $mpu_opt['ukagakas'] = $current_opt['ukagakas'] ?? [];
-        $mpu_opt['extend'] = $current_opt['extend'] ?? [];
-        $mpu_opt['auto_msg'] = $current_opt['auto_msg'] ?? '';
-        $mpu_opt['common_msg'] = $current_opt['common_msg'] ?? '';
-
-        // 處理 AI 設定（僅頁面感知相關的設定，不處理提供商、API Key、模型選擇）
-        $mpu_opt['ai_language'] = isset($_POST['ai_language']) ? sanitize_text_field($_POST['ai_language']) : 'zh-TW';
-        $mpu_opt['ai_system_prompt'] = isset($_POST['ai_system_prompt']) ? wp_kses_post(wp_unslash($_POST['ai_system_prompt'])) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。必ずこのキャラクターとして振る舞い、一人称は「私」を使用してください。回答は日本語で、50文字以内の短い一言で返してください。自分が AI や Qwen だと言わないでください。';
-        $mpu_opt['ai_probability'] = isset($_POST['ai_probability']) ? max(1, min(100, intval($_POST['ai_probability']))) : 10;
-        $mpu_opt['ai_max_tokens'] = isset($_POST['ai_max_tokens']) ? max(100, min(8192, intval($_POST['ai_max_tokens']))) : 1000;
-        $mpu_opt['ai_trigger_pages'] = isset($_POST['ai_trigger_pages']) ? sanitize_text_field($_POST['ai_trigger_pages']) : 'is_single';
-        $mpu_opt['ai_text_color'] = isset($_POST['ai_text_color']) ? sanitize_hex_color($_POST['ai_text_color']) : '#000000';
-        $mpu_opt['ai_display_duration'] = isset($_POST['ai_display_duration']) ? max(1, min(60, intval($_POST['ai_display_duration']))) : 8;
-        $mpu_opt['ai_greet_first_visit'] = isset($_POST['ai_greet_first_visit']) && $_POST['ai_greet_first_visit'] ? true : false;
-        $mpu_opt['ai_greet_prompt'] = isset($_POST['ai_greet_prompt']) ? wp_kses_post(wp_unslash($_POST['ai_greet_prompt'])) : 'あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。';
-
-        // 注意：提供商選擇、API Key、模型選擇已移至 LLM 設定頁面
-        // 「LLM 取代內建對話」和「頁面感知 AI (ai_enabled)」是兩個獨立的功能
-        // 用戶可以同時啟用或單獨啟用任一功能
-
-        $text = '<div class="updated"><p><strong>' . __('AI 設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
+        $text = mpu_save_ai_settings($mpu_opt);
     } elseif (isset($_POST['submit_llm'])) {
-        // 處理 LLM 設定
-        $current_opt = mpu_get_option();
-
-        // 保存頁面感知開關
-        $mpu_opt['ai_enabled'] = isset($_POST['ai_enabled']) && $_POST['ai_enabled'] ? true : false;
-
-        // 保存提供商選擇（統一使用 llm_provider，同時保持 ai_provider 向後兼容）
-        if (isset($_POST['llm_provider'])) {
-            $allowed_providers = ['gemini', 'openai', 'claude', 'ollama'];
-            $provider = in_array($_POST['llm_provider'], $allowed_providers, true) ? $_POST['llm_provider'] : 'gemini';
-            $mpu_opt['llm_provider'] = $provider;
-            $mpu_opt['ai_provider'] = $provider; // 向後兼容
-        }
-
-        // 處理各提供商的 API Key（加密存儲）
-        $gemini_key = isset($_POST['llm_gemini_api_key']) ? sanitize_text_field($_POST['llm_gemini_api_key']) : '';
-        $openai_key = isset($_POST['llm_openai_api_key']) ? sanitize_text_field($_POST['llm_openai_api_key']) : '';
-        $claude_key = isset($_POST['llm_claude_api_key']) ? sanitize_text_field($_POST['llm_claude_api_key']) : '';
-
-        if (!empty($gemini_key) && !mpu_is_api_key_encrypted($gemini_key)) {
-            $mpu_opt['llm_gemini_api_key'] = mpu_encrypt_api_key($gemini_key);
-            $mpu_opt['ai_api_key'] = $mpu_opt['llm_gemini_api_key']; // 向後兼容
-        }
-        if (!empty($openai_key) && !mpu_is_api_key_encrypted($openai_key)) {
-            $mpu_opt['llm_openai_api_key'] = mpu_encrypt_api_key($openai_key);
-            $mpu_opt['openai_api_key'] = $mpu_opt['llm_openai_api_key']; // 向後兼容
-        }
-        if (!empty($claude_key) && !mpu_is_api_key_encrypted($claude_key)) {
-            $mpu_opt['llm_claude_api_key'] = mpu_encrypt_api_key($claude_key);
-            $mpu_opt['claude_api_key'] = $mpu_opt['llm_claude_api_key']; // 向後兼容
-        }
-
-        // 保存各提供商的模型選擇
-        if (isset($_POST['llm_gemini_model'])) {
-            $mpu_opt['llm_gemini_model'] = sanitize_text_field($_POST['llm_gemini_model']);
-            $mpu_opt['gemini_model'] = $mpu_opt['llm_gemini_model']; // 向後兼容
-        }
-        if (isset($_POST['llm_openai_model'])) {
-            $mpu_opt['llm_openai_model'] = sanitize_text_field($_POST['llm_openai_model']);
-            $mpu_opt['openai_model'] = $mpu_opt['llm_openai_model']; // 向後兼容
-        }
-        if (isset($_POST['llm_claude_model'])) {
-            $mpu_opt['llm_claude_model'] = sanitize_text_field($_POST['llm_claude_model']);
-            $mpu_opt['claude_model'] = $mpu_opt['llm_claude_model']; // 向後兼容
-        }
-
-        // 保存 Ollama 設定
-        if (isset($_POST['ollama_endpoint'])) {
-            $validated = mpu_validate_ollama_endpoint(esc_url_raw(wp_unslash($_POST['ollama_endpoint'])));
-            $mpu_opt['ollama_endpoint'] = is_wp_error($validated) ? 'http://localhost:11434' : $validated;
-        }
-        if (isset($_POST['ollama_model'])) {
-            $mpu_opt['ollama_model'] = sanitize_text_field($_POST['ollama_model']);
-        }
-        $mpu_opt['ollama_disable_thinking'] = isset($_POST['ollama_disable_thinking']) && $_POST['ollama_disable_thinking'] ? true : false;
-
-        // 保存「使用 LLM 取代內建對話」設定
-        $mpu_opt['llm_replace_dialogue'] = isset($_POST['llm_replace_dialogue']) && $_POST['llm_replace_dialogue'] ? true : false;
-        if ($mpu_opt['llm_replace_dialogue'] && isset($mpu_opt['llm_provider']) && $mpu_opt['llm_provider'] === 'ollama') {
-            $mpu_opt['ollama_replace_dialogue'] = true;
-        }
-
-        // 保存「啟用互動對話功能」設定
-        $mpu_opt['enable_chat_mode'] = isset($_POST['enable_chat_mode']) && $_POST['enable_chat_mode'] ? true : false;
-
-        // 保存天氣設定
-        $mpu_opt['weather_enabled'] = isset($_POST['weather_enabled']) && $_POST['weather_enabled'] ? true : false;
-        $mpu_opt['weather_latitude'] = isset($_POST['weather_latitude']) ? max(-90.0, min(90.0, floatval($_POST['weather_latitude']))) : 25.0330;
-        $mpu_opt['weather_longitude'] = isset($_POST['weather_longitude']) ? max(-180.0, min(180.0, floatval($_POST['weather_longitude']))) : 121.5654;
-
-        // 保存 API 快取設定
-        $mpu_opt['api_cache_enabled'] = isset($_POST['api_cache_enabled']) && $_POST['api_cache_enabled'] ? true : false;
-        $mpu_opt['api_cache_ttl'] = isset($_POST['api_cache_ttl']) ? max(60, min(604800, intval($_POST['api_cache_ttl']))) : 3600;
-
-        $text = '<div class="updated"><p><strong>' . __('LLM 設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
+        $text = mpu_save_llm_settings($mpu_opt);
     } elseif (isset($_POST['submit_diary'])) {
-        // 處理日記設定
-        $current_opt = mpu_get_option();
-
-        // 保存基本設定
-        $mpu_opt['diary_enabled'] = isset($_POST['diary_enabled']) && $_POST['diary_enabled'] ? true : false;
-        $mpu_opt['diary_category'] = isset($_POST['diary_category']) ? intval($_POST['diary_category']) : 0;
-        $mpu_opt['diary_author'] = isset($_POST['diary_author']) ? intval($_POST['diary_author']) : get_current_user_id();
-        $mpu_opt['diary_trigger_rate'] = isset($_POST['diary_trigger_rate']) ? max(1, min(10, intval($_POST['diary_trigger_rate']))) : 2;
-        $mpu_opt['diary_signature'] = isset($_POST['diary_signature']) ? sanitize_text_field($_POST['diary_signature']) : '';
-
-        // 保存 AI 供應商設定
-        if (isset($_POST['diary_provider'])) {
-            $allowed_providers = ['gemini', 'openai', 'claude', 'ollama'];
-            $mpu_opt['diary_provider'] = in_array($_POST['diary_provider'], $allowed_providers, true) ? $_POST['diary_provider'] : 'gemini';
-        }
-
-        // 處理各提供商的 API Key（加密存儲）
-        $diary_gemini_key = isset($_POST['diary_gemini_api_key']) ? sanitize_text_field($_POST['diary_gemini_api_key']) : '';
-        $diary_openai_key = isset($_POST['diary_openai_api_key']) ? sanitize_text_field($_POST['diary_openai_api_key']) : '';
-        $diary_claude_key = isset($_POST['diary_claude_api_key']) ? sanitize_text_field($_POST['diary_claude_api_key']) : '';
-
-        if (!empty($diary_gemini_key) && !mpu_is_api_key_encrypted($diary_gemini_key)) {
-            $mpu_opt['diary_gemini_api_key'] = mpu_encrypt_api_key($diary_gemini_key);
-        }
-        if (!empty($diary_openai_key) && !mpu_is_api_key_encrypted($diary_openai_key)) {
-            $mpu_opt['diary_openai_api_key'] = mpu_encrypt_api_key($diary_openai_key);
-        }
-        if (!empty($diary_claude_key) && !mpu_is_api_key_encrypted($diary_claude_key)) {
-            $mpu_opt['diary_claude_api_key'] = mpu_encrypt_api_key($diary_claude_key);
-        }
-
-        // 保存模型選擇
-        if (isset($_POST['diary_gemini_model'])) {
-            $mpu_opt['diary_gemini_model'] = sanitize_text_field($_POST['diary_gemini_model']);
-        }
-        if (isset($_POST['diary_openai_model'])) {
-            $mpu_opt['diary_openai_model'] = sanitize_text_field($_POST['diary_openai_model']);
-        }
-        if (isset($_POST['diary_claude_model'])) {
-            $mpu_opt['diary_claude_model'] = sanitize_text_field($_POST['diary_claude_model']);
-        }
-
-        // 保存 Ollama 設定
-        if (isset($_POST['diary_ollama_endpoint'])) {
-            $raw_endpoint = trim(esc_url_raw(wp_unslash($_POST['diary_ollama_endpoint'])));
-            if (empty($raw_endpoint)) {
-                // 空字串保留，表示沿用 LLM 設定頁的主端點
-                $mpu_opt['diary_ollama_endpoint'] = '';
-            } else {
-                $validated = mpu_validate_ollama_endpoint($raw_endpoint);
-                $mpu_opt['diary_ollama_endpoint'] = is_wp_error($validated) ? '' : $validated;
-            }
-        }
-        if (isset($_POST['diary_ollama_model'])) {
-            $mpu_opt['diary_ollama_model'] = sanitize_text_field($_POST['diary_ollama_model']);
-        }
-
-        $text = '<div class="updated"><p><strong>' . __('日記設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
+        $text = mpu_save_diary_settings($mpu_opt);
     } elseif (isset($_POST['submit_reset'])) {
         // 處理重置設定
         if (isset($_POST['reset_mpu'])) {
@@ -509,51 +587,7 @@ function mpu_handle_options_save()
             $text = '<div class="error"><p><strong>' . __('設定はリセットされませんでした', 'mp-ukagaka') . '</strong></p></div>';
         }
     } elseif (isset($_POST['submit_bot_blocker'])) {
-        // 處理 Bot 防護設定
-        $current_opt = mpu_get_option();
-
-        // 保留現有的 bot_blocker 設定，再覆蓋表單送來的值
-        $bb = isset($current_opt['bot_blocker']) && is_array($current_opt['bot_blocker'])
-            ? $current_opt['bot_blocker']
-            : [];
-
-        $bb['enabled']   = isset($_POST['bot_blocker_enabled']) && $_POST['bot_blocker_enabled'] ? true : false;
-        $bb['auto_ban_ip'] = isset($_POST['bot_blocker_auto_ban_ip']) && $_POST['bot_blocker_auto_ban_ip'] ? true : false;
-
-        // 指紋黑名單：每行一個 hash，過濾空行與非法字元
-        if (isset($_POST['bot_blocker_banned_fingerprints'])) {
-            $lines = explode("\n", sanitize_textarea_field($_POST['bot_blocker_banned_fingerprints']));
-            $bb['banned_fingerprints'] = array_values(array_filter(
-                array_map('trim', $lines),
-                function($h) { return preg_match('/^[a-f0-9]{32}$/i', $h); }
-            ));
-        }
-
-        // 解析度黑名單：格式 WxH，每行一個
-        if (isset($_POST['bot_blocker_suspicious_resolutions'])) {
-            $lines = explode("\n", sanitize_textarea_field($_POST['bot_blocker_suspicious_resolutions']));
-            $bb['suspicious_resolutions'] = array_values(array_filter(
-                array_map('trim', $lines),
-                function($r) { return preg_match('/^\d+x\d+$/i', $r); }
-            ));
-        }
-
-        $bb['block_status']         = isset($_POST['bot_blocker_block_status'])
-            ? max(400, min(599, intval($_POST['bot_blocker_block_status'])))
-            : 403;
-        $bb['hot_transient_ttl']    = isset($_POST['bot_blocker_hot_transient_ttl'])
-            ? max(60, min(86400, intval($_POST['bot_blocker_hot_transient_ttl'])))
-            : 600;
-        $bb['rate_limit_threshold'] = isset($_POST['bot_blocker_rate_limit_threshold'])
-            ? max(0, min(1000, intval($_POST['bot_blocker_rate_limit_threshold'])))
-            : 40;
-        $bb['max_log_rows']         = isset($_POST['bot_blocker_max_log_rows'])
-            ? max(100, min(10000, intval($_POST['bot_blocker_max_log_rows'])))
-            : 1000;
-
-        $mpu_opt['bot_blocker'] = $bb;
-
-        $text = '<div class="updated"><p><strong>' . __('Bot 防護設定を保存しました', 'mp-ukagaka') . '</strong></p></div>';
+        $text = mpu_save_bot_blocker_settings($mpu_opt);
     }
 
     // 將選項保存到資料庫
@@ -679,8 +713,16 @@ add_action("admin_menu", "mpu_options");
 
 
 /**
+ * 回傳不允許透過 ZIP 上傳覆蓋的保留 Personality ID 清單。
+ */
+function mpu_get_reserved_ghost_ids(): array
+{
+    return ['Frieren', 'default_1'];
+}
+
+/**
  * 從 ZIP 文件中讀取 manifest.json
- * 
+ *
  * @param string $zip_path ZIP 文件路徑
  * @return array|WP_Error manifest.json 數據或錯誤
  */
@@ -965,31 +1007,54 @@ function mpu_handle_ghost_zip_upload()
     $ghost_dir = mpu_get_personalities_dir();
     $target_dir = $ghost_dir . '/' . sanitize_file_name($ghost_id);
 
-    // 如果目錄已存在，覆蓋（先刪除現有目錄）
-    if (file_exists($target_dir) && is_dir($target_dir)) {
-        // 使用 WP_Filesystem 或遞歸刪除
-        global $wp_filesystem;
-        if (empty($wp_filesystem)) {
-            require_once(ABSPATH . 'wp-admin/includes/file.php');
-            WP_Filesystem();
-        }
-
-        if ($wp_filesystem && $wp_filesystem->is_dir($target_dir)) {
-            $wp_filesystem->rmdir($target_dir, true);
-        } else {
-            // 備用方法：使用 PHP 遞歸刪除
-            mpu_recursive_rmdir($target_dir);
-        }
+    // 拒絕覆蓋保留 ID（內建 Personality），比對大小寫不敏感
+    if (in_array(strtolower($ghost_id), array_map('strtolower', mpu_get_reserved_ghost_ids()), true)) {
+        @unlink($zip_path);
+        return new WP_Error('reserved_ghost_id', sprintf(
+            __('"%s" は組み込み Personality のため上書きできません。', 'mp-ukagaka'),
+            esc_html($ghost_id)
+        ));
     }
 
-    // 解壓 ZIP 文件
-    $extract_result = mpu_extract_ghost_zip($zip_path, $target_dir);
-
-    // 清理臨時上傳的 ZIP 文件
+    // 解壓到暫存目錄（避免失敗時殘留半套目錄）
+    $temp_dir = $ghost_dir . '/_tmp_' . sanitize_file_name($ghost_id) . '_' . uniqid('', true);
+    $extract_result = mpu_extract_ghost_zip($zip_path, $temp_dir);
     @unlink($zip_path);
 
     if (is_wp_error($extract_result)) {
+        mpu_recursive_rmdir($temp_dir);
         return $extract_result;
+    }
+
+    // 解壓後二次路徑掃描（確保所有檔案均在暫存目錄內）
+    $real_temp = realpath($temp_dir);
+    if ($real_temp) {
+        $iter = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($temp_dir, RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+        foreach ($iter as $f) {
+            $real_f = realpath($f->getPathname());
+            if ($real_f !== false && strpos($real_f, $real_temp . DIRECTORY_SEPARATOR) !== 0) {
+                mpu_recursive_rmdir($temp_dir);
+                return new WP_Error('extract_path_violation', __('解凍後のファイルが許可された範囲外に存在します。', 'mp-ukagaka'));
+            }
+        }
+    }
+
+    // 既有目錄：儲存暫存路徑，等待管理員二次確認後再覆蓋
+    if (file_exists($target_dir) && is_dir($target_dir)) {
+        set_transient('mpu_ghost_overwrite_' . get_current_user_id(), [
+            'temp_dir' => $temp_dir,
+            'ghost_id' => $ghost_id,
+            'manifest' => $manifest_data,
+        ], 30 * MINUTE_IN_SECONDS);
+        return new WP_Error('ghost_exists_pending_confirm', $ghost_id);
+    }
+
+    // 原子式搬移：暫存目錄 → 正式目錄
+    if (!rename($temp_dir, $target_dir)) {
+        mpu_recursive_rmdir($temp_dir);
+        return new WP_Error('move_failed', __('Personality ディレクトリの移動に失敗しました。', 'mp-ukagaka'));
     }
 
     // 生成 shell URL

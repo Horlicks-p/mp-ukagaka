@@ -581,6 +581,9 @@ function mpu_head()
     echo "<script type=\"text/javascript\">\n";
     echo "var mpuRestUrl = '" . esc_url_raw(rest_url('mp-ukagaka/v1/')) . "';\n";
     echo "var mpuRestNonce = '" . wp_create_nonce('wp_rest') . "';\n";
+    // Token 不再嵌入 HTML（避免 full-page cache 把第一訪客 token 送給他人）
+    // JS 會在首次 API 呼叫前透過 /session-token 端點懶取得
+    echo "var mpuSessionToken = null;\n";
 
     // ★ 先獲取當前 personality_id，再用於睡眠判定
     $current_personality = function_exists('mpu_get_current_personality_id')

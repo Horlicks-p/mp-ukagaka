@@ -11,9 +11,33 @@
             $preview_data = null;
         }
     }
+
+    // 覆蓋確認模式
+    $overwrite_pending = (isset($_GET['overwrite_pending']) && $_GET['overwrite_pending'] === '1');
+    $overwrite_data = null;
+    if ($overwrite_pending) {
+        $pending = get_transient('mpu_ghost_overwrite_' . get_current_user_id());
+        $overwrite_data = ($pending && !empty($pending['ghost_id'])) ? $pending : null;
+    }
     ?>
     
-    <?php if ($preview_data === null): ?>
+    <?php if ($overwrite_data): ?>
+        <!-- 覆蓋確認模式 -->
+        <div class="notice notice-warning" style="margin-bottom:20px;">
+            <p><strong><?php _e('⚠️ 既存の Personality を上書きしようとしています。', 'mp-ukagaka'); ?></strong></p>
+            <p><?php printf(
+                __('ID <code>%s</code> の Personality ディレクトリがすでに存在します。上書きすると、既存のファイルがすべて置き換えられます。', 'mp-ukagaka'),
+                esc_html($overwrite_data['ghost_id'])
+            ); ?></p>
+        </div>
+        <form method="post" action="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=2'); ?>">
+            <?php wp_nonce_field('mp_ukagaka_settings'); ?>
+            <p>
+                <input name="submit_confirm_ghost_overwrite" class="button button-primary" value="<?php _e('上書きを確認して続行', 'mp-ukagaka'); ?>" type="submit" />
+                <a href="<?php echo admin_url('options-general.php?page=' . $base_name . '&cur_page=2'); ?>" class="button" style="margin-left:10px;"><?php _e('キャンセル', 'mp-ukagaka'); ?></a>
+            </p>
+        </form>
+    <?php elseif ($preview_data === null): ?>
         <!-- ZIP 上傳模式 -->
         <p style="color: #8A7FA0; margin-bottom: 20px;">
             <small><?php _e('上傳包含 manifest.json、shell/ 等文件的 ZIP 壓縮包，系統會自動解壓並驗證。', 'mp-ukagaka'); ?></small>

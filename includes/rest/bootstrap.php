@@ -23,6 +23,9 @@ if (!defined('ABSPATH')) {
 // 載入基礎類別（必須最先）
 require_once __DIR__ . '/class-mpu-rest-base.php';
 
+// Chat 輔助服務（history 解析、checksum 寫入/驗證）
+require_once dirname(__DIR__) . '/chat/class-mpu-chat-history-service.php';
+
 /**
  * 已啟用的 OO REST Controller 清單。
  *
