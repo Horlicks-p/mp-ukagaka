@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.14.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.15.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.14.1 の新機能
+## 🎉 v2.15.0 の新機能
 
-**Gemini / Claude streaming 対応**：対話モードで Gemini と Claude の SSE streaming をサポートしました。Gemini は `streamGenerateContent` による純テキスト streaming、Claude は Anthropic content block events と streaming tool argument fragments に対応します。
+**セキュリティ強化**：公開 AI chat REST エンドポイントは匿名訪問者向けに IP-bound session token を使用するようになり、外部から直接 API を叩かれて AI quota を消費されるリスクを低減します。
 
-**Streaming 安定性の改善**：共通 SSE parser、stream 終端 event flush、Claude tool-loop protection、Gemini の MCP tools 利用時の synchronous fallback、管理画面の typewriter speed に従う frontend typewriter queue を追加しました。
+**管理操作の安全性向上**：Raw frontend JavaScript のカスタマイズには `unfiltered_html` 権限が必要になりました。Personality ZIP 上書きにも確認フロー、backup/rollback、予約 ID 保護、より厳格なパス境界チェックを追加しました。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

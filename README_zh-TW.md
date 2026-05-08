@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.14.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.15.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.14.1 新功能
+## 🎉 v2.15.0 新功能
 
-**Gemini / Claude 串流支援**：對話模式現在支援 Gemini 與 Claude 的 SSE streaming。Gemini 使用 `streamGenerateContent` 進行純文字串流，Claude 則能處理 Anthropic content block 事件與串流工具參數片段。
+**安全硬化**：公開 AI chat REST 端點現在對匿名訪客使用 IP-bound session token，降低外部直接打 API 造成 AI quota 消耗的風險。
 
-**串流穩定性改善**：新增共用 SSE parser、串流末尾 event flush、Claude tool-loop 防護、Gemini 在 MCP tools 可用時 fallback 到同步生成，以及遵守後台打字速度設定的前端 typewriter queue。
+**後台操作更安全**：Raw frontend JavaScript 自訂需具備 `unfiltered_html` 權限，Personality ZIP 覆蓋流程也加入二次確認、backup/rollback、保留 ID 保護與更嚴格的路徑邊界檢查。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

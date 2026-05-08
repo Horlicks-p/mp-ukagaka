@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.14.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.15.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.14.1
+## 🎉 What's New in v2.15.0
 
-**Gemini & Claude Streaming**: Gemini and Claude now support SSE streaming in chat mode. Gemini uses the `streamGenerateContent` endpoint for plain-text streaming, while Claude handles Anthropic content block events and streamed tool argument fragments.
+**Security Hardening**: Public AI chat REST endpoints now use an IP-bound session token for anonymous visitors, reducing the risk of direct external API abuse and AI quota drain.
 
-**Streaming Stability**: Added a shared SSE parser, final event flushing, Claude tool-loop protection, Gemini tool fallback when MCP tools are available, and a frontend typewriter queue that respects the admin speed setting.
+**Safer Admin Operations**: Raw frontend JavaScript customization now requires `unfiltered_html`, and Personality ZIP overwrite now uses confirmation, backup/rollback, reserved ID protection, and stricter path boundary checks.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

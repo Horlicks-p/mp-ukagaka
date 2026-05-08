@@ -4,6 +4,30 @@
 
 ---
 
+## [2.15.0] - 2026-05-08
+
+### 🔒 セキュリティと濫用対策の強化
+
+- **公開 AI REST エンドポイントに Session Token 防護を追加**：匿名訪問者向けの IP-bound session token を追加しました。`/chat/context`、`/chat/greet`、`/chat/user`、`/chat/user-stream` は有効な token を要求し、外部から直接 API を叩かれて AI quota を消費されるリスクを低減します。
+- **Session Token を lazy-fetch 化**：フロントエンドは token を HTML に直接埋め込まず、初回の保護対象リクエスト前に `/session-token` から取得します。`no-store` cache header も付与し、full-page cache 経由で最初の訪問者の token が漏れることを避けます。
+- **フロントエンド request の token 注入を統一**：`mpuFetch` と `mpuFetchSSE` が `X-MPU-Session-Token` を自動付与するようになり、helper の存在確認も追加して通常 REST と SSE の挙動を揃えました。
+- **Raw JavaScript 拡張の権限を厳格化**：`extend[js_area]` の保存と表示には `unfiltered_html` 権限を要求するようにしました。`manage_options` のみでは raw frontend JavaScript を出力すべきでない環境での誤用を防ぎます。
+- **Personality ZIP 上書きフローを強化**：ZIP は一度一時ディレクトリへ展開し、上書き前の確認、backup→rename→rollback、予約 ID の大小文字非依存チェック、`realpath()` + `DIRECTORY_SEPARATOR` 境界チェックを追加しました。Zip Slip、symlink escape、誤上書きのリスクを下げます。
+
+### 🧱 構造整理と保守性改善
+
+- **Chat history/checksum ロジックを抽出**：`MPU_Chat_History_Service` を追加し、session id、history parsing、checksum verify/store、通常 chat / streaming 応答後の integrity 更新を集中管理するようにしました。
+- **Admin save handler を分割**：`mpu_handle_options_save()` から通用設定、キャラクター設定、AI、LLM、日記、Bot Blocker の保存 helper を分離し、大きな分岐を持つ単一 handler の保守コストを下げました。
+- **既存 REST 挙動を維持**：REST route、error code、SSE event 名、response shape、checksum behavior は後方互換を維持しました。今回のリリースは大規模リファクタではなく、小さな段階的 hardening を目的としています。
+
+### ✅ 検証とドキュメント
+
+- **JS bundle を再ビルド**：`js/dist/ukagaka-bundle.js` と `js/dist/ukagaka-bundle.min.js` を更新しました。
+- **構文と build を検証**：PHP lint と Node build の検証を通過しました。
+- **Hardening plan を追加**：`plan/Code_Quality_Hardening_Plan.md` を追加し、セキュリティ評価、段階的な改善順、実装概要、post-review fixes を記録しました。
+
+---
+
 ## [2.14.1] - 2026-04-30
 
 ### ✨ 管理人プロフィールのバックエンド管理化

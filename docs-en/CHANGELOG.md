@@ -4,6 +4,30 @@
 
 ---
 
+## [2.15.0] - 2026-05-08
+
+### 🔒 Security and Abuse Hardening
+
+- **Session token guard for public AI REST endpoints**: Added an anonymous visitor IP-bound session token. `/chat/context`, `/chat/greet`, `/chat/user`, and `/chat/user-stream` now require a valid token, reducing the risk of direct external API calls consuming AI quota.
+- **Lazy-fetched session token**: The frontend no longer embeds the token directly in HTML. It fetches one from `/session-token` before the first protected request, with `no-store` cache headers to avoid leaking the first visitor's token through full-page caching.
+- **Unified frontend token injection**: `mpuFetch` and `mpuFetchSSE` now automatically send `X-MPU-Session-Token`, with helper existence guards so normal REST and SSE flows behave consistently.
+- **Raw JavaScript extension permission tightened**: Saving and rendering `extend[js_area]` now requires `unfiltered_html`, avoiding raw frontend JavaScript output in environments where `manage_options` alone should not grant that ability.
+- **Personality ZIP overwrite hardening**: ZIP uploads are extracted to a temporary directory first, then protected by a confirmation step, backup→rename→rollback flow, case-insensitive reserved ID checks, and `realpath()` + `DIRECTORY_SEPARATOR` boundary checks to reduce Zip Slip, symlink escape, and accidental overwrite risks.
+
+### 🧱 Structure and Maintainability
+
+- **Chat history/checksum logic extracted**: Added `MPU_Chat_History_Service` to centralize session id handling, history parsing, checksum verify/store, and integrity updates after normal chat and streaming responses.
+- **Admin save handler split**: `mpu_handle_options_save()` now delegates general settings, character settings, AI, LLM, diary, and Bot Blocker saves to dedicated helper functions, reducing the maintenance cost of one large branching handler.
+- **Backward-compatible REST behavior retained**: REST routes, error codes, SSE event names, response shapes, and checksum behavior were preserved. This release focuses on incremental hardening rather than broad refactoring.
+
+### ✅ Verification and Documentation
+
+- **JS bundle rebuilt**: Updated `js/dist/ukagaka-bundle.js` and `js/dist/ukagaka-bundle.min.js`.
+- **Syntax and build verification**: PHP lint and Node build checks passed.
+- **Hardening plan added**: Added `plan/Code_Quality_Hardening_Plan.md` documenting the security assessment, phased improvement order, implementation summary, and post-review fixes.
+
+---
+
 ## [2.14.1] - 2026-04-30
 
 ### ✨ Admin Profile: Backend Management

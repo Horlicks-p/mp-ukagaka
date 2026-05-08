@@ -4,6 +4,30 @@
 
 ---
 
+## [2.15.0] - 2026-05-08
+
+### 🔒 安全與防濫用硬化
+
+- **公開 AI REST 端點加上 Session Token 防護**：新增匿名訪客專用的 IP-bound session token，`/chat/context`、`/chat/greet`、`/chat/user`、`/chat/user-stream` 均需帶有效 token 才能請求，降低外部直接打 API 造成 quota 消耗的風險。
+- **Session Token 採 lazy-fetch**：前端不再把 token 直接嵌入 HTML，改由 `/session-token` 端點在首次請求前取得，並設定 `no-store` 快取標頭，避免 full-page cache 洩漏第一位訪客的 token。
+- **前端請求統一注入 token**：`mpuFetch` 與 `mpuFetchSSE` 會自動帶入 `X-MPU-Session-Token`，並加入 helper 存在性防護，讓一般 REST 與 SSE 流程一致。
+- **Raw JavaScript 擴充權限收緊**：`extend[js_area]` 的儲存與顯示需具備 `unfiltered_html` 權限，避免只有 `manage_options` 但不應輸出 raw JS 的環境誤開前端腳本注入能力。
+- **Personality ZIP 覆蓋流程硬化**：ZIP 先解壓到暫存目錄，覆蓋前加入二次確認、backup→rename→rollback 流程、保留 ID 大小寫不敏感保護，以及 `realpath()` + `DIRECTORY_SEPARATOR` 邊界檢查，降低 Zip Slip、symlink 逃逸與錯誤覆蓋風險。
+
+### 🧱 結構整理與維護性改善
+
+- **Chat history/checksum 邏輯抽出**：新增 `MPU_Chat_History_Service`，集中處理 session id、history parsing、checksum verify/store，以及 user-chat / streaming 回覆後的 integrity 更新。
+- **Admin save handler 拆分**：`mpu_handle_options_save()` 拆出通用設定、偽春菜設定、AI、LLM、日記與 Bot Blocker 等保存 helper，降低單一函式承擔過多分支的維護成本。
+- **保留既有 response shape**：REST 路由、錯誤碼、SSE event 名稱與 checksum 行為維持向後相容，這次以小步驟硬化為主，不做大規模重構。
+
+### ✅ 驗證與文件
+
+- **JS bundle 已重建**：同步更新 `js/dist/ukagaka-bundle.js` 與 `js/dist/ukagaka-bundle.min.js`。
+- **語法與建置驗證**：已通過 PHP lint 與 Node build 驗證。
+- **新增硬化計畫文件**：新增 `plan/Code_Quality_Hardening_Plan.md`，記錄安全風險評估、分階段改善順序、實作摘要與 post-review fixes。
+
+---
+
 ## [2.14.1] - 2026-04-30
 
 ### ✨ 管理人個人化設定後台化

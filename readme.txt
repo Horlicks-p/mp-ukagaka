@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.14.1
+Stable tag: 2.15.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,13 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-08 =
+* v2.15.0
+* [SECURITY] Added IP-bound session token protection for public AI chat REST endpoints to reduce direct API abuse and quota drain.
+* [SECURITY] Tightened raw frontend JavaScript customization to require `unfiltered_html`.
+* [SECURITY] Hardened Personality ZIP overwrite with confirmation, backup/rollback, reserved ID protection, and stricter realpath boundary checks.
+* [IMPROVE] Extracted chat history/checksum handling into a dedicated service and split the admin save handler into focused helpers.
 
 = 2026-04-29 =
 * v2.14.1
