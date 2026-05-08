@@ -426,7 +426,8 @@ function mpu_handle_options_save()
         // temp_dir 仍位於 ghost 目錄內，避免 symlink/路徑被竄改後搬移到任意位置
         $real_temp  = realpath($temp_dir);
         $real_ghost = realpath($ghost_dir);
-        if ($real_ghost === false || $real_temp === false || strpos($real_temp, $real_ghost) !== 0) {
+        $ghost_prefix = $real_ghost === false ? '' : rtrim($real_ghost, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if ($real_ghost === false || $real_temp === false || strpos($real_temp, $ghost_prefix) !== 0) {
             mpu_recursive_rmdir($temp_dir);
             delete_transient($pending_key);
             add_settings_error('mpu_options', 'invalid_temp_path', __('一時ディレクトリのパスが不正です。再度アップロードしてください。', 'mp-ukagaka'));
@@ -905,7 +906,8 @@ function mpu_extract_ghost_zip($zip_path, $target_dir)
         return new WP_Error('invalid_path', __('無効なディレクトリパスです。', 'mp-ukagaka'));
     }
 
-    if (strpos($real_target, $real_ghost) !== 0) {
+    $ghost_prefix = rtrim($real_ghost, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    if (strpos($real_target, $ghost_prefix) !== 0) {
         return new WP_Error('path_not_allowed', __('対象ディレクトリが許可された範囲外です。', 'mp-ukagaka'));
     }
 
