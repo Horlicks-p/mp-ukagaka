@@ -1557,3 +1557,50 @@ msgstr "管理人の誕生日："
 
 msgid "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."
 msgstr "MM-DD 形式（例：10-18）。calendar.json の anniversary_admin_birthday を上書きします。"
+
+
+# ========================================
+# v2.15 - Security & Structural Refactor
+# ========================================
+
+msgid "⚠️ 既存の Personality を上書きしようとしています。"
+msgstr "⚠️ 既存の Personality を上書きしようとしています。"
+
+msgid "ID <code>%s</code> の Personality ディレクトリがすでに存在します。上書きすると、既存のファイルがすべて置き換えられます。"
+msgstr "ID <code>%s</code> の Personality ディレクトリがすでに存在します。上書きすると、既存のファイルがすべて置き換えられます。"
+
+msgid "上書きを確認して続行"
+msgstr "上書きを確認して続行"
+
+msgid "キャンセル"
+msgstr "キャンセル"
+
+msgid "⚠️ 您的帳號不具備 <code>unfiltered_html</code> 權限，無法儲存自訂 JS。此欄位在多站點或受限角色環境下為唯讀。"
+msgstr "⚠️ お使いのアカウントには <code>unfiltered_html</code> 権限がないため、カスタム JS を保存できません。このフィールドはマルチサイトや制限付きロール環境では読み取り専用となります。"
+
+msgid "確認データが期限切れです。再度アップロードしてください。"
+msgstr "確認データが期限切れです。再度アップロードしてください。"
+
+msgid "一時ディレクトリが見つかりません。再度アップロードしてください。"
+msgstr "一時ディレクトリが見つかりません。再度アップロードしてください。"
+
+msgid "一時ディレクトリのパスが不正です。再度アップロードしてください。"
+msgstr "一時ディレクトリのパスが不正です。再度アップロードしてください。"
+
+msgid "既存 Personality のバックアップに失敗しました。"
+msgstr "既存 Personality のバックアップに失敗しました。"
+
+msgid "Personality ディレクトリの移動に失敗しました。"
+msgstr "Personality ディレクトリの移動に失敗しました。"
+
+msgid "\"%s\" は組み込み Personality のため上書きできません。"
+msgstr "\"%s\" は組み込み Personality のため上書きできません。"
+
+msgid "解凍後のファイルが許可された範囲外に存在します。"
+msgstr "解凍後のファイルが許可された範囲外に存在します。"
+
+msgid "有効なセッショントークンが必要です。"
+msgstr "有効なセッショントークンが必要です。"
+
+msgid "セッショントークンは利用できません。"
+msgstr "セッショントークンは利用できません。"

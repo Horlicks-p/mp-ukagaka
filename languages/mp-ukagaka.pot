@@ -885,3 +885,59 @@ msgstr ""
 #: options_page0.php:262
 msgid "偽春菜數量："
 msgstr ""
+
+#: options/options_create.php:27
+msgid "⚠️ 既存の Personality を上書きしようとしています。"
+msgstr ""
+
+#: options/options_create.php:29
+msgid "ID <code>%s</code> の Personality ディレクトリがすでに存在します。上書きすると、既存のファイルがすべて置き換えられます。"
+msgstr ""
+
+#: options/options_create.php:36
+msgid "上書きを確認して続行"
+msgstr ""
+
+#: options/options_create.php:37
+msgid "キャンセル"
+msgstr ""
+
+#: options/options_extend.php:16
+msgid "⚠️ 您的帳號不具備 <code>unfiltered_html</code> 權限，無法儲存自訂 JS。此欄位在多站點或受限角色環境下為唯讀。"
+msgstr ""
+
+#: includes/admin-functions.php:409
+msgid "確認データが期限切れです。再度アップロードしてください。"
+msgstr ""
+
+#: includes/admin-functions.php:421
+msgid "一時ディレクトリが見つかりません。再度アップロードしてください。"
+msgstr ""
+
+#: includes/admin-functions.php:433
+msgid "一時ディレクトリのパスが不正です。再度アップロードしてください。"
+msgstr ""
+
+#: includes/admin-functions.php:445
+msgid "既存 Personality のバックアップに失敗しました。"
+msgstr ""
+
+#: includes/admin-functions.php:457 includes/admin-functions.php:1070
+msgid "Personality ディレクトリの移動に失敗しました。"
+msgstr ""
+
+#: includes/admin-functions.php:1027
+msgid "\"%s\" は組み込み Personality のため上書きできません。"
+msgstr ""
+
+#: includes/admin-functions.php:1052
+msgid "解凍後のファイルが許可された範囲外に存在します。"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-chat.php:1116
+msgid "有効なセッショントークンが必要です。"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-chat.php:1134
+msgid "セッショントークンは利用できません。"
+msgstr ""

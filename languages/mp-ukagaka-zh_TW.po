@@ -1306,3 +1306,50 @@ msgstr "管理人生日："
 
 msgid "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."
 msgstr "格式：MM-DD，例如 10-18。此設定會覆蓋 calendar.json 中的 anniversary_admin_birthday 條目。"
+
+
+# ========================================
+# v2.15 - Security & Structural Refactor
+# ========================================
+
+msgid "⚠️ 既存の Personality を上書きしようとしています。"
+msgstr "⚠️ 您正準備覆蓋既有的 Personality。"
+
+msgid "ID <code>%s</code> の Personality ディレクトリがすでに存在します。上書きすると、既存のファイルがすべて置き換えられます。"
+msgstr "ID 為 <code>%s</code> 的 Personality 目錄已存在。覆蓋將會取代所有既有檔案。"
+
+msgid "上書きを確認して続行"
+msgstr "確認覆蓋並繼續"
+
+msgid "キャンセル"
+msgstr "取消"
+
+msgid "⚠️ 您的帳號不具備 <code>unfiltered_html</code> 權限，無法儲存自訂 JS。此欄位在多站點或受限角色環境下為唯讀。"
+msgstr "⚠️ 您的帳號不具備 <code>unfiltered_html</code> 權限，無法儲存自訂 JS。此欄位在多站點或受限角色環境下為唯讀。"
+
+msgid "確認データが期限切れです。再度アップロードしてください。"
+msgstr "確認資料已過期，請重新上傳。"
+
+msgid "一時ディレクトリが見つかりません。再度アップロードしてください。"
+msgstr "找不到暫存目錄，請重新上傳。"
+
+msgid "一時ディレクトリのパスが不正です。再度アップロードしてください。"
+msgstr "暫存目錄的路徑不正確，請重新上傳。"
+
+msgid "既存 Personality のバックアップに失敗しました。"
+msgstr "備份既有 Personality 失敗。"
+
+msgid "Personality ディレクトリの移動に失敗しました。"
+msgstr "搬移 Personality 目錄失敗。"
+
+msgid "\"%s\" は組み込み Personality のため上書きできません。"
+msgstr "\"%s\" 為內建 Personality，無法被覆蓋。"
+
+msgid "解凍後のファイルが許可された範囲外に存在します。"
+msgstr "解壓後的檔案位於允許範圍之外。"
+
+msgid "有効なセッショントークンが必要です。"
+msgstr "需要有效的 session token。"
+
+msgid "セッショントークンは利用できません。"
+msgstr "Session token 目前無法使用。"

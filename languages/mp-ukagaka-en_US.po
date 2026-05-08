@@ -1544,3 +1544,50 @@ msgstr "Admin birthday:"
 
 msgid "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."
 msgstr "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."
+
+
+# ========================================
+# v2.15 - Security & Structural Refactor
+# ========================================
+
+msgid "⚠️ 既存の Personality を上書きしようとしています。"
+msgstr "⚠️ You are about to overwrite an existing Personality."
+
+msgid "ID <code>%s</code> の Personality ディレクトリがすでに存在します。上書きすると、既存のファイルがすべて置き換えられます。"
+msgstr "A Personality directory with ID <code>%s</code> already exists. Overwriting will replace all existing files."
+
+msgid "上書きを確認して続行"
+msgstr "Confirm overwrite and continue"
+
+msgid "キャンセル"
+msgstr "Cancel"
+
+msgid "⚠️ 您的帳號不具備 <code>unfiltered_html</code> 權限，無法儲存自訂 JS。此欄位在多站點或受限角色環境下為唯讀。"
+msgstr "⚠️ Your account lacks the <code>unfiltered_html</code> capability and cannot save custom JS. This field is read-only on multisite or restricted-role environments."
+
+msgid "確認データが期限切れです。再度アップロードしてください。"
+msgstr "Confirmation data has expired. Please upload again."
+
+msgid "一時ディレクトリが見つかりません。再度アップロードしてください。"
+msgstr "Temporary directory not found. Please upload again."
+
+msgid "一時ディレクトリのパスが不正です。再度アップロードしてください。"
+msgstr "Temporary directory path is invalid. Please upload again."
+
+msgid "既存 Personality のバックアップに失敗しました。"
+msgstr "Failed to back up the existing Personality."
+
+msgid "Personality ディレクトリの移動に失敗しました。"
+msgstr "Failed to move the Personality directory."
+
+msgid "\"%s\" は組み込み Personality のため上書きできません。"
+msgstr "\"%s\" is a built-in Personality and cannot be overwritten."
+
+msgid "解凍後のファイルが許可された範囲外に存在します。"
+msgstr "Extracted files are outside the allowed range."
+
+msgid "有効なセッショントークンが必要です。"
+msgstr "A valid session token is required."
+
+msgid "セッショントークンは利用できません。"
+msgstr "Session token is unavailable."
