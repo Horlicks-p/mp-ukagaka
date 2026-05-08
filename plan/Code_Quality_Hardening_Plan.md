@@ -366,3 +366,16 @@ Phase 1（Security）與 Phase 2（Structural）的核心項目已在 commit `26
 | 3 | PHP lint / build gate 腳本 | 📌 未開始 |
 | 3 | REST smoke test | 📌 未開始 |
 | 3 | PHPCS baseline | 📌 未開始 |
+
+### Follow-up Memo — 2026-05-08
+
+v2.15 release 本身已完整，剩餘項目不需要連著做，應視為下次大改或發版前的安全網工作，而不是本次 release blocker。
+
+| 項目 | Plan 內定位 | 備忘 |
+|---|---|---|
+| Phase 3 工具鏈（PHP lint / build / smoke scripts、PHPCS baseline） | Recommended Order #4，作為後續拆分的安全網 | ROI 最高的下一步。下次再動 PHP 前，先把目前已驗過的 `php -l` 與 `cmd /c npm run build` 包成 `npm run lint:php` / build gate，再補一份 REST smoke checklist。 |
+| Utility functions 領域拆分 | Plan 自註：Phase 2 中風險最高，應排在最後，且必須先有 PHP lint gate | 不急。等 lint/build gate 先存在，再考慮拆分，避免低價值搬移造成回歸。 |
+| Chat controller 進階拆分（request normalizer / prompt builder） | Plan 自註：不要求一次完成 | Nice-to-have。只有再次大改 chat 流程、prompt 組裝或 REST request normalization 時才值得順手做。 |
+| Pre-existing i18n debt（約 94 字串） | 本 plan 原本未列入，為本次 i18n 掃描發現 | 與 Phase 0 / v2.15 hardening 無直接關係。下次發版前清掉會比較整齊，但不影響本次 release。 |
+
+結論：v2.15 到此可以告一段落。後續優先順序是「先工具鏈安全網，再結構拆分」，不要為了完成 plan 而連續做低回報重構。
