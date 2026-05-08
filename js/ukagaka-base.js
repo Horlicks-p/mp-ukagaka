@@ -814,7 +814,9 @@ async function mpuFetch(url, options = {}) {
             fetchOptions.headers['X-WP-Nonce'] = mpuRestNonce;
         }
         if (!fetchOptions.headers['X-MPU-Session-Token']) {
-            const tok = await mpuEnsureSessionToken();
+            const tok = typeof mpuEnsureSessionToken === 'function'
+                ? await mpuEnsureSessionToken()
+                : null;
             if (tok) fetchOptions.headers['X-MPU-Session-Token'] = tok;
         }
     }

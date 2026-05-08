@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-08T10:09:41.870Z
+ * Generated: 2026-05-08T12:08:11.988Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -822,7 +822,9 @@ async function mpuFetch(url, options = {}) {
             fetchOptions.headers['X-WP-Nonce'] = mpuRestNonce;
         }
         if (!fetchOptions.headers['X-MPU-Session-Token']) {
-            const tok = await mpuEnsureSessionToken();
+            const tok = typeof mpuEnsureSessionToken === 'function'
+                ? await mpuEnsureSessionToken()
+                : null;
             if (tok) fetchOptions.headers['X-MPU-Session-Token'] = tok;
         }
     }
