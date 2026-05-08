@@ -1,727 +1,819 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MP Ukagaka – AI-Powered WordPress Companion Plugin</title>
-<meta name="description" content="Add an interactive AI-powered ukagaka character to your WordPress site. Powered by Gemini, OpenAI, Claude, or Ollama. Features chat mode, SSE streaming, canvas animation, and multi-language support.">
+<title>MP Ukagaka — AI 対応の WordPress 伺かプラグイン</title>
+<meta name="description" content="WordPress サイトに伺か（デスクトップマスコット）キャラクターを表示するプラグイン。Gemini / OpenAI / Claude / Ollama に対応した AI 会話、ページ感知、SSE ストリーミング、Canvas アニメーション、多言語対応。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Shippori+Mincho:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    /* Official frieren-anime.jp palette */
-    --teal:     #01adaf;
-    --gold:     #dccd85;
-    --green:    #04aa72;
-    --teal-dim: rgba(1, 173, 175, 0.15);
-    --gold-dim: rgba(220, 205, 133, 0.12);
+    /* ─── MP Ukagaka — Light Theme, mirrors admin-style.css palette ─── */
+    /* admin: bg #FDFBF7 · accent #7B68AE · dark #5E4D8B · light #C4B6DE */
+    /* admin: heading #4A3D6B · body #5C5470 · muted #8A7FA0 · border #DED6EE */
 
-    --bg:       #111111;
-    --bg2:      #1a1a1a;
-    --bg3:      #202020;
-    --card:     rgba(255,255,255,0.035);
-    --border:   rgba(255,255,255,0.07);
-    --border-t: rgba(1,173,175,0.25);
-    --text:     #f0ece4;
-    --muted:    #888880;
-    --radius:   10px;
+    --bg:          #FDFBF7;   /* warm white — matches admin bg    */
+    --bg-alt:      #F5F1FB;   /* pale lavender — alternate section */
+    --bg-muted:    #EDE8F5;   /* admin muted accent               */
+    --bg-card:     #FFFFFF;
+    --bg-dark:     #4A3D6B;   /* deep purple — footer / quote bg  */
+    --bg-dark-2:   #3a2f55;
+
+    --lilac:       #C4B6DE;   /* admin accent-light               */
+    --violet:      #7B68AE;   /* admin accent (main)              */
+    --amethyst:    #5E4D8B;   /* admin accent-dark                */
+    --amethyst-d:  #4A3D6B;   /* admin heading                    */
+
+    --text-h:      #4A3D6B;   /* headings                         */
+    --text-body:   #5C5470;   /* body                             */
+    --text-mute:   #8A7FA0;   /* secondary / muted                */
+    --text-on-dark:#F5F1FB;   /* text on dark purple bg           */
+    --text-on-dark-2: #C4B6DE;
+
+    --border:      #DED6EE;   /* admin border                     */
+    --border-l:    #EAE4F4;   /* admin border light               */
+    --shadow:      rgba(75, 61, 107, 0.08);
+    --shadow-h:    rgba(75, 61, 107, 0.16);
+
+    --serif-jp: 'Cormorant Garamond', 'Shippori Mincho', 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', serif;
+    --display:  'Cinzel', 'Shippori Mincho', 'Yu Mincho', serif;
+    --display-jp: 'Shippori Mincho', 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', serif;
+    --mono:     'JetBrains Mono', 'Fira Code', Consolas, monospace;
   }
 
   html { scroll-behavior: smooth; }
 
   body {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--serif-jp);
+    font-size: 17px;
     background: var(--bg);
-    color: var(--text);
-    line-height: 1.7;
+    color: var(--text-body);
+    line-height: 1.85;
     overflow-x: hidden;
+    font-feature-settings: "palt" 1;
   }
 
-  /* ─────────────── NOISE TEXTURE OVERLAY ─────────────── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.5;
-  }
+  ::selection { background: var(--violet); color: #fff; }
+  a { color: inherit; }
 
-  /* ─────────────── HERO ─────────────── */
-  .hero {
+  /* ═══════════════ COVER ═══════════════ */
+  .cover {
     position: relative;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     text-align: center;
-    padding: 7rem 1.5rem 5rem;
+    padding: 7rem 1.5rem 6rem;
     overflow: hidden;
+    isolation: isolate;
+    background: var(--bg);
   }
-
-  .hero::before {
+  /* Soft lavender radial wash at top */
+  .cover::before {
     content: '';
-    position: absolute;
-    inset: 0;
+    position: absolute; inset: 0;
     background:
-      radial-gradient(ellipse 70% 55% at 50% 0%,   rgba(1,173,175,0.12) 0%, transparent 65%),
-      radial-gradient(ellipse 50% 35% at 80% 90%,  rgba(220,205,133,0.07) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 30% at 10% 70%,  rgba(4,170,114,0.06) 0%, transparent 60%);
-    pointer-events: none;
+      radial-gradient(ellipse 70% 60% at 50% -10%, rgba(196, 182, 222, 0.35) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 30% at 85% 80%,  rgba(123, 104, 174, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 30% 25% at 8%  70%,  rgba(94, 77, 139, 0.06)  0%, transparent 60%);
+    z-index: -1;
   }
-
-  /* Decorative horizontal line (official site uses thin lines) */
-  .hero::after {
+  /* Diamond crosshatch — very subtle */
+  .cover::after {
     content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0; right: 0;
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(45deg,  rgba(123, 104, 174, 0.04) 1px, transparent 1px),
+      linear-gradient(-45deg, rgba(123, 104, 174, 0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    z-index: -1;
+  }
+  /* Bottom border line */
+  .cover-border {
+    position: absolute; bottom: 0; left: 0; right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, var(--teal) 30%, var(--gold) 60%, transparent 100%);
-    opacity: 0.3;
+    background: linear-gradient(90deg, transparent, var(--border) 30%, var(--lilac) 50%, var(--border) 70%, transparent);
   }
+  .cover-inner { position: relative; max-width: 760px; width: 100%; }
 
-  .hero-inner {
-    position: relative;
-    z-index: 1;
-    max-width: 800px;
-    width: 100%;
-  }
-
-  /* Thin ornamental rule above heading */
+  /* Ornamental divider */
   .ornament {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.8rem;
-    margin-bottom: 1.8rem;
-    color: var(--teal);
-    font-size: 0.7rem;
-    letter-spacing: 0.25em;
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.9rem; margin: 0 auto 2.2rem; max-width: 380px;
+  }
+  .ornament-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border) 40%, var(--violet)); }
+  .ornament-line.right { background: linear-gradient(270deg, transparent, var(--border) 40%, var(--violet)); }
+  .ornament-mark { width: 8px; height: 8px; background: var(--violet); transform: rotate(45deg); }
+  .ornament-eyebrow {
+    font-family: var(--display);
+    font-size: 0.70rem; font-weight: 600;
+    letter-spacing: 0.42em; color: var(--violet);
+    text-transform: uppercase; padding: 0 0.6rem;
+  }
+
+  .cover h1 {
+    font-family: var(--display);
+    font-size: clamp(2.6rem, 6.4vw, 4.8rem);
+    font-weight: 600;
+    letter-spacing: 0.14em; line-height: 1.05;
+    color: var(--amethyst-d);
     text-transform: uppercase;
   }
-  .ornament::before,
-  .ornament::after {
-    content: '';
-    flex: 1;
-    max-width: 80px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--teal));
-  }
-  .ornament::after { background: linear-gradient(270deg, transparent, var(--teal)); }
 
-  .hero h1 {
-    font-family: 'Zen Old Mincho', serif;
-    font-size: clamp(2.8rem, 7vw, 5rem);
-    font-weight: 900;
-    line-height: 1.1;
-    letter-spacing: 0.05em;
-    color: #fff;
-    margin-bottom: 0.3rem;
+  .cover-sub {
+    font-family: var(--display-jp);
+    font-size: clamp(0.95rem, 2vw, 1.1rem);
+    letter-spacing: 0.42em; color: var(--violet);
+    margin-top: 1rem; font-weight: 500;
   }
 
-  .hero-ja {
-    font-family: 'Zen Old Mincho', serif;
-    font-size: clamp(0.85rem, 2vw, 1rem);
-    color: var(--teal);
-    letter-spacing: 0.35em;
-    margin-bottom: 1.5rem;
-    font-weight: 400;
+  .cover-tag {
+    font-family: var(--display-jp);
+    font-size: clamp(0.98rem, 1.6vw, 1.05rem);
+    color: var(--text-mute);
+    max-width: 580px; margin: 2.2rem auto 0;
+    line-height: 2.05; letter-spacing: 0.05em;
   }
+  .cover-tag em { color: var(--amethyst); font-style: normal; font-weight: 600; }
 
-  .hero p {
-    font-size: 0.98rem;
-    color: var(--muted);
-    max-width: 520px;
-    margin: 0 auto 2.5rem;
-    line-height: 1.85;
-  }
-
-  .hero p strong { color: var(--text); font-weight: 500; }
-
-  .badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
-    margin-bottom: 2.8rem;
-    opacity: 0.85;
-  }
+  /* Badges */
+  .badges { display: flex; flex-wrap: wrap; gap: 0.45rem; justify-content: center; margin: 2rem 0 0; }
   .badges img { height: 19px; }
 
-  .btn-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    justify-content: center;
-  }
+  /* CTA buttons */
+  .seal-row { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; margin-top: 2.8rem; }
 
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.65rem 1.5rem;
-    border-radius: 2px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-decoration: none;
-    letter-spacing: 0.05em;
-    transition: all .2s;
-    position: relative;
+  .seal {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    padding: 0.7rem 1.6rem;
+    font-family: var(--display-jp);
+    font-size: 0.86rem; font-weight: 600;
+    letter-spacing: 0.18em; text-decoration: none; border-radius: 2px;
+    transition: transform .18s ease, box-shadow .2s ease, background .18s;
   }
+  .seal-primary {
+    background: linear-gradient(180deg, var(--violet), var(--amethyst));
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(94, 77, 139, 0.35);
+  }
+  .seal-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(94, 77, 139, 0.45);
+  }
+  .seal-outline {
+    background: transparent; color: var(--amethyst);
+    box-shadow: 0 0 0 1.5px var(--amethyst) inset;
+  }
+  .seal-outline:hover { background: var(--bg-muted); transform: translateY(-2px); }
+  .seal-ghost {
+    background: transparent; color: var(--text-mute);
+    box-shadow: 0 0 0 1px var(--border) inset;
+  }
+  .seal-ghost:hover { color: var(--amethyst); box-shadow: 0 0 0 1px var(--lilac) inset; transform: translateY(-2px); }
+  .seal-glyph { width: 14px; height: 14px; display: inline-block; }
 
-  .btn-primary {
-    background: var(--teal);
-    color: #0d1a1a;
-    box-shadow: 0 0 20px rgba(1,173,175,0.3);
-  }
-  .btn-primary:hover {
-    background: #02c5c7;
-    box-shadow: 0 0 28px rgba(1,173,175,0.5);
-    transform: translateY(-1px);
-  }
-
-  .btn-gold {
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-  }
-  .btn-gold:hover {
-    background: var(--gold-dim);
-    transform: translateY(-1px);
-  }
-
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-  }
-  .btn-ghost:hover {
-    border-color: rgba(1,173,175,0.4);
-    color: var(--teal);
-    transform: translateY(-1px);
-  }
-
-  /* ─────────────── SCREENSHOT HERO ─────────────── */
-  .screenshot-section {
-    position: relative;
-    z-index: 1;
+  /* ═══════════════ FRONTISPIECE ═══════════════ */
+  .frontispiece {
     padding: 0 1.5rem 5rem;
     text-align: center;
+    background: var(--bg);
+  }
+  .plate {
+    position: relative; display: inline-block;
+    max-width: 880px; width: 100%;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 40px var(--shadow);
+  }
+  /* Corner accent marks */
+  .plate-corner { position: absolute; width: 22px; height: 22px; pointer-events: none; }
+  .plate-corner::before, .plate-corner::after { content: ''; position: absolute; background: var(--violet); }
+  .plate-corner::before { width: 100%; height: 1.5px; top: 50%; left: 0; }
+  .plate-corner::after  { height: 100%; width: 1.5px; left: 50%; top: 0; }
+  .plate-corner > span {
+    position: absolute; inset: calc(50% - 3px);
+    width: 6px; height: 6px;
+    background: var(--violet); transform: rotate(45deg);
+  }
+  .plate-corner.tl { top: -11px; left: -11px; }
+  .plate-corner.tr { top: -11px; right: -11px; }
+  .plate-corner.bl { bottom: -11px; left: -11px; }
+  .plate-corner.br { bottom: -11px; right: -11px; }
+  .plate img { width: 100%; display: block; }
+  .plate-caption {
+    margin-top: 1.4rem;
+    font-family: var(--display-jp);
+    font-size: 0.92rem; color: var(--text-mute); letter-spacing: 0.18em;
   }
 
-  .screenshot-frame {
-    position: relative;
-    display: inline-block;
-    max-width: 860px;
-    width: 100%;
+  /* ═══════════════ EPIGRAPH — two variants ═══════════════ */
+  .epigraph {
+    position: relative; padding: 4.5rem 1.5rem;
+    text-align: center; overflow: hidden;
+  }
+  /* Dark purple quote block */
+  .epigraph.on-dark {
+    background: var(--bg-dark);
+    color: var(--text-on-dark);
+  }
+  /* Pale lavender quote block */
+  .epigraph.on-muted {
+    background: var(--bg-muted);
+    color: var(--text-h);
+  }
+  .epigraph-stack {
+    position: relative; max-width: 720px; margin: 0 auto;
+    min-height: 5em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .epigraph-quote {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 1.4s ease; pointer-events: none;
+  }
+  .epigraph-quote.is-active { opacity: 1; }
+  .epigraph-mark {
+    font-family: var(--display);
+    font-size: 2rem; line-height: 1; margin-bottom: 0.6rem;
+  }
+  .epigraph.on-dark  .epigraph-mark { color: var(--lilac); opacity: 0.6; }
+  .epigraph.on-muted .epigraph-mark { color: var(--violet); opacity: 0.5; }
+  .epigraph-text {
+    font-family: var(--display-jp);
+    font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+    line-height: 1.9; letter-spacing: 0.06em; font-weight: 500;
+    max-width: 680px; text-wrap: pretty;
+  }
+  .epigraph-attrib {
+    font-family: var(--display);
+    font-size: 0.68rem; letter-spacing: 0.4em;
+    margin-top: 1.3rem; text-transform: uppercase; opacity: 0.65;
+  }
+  .epigraph.on-dark  .epigraph-attrib { color: var(--lilac); }
+  .epigraph.on-muted .epigraph-attrib { color: var(--violet); }
+  .epigraph-rule {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.5rem; margin-top: 2rem; opacity: 0.5;
+  }
+  .epigraph-rule span { width: 5px; height: 5px; transform: rotate(45deg); }
+  .epigraph-rule span:nth-child(2) { width: 8px; height: 8px; }
+  .epigraph.on-dark  .epigraph-rule span { background: var(--lilac); }
+  .epigraph.on-muted .epigraph-rule span { background: var(--violet); }
+
+  /* ═══════════════ SHARED SECTION LAYOUT ═══════════════ */
+  section { position: relative; z-index: 1; }
+  .container { max-width: 1080px; margin: 0 auto; position: relative; }
+
+  .chapter-heading { text-align: center; margin-bottom: 3.5rem; }
+  .chapter-eyebrow {
+    font-family: var(--display);
+    font-size: 0.70rem; letter-spacing: 0.45em;
+    color: var(--violet); text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .chapter-roman { font-size: 0.88rem; letter-spacing: 0.28em; }
+  .chapter-title {
+    font-family: var(--display-jp);
+    font-size: clamp(1.7rem, 3.5vw, 2.3rem);
+    font-weight: 700; color: var(--text-h);
+    letter-spacing: 0.14em; margin-bottom: 1rem;
+  }
+  .chapter-rule { display: flex; align-items: center; justify-content: center; gap: 0.7rem; margin-bottom: 1.2rem; }
+  .chapter-rule-line { width: 55px; height: 1px; background: var(--border); }
+  .chapter-rule-mark { width: 7px; height: 7px; background: var(--violet); transform: rotate(45deg); }
+  .chapter-desc {
+    font-family: var(--display-jp);
+    font-size: 1.02rem; color: var(--text-mute);
+    max-width: 580px; margin: 0 auto; line-height: 1.95; letter-spacing: 0.04em;
   }
 
-  /* Corner ornaments */
-  .screenshot-frame::before,
-  .screenshot-frame::after {
-    content: '';
-    position: absolute;
-    width: 20px; height: 20px;
-    border-color: var(--teal);
-    border-style: solid;
-    z-index: 2;
-    opacity: 0.6;
-  }
-  .screenshot-frame::before {
-    top: -4px; left: -4px;
-    border-width: 2px 0 0 2px;
-  }
-  .screenshot-frame::after {
-    bottom: -4px; right: -4px;
-    border-width: 0 2px 2px 0;
-  }
+  /* ═══════════════ CHAPTER I — Features (white bg) ═══════════════ */
+  .page { padding: 6rem 1.5rem; background: var(--bg); }
 
-  .screenshot-frame img {
-    width: 100%;
-    display: block;
-    border-radius: 4px;
-    border: 1px solid var(--border-t);
-  }
-
-  /* ─────────────── COMMON SECTION ─────────────── */
-  section { padding: 5.5rem 1.5rem; position: relative; z-index: 1; }
-
-  .container { max-width: 1080px; margin: 0 auto; }
-
-  .section-eyebrow {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--teal);
-    margin-bottom: 0.7rem;
-  }
-  .section-eyebrow::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--teal);
-    opacity: 0.2;
-    max-width: 60px;
-  }
-
-  .section-title {
-    font-family: 'Zen Old Mincho', serif;
-    font-size: clamp(1.5rem, 3.5vw, 2.1rem);
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 0.7rem;
-    letter-spacing: 0.03em;
-  }
-
-  .section-desc {
-    color: var(--muted);
-    font-size: 0.9rem;
-    max-width: 500px;
-    margin-bottom: 3rem;
-    line-height: 1.8;
-  }
-
-  /* ─────────────── FEATURES ─────────────── */
-  #features { background: var(--bg2); }
-
-  .features-grid {
+  .grimoire-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1px;
-    background: var(--border);
+    background: var(--border-l);
     border: 1px solid var(--border);
   }
-
-  .feature-card {
-    background: var(--bg2);
-    padding: 1.7rem 1.8rem;
-    transition: background .2s;
+  .entry {
+    background: var(--bg-card);
+    padding: 1.9rem 1.8rem;
+    transition: background .18s;
   }
-  .feature-card:hover { background: var(--bg3); }
-
-  .feature-icon {
-    font-size: 1.3rem;
-    margin-bottom: 0.9rem;
-    display: block;
+  .entry:hover { background: var(--bg-muted); }
+  .entry-glyph { width: 26px; height: 26px; margin-bottom: 0.9rem; color: var(--violet); }
+  .entry h3 {
+    font-family: var(--display-jp);
+    font-size: 1rem; font-weight: 700;
+    letter-spacing: 0.10em; color: var(--text-h); margin-bottom: 0.5rem;
   }
-
-  .feature-card h3 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 0.5rem;
-    letter-spacing: 0.02em;
+  .entry p {
+    font-family: var(--display-jp);
+    font-size: 0.92rem; color: var(--text-mute);
+    line-height: 1.85; letter-spacing: 0.02em;
   }
 
-  .feature-card p {
-    font-size: 0.82rem;
-    color: var(--muted);
-    line-height: 1.7;
-  }
+  /* ═══════════════ CHAPTER II — Providers (pale lavender bg) ═══════════════ */
+  .page-alt { padding: 6rem 1.5rem; background: var(--bg-alt); }
+  .page-alt .chapter-rule-line { background: var(--lilac); }
 
-  /* ─────────────── PROVIDERS ─────────────── */
-  .providers-grid {
+  .codex-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 1rem;
   }
-
-  .provider-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem 1.6rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    transition: border-color .2s, background .2s;
+  .codex {
     position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 1.7rem 1.6rem 1.5rem;
+    transition: border-color .2s, box-shadow .2s, transform .2s;
     overflow: hidden;
   }
-  .provider-card::before {
+  .codex::after {
     content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--teal), var(--gold));
-    opacity: 0;
-    transition: opacity .2s;
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--violet), var(--lilac));
+    opacity: 0; transition: opacity .2s;
   }
-  .provider-card:hover { border-color: var(--border-t); background: rgba(1,173,175,0.04); }
-  .provider-card:hover::before { opacity: 1; }
+  .codex:hover { border-color: var(--lilac); box-shadow: 0 6px 24px var(--shadow); transform: translateY(-2px); }
+  .codex:hover::after { opacity: 1; }
+  /* paid / free status dot */
+  .codex::before {
+    content: '';
+    position: absolute; top: 1.2rem; right: 1.2rem;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #C94F4F;
+  }
+  .codex.is-free::before { background: #6A9F5B; }
+  .codex-name {
+    font-family: var(--display);
+    font-size: 0.98rem; font-weight: 600;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--text-h); margin-bottom: 0.35rem;
+  }
+  .codex-cost {
+    font-family: var(--display-jp);
+    font-size: 0.78rem; letter-spacing: 0.18em;
+    color: var(--violet); margin-bottom: 0.8rem;
+  }
+  .codex-desc {
+    font-family: var(--display-jp);
+    font-size: 0.92rem; color: var(--text-mute);
+    line-height: 1.85; letter-spacing: 0.02em;
+  }
 
-  .provider-name { font-weight: 600; font-size: 0.92rem; color: #fff; }
-  .provider-cost { font-size: 0.75rem; color: var(--teal); }
-  .provider-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
-
-  /* ─────────────── GALLERY ─────────────── */
-  #screenshots { background: var(--bg2); }
-
+  /* ═══════════════ CHAPTER III — Screenshots (white bg) ═══════════════ */
   .gallery {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-    gap: 1rem;
+    gap: 1.2rem;
   }
-
-  .gallery-item {
+  .gallery-plate {
+    background: var(--bg-card);
     border: 1px solid var(--border);
-    background: var(--bg3);
-    overflow: hidden;
-    transition: border-color .2s;
+    padding: 10px 10px 0;
+    transition: border-color .2s, box-shadow .25s, transform .25s;
   }
-  .gallery-item:hover { border-color: var(--border-t); }
-
-  .gallery-item img {
-    width: 100%;
-    display: block;
-    aspect-ratio: 16/9;
-    object-fit: cover;
-    object-position: top;
-    filter: brightness(0.92);
-    transition: filter .3s;
+  .gallery-plate:hover {
+    border-color: var(--lilac);
+    box-shadow: 0 8px 28px var(--shadow-h);
+    transform: translateY(-2px);
   }
-  .gallery-item:hover img { filter: brightness(1); }
-
+  .gallery-plate img {
+    width: 100%; display: block;
+    aspect-ratio: 16/9; object-fit: cover; object-position: top;
+  }
   .gallery-caption {
-    padding: 0.6rem 0.9rem;
-    font-size: 0.75rem;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-    border-top: 1px solid var(--border);
+    text-align: center; padding: 0.85rem 0.5rem;
+    font-family: var(--display-jp); font-size: 0.82rem;
+    letter-spacing: 0.20em; color: var(--text-mute);
+    border-top: 1px solid var(--border-l); margin-top: 0.5rem;
   }
 
-  /* ─────────────── INSTALL ─────────────── */
-  .install-steps {
+  /* ═══════════════ CHAPTER IV — Install (pale lavender bg) ═══════════════ */
+  .quest-log {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 0;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     border: 1px solid var(--border);
-    counter-reset: step;
   }
-
-  .install-step {
-    padding: 2rem 1.6rem;
+  .quest-step {
+    padding: 2.2rem 1.7rem 1.9rem;
     border-right: 1px solid var(--border);
-    counter-increment: step;
-    position: relative;
-    background: var(--card);
-    transition: background .2s;
+    background: var(--bg-card);
+    transition: background .18s;
   }
-  .install-step:last-child { border-right: none; }
-  .install-step:hover { background: rgba(1,173,175,0.04); }
-
-  .step-num {
-    font-family: 'Zen Old Mincho', serif;
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: var(--teal);
-    opacity: 0.25;
-    line-height: 1;
-    margin-bottom: 0.8rem;
+  .quest-step:last-child { border-right: none; }
+  .quest-step:hover { background: var(--bg-muted); }
+  .quest-numeral {
+    font-family: var(--display);
+    font-size: 2.4rem; font-weight: 600;
+    color: var(--lilac); letter-spacing: 0.06em;
+    line-height: 1; margin-bottom: 1rem;
   }
-
-  .install-step h3 {
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 0.4rem;
+  .quest-step h3 {
+    font-family: var(--display-jp);
+    font-size: 1rem; font-weight: 700;
+    letter-spacing: 0.18em; color: var(--text-h); margin-bottom: 0.6rem;
   }
-
-  .install-step p {
-    font-size: 0.8rem;
-    color: var(--muted);
-    line-height: 1.7;
+  .quest-step p {
+    font-family: var(--display-jp);
+    font-size: 0.92rem; color: var(--text-mute);
+    line-height: 1.85; letter-spacing: 0.02em;
   }
 
   code {
-    background: rgba(1,173,175,0.1);
-    border: 1px solid rgba(1,173,175,0.2);
-    border-radius: 3px;
-    padding: 0.1em 0.35em;
-    font-size: 0.82em;
-    color: var(--teal);
-    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-family: var(--mono); font-size: 0.85em;
+    background: rgba(123, 104, 174, 0.08);
+    border: 1px solid rgba(123, 104, 174, 0.22);
+    padding: 0.08em 0.4em; border-radius: 2px;
+    color: var(--amethyst);
   }
+  strong { color: var(--text-h); font-weight: 700; }
 
-  /* ─────────────── GOLD DIVIDER ─────────────── */
-  .gold-divider {
-    height: 1px;
-    max-width: 1080px;
-    margin: 0 auto;
-    background: linear-gradient(90deg, transparent 0%, var(--gold) 40%, var(--teal) 60%, transparent 100%);
-    opacity: 0.2;
-  }
-
-  /* ─────────────── FOOTER ─────────────── */
+  /* ═══════════════ COLOPHON / FOOTER ═══════════════ */
   footer {
-    padding: 3rem 1.5rem;
+    padding: 4rem 1.5rem 4.5rem;
     text-align: center;
-    border-top: 1px solid var(--border);
-    position: relative;
-    z-index: 1;
+    background: var(--bg-dark);
+    position: relative; z-index: 1;
   }
-
-  .footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    justify-content: center;
-    margin-bottom: 1.5rem;
+  .colophon-mark { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.8rem; }
+  .colophon-mark span {
+    width: 5px; height: 5px;
+    background: var(--lilac); transform: rotate(45deg); opacity: 0.55;
   }
-
-  .footer-links a {
-    font-size: 0.8rem;
-    color: var(--muted);
-    text-decoration: none;
-    letter-spacing: 0.05em;
-    transition: color .15s;
+  .colophon-mark span:nth-child(2) { width: 9px; height: 9px; opacity: 0.85; }
+  .colophon-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-bottom: 1.8rem; }
+  .colophon-links a {
+    font-family: var(--display-jp);
+    font-size: 0.80rem; letter-spacing: 0.26em;
+    color: var(--text-on-dark-2); text-decoration: none; transition: color .18s;
   }
-  .footer-links a:hover { color: var(--teal); }
-
-  footer p {
-    color: var(--muted);
-    font-size: 0.78rem;
-    line-height: 1.9;
+  .colophon-links a:hover { color: #fff; }
+  .colophon-text {
+    font-family: var(--display-jp);
+    font-size: 0.90rem; color: var(--text-on-dark-2);
+    line-height: 2; letter-spacing: 0.04em; opacity: 0.8;
   }
+  .colophon-text a { color: var(--lilac); text-decoration: none; border-bottom: 1px solid rgba(196, 182, 222, 0.35); }
+  .colophon-text a:hover { color: #fff; border-color: #fff; }
 
-  footer a { color: var(--teal); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
-
-  /* ─────────────── RESPONSIVE ─────────────── */
-  @media (max-width: 640px) {
-    section { padding: 4rem 1rem; }
-    .hero { padding: 6rem 1rem 4rem; }
-    .screenshot-section { padding: 0 1rem 4rem; }
-    .install-steps { grid-template-columns: 1fr 1fr; }
-    .install-step { border-bottom: 1px solid var(--border); }
-    .install-step:nth-child(even) { border-right: none; }
-    .install-step:nth-last-child(-n+2) { border-bottom: none; }
-    .features-grid { grid-template-columns: 1fr; }
+  /* ═══════════════ RESPONSIVE ═══════════════ */
+  @media (max-width: 720px) {
+    body { font-size: 16px; }
+    .cover { padding: 5.5rem 1rem 4rem; }
+    .frontispiece { padding: 0 1rem 4rem; }
+    .page, .page-alt { padding: 4.5rem 1rem; }
+    .epigraph { padding: 3.5rem 1rem; }
+    .quest-log { grid-template-columns: 1fr 1fr; }
+    .quest-step { border-bottom: 1px solid var(--border); }
+    .quest-step:nth-child(even) { border-right: none; }
+    .quest-step:nth-last-child(-n+2) { border-bottom: none; }
+    .grimoire-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 460px) {
+    .quest-log { grid-template-columns: 1fr; }
+    .quest-step { border-right: none; border-bottom: 1px solid var(--border); }
+    .quest-step:last-child { border-bottom: none; }
   }
 </style>
 </head>
 <body>
 
-<!-- ── HERO ── -->
-<section class="hero">
-  <div class="hero-inner">
-    <div class="ornament">WordPress Plugin</div>
-    <h1>MP Ukagaka</h1>
-    <p class="hero-ja">葬送のフリーレン ・ 伺か キャラクター</p>
-    <p>
-      Bring an interactive <strong>ukagaka (伺か) character</strong> to your WordPress site.<br>
-      Reads page content, chats with visitors, and responds with personality —<br>
-      powered by Gemini, OpenAI, Claude, or Ollama.
-    </p>
-    <div class="badges">
-      <img src="https://img.shields.io/badge/version-2.14.1-01adaf?style=flat-square" alt="version">
-      <img src="https://img.shields.io/badge/WordPress-5.0%2B-21759b?style=flat-square&logo=wordpress&logoColor=white" alt="WordPress">
-      <img src="https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat-square&logo=php&logoColor=white" alt="PHP">
-      <img src="https://img.shields.io/badge/license-GPL%20v2-dccd85?style=flat-square" alt="license">
+<!-- ═════════ COVER ═════════ -->
+<section class="cover">
+  <div class="cover-inner">
+    <div class="ornament" aria-hidden="true">
+      <span class="ornament-line"></span>
+      <span class="ornament-eyebrow">Volumen Primum</span>
+      <span class="ornament-line right"></span>
     </div>
-    <div class="btn-group">
-      <a href="https://www.moelog.com" class="btn btn-primary" target="_blank" rel="noopener">
-        ✦ Live Demo
+
+    <h1>MP&nbsp;Ukagaka</h1>
+    <div class="cover-sub">AI 対応 WordPress 伺かプラグイン</div>
+
+    <p class="cover-tag">
+      WordPress サイトに<em>伺かキャラクター</em>を表示するプラグイン。<br>
+      Gemini・OpenAI・Claude・Ollama を通じて、<br>
+      記事内容に応じた AI 会話やインタラクティブな対話を実現します。
+    </p>
+
+    <div class="badges" aria-hidden="true">
+      <img src="https://img.shields.io/badge/version-2.14.1-7b68ae?style=flat-square" alt="version 2.14.1">
+      <img src="https://img.shields.io/badge/WordPress-5.0%2B-5e4d8b?style=flat-square&logo=wordpress&logoColor=white" alt="WordPress 5.0+">
+      <img src="https://img.shields.io/badge/PHP-7.4%2B-555555?style=flat-square&logo=php&logoColor=white" alt="PHP 7.4+">
+      <img src="https://img.shields.io/badge/license-GPL%20v2-c4b6de?style=flat-square&labelColor=4a3d6b" alt="GPL v2">
+    </div>
+
+    <div class="seal-row">
+      <a href="https://www.moelog.com" class="seal seal-primary" target="_blank" rel="noopener">
+        <svg class="seal-glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 8h11M9 4l4 4-4 4"/></svg>
+        ライブデモ
       </a>
-      <a href="https://github.com/Horlicks-p/mp-ukagaka" class="btn btn-gold" target="_blank" rel="noopener">
-        ⬡ GitHub
+      <a href="https://github.com/Horlicks-p/mp-ukagaka" class="seal seal-outline" target="_blank" rel="noopener">
+        <svg class="seal-glyph" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .5C3.86.5.5 3.86.5 8c0 3.31 2.15 6.12 5.13 7.11.38.07.51-.16.51-.36v-1.27c-2.09.45-2.53-1-2.53-1-.34-.87-.83-1.1-.83-1.1-.68-.46.05-.45.05-.45.75.05 1.14.77 1.14.77.67 1.14 1.75.81 2.18.62.07-.48.26-.81.48-1-1.67-.19-3.42-.83-3.42-3.71 0-.82.29-1.49.77-2.02-.08-.19-.34-.95.07-1.99 0 0 .63-.2 2.07.77.6-.17 1.24-.25 1.88-.25.64 0 1.28.08 1.88.25 1.43-.97 2.06-.77 2.06-.77.41 1.04.15 1.8.07 1.99.48.53.77 1.2.77 2.02 0 2.89-1.76 3.52-3.43 3.7.27.23.51.69.51 1.39v2.06c0 .2.13.43.51.36C13.36 14.12 15.5 11.31 15.5 8c0-4.14-3.36-7.5-7.5-7.5z"/></svg>
+        GitHub
       </a>
-      <a href="https://github.com/Horlicks-p/mp-ukagaka/archive/refs/heads/main.zip" class="btn btn-ghost">
-        ↓ Download ZIP
+      <a href="https://github.com/Horlicks-p/mp-ukagaka/archive/refs/heads/main.zip" class="seal seal-ghost">
+        <svg class="seal-glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2v9m-3-3 3 3 3-3M3 14h10"/></svg>
+        ZIP ダウンロード
       </a>
     </div>
   </div>
+  <div class="cover-border" aria-hidden="true"></div>
 </section>
 
-<!-- ── HERO SCREENSHOT ── -->
-<div class="screenshot-section">
-  <div class="screenshot-frame">
-    <img
-      src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot.PNG"
-      alt="MP Ukagaka – Frieren character displaying AI dialogue on a WordPress post"
-      loading="lazy"
-    >
+<!-- ═════════ FRONTISPIECE ═════════ -->
+<div class="frontispiece">
+  <div class="plate">
+    <div class="plate-corner tl"><span></span></div>
+    <div class="plate-corner tr"><span></span></div>
+    <div class="plate-corner bl"><span></span></div>
+    <div class="plate-corner br"><span></span></div>
+    <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot.PNG" alt="MP Ukagaka 伴侶キャラクターが WordPress 記事の傍らで語る様子" loading="lazy">
   </div>
+  <p class="plate-caption">― フリーレンが記事内容に基づいて AI 生成のダイアログを表示 ―</p>
 </div>
 
-<!-- ── FEATURES ── -->
-<section id="features">
+<!-- ═════════ EPIGRAPH α — dark purple ═════════ -->
+<div class="epigraph on-dark" data-epigraph>
+  <div class="epigraph-stack">
+    <blockquote class="epigraph-quote is-active">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">魔法は探し求めている時が一番楽しいんだよ。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+    <blockquote class="epigraph-quote">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">正直興味はないよ。だから見て確かめるんだ。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+    <blockquote class="epigraph-quote">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">魔法使いの強さを決めるのは魔力だけじゃないよ。<br>技術や経験、扱う魔法やコントロール、努力と根性、そして才能。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+  </div>
+  <div class="epigraph-rule" aria-hidden="true"><span></span><span></span><span></span></div>
+</div>
+
+<!-- ═════════ CHAPTER I ═════════ -->
+<section class="page" id="features">
   <div class="container">
-    <div class="section-eyebrow">Features</div>
-    <h2 class="section-title">Everything in one plugin</h2>
-    <p class="section-desc">A complete ukagaka experience for WordPress — no build step or JavaScript framework required.</p>
-    <div class="features-grid">
-      <div class="feature-card">
-        <span class="feature-icon">🤖</span>
-        <h3>Page-Aware AI Dialogue</h3>
-        <p>Reads your article content and generates contextually relevant responses using your chosen LLM provider.</p>
+    <div class="chapter-heading">
+      <div class="chapter-eyebrow"><span class="chapter-roman">·  CAPITULUM&nbsp;I  ·</span></div>
+      <h2 class="chapter-title">主な機能</h2>
+      <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
+      <p class="chapter-desc">ビルドステップやフレームワークは不要。<br>WordPress プラグインとして、すぐに使い始められます。</p>
+    </div>
+    <div class="grimoire-grid">
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 5h16v12H4z"/><path d="M4 9h16M8 5v12M16 5v12"/><circle cx="12" cy="13" r="1.4" fill="currentColor"/></svg>
+        <h3>AI ページ感知</h3>
+        <p>記事内容を読み込み、選択した LLM プロバイダーが文脈に合わせたコメントを自動生成します。</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">💬</span>
-        <h3>Interactive Chat Mode</h3>
-        <p>Real-time multi-turn conversations via SSE streaming — with a typewriter effect and conversation history.</p>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 6h16v10H10l-4 4v-4H4z"/><circle cx="9" cy="11" r="1" fill="currentColor"/><circle cx="13" cy="11" r="1" fill="currentColor"/><circle cx="17" cy="11" r="1" fill="currentColor"/></svg>
+        <h3>インタラクティブ対話モード</h3>
+        <p>SSE ストリーミングによるリアルタイム多ターン会話。タイプライター効果と会話履歴の保持に対応。</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">🎨</span>
-        <h3>Canvas Animation</h3>
-        <p>Smooth character animations with single-image or multi-frame sprite support. Fully customizable.</p>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="5" width="18" height="14"/><path d="m3 14 5-4 4 3 4-5 5 6"/><circle cx="8" cy="9" r="1.4" fill="currentColor"/></svg>
+        <h3>Canvas アニメーション</h3>
+        <p>単一画像から複数フレームのスプライトまで対応。キャラクターごとに表示を細かくカスタマイズできます。</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">🔑</span>
-        <h3>API Key Encryption</h3>
-        <p>All API keys are stored with AES-256-CBC encryption derived from WordPress salts. Never stored in plaintext.</p>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="9" cy="13" r="4"/><path d="m12 10 8-8M16 6l3 3M14 8l3 3"/></svg>
+        <h3>API キー暗号化</h3>
+        <p>API キーは WordPress の salt から導出した AES-256-CBC で暗号化保存。平文でデータベースに残りません。</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">🌐</span>
-        <h3>Multi-Language</h3>
-        <p>Built-in translations for English, Traditional Chinese (zh-TW), and Japanese. Full i18n/l10n support.</p>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        <h3>多言語対応</h3>
+        <p>英語・繁体字中国語・日本語の翻訳を同梱。gettext ベースの i18n / l10n に完全対応しています。</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">🧩</span>
-        <h3>Modular Architecture</h3>
-        <p>Clean PHP OO design with REST API controllers, provider factory pattern, and 40+ hooks for extensibility.</p>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 3 4 8v8l8 5 8-5V8z"/><path d="M12 3v18M4 8l16 8M20 8 4 16"/></svg>
+        <h3>モジュラー構造</h3>
+        <p>オブジェクト指向 PHP・REST API コントローラ・プロバイダー Factory、そして拡張用の 40 以上のフック。</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">📅</span>
-        <h3>Calendar &amp; Events</h3>
-        <p>Character reacts to seasons and holidays via <code>calendar.json</code> — including your birthday.</p>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="4" y="6" width="16" height="14"/><path d="M4 10h16M9 3v6M15 3v6"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg>
+        <h3>カレンダー &amp; イベント</h3>
+        <p><code>calendar.json</code> による季節・祝祭日対応。管理人の誕生日にも自動でリアクションします。</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">🛡️</span>
-        <h3>Security-First</h3>
-        <p>CSRF nonce verification, XSS prevention via <code>wp_kses</code>, Turnstile and Akismet integrations.</p>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>
+        <h3>セキュリティ重視</h3>
+        <p>nonce による CSRF 検証、<code>wp_kses</code> での XSS 防止、Turnstile・Akismet との連携に対応。</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">📖</span>
-        <h3>Dialog Files</h3>
-        <p>Load dialogues from external <code>.txt</code> or <code>.json</code> files. Built-in Frieren personality included.</p>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5 4h11l3 3v13H5z"/><path d="M16 4v3h3M8 11h8M8 14h8M8 17h5"/></svg>
+        <h3>外部ダイアログファイル</h3>
+        <p>外部の <code>.txt</code> や <code>.json</code> からダイアログを読み込み可能。フリーレンの内蔵セリフも同梱。</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── AI PROVIDERS ── -->
-<section id="providers">
+<!-- ═════════ EPIGRAPH β — pale lavender ═════════ -->
+<div class="epigraph on-muted" data-epigraph>
+  <div class="epigraph-stack">
+    <blockquote class="epigraph-quote is-active">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">想いっていうのは言葉にしないと伝わらないのに。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+    <blockquote class="epigraph-quote">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">コミュニケーションはチームワークを高めるんだよ。<br>知らなかったでしょ。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+    <blockquote class="epigraph-quote">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">私の集めた魔法を褒めてくれた馬鹿がいた。<br>それだけだよ。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+  </div>
+  <div class="epigraph-rule" aria-hidden="true"><span></span><span></span><span></span></div>
+</div>
+
+<!-- ═════════ CHAPTER II ═════════ -->
+<section class="page-alt" id="providers">
   <div class="container">
-    <div class="section-eyebrow">AI Integration</div>
-    <h2 class="section-title">Choose your AI provider</h2>
-    <p class="section-desc">Switch providers anytime from the admin settings. Keys are encrypted on save.</p>
-    <div class="providers-grid">
-      <div class="provider-card">
-        <div class="provider-name">🦙 Ollama</div>
-        <div class="provider-cost">Free · Local</div>
-        <div class="provider-desc">Run models locally or on a remote server. Zero API cost.</div>
-      </div>
-      <div class="provider-card">
-        <div class="provider-name">✦ Gemini</div>
-        <div class="provider-cost">Paid API</div>
-        <div class="provider-desc">Google Gemini 2.5 Flash — fast, affordable, streaming supported.</div>
-      </div>
-      <div class="provider-card">
-        <div class="provider-name">⬡ OpenAI</div>
-        <div class="provider-cost">Paid API</div>
-        <div class="provider-desc">GPT-4o mini recommended for cost/quality balance.</div>
-      </div>
-      <div class="provider-card">
-        <div class="provider-name">◈ Claude</div>
-        <div class="provider-cost">Paid API</div>
-        <div class="provider-desc">Anthropic Claude — expressive, nuanced character dialogue.</div>
-      </div>
+    <div class="chapter-heading">
+      <div class="chapter-eyebrow"><span class="chapter-roman">·  CAPITULUM&nbsp;II  ·</span></div>
+      <h2 class="chapter-title">対応する AI プロバイダー</h2>
+      <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
+      <p class="chapter-desc">4 つの主要な LLM プロバイダーをサポート。<br>管理画面からいつでも切り替え可能で、API キーは保存時に自動暗号化されます。</p>
+    </div>
+    <div class="codex-grid">
+      <article class="codex is-free">
+        <div class="codex-name">Ollama</div>
+        <div class="codex-cost">無料 ・ ローカル</div>
+        <p class="codex-desc">ローカルまたは自前のリモートサーバーで実行。API 利用料は一切かかりません。</p>
+      </article>
+      <article class="codex">
+        <div class="codex-name">Gemini</div>
+        <div class="codex-cost">有料 API</div>
+        <p class="codex-desc">Google Gemini 2.5 Flash 推奨。高速・低コストで、SSE ストリーミングにも対応。</p>
+      </article>
+      <article class="codex">
+        <div class="codex-name">OpenAI</div>
+        <div class="codex-cost">有料 API</div>
+        <p class="codex-desc">GPT-4o mini が、生成品質と API コストのバランス面で最もおすすめです。</p>
+      </article>
+      <article class="codex">
+        <div class="codex-name">Claude</div>
+        <div class="codex-cost">有料 API</div>
+        <p class="codex-desc">Anthropic Claude — 表現力豊かで、ニュアンスのあるキャラクター対話に向いています。</p>
+      </article>
     </div>
   </div>
 </section>
 
-<div class="gold-divider"></div>
+<!-- ═════════ EPIGRAPH γ — dark purple ═════════ -->
+<div class="epigraph on-dark" data-epigraph>
+  <div class="epigraph-stack">
+    <blockquote class="epigraph-quote is-active">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">英雄というのはどうしても後世の連中が勝手に美化していく。<br>そしてそのうち原型すら無くなってしまうんだ。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+    <blockquote class="epigraph-quote">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">勇者ヒンメルが、そうしたってことだよ。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+    <blockquote class="epigraph-quote">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">みんなとの冒険だって、<br>私の人生の百分の一にも満たない。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+  </div>
+  <div class="epigraph-rule" aria-hidden="true"><span></span><span></span><span></span></div>
+</div>
 
-<!-- ── SCREENSHOTS ── -->
-<section id="screenshots">
+<!-- ═════════ CHAPTER III ═════════ -->
+<section class="page" id="screenshots">
   <div class="container">
-    <div class="section-eyebrow">Screenshots</div>
-    <h2 class="section-title">See it in action</h2>
-    <p class="section-desc">Frontend character display and admin interface.</p>
+    <div class="chapter-heading">
+      <div class="chapter-eyebrow"><span class="chapter-roman">·  CAPITULUM&nbsp;III  ·</span></div>
+      <h2 class="chapter-title">スクリーンショット</h2>
+      <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
+      <p class="chapter-desc">フロントエンドの表示と、管理画面の様子をいくつかご紹介します。</p>
+    </div>
     <div class="gallery">
-      <div class="gallery-item">
-        <img
-          src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot2.PNG"
-          alt="General Settings and LLM Settings pages"
-          loading="lazy"
-        >
-        <p class="gallery-caption">General &amp; LLM Settings</p>
-      </div>
-      <div class="gallery-item">
-        <img
-          src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot3.PNG"
-          alt="Interactive Chat Mode"
-          loading="lazy"
-        >
-        <p class="gallery-caption">Interactive Chat Mode</p>
-      </div>
-      <div class="gallery-item">
-        <img
-          src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot4.PNG"
-          alt="Character configuration"
-          loading="lazy"
-        >
-        <p class="gallery-caption">Character Configuration</p>
-      </div>
+      <figure class="gallery-plate">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot2.PNG" alt="一般設定および LLM 設定" loading="lazy">
+        <figcaption class="gallery-caption">一般設定 &amp; LLM 設定</figcaption>
+      </figure>
+      <figure class="gallery-plate">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot3.PNG" alt="対話モード" loading="lazy">
+        <figcaption class="gallery-caption">インタラクティブ対話モード</figcaption>
+      </figure>
+      <figure class="gallery-plate">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot4.PNG" alt="キャラクター設定" loading="lazy">
+        <figcaption class="gallery-caption">キャラクター設定</figcaption>
+      </figure>
     </div>
   </div>
 </section>
 
-<!-- ── INSTALL ── -->
-<section id="install">
+<!-- ═════════ EPIGRAPH δ — pale lavender ═════════ -->
+<div class="epigraph on-muted" data-epigraph>
+  <div class="epigraph-stack">
+    <blockquote class="epigraph-quote is-active">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">まだたったの十年だよ。<br>今会いに行かないと近い未来に後悔するよ。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+    <blockquote class="epigraph-quote">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">人間の寿命は短いってわかっていたのに…<br>なんでもっと知ろうと思わなかったんだろう。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+    <blockquote class="epigraph-quote">
+      <div class="epigraph-mark">❝</div>
+      <p class="epigraph-text">私は今の話をしているんだよ。</p>
+      <div class="epigraph-attrib">— Frieren</div>
+    </blockquote>
+  </div>
+  <div class="epigraph-rule" aria-hidden="true"><span></span><span></span><span></span></div>
+</div>
+
+<!-- ═════════ CHAPTER IV ═════════ -->
+<section class="page-alt" id="install">
   <div class="container">
-    <div class="section-eyebrow">Getting Started</div>
-    <h2 class="section-title">Up and running in minutes</h2>
-    <p class="section-desc">No build step required — drop into your plugins folder and activate.</p>
-    <div class="install-steps">
-      <div class="install-step">
-        <div class="step-num">01</div>
-        <h3>Download</h3>
-        <p>Clone or download into <code>wp-content/plugins/mp-ukagaka/</code></p>
+    <div class="chapter-heading">
+      <div class="chapter-eyebrow"><span class="chapter-roman">·  CAPITULUM&nbsp;IV  ·</span></div>
+      <h2 class="chapter-title">クイックスタート</h2>
+      <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
+      <p class="chapter-desc">ビルドステップ不要。<br>プラグインフォルダに配置して有効化するだけで使い始められます。</p>
+    </div>
+    <div class="quest-log">
+      <div class="quest-step">
+        <div class="quest-numeral">I</div>
+        <h3>ダウンロード</h3>
+        <p>プラグインを <code>wp-content/plugins/mp-ukagaka/</code> に複製または展開します。</p>
       </div>
-      <div class="install-step">
-        <div class="step-num">02</div>
-        <h3>Activate</h3>
-        <p>Go to <strong style="color:var(--text)">WordPress Admin → Plugins</strong> and activate MP Ukagaka.</p>
+      <div class="quest-step">
+        <div class="quest-numeral">II</div>
+        <h3>有効化</h3>
+        <p><strong>WordPress 管理画面 → プラグイン</strong> から MP Ukagaka を有効化します。</p>
       </div>
-      <div class="install-step">
-        <div class="step-num">03</div>
-        <h3>Configure</h3>
-        <p>Visit <strong style="color:var(--text)">Settings → MP Ukagaka</strong> to choose a character and display settings.</p>
+      <div class="quest-step">
+        <div class="quest-numeral">III</div>
+        <h3>基本設定</h3>
+        <p><strong>設定 → MP Ukagaka</strong> でデフォルトキャラクター・表示位置などを設定します。</p>
       </div>
-      <div class="install-step">
-        <div class="step-num">04</div>
-        <h3>Add AI Key</h3>
-        <p>Enter a Gemini, OpenAI, or Claude API key to enable context-aware dialogue. (Optional)</p>
+      <div class="quest-step">
+        <div class="quest-numeral">IV</div>
+        <h3>AI キーを登録</h3>
+        <p>Gemini・OpenAI・Claude・Ollama いずれかの API キーを登録すれば、AI 会話が有効になります。<em>（任意）</em></p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── FOOTER ── -->
+<!-- ═════════ COLOPHON ═════════ -->
 <footer>
-  <div class="footer-links">
+  <div class="colophon-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="colophon-links">
     <a href="https://github.com/Horlicks-p/mp-ukagaka" target="_blank" rel="noopener">GitHub</a>
-    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/USER_GUIDE.md" target="_blank" rel="noopener">User Guide</a>
-    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/DEVELOPER_GUIDE.md" target="_blank" rel="noopener">Developer Guide</a>
-    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
-    <a href="https://www.moelog.com" target="_blank" rel="noopener">Demo Site</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-jp/USER_GUIDE.md" target="_blank" rel="noopener">ユーザーガイド</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-jp/DEVELOPER_GUIDE.md" target="_blank" rel="noopener">開発者ガイド</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-jp/CHANGELOG.md" target="_blank" rel="noopener">変更履歴</a>
+    <a href="https://www.moelog.com" target="_blank" rel="noopener">デモサイト</a>
   </div>
-  <p>
-    MP Ukagaka is open source software licensed under
-    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/LICENSE" target="_blank" rel="noopener">GPL v2 or later</a>.<br>
-    Built with AI-assisted development · <a href="https://www.moelog.com" target="_blank" rel="noopener">moelog.com</a>
+  <p class="colophon-text">
+    MP Ukagaka は <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/LICENSE" target="_blank" rel="noopener">GPL v2 以降</a> でライセンスされたオープンソースソフトウェアです。<br>
+    オリジナル作者: Ariagle  ・  メンテナー: Horlicks (<a href="https://www.moelog.com" target="_blank" rel="noopener">moelog.com</a>)<br>
+    <em style="opacity:.65">AI 支援開発によるバイブコーディング製</em>
   </p>
 </footer>
+
+<script>
+  document.querySelectorAll('[data-epigraph]').forEach((ep, blockIdx) => {
+    const items = ep.querySelectorAll('.epigraph-quote');
+    if (items.length <= 1) return;
+    let i = 0;
+    setTimeout(() => {
+      setInterval(() => {
+        items[i].classList.remove('is-active');
+        i = (i + 1) % items.length;
+        items[i].classList.add('is-active');
+      }, 7500);
+    }, blockIdx * 1800);
+  });
+</script>
 
 </body>
 </html>
