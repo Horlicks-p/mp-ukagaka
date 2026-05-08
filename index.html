@@ -7,21 +7,27 @@
 <meta name="description" content="Add an interactive AI-powered ukagaka character to your WordPress site. Powered by Gemini, OpenAI, Claude, or Ollama. Features chat mode, SSE streaming, canvas animation, and multi-language support.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:       #0d1117;
-    --bg2:      #161b27;
-    --card:     rgba(255,255,255,0.04);
-    --border:   rgba(255,255,255,0.08);
-    --teal:     #7ecfca;
-    --lavender: #b8a9e8;
-    --gold:     #e8d4a0;
-    --text:     #dde3ee;
-    --muted:    #8b95a8;
-    --radius:   14px;
+    /* Official frieren-anime.jp palette */
+    --teal:     #01adaf;
+    --gold:     #dccd85;
+    --green:    #04aa72;
+    --teal-dim: rgba(1, 173, 175, 0.15);
+    --gold-dim: rgba(220, 205, 133, 0.12);
+
+    --bg:       #111111;
+    --bg2:      #1a1a1a;
+    --bg3:      #202020;
+    --card:     rgba(255,255,255,0.035);
+    --border:   rgba(255,255,255,0.07);
+    --border-t: rgba(1,173,175,0.25);
+    --text:     #f0ece4;
+    --muted:    #888880;
+    --radius:   10px;
   }
 
   html { scroll-behavior: smooth; }
@@ -34,7 +40,18 @@
     overflow-x: hidden;
   }
 
-  /* ── HERO ── */
+  /* ─────────────── NOISE TEXTURE OVERLAY ─────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* ─────────────── HERO ─────────────── */
   .hero {
     position: relative;
     min-height: 100vh;
@@ -42,7 +59,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 6rem 1.5rem 4rem;
+    padding: 7rem 1.5rem 5rem;
     overflow: hidden;
   }
 
@@ -51,88 +68,95 @@
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(126,207,202,0.15) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(184,169,232,0.10) 0%, transparent 60%);
+      radial-gradient(ellipse 70% 55% at 50% 0%,   rgba(1,173,175,0.12) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 35% at 80% 90%,  rgba(220,205,133,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 10% 70%,  rgba(4,170,114,0.06) 0%, transparent 60%);
     pointer-events: none;
   }
 
-  .stars {
+  /* Decorative horizontal line (official site uses thin lines) */
+  .hero::after {
+    content: '';
     position: absolute;
-    inset: 0;
-    background-image:
-      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
-      radial-gradient(1px 1px at 65% 15%, rgba(255,255,255,0.3) 0%, transparent 100%),
-      radial-gradient(1px 1px at 45% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
-      radial-gradient(1px 1px at 80% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
-      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
-      radial-gradient(2px 2px at 90% 10%, rgba(184,169,232,0.5) 0%, transparent 100%),
-      radial-gradient(1px 1px at 35% 45%, rgba(126,207,202,0.4) 0%, transparent 100%);
-    pointer-events: none;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--teal) 30%, var(--gold) 60%, transparent 100%);
+    opacity: 0.3;
   }
 
   .hero-inner {
     position: relative;
-    max-width: 780px;
+    z-index: 1;
+    max-width: 800px;
     width: 100%;
   }
 
-  .badge-version {
-    display: inline-flex;
+  /* Thin ornamental rule above heading */
+  .ornament {
+    display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.3rem 0.9rem;
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    font-size: 0.78rem;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-bottom: 1.8rem;
     color: var(--teal);
-    background: rgba(126,207,202,0.06);
-    margin-bottom: 1.5rem;
-    letter-spacing: 0.05em;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
   }
+  .ornament::before,
+  .ornament::after {
+    content: '';
+    flex: 1;
+    max-width: 80px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal));
+  }
+  .ornament::after { background: linear-gradient(270deg, transparent, var(--teal)); }
 
   .hero h1 {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(2.4rem, 6vw, 4rem);
-    font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: 0.02em;
-    background: linear-gradient(135deg, #fff 20%, var(--teal) 60%, var(--lavender) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.5rem;
+    font-family: 'Zen Old Mincho', serif;
+    font-size: clamp(2.8rem, 7vw, 5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.05em;
+    color: #fff;
+    margin-bottom: 0.3rem;
   }
 
-  .hero-sub {
-    font-size: 1rem;
-    color: var(--lavender);
-    letter-spacing: 0.1em;
-    margin-bottom: 1.2rem;
-    font-weight: 300;
+  .hero-ja {
+    font-family: 'Zen Old Mincho', serif;
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    color: var(--teal);
+    letter-spacing: 0.35em;
+    margin-bottom: 1.5rem;
+    font-weight: 400;
   }
 
   .hero p {
-    font-size: 1.05rem;
+    font-size: 0.98rem;
     color: var(--muted);
-    max-width: 560px;
+    max-width: 520px;
     margin: 0 auto 2.5rem;
-    line-height: 1.8;
+    line-height: 1.85;
   }
+
+  .hero p strong { color: var(--text); font-weight: 500; }
 
   .badges {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     justify-content: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2.8rem;
+    opacity: 0.85;
   }
-
-  .badges img { height: 20px; }
+  .badges img { height: 19px; }
 
   .btn-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.8rem;
+    gap: 0.75rem;
     justify-content: center;
   }
 
@@ -140,127 +164,173 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    padding: 0.7rem 1.6rem;
-    border-radius: 99px;
-    font-size: 0.92rem;
+    padding: 0.65rem 1.5rem;
+    border-radius: 2px;
+    font-size: 0.85rem;
     font-weight: 500;
     text-decoration: none;
-    transition: transform .2s, box-shadow .2s;
+    letter-spacing: 0.05em;
+    transition: all .2s;
+    position: relative;
   }
-  .btn:hover { transform: translateY(-2px); }
 
   .btn-primary {
-    background: linear-gradient(135deg, var(--teal), var(--lavender));
-    color: #0d1117;
-    box-shadow: 0 4px 24px rgba(126,207,202,0.25);
+    background: var(--teal);
+    color: #0d1a1a;
+    box-shadow: 0 0 20px rgba(1,173,175,0.3);
   }
-  .btn-primary:hover { box-shadow: 0 6px 32px rgba(126,207,202,0.4); }
+  .btn-primary:hover {
+    background: #02c5c7;
+    box-shadow: 0 0 28px rgba(1,173,175,0.5);
+    transform: translateY(-1px);
+  }
 
-  .btn-secondary {
-    background: var(--card);
+  .btn-gold {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+  }
+  .btn-gold:hover {
+    background: var(--gold-dim);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    background: transparent;
     border: 1px solid var(--border);
-    color: var(--text);
+    color: var(--muted);
   }
-  .btn-secondary:hover { border-color: var(--teal); color: var(--teal); }
+  .btn-ghost:hover {
+    border-color: rgba(1,173,175,0.4);
+    color: var(--teal);
+    transform: translateY(-1px);
+  }
 
-  /* ── SCREENSHOT ── */
+  /* ─────────────── SCREENSHOT HERO ─────────────── */
   .screenshot-section {
-    padding: 2rem 1.5rem 5rem;
+    position: relative;
+    z-index: 1;
+    padding: 0 1.5rem 5rem;
     text-align: center;
   }
 
-  .screenshot-wrap {
+  .screenshot-frame {
     position: relative;
     display: inline-block;
-    max-width: 820px;
+    max-width: 860px;
     width: 100%;
   }
 
-  .screenshot-wrap::before {
+  /* Corner ornaments */
+  .screenshot-frame::before,
+  .screenshot-frame::after {
     content: '';
     position: absolute;
-    inset: -1px;
-    background: linear-gradient(135deg, var(--teal), var(--lavender), var(--teal));
-    border-radius: calc(var(--radius) + 1px);
-    z-index: 0;
-    opacity: 0.5;
+    width: 20px; height: 20px;
+    border-color: var(--teal);
+    border-style: solid;
+    z-index: 2;
+    opacity: 0.6;
+  }
+  .screenshot-frame::before {
+    top: -4px; left: -4px;
+    border-width: 2px 0 0 2px;
+  }
+  .screenshot-frame::after {
+    bottom: -4px; right: -4px;
+    border-width: 0 2px 2px 0;
   }
 
-  .screenshot-wrap img {
-    position: relative;
-    z-index: 1;
+  .screenshot-frame img {
     width: 100%;
-    border-radius: var(--radius);
     display: block;
+    border-radius: 4px;
+    border: 1px solid var(--border-t);
   }
 
-  /* ── SECTION COMMON ── */
-  section { padding: 5rem 1.5rem; }
+  /* ─────────────── COMMON SECTION ─────────────── */
+  section { padding: 5.5rem 1.5rem; position: relative; z-index: 1; }
 
-  .container { max-width: 1060px; margin: 0 auto; }
+  .container { max-width: 1080px; margin: 0 auto; }
 
-  .section-label {
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    color: var(--teal);
+  .section-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    margin-bottom: 0.5rem;
+    color: var(--teal);
+    margin-bottom: 0.7rem;
+  }
+  .section-eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--teal);
+    opacity: 0.2;
+    max-width: 60px;
   }
 
   .section-title {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1.6rem, 3.5vw, 2.2rem);
-    font-weight: 600;
+    font-family: 'Zen Old Mincho', serif;
+    font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+    font-weight: 700;
     color: #fff;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.7rem;
+    letter-spacing: 0.03em;
   }
 
   .section-desc {
     color: var(--muted);
-    max-width: 520px;
+    font-size: 0.9rem;
+    max-width: 500px;
     margin-bottom: 3rem;
+    line-height: 1.8;
   }
 
-  /* ── FEATURES ── */
+  /* ─────────────── FEATURES ─────────────── */
   #features { background: var(--bg2); }
 
   .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
   }
 
   .feature-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.6rem;
-    transition: border-color .2s, transform .2s;
+    background: var(--bg2);
+    padding: 1.7rem 1.8rem;
+    transition: background .2s;
   }
-  .feature-card:hover { border-color: rgba(126,207,202,0.3); transform: translateY(-3px); }
+  .feature-card:hover { background: var(--bg3); }
 
   .feature-icon {
-    font-size: 1.6rem;
-    margin-bottom: 0.8rem;
+    font-size: 1.3rem;
+    margin-bottom: 0.9rem;
+    display: block;
   }
 
   .feature-card h3 {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
   }
 
   .feature-card p {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     color: var(--muted);
-    line-height: 1.65;
+    line-height: 1.7;
   }
 
-  /* ── AI PROVIDERS ── */
+  /* ─────────────── PROVIDERS ─────────────── */
   .providers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 1rem;
   }
 
@@ -268,45 +338,46 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 1.4rem 1.6rem;
+    padding: 1.5rem 1.6rem;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    transition: border-color .2s;
+    gap: 0.35rem;
+    transition: border-color .2s, background .2s;
+    position: relative;
+    overflow: hidden;
   }
-  .provider-card:hover { border-color: rgba(184,169,232,0.4); }
+  .provider-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--teal), var(--gold));
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .provider-card:hover { border-color: var(--border-t); background: rgba(1,173,175,0.04); }
+  .provider-card:hover::before { opacity: 1; }
 
-  .provider-name {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: #fff;
-  }
-  .provider-cost {
-    font-size: 0.78rem;
-    color: var(--teal);
-  }
-  .provider-desc {
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
+  .provider-name { font-weight: 600; font-size: 0.92rem; color: #fff; }
+  .provider-cost { font-size: 0.75rem; color: var(--teal); }
+  .provider-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
 
-  /* ── SCREENSHOTS GALLERY ── */
+  /* ─────────────── GALLERY ─────────────── */
   #screenshots { background: var(--bg2); }
 
   .gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
     gap: 1rem;
   }
 
   .gallery-item {
-    border-radius: var(--radius);
-    overflow: hidden;
     border: 1px solid var(--border);
-    background: var(--card);
-    transition: transform .2s, border-color .2s;
+    background: var(--bg3);
+    overflow: hidden;
+    transition: border-color .2s;
   }
-  .gallery-item:hover { transform: scale(1.02); border-color: rgba(126,207,202,0.3); }
+  .gallery-item:hover { border-color: var(--border-t); }
 
   .gallery-item img {
     width: 100%;
@@ -314,150 +385,165 @@
     aspect-ratio: 16/9;
     object-fit: cover;
     object-position: top;
+    filter: brightness(0.92);
+    transition: filter .3s;
   }
+  .gallery-item:hover img { filter: brightness(1); }
 
-  .gallery-item p {
+  .gallery-caption {
     padding: 0.6rem 0.9rem;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--muted);
+    letter-spacing: 0.05em;
+    border-top: 1px solid var(--border);
   }
 
-  /* ── INSTALL ── */
+  /* ─────────────── INSTALL ─────────────── */
   .install-steps {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0;
+    border: 1px solid var(--border);
     counter-reset: step;
   }
 
   .install-step {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.4rem;
-    position: relative;
+    padding: 2rem 1.6rem;
+    border-right: 1px solid var(--border);
     counter-increment: step;
+    position: relative;
+    background: var(--card);
+    transition: background .2s;
   }
+  .install-step:last-child { border-right: none; }
+  .install-step:hover { background: rgba(1,173,175,0.04); }
 
-  .install-step::before {
-    content: counter(step);
-    position: absolute;
-    top: -0.6rem;
-    left: 1.2rem;
-    background: linear-gradient(135deg, var(--teal), var(--lavender));
-    color: #0d1117;
-    font-weight: 700;
-    font-size: 0.78rem;
-    width: 1.4rem;
-    height: 1.4rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .step-num {
+    font-family: 'Zen Old Mincho', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--teal);
+    opacity: 0.25;
+    line-height: 1;
+    margin-bottom: 0.8rem;
   }
 
   .install-step h3 {
     font-size: 0.88rem;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.4rem;
   }
 
   .install-step p {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     color: var(--muted);
+    line-height: 1.7;
   }
 
   code {
-    background: rgba(126,207,202,0.1);
-    border: 1px solid rgba(126,207,202,0.2);
-    border-radius: 4px;
-    padding: 0.1em 0.4em;
-    font-size: 0.85em;
+    background: rgba(1,173,175,0.1);
+    border: 1px solid rgba(1,173,175,0.2);
+    border-radius: 3px;
+    padding: 0.1em 0.35em;
+    font-size: 0.82em;
     color: var(--teal);
-    font-family: 'Fira Code', 'Cascadia Code', monospace;
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
   }
 
-  /* ── FOOTER ── */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 2.5rem 1.5rem;
-    text-align: center;
+  /* ─────────────── GOLD DIVIDER ─────────────── */
+  .gold-divider {
+    height: 1px;
+    max-width: 1080px;
+    margin: 0 auto;
+    background: linear-gradient(90deg, transparent 0%, var(--gold) 40%, var(--teal) 60%, transparent 100%);
+    opacity: 0.2;
   }
+
+  /* ─────────────── FOOTER ─────────────── */
+  footer {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .footer-links a {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    transition: color .15s;
+  }
+  .footer-links a:hover { color: var(--teal); }
 
   footer p {
     color: var(--muted);
-    font-size: 0.83rem;
-    line-height: 1.8;
+    font-size: 0.78rem;
+    line-height: 1.9;
   }
 
   footer a { color: var(--teal); text-decoration: none; }
   footer a:hover { text-decoration: underline; }
 
-  .footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.2rem;
-    justify-content: center;
-    margin-bottom: 1.2rem;
-  }
-
-  .footer-links a {
-    font-size: 0.85rem;
-    color: var(--muted);
-  }
-  .footer-links a:hover { color: var(--teal); }
-
-  /* ── DIVIDER ── */
-  .divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border), transparent);
-    max-width: 1060px;
-    margin: 0 auto;
-  }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 600px) {
-    .hero { padding: 5rem 1rem 3rem; }
-    section { padding: 3.5rem 1rem; }
+  /* ─────────────── RESPONSIVE ─────────────── */
+  @media (max-width: 640px) {
+    section { padding: 4rem 1rem; }
+    .hero { padding: 6rem 1rem 4rem; }
+    .screenshot-section { padding: 0 1rem 4rem; }
+    .install-steps { grid-template-columns: 1fr 1fr; }
+    .install-step { border-bottom: 1px solid var(--border); }
+    .install-step:nth-child(even) { border-right: none; }
+    .install-step:nth-last-child(-n+2) { border-bottom: none; }
+    .features-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-<!-- HERO -->
+<!-- ── HERO ── -->
 <section class="hero">
-  <div class="stars"></div>
   <div class="hero-inner">
-    <div class="badge-version">✦ v2.14.1 · Latest Release</div>
+    <div class="ornament">WordPress Plugin</div>
     <h1>MP Ukagaka</h1>
-    <p class="hero-sub">AI-Powered WordPress Companion</p>
-    <p>Bring an interactive <strong style="color:var(--text)">ukagaka (伺か) character</strong> to your WordPress site. Reads page content, chats with visitors, and responds with personality — powered by your choice of AI model.</p>
+    <p class="hero-ja">葬送のフリーレン ・ 伺か キャラクター</p>
+    <p>
+      Bring an interactive <strong>ukagaka (伺か) character</strong> to your WordPress site.<br>
+      Reads page content, chats with visitors, and responds with personality —<br>
+      powered by Gemini, OpenAI, Claude, or Ollama.
+    </p>
     <div class="badges">
-      <img src="https://img.shields.io/badge/WordPress-5.0%2B-21759b?style=flat&logo=wordpress&logoColor=white" alt="WordPress">
-      <img src="https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat&logo=php&logoColor=white" alt="PHP">
-      <img src="https://img.shields.io/badge/Gemini-supported-4285f4?style=flat&logo=google&logoColor=white" alt="Gemini">
-      <img src="https://img.shields.io/badge/OpenAI-supported-412991?style=flat&logo=openai&logoColor=white" alt="OpenAI">
-      <img src="https://img.shields.io/badge/Claude-supported-d4a27f?style=flat" alt="Claude">
-      <img src="https://img.shields.io/badge/Ollama-supported-333?style=flat" alt="Ollama">
+      <img src="https://img.shields.io/badge/version-2.14.1-01adaf?style=flat-square" alt="version">
+      <img src="https://img.shields.io/badge/WordPress-5.0%2B-21759b?style=flat-square&logo=wordpress&logoColor=white" alt="WordPress">
+      <img src="https://img.shields.io/badge/PHP-7.4%2B-777bb4?style=flat-square&logo=php&logoColor=white" alt="PHP">
+      <img src="https://img.shields.io/badge/license-GPL%20v2-dccd85?style=flat-square" alt="license">
     </div>
     <div class="btn-group">
       <a href="https://www.moelog.com" class="btn btn-primary" target="_blank" rel="noopener">
         ✦ Live Demo
       </a>
-      <a href="https://github.com/Horlicks-p/mp-ukagaka" class="btn btn-secondary" target="_blank" rel="noopener">
+      <a href="https://github.com/Horlicks-p/mp-ukagaka" class="btn btn-gold" target="_blank" rel="noopener">
         ⬡ GitHub
       </a>
-      <a href="https://github.com/Horlicks-p/mp-ukagaka/archive/refs/heads/main.zip" class="btn btn-secondary">
+      <a href="https://github.com/Horlicks-p/mp-ukagaka/archive/refs/heads/main.zip" class="btn btn-ghost">
         ↓ Download ZIP
       </a>
     </div>
   </div>
 </section>
 
-<!-- HERO SCREENSHOT -->
+<!-- ── HERO SCREENSHOT ── -->
 <div class="screenshot-section">
-  <div class="screenshot-wrap">
+  <div class="screenshot-frame">
     <img
       src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot.PNG"
       alt="MP Ukagaka – Frieren character displaying AI dialogue on a WordPress post"
@@ -466,66 +552,66 @@
   </div>
 </div>
 
-<!-- FEATURES -->
+<!-- ── FEATURES ── -->
 <section id="features">
   <div class="container">
-    <div class="section-label">Core Features</div>
+    <div class="section-eyebrow">Features</div>
     <h2 class="section-title">Everything in one plugin</h2>
-    <p class="section-desc">A complete ukagaka experience for WordPress — no JavaScript framework required.</p>
+    <p class="section-desc">A complete ukagaka experience for WordPress — no build step or JavaScript framework required.</p>
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-icon">🤖</div>
+        <span class="feature-icon">🤖</span>
         <h3>Page-Aware AI Dialogue</h3>
-        <p>The character reads your article content and generates contextually relevant responses using your chosen LLM provider.</p>
+        <p>Reads your article content and generates contextually relevant responses using your chosen LLM provider.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">💬</div>
+        <span class="feature-icon">💬</span>
         <h3>Interactive Chat Mode</h3>
-        <p>Real-time multi-turn conversations with visitors via SSE streaming — with a typewriter effect and conversation history.</p>
+        <p>Real-time multi-turn conversations via SSE streaming — with a typewriter effect and conversation history.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">🎨</div>
+        <span class="feature-icon">🎨</span>
         <h3>Canvas Animation</h3>
-        <p>Smooth character animations with single-image or multi-frame sprite support. Fully customizable via settings.</p>
+        <p>Smooth character animations with single-image or multi-frame sprite support. Fully customizable.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">🔑</div>
+        <span class="feature-icon">🔑</span>
         <h3>API Key Encryption</h3>
         <p>All API keys are stored with AES-256-CBC encryption derived from WordPress salts. Never stored in plaintext.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">🌐</div>
+        <span class="feature-icon">🌐</span>
         <h3>Multi-Language</h3>
         <p>Built-in translations for English, Traditional Chinese (zh-TW), and Japanese. Full i18n/l10n support.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">🧩</div>
+        <span class="feature-icon">🧩</span>
         <h3>Modular Architecture</h3>
         <p>Clean PHP OO design with REST API controllers, provider factory pattern, and 40+ hooks for extensibility.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">📅</div>
-        <h3>Calendar & Events</h3>
-        <p>Character reacts to real-world events, seasons, and holidays via <code>calendar.json</code> — including your birthday.</p>
+        <span class="feature-icon">📅</span>
+        <h3>Calendar &amp; Events</h3>
+        <p>Character reacts to seasons and holidays via <code>calendar.json</code> — including your birthday.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">🛡️</div>
+        <span class="feature-icon">🛡️</span>
         <h3>Security-First</h3>
         <p>CSRF nonce verification, XSS prevention via <code>wp_kses</code>, Turnstile and Akismet integrations.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">📖</div>
+        <span class="feature-icon">📖</span>
         <h3>Dialog Files</h3>
-        <p>Load dialogues from external <code>.txt</code> or <code>.json</code> files. Built-in Frieren personality and memory included.</p>
+        <p>Load dialogues from external <code>.txt</code> or <code>.json</code> files. Built-in Frieren personality included.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- AI PROVIDERS -->
+<!-- ── AI PROVIDERS ── -->
 <section id="providers">
   <div class="container">
-    <div class="section-label">AI Integration</div>
+    <div class="section-eyebrow">AI Integration</div>
     <h2 class="section-title">Choose your AI provider</h2>
     <p class="section-desc">Switch providers anytime from the admin settings. Keys are encrypted on save.</p>
     <div class="providers-grid">
@@ -537,7 +623,7 @@
       <div class="provider-card">
         <div class="provider-name">✦ Gemini</div>
         <div class="provider-cost">Paid API</div>
-        <div class="provider-desc">Google Gemini 2.5 Flash — fast, affordable, streaming support.</div>
+        <div class="provider-desc">Google Gemini 2.5 Flash — fast, affordable, streaming supported.</div>
       </div>
       <div class="provider-card">
         <div class="provider-name">⬡ OpenAI</div>
@@ -553,12 +639,12 @@
   </div>
 </section>
 
-<div class="divider"></div>
+<div class="gold-divider"></div>
 
-<!-- SCREENSHOTS -->
+<!-- ── SCREENSHOTS ── -->
 <section id="screenshots">
   <div class="container">
-    <div class="section-label">Screenshots</div>
+    <div class="section-eyebrow">Screenshots</div>
     <h2 class="section-title">See it in action</h2>
     <p class="section-desc">Frontend character display and admin interface.</p>
     <div class="gallery">
@@ -568,7 +654,7 @@
           alt="General Settings and LLM Settings pages"
           loading="lazy"
         >
-        <p>General &amp; LLM Settings</p>
+        <p class="gallery-caption">General &amp; LLM Settings</p>
       </div>
       <div class="gallery-item">
         <img
@@ -576,7 +662,7 @@
           alt="Interactive Chat Mode"
           loading="lazy"
         >
-        <p>Interactive Chat Mode</p>
+        <p class="gallery-caption">Interactive Chat Mode</p>
       </div>
       <div class="gallery-item">
         <img
@@ -584,40 +670,44 @@
           alt="Character configuration"
           loading="lazy"
         >
-        <p>Character Configuration</p>
+        <p class="gallery-caption">Character Configuration</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- INSTALL -->
+<!-- ── INSTALL ── -->
 <section id="install">
   <div class="container">
-    <div class="section-label">Getting Started</div>
+    <div class="section-eyebrow">Getting Started</div>
     <h2 class="section-title">Up and running in minutes</h2>
     <p class="section-desc">No build step required — drop into your plugins folder and activate.</p>
     <div class="install-steps">
       <div class="install-step">
+        <div class="step-num">01</div>
         <h3>Download</h3>
-        <p>Clone or download this repo into <code>wp-content/plugins/mp-ukagaka/</code></p>
+        <p>Clone or download into <code>wp-content/plugins/mp-ukagaka/</code></p>
       </div>
       <div class="install-step">
+        <div class="step-num">02</div>
         <h3>Activate</h3>
-        <p>Go to <strong>WordPress Admin → Plugins</strong> and activate <em>MP Ukagaka</em>.</p>
+        <p>Go to <strong style="color:var(--text)">WordPress Admin → Plugins</strong> and activate MP Ukagaka.</p>
       </div>
       <div class="install-step">
+        <div class="step-num">03</div>
         <h3>Configure</h3>
-        <p>Visit <strong>Settings → MP Ukagaka</strong> to choose a character and set your AI provider.</p>
+        <p>Visit <strong style="color:var(--text)">Settings → MP Ukagaka</strong> to choose a character and display settings.</p>
       </div>
       <div class="install-step">
-        <h3>(Optional) Add AI Key</h3>
-        <p>Enter a Gemini, OpenAI, or Claude API key to enable context-aware dialogue generation.</p>
+        <div class="step-num">04</div>
+        <h3>Add AI Key</h3>
+        <p>Enter a Gemini, OpenAI, or Claude API key to enable context-aware dialogue. (Optional)</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
+<!-- ── FOOTER ── -->
 <footer>
   <div class="footer-links">
     <a href="https://github.com/Horlicks-p/mp-ukagaka" target="_blank" rel="noopener">GitHub</a>
@@ -627,8 +717,9 @@
     <a href="https://www.moelog.com" target="_blank" rel="noopener">Demo Site</a>
   </div>
   <p>
-    MP Ukagaka is open source software licensed under <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/LICENSE" target="_blank" rel="noopener">GPL v2 or later</a>.<br>
-    Built with AI-assisted development (Vibe Coding) · <a href="https://www.moelog.com" target="_blank" rel="noopener">moelog.com</a>
+    MP Ukagaka is open source software licensed under
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/LICENSE" target="_blank" rel="noopener">GPL v2 or later</a>.<br>
+    Built with AI-assisted development · <a href="https://www.moelog.com" target="_blank" rel="noopener">moelog.com</a>
   </p>
 </footer>
 
