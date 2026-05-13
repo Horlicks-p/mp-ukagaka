@@ -617,7 +617,8 @@ function mpu_head()
     echo "    ollama_replace: " . ($ollama_replace ? 'true' : 'false') . ",\n";
     echo "    typewriter_speed: " . $typewriter_speed . ",\n";
     echo "    streaming_enabled: " . ($streaming_enabled ? 'true' : 'false') . ",\n";
-    echo "    is_admin: " . (current_user_can('manage_options') ? 'true' : 'false') . "\n";
+    echo "    is_admin: " . (current_user_can('manage_options') ? 'true' : 'false') . ",\n";
+    echo "    rest_nonce: '" . (current_user_can('manage_options') ? esc_js(wp_create_nonce('wp_rest')) : '') . "'\n";
     echo "};\n";
     echo "var mpuAiEnabled = " . ($ai_enabled ? 'true' : 'false') . ";\n";
 

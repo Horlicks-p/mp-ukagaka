@@ -410,6 +410,48 @@ function mpu_sendUserMessage() {
     // 非管理員：不攔截，讓訊息流入下方 AI 路徑，由 visitor_rejection 引導角色拒絕
   }
 
+  // 指令攔截：/remember 萃取並保存管理人記憶（僅管理員）
+  // 非管理員不攔截，讓訊息流入下方 AI 路徑，由 visitor_rejection 引導角色拒絕
+  if (message === "/remember" && mpuPreSettings && mpuPreSettings.is_admin) {
+    $input.val("");
+    const filteredHistory = (window.mpuChatHistory || [])
+      .filter(function(m) {
+        return (m.role === "user" || m.role === "assistant") && m.type !== "synthetic";
+      })
+      .slice(-20)
+      .map(function(m) {
+        return { role: m.role, content: (m.content || "").substring(0, 200) };
+      });
+    if (filteredHistory.length === 0) {
+      mpu_typewriter("（会話履歴がないよ）", "#ukagaka_msg");
+      return;
+    }
+    mpu_typewriter("（記憶を整理してる…）", "#ukagaka_msg");
+    const nonce = (mpuPreSettings && mpuPreSettings.rest_nonce) ? mpuPreSettings.rest_nonce : "";
+    fetch(mpuRestUrl + "memory/extract", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-WP-Nonce": nonce,
+      },
+      body: JSON.stringify({ history: filteredHistory }),
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.status === "updated") {
+          mpu_typewriter("（記憶を更新したよ）", "#ukagaka_msg");
+        } else if (data.status === "no_memory") {
+          mpu_typewriter("（保存できる記憶はなかったね）", "#ukagaka_msg");
+        } else {
+          mpu_typewriter("（記憶の更新に失敗したよ）", "#ukagaka_msg");
+        }
+      })
+      .catch(function() {
+        mpu_typewriter("（記憶の更新に失敗したよ）", "#ukagaka_msg");
+      });
+    return;
+  }
+
   // /visitor-info と /check-spam-event は管理員専用
   // 非管理員：不攔截，讓訊息流入下方 AI 路徑，由 visitor_rejection 引導角色拒絕
 
@@ -420,7 +462,7 @@ function mpu_sendUserMessage() {
       "【コマンド一覧】<br>/reset - 会話履歴を消去<br>/clear - 同上<br>/help - このヘルプを表示";
     if (mpuPreSettings && mpuPreSettings.is_admin) {
       helpText +=
-        "<br>【管理者専用】<br>/visitor-info - 訪客情報を照会<br>/check-spam-event - スパム状況を確認<br>/debug_mcp - MCPツール診断";
+        "<br>【管理者専用】<br>/visitor-info - 訪客情報を照会<br>/check-spam-event - スパム状況を確認<br>/debug_mcp - MCPツール診断<br>/remember - フリーレンに記憶を保存させる";
     }
     mpu_typewriter(helpText, "#ukagaka_msg");
     return;

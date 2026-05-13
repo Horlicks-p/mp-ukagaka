@@ -53,6 +53,9 @@ $mpu_oo_rest_controllers = [
 
     // Phase 5 — Dialog Controller（停用 rest-core.php 後啟用，與 Ghost 同步切換）
     'MPU_REST_Dialog' => 'class-mpu-rest-dialog.php',
+
+    // User Memory — 管理員記憶萃取端點
+    'MPU_REST_Memory' => 'class-mpu-rest-memory.php',
 ];
 
 // 集中掛載：逐一載入 Controller 並將 register_routes() 掛到 rest_api_init

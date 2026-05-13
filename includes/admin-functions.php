@@ -337,6 +337,16 @@ function mpu_handle_options_save()
         }
     }
 
+    // 處理記憶清除請求（獨立處理，不需要一般表單提交）
+    if (isset($_POST['mpu_action']) && $_POST['mpu_action'] === 'clear_memory') {
+        if (isset($_POST['_wpnonce']) && wp_verify_nonce($_POST['_wpnonce'], 'mpu_clear_memory')) {
+            delete_user_meta(get_current_user_id(), 'mpu_user_memory');
+            set_transient('mpu_admin_message', '<div class="updated"><p><strong>' . __('記憶を消去しました', 'mp-ukagaka') . '</strong></p></div>', 30);
+        }
+        wp_safe_redirect(admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=5'));
+        exit;
+    }
+
     // 檢查是否為本外掛的表單提交
     $is_our_submit = isset($_POST['submit1'])     // 通用設定
         || isset($_POST['submit2'])          // 偽春菜們

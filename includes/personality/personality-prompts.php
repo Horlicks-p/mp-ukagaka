@@ -435,15 +435,15 @@ function mpu_apply_dynamic_prompts(&$prompt_categories, $variables, $personality
     if (!empty($weather_match[2])) {
         $current_temp = intval($weather_match[2]);
 
-        // 高溫（>= 30°C）
-        if (!empty($dynamic['weather_hot']) && is_array($dynamic['weather_hot']) && $current_temp >= 30) {
+        // 高溫（>= 28°C）— 與 personality.md「温度感覚の基準」一致
+        if (!empty($dynamic['weather_hot']) && is_array($dynamic['weather_hot']) && $current_temp >= 28) {
             foreach ($dynamic['weather_hot'] as $template) {
                 $prompt_categories['weather'][] = mpu_replace_single_prompt_variables($template, $variables);
             }
         }
 
-        // 低溫（<= 10°C）
-        if (!empty($dynamic['weather_cold']) && is_array($dynamic['weather_cold']) && $current_temp <= 10) {
+        // 低溫（<= 15°C）— 與 personality.md「温度感覚の基準」及 frontend-functions.php cold_complaints 一致
+        if (!empty($dynamic['weather_cold']) && is_array($dynamic['weather_cold']) && $current_temp <= 15) {
             foreach ($dynamic['weather_cold'] as $template) {
                 $prompt_categories['weather'][] = mpu_replace_single_prompt_variables($template, $variables);
             }

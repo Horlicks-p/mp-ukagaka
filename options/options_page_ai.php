@@ -191,4 +191,40 @@
 
         <p><input name="submit_ai" class="button" value="<?php _e(' 儲 存 ', 'mp-ukagaka'); ?>" type="submit" /></p>
     </form>
+
+    <!-- User Memory: 管理人の記憶 -->
+    <?php
+    $mpu_memory_data    = get_user_meta(get_current_user_id(), 'mpu_user_memory', true);
+    $mpu_memory_facts   = (is_array($mpu_memory_data) && !empty($mpu_memory_data['facts'])) ? $mpu_memory_data['facts'] : [];
+    $mpu_memory_updated = (is_array($mpu_memory_data) && !empty($mpu_memory_data['updated_at'])) ? $mpu_memory_data['updated_at'] : null;
+    ?>
+    <div class="mpu-settings-card" style="margin-top: 20px;">
+        <h4><?php _e('🧠 管理人の記憶 (User Memory)', 'mp-ukagaka'); ?></h4>
+        <?php if (!empty($mpu_memory_facts)): ?>
+            <?php if ($mpu_memory_updated): ?>
+                <p style="color: #666; font-size: 12px; margin-bottom: 8px;">
+                    <?php echo esc_html(sprintf(__('最終更新: %s', 'mp-ukagaka'), $mpu_memory_updated)); ?>
+                </p>
+            <?php endif; ?>
+            <ul style="list-style: disc; padding-left: 20px; margin-bottom: 16px;">
+                <?php foreach ($mpu_memory_facts as $mpu_fact): ?>
+                    <li><?php echo esc_html($mpu_fact); ?></li>
+                <?php endforeach; ?>
+            </ul>
+            <form method="post" action="<?php echo esc_url(admin_url('options-general.php?page=mp-ukagaka/options.php&cur_page=5')); ?>">
+                <?php wp_nonce_field('mpu_clear_memory'); ?>
+                <input type="hidden" name="mpu_action" value="clear_memory" />
+                <input type="submit" class="button button-secondary"
+                       value="<?php esc_attr_e('記憶を消去', 'mp-ukagaka'); ?>"
+                       onclick="return confirm('<?php echo esc_js(__('管理人の記憶を全て消去しますか？', 'mp-ukagaka')); ?>')" />
+            </form>
+        <?php else: ?>
+            <p style="color: #999; margin-bottom: 8px;">
+                <?php _e('保存された記憶はありません。', 'mp-ukagaka'); ?>
+            </p>
+        <?php endif; ?>
+        <p style="color: #8A7FA0; margin-top: 12px;">
+            <small><?php _e('チャット画面で /remember と入力すると、フリーレンが会話から記憶を抽出します。', 'mp-ukagaka'); ?></small>
+        </p>
+    </div>
 </div>
