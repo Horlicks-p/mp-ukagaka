@@ -1604,3 +1604,34 @@ msgstr "有効なセッショントークンが必要です。"
 
 msgid "セッショントークンは利用できません。"
 msgstr "セッショントークンは利用できません。"
+
+# ========================================
+# v2.16 i18n Debt — 中文 msgid 日文翻譯補充
+# ========================================
+
+msgid "Unsupported AI provider: %s"
+msgstr "サポートされていないAIプロバイダー：%s"
+
+msgid "Legacy 檔案使用中"
+msgstr "Legacy ファイル使用中"
+
+msgid "Textarea 使用中"
+msgstr "テキストエリア使用中"
+
+msgid "manifest.json 使用中"
+msgstr "manifest.json 使用中"
+
+msgid "未設定（內建預設值）"
+msgstr "未設定（内蔵デフォルト値）"
+
+msgid "system_prompt.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。"
+msgstr "system_prompt.md の内容がシステムプロンプトとして使用されます。下のテキストエリアの内容は使用されません。"
+
+msgid "manifest.json 的 system_prompt 欄位將作為 System Prompt。下方 textarea 的內容不會被使用。"
+msgstr "manifest.json の system_prompt フィールドがシステムプロンプトとして使用されます。下のテキストエリアの内容は使用されません。"
+
+msgid "下方 textarea 的內容將作為 System Prompt。"
+msgstr "下のテキストエリアの内容がシステムプロンプトとして使用されます。"
+
+msgid "沒有找到任何設定，將使用內建的預設 System Prompt。"
+msgstr "設定が見つかりません。内蔵のデフォルトシステムプロンプトが使用されます。"

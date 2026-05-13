@@ -1353,3 +1353,536 @@ msgstr "需要有效的 session token。"
 
 msgid "セッショントークンは利用できません。"
 msgstr "Session token 目前無法使用。"
+
+# ========================================
+# v2.16 i18n Debt — 日文 msgid 中文翻譯補充
+# ========================================
+
+msgid "しばらく待ってから再度お試しください"
+msgstr "請稍後再試"
+
+msgid "履歴が空です"
+msgstr "歷史記錄為空"
+
+msgid "保存できる記憶はありませんでした"
+msgstr "沒有可儲存的記憶"
+
+msgid "AIの返答を解析できませんでした"
+msgstr "無法解析 AI 的回應"
+
+msgid "記憶を更新しました"
+msgstr "已更新記憶"
+
+msgid "記憶を消去しました"
+msgstr "已清除記憶"
+
+msgid "🧠 管理人の記憶 (User Memory)"
+msgstr "🧠 管理人記憶 (User Memory)"
+
+msgid "最終更新: %s"
+msgstr "最後更新：%s"
+
+msgid "記憶を消去"
+msgstr "清除記憶"
+
+msgid "管理人の記憶を全て消去しますか？"
+msgstr "確定要清除所有管理人記憶嗎？"
+
+msgid "保存された記憶はありません。"
+msgstr "尚無已儲存的記憶。"
+
+msgid "チャット画面で /remember と入力すると、フリーレンが会話から記憶を抽出します。"
+msgstr "在聊天畫面輸入 /remember，弗莉蓮會從對話中擷取記憶。"
+
+msgid "設定を保存しました"
+msgstr "設定已儲存"
+
+msgid "キャラクター設定を更新しました"
+msgstr "角色設定已更新"
+
+msgid "。ダイアログファイルを生成しました"
+msgstr "，對話檔案已生成"
+
+msgid "AI 設定を保存しました"
+msgstr "AI 設定已儲存"
+
+msgid "LLM 設定を保存しました"
+msgstr "LLM 設定已儲存"
+
+msgid "%d 件の統計データを削除しました"
+msgstr "已刪除 %d 筆統計資料"
+
+msgid "セキュリティチェックに失敗しました。"
+msgstr "安全性檢查失敗。"
+
+msgid "プレビューデータが一致しません。再度アップロードしてください。"
+msgstr "預覽資料不符，請重新上傳。"
+
+msgid "キャラクターの作成に成功しました"
+msgstr "春菜創建成功"
+
+msgid "「キャラクター一覧」ページでダイアログファイルなどの設定を行ってください。"
+msgstr "請前往「角色列表」頁面設定對話檔案等內容。"
+
+msgid "設定をリセットしました"
+msgstr "設定已重置"
+
+msgid "設定はリセットされませんでした"
+msgstr "設定未被重置"
+
+msgid "ZIP アップロード処理関数が存在しません。"
+msgstr "ZIP 上傳處理函數不存在。"
+
+msgid "ZIP ファイルに不正なパス (..) が含まれています。セキュリティ上の理由で拒否されました。"
+msgstr "ZIP 檔案包含非法路徑（..），基於安全原因已被拒絕。"
+
+msgid "ZIP ファイルに不正な文字（ヌルバイト）が含まれています。セキュリティ上の理由で拒否されました。"
+msgstr "ZIP 檔案包含非法字元（空位元組），基於安全原因已被拒絕。"
+
+msgid "ZIP ファイルに含まれるファイル数が多すぎます（1,000 個超）。ZIP の内容を確認してください。"
+msgstr "ZIP 檔案包含過多檔案（超過 1,000 個），請確認 ZIP 內容。"
+
+msgid "ZIP ファイルに絶対パスが含まれています。セキュリティ上の理由で拒否されました。"
+msgstr "ZIP 檔案包含絕對路徑，基於安全原因已被拒絕。"
+
+msgid "ZIP ファイルに許可されていないファイル形式 (.%s) が含まれています。画像・音声・TXT・JSON のみ許可されています。"
+msgstr "ZIP 檔案包含不允許的檔案格式（.%s），僅允許圖片、音訊、TXT、JSON。"
+
+msgid "ZIP ファイルを開けませんでした。"
+msgstr "無法開啟 ZIP 檔案。"
+
+msgid "ZIP ファイル内に manifest.json が見つかりません。"
+msgstr "ZIP 檔案中找不到 manifest.json。"
+
+msgid "ZIP ファイル内に shell/ フォルダが見つかりません。"
+msgstr "ZIP 檔案中找不到 shell/ 資料夾。"
+
+msgid "ZIP 形式のファイルのみアップロードできます。"
+msgstr "僅允許上傳 ZIP 格式的檔案。"
+
+msgid "manifest.json に必須の id フィールドがありません。"
+msgstr "manifest.json 缺少必要的 id 欄位。"
+
+msgid "manifest.json の形式が無効です："
+msgstr "manifest.json 格式無效："
+
+msgid "shell/ フォルダに画像ファイル（.png, .jpg, .jpeg, .gif, .webp）が見つかりません。"
+msgstr "shell/ 資料夾中找不到圖片檔案（.png, .jpg, .jpeg, .gif, .webp）。"
+
+msgid "解凍後に manifest.json が見つかりません。"
+msgstr "解壓後找不到 manifest.json。"
+
+msgid "解凍後に shell/ ディレクトリが見つかりません。"
+msgstr "解壓後找不到 shell/ 目錄。"
+
+msgid "対象ディレクトリが許可された範囲外です。"
+msgstr "目標目錄超出允許範圍。"
+
+msgid "対象ディレクトリを作成できませんでした："
+msgstr "無法創建目標目錄："
+
+msgid "無効なディレクトリパスです。"
+msgstr "無效的目錄路徑。"
+
+msgid "ファイルのアップロードが不完全です。"
+msgstr "檔案上傳不完整。"
+
+msgid "ファイルのアップロードに失敗しました。"
+msgstr "檔案上傳失敗。"
+
+msgid "ファイルの解凍に失敗しました。"
+msgstr "檔案解壓失敗。"
+
+msgid "ファイルサイズは 50MB 以下である必要があります。"
+msgstr "檔案大小必須在 50MB 以下。"
+
+msgid "アップロードされたファイルのサイズが大きすぎます。"
+msgstr "上傳的檔案過大。"
+
+msgid "アップロードする ZIP ファイルを選択してください。"
+msgstr "請選擇要上傳的 ZIP 檔案。"
+
+msgid "PHP ZipArchive クラスが利用できません。サーバー管理者にお問い合わせください。"
+msgstr "PHP ZipArchive 類別無法使用，請聯絡伺服器管理員。"
+
+msgid "Claude API のツール呼び出し回数が多すぎます"
+msgstr "Claude API 工具呼叫次數過多"
+
+msgid "Claude API キーが設定されていません"
+msgstr "Claude API Key 未設定"
+
+msgid "Claude API リクエストに失敗しました：%s"
+msgstr "Claude API 請求失敗：%s"
+
+msgid "Claude API レスポンスの内容が空です"
+msgstr "Claude API 回應內容為空"
+
+msgid "Claude API レスポンス形式が正しくありません"
+msgstr "Claude API 回應格式不正確"
+
+msgid "Claude から有効なレスポンスが返されませんでした"
+msgstr "Claude 未返回有效回應"
+
+msgid "Claude のツール呼び出し回数が多すぎます"
+msgstr "Claude 工具呼叫次數過多"
+
+msgid "Gemini API のツール呼び出し回数が多すぎます"
+msgstr "Gemini API 工具呼叫次數過多"
+
+msgid "Gemini API キーが設定されていません"
+msgstr "Gemini API Key 未設定"
+
+msgid "Gemini API リクエストに失敗しました：%s"
+msgstr "Gemini API 請求失敗：%s"
+
+msgid "Gemini API レスポンスが空です"
+msgstr "Gemini API 回應為空"
+
+msgid "Gemini API レスポンス形式を識別できません"
+msgstr "無法識別 Gemini API 回應格式"
+
+msgid "Gemini から有効なレスポンスが返されませんでした"
+msgstr "Gemini 未返回有效回應"
+
+msgid "OpenAI API のツール呼び出し回数が多すぎます"
+msgstr "OpenAI API 工具呼叫次數過多"
+
+msgid "OpenAI API キーが設定されていません"
+msgstr "OpenAI API Key 未設定"
+
+msgid "OpenAI API リクエストに失敗しました：%s"
+msgstr "OpenAI API 請求失敗：%s"
+
+msgid "OpenAI API レスポンスの内容が空です"
+msgstr "OpenAI API 回應內容為空"
+
+msgid "OpenAI API レスポンス形式が正しくありません"
+msgstr "OpenAI API 回應格式不正確"
+
+msgid "OpenAI から有効なレスポンスが返されませんでした"
+msgstr "OpenAI 未返回有效回應"
+
+msgid "OpenAI のツール呼び出し回數が多すぎます"
+msgstr "OpenAI 工具呼叫次數過多"
+
+msgid "Ollama API のツール呼び出し回数が多すぎます"
+msgstr "Ollama API 工具呼叫次數過多"
+
+msgid "Ollama API リクエストに失敗しました：%s"
+msgstr "Ollama API 請求失敗：%s"
+
+msgid "Ollama API レスポンスの内容が空です"
+msgstr "Ollama API 回應內容為空"
+
+msgid "Ollama API レスポンス形式が正しくありません"
+msgstr "Ollama API 回應格式不正確"
+
+msgid "Ollama から有効なレスポンスが返されませんでした。モデルのレスポンス形式を確認するか、思考モードの有効化をお試しください。"
+msgstr "Ollama 未返回有效回應。請確認模型回應格式，或嘗試啟用思考模式。"
+
+msgid "Ollama のツール呼び出し回数が多すぎます"
+msgstr "Ollama 工具呼叫次數過多"
+
+msgid "Ollama エンドポイント URL を解析できません"
+msgstr "無法解析 Ollama 端點 URL"
+
+msgid "Ollama エンドポイントの形式が正しくありません：%s"
+msgstr "Ollama 端點格式不正確：%s"
+
+msgid "Ollama エンドポイントは HTTP または HTTPS プロトコルを使用する必要があります"
+msgstr "Ollama 端點必須使用 HTTP 或 HTTPS 協議"
+
+msgid "Ollama エンドポイントは有効な HTTP または HTTPS URL である必要があります"
+msgstr "Ollama 端點必須是有效的 HTTP 或 HTTPS URL"
+
+msgid "Ollama エンドポイントを空にすることはできません"
+msgstr "Ollama 端點不能為空"
+
+msgid "Ollama サービスに接続できません。Ollama が動作しているか確認してください。エラー：%s"
+msgstr "無法連接到 Ollama 服務，請確認 Ollama 是否正在運行。錯誤：%s"
+
+msgid "Ollama 接続タイムアウト（%s 秒待機済み）。Ollama サービスが正常に動作しているか確認してください。"
+msgstr "Ollama 連接逾時（已等待 %s 秒），請確認 Ollama 服務是否正常運行。"
+
+msgid "Ollama 接続タイムアウト（%s 秒待機済み）。リモート接続は時間がかかる場合があります。Cloudflare Tunnel やネットワーク状態を確認してください。"
+msgstr "Ollama 連接逾時（已等待 %s 秒），遠端連接可能需要更長時間，請確認 Cloudflare Tunnel 或網路狀況。"
+
+msgid "リモート Ollama サービスに接続できません。Cloudflare Tunnel が動作しているか、エンドポイント URL が正しいか確認してください。エラー：%s"
+msgstr "無法連接到遠端 Ollama 服務，請確認 Cloudflare Tunnel 是否運行及端點 URL 是否正確。錯誤：%s"
+
+msgid "HTTP %s エラー"
+msgstr "HTTP %s 錯誤"
+
+msgid "HTTP %s：Ollama が動作しているかモデルがダウンロード済みか確認してください"
+msgstr "HTTP %s：請確認 Ollama 是否運行中或模型已下載"
+
+msgid "API キーが無効か、権限が不足しています：%s"
+msgstr "API Key 無效或權限不足：%s"
+
+msgid "Unsupported AI provider: %s"
+msgstr "不支援的 AI 提供商：%s"
+
+msgid "%s接続に失敗しました：%s"
+msgstr "%s 連接失敗：%s"
+
+msgid "エンドポイントの形式が無効です。完全な http:// または https:// URL を入力してください"
+msgstr "端點格式無效，請輸入完整的 http:// 或 https:// URL"
+
+msgid "接続に失敗しました：%s"
+msgstr "連接失敗：%s"
+
+msgid "接続は成功しましたが、レスポンス形式が異常でモデル出力を解析できません"
+msgstr "連接成功，但回應格式異常，無法解析模型輸出"
+
+msgid "接続は成功しましたが、レスポンス形式が異常でモデル出力を解析できません。%s"
+msgstr "連接成功，但回應格式異常，無法解析模型輸出。%s"
+
+msgid "接続タイムアウト（%s 秒待機済み）。Ollama サービスが正常に動作しているか確認してください。"
+msgstr "連接逾時（已等待 %s 秒），請確認 Ollama 服務是否正常運行。"
+
+msgid "接続タイムアウト（%s 秒待機済み）。リモート接続は時間がかかる場合があります。Cloudflare Tunnel やネットワーク状態を確認してください。"
+msgstr "連接逾時（已等待 %s 秒），遠端連接可能需要更長時間，請確認 Cloudflare Tunnel 或網路狀況。"
+
+msgid "接続成功。ただしモデルは思考過程のみを返しました（プレビュー：%s...）。実際の使用時にはコンテンツが生成されるはずです。"
+msgstr "連接成功，但模型僅返回思考過程（預覽：%s...），實際使用時應會生成內容。"
+
+msgid "接続成功。モデルが正常に応答しています（プレビュー：%s...）"
+msgstr "連接成功，模型響應正常（預覽：%s...）"
+
+msgid "接続成功（%s接続）。モデルが正常に応答しています（プレビュー：%s...）"
+msgstr "連接成功（%s 連接），模型響應正常（預覽：%s...）"
+
+msgid "先にログインしてください"
+msgstr "請先登入"
+
+msgid "権限が不足しています"
+msgstr "權限不足"
+
+msgid "セキュリティ検証に失敗しました"
+msgstr "安全性驗證失敗"
+
+msgid "不明なエラーが発生しました。ログを確認してください"
+msgstr "發生未知錯誤，請查看記錄檔"
+
+msgid "キャラクター ID パラメーター（personality_id / ukagaka_num）が不足しています"
+msgstr "缺少角色 ID 參數（personality_id / ukagaka_num）"
+
+msgid "キャラクターが一時的に起こされました（深い眠り中。ページを更新すると再び眠ります）"
+msgstr "角色已暫時喚醒（正在深眠中，重新整理頁面後將再次入睡）"
+
+msgid "キャラクターが起こされました"
+msgstr "角色已被喚醒"
+
+msgid "キャラクターを変更"
+msgstr "更換角色"
+
+msgid "キャラクター一覧"
+msgstr "角色列表"
+
+msgid "ローカルの Ollama が起動していません。Ollama サービスが起動しているか確認してください。"
+msgstr "本機 Ollama 尚未啟動，請確認 Ollama 服務是否正在運行。"
+
+msgid "現在のプロバイダーはストリーミングモードに対応していません"
+msgstr "目前的提供商不支援串流模式"
+
+msgid "現在キャラクターを起こすことができません（二度寝時間外か、機能が無効の可能性があります）"
+msgstr "目前無法喚醒角色（可能在睡眠時間外或功能未啟用）"
+
+msgid "ダイアログ内容がありません"
+msgstr "無對話內容"
+
+msgid "選択可能なキャラクターがありません"
+msgstr "沒有可供選擇的角色"
+
+msgid "%d 件のキャッシュを削除しました"
+msgstr "已刪除 %d 筆快取"
+
+msgid "キャッシュ削除機能は利用できません"
+msgstr "快取刪除功能無法使用"
+
+msgid "天気データを取得できません。ネットワーク接続および Open-Meteo API の状態を確認してください"
+msgstr "無法取得天氣資料，請確認網路連接及 Open-Meteo API 狀態"
+
+msgid "天気機能モジュールは利用できません"
+msgstr "天氣功能模組無法使用"
+
+msgid "経度パラメーターが無効です（-180〜180 の範囲で指定してください）"
+msgstr "經度參數無效（請指定 -180 到 180 的範圍）"
+
+msgid "緯度パラメーターが無効です（-90〜90 の範囲で指定してください）"
+msgstr "緯度參數無效（請指定 -90 到 90 的範圍）"
+
+msgid "%s API Key が設定されていません"
+msgstr "%s API Key 未設定"
+
+msgid "AI機能が有効になっていません"
+msgstr "AI 功能未啟用"
+
+msgid "タッチエリアが指定されていません"
+msgstr "未指定觸摸區域"
+
+msgid "不明なタッチエリアです"
+msgstr "未知的觸摸區域"
+
+msgid "不明な装飾の種類です"
+msgstr "未知的裝飾類型"
+
+msgid "装飾の種類が指定されていません"
+msgstr "未指定裝飾類型"
+
+msgid "接続成功！現在：%s %.0f°C%s / 明日：%s %.0f~%.0f°C%s"
+msgstr "連接成功！現在：%s %.0f°C%s / 明日：%s %.0f~%.0f°C%s"
+
+msgid "……"
+msgstr "……"
+
+msgid "…うーん、そうだね…"
+msgstr "…嗯，就是這樣…"
+
+msgid "…ちょっと待って。API魔力が足りない"
+msgstr "…等一下，API 魔力不足"
+
+msgid "メッセージを入力..."
+msgstr "輸入訊息..."
+
+msgid "何か話したいことはありますか？"
+msgstr "有什麼想聊的嗎？"
+
+msgid "アニメーションモジュールの読み込みに失敗しました。ページを更新してください。"
+msgstr "動畫模組載入失敗，請重新整理頁面。"
+
+msgid "エラーが発生しました。後でもう一度お試しください。"
+msgstr "發生錯誤，請稍後再試。"
+
+msgid "ダイアログがまだ読み込まれていません。お待ちください..."
+msgstr "對話尚未載入，請稍候..."
+
+msgid "ダイアログデータの処理中にエラーが発生しました。後でもう一度お試しください。"
+msgstr "處理對話資料時發生錯誤，請稍後再試。"
+
+msgid "ダイアログファイルが空です。内容を確認してください"
+msgstr "對話檔案為空，請確認內容"
+
+msgid "ダイアログファイルの読み込みに失敗しました。後でもう一度お試しください。"
+msgstr "對話檔案載入失敗，請稍後再試。"
+
+msgid "リクエストに失敗しました"
+msgstr "請求失敗"
+
+msgid "LLM 接続に失敗しました"
+msgstr "LLM 連接失敗"
+
+msgid "読み込みに失敗しました。後でもう一度お試しください。"
+msgstr "載入失敗，請稍後再試。"
+
+msgid "重複したリクエストが存在します。後でもう一度お試しください。"
+msgstr "存在重複請求，請稍後再試。"
+
+msgid "（…%sを実行中…）"
+msgstr "（…正在執行 %s…）"
+
+msgid "（…あ、これ私の…）"
+msgstr "（…啊，這是我的…）"
+
+msgid "（…あ、知らない人間だ…）"
+msgstr "（…啊，不認識的人類…）"
+
+msgid "（…ああ、記事か。どれどれ…）"
+msgstr "（…啊，是文章呢，讓我看看…）"
+
+msgid "（…通信状況が良くないみたいだ…）"
+msgstr "（…通訊狀況好像不太好…）"
+
+msgid "（えっと…何を話せばいいかな…）"
+msgstr "（えっと…何話せばいいかな…）"
+
+msgid "このパスへのアクセスは許可されていません"
+msgstr "不允許存取此路徑"
+
+msgid "このパスへの書き込みは許可されていません"
+msgstr "不允許寫入此路徑"
+
+msgid "ディレクトリを作成できません"
+msgstr "無法創建目錄"
+
+msgid "ファイルが大きすぎて読み込めません"
+msgstr "檔案過大，無法讀取"
+
+msgid "ファイルに書き込めません"
+msgstr "無法寫入檔案"
+
+msgid "ファイルを読み込めません"
+msgstr "無法讀取檔案"
+
+msgid "不正なファイル名です"
+msgstr "不合法的檔案名稱"
+
+msgid "指定されたファイルが見つかりません"
+msgstr "找不到指定的檔案"
+
+msgid "リクエストが多すぎます。%d 秒後に再試行してください"
+msgstr "請求過於頻繁，請 %d 秒後再試"
+
+msgid "ツール呼び出しのループを検出しました：ツール \"%s\" が %d 回連続して繰り返し呼び出されています。無限ループを防ぐため中止します。"
+msgstr "偵測到工具呼叫迴圈：工具「%s」已連續重複呼叫 %d 次，為防止無限迴圈已中止。"
+
+msgid "AI 機能モジュールが読み込まれていません"
+msgstr "AI 功能模組尚未載入"
+
+msgid "投稿に失敗しました："
+msgstr "文章發布失敗："
+
+msgid "日記を投稿しました！<a href=\"%s\" target=\"_blank\">記事を見る</a>%s"
+msgstr "日記已發布！<a href=\"%s\" target=\"_blank\">查看文章</a>%s"
+
+msgid "日記機能が正しく設定されていません"
+msgstr "日記功能設定不正確"
+
+msgid "日記機能が正しく設定されていません。先に AI プロバイダーを設定してください"
+msgstr "日記功能設定不正確，請先設定 AI 提供商"
+
+msgid "生成に失敗しました："
+msgstr "生成失敗："
+
+msgid "Legacy 檔案使用中"
+msgstr "Legacy 檔案使用中"
+
+msgid "Textarea 使用中"
+msgstr "Textarea 使用中"
+
+msgid "manifest.json 使用中"
+msgstr "manifest.json 使用中"
+
+msgid "模組化檔案使用中"
+msgstr "模組化檔案使用中"
+
+msgid "未設定（內建預設值）"
+msgstr "未設定（內建預設值）"
+
+msgid "instructions.md + personality.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。"
+msgstr "instructions.md + personality.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。"
+
+msgid "system_prompt.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。"
+msgstr "system_prompt.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。"
+
+msgid "manifest.json 的 system_prompt 欄位將作為 System Prompt。下方 textarea 的內容不會被使用。"
+msgstr "manifest.json 的 system_prompt 欄位將作為 System Prompt。下方 textarea 的內容不會被使用。"
+
+msgid "下方 textarea 的內容將作為 System Prompt。"
+msgstr "下方 textarea 的內容將作為 System Prompt。"
+
+msgid "沒有找到任何設定，將使用內建的預設 System Prompt。"
+msgstr "沒有找到任何設定，將使用內建的預設 System Prompt。"
+
+# ========================================
+# v2.16 i18n Debt — 追加補充
+# ========================================
+
+msgid "Bot 防護設定を保存しました"
+msgstr "Bot 防護設定已儲存"
+
+msgid "OpenAI のツール呼び出し回数が多すぎます"
+msgstr "OpenAI 工具呼叫次數過多"
+
+msgid "モデルが存在しません（%s）：%s"
+msgstr "模型「%s」不存在：%s"
