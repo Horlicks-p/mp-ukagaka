@@ -103,7 +103,8 @@ function mpu_load_modules()
 
     // 後台專用模組
     $admin_modules = [
-        'admin-functions.php',     // 後台功能
+        'admin-functions.php',          // 後台功能
+        'updater/github-updater.php',   // GitHub 自動更新（Plugin Update Checker）
     ];
 
     // 載入核心模組

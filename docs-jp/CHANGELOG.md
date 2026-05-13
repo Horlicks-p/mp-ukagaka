@@ -16,7 +16,8 @@
 ### ✅ リリース品質と Runtime Info 改善
 
 - **リリース検証ツールを追加**：`npm run lint:php` がメインプラグインファイルも検査するようになり、`npm run verify` で PHP lint と JS build を連続実行できます。
-- **REST smoke test checklist を追加**：`docs/REST_SMOKE_TEST.md` と `docs-en/REST_SMOKE_TEST.md` を追加し、baseline endpoint、session token、token enforcement、chat round-trip、admin guard、SSE headers を確認できるようにしました。
+- **REST smoke test checklist を追加**：`docs/REST_SMOKE_TEST.md`、`docs-en/REST_SMOKE_TEST.md`、`docs-jp/REST_SMOKE_TEST.md` を追加し、baseline endpoint、session token、token enforcement、chat round-trip、admin guard、SSE headers を確認できるようにしました。
+- **GitHub 自動更新サポートを追加**：Plugin Update Checker v5.6 を同梱（`vendor/plugin-update-checker/`）し、`includes/updater/github-updater.php` を追加。GitHub Release が発行されると WordPress 管理画面に更新通知が表示されます。各タグに `mp-ukagaka.zip` を release asset としてアップロードするとワンクリック更新が有効になります。
 - **Runtime Info を微調整**：天気の温度閾値を調整し、Frieren の `instructions.md` に感情トリガールールを追加。過剰反応を避けながらキャラクターの細部を強化しました。
 - **i18n debt cleanup**：`mp-ukagaka-zh_TW.po/.mo` と `mp-ukagaka-ja.po/.mo` を更新し、繁体字中国語・日本語翻訳を拡充しました。
 

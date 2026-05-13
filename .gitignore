@@ -32,7 +32,8 @@ claude-9ef6-cwd
 
 # Build files
 node_modules/
-vendor/
+vendor/*
+!vendor/plugin-update-checker/
 composer.lock
 package-lock.json
 

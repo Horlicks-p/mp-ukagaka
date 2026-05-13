@@ -16,7 +16,8 @@
 ### ✅ 發版品質與 Runtime Info 改善
 
 - **新增發版驗證工具鏈**：`npm run lint:php` 補掃主外掛檔，並新增 `npm run verify` 串接 PHP lint 與 JS build。
-- **新增 REST smoke test checklist**：新增 `docs/REST_SMOKE_TEST.md` 與 `docs-en/REST_SMOKE_TEST.md`，涵蓋 baseline、session token、token enforcement、chat round-trip、admin guard 與 SSE headers。
+- **新增 REST smoke test checklist**：新增 `docs/REST_SMOKE_TEST.md`、`docs-en/REST_SMOKE_TEST.md` 與 `docs-jp/REST_SMOKE_TEST.md`，涵蓋 baseline、session token、token enforcement、chat round-trip、admin guard 與 SSE headers。
+- **GitHub 自動更新支援**：內建 Plugin Update Checker v5.6（`vendor/plugin-update-checker/`），新增 `includes/updater/github-updater.php`。外掛現在會偵測新的 GitHub Release，並在 WordPress 後台顯示更新通知。每次發版時上傳 `mp-ukagaka.zip` 作為 release asset 即可啟用一鍵更新。
 - **Runtime Info 微調**：調整天氣溫度觸發閾值，並在 Frieren `instructions.md` 補上感情觸發規則，避免過度反應但提升角色細節。
 - **i18n debt cleanup**：補齊繁中與日文翻譯，更新 `mp-ukagaka-zh_TW.po/.mo` 與 `mp-ukagaka-ja.po/.mo`。
 

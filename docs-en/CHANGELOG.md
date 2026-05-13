@@ -16,7 +16,8 @@
 ### ✅ Release Quality and Runtime Info
 
 - **Added release verification tooling**: `npm run lint:php` now scans the main plugin file, and `npm run verify` runs PHP lint followed by the JS build.
-- **Added REST smoke test checklist**: added `docs/REST_SMOKE_TEST.md` and `docs-en/REST_SMOKE_TEST.md`, covering baseline endpoints, session token flow, token enforcement, chat round-trip, admin guards, and SSE headers.
+- **Added REST smoke test checklist**: added `docs/REST_SMOKE_TEST.md`, `docs-en/REST_SMOKE_TEST.md`, and `docs-jp/REST_SMOKE_TEST.md`, covering baseline endpoints, session token flow, token enforcement, chat round-trip, admin guards, and SSE headers.
+- **GitHub auto-update support**: bundled Plugin Update Checker v5.6 (`vendor/plugin-update-checker/`) and added `includes/updater/github-updater.php`. The plugin now detects new GitHub Releases and shows an update notification in the WordPress admin dashboard. Upload `mp-ukagaka.zip` as a release asset on each tag to enable one-click updating.
 - **Runtime Info refinements**: adjusted weather temperature thresholds and added Frieren emotion trigger rules in `instructions.md` to improve character nuance without encouraging overreaction.
 - **i18n debt cleanup**: expanded Traditional Chinese and Japanese translations via `mp-ukagaka-zh_TW.po/.mo` and `mp-ukagaka-ja.po/.mo`.
 
@@ -96,7 +97,7 @@
 
 Removed all orphan functions confirmed to have zero runtime callers across PHP and JS source. No behaviour change.
 
-**PHP removed (13 functions across 8 files):**
+**PHP removed (21 functions across 8 files):**
 
 - `utility-functions.php`: `mpu_enforce_rate_limit`, `mpu_verify_ajax_nonce`, `mpu_input_filter`
 - `ai-functions.php`: `mpu_call_gemini_api`, `mpu_call_openai_api`, `mpu_call_claude_api`, `mpu_call_ollama_api`, `mpu_get_allowed_conditional_tags`
