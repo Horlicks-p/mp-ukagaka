@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit();
 }
 
-$puc_bootstrap = MPU_PLUGIN_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php';
+$puc_bootstrap = plugin_dir_path( MPU_MAIN_FILE ) . 'vendor/plugin-update-checker/plugin-update-checker.php';
 if ( ! file_exists( $puc_bootstrap ) ) {
     return;
 }
@@ -25,7 +25,7 @@ use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 $mpu_updater = PucFactory::buildUpdateChecker(
     'https://github.com/Horlicks-p/mp-ukagaka/',
-    MPU_PLUGIN_DIR . 'mp-ukagaka.php',
+    plugin_dir_path( MPU_MAIN_FILE ) . 'mp-ukagaka.php',
     'mp-ukagaka'
 );
 
