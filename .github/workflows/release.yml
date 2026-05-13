@@ -1,0 +1,34 @@
+name: Attach Release ZIP
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build-zip:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Build mp-ukagaka.zip via git archive
+        run: |
+          git archive \
+            --format=zip \
+            --prefix=mp-ukagaka/ \
+            -o mp-ukagaka.zip \
+            ${{ github.event.release.tag_name }}
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} mp-ukagaka.zip \
+            --clobber \
+            --repo ${{ github.repository }}
