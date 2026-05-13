@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.15.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.16.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.15.0
+## 🎉 What's New in v2.16.0
 
-**Security Hardening**: Public AI chat REST endpoints now use an IP-bound session token for anonymous visitors, reducing the risk of direct external API abuse and AI quota drain.
+**User Memory MVP**: Admins can type `/remember` in chat to extract stable facts from recent conversation into usermeta. The memory is shown and cleared from the AI settings page, and is injected into the system prompt as a non-instruction reference memo.
 
-**Safer Admin Operations**: Raw frontend JavaScript customization now requires `unfiltered_html`, and Personality ZIP overwrite now uses confirmation, backup/rollback, reserved ID protection, and stricter path boundary checks.
+**Release Quality Improvements**: Added `npm run verify`, REST smoke test checklists, runtime prompt/temperature refinements, and expanded Traditional Chinese/Japanese translations.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

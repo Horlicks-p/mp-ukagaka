@@ -4,6 +4,24 @@
 
 ---
 
+## [2.16.0] - 2026-05-13
+
+### 🧠 User Memory MVP
+
+- **Added `/remember` admin command**: admins can type `/remember` in the frontend chat box to extract stable admin facts from the latest 20 chat messages and store them in `mpu_user_memory` usermeta.
+- **Added Memory REST Controller**: added `MPU_REST_Memory` and `POST /memory/extract`, protected by `manage_options`, WordPress REST nonce verification, a 60-second transient throttle, and defensive cleanup.
+- **System prompt memory injection**: `mpu_resolve_system_prompt()` now injects saved memory as "管理人についての記憶（参考メモ）" and explicitly marks it as reference information, not instructions, reducing prompt injection risk.
+- **AI Settings memory management**: added a memory card at the bottom of the AI tab to show saved facts, last update time, and a nonce-protected clear action for the current admin user.
+
+### ✅ Release Quality and Runtime Info
+
+- **Added release verification tooling**: `npm run lint:php` now scans the main plugin file, and `npm run verify` runs PHP lint followed by the JS build.
+- **Added REST smoke test checklist**: added `docs/REST_SMOKE_TEST.md` and `docs-en/REST_SMOKE_TEST.md`, covering baseline endpoints, session token flow, token enforcement, chat round-trip, admin guards, and SSE headers.
+- **Runtime Info refinements**: adjusted weather temperature thresholds and added Frieren emotion trigger rules in `instructions.md` to improve character nuance without encouraging overreaction.
+- **i18n debt cleanup**: expanded Traditional Chinese and Japanese translations via `mp-ukagaka-zh_TW.po/.mo` and `mp-ukagaka-ja.po/.mo`.
+
+---
+
 ## [2.15.0] - 2026-05-08
 
 ### 🔒 Security and Abuse Hardening

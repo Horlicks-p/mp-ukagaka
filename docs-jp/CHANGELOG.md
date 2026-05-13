@@ -4,6 +4,24 @@
 
 ---
 
+## [2.16.0] - 2026-05-13
+
+### 🧠 User Memory MVP
+
+- **管理者向け `/remember` コマンドを追加**：管理者がフロントエンドのチャット欄で `/remember` と入力すると、直近 20 件の会話履歴から安定した管理人情報を抽出し、`mpu_user_memory` usermeta に保存します。
+- **Memory REST Controller を追加**：`MPU_REST_Memory` と `POST /memory/extract` を追加。`manage_options`、WordPress REST nonce、60 秒 transient throttle、defensive cleanup で保護します。
+- **System prompt への記憶注入**：`mpu_resolve_system_prompt()` が保存済み記憶を「管理人についての記憶（参考メモ）」として注入し、指示ではなく参考情報として扱うよう明記して prompt injection リスクを抑えます。
+- **AI 設定ページで記憶管理**：AI tab 下部に記憶カードを追加し、保存済み facts、最終更新時刻、現在の管理者ユーザーの記憶を nonce-protected form で削除できるようにしました。
+
+### ✅ リリース品質と Runtime Info 改善
+
+- **リリース検証ツールを追加**：`npm run lint:php` がメインプラグインファイルも検査するようになり、`npm run verify` で PHP lint と JS build を連続実行できます。
+- **REST smoke test checklist を追加**：`docs/REST_SMOKE_TEST.md` と `docs-en/REST_SMOKE_TEST.md` を追加し、baseline endpoint、session token、token enforcement、chat round-trip、admin guard、SSE headers を確認できるようにしました。
+- **Runtime Info を微調整**：天気の温度閾値を調整し、Frieren の `instructions.md` に感情トリガールールを追加。過剰反応を避けながらキャラクターの細部を強化しました。
+- **i18n debt cleanup**：`mp-ukagaka-zh_TW.po/.mo` と `mp-ukagaka-ja.po/.mo` を更新し、繁体字中国語・日本語翻訳を拡充しました。
+
+---
+
 ## [2.15.0] - 2026-05-08
 
 ### 🔒 セキュリティと濫用対策の強化

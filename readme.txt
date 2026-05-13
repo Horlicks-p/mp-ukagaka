@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.15.0
+Stable tag: 2.16.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,13 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-13 =
+* v2.16.0
+* [NEW] User Memory MVP: admins can type `/remember` in chat to extract stable facts from recent conversation and store them in usermeta.
+* [NEW] Added AI Settings memory card for viewing and clearing saved admin memory.
+* [IMPROVE] Inject saved memory into the system prompt as a non-instruction reference memo with server-side cleanup, deduplication, and throttling.
+* [IMPROVE] Added `npm run verify`, REST smoke test checklists, runtime prompt/temperature refinements, and expanded Traditional Chinese/Japanese translations.
 
 = 2026-05-08 =
 * v2.15.0

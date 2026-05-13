@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.15.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.16.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.15.0 新功能
+## 🎉 v2.16.0 新功能
 
-**安全硬化**：公開 AI chat REST 端點現在對匿名訪客使用 IP-bound session token，降低外部直接打 API 造成 AI quota 消耗的風險。
+**User Memory MVP**：管理員可在聊天框輸入 `/remember`，從最近對話萃取穩定事實並保存到 usermeta。記憶可在 AI 設定頁查看與清除，並會以「非指令參考メモ」注入 system prompt。
 
-**後台操作更安全**：Raw frontend JavaScript 自訂需具備 `unfiltered_html` 權限，Personality ZIP 覆蓋流程也加入二次確認、backup/rollback、保留 ID 保護與更嚴格的路徑邊界檢查。
+**發版品質改善**：新增 `npm run verify`、REST smoke test checklist、Runtime Info prompt/溫度微調，並擴充繁中與日文翻譯。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

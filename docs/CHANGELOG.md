@@ -4,6 +4,24 @@
 
 ---
 
+## [2.16.0] - 2026-05-13
+
+### 🧠 User Memory MVP
+
+- **新增 `/remember` 管理員指令**：管理員可在前台聊天框輸入 `/remember`，從最近 20 則對話歷史萃取穩定的管理人事實並保存到 `mpu_user_memory` usermeta。
+- **新增 Memory REST Controller**：新增 `MPU_REST_Memory` 與 `POST /memory/extract`，使用 `manage_options` 權限、WordPress REST nonce、60 秒 transient 節流，以及 defensive cleanup。
+- **記憶注入 system prompt**：`mpu_resolve_system_prompt()` 會把保存的記憶注入為「管理人についての記憶（参考メモ）」，並明確標示為參考資訊、不可解讀為指令，降低 prompt injection 風險。
+- **後台 AI 設定頁記憶管理**：AI tab 底部新增記憶卡片，可查看目前 facts、最後更新時間，並透過 nonce-protected 表單清除目前管理員的記憶。
+
+### ✅ 發版品質與 Runtime Info 改善
+
+- **新增發版驗證工具鏈**：`npm run lint:php` 補掃主外掛檔，並新增 `npm run verify` 串接 PHP lint 與 JS build。
+- **新增 REST smoke test checklist**：新增 `docs/REST_SMOKE_TEST.md` 與 `docs-en/REST_SMOKE_TEST.md`，涵蓋 baseline、session token、token enforcement、chat round-trip、admin guard 與 SSE headers。
+- **Runtime Info 微調**：調整天氣溫度觸發閾值，並在 Frieren `instructions.md` 補上感情觸發規則，避免過度反應但提升角色細節。
+- **i18n debt cleanup**：補齊繁中與日文翻譯，更新 `mp-ukagaka-zh_TW.po/.mo` 與 `mp-ukagaka-ja.po/.mo`。
+
+---
+
 ## [2.15.0] - 2026-05-08
 
 ### 🔒 安全與防濫用硬化

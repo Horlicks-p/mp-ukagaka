@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.15.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.16.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.15.0 の新機能
+## 🎉 v2.16.0 の新機能
 
-**セキュリティ強化**：公開 AI chat REST エンドポイントは匿名訪問者向けに IP-bound session token を使用するようになり、外部から直接 API を叩かれて AI quota を消費されるリスクを低減します。
+**User Memory MVP**：管理者はチャットで `/remember` を入力し、最近の会話から安定した事実を抽出して usermeta に保存できます。記憶は AI 設定ページで確認・削除でき、system prompt には「指示ではない参考メモ」として注入されます。
 
-**管理操作の安全性向上**：Raw frontend JavaScript のカスタマイズには `unfiltered_html` 権限が必要になりました。Personality ZIP 上書きにも確認フロー、backup/rollback、予約 ID 保護、より厳格なパス境界チェックを追加しました。
+**リリース品質改善**：`npm run verify`、REST smoke test checklist、Runtime Info の prompt/温度調整、繁体字中国語・日本語翻訳の拡充を追加しました。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 
