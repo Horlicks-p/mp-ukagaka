@@ -3,6 +3,11 @@ name: Attach Release ZIP
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v2.16.0)'
+        required: true
 
 permissions:
   contents: write
@@ -12,10 +17,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Resolve tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ inputs.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout tag
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ steps.tag.outputs.name }}
 
       - name: Build mp-ukagaka.zip via git archive
         run: |
@@ -23,12 +37,12 @@ jobs:
             --format=zip \
             --prefix=mp-ukagaka/ \
             -o mp-ukagaka.zip \
-            ${{ github.event.release.tag_name }}
+            ${{ steps.tag.outputs.name }}
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.event.release.tag_name }} mp-ukagaka.zip \
+          gh release upload ${{ steps.tag.outputs.name }} mp-ukagaka.zip \
             --clobber \
             --repo ${{ github.repository }}
