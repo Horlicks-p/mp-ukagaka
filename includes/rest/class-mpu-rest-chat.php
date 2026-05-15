@@ -516,6 +516,15 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         $mpu_opt = mpu_get_option();
         $chat_session_id = MPU_Chat_History_Service::get_session_id($request);
+        $input_context = [
+            'source'     => 'user',
+            'channel'    => 'web',
+            'session_id' => $chat_session_id,
+        ];
+        if (function_exists('mpu_set_request_input_context')) {
+            mpu_set_request_input_context($input_context);
+        }
+        $input_role = class_exists('MPU_Input_Role') ? MPU_Input_Role::resolve($input_context) : (current_user_can('manage_options') ? 'admin' : 'visitor');
 
         $message_param = $request->get_param('message');
         $user_message  = !empty($message_param) ? sanitize_text_field(wp_unslash($message_param)) : '';
@@ -635,7 +644,9 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         $integrity_check = MPU_Chat_History_Service::verify($chat_session_id, $chat_history);
         if (is_wp_error($integrity_check)) {
-            return $this->fail('rest_error', $integrity_check->get_error_message(), 400);
+            $error_data = $integrity_check->get_error_data();
+            $status = is_array($error_data) && isset($error_data['status']) ? (int) $error_data['status'] : 400;
+            return $this->fail('rest_error', $integrity_check->get_error_message(), $status);
         }
 
         $page_title_param   = $request->get_param('page_title');
@@ -881,6 +892,8 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'ukagaka_name'         => $ukagaka_name,
             'personality_id'       => $personality_id,
             'chat_session_id'      => $chat_session_id,
+            'input_role'           => $input_role,
+            'input_context'        => $input_context,
             'chat_history'         => $chat_history,
             'user_message'         => $user_message,
             'ukagaka_display_name' => $ukagaka_display_name,

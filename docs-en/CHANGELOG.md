@@ -4,6 +4,52 @@
 
 ---
 
+## [2.17.0] - 2026-05-15
+
+### 🛡️ Input Role Resolver + Server-side Tool Gate
+
+- **New `MPU_Input_Role` class** (`includes/core/class-mpu-input-role.php`): separates LLM input identity (`admin` / `system` / `subscriber` / `visitor`) from raw WordPress capabilities. `resolve()` derives the role from request context plus current WP state; `can_use_ability()` checks a hardcoded whitelist for prompt-injection resistance.
+- **Request-scoped input context** (`request-state.php`): added `mpu_set_request_input_context()` / `mpu_get_request_input_context()` so the chat endpoint, tool exposure, and tool execution all see the same context.
+- **Two-stage tool gate** (`abilities-integration.php`): `mpu_get_mcp_tools_for_llm()` filters the tool list by role before sending to the LLM, and `mpu_execute_mcp_tool()` re-checks the role at execution time to catch any out-of-band tool calls. Built-in ability classes (`visitor-pulse`, `ai-crawler`, `wp-postviews`, `wp-bot-blocker` ×3) now use `MPU_Input_Role::current_can_use_ability()` with a safe `current_user_can('manage_options')` fallback.
+
+### 📡 Session Event Envelope (SSE)
+
+- **New `MPU_Session_Event` class** (`includes/llm/class-mpu-session-event.php`): defines event kinds (`stream.delta / status / done / error`, `tool.request / result`, `nonce.refresh`) and wraps payloads with `eventId + ts + kind + payload`.
+- **Backward-compatible SSE**: `streaming-helpers.php` automatically converts legacy event names through `kind_for_legacy_event()` and wraps payloads with the new envelope — existing endpoints work unchanged.
+- **Frontend dispatcher** (`js/ukagaka-chat.js`): `window.MPU_EVENTS` constants and `mpuNormalizeSseEvent()` detect new envelopes vs legacy events; the switch handles both forms in parallel.
+
+### ⏱️ Client-side SSE Watchdog (zombie state prevention)
+
+- **45-second timeout** with `AbortController.abort()`: if no SSE event arrives for 45 seconds, the stream is aborted, the pending user message is rolled back from `mpuChatHistory`, the input box is re-enabled, and a localized timeout message is displayed via `mpuShowBalloon()`.
+- **Unified `onEvent` hook**: every legacy and new-envelope event resets the watchdog, eliminating bug-prone per-handler reset duplication.
+- **Typewriter-safe**: `stream.done` and `stream.error` clear the watchdog at the `onEvent` level, so when the backend finishes streaming but the frontend typewriter still has text to render, the watchdog never fires accidentally.
+- **`data-mpu-stream-state` attribute** on `#ukagaka_msgbox`: exposes `thinking / tool / status / timeout / error` states for CSS theming or debugging.
+- **`tool.request` handler**: the frontend now shows an "executing tool…" state when backend sends `tool.request` events (used in future PRs).
+
+### 🔐 Chat Integrity Three-Tier Mode
+
+- **New `chat_integrity_mode` option** (default: `audit`): `audit` logs mismatches without interruption (existing behavior), `warn` adds a WARN decision and fires the `mpu_chat_integrity_mismatch` action hook, `block` returns `WP_Error` (HTTP 409) when an existing checksum mismatches.
+- **Three control points**: constant `MPU_CHAT_INTEGRITY_MODE` > option `chat_integrity_mode` > filter `mpu_chat_integrity_mode`. Missing checksums always pass through (`block` only fires on real mismatches, not first requests or session resets).
+- **`mpu_chat_integrity_should_block` filter**: allows per-session bypass / grayscale rollout for `block` mode.
+- **`mpu_chat_integrity_mismatch` action hook** fires in all three modes with `{ session_id, expected, actual, mode, decision, source, history_count }` payload — usable for metrics collection or webhook integration even in `audit` mode.
+- **REST chat propagates the WP_Error status**: `class-mpu-rest-chat.php` now reads `error_data['status']` (409) instead of hardcoding 400.
+- **Surgical change**: the store / normalize / slice pipeline is untouched — only the verify decision layer was modified.
+
+### 🛠️ Hardening Patches (absorbed from 2.16.1–2.16.4)
+
+- **WordPress output escaping audit** across admin settings pages.
+- **Bot-blocker scanner exemption**: full scanner exemption and rate-limit skip for logged-in requests to prevent false reputation flags; extracted `mpu_bb_is_logged_in_request()` helper for shared use.
+- **`MPU_PLUGIN_DIR` fix**: replaced an undefined constant reference with `plugin_dir_path(MPU_MAIN_FILE)`.
+
+### ✅ Verification
+
+- PHP lint passed on all touched files (`chat-integrity.php`, `chat-history-service.php`, REST chat, `core-functions.php`, abilities).
+- JS syntax check passed (`ukagaka-chat.js`, `dist/ukagaka-bundle.js`).
+- Bundle rebuilt (`js/dist/ukagaka-bundle.js` + `.min.js`).
+- `git diff --check` confirmed no whitespace errors.
+
+---
+
 ## [2.16.0] - 2026-05-13
 
 ### 🧠 User Memory MVP

@@ -46,11 +46,19 @@ function mpu_sse_init() {
  * @param array|string $data 資料內容
  */
 function mpu_sse_send_event($event, $data) {
-    echo "event: " . $event . "
+    $event_name = (string) $event;
+    $payload = is_array($data) ? $data : ['message' => (string) $data];
+
+    if (class_exists('MPU_Session_Event')) {
+        $event_name = MPU_Session_Event::kind_for_legacy_event($event_name);
+        $payload = MPU_Session_Event::build($event_name, $payload);
+    }
+
+    echo "event: " . $event_name . "
 ";
     
-    $payload = is_array($data) ? json_encode($data, JSON_UNESCAPED_UNICODE) : $data;
-    echo "data: " . $payload . "
+    $json_payload = json_encode($payload, JSON_UNESCAPED_UNICODE);
+    echo "data: " . $json_payload . "
 
 ";
 
@@ -58,5 +66,4 @@ function mpu_sse_send_event($event, $data) {
         flush();
     }
 }
-
 

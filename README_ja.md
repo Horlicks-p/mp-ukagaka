@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.16.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.17.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,17 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.16.0 の新機能
+## 🎉 v2.17.0 の新機能
 
-**User Memory MVP**：管理者はチャットで `/remember` を入力し、最近の会話から安定した事実を抽出して usermeta に保存できます。記憶は AI 設定ページで確認・削除でき、system prompt には「指示ではない参考メモ」として注入されます。
+**Input Role Resolver + Tool Gate**：新しい `MPU_Input_Role` が、LLM 入力の identity（admin / system / subscriber / visitor）を WordPress の capability と切り分けます。ability の whitelist をハードコードし、LLM への tool 露出と tool 実行の両方を同じ役割で gating します。
 
-**リリース品質改善**：`npm run verify`、REST smoke test checklist、Runtime Info の prompt/温度調整、繁体字中国語・日本語翻訳の拡充を追加しました。
+**Session Event Envelope**：`MPU_Session_Event` を新設し、SSE event を `kind + payload + eventId + ts` の封筒で包みます。legacy 名は両端で引き続き読めるため、後方互換を維持します。
+
+**Client-side SSE Watchdog**：45 秒のタイムアウトで stream を abort し、未確定の user message を rollback、入力欄を解放、タイムアウト通知を表示します。「考え中…」のまま固まる zombie state を防ぎます。
+
+**Chat Integrity 三段モード**：`chat_integrity_mode = audit（既定）| warn | block`。定数 / option / filter の三層で制御でき、`block` モードでも expected checksum が無いケースはスルーする安全側の挙動です。
+
+**Hardening パッチを同梱**：2.16.1–2.16.4 で先行していた管理画面の output escaping、bot-blocker のスキャナー除外、`MPU_PLUGIN_DIR` 修正を本リリースにまとめて取り込みました。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

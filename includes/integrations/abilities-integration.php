@@ -28,18 +28,23 @@ function mpu_is_mcp_active()
  * Get available Abilities formatted for LLM (OpenAI/Gemini/Claude format)
  * 
  * @param string $provider 'openai', 'gemini', 'claude', etc.
+ * @param array  $context  Optional input role context.
  * @return array Tool definitions
  */
-function mpu_get_mcp_tools_for_llm($provider = 'openai')
+function mpu_get_mcp_tools_for_llm($provider = 'openai', array $context = [])
 {
     if (!mpu_is_mcp_active()) {
         return [];
     }
 
-    // 工具僅對管理員可用：非管理員不送工具定義給 LLM
-    if (!current_user_can('manage_options')) {
-        return [];
+    // Resolve input role before exposing tool definitions to the LLM.
+    if (empty($context) && function_exists('mpu_get_request_input_context')) {
+        $context = mpu_get_request_input_context();
     }
+
+    $role = class_exists('MPU_Input_Role')
+        ? MPU_Input_Role::resolve($context)
+        : (current_user_can('manage_options') ? 'admin' : 'visitor');
 
     // Get all registered abilities from Core
     $abilities = wp_get_abilities();
@@ -47,6 +52,10 @@ function mpu_get_mcp_tools_for_llm($provider = 'openai')
 
     foreach ($abilities as $ability) {
         $original_name = $ability->get_name();
+        if (class_exists('MPU_Input_Role') && !MPU_Input_Role::can_use_ability($original_name, $role)) {
+            continue;
+        }
+
         // Sanitize name: replace / with __ to satisfy OpenAI/Gemini regex ^[a-zA-Z0-9_-]+$
         $name = str_replace('/', '__', $original_name);
         
@@ -187,23 +196,33 @@ function mpu_remove_additional_properties($schema)
  * 
  * @param string $tool_name
  * @param array $arguments
+ * @param array $context Optional input role context.
  * @return mixed Result of the tool execution
  */
-function mpu_execute_mcp_tool($tool_name, $arguments)
+function mpu_execute_mcp_tool($tool_name, $arguments, array $context = [])
 {
     if (!mpu_is_mcp_active()) {
         return new WP_Error('mcp_inactive', 'Abilities API is not active.');
     }
 
-    // 權限檢查：僅限管理員執行工具
-    if (!current_user_can('manage_options')) {
-        return new WP_Error('permission_denied', 'Only administrators are allowed to use tools.');
+    // Resolve input role before executing tool calls.
+    if (empty($context) && function_exists('mpu_get_request_input_context')) {
+        $context = mpu_get_request_input_context();
     }
 
     // Sanitize name: convert __ back to /
     $lookup_name = $tool_name;
     if (strpos($tool_name, '__') !== false) {
         $lookup_name = str_replace('__', '/', $tool_name);
+    }
+
+    if (class_exists('MPU_Input_Role')) {
+        $role = MPU_Input_Role::resolve($context);
+        if (!MPU_Input_Role::can_use_ability($lookup_name, $role)) {
+            return new WP_Error('permission_denied', 'This role is not allowed to use the requested tool.');
+        }
+    } elseif (!current_user_can('manage_options')) {
+        return new WP_Error('permission_denied', 'Only administrators are allowed to use tools.');
     }
 
     // Try to get ability directly

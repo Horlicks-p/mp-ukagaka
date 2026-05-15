@@ -3,7 +3,7 @@
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Gemini、OpenAI、Claude）。本機 LLM 支援（Ollama，測試階段）。API Key 加密存儲、安全文件操作、可配置打字速度。Claude 風格後台管理介面。JSON 人格系統。
-Version: 2.16.4
+Version: 2.17.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 */
@@ -13,7 +13,7 @@ if (!defined("ABSPATH")) {
 }
 
 // 定義常量
-define("MPU_VERSION", "2.16.4");
+define("MPU_VERSION", "2.17.0");
 define("MPU_MAIN_FILE", __FILE__);
 
 /**
@@ -65,6 +65,7 @@ function mpu_load_modules()
         'core/debug-functions.php',     // 日誌系統（必須最先載入）
         'core/core-functions.php',      // 核心功能（設定管理）
         'core/utility-functions.php',   // 工具函數
+        'core/class-mpu-input-role.php', // LLM / tool input role resolver
         'personality/personality-loader.php',  // 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
         'personality/personality-prompts.php', // 人格提示詞模組（動態提示詞、變數替換）
         'personality/personality-decorations.php', // 裝飾物系統
@@ -75,6 +76,7 @@ function mpu_load_modules()
         'llm/provider-helpers.php',    // Provider 共用 Helper（JSON encode、tool result 格式化）
         'llm/chat-integrity.php',      // 對話歷史完整性 checksum（防前端篡改）
         'llm/request-state.php',       // 請求期間狀態重置/追蹤（MCP tool flag、未來 SSE buffer）
+        'llm/class-mpu-session-event.php', // Transport-neutral session event envelope
         'llm/tool-loop-guard.php',     // 工具呼叫迴圈防護機制
         'llm/streaming-helpers.php',   // SSE 串流 Helper（ob 清理、事件發送）
         'llm/provider-stream-http.php', // 低階 cURL 串流 HTTP Client

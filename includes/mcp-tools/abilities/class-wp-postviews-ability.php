@@ -60,7 +60,11 @@ class Wp_PostViews_Ability
                      ]
                 ],
                 'execute_callback' => [self::class, 'execute'],
-                'permission_callback' => function() { return true; }, 
+                'permission_callback' => function() {
+                    return class_exists('\MPU_Input_Role')
+                        ? \MPU_Input_Role::current_can_use_ability('mp-ukagaka/get-popular-posts')
+                        : true;
+                },
                 'meta' => [
                     'show_in_rest' => true, 
                 ]

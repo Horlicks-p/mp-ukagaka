@@ -32,7 +32,11 @@ class Wp_Bot_Blocker_Ability
                 'properties' => new \stdClass(),
             ),
             'execute_callback'   => [self::class, 'get_stats_callback'],
-            'permission_callback' => function () { return current_user_can('manage_options'); },
+            'permission_callback' => function () {
+                return class_exists('\MPU_Input_Role')
+                    ? \MPU_Input_Role::current_can_use_ability('mp-ukagaka/get-bot-blocker-stats')
+                    : current_user_can('manage_options');
+            },
         ));
 
         // Ability 2: Ban an IP manually
@@ -51,7 +55,11 @@ class Wp_Bot_Blocker_Ability
                 'required' => array('ip_address'),
             ),
             'execute_callback'   => [self::class, 'ban_ip_callback'],
-            'permission_callback' => function () { return current_user_can('manage_options'); },
+            'permission_callback' => function () {
+                return class_exists('\MPU_Input_Role')
+                    ? \MPU_Input_Role::current_can_use_ability('mp-ukagaka/ban-ip')
+                    : current_user_can('manage_options');
+            },
         ));
 
         // Ability 3: Clear Bot Blocker Logs
@@ -76,7 +84,11 @@ class Wp_Bot_Blocker_Ability
                 ),
             ),
             'execute_callback'   => [self::class, 'clear_data_callback'],
-            'permission_callback' => function () { return current_user_can('manage_options'); },
+            'permission_callback' => function () {
+                return class_exists('\MPU_Input_Role')
+                    ? \MPU_Input_Role::current_can_use_ability('mp-ukagaka/clear-bot-blocker-data')
+                    : current_user_can('manage_options');
+            },
         ));
     }
 

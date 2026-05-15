@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.16.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.17.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,17 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.16.0 新功能
+## 🎉 v2.17.0 新功能
 
-**User Memory MVP**：管理員可在聊天框輸入 `/remember`，從最近對話萃取穩定事實並保存到 usermeta。記憶可在 AI 設定頁查看與清除，並會以「非指令參考メモ」注入 system prompt。
+**Input Role Resolver + Tool Gate**：新增 `MPU_Input_Role`，把 LLM 輸入身分（admin / system / subscriber / visitor）和 WordPress capability 分離。Ability 採用 hardcoded whitelist，LLM tool 曝光與 tool 執行兩端都會走同一套角色判斷。
 
-**發版品質改善**：新增 `npm run verify`、REST smoke test checklist、Runtime Info prompt/溫度微調，並擴充繁中與日文翻譯。
+**Session Event Envelope**：新增 `MPU_Session_Event`，把 SSE 事件包成 `kind + payload + eventId + ts` 信封。Legacy 名稱在前後端皆可讀，向後相容。
+
+**Client-side SSE Watchdog**：45 秒逾時會 abort 串流、rollback 未送出的 user message、釋放輸入框並顯示逾時訊息，避免角色卡在「考え中…」的 zombie 狀態。
+
+**Chat Integrity 三段模式**：`chat_integrity_mode = audit（預設）| warn | block`，由常數、option、filter 三層控制。`block` 模式只在「expected checksum 存在且 actual mismatch」時才回 409，缺失 transient 一律放行，避免首次請求或 session 輪替誤殺。
+
+**收編 hardening patches**：2.16.1–2.16.4 先行的後台 output escaping、bot-blocker 掃描器豁免、`MPU_PLUGIN_DIR` 修正一併納入本版。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

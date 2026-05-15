@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.16.0
+Stable tag: 2.17.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,18 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-15 =
+* v2.17.0
+* [NEW] Input Role Resolver: introduced MPU_Input_Role with admin/system/subscriber/visitor and a hardcoded ability whitelist for LLM tool boundaries.
+* [NEW] Session Event Envelope: introduced MPU_Session_Event (kind + payload + eventId + ts); SSE remains backward-compatible with legacy event names.
+* [NEW] Server-side Tool Gate: LLM tool exposure and tool execution are both gated by the resolved input role; all built-in abilities use the new role check with safe fallback.
+* [NEW] Client-side SSE Watchdog: 45s timeout aborts the stream, rolls back the pending user message, releases the input box, and surfaces a timeout notice to prevent zombie "thinking..." states.
+* [NEW] Chat Integrity Three-Tier Mode: chat_integrity_mode = audit (default) | warn | block, controllable via constant MPU_CHAT_INTEGRITY_MODE, plugin option, or the mpu_chat_integrity_mode / mpu_chat_integrity_should_block filters. Missing transients always pass through.
+* [IMPROVE] REST chat now propagates the WP_Error status (e.g. 409 for integrity mismatch) instead of a hardcoded 400.
+* [IMPROVE] data-mpu-stream-state attribute on #ukagaka_msgbox exposes thinking / tool / status / timeout / error states for CSS or debugging hooks.
+* [SECURITY] Output escaping audit across admin settings pages; bot-blocker exempts security scanners and skips rate-limiting for logged-in requests to avoid false reputation flags.
+* [FIX] Replaced an undefined MPU_PLUGIN_DIR reference with plugin_dir_path(MPU_MAIN_FILE).
 
 = 2026-05-13 =
 * v2.16.0

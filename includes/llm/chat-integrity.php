@@ -22,6 +22,63 @@ function mpu_chat_integrity_debug_log($message)
     error_log($line);
 }
 
+function mpu_chat_integrity_mode()
+{
+    $allowed = ['audit', 'warn', 'block'];
+    $mode = 'audit';
+
+    if (defined('MPU_CHAT_INTEGRITY_MODE')) {
+        $mode = (string) MPU_CHAT_INTEGRITY_MODE;
+    } elseif (function_exists('mpu_get_option')) {
+        $mpu_opt = mpu_get_option();
+        if (isset($mpu_opt['chat_integrity_mode'])) {
+            $mode = (string) $mpu_opt['chat_integrity_mode'];
+        }
+    }
+
+    $mode = strtolower(trim($mode));
+    if (!in_array($mode, $allowed, true)) {
+        $mode = 'audit';
+    }
+
+    /**
+     * Filter checksum enforcement mode.
+     *
+     * Allowed values:
+     * - audit: log mismatch diagnostics only, never interrupt chat.
+     * - warn: log mismatch diagnostics as warning, never interrupt chat.
+     * - block: return WP_Error on mismatch before the LLM call starts.
+     */
+    $filtered = apply_filters('mpu_chat_integrity_mode', $mode);
+    $filtered = strtolower(trim((string) $filtered));
+
+    return in_array($filtered, $allowed, true) ? $filtered : $mode;
+}
+
+function mpu_chat_integrity_should_block($session_id, array $history, array $verify_meta, $mode = null)
+{
+    $mode = $mode === null ? mpu_chat_integrity_mode() : strtolower(trim((string) $mode));
+    $should_block = ($mode === 'block');
+
+    return (bool) apply_filters(
+        'mpu_chat_integrity_should_block',
+        $should_block,
+        $session_id,
+        $history,
+        $verify_meta,
+        $mode
+    );
+}
+
+function mpu_chat_integrity_mismatch_error()
+{
+    return new WP_Error(
+        'mpu_chat_integrity_mismatch',
+        __('對話歷史驗證失敗。請重新開啟對話後再試一次。', 'mp-ukagaka'),
+        ['status' => 409]
+    );
+}
+
 /**
  * 將 checksum mismatch 的詳細資訊寫入 mp-ukagaka/logs/checksum-mismatch.log。
  * 不影響外掛運作（non-blocking），僅供日後排查。
@@ -84,6 +141,8 @@ function mpu_chat_integrity_dump_mismatch($session_id, $expected, $actual, array
 
     $verify_source = isset($verify_meta['source']) ? (string) $verify_meta['source'] : '(unknown)';
     $verify_function = isset($verify_meta['function']) ? (string) $verify_meta['function'] : '(unknown)';
+    $verify_mode = isset($verify_meta['mode']) ? (string) $verify_meta['mode'] : mpu_chat_integrity_mode();
+    $verify_decision = isset($verify_meta['decision']) ? (string) $verify_meta['decision'] : 'audit';
     $verify_role_counts = mpu_chat_integrity_role_counts($verify_history);
     $verify_role_counts_text = mpu_chat_integrity_json_encode($verify_role_counts, false);
 
@@ -95,6 +154,7 @@ function mpu_chat_integrity_dump_mismatch($session_id, $expected, $actual, array
     $entry .= "session_id      : {$session_id}\n";
     $entry .= "expected (store): {$expected}\n";
     $entry .= "actual (verify) : {$actual}\n";
+    $entry .= "mode / decision : {$verify_mode} / {$verify_decision}\n";
     $entry .= "verify source    : {$verify_source} ({$verify_function})\n";
     $entry .= "verify history count: " . count($verify_history) . "\n";
     $entry .= "verify role counts : {$verify_role_counts_text}\n";
@@ -330,16 +390,41 @@ function mpu_chat_integrity_verify_history($session_id, array $history)
     $actual = mpu_chat_integrity_compute_checksum($history);
     if (!hash_equals($expected, $actual)) {
         $verify_meta = mpu_chat_integrity_detect_verify_source();
-        // [Warn-only] Checksum mismatch：只記錄 log，不中斷請求
+        $mode = mpu_chat_integrity_mode();
+        $should_block = mpu_chat_integrity_should_block($session_id, $history, $verify_meta, $mode);
+        $decision = $should_block ? 'block' : $mode;
+        $verify_meta['mode'] = $mode;
+        $verify_meta['decision'] = $decision;
+
         mpu_chat_integrity_debug_log(sprintf(
-            '[WARN] Checksum mismatch (non-blocking). session_id=%s expected=%s actual=%s history_count=%d source=%s',
-            $session_id, $expected, $actual, count($history), $verify_meta['source']
+            '[%s] Checksum mismatch%s. session_id=%s expected=%s actual=%s history_count=%d source=%s',
+            strtoupper($decision),
+            $should_block ? ' (blocking)' : ' (non-blocking)',
+            $session_id,
+            $expected,
+            $actual,
+            count($history),
+            $verify_meta['source']
         ));
 
         // [Diagnostic] 寫入詳細 mismatch dump 到 mp-ukagaka/logs/checksum-mismatch.log
         mpu_chat_integrity_dump_mismatch($session_id, $expected, $actual, $history, $verify_meta);
 
-        return null; // null = 跳過驗證，請求繼續
+        do_action('mpu_chat_integrity_mismatch', [
+            'session_id' => $session_id,
+            'expected'   => $expected,
+            'actual'     => $actual,
+            'mode'       => $mode,
+            'decision'   => $decision,
+            'source'     => $verify_meta['source'],
+            'history_count' => count($history),
+        ]);
+
+        if ($should_block) {
+            return mpu_chat_integrity_mismatch_error();
+        }
+
+        return null; // audit/warn = 請求繼續
     }
 
     return true;

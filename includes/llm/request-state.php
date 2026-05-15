@@ -39,6 +39,7 @@ function mpu_request_state_bootstrap($context = 'manual', $force = false)
         'flags' => [
             'mcp_tool_executed' => false,
         ],
+        'input_context' => [],
         'streaming' => [
             'buffer' => '',
         ],
@@ -73,6 +74,36 @@ function mpu_reset_request_state($context = 'manual')
 function mpu_ensure_request_state($context = 'manual')
 {
     return mpu_request_state_bootstrap($context, false);
+}
+
+/**
+ * Store request-scoped input context for downstream provider/tool helpers.
+ *
+ * @param array $context Input context.
+ * @return void
+ */
+function mpu_set_request_input_context(array $context)
+{
+    global $mpu_request_state;
+
+    mpu_ensure_request_state('set_input_context');
+    $mpu_request_state['input_context'] = $context;
+}
+
+/**
+ * Get request-scoped input context.
+ *
+ * @return array
+ */
+function mpu_get_request_input_context()
+{
+    global $mpu_request_state;
+
+    if (is_array($mpu_request_state) && isset($mpu_request_state['input_context']) && is_array($mpu_request_state['input_context'])) {
+        return $mpu_request_state['input_context'];
+    }
+
+    return [];
 }
 
 /**
@@ -133,4 +164,3 @@ function mpu_rest_request_state_reset($result, $server, $request)
 }
 
 add_filter('rest_pre_dispatch', 'mpu_rest_request_state_reset', 5, 3);
-

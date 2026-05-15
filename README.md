@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.16.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.17.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,11 +98,17 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.16.0
+## 🎉 What's New in v2.17.0
 
-**User Memory MVP**: Admins can type `/remember` in chat to extract stable facts from recent conversation into usermeta. The memory is shown and cleared from the AI settings page, and is injected into the system prompt as a non-instruction reference memo.
+**Input Role Resolver + Tool Gate**: A new `MPU_Input_Role` separates LLM input identity (admin / system / subscriber / visitor) from raw WordPress capabilities, and a hardcoded ability whitelist now gates both LLM tool exposure and tool execution.
 
-**Release Quality Improvements**: Added `npm run verify`, REST smoke test checklists, runtime prompt/temperature refinements, and expanded Traditional Chinese/Japanese translations.
+**Session Event Envelope**: New `MPU_Session_Event` wraps SSE events with `kind + payload + eventId + ts`. Legacy event names remain readable on both ends — no breaking changes.
+
+**Client-side SSE Watchdog**: A 45-second timeout aborts the stream, rolls back the pending user message, restores the input box, and surfaces a timeout notice so the ghost never freezes in a "thinking..." zombie state.
+
+**Chat Integrity Three-Tier Mode**: `chat_integrity_mode = audit (default) | warn | block`, controllable via constant, option, or filter. The `block` mode only fires on real mismatches with existing checksums — missing transients still pass through.
+
+**Hardening Patches Absorbed**: WordPress output escaping compliance, bot-blocker scanner exemption, and a `MPU_PLUGIN_DIR` fix previously staged as 2.16.1–2.16.4 are bundled into this release.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

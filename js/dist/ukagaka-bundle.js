@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-13T10:00:23.088Z
+ * Generated: 2026-05-15T13:36:01.655Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -4242,8 +4242,36 @@ function mpu_parseMarkdown(text) {
  *
  * @param {string} url - 請求 URL
  * @param {object} options - Fetch 選項
- * @param {object} handlers - 事件處理器 { onStart, onDelta, onStatus, onNonce, onDone, onError }
+ * @param {object} handlers - 事件處理器 { onEvent, onStart, onDelta, onStatus, onNonce, onDone, onError, onToolRequest, onToolResult }
  */
+window.MPU_EVENTS = window.MPU_EVENTS || {
+  STREAM_DELTA: "stream.delta",
+  STREAM_STATUS: "stream.status",
+  STREAM_DONE: "stream.done",
+  STREAM_ERROR: "stream.error",
+  TOOL_REQUEST: "tool.request",
+  TOOL_RESULT: "tool.result",
+  NONCE_REFRESH: "nonce.refresh",
+};
+
+function mpuNormalizeSseEvent(eventName, data) {
+  const legacyMap = {
+    start: window.MPU_EVENTS.STREAM_STATUS,
+    delta: window.MPU_EVENTS.STREAM_DELTA,
+    status: window.MPU_EVENTS.STREAM_STATUS,
+    done: window.MPU_EVENTS.STREAM_DONE,
+    error: window.MPU_EVENTS.STREAM_ERROR,
+    tool_result: window.MPU_EVENTS.TOOL_RESULT,
+    nonce: window.MPU_EVENTS.NONCE_REFRESH,
+  };
+
+  if (data && typeof data === "object" && data.kind && data.payload !== undefined) {
+    return { name: data.kind, data: data.payload, envelope: data };
+  }
+
+  return { name: legacyMap[eventName] || eventName, data, envelope: null };
+}
+
 async function mpuFetchSSE(url, options, handlers) {
   const controller = options.controller || new AbortController();
   const signal = controller.signal;
@@ -4318,16 +4346,30 @@ async function mpuFetchSSE(url, options, handlers) {
           data = dataStr;
         }
 
+        const normalized = mpuNormalizeSseEvent(eventName, data);
+        eventName = normalized.name;
+        data = normalized.data;
+        if (handlers.onEvent) handlers.onEvent(eventName, data, normalized.envelope);
+
         switch (eventName) {
+          case window.MPU_EVENTS.STREAM_STATUS:
+            if (data && (data.type === "executing_tool" || data.message)) {
+              if (handlers.onStatus) handlers.onStatus(data);
+            } else if (handlers.onStart) {
+              handlers.onStart(data);
+            }
+            break;
           case "start":
             if (handlers.onStart) handlers.onStart(data);
             break;
+          case window.MPU_EVENTS.STREAM_DELTA:
           case "delta":
             if (handlers.onDelta) handlers.onDelta(data);
             break;
           case "status":
             if (handlers.onStatus) handlers.onStatus(data);
             break;
+          case window.MPU_EVENTS.NONCE_REFRESH:
           case "nonce":
             if (data.new_token && typeof mpuRestNonce !== "undefined") {
               window.mpuRestNonce = data.new_token;
@@ -4335,12 +4377,20 @@ async function mpuFetchSSE(url, options, handlers) {
             }
             if (handlers.onNonce) handlers.onNonce(data);
             break;
+          case window.MPU_EVENTS.STREAM_DONE:
           case "done":
             if (handlers.onDone) handlers.onDone(data);
             return;
+          case window.MPU_EVENTS.STREAM_ERROR:
           case "error":
             if (handlers.onError) handlers.onError(data);
             return; // [Fix] 直接結束，避免 throw 導致 catch 再次觸發 onError
+          case window.MPU_EVENTS.TOOL_REQUEST:
+            if (handlers.onToolRequest) handlers.onToolRequest(data);
+            break;
+          case window.MPU_EVENTS.TOOL_RESULT:
+            if (handlers.onToolResult) handlers.onToolResult(data);
+            break;
           case "ping":
             break;
         }
@@ -4501,6 +4551,105 @@ function mpu_sendUserMessage() {
     let streamDone = false;
     let streamDoneData = null;
     let streamFinalized = false;
+    const streamWatchdogMs = 45000;
+    let streamWatchdogTimer = null;
+    let streamTimedOut = false;
+    const $msgbox = jQuery("#ukagaka_msgbox");
+
+    function streamTimeoutMessage() {
+      if (typeof mpuL10n !== "undefined" && mpuL10n.streamTimeout) {
+        return mpuL10n.streamTimeout;
+      }
+      if (typeof mpuL10n !== "undefined" && mpuL10n.connectionError) {
+        return mpuL10n.connectionError;
+      }
+      return "Connection timed out. Please try again.";
+    }
+
+    function streamErrorMessage(error) {
+      if (error && error.message) return error.message;
+      if (error && error.error) return error.error;
+      if (typeof mpuL10n !== "undefined" && mpuL10n.connectionError) {
+        return mpuL10n.connectionError;
+      }
+      return "Connection error. Please try again.";
+    }
+
+    function setStreamState(state) {
+      $msgbox.attr("data-mpu-stream-state", state);
+    }
+
+    function clearStreamState() {
+      $msgbox.removeAttr("data-mpu-stream-state");
+    }
+
+    function clearStreamWatchdog() {
+      if (streamWatchdogTimer !== null) {
+        clearTimeout(streamWatchdogTimer);
+        streamWatchdogTimer = null;
+      }
+    }
+
+    function armStreamWatchdog() {
+      clearStreamWatchdog();
+      if (streamFinalized) return;
+      streamWatchdogTimer = setTimeout(() => {
+        if (streamFinalized || !mpuChatRequesting) return;
+        streamTimedOut = true;
+        setStreamState("timeout");
+        if (mpuChatAbortController) {
+          mpuChatAbortController.abort();
+        }
+      }, streamWatchdogMs);
+    }
+
+    function stopStreamTypewriter() {
+      clearTimeout(streamTypewriterTimer);
+      streamTypewriterTimer = null;
+      streamPendingText = "";
+      streamDone = false;
+    }
+
+    function rollbackLastUserMessage() {
+      if (
+        window.mpuChatHistory.length > 0 &&
+        window.mpuChatHistory[window.mpuChatHistory.length - 1].role === "user"
+      ) {
+        window.mpuChatHistory.pop();
+        mpu_saveChatHistory();
+      }
+    }
+
+    function releaseStreamInput() {
+      mpuChatRequesting = false;
+      mpuChatAbortController = null;
+      $input.prop("disabled", false);
+      if (window.mpuChatModeActive) $input.focus();
+    }
+
+    function handleStreamFailure(error, timedOut) {
+      if (streamFinalized) return;
+      streamFinalized = true;
+      clearStreamWatchdog();
+      if (timedOut) {
+        setStreamState("timeout");
+      } else if (error) {
+        setStreamState("error");
+      } else {
+        clearStreamState();
+      }
+      stopStreamTypewriter();
+      rollbackLastUserMessage();
+      releaseStreamInput();
+      if (timedOut) {
+        mpu_typewriter(streamTimeoutMessage(), "#ukagaka_msg");
+        mpuLogger.warn("SSE watchdog timeout");
+      } else if (error) {
+        const errorMsg = streamErrorMessage(error);
+        mpu_typewriter(errorMsg, "#ukagaka_msg");
+        mpuLogger.error("SSE Error:", error);
+      }
+    }
 
     function streamStartDrain() {
       if (streamTypewriterTimer !== null) return;
@@ -4523,6 +4672,9 @@ function mpu_sendUserMessage() {
     function streamFinalize(data) {
       if (streamFinalized) return;
       streamFinalized = true;
+      clearStreamWatchdog();
+      clearStreamState();
+      mpuChatAbortController = null;
       const finalMsg = data.msg || fullResponse;
       window.mpuChatHistory.push({
         role: "assistant",
@@ -4545,6 +4697,7 @@ function mpu_sendUserMessage() {
       }
     }
 
+    armStreamWatchdog();
     mpuFetchSSE(
       mpuRestUrl + "chat/user-stream",
       {
@@ -4553,10 +4706,22 @@ function mpu_sendUserMessage() {
         controller: mpuChatAbortController,
       },
       {
+        onEvent: (eventName) => {
+          if (
+            eventName === window.MPU_EVENTS.STREAM_DONE ||
+            eventName === window.MPU_EVENTS.STREAM_ERROR
+          ) {
+            clearStreamWatchdog();
+            return;
+          }
+          armStreamWatchdog();
+        },
         onStart: (data) => {
+          setStreamState("thinking");
           mpuLogger.log("SSE Started:", data);
         },
         onDelta: (data) => {
+          clearStreamState();
           if (data.text) {
             fullResponse += data.text;
             if (streamDisplayedText === "" && streamPendingText === "") $msg.empty();
@@ -4580,6 +4745,24 @@ function mpu_sendUserMessage() {
           }
 
           if (statusMsg) {
+            setStreamState(data.type === "executing_tool" ? "tool" : "status");
+            $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+          }
+        },
+        onToolRequest: (data) => {
+          const toolName = data.tool || data.name || "";
+          let statusMsg = data.message || "";
+
+          if (!statusMsg && toolName) {
+            const template =
+              typeof mpuL10n !== "undefined" && mpuL10n.executingTool
+                ? mpuL10n.executingTool
+                : "正在執行工具：%s...";
+            statusMsg = template.replace("%s", toolName);
+          }
+
+          if (statusMsg) {
+            setStreamState("tool");
             $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
           }
         },
@@ -4592,41 +4775,10 @@ function mpu_sendUserMessage() {
           // 否則 streamTickDrain 跑完後自動呼叫 streamFinalize
         },
         onError: (error) => {
-          clearTimeout(streamTypewriterTimer);
-          streamTypewriterTimer = null;
-          streamPendingText = "";
-          streamDone = false;
-          mpuChatRequesting = false;
-          $input.prop("disabled", false);
-          if (window.mpuChatModeActive) $input.focus();
-          // [Fix 漏洞 4] 錯誤時撤回已 push 的 user 訊息，防止下一輪 checksum mismatch
-          if (
-            window.mpuChatHistory.length > 0 &&
-            window.mpuChatHistory[window.mpuChatHistory.length - 1].role === "user"
-          ) {
-            window.mpuChatHistory.pop();
-            mpu_saveChatHistory();
-          }
-          // 優先顯示後端回傳的錯誤訊息（如權限不足），否則才用通用字串
-          const errorMsg = (error && error.message) ? error.message : "（…連線好像有點問題…）";
-          mpu_typewriter(errorMsg, "#ukagaka_msg");
-          mpuLogger.error("SSE Error:", error);
+          handleStreamFailure(error, false);
         },
         onAbort: () => {
-          clearTimeout(streamTypewriterTimer);
-          streamTypewriterTimer = null;
-          streamPendingText = "";
-          streamDone = false;
-          // [Fix 漏洞 8] abort 時撤回已 push 的 user 訊息，防止後端已寫 checksum 但前端缺少 assistant
-          if (
-            window.mpuChatHistory.length > 0 &&
-            window.mpuChatHistory[window.mpuChatHistory.length - 1].role === "user"
-          ) {
-            window.mpuChatHistory.pop();
-            mpu_saveChatHistory();
-          }
-          mpuChatRequesting = false;
-          $input.prop("disabled", false);
+          handleStreamFailure(streamTimedOut ? new Error(streamTimeoutMessage()) : null, streamTimedOut);
         },
       },
     );

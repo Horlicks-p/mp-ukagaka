@@ -60,7 +60,11 @@ class AI_Crawler_Ability
                     ],
                 ],
                 'execute_callback'    => [self::class, 'execute'],
-                'permission_callback' => function () { return current_user_can('manage_options'); },
+                'permission_callback' => function () {
+                    return class_exists('\MPU_Input_Role')
+                        ? \MPU_Input_Role::current_can_use_ability('mp-ukagaka/get-recent-ai-crawlers')
+                        : current_user_can('manage_options');
+                },
                 'meta' => [
                     'show_in_rest' => true,
                 ],

@@ -74,7 +74,7 @@ class MPU_Chat_History_Service {
 
     /**
      * 驗證 checksum（chat/user 路徑）。
-     * 若驗證失敗回傳 WP_Error，通過或功能不可用回傳 null。
+     * audit/warn 模式只記錄後回傳 null；block 模式驗證失敗時回傳 WP_Error。
      */
     public static function verify(string $session_id, array $history): ?WP_Error {
         if (empty($session_id) || !function_exists('mpu_chat_integrity_verify_history')) {

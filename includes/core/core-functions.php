@@ -77,6 +77,7 @@ function mpu_default_opt()
         "ai_display_duration" => 8,
         "ai_greet_first_visit" => false,
         "ai_greet_prompt" => "あなたは「{{ukagaka_display_name}}」というキャラクターです。訪問者が初めてサイトに来た時、キャラクターらしく簡単に挨拶してください。50文字以内で返してください。",
+        "chat_integrity_mode" => "audit",
         // Bot 防護設定
         "bot_blocker" => [
             "enabled"                => false,

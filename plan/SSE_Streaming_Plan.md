@@ -665,6 +665,28 @@ for (const frame of frames) {
 - 回滾方式（保留）：
   - 若未來要恢復硬性阻斷，只要把 mismatch 分支改回 `return new WP_Error(...)` 即可，REST 入口邏輯無需調整。
 
+## 2026-05-15 追加：Chat Integrity 三段模式（audit / warn / block）
+
+- 背景：
+  - SSE Streaming 導入後，checksum mismatch 的 false positive 來源很多：分段收尾、fallback、中斷、工具呼叫、thinking content、provider 切換。
+  - 直接從觀測模式切回硬性阻斷風險過高，容易重現「第二句 400」與 zombie UI。
+
+- 實作策略：
+  - `audit`：預設。寫入 `logs/checksum-mismatch.log` 與 debug log，不中斷請求。
+  - `warn`：不中斷請求，但以 WARN 決策記錄，並透過 `mpu_chat_integrity_mismatch` action hook 暴露給監控。
+  - `block`：只有在已存在 expected checksum 且 actual mismatch 時回 `WP_Error`；missing transient 仍視為 no-op，避免首次請求或 reset 後誤殺。
+
+- 控制點：
+  - 常數：`MPU_CHAT_INTEGRITY_MODE`
+  - 選項：`chat_integrity_mode`（預設 `audit`）
+  - Filter：`mpu_chat_integrity_mode`
+  - 最終阻斷判斷 Filter：`mpu_chat_integrity_should_block`
+
+- 安全原則：
+  - 不改 checksum store / normalize / slice 流程，只改 verify mismatch 的決策層。
+  - `audit` 必須是預設值，先累積 log，再考慮升到 `warn` 或 `block`。
+  - `block` 發生在 LLM 呼叫前，SSE 尚未開始，前端會走既有 JSON error/fallback 與 rollback 流程。
+
 #### 6. MCP 工具執行狀態訊息語言不同步（模型回日文、狀態提示顯示中文）
 
 - 根因：後端 `$emit('status', ...)` 使用硬編碼中文訊息
