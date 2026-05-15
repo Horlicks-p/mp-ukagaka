@@ -125,6 +125,14 @@ function mpu_bb_is_trusted_crawler($ua = '') {
     );
 }
 
+function mpu_bb_is_logged_in_request() {
+    if (is_user_logged_in()) {
+        return true;
+    }
+
+    return defined('LOGGED_IN_COOKIE') && !empty($_COOKIE[LOGGED_IN_COOKIE]);
+}
+
 // =============================================================================
 // 1. 最早期攔截：Cookie 陷阱 + IP 黑名單 + Hot-transient + Rate Limit + UA 異常
 // =============================================================================
@@ -136,7 +144,7 @@ function mpu_bb_early_check() {
     }
 
     // 跳過已登入使用者，避免誤封編輯/管理員（例如頻繁預覽文章）
-    if (is_user_logged_in()) {
+    if (mpu_bb_is_logged_in_request()) {
         return;
     }
 
@@ -178,7 +186,7 @@ function mpu_bb_early_check() {
     // 雙重判斷：plugins_loaded priority 1 時 is_user_logged_in() 未必可靠，
     // 加上直接檢查 LOGGED_IN_COOKIE 以確保寫文章時不觸發。
     $rate_threshold = $config['rate_limit_threshold'] ?? 0;
-    if ($rate_threshold > 0 && !is_user_logged_in() && empty($_COOKIE[LOGGED_IN_COOKIE])) {
+    if ($rate_threshold > 0 && !mpu_bb_is_logged_in_request()) {
         $bucket     = (int) floor(time() / 300); // 固定 5 分鐘桶
         $rate_key   = 'mbb_rate_' . md5($ip) . '_' . $bucket;
         $rate_count = (int) get_transient($rate_key);
