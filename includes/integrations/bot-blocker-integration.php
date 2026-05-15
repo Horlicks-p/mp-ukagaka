@@ -174,9 +174,11 @@ function mpu_bb_early_check() {
         return;
     }
 
-    // 1b-3. Rate limit：同 IP 5 分鐘內請求過多
+    // 1b-3. Rate limit：同 IP 5 分鐘內請求過多（已登入用戶略過）
+    // 雙重判斷：plugins_loaded priority 1 時 is_user_logged_in() 未必可靠，
+    // 加上直接檢查 LOGGED_IN_COOKIE 以確保寫文章時不觸發。
     $rate_threshold = $config['rate_limit_threshold'] ?? 0;
-    if ($rate_threshold > 0) {
+    if ($rate_threshold > 0 && !is_user_logged_in() && empty($_COOKIE[LOGGED_IN_COOKIE])) {
         $bucket     = (int) floor(time() / 300); // 固定 5 分鐘桶
         $rate_key   = 'mbb_rate_' . md5($ip) . '_' . $bucket;
         $rate_count = (int) get_transient($rate_key);
@@ -212,6 +214,11 @@ function mpu_bb_early_check() {
 
 function mpu_bb_intercept_slimstat_rest($result, $server, $request) {
     if ($request->get_route() !== '/slimstat/v1/hit') {
+        return $result;
+    }
+
+    $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+    if (mpu_bb_is_trusted_crawler($ua)) {
         return $result;
     }
 
@@ -270,6 +277,11 @@ function mpu_bb_intercept_slimstat_rest($result, $server, $request) {
 // =============================================================================
 
 function mpu_bb_intercept_slimstat() {
+    $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+    if (mpu_bb_is_trusted_crawler($ua)) {
+        return;
+    }
+
     $config = mpu_bb_get_config();
 
     $fh = isset($_POST['fh']) ? sanitize_text_field(wp_unslash($_POST['fh'])) : (isset($_GET['fh']) ? sanitize_text_field(wp_unslash($_GET['fh'])) : '');
@@ -318,6 +330,11 @@ function mpu_bb_intercept_slimstat() {
 // =============================================================================
 
 function mpu_bb_js_trap() {
+    $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+    if (mpu_bb_is_trusted_crawler($ua)) {
+        return;
+    }
+
     ?>
     <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;" aria-hidden="true">
         <form id="_mbb_hp" method="post">
@@ -344,6 +361,11 @@ function mpu_bb_js_trap() {
 // =============================================================================
 
 function mpu_bb_honeypot_check() {
+    $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+    if (mpu_bb_is_trusted_crawler($ua)) {
+        return;
+    }
+
     if (
         isset($_POST['_mbb_hp_check']) &&
         $_POST['_mbb_hp_check'] === '1' &&
@@ -398,6 +420,12 @@ function mpu_bb_js_beacon() {
 }
 
 function mpu_bb_js_flag_handler() {
+    $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+    if (mpu_bb_is_trusted_crawler($ua)) {
+        status_header(204);
+        exit;
+    }
+
     $ip      = mpu_bb_get_ip();
     $res     = isset($_POST['r']) ? sanitize_text_field(wp_unslash($_POST['r'])) : '';
     $signals = isset($_POST['s']) ? sanitize_text_field(wp_unslash($_POST['s'])) : '';
