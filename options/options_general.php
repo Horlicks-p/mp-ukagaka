@@ -179,7 +179,7 @@
             <h4><?php _e('🚫 頁面排除設定', 'mp-ukagaka'); ?></h4>
             <div class="mpu-field-group">
                 <label for="no_page"><?php _e('不在以下頁面顯示偽春菜', 'mp-ukagaka'); ?></label>
-                <textarea cols="40" rows="3" id="no_page" name="no_page" class="resizable" style="line-height:130%; width: 100%; max-width: 500px;"><?php echo $mpu_opt['no_page']; ?></textarea>
+                <textarea cols="40" rows="3" id="no_page" name="no_page" class="resizable" style="line-height:130%; width: 100%; max-width: 500px;"><?php echo esc_textarea($mpu_opt['no_page']); ?></textarea>
                 <small><?php _e('輸入不顯示偽春菜的頁面 URL，每行一條。在地址尾部加入 (*) 可進行模糊匹配。', 'mp-ukagaka'); ?></small>
             </div>
         </div>
