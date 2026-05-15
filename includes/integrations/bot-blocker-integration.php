@@ -112,6 +112,20 @@ function mpu_bb_init() {
 }
 
 // =============================================================================
+// 已知合法爬蟲 / 安全掃描器 UA 判斷
+// =============================================================================
+
+function mpu_bb_is_trusted_crawler($ua = '') {
+    if (empty($ua)) {
+        return false;
+    }
+    return (bool) preg_match(
+        '/(Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Norton|SafeWeb|Symantec)/i',
+        $ua
+    );
+}
+
+// =============================================================================
 // 1. 最早期攔截：Cookie 陷阱 + IP 黑名單 + Hot-transient + Rate Limit + UA 異常
 // =============================================================================
 
@@ -129,6 +143,12 @@ function mpu_bb_early_check() {
     // 跳過本機 / 私有 IP，開發環境不應被封鎖
     $early_ip = mpu_bb_get_ip();
     if (filter_var($early_ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+        return;
+    }
+
+    // 跳過已知合法爬蟲與安全掃描器，避免誤封導致評級問題
+    $ua_early = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+    if (mpu_bb_is_trusted_crawler($ua_early)) {
         return;
     }
 
@@ -344,9 +364,9 @@ function mpu_bb_honeypot_check() {
 // =============================================================================
 
 function mpu_bb_js_beacon() {
-    // 放行常見搜尋引擎，避免誤殺
+    // 放行已知合法爬蟲與安全掃描器，避免誤殺
     $ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-    if (preg_match('/(Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot)/i', $ua)) {
+    if (mpu_bb_is_trusted_crawler($ua)) {
         return;
     }
 
