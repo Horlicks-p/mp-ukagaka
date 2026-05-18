@@ -210,3 +210,4 @@ require_once MPU_TESTS_ROOT . '/includes/llm/class-mpu-chat-lock.php';
 require_once MPU_TESTS_ROOT . '/includes/core/class-mpu-input-role.php';
 require_once MPU_TESTS_ROOT . '/includes/llm/class-mpu-session-event.php';
 require_once MPU_TESTS_ROOT . '/includes/core/utility-functions.php';
+require_once MPU_TESTS_ROOT . '/includes/llm/provider-helpers.php';

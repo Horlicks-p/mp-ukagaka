@@ -166,7 +166,7 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
                     'content' => $full_response_content ?: null,
                     'tool_calls' => $current_tool_calls
                 ];
-                $ollama_messages[] = $assistant_msg;
+                $ollama_messages[] = mpu_normalize_ollama_assistant_message($assistant_msg);
 
                 if (function_exists('mpu_mark_request_mcp_tool_executed')) {
                     mpu_mark_request_mcp_tool_executed();
@@ -346,9 +346,9 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
             }
 
             $message = $data["message"];
-            
+
             // Add assistant response to history
-            $messages[] = $message;
+            $messages[] = mpu_normalize_ollama_assistant_message($message);
 
             // Tool call check
             if (isset($message['tool_calls']) && !empty($message['tool_calls'])) {
@@ -534,7 +534,7 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
 
             $data = mpu_json_decode_assoc($response_body);
             $message = $data['message'];
-            $ollama_messages[] = $message;
+            $ollama_messages[] = mpu_normalize_ollama_assistant_message($message);
 
             $content = null;
             $thinking = null;

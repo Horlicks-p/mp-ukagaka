@@ -182,6 +182,38 @@ function mpu_build_ollama_tool_message($function_name, $result)
 }
 
 /**
+ * 修正 Ollama assistant message 中 tool_calls.function.arguments 的 PHP 空陣列問題。
+ *
+ * Ollama API 期望 arguments 是 JSON 物件 `{}`，但 PHP 的 json_decode($json, true) 會把
+ * 空物件 `{}` 解析成空陣列 `[]`。直接 json_encode 回去就變成陣列字面值 `[]`，
+ * Ollama 的 chat template 引擎會吐：
+ *   "Value looks like object, but can't find closing '}' symbol"
+ *
+ * 對策：發現空陣列 arguments 就轉成 stdClass，序列化後就是 `{}`。
+ * 非空 PHP assoc array json_encode 本來就會輸出 object，不必處理。
+ *
+ * @param  array $message Ollama assistant message（可能含 tool_calls）
+ * @return array          已正規化的 message
+ */
+function mpu_normalize_ollama_assistant_message(array $message): array
+{
+    if (!isset($message['tool_calls']) || !is_array($message['tool_calls'])) {
+        return $message;
+    }
+    foreach ($message['tool_calls'] as &$tc) {
+        if (!isset($tc['function']['arguments'])) {
+            continue;
+        }
+        $args = $tc['function']['arguments'];
+        if (is_array($args) && empty($args)) {
+            $tc['function']['arguments'] = new \stdClass();
+        }
+    }
+    unset($tc);
+    return $message;
+}
+
+/**
  * 建構 Claude tool_result content block
  *
  * @param  string $tool_use_id content_block['id']
