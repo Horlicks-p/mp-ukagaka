@@ -30,12 +30,18 @@ claude-5df3-cwd
 claude-9ef6-cwd
 
 
-# Build files
+# Dependencies and build artifacts
 node_modules/
 vendor/*
 !vendor/plugin-update-checker/
-composer.lock
-package-lock.json
+!vendor/includes/
+composer.phar
+mp-ukagaka.zip
+tools/node/node_modules/
+tools/php/vendor/
+
+# PHPUnit
+.phpunit.result.cache
 
 # Logs
 logs/
@@ -70,8 +76,7 @@ dialogs/
 Asuna/
 Sakura_Laurel/
 
-# Node.js files
-node_modules/
+# Local Node.js tooling
 package.json
 package-lock.json
 build.js
