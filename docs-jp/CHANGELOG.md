@@ -40,6 +40,12 @@
 - **最初の delta で `streaming` 状態に**：`onDelta` は属性を消すのではなく `setStreamState("streaming")` を呼ぶようになり、テキスト streaming 中も badge が表示されます。
 - **既存の `mpuL10n` 機構で i18n**：新しい `mpuL10n.streamStates` map（`考え中…` / `応答中…` / `調べてる…` / `エラー` / `タイムアウト` / `混雑中…`）は既存の `.po` / `.mo` ワークフローで翻訳可能です。
 
+### 🐛 バグ修正
+
+- **Ollama の空の Tool Calls 配列解析の修正**: Ollama が引数なしの tool call（例: `get-bot-blocker-stats`）を返す際、PHP の `json_decode` と `json_encode` が空のオブジェクト `{}` を空の配列 `[]` に変換してしまい、Ollama エンジンが `"Value looks like object, but can't find closing '}' symbol"` というエラーを投げる問題を修正しました。現在は `mpu_normalize_ollama_assistant_message()` を介して空の配列を強制的に `stdClass` (`{}`) に変換するようになり、全てのエッジケースを網羅する 5 つの PHPUnit テストケースも追加しました。
+- **Provider HTTP エラーログの強化**: HTTP >= 400 エラーが発生した際、Provider JSON の `error` フィールドを抽出してよりクリーンなエラーメッセージを提供するようになりました。また、`error_log` を通じて tool_calls 構造や 4KB の response tail を含む完全なデバッグ情報を出力します。
+- **UI 状態 Badge の位置微調整**: `.mpu-state-badge` の CSS を修正し、メッセージボックスの右上隅の内側によりフィットするように調整し、切り取られるのを防ぎました。
+
 ### ✅ 検証
 
 - `npm run verify`：PHP lint、bundle build、PHPUnit（22 tests / 51 assertions）すべて pass。

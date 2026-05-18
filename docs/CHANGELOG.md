@@ -40,6 +40,12 @@
 - **第一個 delta 時設為 `streaming`**：`onDelta` 不再清除屬性，改為 `setStreamState("streaming")`，文字串流期間 badge 仍會持續顯示。
 - **走既有 `mpuL10n` 機制做 i18n**：新增的 `mpuL10n.streamStates` map（`考え中…` / `応答中…` / `調べてる…` / `エラー` / `タイムアウト` / `混雑中…`）可透過既有 `.po` / `.mo` workflow 翻譯。
 
+### 🐛 錯誤修正
+
+- **Ollama 空陣列 Tool Calls 解析修正**：修復 Ollama 在回傳不帶參數的 tool call（如 `get-bot-blocker-stats`）時，PHP `json_decode` 與 `json_encode` 會將空物件 `{}` 轉為空陣列 `[]`，導致 Ollama 引擎拋出 `"Value looks like object, but can't find closing '}' symbol"` 錯誤的問題。現已透過 `mpu_normalize_ollama_assistant_message()` 強制將空陣列轉為 `stdClass` (`{}`)，並新增 5 個 PHPUnit 測試案例涵蓋所有邊界狀況。
+- **Provider HTTP 錯誤日誌強化**：遇到 HTTP >= 400 錯誤時，現在會嘗試提取 Provider JSON 的 `error` 欄位以提供更乾淨的錯誤訊息，並透過 `error_log` 匯出包含 tool_calls 結構與 4KB response tail 的完整除錯資訊。
+- **UI 狀態 Badge 位置微調**：修正 `.mpu-state-badge` 樣式，使其更貼合對話框右上角內側，避免被裁切。
+
 ### ✅ 驗證
 
 - `npm run verify`：PHP lint、bundle build、PHPUnit（22 tests / 51 assertions）全綠。

@@ -40,6 +40,12 @@
 - **`streaming` state on first delta**: `onDelta` now calls `setStreamState("streaming")` instead of clearing the attribute, so the badge stays visible during text streaming.
 - **i18n via existing `mpuL10n` mechanism**: new `mpuL10n.streamStates` map exposes Japanese-first labels (`考え中…` / `応答中…` / `調べてる…` / `エラー` / `タイムアウト` / `混雑中…`), translatable through the existing `.po` / `.mo` workflow.
 
+### 🐛 Bug Fixes
+
+- **Ollama Empty Tool Calls Array Parsing Fix**: Fixed an issue where Ollama's tool calls without arguments (e.g., `get-bot-blocker-stats`) caused PHP's `json_decode` and `json_encode` to convert an empty object `{}` into an empty array `[]`, leading to the Ollama engine throwing a `"Value looks like object, but can't find closing '}' symbol"` error. This is now fixed via `mpu_normalize_ollama_assistant_message()` which forces empty arrays to `stdClass` (`{}`), supported by 5 new PHPUnit test cases covering all edge cases.
+- **Enhanced Provider HTTP Error Logging**: When encountering HTTP >= 400 errors, the system now attempts to extract the Provider JSON's `error` field to provide cleaner error messages, and uses `error_log` to export complete debug information including the tool_calls structure and a 4KB response tail.
+- **UI State Badge Position Adjustment**: Tweaked the CSS for `.mpu-state-badge` to better fit inside the top-right corner of the message box, preventing clipping.
+
 ### ✅ Verification
 
 - `npm run verify`: PHP lint + bundle build + PHPUnit (22 tests, 51 assertions) all green.
