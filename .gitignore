@@ -76,10 +76,10 @@ dialogs/
 Asuna/
 Sakura_Laurel/
 
-# Local Node.js tooling
-package.json
-package-lock.json
-build.js
+# Legacy root-local Node.js tooling
+/package.json
+/package-lock.json
+/build.js
 js/dist/ukagaka-bundle.js
 
 #environment

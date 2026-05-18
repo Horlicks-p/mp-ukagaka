@@ -1,0 +1,32 @@
+{
+  "name": "mp-ukagaka",
+  "version": "1.0.0",
+  "description": "A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "example"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "lint:php": "cd ../.. && php -r \"$e=0;foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('includes')) as $f){if($f->getExtension()==='php'){$r=0;passthru('php -l '.escapeshellarg($f),$r);$e|=$r;}}foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('options')) as $f){if($f->getExtension()==='php'){$r=0;passthru('php -l '.escapeshellarg($f),$r);$e|=$r;}}$r=0;passthru('php -l mp-ukagaka.php',$r);$e|=$r;exit($e);\"",
+    "test:php": "cd ../.. && php tools/php/vendor/bin/phpunit --configuration tests/phpunit.xml.dist --colors=always",
+    "verify": "npm run lint:php && npm run build && npm run test:php",
+    "test": "npm run test:php"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Horlicks-p/mp-ukagaka.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Horlicks-p/mp-ukagaka/issues"
+  },
+  "homepage": "https://github.com/Horlicks-p/mp-ukagaka#readme",
+  "devDependencies": {
+    "terser": "^5.44.1"
+  }
+}
