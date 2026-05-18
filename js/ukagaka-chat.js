@@ -728,6 +728,12 @@ function mpu_sendUserMessage() {
       clearStreamState();
       mpuChatAbortController = null;
       const finalMsg = data.msg || fullResponse;
+      // [Fix] SSE 端點偶爾會回 JSON（例如 /debug_mcp redirect、非 streaming
+      // provider 的同步 fallback）。這條路徑沒有 delta，streamTickDrain
+      // 從沒跑過，$msg 還停在「（…えっと…）」placeholder。在這裡補渲染。
+      if (streamDisplayedText === "" && streamPendingText === "" && finalMsg) {
+        $msg.html(mpu_parseMarkdown(finalMsg));
+      }
       window.mpuChatHistory.push({
         role: "assistant",
         content: finalMsg,

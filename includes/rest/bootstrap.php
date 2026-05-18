@@ -77,7 +77,7 @@ foreach ($mpu_oo_rest_controllers as $class => $file) {
     }
     $controller = new $class();
     add_action('rest_api_init', [$controller, 'register_routes']);
-    if (defined('WP_DEBUG') && WP_DEBUG) {
+    if (defined('WP_DEBUG') && WP_DEBUG && defined('MPU_REST_BOOTSTRAP_DEBUG') && MPU_REST_BOOTSTRAP_DEBUG) {
         error_log("MP Ukagaka: REST Controller 已掛載: {$class}");
     }
 }

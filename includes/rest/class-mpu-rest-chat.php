@@ -959,6 +959,50 @@ class MPU_REST_Chat extends MPU_REST_Base {
         }
     }
 
+    protected function build_debug_mcp_report(): string {
+        $integration = function_exists('mpu_get_mcp_tools_for_llm') ? 'Yes' : 'No';
+        $manager     = class_exists('\MP_Ukagaka\McpTools\Manager') ? 'Yes' : 'No';
+
+        $check_abilities = [
+            'mp-ukagaka/get-popular-posts',
+            'mp-ukagaka/get-bot-blocker-stats',
+            'mp-ukagaka/ban-ip',
+            'mp-ukagaka/clear-bot-blocker-data',
+        ];
+        $abilities_html = '';
+        foreach ($check_abilities as $ability_name) {
+            $ok = function_exists('wp_has_ability') && wp_has_ability($ability_name);
+            $icon = $ok ? 'OK' : '--';
+            $short = preg_replace('#^[^/]+/#', '', $ability_name);
+            $abilities_html .= "<div style=\"margin-bottom:2px;\">{$icon} {$short}</div>";
+        }
+
+        $tool_count = 0;
+        if (function_exists('mpu_get_mcp_tools_for_llm')) {
+            $tools = mpu_get_mcp_tools_for_llm('gemini');
+            $tool_count = is_array($tools) ? count($tools) : 0;
+        }
+
+        return '<div style="font-size:0.85em;line-height:1.6;">'
+            . '<strong>MCP Diagnostics</strong><br>'
+            . "Integration: {$integration}<br>"
+            . "Manager: {$manager}<br>"
+            . "Available Tools: {$tool_count}<br>"
+            . '<hr style="margin:6px 0;border:0;border-top:1px dashed #aeb8c2;">'
+            . '<div style="font-size:0.95em;">' . $abilities_html . '</div>'
+            . '</div>';
+    }
+
+    protected function store_debug_mcp_report(array $args, string $report): void {
+        MPU_Chat_History_Service::store_after_user_chat(
+            $args['chat_session_id'],
+            $args['chat_history'],
+            $args['user_message'],
+            $report,
+            false
+        );
+    }
+
     public function user_chat(WP_REST_Request $request) {
         $args = $this->prepare_user_chat_args($request);
         // 如果返回的是 WP_REST_Response (報錯時) 或 WP_Error
@@ -968,48 +1012,8 @@ class MPU_REST_Chat extends MPU_REST_Base {
         try {
             // [Debug] MCP Tool Diagnostics
             if (!empty($args['is_debug_mcp'])) {
-                $integration = function_exists('mpu_get_mcp_tools_for_llm') ? 'Yes' : 'No';
-                $wp_ability  = function_exists('wp_register_ability') ? 'Yes' : 'No';
-                $manager     = class_exists('\MP_Ukagaka\McpTools\Manager') ? 'Yes' : 'No';
-
-                $check_abilities = [
-                    'mp-ukagaka/get-popular-posts',
-                    'mp-ukagaka/get-bot-blocker-stats',
-                    'mp-ukagaka/ban-ip',
-                    'mp-ukagaka/clear-bot-blocker-data',
-                ];
-                $abilities_html = '';
-                foreach ($check_abilities as $ability_name) {
-                    $ok = function_exists('wp_has_ability') && wp_has_ability($ability_name);
-                    $icon = $ok ? '✅' : '❌';
-                    $short = preg_replace('#^[^/]+/#', '', $ability_name);
-                    $abilities_html .= "<div style=\"margin-bottom:2px;\">{$icon} {$short}</div>";
-                }
-
-                $tool_count = 0;
-                if (function_exists('mpu_get_mcp_tools_for_llm')) {
-                    $tools = mpu_get_mcp_tools_for_llm('gemini');
-                    $tool_count = is_array($tools) ? count($tools) : 0;
-                }
-
-                $report = '<div style="font-size:0.85em;line-height:1.6;">'
-                    . '<strong>MCP Diagnostics</strong><br>'
-                    . "Integration: {$integration}<br>"
-                    . "Manager: {$manager}<br>"
-                    . "Available Tools: {$tool_count}<br>"
-                    . '<hr style="margin:6px 0;border:0;border-top:1px dashed #aeb8c2;">'
-                    . '<div style="font-size:0.95em;">' . $abilities_html . '</div>'
-                    . '</div>';
-
-                // [Fix] 更新 Checksum
-                MPU_Chat_History_Service::store_after_user_chat(
-                    $args['chat_session_id'],
-                    $args['chat_history'],
-                    $args['user_message'],
-                    $report,
-                    false
-                );
-
+                $report = $this->build_debug_mcp_report();
+                $this->store_debug_mcp_report($args, $report);
                 return $this->ok(['msg' => $report]);
             }
 
@@ -1072,9 +1076,15 @@ class MPU_REST_Chat extends MPU_REST_Base {
         if ($args instanceof WP_REST_Response || is_wp_error($args)) return $args;
         $this->register_chat_lock_shutdown($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
 
-        // [精準修正 1] 提前攔截 /debug_mcp 轉向同步路徑，避免後續 Provider 檢查失敗
         if (!empty($args['is_debug_mcp'])) {
-            return $this->user_chat($request);
+            $report = $this->build_debug_mcp_report();
+            $this->store_debug_mcp_report($args, $report);
+            mpu_sse_init();
+            mpu_sse_send_event('done', [
+                'msg'   => $report,
+                'emoji' => null,
+            ]);
+            exit;
         }
 
         // 獲取 Provider 實例
