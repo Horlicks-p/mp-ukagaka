@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.17.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.18.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,17 +98,15 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.17.0 新功能
+## 🎉 v2.18.0 新功能
 
-**Input Role Resolver + Tool Gate**：新增 `MPU_Input_Role`，把 LLM 輸入身分（admin / system / subscriber / visitor）和 WordPress capability 分離。Ability 採用 hardcoded whitelist，LLM tool 曝光與 tool 執行兩端都會走同一套角色判斷。
+**PHPUnit 測試基礎建設**：六個初始測試套件涵蓋 chat-integrity、encryption、input role、session event、template 渲染與新增的 chat lock，合計 22 tests / 51 assertions。`npm run verify` 現在依序執行 PHP lint → bundle build → PHPUnit；`build.js` 在 minify 失敗時改回非 0 exit code，CI 不會再假通過。
 
-**Session Event Envelope**：新增 `MPU_Session_Event`，把 SSE 事件包成 `kind + payload + eventId + ts` 信封。Legacy 名稱在前後端皆可讀，向後相容。
+**Chat Lifecycle Lock**：新增的 `MPU_Chat_Lock` 採用 `add_option` 為底的 atomic check-and-set（不用 transient，因為它在並行請求下不是 atomic），備有 60 秒 TTL、`hash_equals` 驗證的 release、過期 lock retry。只接在 `/chat/user` 與 `/chat/user-stream`；衝突透過既有 fail envelope 回 HTTP 429。
 
-**Client-side SSE Watchdog**：45 秒逾時會 abort 串流、rollback 未送出的 user message、釋放輸入框並顯示逾時訊息，避免角色卡在「考え中…」的 zombie 狀態。
+**REST Chat 重複消除**：新增 `prepare_auto_chat_context()` helper，集中 `chat_context()` 與 `chat_greet()` 共用的 provider / personality / system_prompt 前處理。response shape 與 checksum 行為都不變。
 
-**Chat Integrity 三段模式**：`chat_integrity_mode = audit（預設）| warn | block`，由常數、option、filter 三層控制。`block` 模式只在「expected checksum 存在且 actual mismatch」時才回 409，缺失 transient 一律放行，避免首次請求或 session 輪替誤殺。
-
-**收編 hardening patches**：2.16.1–2.16.4 先行的後台 output escaping、bot-blocker 掃描器豁免、`MPU_PLUGIN_DIR` 修正一併納入本版。
+**SSE 狀態 Badge**：`#ukagaka_msgbox` 上的 `.mpu-state-badge` 渲染六個在地化狀態（thinking / streaming / tool / error / timeout / busy），底層用 2.17.0 已有的 `data-mpu-stream-state` 屬性。chat lock 衝突現在會顯示為 `busy` 狀態並附在地化訊息，而不是通用錯誤。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

@@ -4,6 +4,50 @@
 
 ---
 
+## [2.18.0] - 2026-05-18
+
+### 🧪 測試基礎建設（PHPUnit + verify pipeline）
+
+- **新增 PHPUnit 單元測試**：建立 `tests/` 目錄與最小 WordPress mock bootstrap（`tests/bootstrap.php`），讓純函式測試不必啟動完整 WordPress 即可運行。初始 6 個測試套件涵蓋 `chat-integrity`（filter / checksum / slice）、加密 round-trip、input role 解析、session event envelope、template 渲染與新增的 chat lock — 合計 22 tests / 51 assertions。
+- **Composer-based 工具鏈**：dev 依賴（`phpunit/phpunit ^9.6`、`brain/monkey ^2.6`）寫在 `tools/php/composer.json`，vendor 隔離在 `tools/php/vendor/`。外掛本身沒有 runtime composer 依賴。
+- **`npm run verify` 串接**：`tools/node/package.json` 現在依序執行 `lint:php` → `build` → `test:php`。build script 在 minify 失敗時改回非 0 exit code，CI 不會再假通過。
+- **PHPUnit `cacheResult="false"`**：避免在受限 sandbox 中嘗試寫入 `.phpunit.result.cache` 時觸發 permission warning。
+- **filter / action mock 改為真正執行 callback**：`tests/bootstrap.php` 現在會按 priority 排序、依 `accepted_args` 截取參數。未來測 `mpu_chat_integrity_mode` 之類的 filter 才會可靠。
+
+### 🔒 Chat Lifecycle Lock（並發 LLM 防護）
+
+- **新增 `MPU_Chat_Lock` 類別**（`includes/llm/class-mpu-chat-lock.php`）：用 `add_option($key, $payload, '', 'no')` 作為 atomic check-and-set primitive。沒有用 transient 是因為 `get_transient()` + `set_transient()` 在並行請求下不是 atomic，會讓 lock 本身產生它要防的 race。
+- **過期 lock retry 流程**：`add_option()` 失敗時若現有 lock 已過期，會先 `delete_option()` 再嘗試一次 acquire。崩潰的 PHP worker 留下的 stale lock 會在下一個請求週期自我修復。
+- **token 驗證的 release**：`release($session_id, $token)` 用 `hash_equals()` 比對 token，避免某個請求誤釋放別人持有的 lock。是 double-finally bug 的防禦層。
+- **60 秒 TTL、走 `mpu_chat_lock_ttl` filter**，範圍 clamp 到 `[10, 300]` 秒。
+- **三個 action hook**：`mpu_chat_lock_acquired` / `mpu_chat_lock_released` / `mpu_chat_lock_conflict`，可用於 metrics、audit log，或未來 approval-hub 整合。
+- **只接在 `/chat/user` 與 `/chat/user-stream`**：`/chat/greet`、`/chat/context` 與 `/debug_mcp` 故意不鎖（既有路由 rate limit 已足夠）。
+- **衝突回 HTTP 429**：直接用既有的 `$this->fail()` envelope，前端錯誤路徑不需要改動。
+- **SSE 安全的 release**：lock 取得後立刻 `register_shutdown_function()`，stream loop 在 chunk 之間透過 `exit_if_stream_aborted()` 檢查 `connection_aborted()`。客戶端中途斷線時 lock 仍會釋放，token 驗證確保 shutdown fallback 不會誤殺後續請求的 lock。
+- **lock context 記錄** `route`、`input_role` 與 `ip_hash`（`sha256(client_ip)` 前 12 字元）— 不存原始 IP 即可協助 triage。
+
+### 🧹 REST Chat 重複消除
+
+- **新增 `prepare_auto_chat_context()` helper**（`MPU_REST_Chat`）：把 `chat_context()` 與 `chat_greet()` 共用的設定（`ai_enabled` / `ai_greet_first_visit` 預檢、provider + API key、`wp_info`、ukagaka 身分、language、personality、time context、13 個 variable map、解析後的 system prompt）集中起來。
+- **`require_first_visit_greeting` 選項 flag** 用來區分 `chat_greet` 的額外檢查 — 不需要拆成兩個 helper。
+- **response shape 完全不變**。checksum 寫入（`store_after_auto` 的 `'context'` / `'greet'` kind）刻意不動。`prepare_user_chat_args()`、chat lock、SSE 流程都不受影響。
+
+### 🏷️ SSE Stream 狀態 Badge（runtime 驗收 UI）
+
+- **`#ukagaka_msgbox` 右上角的可見 `.mpu-state-badge`**：在 2.17.0 已加的 `data-mpu-stream-state` 屬性之上加可見層。沒有新的 state machine，只是把屬性視覺化。
+- **六個可見狀態**：`thinking`、`streaming`、`tool`、`error`、`timeout`、`busy`。`status` 為避免空 badge 而對應到與 `streaming` 同一個 label。
+- **chat lock 衝突時的 `busy` 狀態**：`handleStreamFailure()` 從 SSE 的 JSON fallback path 偵測 `error.code === "mpu_chat_lock_busy"` 或 `error.data.status === 429`，顯示在地化的「混雑中…」訊息而非通用錯誤。
+- **第一個 delta 時設為 `streaming`**：`onDelta` 不再清除屬性，改為 `setStreamState("streaming")`，文字串流期間 badge 仍會持續顯示。
+- **走既有 `mpuL10n` 機制做 i18n**：新增的 `mpuL10n.streamStates` map（`考え中…` / `応答中…` / `調べてる…` / `エラー` / `タイムアウト` / `混雑中…`）可透過既有 `.po` / `.mo` workflow 翻譯。
+
+### ✅ 驗證
+
+- `npm run verify`：PHP lint、bundle build、PHPUnit（22 tests / 51 assertions）全綠。
+- `js/dist/ukagaka-bundle.js` 與 `.min.js` 已重建（169.7 KB → 79.0 KB）。
+- `git diff --check`：無 whitespace error。
+
+---
+
 ## [2.17.0] - 2026-05-15
 
 ### 🛡️ Input Role Resolver 與伺服器端 Tool Gate

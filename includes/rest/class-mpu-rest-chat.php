@@ -64,43 +64,19 @@ class MPU_REST_Chat extends MPU_REST_Base {
     // Rate limit: 5 次 / 60 秒（頁面感知消耗較多 Token）
     // =========================================================================
 
-    public function chat_context(WP_REST_Request $request) {
-        $st = $this->check_session_token($request);
-        if ($st !== null) return $st;
-        $rl = $this->rate_limit('chat_context', 5, 60);
-        if ($rl !== null) return $rl;
-
+    protected function prepare_auto_chat_context(WP_REST_Request $request, array $options = []) {
         $mpu_opt = mpu_get_option();
 
         if (empty($mpu_opt['ai_enabled'])) {
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
+        }
+        if (!empty($options['require_first_visit_greeting']) && empty($mpu_opt['ai_greet_first_visit'])) {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
         $provider = mpu_get_current_provider($mpu_opt);
         $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
         if ($provider !== 'ollama' && empty($api_key)) {
-            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
-        }
-
-        $page_title_param   = $request->get_param('page_title');
-        $page_content_param = $request->get_param('page_content');
-        $publish_date_param = $request->get_param('publish_date');
-
-        $page_title   = !empty($page_title_param)   ? sanitize_text_field(wp_unslash($page_title_param))       : '';
-        $page_content = !empty($page_content_param) ? sanitize_textarea_field(wp_unslash($page_content_param)) : '';
-        $publish_date = !empty($publish_date_param) ? sanitize_text_field(wp_unslash($publish_date_param))      : '';
-
-        if (mb_strlen($page_title, 'UTF-8') > 500) {
-            $page_title = mb_substr($page_title, 0, 500, 'UTF-8');
-        }
-        if (mb_strlen($page_content, 'UTF-8') > 5000) {
-            $page_content = mb_substr($page_content, 0, 5000, 'UTF-8');
-        }
-        if (mb_strlen($publish_date, 'UTF-8') > 100) {
-            $publish_date = mb_substr($publish_date, 0, 100, 'UTF-8');
-        }
-
-        if (empty($page_title) && empty($page_content)) {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
@@ -128,7 +104,60 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'theme_author'         => $wp_info['theme_author'] ?? '',
         ];
 
-        $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
+        return [
+            'mpu_opt'              => $mpu_opt,
+            'provider'             => $provider,
+            'api_key'              => $api_key,
+            'wp_info'              => $wp_info,
+            'ukagaka_name'         => $ukagaka_name,
+            'ukagaka_display_name' => $ukagaka_display_name,
+            'language'             => $language,
+            'personality_id'       => $personality_id,
+            'time_context'         => $time_context,
+            'variables'            => $variables,
+            'system_prompt'        => mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables),
+        ];
+    }
+
+    public function chat_context(WP_REST_Request $request) {
+        $st = $this->check_session_token($request);
+        if ($st !== null) return $st;
+        $rl = $this->rate_limit('chat_context', 5, 60);
+        if ($rl !== null) return $rl;
+
+        $page_title_param   = $request->get_param('page_title');
+        $page_content_param = $request->get_param('page_content');
+        $publish_date_param = $request->get_param('publish_date');
+
+        $page_title   = !empty($page_title_param)   ? sanitize_text_field(wp_unslash($page_title_param))       : '';
+        $page_content = !empty($page_content_param) ? sanitize_textarea_field(wp_unslash($page_content_param)) : '';
+        $publish_date = !empty($publish_date_param) ? sanitize_text_field(wp_unslash($publish_date_param))      : '';
+
+        if (mb_strlen($page_title, 'UTF-8') > 500) {
+            $page_title = mb_substr($page_title, 0, 500, 'UTF-8');
+        }
+        if (mb_strlen($page_content, 'UTF-8') > 5000) {
+            $page_content = mb_substr($page_content, 0, 5000, 'UTF-8');
+        }
+        if (mb_strlen($publish_date, 'UTF-8') > 100) {
+            $publish_date = mb_substr($publish_date, 0, 100, 'UTF-8');
+        }
+
+        if (empty($page_title) && empty($page_content)) {
+            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
+        }
+
+        $ctx = $this->prepare_auto_chat_context($request);
+        if (is_wp_error($ctx)) return $ctx;
+        $mpu_opt        = $ctx['mpu_opt'];
+        $provider       = $ctx['provider'];
+        $api_key        = $ctx['api_key'];
+        $wp_info        = $ctx['wp_info'];
+        $ukagaka_name   = $ctx['ukagaka_name'];
+        $language       = $ctx['language'];
+        $personality_id = $ctx['personality_id'];
+        $variables      = $ctx['variables'];
+        $system_prompt  = $ctx['system_prompt'];
 
         $user_info    = mpu_get_current_user_info();
         $visitor_info = mpu_get_visitor_info_for_llm();
@@ -323,21 +352,6 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $rl = $this->rate_limit('chat_greet', 10, 60);
         if ($rl !== null) return $rl;
 
-        $mpu_opt = mpu_get_option();
-
-        if (empty($mpu_opt['ai_enabled'])) {
-            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
-        }
-        if (empty($mpu_opt['ai_greet_first_visit'])) {
-            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
-        }
-
-        $provider = mpu_get_current_provider($mpu_opt);
-        $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
-        if ($provider !== 'ollama' && empty($api_key)) {
-            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
-        }
-
         $referrer_param      = $request->get_param('referrer');
         $referrer_host_param = $request->get_param('referrer_host');
         $search_engine_param = $request->get_param('search_engine');
@@ -365,31 +379,16 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $city = mb_substr($city, 0, 100, 'UTF-8');
         }
 
-        $wp_info              = mpu_get_wordpress_info();
-        $ukagaka_name         = $mpu_opt['cur_ukagaka'] ?? 'default_1';
-        $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
-        $language             = $mpu_opt['ai_language'] ?? 'zh-TW';
-
-        $personality_id = mpu_resolve_personality_id($ukagaka_name);
-        $time_context   = mpu_get_time_context($personality_id);
-
-        $variables = [
-            'ukagaka_display_name' => $ukagaka_display_name,
-            'language'             => $language,
-            'time_context'         => $time_context,
-            'wp_version'           => $wp_info['wp_version'] ?? '',
-            'php_version'          => $wp_info['php_version'] ?? '',
-            'post_count'           => $wp_info['post_count'] ?? 0,
-            'comment_count'        => $wp_info['comment_count'] ?? 0,
-            'category_count'       => $wp_info['category_count'] ?? 0,
-            'tag_count'            => $wp_info['tag_count'] ?? 0,
-            'days_operating'       => $wp_info['days_operating'] ?? 0,
-            'theme_name'           => $wp_info['theme_name'] ?? '',
-            'theme_version'        => $wp_info['theme_version'] ?? '',
-            'theme_author'         => $wp_info['theme_author'] ?? '',
-        ];
-
-        $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
+        $ctx = $this->prepare_auto_chat_context($request, ['require_first_visit_greeting' => true]);
+        if (is_wp_error($ctx)) return $ctx;
+        $mpu_opt        = $ctx['mpu_opt'];
+        $provider       = $ctx['provider'];
+        $api_key        = $ctx['api_key'];
+        $ukagaka_name   = $ctx['ukagaka_name'];
+        $language       = $ctx['language'];
+        $personality_id = $ctx['personality_id'];
+        $variables      = $ctx['variables'];
+        $system_prompt  = $ctx['system_prompt'];
 
         $user_info      = mpu_get_current_user_info();
         $prompt_parts   = [];
@@ -642,8 +641,31 @@ class MPU_REST_Chat extends MPU_REST_Base {
         // 正規化後取最後 20 筆（synthetic+assistant 各佔一則，20 entries = 10 個互動事件）
         $chat_history = array_slice($normalized_history, -20);
 
+        $chat_lock = null;
+        if ($chat_session_id !== '' && class_exists('MPU_Chat_Lock')) {
+            $route = method_exists($request, 'get_route') ? (string) $request->get_route() : 'chat/user';
+            $lock_context = [
+                'route'      => strpos($route, 'user-stream') !== false ? 'user-stream' : 'user',
+                'input_role' => $input_role,
+            ];
+            if (function_exists('mpu_get_client_ip_strict')) {
+                $client_ip = mpu_get_client_ip_strict();
+                if (!empty($client_ip)) {
+                    $lock_context['ip_hash'] = substr(hash('sha256', (string) $client_ip), 0, 12);
+                }
+            }
+
+            $chat_lock = MPU_Chat_Lock::acquire($chat_session_id, $lock_context);
+            if (is_wp_error($chat_lock)) {
+                $error_data = $chat_lock->get_error_data();
+                $status = is_array($error_data) && isset($error_data['status']) ? (int) $error_data['status'] : 429;
+                return $this->fail('rest_error', $chat_lock->get_error_message(), $status);
+            }
+        }
+
         $integrity_check = MPU_Chat_History_Service::verify($chat_session_id, $chat_history);
         if (is_wp_error($integrity_check)) {
+            $this->release_chat_lock($chat_session_id, $chat_lock);
             $error_data = $integrity_check->get_error_data();
             $status = is_array($error_data) && isset($error_data['status']) ? (int) $error_data['status'] : 400;
             return $this->fail('rest_error', $integrity_check->get_error_message(), $status);
@@ -664,6 +686,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $provider = mpu_get_current_provider($mpu_opt);
         $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
         if ($provider !== 'ollama' && empty($api_key)) {
+            $this->release_chat_lock($chat_session_id, $chat_lock);
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
@@ -892,6 +915,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'ukagaka_name'         => $ukagaka_name,
             'personality_id'       => $personality_id,
             'chat_session_id'      => $chat_session_id,
+            'chat_lock'            => $chat_lock,
             'input_role'           => $input_role,
             'input_context'        => $input_context,
             'chat_history'         => $chat_history,
@@ -900,112 +924,144 @@ class MPU_REST_Chat extends MPU_REST_Base {
         ];
     }
 
+    protected function release_chat_lock($session_id, $lock): void {
+        if (!class_exists('MPU_Chat_Lock') || !is_array($lock) || empty($lock['token'])) {
+            return;
+        }
+
+        MPU_Chat_Lock::release($session_id, $lock['token']);
+    }
+
+    protected function register_chat_lock_shutdown($session_id, $lock): void {
+        if (!class_exists('MPU_Chat_Lock') || !is_array($lock) || empty($lock['token'])) {
+            return;
+        }
+
+        $token = (string) $lock['token'];
+        register_shutdown_function(static function () use ($session_id, $token) {
+            MPU_Chat_Lock::release($session_id, $token);
+        });
+    }
+
+    protected function exit_if_stream_aborted(array $args): void {
+        if (connection_aborted()) {
+            $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
+            exit;
+        }
+    }
+
     public function user_chat(WP_REST_Request $request) {
         $args = $this->prepare_user_chat_args($request);
         // 如果返回的是 WP_REST_Response (報錯時) 或 WP_Error
         if ($args instanceof WP_REST_Response || is_wp_error($args)) return $args;
+        $this->register_chat_lock_shutdown($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
 
-        // [Debug] MCP Tool Diagnostics
-        if (!empty($args['is_debug_mcp'])) {
-            $integration = function_exists('mpu_get_mcp_tools_for_llm') ? 'Yes' : 'No';
-            $wp_ability  = function_exists('wp_register_ability') ? 'Yes' : 'No';
-            $manager     = class_exists('\MP_Ukagaka\McpTools\Manager') ? 'Yes' : 'No';
+        try {
+            // [Debug] MCP Tool Diagnostics
+            if (!empty($args['is_debug_mcp'])) {
+                $integration = function_exists('mpu_get_mcp_tools_for_llm') ? 'Yes' : 'No';
+                $wp_ability  = function_exists('wp_register_ability') ? 'Yes' : 'No';
+                $manager     = class_exists('\MP_Ukagaka\McpTools\Manager') ? 'Yes' : 'No';
 
-            $check_abilities = [
-                'mp-ukagaka/get-popular-posts',
-                'mp-ukagaka/get-bot-blocker-stats',
-                'mp-ukagaka/ban-ip',
-                'mp-ukagaka/clear-bot-blocker-data',
-            ];
-            $abilities_html = '';
-            foreach ($check_abilities as $ability_name) {
-                $ok = function_exists('wp_has_ability') && wp_has_ability($ability_name);
-                $icon = $ok ? '✅' : '❌';
-                $short = preg_replace('#^[^/]+/#', '', $ability_name);
-                $abilities_html .= "<div style=\"margin-bottom:2px;\">{$icon} {$short}</div>";
+                $check_abilities = [
+                    'mp-ukagaka/get-popular-posts',
+                    'mp-ukagaka/get-bot-blocker-stats',
+                    'mp-ukagaka/ban-ip',
+                    'mp-ukagaka/clear-bot-blocker-data',
+                ];
+                $abilities_html = '';
+                foreach ($check_abilities as $ability_name) {
+                    $ok = function_exists('wp_has_ability') && wp_has_ability($ability_name);
+                    $icon = $ok ? '✅' : '❌';
+                    $short = preg_replace('#^[^/]+/#', '', $ability_name);
+                    $abilities_html .= "<div style=\"margin-bottom:2px;\">{$icon} {$short}</div>";
+                }
+
+                $tool_count = 0;
+                if (function_exists('mpu_get_mcp_tools_for_llm')) {
+                    $tools = mpu_get_mcp_tools_for_llm('gemini');
+                    $tool_count = is_array($tools) ? count($tools) : 0;
+                }
+
+                $report = '<div style="font-size:0.85em;line-height:1.6;">'
+                    . '<strong>MCP Diagnostics</strong><br>'
+                    . "Integration: {$integration}<br>"
+                    . "Manager: {$manager}<br>"
+                    . "Available Tools: {$tool_count}<br>"
+                    . '<hr style="margin:6px 0;border:0;border-top:1px dashed #aeb8c2;">'
+                    . '<div style="font-size:0.95em;">' . $abilities_html . '</div>'
+                    . '</div>';
+
+                // [Fix] 更新 Checksum
+                MPU_Chat_History_Service::store_after_user_chat(
+                    $args['chat_session_id'],
+                    $args['chat_history'],
+                    $args['user_message'],
+                    $report,
+                    false
+                );
+
+                return $this->ok(['msg' => $report]);
             }
 
-            $tool_count = 0;
-            if (function_exists('mpu_get_mcp_tools_for_llm')) {
-                $tools = mpu_get_mcp_tools_for_llm('gemini');
-                $tool_count = is_array($tools) ? count($tools) : 0;
+
+            $result = mpu_call_ai_api_with_messages(
+                $args['provider'],
+                $args['api_key'],
+                $args['system_prompt'],
+                $args['messages'],
+                $args['language'],
+                $args['mpu_opt']
+            );
+
+            if (is_wp_error($result)) {
+                return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
             }
 
-            $report = '<div style="font-size:0.85em;line-height:1.6;">'
-                . '<strong>MCP Diagnostics</strong><br>'
-                . "Integration: {$integration}<br>"
-                . "Manager: {$manager}<br>"
-                . "Available Tools: {$tool_count}<br>"
-                . '<hr style="margin:6px 0;border:0;border-top:1px dashed #aeb8c2;">'
-                . '<div style="font-size:0.95em;">' . $abilities_html . '</div>'
-                . '</div>';
+            // [Fix] 針對 Ollama 進行 Thinking 內容過濾，確保 Checksum 一致
+            if ($args['provider'] === 'ollama' && function_exists('mpu_filter_thinking_content')) {
+                $result = mpu_filter_thinking_content($result);
+            }
 
-            // [Fix] 更新 Checksum
+            // MCP Tool 執行時跳過長度截斷（global 由 Abilities 整合層設定）
+            if (!function_exists('mpu_did_request_execute_mcp_tool') || !mpu_did_request_execute_mcp_tool()) {
+                $max_length = 500;
+                if (function_exists('mpu_get_personality_max_response_length')) {
+                    $max_length = mpu_get_personality_max_response_length(null, $args['ukagaka_name']);
+                }
+                if (mb_strlen($result, 'UTF-8') > $max_length) {
+                    $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
+                }
+            }
+
+            $emoji = null;
+            if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
+                $emoji = mpu_analyze_emoji_from_text($result, $args['personality_id']);
+            }
+
+            if (function_exists('mpu_record_conversation')) {
+                mpu_record_conversation('interactive');
+            }
+
+            // [Fix] 儲存 Checksum，含 Double-Append 防護
             MPU_Chat_History_Service::store_after_user_chat(
                 $args['chat_session_id'],
                 $args['chat_history'],
                 $args['user_message'],
-                $report,
-                false
+                $result
             );
 
-            return $this->ok(['msg' => $report]);
+            return $this->ok(['msg' => $result, 'emoji' => $emoji]);
+        } finally {
+            $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
         }
-
-
-        $result = mpu_call_ai_api_with_messages(
-            $args['provider'],
-            $args['api_key'],
-            $args['system_prompt'],
-            $args['messages'],
-            $args['language'],
-            $args['mpu_opt']
-        );
-
-        if (is_wp_error($result)) {
-            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
-        }
-
-        // [Fix] 針對 Ollama 進行 Thinking 內容過濾，確保 Checksum 一致
-        if ($args['provider'] === 'ollama' && function_exists('mpu_filter_thinking_content')) {
-            $result = mpu_filter_thinking_content($result);
-        }
-
-        // MCP Tool 執行時跳過長度截斷（global 由 Abilities 整合層設定）
-        if (!function_exists('mpu_did_request_execute_mcp_tool') || !mpu_did_request_execute_mcp_tool()) {
-            $max_length = 500;
-            if (function_exists('mpu_get_personality_max_response_length')) {
-                $max_length = mpu_get_personality_max_response_length(null, $args['ukagaka_name']);
-            }
-            if (mb_strlen($result, 'UTF-8') > $max_length) {
-                $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
-            }
-        }
-
-        $emoji = null;
-        if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-            $emoji = mpu_analyze_emoji_from_text($result, $args['personality_id']);
-        }
-
-        if (function_exists('mpu_record_conversation')) {
-            mpu_record_conversation('interactive');
-        }
-
-        // [Fix] 儲存 Checksum，含 Double-Append 防護
-        MPU_Chat_History_Service::store_after_user_chat(
-            $args['chat_session_id'],
-            $args['chat_history'],
-            $args['user_message'],
-            $result
-        );
-
-        return $this->ok(['msg' => $result, 'emoji' => $emoji]);
     }
 
     public function user_chat_stream(WP_REST_Request $request) {
         $args = $this->prepare_user_chat_args($request);
         // 如果返回的是 WP_REST_Response (報錯或 /debug_mcp) 或 WP_Error
         if ($args instanceof WP_REST_Response || is_wp_error($args)) return $args;
+        $this->register_chat_lock_shutdown($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
 
         // [精準修正 1] 提前攔截 /debug_mcp 轉向同步路徑，避免後續 Provider 檢查失敗
         if (!empty($args['is_debug_mcp'])) {
@@ -1022,6 +1078,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             mpu_sse_init();
             $msg = is_wp_error($provider_instance) ? $provider_instance->get_error_message() : __('現在のプロバイダーはストリーミングモードに対応していません', 'mp-ukagaka');
             mpu_sse_send_event('error', ['message' => $msg]);
+            $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
             exit;
         }
 
@@ -1033,6 +1090,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'provider' => $args['provider'],
             'model'    => $args['model'] ?? 'unknown',
         ]);
+        $this->exit_if_stream_aborted($args);
 
         // 發送 Nonce 更新事件
         $new_token = wp_create_nonce('wp_rest');
@@ -1040,15 +1098,17 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'new_token' => $new_token,
             'new_nonce' => $new_token,
         ]);
+        $this->exit_if_stream_aborted($args);
 
         $full_response_content = "";
 
         // 呼叫 Provider 串流
         $stream_result = $provider_instance->generate_chat_stream(
             $args, 
-            function($event, $data) use (&$full_response_content) {
+            function($event, $data) use (&$full_response_content, $args) {
                 // 轉發到 SSE
                 mpu_sse_send_event($event, $data);
+                $this->exit_if_stream_aborted($args);
                 
                 // 累積文字用於 Checksum
                 if ($event === 'delta' && isset($data['text'])) {
@@ -1060,6 +1120,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         if (is_wp_error($stream_result)) {
             // 如果串流中途出錯且尚未結束，發送錯誤事件
             mpu_sse_send_event('error', ['message' => $stream_result->get_error_message()]);
+            $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
             exit;
         }
 
@@ -1105,6 +1166,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'emoji' => $emoji,
         ]);
 
+        $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
         exit;
     }
 

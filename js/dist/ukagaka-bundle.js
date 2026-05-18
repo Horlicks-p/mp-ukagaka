@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-18T05:43:31.988Z
+ * Generated: 2026-05-18T12:44:47.861Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -4577,10 +4577,20 @@ function mpu_sendUserMessage() {
 
     function setStreamState(state) {
       $msgbox.attr("data-mpu-stream-state", state);
+      const labels =
+        (typeof mpuL10n !== "undefined" && mpuL10n.streamStates) || {};
+      const label = labels[state] || "";
+      let badge = $msgbox.children(".mpu-state-badge");
+      if (badge.length === 0) {
+        badge = jQuery('<span class="mpu-state-badge" aria-live="polite"></span>');
+        $msgbox.append(badge);
+      }
+      badge.text(label);
     }
 
     function clearStreamState() {
       $msgbox.removeAttr("data-mpu-stream-state");
+      $msgbox.children(".mpu-state-badge").remove();
     }
 
     function clearStreamWatchdog() {
@@ -4631,7 +4641,16 @@ function mpu_sendUserMessage() {
       if (streamFinalized) return;
       streamFinalized = true;
       clearStreamWatchdog();
-      if (timedOut) {
+
+      const isBusy =
+        !timedOut &&
+        error &&
+        (error.code === "mpu_chat_lock_busy" ||
+          (error.data && error.data.status === 429));
+
+      if (isBusy) {
+        setStreamState("busy");
+      } else if (timedOut) {
         setStreamState("timeout");
       } else if (error) {
         setStreamState("error");
@@ -4641,7 +4660,16 @@ function mpu_sendUserMessage() {
       stopStreamTypewriter();
       rollbackLastUserMessage();
       releaseStreamInput();
-      if (timedOut) {
+      if (isBusy) {
+        const busyMsg =
+          (error && error.message) ||
+          (typeof mpuL10n !== "undefined" &&
+            mpuL10n.streamStates &&
+            mpuL10n.streamStates.busy) ||
+          "混雑中…";
+        mpu_typewriter(busyMsg, "#ukagaka_msg");
+        mpuLogger.warn("Chat lock busy:", error);
+      } else if (timedOut) {
         mpu_typewriter(streamTimeoutMessage(), "#ukagaka_msg");
         mpuLogger.warn("SSE watchdog timeout");
       } else if (error) {
@@ -4721,7 +4749,7 @@ function mpu_sendUserMessage() {
           mpuLogger.log("SSE Started:", data);
         },
         onDelta: (data) => {
-          clearStreamState();
+          setStreamState("streaming");
           if (data.text) {
             fullResponse += data.text;
             if (streamDisplayedText === "" && streamPendingText === "") $msg.empty();

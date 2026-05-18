@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.17.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.18.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,17 +98,15 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.17.0 の新機能
+## 🎉 v2.18.0 の新機能
 
-**Input Role Resolver + Tool Gate**：新しい `MPU_Input_Role` が、LLM 入力の identity（admin / system / subscriber / visitor）を WordPress の capability と切り分けます。ability の whitelist をハードコードし、LLM への tool 露出と tool 実行の両方を同じ役割で gating します。
+**PHPUnit テスト基盤**：chat-integrity、encryption、input role、session event、template rendering、新規 chat lock を含む 6 つの初期スイート（22 tests / 51 assertions）。`npm run verify` が PHP lint → bundle build → PHPUnit を順に実行し、`build.js` は minify 失敗時に非 0 で exit するので CI が誤って pass することはありません。
 
-**Session Event Envelope**：`MPU_Session_Event` を新設し、SSE event を `kind + payload + eventId + ts` の封筒で包みます。legacy 名は両端で引き続き読めるため、後方互換を維持します。
+**Chat Lifecycle Lock**：新しい `MPU_Chat_Lock` は `add_option` ベースの atomic check-and-set を採用しました（transient は並行リクエスト下で atomic ではないため非採用）。60 秒 TTL、`hash_equals` による token 検証 release、期限切れ lock の retry を備えます。`/chat/user` と `/chat/user-stream` のみ対象で、衝突は既存の fail envelope 経由で HTTP 429 を返します。
 
-**Client-side SSE Watchdog**：45 秒のタイムアウトで stream を abort し、未確定の user message を rollback、入力欄を解放、タイムアウト通知を表示します。「考え中…」のまま固まる zombie state を防ぎます。
+**REST Chat 重複削減**：新しい `prepare_auto_chat_context()` ヘルパーが `chat_context()` と `chat_greet()` で重複していた provider / personality / system_prompt の前処理を集約します。response shape と checksum の挙動は変更なし。
 
-**Chat Integrity 三段モード**：`chat_integrity_mode = audit（既定）| warn | block`。定数 / option / filter の三層で制御でき、`block` モードでも expected checksum が無いケースはスルーする安全側の挙動です。
-
-**Hardening パッチを同梱**：2.16.1–2.16.4 で先行していた管理画面の output escaping、bot-blocker のスキャナー除外、`MPU_PLUGIN_DIR` 修正を本リリースにまとめて取り込みました。
+**SSE State Badge**：`#ukagaka_msgbox` に表示される `.mpu-state-badge` が 6 つのローカライズ状態（thinking / streaming / tool / error / timeout / busy）を、2.17.0 で導入した `data-mpu-stream-state` 属性に基づいて描画します。chat lock 衝突は汎用エラーではなく `busy` 状態としてローカライズメッセージで提示されます。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

@@ -8,9 +8,9 @@
     "example": "example"
   },
   "scripts": {
-    "build": "node build.js",
+    "build": "cd ../.. && node tools/node/build.js",
     "lint:php": "cd ../.. && php -r \"$e=0;foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('includes')) as $f){if($f->getExtension()==='php'){$r=0;passthru('php -l '.escapeshellarg($f),$r);$e|=$r;}}foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('options')) as $f){if($f->getExtension()==='php'){$r=0;passthru('php -l '.escapeshellarg($f),$r);$e|=$r;}}$r=0;passthru('php -l mp-ukagaka.php',$r);$e|=$r;exit($e);\"",
-    "test:php": "cd ../.. && php tools/php/vendor/bin/phpunit --configuration tests/phpunit.xml.dist --colors=always",
+    "test:php": "cd ../../tests && php ../tools/php/vendor/bin/phpunit --colors=always",
     "verify": "npm run lint:php && npm run build && npm run test:php",
     "test": "npm run test:php"
   },

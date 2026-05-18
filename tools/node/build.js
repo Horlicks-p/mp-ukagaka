@@ -35,6 +35,8 @@ const jsDir = path.join(repoRoot, 'js');
 const distDir = path.join(repoRoot, 'js', 'dist');
 
 async function build() {
+    let failed = false;
+
     console.log('🚀 MP Ukagaka JS Build Starting...\n');
 
     // 確保 dist 目錄存在
@@ -114,6 +116,7 @@ async function build() {
         console.log(`  → Compression: ${savings}% reduction\n`);
     } catch (error) {
         console.error('  ✗ Minification failed:', error.message);
+        failed = true;
     }
 
     // === Phase 3: Minify standalone files ===
@@ -136,11 +139,19 @@ async function build() {
                 console.log(`  ✓ ${file} → ${minFileName}`);
             } catch (error) {
                 console.log(`  ✗ Failed to minify ${file}: ${error.message}`);
+                failed = true;
             }
         }
+    }
+
+    if (failed) {
+        throw new Error('Build failed.');
     }
 
     console.log('\n✅ Build complete!');
 }
 
-build().catch(console.error);
+build().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});

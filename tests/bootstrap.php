@@ -28,7 +28,9 @@ if (file_exists($autoload)) {
 
 $GLOBALS['_mpu_test_filters'] = [];
 $GLOBALS['_mpu_test_actions'] = [];
+$GLOBALS['_mpu_test_action_log'] = [];
 $GLOBALS['_mpu_test_transients'] = [];
+$GLOBALS['_mpu_test_options'] = [];
 $GLOBALS['_mpu_test_current_user_can'] = false;
 $GLOBALS['_mpu_test_is_user_logged_in'] = false;
 
@@ -62,16 +64,48 @@ function __($text, $domain = 'default') {
     return $text;
 }
 
-function apply_filters($hook_name, $value) {
+function apply_filters($hook_name, $value, ...$args) {
+    if (empty($GLOBALS['_mpu_test_filters'][$hook_name])) {
+        return $value;
+    }
+
+    usort($GLOBALS['_mpu_test_filters'][$hook_name], static function ($a, $b) {
+        return ($a['priority'] ?? 10) <=> ($b['priority'] ?? 10);
+    });
+
+    foreach ($GLOBALS['_mpu_test_filters'][$hook_name] as $filter) {
+        $accepted_args = max(1, (int) ($filter['accepted_args'] ?? 1));
+        $callback_args = array_slice(array_merge([$value], $args), 0, $accepted_args);
+        $value = call_user_func_array($filter['callback'], $callback_args);
+    }
+
     return $value;
 }
 
 function do_action($hook_name, ...$args) {
-    $GLOBALS['_mpu_test_actions'][] = [$hook_name, $args];
+    $GLOBALS['_mpu_test_action_log'][] = [$hook_name, $args];
+
+    if (empty($GLOBALS['_mpu_test_actions'][$hook_name])) {
+        return;
+    }
+
+    usort($GLOBALS['_mpu_test_actions'][$hook_name], static function ($a, $b) {
+        return ($a['priority'] ?? 10) <=> ($b['priority'] ?? 10);
+    });
+
+    foreach ($GLOBALS['_mpu_test_actions'][$hook_name] as $action) {
+        $accepted_args = (int) ($action['accepted_args'] ?? 1);
+        call_user_func_array($action['callback'], array_slice($args, 0, $accepted_args));
+    }
 }
 
 function add_filter($hook_name, $callback, $priority = 10, $accepted_args = 1) {
     $GLOBALS['_mpu_test_filters'][$hook_name][] = compact('callback', 'priority', 'accepted_args');
+    return true;
+}
+
+function add_action($hook_name, $callback, $priority = 10, $accepted_args = 1) {
+    $GLOBALS['_mpu_test_actions'][$hook_name][] = compact('callback', 'priority', 'accepted_args');
     return true;
 }
 
@@ -126,6 +160,33 @@ function get_transient($key) {
         : false;
 }
 
+function get_option($key, $default = false) {
+    return array_key_exists($key, $GLOBALS['_mpu_test_options'])
+        ? $GLOBALS['_mpu_test_options'][$key]
+        : $default;
+}
+
+function add_option($key, $value = '', $deprecated = '', $autoload = 'yes') {
+    if (array_key_exists($key, $GLOBALS['_mpu_test_options'])) {
+        return false;
+    }
+    $GLOBALS['_mpu_test_options'][$key] = $value;
+    return true;
+}
+
+function update_option($key, $value, $autoload = null) {
+    $GLOBALS['_mpu_test_options'][$key] = $value;
+    return true;
+}
+
+function delete_option($key) {
+    if (!array_key_exists($key, $GLOBALS['_mpu_test_options'])) {
+        return false;
+    }
+    unset($GLOBALS['_mpu_test_options'][$key]);
+    return true;
+}
+
 function set_transient($key, $value, $expiration = 0) {
     $GLOBALS['_mpu_test_transients'][$key] = $value;
     return true;
@@ -145,6 +206,7 @@ function mpu_log_error($message) {
 }
 
 require_once MPU_TESTS_ROOT . '/includes/llm/chat-integrity.php';
+require_once MPU_TESTS_ROOT . '/includes/llm/class-mpu-chat-lock.php';
 require_once MPU_TESTS_ROOT . '/includes/core/class-mpu-input-role.php';
 require_once MPU_TESTS_ROOT . '/includes/llm/class-mpu-session-event.php';
 require_once MPU_TESTS_ROOT . '/includes/core/utility-functions.php';

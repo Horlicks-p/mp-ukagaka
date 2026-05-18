@@ -561,6 +561,16 @@ function mpu_enqueue_frontend_assets()
         'chatPlaceholder' => __('メッセージを入力...', 'mp-ukagaka'),
         'chatThinking' => __('…うーん、そうだね…', 'mp-ukagaka'),
         'executingTool' => __('（…%sを実行中…）', 'mp-ukagaka'),
+        // Stream state badge labels（v2.18 #4：runtime 驗收用，data-mpu-stream-state 對應）
+        'streamStates' => [
+            'thinking'  => __('考え中…', 'mp-ukagaka'),
+            'streaming' => __('応答中…', 'mp-ukagaka'),
+            'tool'      => __('調べてる…', 'mp-ukagaka'),
+            'status'    => __('応答中…', 'mp-ukagaka'),
+            'error'     => __('エラー', 'mp-ukagaka'),
+            'timeout'   => __('タイムアウト', 'mp-ukagaka'),
+            'busy'      => __('混雑中…', 'mp-ukagaka'),
+        ],
     ]);
 }
 add_action('wp_enqueue_scripts', 'mpu_enqueue_frontend_assets');

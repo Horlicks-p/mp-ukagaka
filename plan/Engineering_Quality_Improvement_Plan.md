@@ -68,10 +68,66 @@
 
 ### v2.18 milestone 完成條件
 
-- [ ] `composer test` 可執行並通過核心純函式測試
-- [ ] `/chat/user` 和 `/chat/user-stream` 在連續快速請求時回 HTTP 429（lock 生效）
-- [ ] `chat_context()` 和 `chat_greet()` 共用 `prepare_auto_chat_context()`，response shape 不變
-- [ ] 前端在 SSE 進行中可見狀態 badge，timeout/error 時正確顯示
+- [x] `composer test` 可執行並通過核心純函式測試 — `npm --prefix tools/node run test:php` → 22 tests / 51 assertions
+- [x] `/chat/user` 和 `/chat/user-stream` 在連續快速請求時回 HTTP 429（lock 生效）— `MPU_Chat_Lock` 接入兩個入口
+- [x] `chat_context()` 和 `chat_greet()` 共用 `prepare_auto_chat_context()`，response shape 不變 — 已抽 helper
+- [x] 前端在 SSE 進行中可見狀態 badge，timeout/error 時正確顯示 — `.mpu-state-badge` 渲染六狀態 + busy 對應 429
+
+---
+
+## ✅ v2.18 完成報告（2026-05-18 夜間更新）
+
+> 公司端 CLAUDE / CODEX 接手前必讀。本 milestone 全部 4 項在 2026-05-18 當日完成（家用機實作）。
+> 版本已 bump 到 **2.18.0**，三份 CHANGELOG + readme.txt 已寫；可直接 tag 發版。
+> 完整變更內容看 `docs-en/CHANGELOG.md` 的 `[2.18.0]` 條目。
+
+### 項目盤點
+
+| # | 項目 | 主要產出 | 規模 |
+|:-:|------|---------|------|
+| 1 | PHPUnit 骨架 + verify 串接 | `tests/`、`tools/php/composer.json`、6 個 Unit test | 22 tests / 51 assertions |
+| 2 | 並行 LLM lock | `includes/llm/class-mpu-chat-lock.php` + REST 接入 | ~150 行 + 7 個測試 case |
+| 3 | REST Chat dedup | `MPU_REST_Chat::prepare_auto_chat_context()` | 抽 ~55 行共用 helper |
+| 4 | UI 狀態 badge | `.mpu-state-badge` + CSS + `mpuL10n.streamStates` | 6 個可見狀態 |
+
+### 關鍵決策（與原計畫不同或需註記之處）
+
+**#2 鎖選 `add_option` 而非 `transient`** — 原計畫只說「lock」沒指定 primitive。實作前發現 `get_transient()` + `set_transient()` 兩步操作不是 atomic，並行下會出現「兩個 request 都看到沒鎖、各自 set 自己 token、第二個覆蓋第一個」的 race — 也就是 lock 本身會有它要防的 bug。改用 `add_option($key, $payload, '', 'no')`：底層 MySQL `INSERT` + UNIQUE key 為 atomic check-and-set，autoload='no' 避免污染 autoload 快取。
+
+**#2 TTL 60s（而非 90s）** — PR4 watchdog 是 45s，95p LLM 回應應 < 45s。60s 已涵蓋；90s 萬一 release 失敗會多擋使用者 30 秒重試，看起來像「壞了」而非「忙線中」。`mpu_chat_lock_ttl` filter 可調，clamp 到 [10, 300] 秒。
+
+**#2 SSE 雙保險 release** — `register_shutdown_function` 在客戶端中途關瀏覽器分頁時不保證即時觸發。所以 SSE chunk loop 每個 emit 後都跑 `connection_aborted()` 檢查（`exit_if_stream_aborted()`）。token 驗證確保 shutdown fallback 不會誤殺後續請求的 lock。
+
+**#2 `/debug_mcp` 早 return 不走 lock** — `prepare_user_chat_args()` 在 line 542 對 `/debug_mcp` 早 return，根本到不了 lock acquire（CODEX 原本要求「不鎖 debug_mcp」自動成立，沒有額外 guard）。
+
+**#3 helper 用 `$options` flag 而非拆兩函式** — `chat_greet` 需要額外的 `ai_greet_first_visit` 預檢，但前處理 90% 相同。用 `require_first_visit_greeting` flag 而不是拆兩個 helper，集中度高。
+
+**#4 `status` state 對應 `streaming` 同 label** — 既有 `setStreamState('status')` 在「非 tool 但有 message」時使用，CODEX 列的 6 個 visible state 沒包含它。為避免空 badge，CSS 把 `status` 跟 `streaming` 用同樣 selector 群（同綠色 pill、同 label）。
+
+### 附帶完成的工程修正（不在原計畫但順手修了）
+
+- `tests/phpunit.xml.dist` 加 `cacheResult="false"` — 防 `.phpunit.result.cache` 在受限環境寫入失敗
+- `tools/node/build.js` 修為失敗時 exit 非 0 — 原本 minify 失敗只 `console.error` 不 throw，verify 會假通過
+- `tests/bootstrap.php` 的 `apply_filters` / `add_action` mock 改為真正執行 callback（按 priority 排序、依 `accepted_args` 截參數） — 為將來測 `mpu_chat_integrity_mode` 這類 filter 鋪路
+- `tools/node/package.json` 的 `test:php` 改為 `cd ../../tests && php ../tools/php/vendor/bin/phpunit` — Windows + PHPUnit 9.6 在 `--configuration tests/phpunit.xml.dist` 模式下 bootstrap path 解析失敗的繞路，Linux/Mac 也能跑
+
+### v2.19+ 起跑線
+
+`v2.18` milestone 凍結。下一階段照本文件「執行順序」表續做：
+
+- **#5 核心 class 型別宣告**（Eng. Phase 3.1）— 限縮到 `MPU_REST_Base` / `MPU_Input_Role` / `MPU_Session_Event` / `chat-integrity`；**不**對 utility-functions 大舉加型別
+- **#6 utility-functions 拆分**（Eng. Phase 2.2）— 拆 encryption / network / wp-info / template / file 五檔，每拆一檔跑一次 verify
+- **#7 runtime_state helper**（Avatar §4）— transient-based ghost runtime state；**MPU_Config 仍維持否決**（Avatar X-1）
+
+`prepare_auto_chat_context()` 已抽，後續若想 dedup 其他 REST handler 邊界已清楚；`MPU_Chat_Lock` 已釘住 lifecycle 邊界，#5 加型別不會誤切到 lock 行為。
+
+### 驗證指令
+
+```bash
+npm --prefix tools/node run verify
+```
+
+預期：lint pass → bundle 重建（169.7 → 79.0 KB）→ PHPUnit `OK (22 tests, 51 assertions)`。
 
 ---
 
@@ -390,4 +446,4 @@ if (function_exists('mpu_fetch_slimstat_stats')) { ... }
 
 ---
 
-*Last updated: 2026-05-18 — added Execution Decision merging Avatar_UI_Learnings.md ordering*
+*Last updated: 2026-05-18（夜間）— v2.18 milestone 全 4 項完成，新增「v2.18 完成報告」段落供公司端 CLAUDE / CODEX 接手參考*

@@ -405,3 +405,42 @@
     opacity: 1;
   }
 }
+
+/* ===== Stream State Badge (v2.18 #4：runtime 驗收工具) ===== */
+.mpu-state-badge {
+  position: absolute;
+  top: -6px;
+  right: 6px;
+  z-index: 10002;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 10px;
+  pointer-events: none;
+  font-family: "Noto Sans TC", "Noto Sans JP", sans-serif;
+  white-space: nowrap;
+  letter-spacing: 0;
+  user-select: none;
+}
+#ukagaka_msgbox[data-mpu-stream-state="thinking"] .mpu-state-badge {
+  background: rgba(30, 58, 138, 0.85);
+}
+#ukagaka_msgbox[data-mpu-stream-state="streaming"] .mpu-state-badge,
+#ukagaka_msgbox[data-mpu-stream-state="status"] .mpu-state-badge {
+  background: rgba(16, 122, 56, 0.85);
+}
+#ukagaka_msgbox[data-mpu-stream-state="tool"] .mpu-state-badge {
+  background: rgba(126, 87, 14, 0.85);
+}
+#ukagaka_msgbox[data-mpu-stream-state="error"] .mpu-state-badge {
+  background: rgba(176, 32, 32, 0.85);
+}
+#ukagaka_msgbox[data-mpu-stream-state="timeout"] .mpu-state-badge {
+  background: rgba(120, 60, 30, 0.85);
+}
+#ukagaka_msgbox[data-mpu-stream-state="busy"] .mpu-state-badge {
+  background: rgba(176, 100, 20, 0.85);
+}

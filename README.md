@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.17.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.18.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,17 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.17.0
+## 🎉 What's New in v2.18.0
 
-**Input Role Resolver + Tool Gate**: A new `MPU_Input_Role` separates LLM input identity (admin / system / subscriber / visitor) from raw WordPress capabilities, and a hardcoded ability whitelist now gates both LLM tool exposure and tool execution.
+**PHPUnit Testing Infrastructure**: Six initial test suites cover chat-integrity, encryption, input role, session event, template rendering, and the new chat lock — 22 tests / 51 assertions. `npm run verify` now chains PHP lint → bundle build → PHPUnit, and `build.js` exits non-zero on minify failure so CI never silently passes.
 
-**Session Event Envelope**: New `MPU_Session_Event` wraps SSE events with `kind + payload + eventId + ts`. Legacy event names remain readable on both ends — no breaking changes.
+**Chat Lifecycle Lock**: A new `MPU_Chat_Lock` uses `add_option`-based atomic check-and-set (not transient — transient is not atomic under parallel requests) with 60-second TTL, token-validated release via `hash_equals`, and expired-lock retry. Only `/chat/user` and `/chat/user-stream` are gated; conflicts return HTTP 429 via the existing fail envelope.
 
-**Client-side SSE Watchdog**: A 45-second timeout aborts the stream, rolls back the pending user message, restores the input box, and surfaces a timeout notice so the ghost never freezes in a "thinking..." zombie state.
+**REST Chat Dedup**: A new `prepare_auto_chat_context()` helper centralizes the provider / personality / system_prompt boilerplate previously duplicated between `chat_context()` and `chat_greet()`. Response shape and checksum behavior are unchanged.
 
-**Chat Integrity Three-Tier Mode**: `chat_integrity_mode = audit (default) | warn | block`, controllable via constant, option, or filter. The `block` mode only fires on real mismatches with existing checksums — missing transients still pass through.
-
-**Hardening Patches Absorbed**: WordPress output escaping compliance, bot-blocker scanner exemption, and a `MPU_PLUGIN_DIR` fix previously staged as 2.16.1–2.16.4 are bundled into this release.
+**SSE State Badge**: A visible `.mpu-state-badge` on `#ukagaka_msgbox` renders six localized states (thinking / streaming / tool / error / timeout / busy) backed by the existing `data-mpu-stream-state` attribute. Chat lock conflicts now surface as the `busy` state with a localized message instead of a generic error.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

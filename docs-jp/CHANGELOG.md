@@ -4,6 +4,50 @@
 
 ---
 
+## [2.18.0] - 2026-05-18
+
+### 🧪 テスト基盤（PHPUnit + verify pipeline）
+
+- **PHPUnit ユニットテストを追加**：`tests/` ディレクトリを新設し、WordPress を起動せずに pure function を検証できる最小限の WordPress モック（`tests/bootstrap.php`）を用意しました。初期スイートは `chat-integrity`（filter / checksum / slice）、encryption の round-trip、input role 解決、session event envelope、template rendering、新規 chat lock の 6 件で、合計 22 tests / 51 assertions です。
+- **Composer ベースのツール環境**：dev 依存（`phpunit/phpunit ^9.6`、`brain/monkey ^2.6`）は `tools/php/composer.json` で管理し、vendor は `tools/php/vendor/` に隔離されます。プラグイン本体は runtime の composer 依存を持ちません。
+- **`npm run verify` パイプライン**：`tools/node/package.json` で `lint:php` → `build` → `test:php` を順に実行できるようにしました。build スクリプトは minify 失敗時に exit code を非 0 に変更したため、CI が誤って pass することはありません。
+- **PHPUnit `cacheResult="false"`**：制限的な sandbox で `.phpunit.result.cache` 書き込みが permission warning を引き起こすケースを防ぎます。
+- **filter / action モックが実際にコールバックを実行**：`tests/bootstrap.php` で priority ソートと `accepted_args` を尊重するようになりました。今後 `mpu_chat_integrity_mode` 等のフィルターを安心してテストできます。
+
+### 🔒 Chat Lifecycle Lock（並行 LLM 防護）
+
+- **新しい `MPU_Chat_Lock` クラス**（`includes/llm/class-mpu-chat-lock.php`）：`add_option($key, $payload, '', 'no')` による atomic check-and-set を採用しました。transient は `get_transient()` + `set_transient()` が並行リクエスト下で atomic でないため、まさに lock が防ごうとしている race を lock 自身が持ってしまうので採用していません。
+- **期限切れ lock の retry**：`add_option()` が失敗し、かつ既存 lock が期限切れであれば `delete_option()` してから一度だけ再 acquire を試みます。クラッシュした PHP worker が残した stale lock は次のリクエストで自動回復します。
+- **token 検証付き release**：`release($session_id, $token)` は `hash_equals()` で token を照合するため、別リクエストの lock を誤って解放することはありません。二重 finally バグへの防御層です。
+- **`mpu_chat_lock_ttl` フィルターで 60 秒**（`[10, 300]` 秒にクランプ）。
+- **3 つの action hook**：`mpu_chat_lock_acquired` / `mpu_chat_lock_released` / `mpu_chat_lock_conflict`。metrics 収集、audit log、将来の approval-hub 統合に利用可能。
+- **`/chat/user` と `/chat/user-stream` のみ対象**：`/chat/greet`、`/chat/context`、`/debug_mcp` は意図的に lock しません（既存のルート別 rate limit でカバー）。
+- **conflict は HTTP 429 を返却**：既存の `$this->fail()` envelope を使うため、フロントエンドのエラー処理を改修する必要はありません。
+- **SSE 安全な release**：lock 取得直後に `register_shutdown_function()` を登録し、stream loop は chunk 間で `connection_aborted()` を `exit_if_stream_aborted()` 経由で確認します。クライアントが途中で切断しても lock は確実に解放され、token 検証により後続リクエストの lock を上書きしません。
+- **lock context** に `route`、`input_role`、`ip_hash`（`sha256(client_ip)` の先頭 12 文字）を記録。raw IP を保存せずに triage が可能。
+
+### 🧹 REST Chat ハンドラの重複削減
+
+- **新しい `prepare_auto_chat_context()` ヘルパー**（`MPU_REST_Chat`）：`chat_context()` と `chat_greet()` で重複していた前処理（`ai_enabled` / `ai_greet_first_visit` チェック、provider + API key、`wp_info`、ukagaka 識別、language、personality、time context、13 個の variable map、解決済み system prompt）を集約しました。
+- **`require_first_visit_greeting` オプション flag** によって `chat_greet` の追加チェックを差分化。2 つのヘルパーに分けずに済みます。
+- **response shape は変更なし**。checksum 保存（`store_after_auto` の `'context'` / `'greet'` kind）は意図的にそのまま。`prepare_user_chat_args()`、chat lock、SSE 周りは触っていません。
+
+### 🏷️ SSE Stream State Badge（runtime 検証 UI）
+
+- **`#ukagaka_msgbox` の右上に表示される `.mpu-state-badge`**：2.17.0 で追加した `data-mpu-stream-state` 属性をベースにした可視レイヤーです。新しい state machine ではなく、既存データを可視化しただけ。
+- **6 つの可視状態**：`thinking`、`streaming`、`tool`、`error`、`timeout`、`busy`。`status` は空ラベル回避のため `streaming` と同じ表示にマップされます。
+- **chat lock 衝突時の `busy` 状態**：`handleStreamFailure()` が SSE の JSON fallback path から `error.code === "mpu_chat_lock_busy"` または `error.data.status === 429` を検出し、汎用エラーではなくローカライズされた「混雑中…」メッセージを表示します。
+- **最初の delta で `streaming` 状態に**：`onDelta` は属性を消すのではなく `setStreamState("streaming")` を呼ぶようになり、テキスト streaming 中も badge が表示されます。
+- **既存の `mpuL10n` 機構で i18n**：新しい `mpuL10n.streamStates` map（`考え中…` / `応答中…` / `調べてる…` / `エラー` / `タイムアウト` / `混雑中…`）は既存の `.po` / `.mo` ワークフローで翻訳可能です。
+
+### ✅ 検証
+
+- `npm run verify`：PHP lint、bundle build、PHPUnit（22 tests / 51 assertions）すべて pass。
+- `js/dist/ukagaka-bundle.js` と `.min.js` を再ビルド（169.7 KB → 79.0 KB）。
+- `git diff --check`：whitespace error なし。
+
+---
+
 ## [2.17.0] - 2026-05-15
 
 ### 🛡️ Input Role Resolver と Server-side Tool Gate

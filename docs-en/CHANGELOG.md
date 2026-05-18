@@ -4,6 +4,50 @@
 
 ---
 
+## [2.18.0] - 2026-05-18
+
+### 🧪 Testing Infrastructure (PHPUnit + verify pipeline)
+
+- **Added PHPUnit unit testing**: introduced `tests/` with a minimal WordPress mock bootstrap (`tests/bootstrap.php`) that lets pure-function tests run without booting WordPress. Six initial suites cover `chat-integrity` (filter / checksum / slice), encryption round-trip, input role resolution, session event envelope, template rendering, and the new chat lock — 22 tests / 51 assertions in total.
+- **Composer-based tooling**: dev dependencies (`phpunit/phpunit ^9.6`, `brain/monkey ^2.6`) live in `tools/php/composer.json` with vendor isolated under `tools/php/vendor/`. The plugin itself ships no runtime composer dependency.
+- **`npm run verify` pipeline**: `tools/node/package.json` now chains `lint:php` → `build` → `test:php` so every change can be validated locally. The build script now exits non-zero on minify failure so CI no longer silently passes.
+- **PHPUnit `cacheResult="false"`**: prevents `.phpunit.result.cache` write attempts from triggering permission warnings in restrictive sandboxes.
+- **Filter/action mocks actually execute callbacks** in `tests/bootstrap.php` (priority-sorted, `accepted_args`-aware) — future tests for filters like `mpu_chat_integrity_mode` will be reliable.
+
+### 🔒 Chat Lifecycle Lock (concurrent LLM protection)
+
+- **New `MPU_Chat_Lock` class** (`includes/llm/class-mpu-chat-lock.php`): atomic check-and-set primitive using `add_option($key, $payload, '', 'no')`. Transients are deliberately not used because `get_transient()` + `set_transient()` is not atomic under parallel requests and would itself have the race the lock is meant to prevent.
+- **Expired-lock retry flow**: if `add_option()` fails and the existing lock has expired, `delete_option()` is called and one retry attempts a fresh acquire. Stale locks from crashed PHP workers self-heal within one request cycle.
+- **Token-validated release**: `release($session_id, $token)` uses `hash_equals()` to compare tokens, so a request can never accidentally release a lock held by another request. Defense-in-depth against double-finally bugs.
+- **60-second TTL via `mpu_chat_lock_ttl` filter**, clamped to `[10, 300]` seconds.
+- **Three action hooks**: `mpu_chat_lock_acquired`, `mpu_chat_lock_released`, `mpu_chat_lock_conflict` — for metrics collection, audit logging, or future approval-hub integration.
+- **Wired only into `/chat/user` and `/chat/user-stream`**: `/chat/greet`, `/chat/context`, and `/debug_mcp` are intentionally not locked (they fall under existing per-route rate limits).
+- **Conflict returns HTTP 429** using the existing `$this->fail()` envelope, so the frontend error path needs no changes.
+- **SSE-safe release**: `register_shutdown_function()` is registered immediately after lock acquire, and the stream loop calls `connection_aborted()` between chunks via `exit_if_stream_aborted()` so a client disconnect mid-stream still releases the lock. Token validation prevents the shutdown fallback from clobbering a lock acquired by a subsequent request.
+- **Lock context records** `route`, `input_role`, and an `ip_hash` (first 12 chars of `sha256(client_ip)`) — useful for triage without storing raw IP.
+
+### 🧹 REST Chat Handler Dedup
+
+- **New `prepare_auto_chat_context()` helper** in `MPU_REST_Chat`: centralizes the boilerplate previously duplicated between `chat_context()` and `chat_greet()` — `ai_enabled` / `ai_greet_first_visit` precheck, provider + API key, `wp_info`, ukagaka identity, language, personality, time context, the 13-key variable map, and the resolved system prompt.
+- **`require_first_visit_greeting` option flag** differentiates `chat_greet`'s extra check from `chat_context` without splitting the helper into two functions.
+- **Response shape unchanged** for both endpoints. Checksum store paths (`store_after_auto` with kind `'context'` / `'greet'`) intentionally untouched. `prepare_user_chat_args()`, chat lock, and SSE handling are not affected.
+
+### 🏷️ SSE Stream State Badge (runtime verification UI)
+
+- **Visible `.mpu-state-badge` element** rendered in the top-right corner of `#ukagaka_msgbox`, backed by the existing `data-mpu-stream-state` attribute introduced in 2.17.0 — no new state machine, just a visible surface for the existing data.
+- **Six visible states**: `thinking`, `streaming`, `tool`, `error`, `timeout`, `busy`. `status` is mapped to the same label as `streaming` to avoid empty badges.
+- **`busy` state on chat lock conflict**: `handleStreamFailure()` detects `error.code === "mpu_chat_lock_busy"` or `error.data.status === 429` from the SSE JSON fallback path and surfaces the localized busy message instead of a generic error.
+- **`streaming` state on first delta**: `onDelta` now calls `setStreamState("streaming")` instead of clearing the attribute, so the badge stays visible during text streaming.
+- **i18n via existing `mpuL10n` mechanism**: new `mpuL10n.streamStates` map exposes Japanese-first labels (`考え中…` / `応答中…` / `調べてる…` / `エラー` / `タイムアウト` / `混雑中…`), translatable through the existing `.po` / `.mo` workflow.
+
+### ✅ Verification
+
+- `npm run verify`: PHP lint + bundle build + PHPUnit (22 tests, 51 assertions) all green.
+- `js/dist/ukagaka-bundle.js` and `.min.js` rebuilt (169.7 KB → 79.0 KB after minify).
+- `git diff --check` confirmed no whitespace errors.
+
+---
+
 ## [2.17.0] - 2026-05-15
 
 ### 🛡️ Input Role Resolver + Server-side Tool Gate

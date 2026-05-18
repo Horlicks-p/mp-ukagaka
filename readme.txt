@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.17.0
+Stable tag: 2.18.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,16 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-18 =
+* v2.18.0
+* [NEW] PHPUnit Testing Infrastructure: introduced tests/ with a minimal WordPress mock bootstrap and six initial test suites (22 tests / 51 assertions) covering chat-integrity, encryption, input role, session event, template render, and chat lock. composer dev dependencies live under tools/php/.
+* [NEW] verify pipeline: npm run verify now chains lint:php + build + test:php; build.js exits non-zero on minify failure so CI no longer silently passes.
+* [NEW] Chat Lifecycle Lock: MPU_Chat_Lock uses add_option-based atomic check-and-set (not transient — transient is not atomic under parallel requests) with 60s TTL via mpu_chat_lock_ttl filter, token-validated release (hash_equals), expired-lock retry, and three action hooks (mpu_chat_lock_acquired / released / conflict). Wired only to /chat/user and /chat/user-stream; conflict returns HTTP 429 via the existing fail() envelope.
+* [NEW] SSE-safe lock release: register_shutdown_function() + connection_aborted() check between SSE chunks so client disconnects mid-stream still release the lock; token validation prevents shutdown fallback from clobbering a later request's lock.
+* [IMPROVE] REST chat dedup: extracted prepare_auto_chat_context() helper shared between chat_context() and chat_greet(). Response shape, checksum behavior, and prepare_user_chat_args() are unchanged.
+* [IMPROVE] SSE state badge: visible .mpu-state-badge on #ukagaka_msgbox renders 6 localized states (thinking / streaming / tool / error / timeout / busy) backed by the existing data-mpu-stream-state attribute. handleStreamFailure now detects 429 lock conflicts and surfaces the busy state with a localized message.
+* [IMPROVE] PHPUnit cacheResult=false avoids permission warnings; bootstrap filter/action mocks now actually execute callbacks (priority-sorted, accepted_args-aware) for reliable filter tests.
 
 = 2026-05-15 =
 * v2.17.0
