@@ -535,11 +535,10 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $user_message = mb_substr($user_message, 0, 500, 'UTF-8');
         }
 
+        $is_debug_mcp = trim($user_message) === '/debug_mcp' && current_user_can('manage_options');
+
         // [Debug] MCP Tool Diagnostics（僅管理員可用）
         if (trim($user_message) === '/debug_mcp') {
-            if (current_user_can('manage_options')) {
-                return ['is_debug_mcp' => true, 'user_message' => $user_message];
-            }
             // 非管理員：不標記 is_debug_mcp，讓訊息流入一般 AI 路徑，
             // 由 visitor_rejection 提示詞引導 AI 以角色口吻拒絕。
         }
@@ -640,6 +639,16 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         // 正規化後取最後 20 筆（synthetic+assistant 各佔一則，20 entries = 10 個互動事件）
         $chat_history = array_slice($normalized_history, -20);
+
+        if ($is_debug_mcp) {
+            return [
+                'is_debug_mcp'   => true,
+                'chat_session_id' => $chat_session_id,
+                'chat_history'    => $chat_history,
+                'user_message'    => $user_message,
+                'chat_lock'       => null,
+            ];
+        }
 
         $chat_lock = null;
         if ($chat_session_id !== '' && class_exists('MPU_Chat_Lock')) {

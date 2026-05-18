@@ -409,8 +409,8 @@
 /* ===== Stream State Badge (v2.18 #4：runtime 驗收工具) ===== */
 .mpu-state-badge {
   position: absolute;
-  top: -6px;
-  right: 6px;
+  top: 15px;
+  right: 20px;
   z-index: 10002;
   padding: 2px 8px;
   font-size: 11px;
