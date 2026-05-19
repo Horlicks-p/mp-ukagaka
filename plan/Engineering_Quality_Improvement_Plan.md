@@ -131,6 +131,107 @@ npm --prefix tools/node run verify
 
 ---
 
+## ✅ v2.19 完成報告（2026-05-19）
+
+> 公司端 CLAUDE / CODEX 接手前必讀。本 milestone 在 2026-05-19 完成（家用機 + 公司機協作）。
+> 已 tag 並 release **v2.19.0** + **v2.19.1**，三份 CHANGELOG + readme.txt 已寫；`mp-ukagaka.zip` 已自動附 release asset。
+
+### 項目盤點
+
+| Version | 項目 | 主要產出 | 規模 |
+|:-:|------|---------|------|
+| v2.19.0 | #5 核心 class 型別宣告 | 4 個核心 class / 函數族加 PHP 7.4 type hints | ~30 行 net |
+| v2.19.1 | Frieren 動態 `deep_sleep_start`（character feature） | manifest schema + `mpu_get_daily_deep_sleep_start()` + 2 call site | +50 行 |
+
+### v2.19.0 關鍵決策
+
+- **限縮在四個核心 class**：`MPU_Session_Event` / `MPU_Input_Role` / `MPU_REST_Base` / `chat-integrity.php` — 不對 utility-functions 大舉加型別（避免踩 WP filter mixed 回傳 / 舊序列化 option / 外部 abilities）
+- **兩個 method 故意不加 return type**（PHP 7.4 無 union types）：`MPU_REST_Base::check_admin()` (true|WP_Error)、`chat-integrity::verify_history()` (true|null|WP_Error)
+- **內部 `(string) $xxx` cast 保留作為防禦層** — 不動邏輯，純 type hint 補強
+- **`MPU_REST_Base::ok($data, ...)` 的 `$data` 保留 mixed**：response 可以是 array/string/object，加型別會收緊得太死
+- **`chat-integrity::_store_history(): bool`** 兩條 return path（`return false` + `set_transient()`）對齊
+- 27 tests / 59 assertions 全綠（含 v2.18 + ollama bugfix 補的 5 個 case）
+
+### #6 utility-functions 拆分前置審查（v2.19.0 順帶完成）
+
+確認 `chat-integrity.php` / `provider-helpers.php` / `utility-functions.php` 在 `rest/bootstrap.php` 前載入，REST 與 chat history 內的 `function_exists('mpu_chat_integrity_*')` / `function_exists('mpu_rest_check_rate_limit')` 是載入順序保證下的冗餘防護。**v2.19 不動**，留到 #6 與檔案搬移同 PR 進行（兩件事是同一前提的兩面，拆檔可能改變載入順序，與「移除 function_exists 防護」是同一前提的表裡）。
+
+### v2.19.1 額外項目（非 Engineering plan 範圍）
+
+Frieren 動態 `deep_sleep_start` 是 character feature，不在本 plan 範圍但順帶說明：
+- manifest `deep_sleep_start` 支援 `[start, end]` 整點 array（Frieren 改 `[22, 23]`、`oversleep_probability: 1.0`）
+- 新 `mpu_get_daily_deep_sleep_start()` 每日抽一次、transient 對齊次日午夜（比照 `mpu_get_daily_oversleep_end()`）
+- array 防呆：`random_int(min, max)` 自動修正範圍倒置、`count !== 2` 走 `mpu_log_warning` + fallback、`24 → 0` 顯式處理
+- **入睡時刻仍對齊整點**，分鐘級隨機排定在 v2.20.0
+
+---
+
+## v2.20+ 執行順序（2026-05-19 凍結）
+
+> 經 Claude + CODEX 討論定案，supersede 頂部「Execution Decision」表格 #5–#10 的 milestone 標記。
+> 此順序已凍結，新項目應在 v2.22 之後插入或建立新 milestone。
+
+### 最終執行順序
+
+| Version | 內容 | 來源 | 風險 |
+|:-:|------|------|:----:|
+| **v2.20.0** | Sleep minute precision（character feature，非 Eng plan 範圍） | v2.19.1 延伸 | 低 |
+| **v2.21.0** | **#6 utility-functions 拆分** + 順手清 v2.19 標記的冗餘 `function_exists` | Eng. Phase 2.2 | 低 |
+| **v2.22.0** | **#8 JS 全域狀態封裝** | Eng. Phase 2.3 | 中 |
+| v2.22+ 或穿插 | **#7 runtime_state helper** | Avatar §4 | 中 |
+| v2.23+ | #9 CSS theme / i18n hot swap | Avatar §7 + §8 | — |
+| v2.23+ | #10 observation buffer MVP | Avatar §9 + 補充 D | — |
+
+### 關鍵決策
+
+| 決策 | 理由 |
+|------|------|
+| v2.20 sleep minute precision **單獨成版** | 純後端 cache key migration，跟 #6/#8 完全 isolated，出包不會牽連；且 v2.19.1 才上線，先讓動態整點機制跑幾天確認沒踩雷再升級 |
+| #6 **在 #8 之前** | utility-functions 拆分是後端 isolated 動作、邊界最清楚、bisect 容易；JS 封裝需 manual smoke test 較費神，留到後面 |
+| #7 runtime_state **可穿插 v2.22 或同版** | 它是「角色 runtime 狀態暴露給前端」的 REST helper，跟 JS 封裝概念連動，看實作複雜度決定 |
+| **MPU_Config 維持否決** | Avatar X-1 — 沒到「設定數量爆炸到需要抽象層」的點，現在引入只是 over-engineering |
+
+### v2.20.0 範圍邊界（hard limits）
+
+避免膨脹的硬性限制：
+
+1. **升級到 minutes-of-day 精度**：`mpu_get_daily_deep_sleep_start_mod()` / `mpu_get_daily_oversleep_end_mod()` 都回傳 0–1439
+2. **cache key 加 `_mod` 後綴**：強制 cache miss 重抽避免讀到舊「小時」值；**不**做 backward-compat 讀舊值
+3. **manifest schema 不變**：仍寫整點 hour（`[22, 23]` / `deep_sleep_end: 7`），分鐘化是實作層
+4. **抽籤範圍 inclusive 整段**：`[22, 23]` 解為「22:00 ~ 23:59」即 `random_int(22*60, 23*60+59) = random_int(1320, 1439)`
+5. **不**動賴床機率 / IP 記錄機制 / wake_ghost endpoint 整體邏輯（只升級內部比較的單位）
+6. **不**順手做其他 character feature 改動
+
+### v2.20.0 完成條件
+
+- [ ] `mpu_get_daily_deep_sleep_start_mod()` 抽 minutes-of-day (0–1439)
+- [ ] `mpu_get_daily_oversleep_end_mod()` 同樣升級（`random_int(deep_sleep_end*60, oversleep_max_hour*60)`）
+- [ ] `mpu_is_deep_sleep_time()` 全部比較換 minutes-of-day（含跨午夜：`$start_mod > $end_mod` 走 OR 分支）
+- [ ] `mpu_is_ip_woken_today()` / `mpu_mark_ip_as_woken()` 邊界檢查升級為 minutes-of-day
+- [ ] `wake_ghost()` 同步更新（含 `function_exists` fallback 對應修正）
+- [ ] cache key 全部加 `_mod` 後綴
+- [ ] `npm --prefix tools/node run verify` pass
+- [ ] manual smoke test：跨日切換、同日 cache hit、賴床+IP、設定錯誤、舊 cache 過渡（`_mod` 後綴強制 miss）
+
+### v2.21.0 範圍邊界（hard limits）
+
+1. **只拆五個檔**：`encryption-functions.php` (~178 行) / `network-functions.php` (~290 行) / `wp-info-functions.php` (~260 行) / `template-functions.php` (~80 行) / `file-functions.php` (~159 行)
+2. **只搬不改邏輯**：每拆一個檔 sub-commit + 跑一次 `npm --prefix tools/node run verify`
+3. **同步更新** `mp-ukagaka.php` 的 `$core_modules` 載入順序（加密函式被多處依賴必須最早載入）
+4. **順手清 v2.19.0 標記的冗餘** `function_exists`（同 PR — 因為拆檔可能改變載入順序，與移除防護是同一前提）
+5. **雜項函數歸屬決定**：`mpu_array2str` / `mpu_str2array` / `mpu_output_filter` / `mpu_js_filter` / `mpu_fetch_external_api` / `mpu_clear_api_cache` / `mpu_resolve_personality_id` — 留在「核心 utility」剩餘檔，或分到 string/api-cache 各自的檔，**動手前先決定**寫進 commit message
+6. **不**做型別宣告（v2.19 已限縮在四個核心 class，utility 函數不在範圍）
+
+### v2.22.0 範圍邊界（hard limits）
+
+1. **收進 `window.MPU_STATE`** 命名空間（不改邏輯）
+2. **保留** `window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId` 不動（跨模組依賴深，plan 已明示）
+3. **漸進式三步**：定義 namespace → 9 個 JS 檔全域替換引用 → bundle 重建
+4. **manual smoke test 是必要驗收**（PHPUnit 無法測 JS）：auto-talk / chat / context / SSE / typewriter / wake_ghost / first-visit greeting 全流程
+5. **不**做 jQuery 移除 / ES Modules 遷移（Phase 4.x 範圍，等大版本再做）
+
+---
+
 ## Phase 1: Testing Infrastructure（最高優先）
 
 ### 1.1 PHP 單元測試骨架
@@ -446,4 +547,4 @@ if (function_exists('mpu_fetch_slimstat_stats')) { ... }
 
 ---
 
-*Last updated: 2026-05-18（夜間）— v2.18 milestone 全 4 項完成，新增「v2.18 完成報告」段落供公司端 CLAUDE / CODEX 接手參考*
+*Last updated: 2026-05-19 — v2.19.0 (#5 核心 class 型別宣告) + v2.19.1 (Frieren 動態 deep_sleep_start) 完成並 release。v2.20+ 執行順序凍結為：sleep minute precision → #6 utility 拆分 → #8 JS 全域狀態封裝。*
