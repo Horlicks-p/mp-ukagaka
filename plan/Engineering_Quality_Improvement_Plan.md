@@ -9,6 +9,8 @@
 
 ## Current Assessment: B−
 
+> 註：此評分為 **2026-05-18 初始審查快照**，當時尚無 PHPUnit。v2.18 引入測試骨架（22 tests / 51 assertions）、v2.19 補到 27 tests / 59 assertions，「自動化測試 F」評分已不再準確。其餘維度的後續改善見下方「v2.18 完成報告」、「v2.19 完成報告」段落。
+
 | 維度 | 評分 | 一句話 |
 |------|:----:|--------|
 | 架構與模組化 | B | REST OO + Provider Factory 很好；但 5 個檔案 >1000 行 |
@@ -43,7 +45,7 @@
 | 4 | UI 狀態 badge（runtime 驗收工具） | Avatar §3 | **v2.18** |
 | 5 | 核心 class 型別宣告 | Eng. Phase 3.1 | v2.19+ |
 | 6 | utility-functions 拆分 | Eng. Phase 2.2 | v2.19+ |
-| 7 | runtime_state helper + MPU_Config | Avatar §4 + §5 | v2.19+ |
+| 7 | runtime_state helper | Avatar §4 | v2.19+ |
 | 8 | JS 全域狀態封裝 | Eng. Phase 2.3 | v2.19+ |
 | 9 | CSS theme / i18n hot swap | Avatar §7 + §8 | v2.19+ |
 | 10 | observation buffer（低侵入 MVP） | Avatar §9 + 補充 D | v2.20+ |
@@ -127,7 +129,7 @@
 npm --prefix tools/node run verify
 ```
 
-預期：lint pass → bundle 重建（169.7 → 79.0 KB）→ PHPUnit `OK (22 tests, 51 assertions)`。
+預期（截至 v2.19.1）：lint pass → bundle 重建 → PHPUnit `OK (27 tests, 59 assertions)`。
 
 ---
 
@@ -140,7 +142,7 @@ npm --prefix tools/node run verify
 
 | Version | 項目 | 主要產出 | 規模 |
 |:-:|------|---------|------|
-| v2.19.0 | #5 核心 class 型別宣告 | 4 個核心 class / 函數族加 PHP 7.4 type hints | ~30 行 net |
+| v2.19.0 | #5 核心 class 型別宣告 | 4 個核心 class / 函數族加 scalar / nullable return type hints（PHP 7.4 相容，未使用 typed properties 等 7.4 新語法） | ~30 行 net |
 | v2.19.1 | Frieren 動態 `deep_sleep_start`（character feature） | manifest schema + `mpu_get_daily_deep_sleep_start()` + 2 call site | +50 行 |
 
 ### v2.19.0 關鍵決策
@@ -394,7 +396,9 @@ $system_prompt = mpu_resolve_system_prompt(...);
 
 ### 3.1 PHP 型別宣告
 
-**現狀**：只有 `mpu_save_*` 系列有 return type (`: string`)，其餘函式幾乎沒有。
+> **v2.19.0 更新**：第一批核心 class 型別宣告已完成（`MPU_Session_Event` / `MPU_Input_Role` / `MPU_REST_Base` / `chat-integrity.php`，scalar / nullable return type，PHP 7.4 相容）。**後續 utility-functions 不在 #5 範圍** — v2.21.0 #6 拆分時也不做型別宣告（避免踩 WP filter mixed 回傳 / 舊序列化 option / 外部 abilities）。本節以下內容為原始計畫，僅供歷史參考。
+
+**現狀**（2026-05-18 撰寫）：只有 `mpu_save_*` 系列有 return type (`: string`)，其餘函式幾乎沒有。
 
 **步驟**：
 
