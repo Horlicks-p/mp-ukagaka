@@ -215,6 +215,22 @@ Frieren 動態 `deep_sleep_start` 是 character feature，不在本 plan 範圍�
 - [ ] `npm --prefix tools/node run verify` pass
 - [ ] manual smoke test：跨日切換、同日 cache hit、賴床+IP、設定錯誤、舊 cache 過渡（`_mod` 後綴強制 miss）
 
+### v2.20.0 已知限制 / Future Hardening
+
+**Sleep settings input clamping deferred** — 當前 `_start_mod` / `_end_mod` 函數只用 `% 1440` 處理正向跨日溢位（`[22, 24]` 抽到 1499 → 59 ✓），**不** clamp 負數或極大值。PHP `%` 對負數保留 dividend sign（`-100 % 1440 = -100`），會 break 後續 minutes-of-day 比較。
+
+實務上 manifest 由 plugin author / 角色作者手寫，沒 admin UI，不會踩雷。
+
+**何時補**：未來若開放 admin UI 讓 site owner 自訂 sleep hours，需做**完整** input validation，**不只是** clamp：
+
+- `mpu_clamp_minutes_of_day($mod): int` helper：`return (($mod % 1440) + 1440) % 1440;`，handle 任意 int 包含負數
+- 三處 return 前呼叫：`_start_mod` / `_end_mod` / `_is_deep_sleep_time` 的 `$current_mod`
+- Hour range validation (0–23) at admin save handler
+- 衝突檢查：`deep_sleep_end > deep_sleep_start` 不能跨午夜矛盾、`oversleep_max_hour > deep_sleep_end`
+- UI form validation
+
+這些都應跟 **admin UI PR 同 milestone** 一起做（input validation 是 admin UI 的一部分，孤立 clamp 沒意義）。本項列入 plan 是 future-proof 備忘，不在 v2.20.x patch 範圍。
+
 ### v2.21.0 範圍邊界（hard limits）
 
 1. **只拆五個檔**：`encryption-functions.php` (~178 行) / `network-functions.php` (~290 行) / `wp-info-functions.php` (~260 行) / `template-functions.php` (~80 行) / `file-functions.php` (~159 行)
