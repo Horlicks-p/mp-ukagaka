@@ -30,10 +30,10 @@
     "folder": "emojis"
   },
   "sleep_settings": {
-    "deep_sleep_start": 23,
+    "deep_sleep_start": [22, 23],
     "deep_sleep_end": 7,
     "oversleep_enabled": true,
     "oversleep_max_hour": 9,
-    "oversleep_probability": 0.5
+    "oversleep_probability": 1.0
   }
  }

@@ -4,6 +4,28 @@
 
 ---
 
+## [2.19.1] - 2026-05-19
+
+### ✨ フリーレンの動的な睡眠時間（毎日抽選）
+
+- **`deep_sleep_start` が `[start, end]` 時間レンジ配列に対応**：従来は固定整数（例：`23` で毎日 23:00 入眠）でしたが、`[22, 23]` のように書くと毎日 1 回抽選されます。同じ日の page load では transient で同じ値が返されるため（次の真夜中まで cache）、「リロードでフリーレンが急に寝る／急に起きる」というおかしな挙動を防ぎます。
+- **`oversleep_probability` を 1.0 に**：フリーレンの manifest を 50% から 100% 二度寝に変更。`oversleep_max_hour: 9` と組み合わせて、毎日 07:00～09:00 の間でランダムに起床します。手動 `/wake-ghost` で IP を 3 時間記録し、リロード後も起きたままになります。
+- **新関数 `mpu_get_daily_deep_sleep_start()`**：既存の `mpu_get_daily_oversleep_end()` と同じ構造。cache key は `mpu_deep_sleep_start_{date}_{pid}`、expire は翌日午前 0 時に揃えています（`DateTimeImmutable('tomorrow', wp_timezone())` + `max(60, ...)` clamp）。
+- **配列のフェイルセーフ**：`is_array` 分岐は `random_int(min, max)` を使って範囲反転を自動補正、`count !== 2` のときは `mpu_log_warning` を出して先頭要素にフォールバック、非配列設定は従来通り整数読み。
+- **`24 → 0` の明示処理**：manifest に `24` が設定されている場合、`if ($v === 24) $v = 0` で翌日 00:00 に変換します（フリーレンは曖昧さ回避のため `[22, 23]` を使用していますが、関数側に防御層を保持）。
+- **呼び出し側の置き換え**：`mpu_is_deep_sleep_time()`（`includes/llm/llm-context-builder.php`）と `wake_ghost()`（`includes/rest/class-mpu-rest-dialog.php`）は従来 `$sleep_settings['deep_sleep_start']` を直接読んでいましたが、新関数を呼ぶように変更。`wake_ghost` 側は load 順序の保険として `function_exists` ガードを残しています。
+
+### ⚠️ 既知の制限
+
+- **入眠時刻は引き続き「正時」に揃います**：本リリースでは「何時に」の部分だけランダム化しました。分単位ランダム（22:43 入眠 / 07:35 起床）は起床側の分単位化と cache key 世代交代と合わせて **v2.20.0** で導入予定です。
+
+### ✅ 検証
+
+- `npm run verify`：lint + bundle + PHPUnit（27 tests / 59 assertions）すべて pass。
+- **PHPUnit は新関数をカバーしていません**：`mpu_get_daily_deep_sleep_start()` は `set_transient` / `get_transient` / `wp_date` / `random_int` / `DateTimeImmutable` に依存しており、現在の `tests/bootstrap.php` ではモックされていません。「テスト pass」は lint OK、syntax OK、既存テスト path に regression が無いことを示すだけです。新関数の動作は manual smoke test（日付跨ぎ、同日 cache hit、二度寝 + IP、設定不正）で確認してください。
+
+---
+
 ## [2.19.0] - 2026-05-19
 
 ### 🏷️ コア Class への型宣言（v2.19 #5 milestone）

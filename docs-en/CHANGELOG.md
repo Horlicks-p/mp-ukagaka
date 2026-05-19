@@ -4,6 +4,28 @@
 
 ---
 
+## [2.19.1] - 2026-05-19
+
+### ✨ Frieren Dynamic Sleep Time (Daily Roll)
+
+- **`deep_sleep_start` accepts `[start, end]` hour-range arrays**: previously a fixed integer (e.g. `23` meant sleep starts at 23:00 every day), now `[22, 23]` rolls once per day. All page loads within the same day get the same value (transient cached until midnight), preventing the "Frieren suddenly sleeps / suddenly wakes on refresh" glitch.
+- **`oversleep_probability` raised to 1.0**: Frieren manifest changes from 50% to 100% oversleep chance; combined with `oversleep_max_hour: 9`, Frieren wakes randomly between 07:00–09:00. Manual `/wake-ghost` records IP for 3 hours, keeping her awake on refresh.
+- **New function `mpu_get_daily_deep_sleep_start()`**: mirrors the existing `mpu_get_daily_oversleep_end()`. Cache key `mpu_deep_sleep_start_{date}_{pid}`, expires aligned to next midnight via `DateTimeImmutable('tomorrow', wp_timezone())` + `max(60, ...)` clamp.
+- **Array safety**: `is_array` branch uses `random_int(min, max)` so reversed ranges auto-correct; `count !== 2` logs `mpu_log_warning` and falls back to the first element; non-array settings keep the integer read.
+- **Explicit `24 → 0` cross-day handling**: if a manifest sets `24`, `if ($v === 24) $v = 0` converts to next-day 00:00 (Frieren uses `[22, 23]` to avoid the ambiguity, but the function retains the guard).
+- **Call site swaps**: `mpu_is_deep_sleep_time()` (`includes/llm/llm-context-builder.php`) and `wake_ghost()` (`includes/rest/class-mpu-rest-dialog.php`) previously read `$sleep_settings['deep_sleep_start']` directly — now call the new function. `wake_ghost` retains a `function_exists` guard as a load-order safety net.
+
+### ⚠️ Known Limitations
+
+- **Sleep start still aligned to the hour**: this release only randomizes "which hour"; minute-level randomization (22:43 sleep / 07:35 wake) is scheduled for **v2.20.0** together with wake-time minute precision and cache key migration.
+
+### ✅ Verification
+
+- `npm run verify`: lint + bundle + PHPUnit (27 tests / 59 assertions) all green.
+- **PHPUnit does not cover the new function**: `mpu_get_daily_deep_sleep_start()` depends on `set_transient` / `get_transient` / `wp_date` / `random_int` / `DateTimeImmutable`, none of which are mocked in the current `tests/bootstrap.php`. "Tests pass" only proves lint OK, syntax OK, and no regression in existing test paths. Verify behavior manually (cross-day switch, same-day cache hit, oversleep + IP, malformed settings).
+
+---
+
 ## [2.19.0] - 2026-05-19
 
 ### 🏷️ Core Class Type Hints (v2.19 #5 milestone)

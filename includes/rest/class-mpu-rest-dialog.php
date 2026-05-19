@@ -411,7 +411,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                 if (function_exists('mpu_get_sleep_settings')) {
                     $sleep_settings = mpu_get_sleep_settings($personality_id);
                     $hour           = (int) wp_date('G');
-                    $d_start        = (int) $sleep_settings['deep_sleep_start'];
+                    $d_start        = function_exists('mpu_get_daily_deep_sleep_start') ? mpu_get_daily_deep_sleep_start($personality_id) : (int) $sleep_settings['deep_sleep_start'];
                     $d_end          = (int) $sleep_settings['deep_sleep_end'];
 
                     if ($d_start < $d_end) {

@@ -416,7 +416,7 @@ function mpu_is_deep_sleep_time($personality_id = null)
 
     // 載入角色睡眠設定
     $sleep_settings     = mpu_get_sleep_settings($personality_id);
-    $deep_sleep_start   = (int) $sleep_settings['deep_sleep_start'];     // 0
+    $deep_sleep_start   = (int) mpu_get_daily_deep_sleep_start($personality_id);
     $deep_sleep_end     = (int) $sleep_settings['deep_sleep_end'];       // 6
     $oversleep_enabled  = !empty($sleep_settings['oversleep_enabled']);  // true/false
 
@@ -558,6 +558,54 @@ function mpu_get_daily_oversleep_end($personality_id = null)
 
     set_transient($cache_key, $oversleep_end, $seconds_until_midnight);
     return $oversleep_end;
+}
+
+/**
+ * 獲取今天的隨機睡眠開始時間（每個人格每天各自抽一次）
+ *
+ * @param string|null $personality_id 角色 ID
+ * @return int 睡眠開始的小時數
+ */
+function mpu_get_daily_deep_sleep_start($personality_id = null)
+{
+    $today = wp_date('Y-m-d');
+    $pid   = mpu_norm_personality_key($personality_id);
+
+    $cache_key = "mpu_deep_sleep_start_{$today}_{$pid}";
+    $cached = get_transient($cache_key);
+    if ($cached !== false) {
+        return (int) $cached;
+    }
+
+    $sleep_settings = mpu_get_sleep_settings($personality_id);
+    $start_setting = $sleep_settings['deep_sleep_start'] ?? 0;
+
+    // 到午夜的秒數（站點時區）
+    $tz  = wp_timezone();
+    $now = new DateTimeImmutable('now', $tz);
+    $mid = new DateTimeImmutable('tomorrow', $tz);
+    $seconds_until_midnight = max(60, $mid->getTimestamp() - $now->getTimestamp());
+
+    if (is_array($start_setting)) {
+        if (count($start_setting) === 2) {
+            $a = (int)$start_setting[0];
+            $b = (int)$start_setting[1];
+            $deep_sleep_start = random_int(min($a, $b), max($a, $b));
+        } else {
+            mpu_log_warning('睡眠設定錯誤：deep_sleep_start array must have exactly 2 elements');
+            $deep_sleep_start = (int) ($start_setting[0] ?? 0);
+        }
+    } else {
+        $deep_sleep_start = (int) $start_setting;
+    }
+
+    // 明確處理 24 的情況，轉換為跨日午夜 (0)
+    if ($deep_sleep_start === 24) {
+        $deep_sleep_start = 0;
+    }
+
+    set_transient($cache_key, $deep_sleep_start, $seconds_until_midnight);
+    return $deep_sleep_start;
 }
 
 /**

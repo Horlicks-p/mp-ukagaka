@@ -4,6 +4,28 @@
 
 ---
 
+## [2.19.1] - 2026-05-19
+
+### ✨ Frieren 動態睡眠時間（每日抽籤）
+
+- **`deep_sleep_start` 支援 `[start, end]` 整點範圍 array**：原本固定整數（例：`23` 表示每天 23:00 入睡），現在可寫成 `[22, 23]` 由系統每天抽一次。同一天內任何 page load 都拿到同一個值（transient 鎖定到當日午夜），避免「使用者刷新頁面時芙莉蓮突然睡著／突然醒來」的詭異跳動。
+- **`oversleep_probability` 提升至 1.0**：Frieren manifest 從 50% 機率賴床改成 100% 賴床；配合 `oversleep_max_hour: 9`，每天 7~9 點之間隨機醒來。被使用者主動 `/wake-ghost` 後 IP 記錄 3 小時，刷新頁面保持清醒。
+- **新函數 `mpu_get_daily_deep_sleep_start()`**：比照既有 `mpu_get_daily_oversleep_end()` 寫成，cache key `mpu_deep_sleep_start_{date}_{pid}`、expire 對齊次日午夜（`DateTimeImmutable('tomorrow', wp_timezone())` + `max(60, ...)` clamp）。
+- **array 防呆**：`is_array` 分支用 `random_int(min, max)` 自動處理範圍倒置；`count !== 2` 時記 `mpu_log_warning` 並 fallback 到首元素；非 array 設定維持整數讀法。
+- **跨日 `24 → 0` 顯式處理**：若有人 manifest 設 `24`，`if ($v === 24) $v = 0` 轉為次日 00:00 的等價時刻（Frieren manifest 用 `[22, 23]` 避開歧義，但函數內保留防禦層）。
+- **call site 替換**：`mpu_is_deep_sleep_time()`（`includes/llm/llm-context-builder.php`）與 `wake_ghost()`（`includes/rest/class-mpu-rest-dialog.php`）原本直接讀 `$sleep_settings['deep_sleep_start']`，改為呼叫新函數；後者保留 `function_exists` 防護作為載入順序的安全網。
+
+### ⚠️ 已知限制
+
+- **入睡時刻仍對齊整點**：本版只把「哪一個整點」隨機化。分鐘級隨機（22:43 入睡 / 07:35 起床）排定在 **v2.20.0** 與起床時間分鐘化、cache key 換代一起發佈。
+
+### ✅ 驗證
+
+- `npm run verify`：lint + bundle + PHPUnit（27 tests / 59 assertions）全綠。
+- **PHPUnit 不涵蓋新函數**：`mpu_get_daily_deep_sleep_start()` 依賴 `set_transient` / `get_transient` / `wp_date` / `random_int` / `DateTimeImmutable`，這些不在現有 `tests/bootstrap.php` mock 範圍內。「測試通過」只證明 lint OK、syntax OK、沒打破既有測試路徑。新函數行為應透過 manual smoke test 驗證（跨日切換、同日 cache hit、賴床+IP、設定錯誤）。
+
+---
+
 ## [2.19.0] - 2026-05-19
 
 ### 🏷️ 核心 Class 型別宣告（v2.19 #5 milestone）

@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.19.0
+Stable tag: 2.19.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,14 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-19 =
+* v2.19.1
+* [NEW] Frieren dynamic deep_sleep_start: manifest accepts [start, end] hour-range arrays; new mpu_get_daily_deep_sleep_start() rolls once per day (transient cached until midnight) to prevent refresh-induced "sudden sleep" glitches. Array safety: min/max range correction, count !== 2 warning + fallback, explicit 24 → 0 cross-day handling.
+* [IMPROVE] Frieren oversleep_probability raised to 1.0 — wakes randomly between 07:00–09:00 every day (was 50% chance).
+* [IMPROVE] Frieren deep_sleep_start = [22, 23] — random hour each day instead of fixed 23:00.
+* [IMPROVE] mpu_is_deep_sleep_time() and wake_ghost() call sites now route through the new daily roll function (wake_ghost retains function_exists guard for load-order safety).
+* [VERIFY] npm run verify: lint + bundle + PHPUnit (27 tests / 59 assertions) all green. New function behavior should be verified via manual smoke test (PHPUnit mocks do not cover transients / wp_date / random_int).
 
 = 2026-05-19 =
 * v2.19.0
