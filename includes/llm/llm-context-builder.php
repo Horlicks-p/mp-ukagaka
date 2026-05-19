@@ -411,24 +411,24 @@ function mpu_get_time_context($personality_id = null)
  */
 function mpu_is_deep_sleep_time($personality_id = null)
 {
-    // 目前小時（站點時區）
-    $hour = (int) wp_date('G');
+    // 目前時間（站點時區），minutes-of-day (0–1439)
+    $current_mod = (int) wp_date('G') * 60 + (int) wp_date('i');
 
     // 載入角色睡眠設定
     $sleep_settings     = mpu_get_sleep_settings($personality_id);
-    $deep_sleep_start   = (int) mpu_get_daily_deep_sleep_start($personality_id);
-    $deep_sleep_end     = (int) $sleep_settings['deep_sleep_end'];       // 6
-    $oversleep_enabled  = !empty($sleep_settings['oversleep_enabled']);  // true/false
+    $start_mod          = (int) mpu_get_daily_deep_sleep_start_mod($personality_id);
+    $end_mod            = mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end']);
+    $oversleep_enabled  = !empty($sleep_settings['oversleep_enabled']);
 
     // ===== 階段 1：深夜必睡（不檢查 IP）=====
     $in_deep_sleep = false;
 
-    if ($deep_sleep_start < $deep_sleep_end) {
-        // 不跨午夜：例如 00:00 ~ 06:00
-        $in_deep_sleep = ($hour >= $deep_sleep_start && $hour < $deep_sleep_end);
+    if ($start_mod < $end_mod) {
+        // 不跨午夜：例如 00:00 ~ 07:00
+        $in_deep_sleep = ($current_mod >= $start_mod && $current_mod < $end_mod);
     } else {
-        // 跨午夜：例如 22:00 ~ 06:00
-        $in_deep_sleep = ($hour >= $deep_sleep_start || $hour < $deep_sleep_end);
+        // 跨午夜：例如 22:14 ~ 07:00
+        $in_deep_sleep = ($current_mod >= $start_mod || $current_mod < $end_mod);
     }
 
     if ($in_deep_sleep) {
@@ -440,16 +440,16 @@ function mpu_is_deep_sleep_time($personality_id = null)
         return false;
     }
 
-    // 今日賴床結束時間（可能 6/7/8）
-    $oversleep_end_hour = (int) mpu_get_daily_oversleep_end($personality_id);
+    // 今日賴床結束時間（minutes-of-day）
+    $oversleep_end_mod = (int) mpu_get_daily_oversleep_end_mod($personality_id);
 
-    // 今天不賴床（== deep_sleep_end），06:00 準時起床
-    if ($oversleep_end_hour <= $deep_sleep_end) {
+    // 今天不賴床（== deep_sleep_end 整點），準時起床
+    if ($oversleep_end_mod <= $end_mod) {
         return false;
     }
 
     // 不在賴床區間就清醒
-    $in_oversleep_range = ($hour >= $deep_sleep_end && $hour < $oversleep_end_hour);
+    $in_oversleep_range = ($current_mod >= $end_mod && $current_mod < $oversleep_end_mod);
     if (!$in_oversleep_range) {
         return false;
     }
@@ -500,6 +500,56 @@ function mpu_norm_personality_key($personality_id = null)
         return 'default';
     }
     return sanitize_key((string) $personality_id);
+}
+
+/**
+ * 將分鐘值限制在 minutes-of-day 範圍。
+ *
+ * @param int $minute 分鐘值
+ * @return int 0–1439
+ */
+function mpu_sleep_clamp_mod($minute)
+{
+    return max(0, min(1439, (int) $minute));
+}
+
+/**
+ * 將 manifest hour 轉成 minutes-of-day 起點。
+ *
+ * deep_sleep_start 的舊語義允許 24 代表跨日午夜，因此保留 24 → 0。
+ *
+ * @param mixed $hour 整點 hour
+ * @return int 0–1439
+ */
+function mpu_sleep_hour_to_start_mod($hour)
+{
+    $hour = (int) $hour;
+    if ($hour === 24) {
+        return 0;
+    }
+    return mpu_sleep_clamp_mod($hour * 60);
+}
+
+/**
+ * 將 manifest hour 轉成 minutes-of-day 範圍結尾。
+ *
+ * @param mixed $hour 整點 hour
+ * @return int 0–1439
+ */
+function mpu_sleep_hour_to_end_mod($hour)
+{
+    return mpu_sleep_clamp_mod((int) $hour * 60 + 59);
+}
+
+/**
+ * 將 manifest hour 轉成整點 boundary。
+ *
+ * @param mixed $hour 整點 hour
+ * @return int 0–1439
+ */
+function mpu_sleep_hour_to_boundary_mod($hour)
+{
+    return mpu_sleep_clamp_mod((int) $hour * 60);
 }
 
 /**
@@ -561,6 +611,68 @@ function mpu_get_daily_oversleep_end($personality_id = null)
 }
 
 /**
+ * 獲取今天的隨機賴床結束時間（分鐘精度，每個人格每天各自抽一次）
+ *
+ * manifest 的 deep_sleep_end / oversleep_max_hour 仍寫整點 hour，
+ * 本函數將其轉換為 minutes-of-day (0–1439) 並加入分鐘隨機。
+ * 例如 deep_sleep_end=7, oversleep_max_hour=9 且賴床 → random_int(420, 599)，
+ * 即 07:00 ~ 09:59。
+ *
+ * @param string|null $personality_id 角色 ID
+ * @return int 賴床結束的 minutes-of-day (0–1439)
+ */
+function mpu_get_daily_oversleep_end_mod($personality_id = null)
+{
+    $today = wp_date('Y-m-d');
+    $pid   = mpu_norm_personality_key($personality_id);
+
+    $cache_key = "mpu_oversleep_end_mod_{$today}_{$pid}";
+    $cached = get_transient($cache_key);
+    if ($cached !== false) {
+        return (int) $cached;
+    }
+
+    $sleep_settings     = mpu_get_sleep_settings($personality_id);
+    $deep_sleep_end     = (int) $sleep_settings['deep_sleep_end'];
+    $oversleep_max_hour = (int) $sleep_settings['oversleep_max_hour'];
+    $probability        = (float) $sleep_settings['oversleep_probability'];
+    $oversleep_enabled  = !empty($sleep_settings['oversleep_enabled']);
+
+    // 到午夜的秒數（站點時區）
+    $tz  = wp_timezone();
+    $now = new DateTimeImmutable('now', $tz);
+    $mid = new DateTimeImmutable('tomorrow', $tz);
+    $seconds_until_midnight = max(60, $mid->getTimestamp() - $now->getTimestamp());
+
+    $deep_sleep_end_mod = mpu_sleep_hour_to_boundary_mod($deep_sleep_end);
+    $oversleep_max_mod  = mpu_sleep_hour_to_end_mod($oversleep_max_hour);
+    $end_mod = $deep_sleep_end_mod; // 不賴床的預設值
+
+    // 未啟用賴床：直接固定為 deep_sleep_end 整點
+    if (!$oversleep_enabled) {
+        set_transient($cache_key, $end_mod, $seconds_until_midnight);
+        return $end_mod;
+    }
+
+    // 設定合理性檢查
+    if ($oversleep_max_mod <= $deep_sleep_end_mod) {
+        mpu_log_warning('睡眠設定錯誤：oversleep_max_hour 必須大於 deep_sleep_end');
+        set_transient($cache_key, $end_mod, $seconds_until_midnight);
+        return $end_mod;
+    }
+
+    // 抽籤決定是否賴床
+    if (random_int(1, 100) <= $probability * 100) {
+        // 賴床：deep_sleep_end:00 ~ oversleep_max_hour:59
+        $end_mod = random_int($deep_sleep_end_mod, $oversleep_max_mod);
+    }
+    // else: 不賴床，維持 deep_sleep_end * 60
+
+    set_transient($cache_key, $end_mod, $seconds_until_midnight);
+    return $end_mod;
+}
+
+/**
  * 獲取今天的隨機睡眠開始時間（每個人格每天各自抽一次）
  *
  * @param string|null $personality_id 角色 ID
@@ -609,6 +721,58 @@ function mpu_get_daily_deep_sleep_start($personality_id = null)
 }
 
 /**
+ * 獲取今天的隨機睡眠開始時間（分鐘精度，每個人格每天各自抽一次）
+ *
+ * manifest 的 deep_sleep_start 仍寫整點 hour（scalar 或 [min, max]），
+ * 本函數將其轉換為 minutes-of-day (0–1439) 並加入分鐘隨機。
+ * 例如 [22, 23] 解為「22:00 ~ 23:59」→ random_int(1320, 1439)。
+ *
+ * @param string|null $personality_id 角色 ID
+ * @return int 睡眠開始的 minutes-of-day (0–1439)
+ */
+function mpu_get_daily_deep_sleep_start_mod($personality_id = null)
+{
+    $today = wp_date('Y-m-d');
+    $pid   = mpu_norm_personality_key($personality_id);
+
+    $cache_key = "mpu_deep_sleep_start_mod_{$today}_{$pid}";
+    $cached = get_transient($cache_key);
+    if ($cached !== false) {
+        return (int) $cached;
+    }
+
+    $sleep_settings = mpu_get_sleep_settings($personality_id);
+    $start_setting = $sleep_settings['deep_sleep_start'] ?? 0;
+
+    // 到午夜的秒數（站點時區）
+    $tz  = wp_timezone();
+    $now = new DateTimeImmutable('now', $tz);
+    $mid = new DateTimeImmutable('tomorrow', $tz);
+    $seconds_until_midnight = max(60, $mid->getTimestamp() - $now->getTimestamp());
+
+    if (is_array($start_setting)) {
+        if (count($start_setting) === 2) {
+            $a = (int) $start_setting[0];
+            $b = (int) $start_setting[1];
+            $min_hour = min($a, $b);
+            $max_hour = max($a, $b);
+            $min_mod = mpu_sleep_hour_to_start_mod($min_hour);
+            $max_mod = mpu_sleep_hour_to_end_mod($max_hour);
+            // [22, 23] → 22:00 ~ 23:59 → random_int(1320, 1439)
+            $start_mod = $max_mod > $min_mod ? random_int($min_mod, $max_mod) : $min_mod;
+        } else {
+            mpu_log_warning('睡眠設定錯誤：deep_sleep_start array must have exactly 2 elements');
+            $start_mod = mpu_sleep_hour_to_start_mod($start_setting[0] ?? 0);
+        }
+    } else {
+        $start_mod = mpu_sleep_hour_to_start_mod($start_setting);
+    }
+
+    set_transient($cache_key, $start_mod, $seconds_until_midnight);
+    return $start_mod;
+}
+
+/**
  * 檢查當前 IP 是否已被叫醒
  *
  * ★ 在「可能賴床的時間範圍」(deep_sleep_end ~ oversleep_max_hour) 內檢查 IP 記錄
@@ -625,15 +789,15 @@ function mpu_is_ip_woken_today($personality_id = null)
         return false;
     }
 
-    $hour  = (int) wp_date('G');
-    $today = wp_date('Y-m-d');
-    $pid   = mpu_norm_personality_key($personality_id);
+    $current_mod = (int) wp_date('G') * 60 + (int) wp_date('i');
+    $today       = wp_date('Y-m-d');
+    $pid         = mpu_norm_personality_key($personality_id);
 
-    $deep_sleep_end     = (int) $sleep_settings['deep_sleep_end'];
-    $oversleep_max_hour = (int) $sleep_settings['oversleep_max_hour'];
+    $deep_sleep_end_mod = mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end']);
+    $oversleep_max_mod  = mpu_sleep_hour_to_end_mod($sleep_settings['oversleep_max_hour']);
 
-    // 在可能賴床的時間範圍內（06:00~08:00）都檢查 IP 記錄
-    if ($hour < $deep_sleep_end || $hour >= $oversleep_max_hour) {
+    // 在可能賴床的時間範圍內（07:00~09:59）都檢查 IP 記錄
+    if ($current_mod < $deep_sleep_end_mod || $current_mod > $oversleep_max_mod) {
         return false;
     }
 
@@ -668,15 +832,15 @@ function mpu_mark_ip_as_woken($personality_id = null)
         return false;
     }
 
-    $hour  = (int) wp_date('G');
-    $today = wp_date('Y-m-d');
-    $pid   = mpu_norm_personality_key($personality_id);
+    $current_mod = (int) wp_date('G') * 60 + (int) wp_date('i');
+    $today       = wp_date('Y-m-d');
+    $pid         = mpu_norm_personality_key($personality_id);
 
-    $deep_sleep_end     = (int) $sleep_settings['deep_sleep_end'];
-    $oversleep_max_hour = (int) $sleep_settings['oversleep_max_hour'];
+    $deep_sleep_end_mod = mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end']);
+    $oversleep_max_mod  = mpu_sleep_hour_to_end_mod($sleep_settings['oversleep_max_hour']);
 
-    // 在可能賴床的時間範圍內（06:00~08:00）都可記錄 IP
-    if ($hour < $deep_sleep_end || $hour >= $oversleep_max_hour) {
+    // 在可能賴床的時間範圍內（07:00~09:59）都可記錄 IP
+    if ($current_mod < $deep_sleep_end_mod || $current_mod > $oversleep_max_mod) {
         return false;
     }
 
@@ -692,7 +856,7 @@ function mpu_mark_ip_as_woken($personality_id = null)
 
     if (!in_array($ip, $woken_ips, true)) {
         $woken_ips[] = $ip;
-        // 3 小時過期，避免跨到晚上（你想要的行為）
+        // 3 小時過期，避免跨到晚上
         set_transient($cache_key, $woken_ips, 3 * HOUR_IN_SECONDS);
     }
 

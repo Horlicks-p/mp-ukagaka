@@ -90,16 +90,18 @@ function mpu_get_initial_message($ukagaka_name = null)
 
                 // 條件觸發：賴床時加入 lazy_protests
                 if (!empty($sleep_config['lazy_protests'])) {
-                    $hour = (int) wp_date('G');
+                    $current_mod = (int) wp_date('G') * 60 + (int) wp_date('i');
                     $sleep_settings = function_exists('mpu_get_sleep_settings') 
                         ? mpu_get_sleep_settings($personality_id) 
                         : [];
-                    $deep_sleep_end = (int) ($sleep_settings['deep_sleep_end'] ?? 6);
-                    $oversleep_end = function_exists('mpu_get_daily_oversleep_end') 
-                        ? mpu_get_daily_oversleep_end($personality_id) 
-                        : $deep_sleep_end;
-                    // 在賴床時間範圍內（deep_sleep_end <= hour < oversleep_end）
-                    if ($hour >= $deep_sleep_end && $hour < $oversleep_end) {
+                    $deep_sleep_end_mod = function_exists('mpu_sleep_hour_to_boundary_mod')
+                        ? mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end'] ?? 6)
+                        : max(0, min(1439, (int) ($sleep_settings['deep_sleep_end'] ?? 6) * 60));
+                    $oversleep_end_mod = function_exists('mpu_get_daily_oversleep_end_mod') 
+                        ? mpu_get_daily_oversleep_end_mod($personality_id) 
+                        : $deep_sleep_end_mod;
+                    // 在賴床時間範圍內（deep_sleep_end <= current_mod < oversleep_end_mod）
+                    if ($current_mod >= $deep_sleep_end_mod && $current_mod < $oversleep_end_mod) {
                         $sleeping_messages = array_merge($sleeping_messages, $sleep_config['lazy_protests']);
                     }
                 }

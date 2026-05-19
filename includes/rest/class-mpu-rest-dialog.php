@@ -410,14 +410,14 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                 $is_deep_sleep = false;
                 if (function_exists('mpu_get_sleep_settings')) {
                     $sleep_settings = mpu_get_sleep_settings($personality_id);
-                    $hour           = (int) wp_date('G');
-                    $d_start        = function_exists('mpu_get_daily_deep_sleep_start') ? mpu_get_daily_deep_sleep_start($personality_id) : (int) $sleep_settings['deep_sleep_start'];
-                    $d_end          = (int) $sleep_settings['deep_sleep_end'];
+                    $current_mod    = (int) wp_date('G') * 60 + (int) wp_date('i');
+                    $d_start_mod    = function_exists('mpu_get_daily_deep_sleep_start_mod') ? mpu_get_daily_deep_sleep_start_mod($personality_id) : (function_exists('mpu_sleep_hour_to_start_mod') && function_exists('mpu_get_daily_deep_sleep_start') ? mpu_sleep_hour_to_start_mod(mpu_get_daily_deep_sleep_start($personality_id)) : 0);
+                    $d_end_mod      = function_exists('mpu_sleep_hour_to_boundary_mod') ? mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end']) : max(0, min(1439, (int) $sleep_settings['deep_sleep_end'] * 60));
 
-                    if ($d_start < $d_end) {
-                        $is_deep_sleep = ($hour >= $d_start && $hour < $d_end);
+                    if ($d_start_mod < $d_end_mod) {
+                        $is_deep_sleep = ($current_mod >= $d_start_mod && $current_mod < $d_end_mod);
                     } else {
-                        $is_deep_sleep = ($hour >= $d_start || $hour < $d_end);
+                        $is_deep_sleep = ($current_mod >= $d_start_mod || $current_mod < $d_end_mod);
                     }
                 }
 
