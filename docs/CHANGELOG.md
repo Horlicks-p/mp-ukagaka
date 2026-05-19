@@ -4,6 +4,27 @@
 
 ---
 
+## [2.19.0] - 2026-05-19
+
+### 🏷️ 核心 Class 型別宣告（v2.19 #5 milestone）
+
+- **`MPU_Session_Event`**：`build(string $kind, array $payload = []): array` 與 `kind_for_legacy_event(string $event): string` 補上 PHP 7.4 相容的 type hints。
+- **`MPU_Input_Role`**：5 個 static method（`resolve` / `can_use_ability` / `current_can_use_ability` / `normalize_ability_name` / `is_known_role`）標註 `string` / `bool` 型別。內部 `(string)` cast 作為防禦層保留。
+- **`MPU_REST_Base`**：`rate_limit` 回傳 `?WP_REST_Response`、`ok` 回傳 `WP_REST_Response`、`fail` 回傳 `WP_Error`；`$data` 故意保留 mixed。**`check_admin()` 不加 return type**：實際 contract 是 `true|WP_Error`，PHP 7.4 沒有 union types 可表達。
+- **`chat-integrity.php`**：13 個函數加上 `string` / `array` / `bool` / `void` / `WP_Error` 型別。**`verify_history()` 不加 return type**：實際 contract 是 `true|null|WP_Error`。`_store_history(): bool` 兩條 return path（`return false` 與 `set_transient()` 的 bool）對齊。
+
+### 📋 #6 utility-functions 拆分前置審查
+
+- 確認 `chat-integrity.php` / `provider-helpers.php` / `utility-functions.php` 在 `rest/bootstrap.php` 之前載入，REST 與 chat history 內的 `function_exists('mpu_chat_integrity_*')`、`function_exists('mpu_rest_check_rate_limit')` 是載入順序保證下的冗餘防護候選。
+- **本版不動這些防護**。冗餘清除排定在 #6 utility-functions 拆分時與檔案搬移同 PR 進行（拆檔可能改變載入順序，與「移除 function_exists 防護」是同一前提的兩面，分開做 review 容易失焦）。
+
+### ✅ 驗證
+
+- `npm run verify`：PHP lint、bundle build、PHPUnit（27 tests / 59 assertions）全綠。
+- **行為不變**：純 type hint 補強，不涉及邏輯修改、檔案搬移或介面變更。
+
+---
+
 ## [2.18.0] - 2026-05-18
 
 ### 🧪 測試基礎建設（PHPUnit + verify pipeline）

@@ -4,6 +4,27 @@
 
 ---
 
+## [2.19.0] - 2026-05-19
+
+### 🏷️ Core Class Type Hints (v2.19 #5 milestone)
+
+- **`MPU_Session_Event`**: `build(string $kind, array $payload = []): array` and `kind_for_legacy_event(string $event): string` get PHP 7.4-compatible type hints.
+- **`MPU_Input_Role`**: 5 static methods (`resolve` / `can_use_ability` / `current_can_use_ability` / `normalize_ability_name` / `is_known_role`) gain `string` / `bool` type hints. Internal `(string)` casts retained as a defense layer.
+- **`MPU_REST_Base`**: `rate_limit` returns `?WP_REST_Response`, `ok` returns `WP_REST_Response`, `fail` returns `WP_Error`; `$data` deliberately remains mixed. **`check_admin()` intentionally untyped**: actual contract is `true|WP_Error`, which PHP 7.4 cannot express (no union types).
+- **`chat-integrity.php`**: 13 functions receive `string` / `array` / `bool` / `void` / `WP_Error` type hints. **`verify_history()` intentionally untyped**: actual contract is `true|null|WP_Error`. `_store_history(): bool` correctly aligns its two return paths (`return false` and `set_transient()` returning bool).
+
+### 📋 #6 utility-functions Decomposition Pre-Audit
+
+- Confirmed `chat-integrity.php` / `provider-helpers.php` / `utility-functions.php` load before `rest/bootstrap.php`, making `function_exists('mpu_chat_integrity_*')` and `function_exists('mpu_rest_check_rate_limit')` calls in REST and chat history candidate-redundant defenses under load-order guarantees.
+- **No defenses removed in this release**. Redundancy cleanup is deferred to the #6 utility-functions decomposition PR — file moves and `function_exists` removal are two sides of the same precondition and should land in one reviewable unit.
+
+### ✅ Verification
+
+- `npm run verify`: PHP lint + bundle build + PHPUnit (27 tests / 59 assertions) all green.
+- **Behavior unchanged**: pure type hint additions; no logic changes, file moves, or interface alterations.
+
+---
+
 ## [2.18.0] - 2026-05-18
 
 ### 🧪 Testing Infrastructure (PHPUnit + verify pipeline)

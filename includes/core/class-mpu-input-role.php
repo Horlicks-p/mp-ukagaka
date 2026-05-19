@@ -22,7 +22,7 @@ class MPU_Input_Role {
      * @param array $context Optional context such as source=cron/system.
      * @return string
      */
-    public static function resolve(array $context = []) {
+    public static function resolve(array $context = []): string {
         if (!empty($context['role']) && self::is_known_role((string) $context['role'])) {
             return (string) $context['role'];
         }
@@ -50,7 +50,7 @@ class MPU_Input_Role {
      * @param string $role         One of this class' role constants.
      * @return bool
      */
-    public static function can_use_ability($ability_name, $role) {
+    public static function can_use_ability(string $ability_name, string $role): bool {
         $ability_name = self::normalize_ability_name((string) $ability_name);
         $role = self::is_known_role((string) $role) ? (string) $role : self::VISITOR;
 
@@ -80,7 +80,7 @@ class MPU_Input_Role {
      * @param array  $context      Optional resolver context.
      * @return bool
      */
-    public static function current_can_use_ability($ability_name, array $context = []) {
+    public static function current_can_use_ability(string $ability_name, array $context = []): bool {
         return self::can_use_ability($ability_name, self::resolve($context));
     }
 
@@ -90,7 +90,7 @@ class MPU_Input_Role {
      * @param string $ability_name Ability or tool name.
      * @return string
      */
-    public static function normalize_ability_name($ability_name) {
+    public static function normalize_ability_name(string $ability_name): string {
         return str_replace('__', '/', (string) $ability_name);
     }
 
@@ -98,7 +98,7 @@ class MPU_Input_Role {
      * @param string $role Role to validate.
      * @return bool
      */
-    private static function is_known_role($role) {
+    private static function is_known_role(string $role): bool {
         return in_array($role, [self::ADMIN, self::SYSTEM, self::SUBSCRIBER, self::VISITOR], true);
     }
 }

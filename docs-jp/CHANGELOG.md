@@ -4,6 +4,27 @@
 
 ---
 
+## [2.19.0] - 2026-05-19
+
+### 🏷️ コア Class への型宣言（v2.19 #5 milestone）
+
+- **`MPU_Session_Event`**：`build(string $kind, array $payload = []): array` と `kind_for_legacy_event(string $event): string` に PHP 7.4 互換の type hint を追加。
+- **`MPU_Input_Role`**：5 つの static メソッド（`resolve` / `can_use_ability` / `current_can_use_ability` / `normalize_ability_name` / `is_known_role`）に `string` / `bool` 型を宣言。内部の `(string)` キャストは防御層として保持しています。
+- **`MPU_REST_Base`**：`rate_limit` は `?WP_REST_Response`、`ok` は `WP_REST_Response`、`fail` は `WP_Error` を返します。`$data` は意図的に mixed のまま。**`check_admin()` は型宣言なし**：実際の contract は `true|WP_Error` で、PHP 7.4 には union types がないため。
+- **`chat-integrity.php`**：13 個の関数に `string` / `array` / `bool` / `void` / `WP_Error` の型を追加。**`verify_history()` は型宣言なし**：実際の contract は `true|null|WP_Error`。`_store_history(): bool` の 2 つの return path（`return false` と `set_transient()` の bool）は整合済み。
+
+### 📋 #6 utility-functions 分割の事前調査
+
+- `chat-integrity.php` / `provider-helpers.php` / `utility-functions.php` は `rest/bootstrap.php` の前にロードされることを確認。REST と chat history 内の `function_exists('mpu_chat_integrity_*')` / `function_exists('mpu_rest_check_rate_limit')` は load 順序の保証下では冗長防御の候補です。
+- **本リリースでは防御を削除しません**。冗長削除は #6 utility-functions 分割 PR でファイル移動と同時に実施します（ファイル移動が load 順序を変えうるため、`function_exists` 削除と同じ前提の表裏一体で、分割 review すると焦点がぼやけるため）。
+
+### ✅ 検証
+
+- `npm run verify`：PHP lint + bundle build + PHPUnit（27 tests / 59 assertions）すべて pass。
+- **動作変更なし**：純粋な type hint 追加で、ロジック変更・ファイル移動・インターフェース変更は含まれません。
+
+---
+
 ## [2.18.0] - 2026-05-18
 
 ### 🧪 テスト基盤（PHPUnit + verify pipeline）

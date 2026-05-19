@@ -40,7 +40,7 @@ abstract class MPU_REST_Base {
      * @param int    $window 時間窗口（秒）
      * @return WP_REST_Response|null  超限回傳 429 Response，允許回傳 null
      */
-    protected function rate_limit($key, $max, $window) {
+    protected function rate_limit(string $key, int $max, int $window): ?WP_REST_Response {
         if (function_exists('mpu_rest_check_rate_limit')) {
             return mpu_rest_check_rate_limit($key, $max, $window);
         }
@@ -86,7 +86,7 @@ abstract class MPU_REST_Base {
      * @param int   $status HTTP 狀態碼，預設 200
      * @return WP_REST_Response
      */
-    protected function ok($data, $status = 200) {
+    protected function ok($data, int $status = 200): WP_REST_Response {
         return new WP_REST_Response($data, $status);
     }
 
@@ -99,7 +99,7 @@ abstract class MPU_REST_Base {
      * @param array|null $data    額外的除錯資訊（例如 provider 的 http_status / raw_body）
      * @return WP_Error
      */
-    protected function fail($code, $message, $status, $data = null) {
+    protected function fail(string $code, string $message, int $status, $data = null): WP_Error {
         $error_data = ['status' => $status];
         if (is_array($data)) {
             // 合併 provider 回傳的除錯欄位（避免覆蓋 status）

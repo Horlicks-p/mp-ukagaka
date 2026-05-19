@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.18.0
+Stable tag: 2.19.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,12 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-19 =
+* v2.19.0
+* [REFACTOR] Core class type hints (v2.19 #5 milestone): added PHP 7.4-compatible type hints to MPU_Session_Event (2 methods), MPU_Input_Role (5 methods), MPU_REST_Base (rate_limit / ok / fail), and chat-integrity.php (13 functions). check_admin() and verify_history() intentionally untyped (true|WP_Error and true|null|WP_Error cannot be expressed in PHP 7.4 without union types). Behavior unchanged — pure type annotations.
+* [DOCS] Pre-audit of #6 utility-functions decomposition: confirmed chat-integrity / provider-helpers / utility-functions load before rest/bootstrap, making several function_exists() guards in REST and chat history candidate-redundant. Defenses retained this release; cleanup deferred to the decomposition PR.
+* [VERIFY] npm run verify: lint + bundle + PHPUnit (27 tests / 59 assertions) all green.
 
 = 2026-05-18 =
 * v2.18.0

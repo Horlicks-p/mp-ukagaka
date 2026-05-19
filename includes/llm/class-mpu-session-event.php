@@ -26,7 +26,7 @@ class MPU_Session_Event {
      * @param array  $payload Event payload.
      * @return array
      */
-    public static function build($kind, array $payload = []) {
+    public static function build(string $kind, array $payload = []): array {
         return [
             'eventId' => function_exists('wp_generate_uuid4') ? wp_generate_uuid4() : uniqid('mpu_evt_', true),
             'ts'      => gmdate('c'),
@@ -41,7 +41,7 @@ class MPU_Session_Event {
      * @param string $event Legacy event name.
      * @return string
      */
-    public static function kind_for_legacy_event($event) {
+    public static function kind_for_legacy_event(string $event): string {
         switch ((string) $event) {
             case 'delta':
                 return self::STREAM_DELTA;

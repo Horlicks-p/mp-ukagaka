@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
-function mpu_chat_integrity_debug_log($message)
+function mpu_chat_integrity_debug_log($message): void
 {
     $wp_debug_enabled     = defined('WP_DEBUG') && WP_DEBUG;
     $wp_debug_log_enabled = defined('WP_DEBUG_LOG') && WP_DEBUG_LOG;
@@ -22,7 +22,7 @@ function mpu_chat_integrity_debug_log($message)
     error_log($line);
 }
 
-function mpu_chat_integrity_mode()
+function mpu_chat_integrity_mode(): string
 {
     $allowed = ['audit', 'warn', 'block'];
     $mode = 'audit';
@@ -55,7 +55,7 @@ function mpu_chat_integrity_mode()
     return in_array($filtered, $allowed, true) ? $filtered : $mode;
 }
 
-function mpu_chat_integrity_should_block($session_id, array $history, array $verify_meta, $mode = null)
+function mpu_chat_integrity_should_block($session_id, array $history, array $verify_meta, $mode = null): bool
 {
     $mode = $mode === null ? mpu_chat_integrity_mode() : strtolower(trim((string) $mode));
     $should_block = ($mode === 'block');
@@ -70,7 +70,7 @@ function mpu_chat_integrity_should_block($session_id, array $history, array $ver
     );
 }
 
-function mpu_chat_integrity_mismatch_error()
+function mpu_chat_integrity_mismatch_error(): WP_Error
 {
     return new WP_Error(
         'mpu_chat_integrity_mismatch',
@@ -88,7 +88,7 @@ function mpu_chat_integrity_mismatch_error()
  * @param string $actual     本輪 verify 計算的 checksum
  * @param array  $verify_history 本輪 verify 端傳入的歷史
  */
-function mpu_chat_integrity_dump_mismatch($session_id, $expected, $actual, array $verify_history, array $verify_meta = [])
+function mpu_chat_integrity_dump_mismatch($session_id, string $expected, string $actual, array $verify_history, array $verify_meta = []): void
 {
     // __FILE__ = includes/llm/chat-integrity.php → 需要往上 2 層到外掛根目錄
     $log_dir = dirname(dirname(dirname(__FILE__))) . '/logs';
@@ -200,7 +200,7 @@ function mpu_chat_integrity_dump_mismatch($session_id, $expected, $actual, array
     @file_put_contents($log_file, $entry, FILE_APPEND | LOCK_EX);
 }
 
-function mpu_chat_integrity_normalize_session_id($session_id)
+function mpu_chat_integrity_normalize_session_id($session_id): string
 {
     if (!is_scalar($session_id)) return '';
     $normalized = sanitize_key((string) $session_id);
@@ -208,17 +208,17 @@ function mpu_chat_integrity_normalize_session_id($session_id)
     return substr($normalized, 0, 64);
 }
 
-function mpu_chat_integrity_transient_key($session_id)
+function mpu_chat_integrity_transient_key(string $session_id): string
 {
     return 'mpu_chat_checksum_' . $session_id;
 }
 
-function mpu_chat_integrity_snapshot_key($session_id)
+function mpu_chat_integrity_snapshot_key(string $session_id): string
 {
     return 'mpu_chat_cs_snapshot_' . $session_id;
 }
 
-function mpu_chat_integrity_snapshot_meta_key($session_id)
+function mpu_chat_integrity_snapshot_meta_key(string $session_id): string
 {
     return 'mpu_chat_cs_snapshot_meta_' . $session_id;
 }
@@ -228,7 +228,7 @@ function mpu_chat_integrity_snapshot_meta_key($session_id)
  *
  * @return array
  */
-function mpu_chat_integrity_detect_store_source()
+function mpu_chat_integrity_detect_store_source(): array
 {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 12);
     $self  = wp_normalize_path(__FILE__);
@@ -262,7 +262,7 @@ function mpu_chat_integrity_detect_store_source()
  *
  * @return array
  */
-function mpu_chat_integrity_detect_verify_source()
+function mpu_chat_integrity_detect_verify_source(): array
 {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 12);
     $self  = wp_normalize_path(__FILE__);
@@ -291,7 +291,7 @@ function mpu_chat_integrity_detect_verify_source()
     ];
 }
 
-function mpu_chat_integrity_json_encode($data, $pretty = false)
+function mpu_chat_integrity_json_encode($data, bool $pretty = false): string
 {
     if (function_exists('mpu_json_encode_safe')) {
         $json = mpu_json_encode_safe($data);
@@ -305,13 +305,13 @@ function mpu_chat_integrity_json_encode($data, $pretty = false)
     return is_string($json) ? $json : '[]';
 }
 
-function mpu_chat_integrity_checksum_for_filtered(array $filtered_messages)
+function mpu_chat_integrity_checksum_for_filtered(array $filtered_messages): string
 {
     $json = mpu_chat_integrity_json_encode($filtered_messages, false);
     return md5($json);
 }
 
-function mpu_chat_integrity_first_diff_index(array $a, array $b)
+function mpu_chat_integrity_first_diff_index(array $a, array $b): string
 {
     $max = max(count($a), count($b));
     for ($i = 0; $i < $max; $i++) {
@@ -324,7 +324,7 @@ function mpu_chat_integrity_first_diff_index(array $a, array $b)
     return 'none';
 }
 
-function mpu_chat_integrity_role_counts(array $messages)
+function mpu_chat_integrity_role_counts(array $messages): array
 {
     $counts = [];
     foreach ($messages as $msg) {
@@ -342,7 +342,7 @@ function mpu_chat_integrity_role_counts(array $messages)
     return $counts;
 }
 
-function mpu_chat_integrity_filter_messages(array $messages)
+function mpu_chat_integrity_filter_messages(array $messages): array
 {
     $filtered = [];
     foreach ($messages as $message) {
@@ -368,7 +368,7 @@ function mpu_chat_integrity_filter_messages(array $messages)
     return $filtered;
 }
 
-function mpu_chat_integrity_compute_checksum(array $messages)
+function mpu_chat_integrity_compute_checksum(array $messages): string
 {
     $filtered = mpu_chat_integrity_filter_messages($messages);
     if (function_exists('mpu_json_encode_safe')) {
@@ -430,7 +430,7 @@ function mpu_chat_integrity_verify_history($session_id, array $history)
     return true;
 }
 
-function mpu_chat_integrity_store_history($session_id, array $history)
+function mpu_chat_integrity_store_history($session_id, array $history): bool
 {
     $session_id = mpu_chat_integrity_normalize_session_id($session_id);
     if ($session_id === '') return false;
@@ -466,7 +466,7 @@ function mpu_chat_integrity_store_history($session_id, array $history)
  * @param int   $limit   保留筆數上限
  * @return array
  */
-function mpu_chat_integrity_slice_for_store(array $history, $limit = 10)
+function mpu_chat_integrity_slice_for_store(array $history, int $limit = 10): array
 {
     // Step 1: 先正規化 — 移除開頭的孤立 assistant（與 verify 端對稱）
     $normalized = [];
