@@ -4,6 +4,70 @@
 
 ---
 
+## [2.21.0] - 2026-05-20
+
+### 🏗️ JS 全域狀態封裝（v2.21.0 #8 milestone）
+
+前端 runtime state 原本散落在 19 個 file-level `let` 與 9 個 `window.*` 全域，現在收進結構化的 `window.MPU_STATE` namespace，透過 28 個 setter/getter helper 存取。**無演算法改動、無 REST payload 改動、無 UI 行為改動** — 純結構性 refactor，重整 mutable state 的擁有權與存取方式。
+
+**遷移分層**：
+
+| 層級 | 變數 | 策略 |
+|---|---|---|
+| 完全遷移（無 `window.*` 殘留）| `__mpu_retry_count` / `__mpu_fallback_retry_count` / `mpuContextPending` / `mpuSettingsProcessed` / `mpuSettingsLoaded` / `mpuEnableChatMode` / `debugMode` | 讀寫只走 MPU_STATE |
+| 保留相容橋 | `mpuMsgList` / `mpuBaseAutoTalkInterval` | Helper 雙寫 `window.*` + MPU_STATE；getter 以 `window.*` 為 canonical |
+| Dual-write helper | 17 個 primitive（autoTalk / typewriter / AI / LLM / dialog / greet state）| Helper 同時更新舊 `let` 與 MPU_STATE；reader 兩者皆可 |
+| 同物件 ref | `mpuLLMResponseHistory` / `mpuOllamaRequestQueue` / `__mpuStorage` | Array/object 共享，mutation 自動同步 |
+
+**Plan §2.3「不搬清單」刻意保留**：`window.mpuChatHistory`, `window.mpuChatModeActive`, `window.mpuChatSessionId`, `window.mpuChatRequesting`, `mpuChatAbortController`（chat shared state）；`mpuInfo`, `mpuSettings`, `mpuPreSettings`, `mpuRestUrl`, `mpuRestNonce`, `mpuL10n`, `mpuInitData`, `mpuInitParams`, `mpuPersonalityId`（PHP localized data 契約）；`mpuCanvasManager`, `mpuEmojiManager`, `mpuFrierenManager`, `mpuEmojiConfig`（manager objects）；`MPU_EVENTS`, `mpuSpaEvents`（event surface）。
+
+### ✨ 行為調整（intentional）
+
+- **`window.mpuDebugMode = true` 在 console 即時生效**。原 `let debugMode` 在腳本載入時 capture 一次，console 修改不會立即生效。新 `mpuIsDebugMode()` helper 每次呼叫都即時讀 `MPU_STATE.flags.debugMode` 與 `window.mpuDebugMode` 雙旗，console 切換立即啟用 log。
+
+### 📐 Helper 一覽（`js/ukagaka-base.js`）
+
+合計 28 個：
+
+- **State access**：`mpuGetState`, `mpuState`
+- **Debug**：`mpuIsDebugMode`
+- **AutoTalk**：`mpuSetAutoTalkTimer`, `mpuSetAutoTalkEnabled`, `mpuSetAutoTalkInterval`, `mpuSetBaseAutoTalkInterval`, `mpuGetBaseAutoTalkInterval`
+- **Typewriter**：`mpuSetTypewriterTimer`
+- **LLM/AI**：`mpuSetAiTextColor`, `mpuSetAiDisplayDuration`, `mpuSetAiDisplayTimer`, `mpuSetAiContextInProgress`, `mpuSetMessageBlocking`, `mpuSetOllamaReplaceDialogue`, `mpuSetLastLLMResponse`, `mpuResetLLMResponseHistory`, `mpuSetOllamaRequesting`, `mpuSetLastUserActionTime`, `mpuSetGreetInProgress`
+- **Dialog**：`mpuSetDialogStore`, `mpuGetDialogStore`, `mpuSetDialogNextMode`, `mpuSetDialogDefaultMsg`
+- **Flags**：`mpuSetContextPending`, `mpuIsContextPending`, `mpuSetSettingsProcessed`, `mpuIsSettingsProcessed`, `mpuSetSettingsLoaded`, `mpuIsSettingsLoaded`, `mpuSetEnableChatMode`, `mpuIsChatModeEnabled`
+
+### 🔁 與 plan §2.3 #6 的偏離（實作優於計畫）
+
+Plan 原本建議「區域短別名 + 分段替換」避免 refactor 期間的 scope 錯誤。實作改用 **setter helper function** —— dual-write 邏輯單點集中、grep 友好、無 scope 問題。Intent 完全相同（避免 search-replace 失誤），執行更穩。
+
+### 📦 Commit 配置
+
+兩個 commit 完成本 milestone：
+
+1. `refactor(js): encapsulate runtime state into window.MPU_STATE` — 7 個 source 檔變更
+2. `chore(build): rebuild dist bundle for v2.21.0 #8 MPU_STATE migration` — `tools/node/build.js` 純輸出
+
+Plan §2.3 原列 7 步 commit（Inventory / Namespace / Base+core / Dialog+context+greeting / Features / Chat boundary / Bundle）。6 個 source step 實作時未逐步落 commit，最後一次性合併為單一 source commit。Trade-off：bisect 可隔離「v2.21.0 vs pre-v2.21.0」但無法定位 milestone 內單一 step。緩解：source 改動按檔分 boundary（base/core/dialog/context/greeting/features/chat 各自為界），上線出問題可 file-level cherry-pick。
+
+### ✅ 驗證
+
+- `npm run verify`：lint + bundle + PHPUnit（27 tests / 59 assertions）兩 commit 各自獨立通過。
+- Source grep 確認完全遷移變數 0 hit。
+- `window.mpuMsgList` / `window.mpuBaseAutoTalkInterval` 在 source 只剩 base.js helper 內部 compat bridge 寫入與 defensive fallback。
+- `git diff --check` 乾淨。
+
+### ⚠️ 已知限制
+
+- **Release 前必須跑 manual smoke test**。PHPUnit 只涵蓋後端，JS runtime regression 無法自動偵測。Plan §2.3 #6 必驗收 path：auto-talk / chat / context / SSE / typewriter / wake_ghost / first-visit greeting / SPA navigation / sleep-mode interval。
+- **`mpuGetDialogStore()` defensive fallback 為實質 dead code**：`typeof window.mpuMsgList !== "undefined"` 在 base.js init 後永遠為真（`typeof null === "object"`），fallback branch 不會走到。**刻意保留**作為「外部 script 將 window.mpuMsgList unset 為 undefined」的安全網，inline comment 已說明用途。
+
+### 📋 Milestone 註記
+
+本版收尾凍結表中的 v2.21.0。下一站：**v2.22.0 = #7 runtime_state helper**（Avatar §4）或 **#9 CSS theme / i18n hot swap**（Avatar §7 + §8），看實作複雜度決定。
+
+---
+
 ## [2.20.0] - 2026-05-20
 
 ### 🔧 utility-functions.php 領域拆分（v2.20.0 #6 milestone）

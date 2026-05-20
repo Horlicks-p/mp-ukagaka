@@ -185,6 +185,14 @@ This plugin uses a modular architecture for better maintainability:
 == Changelog ==
 
 = 2026-05-20 =
+* v2.21.0
+* [REFACTOR] JS global state encapsulation (v2.21.0 #8 milestone): frontend runtime state previously scattered across 19 file-level `let` declarations and 9 `window.*` globals is now collected into a structured `window.MPU_STATE` namespace, accessed via 28 setter/getter helpers in js/ukagaka-base.js. No algorithm / REST payload / UI behavior changes — pure structural refactor.
+* [REFACTOR] 7 legacy globals fully migrated (no window.* left): __mpu_retry_count, __mpu_fallback_retry_count, mpuContextPending, mpuSettingsProcessed, mpuSettingsLoaded, mpuEnableChatMode, debugMode. window.mpuMsgList / window.mpuBaseAutoTalkInterval retained as compatibility bridges (helper dual-writes both names).
+* [REFACTOR] Plan §2.3 「不搬清單」preserved: window.mpuChatHistory, window.mpuChatModeActive, window.mpuChatSessionId, window.mpuChatRequesting, mpuChatAbortController (chat shared state); mpuInfo / mpuSettings / mpuPreSettings / mpuRestUrl / mpuRestNonce / mpuL10n / mpuInitData / mpuInitParams / mpuPersonalityId (PHP localized contract); manager objects and event surfaces — all untouched.
+* [BEHAVIOR] window.mpuDebugMode = true in browser console now takes effect immediately (previously was init-only-captured). New mpuIsDebugMode() helper reads both MPU_STATE.flags.debugMode and window.mpuDebugMode on every call.
+* [VERIFY] npm run verify: lint + bundle + PHPUnit (27 tests / 59 assertions) all green. Manual smoke test required before release — PHPUnit does not cover JS runtime; verification path per plan §2.3 #6: auto-talk / chat / context / SSE / typewriter / wake_ghost / first-visit greeting / SPA navigation / sleep-mode interval.
+
+= 2026-05-20 =
 * v2.20.0
 * [REFACTOR] utility-functions.php domain split (v2.20.0 #6 milestone): the ~1,143-line catch-all file is now five focused domain files — template-functions.php (string / output helpers), file-functions.php (secure file ops / dialogs dir), encryption-functions.php (API key encrypt/decrypt), wp-info-functions.php (WordPress environment / personality resolver), network-functions.php (HTTP / cache / rate limit / session token). utility-functions.php retains constants only (36 lines).
 * [CLEANUP] Removed redundant function_exists() guards on mpu_chat_integrity_* and mpu_rest_check_rate_limit across chat-history-service, akismet-integration, chat-lock, rest-base, and rest-dialog — load order in mp-ukagaka.php already guarantees these functions exist before any caller. Behavior unchanged; reduces dead defensive code.

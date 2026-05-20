@@ -4,6 +4,70 @@
 
 ---
 
+## [2.21.0] - 2026-05-20
+
+### 🏗️ JS Global State Encapsulation (v2.21.0 #8 milestone)
+
+Frontend runtime state previously scattered across 19 file-level `let` declarations and 9 `window.*` globals is now collected into a structured `window.MPU_STATE` namespace, accessed via 28 setter/getter helpers. No algorithm changes, no REST payload changes, no UI behavior changes — pure structural refactor of how mutable state is owned and accessed.
+
+**Migration tiers**:
+
+| Tier | Variables | Strategy |
+|---|---|---|
+| Fully migrated (no `window.*` left) | `__mpu_retry_count` / `__mpu_fallback_retry_count` / `mpuContextPending` / `mpuSettingsProcessed` / `mpuSettingsLoaded` / `mpuEnableChatMode` / `debugMode` | Reads/writes go to MPU_STATE only |
+| Compat bridge retained | `mpuMsgList` / `mpuBaseAutoTalkInterval` | Helper dual-writes `window.*` + MPU_STATE; getter reads `window.*` canonical |
+| Dual-write helper | 17 primitives (autoTalk / typewriter / AI / LLM / dialog / greet state) | Helper updates both old `let` and MPU_STATE; readers can use either |
+| Same-object reference | `mpuLLMResponseHistory` / `mpuOllamaRequestQueue` / `__mpuStorage` | Array/object shared — mutations auto-sync |
+
+**Plan §2.3 「不搬清單」preserved** (untouched by design): `window.mpuChatHistory`, `window.mpuChatModeActive`, `window.mpuChatSessionId`, `window.mpuChatRequesting`, `mpuChatAbortController` (chat shared state); `mpuInfo`, `mpuSettings`, `mpuPreSettings`, `mpuRestUrl`, `mpuRestNonce`, `mpuL10n`, `mpuInitData`, `mpuInitParams`, `mpuPersonalityId` (PHP localized contract); `mpuCanvasManager`, `mpuEmojiManager`, `mpuFrierenManager`, `mpuEmojiConfig` (manager objects); `MPU_EVENTS`, `mpuSpaEvents` (event surface).
+
+### ✨ Behavior Change (Intentional)
+
+- **`window.mpuDebugMode = true` in browser console now takes effect immediately.** Previously, `let debugMode` captured the value once at script load and never re-read the window flag. New `mpuIsDebugMode()` helper checks both `MPU_STATE.flags.debugMode` and `window.mpuDebugMode` on every call, so toggling at runtime via console now toggles logging immediately.
+
+### 📐 Helper Inventory (`js/ukagaka-base.js`)
+
+28 helpers total:
+
+- **State access**: `mpuGetState`, `mpuState`
+- **Debug**: `mpuIsDebugMode`
+- **AutoTalk**: `mpuSetAutoTalkTimer`, `mpuSetAutoTalkEnabled`, `mpuSetAutoTalkInterval`, `mpuSetBaseAutoTalkInterval`, `mpuGetBaseAutoTalkInterval`
+- **Typewriter**: `mpuSetTypewriterTimer`
+- **LLM/AI**: `mpuSetAiTextColor`, `mpuSetAiDisplayDuration`, `mpuSetAiDisplayTimer`, `mpuSetAiContextInProgress`, `mpuSetMessageBlocking`, `mpuSetOllamaReplaceDialogue`, `mpuSetLastLLMResponse`, `mpuResetLLMResponseHistory`, `mpuSetOllamaRequesting`, `mpuSetLastUserActionTime`, `mpuSetGreetInProgress`
+- **Dialog**: `mpuSetDialogStore`, `mpuGetDialogStore`, `mpuSetDialogNextMode`, `mpuSetDialogDefaultMsg`
+- **Flags**: `mpuSetContextPending`, `mpuIsContextPending`, `mpuSetSettingsProcessed`, `mpuIsSettingsProcessed`, `mpuSetSettingsLoaded`, `mpuIsSettingsLoaded`, `mpuSetEnableChatMode`, `mpuIsChatModeEnabled`
+
+### 🔁 Deviation from Plan §2.3 #6 (Better than Literal)
+
+Plan suggested "local short aliases + segmented replacement" to avoid scope errors during refactor. Implementation used **setter helper functions** instead — single point of dual-write logic, grep-friendly, immune to scope errors. Same intent (avoid search-replace bugs), cleaner execution.
+
+### 📦 Commit Layout
+
+Two commits land this milestone:
+
+1. `refactor(js): encapsulate runtime state into window.MPU_STATE` — all 7 source file changes
+2. `chore(build): rebuild dist bundle for v2.21.0 #8 MPU_STATE migration` — `tools/node/build.js` output only
+
+Plan §2.3 originally specified 7 step commits (Inventory / Namespace / Base+core / Dialog+context+greeting / Features / Chat boundary / Bundle). The 6 source steps were authored without intermediate commits and collapsed to a single source commit at landing time. Trade-off: bisect can isolate "v2.21.0 vs pre-v2.21.0" but not within the milestone. Mitigated by clean file boundaries per step (base/core/dialog/context/greeting/features/chat each owns its scope).
+
+### ✅ Verification
+
+- `npm run verify`: lint + bundle + PHPUnit (27 tests / 59 assertions) all green on both commits.
+- Source grep for fully-migrated globals returns 0 hits.
+- `window.mpuMsgList` / `window.mpuBaseAutoTalkInterval` source references only inside base.js helper internals (compat bridge writes + defensive fallback).
+- `git diff --check` clean.
+
+### ⚠️ Known Limitations
+
+- **Manual smoke test required for release.** PHPUnit covers backend only; JS runtime regressions are not detected. Plan §2.3 #6 path: auto-talk / chat / context / SSE / typewriter / wake_ghost / first-visit greeting / SPA navigation / sleep-mode interval.
+- **`mpuGetDialogStore()` defensive fallback is effectively dead code under normal operation.** `typeof window.mpuMsgList !== "undefined"` is always true after base.js init (`typeof null === "object"`), so `MPU_STATE.dialog.msgList` fallback never executes. Retained as a defensive net against external scripts setting `window.mpuMsgList = undefined`; inline comment explains intent.
+
+### 📋 Milestone Notes
+
+Closes v2.21.0 in the freeze table. Next up: **v2.22.0 = #7 runtime_state helper** (Avatar §4) or **#9 CSS theme / i18n hot swap** (Avatar §7 + §8), depending on implementation complexity.
+
+---
+
 ## [2.20.0] - 2026-05-20
 
 ### 🔧 utility-functions.php Domain Split (v2.20.0 #6 milestone)

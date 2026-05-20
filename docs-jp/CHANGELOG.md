@@ -4,6 +4,70 @@
 
 ---
 
+## [2.21.0] - 2026-05-20
+
+### 🏗️ JS グローバル状態の封装（v2.21.0 #8 milestone）
+
+フロントエンドの runtime state はこれまで 19 個の file-level `let` と 9 個の `window.*` グローバルに分散していましたが、構造化された `window.MPU_STATE` namespace に集約し、28 個の setter/getter helper 経由でアクセスするように再編しました。**アルゴリズム変更なし、REST payload 変更なし、UI 動作変更なし** — 純粋な構造リファクタです。
+
+**移行レイヤー**：
+
+| レイヤー | 変数 | 戦略 |
+|---|---|---|
+| 完全移行（`window.*` 残存なし）| `__mpu_retry_count` / `__mpu_fallback_retry_count` / `mpuContextPending` / `mpuSettingsProcessed` / `mpuSettingsLoaded` / `mpuEnableChatMode` / `debugMode` | 読み書き共に MPU_STATE のみ |
+| 互換ブリッジ保持 | `mpuMsgList` / `mpuBaseAutoTalkInterval` | Helper が `window.*` と MPU_STATE 両方に書く；getter は `window.*` を canonical 扱い |
+| Dual-write helper | 17 個の primitive（autoTalk / typewriter / AI / LLM / dialog / greet state）| Helper が旧 `let` と MPU_STATE 両方を更新；reader はどちらでも可 |
+| 同一オブジェクト参照 | `mpuLLMResponseHistory` / `mpuOllamaRequestQueue` / `__mpuStorage` | Array/object 共有 — mutation 自動同期 |
+
+**Plan §2.3「移行しない一覧」保持**（意図的に未変更）：`window.mpuChatHistory`, `window.mpuChatModeActive`, `window.mpuChatSessionId`, `window.mpuChatRequesting`, `mpuChatAbortController`（chat shared state）；`mpuInfo`, `mpuSettings`, `mpuPreSettings`, `mpuRestUrl`, `mpuRestNonce`, `mpuL10n`, `mpuInitData`, `mpuInitParams`, `mpuPersonalityId`（PHP localized data 契約）；`mpuCanvasManager`, `mpuEmojiManager`, `mpuFrierenManager`, `mpuEmojiConfig`（manager objects）；`MPU_EVENTS`, `mpuSpaEvents`（event surface）。
+
+### ✨ 動作変更（意図的）
+
+- **`window.mpuDebugMode = true` がブラウザコンソールで即座に有効に**。従来は `let debugMode` がスクリプト読込時に一度だけ window flag をキャプチャしていたため、console 切替が反映されませんでした。新しい `mpuIsDebugMode()` helper は呼び出し毎に `MPU_STATE.flags.debugMode` と `window.mpuDebugMode` の両方を即時チェックするため、runtime 切替が即座にログに反映されます。
+
+### 📐 Helper 一覧（`js/ukagaka-base.js`）
+
+合計 28 個：
+
+- **State access**：`mpuGetState`, `mpuState`
+- **Debug**：`mpuIsDebugMode`
+- **AutoTalk**：`mpuSetAutoTalkTimer`, `mpuSetAutoTalkEnabled`, `mpuSetAutoTalkInterval`, `mpuSetBaseAutoTalkInterval`, `mpuGetBaseAutoTalkInterval`
+- **Typewriter**：`mpuSetTypewriterTimer`
+- **LLM/AI**：`mpuSetAiTextColor`, `mpuSetAiDisplayDuration`, `mpuSetAiDisplayTimer`, `mpuSetAiContextInProgress`, `mpuSetMessageBlocking`, `mpuSetOllamaReplaceDialogue`, `mpuSetLastLLMResponse`, `mpuResetLLMResponseHistory`, `mpuSetOllamaRequesting`, `mpuSetLastUserActionTime`, `mpuSetGreetInProgress`
+- **Dialog**：`mpuSetDialogStore`, `mpuGetDialogStore`, `mpuSetDialogNextMode`, `mpuSetDialogDefaultMsg`
+- **Flags**：`mpuSetContextPending`, `mpuIsContextPending`, `mpuSetSettingsProcessed`, `mpuIsSettingsProcessed`, `mpuSetSettingsLoaded`, `mpuIsSettingsLoaded`, `mpuSetEnableChatMode`, `mpuIsChatModeEnabled`
+
+### 🔁 Plan §2.3 #6 からの逸脱（実装が計画より優れている）
+
+Plan は当初「ローカルショートエイリアス + 段階的置換」で refactor 中の scope エラーを避けることを提案しましたが、実装は **setter helper function** に変更 — dual-write ロジックを単一箇所に集約し、grep フレンドリーで scope 問題に免疫があります。Intent は同じ（search-replace バグ回避）で実行はよりクリーン。
+
+### 📦 Commit 構成
+
+本 milestone は 2 commit でランディング：
+
+1. `refactor(js): encapsulate runtime state into window.MPU_STATE` — 7 ソースファイルの変更
+2. `chore(build): rebuild dist bundle for v2.21.0 #8 MPU_STATE migration` — `tools/node/build.js` の純出力
+
+Plan §2.3 は当初 7 step commit を計画（Inventory / Namespace / Base+core / Dialog+context+greeting / Features / Chat boundary / Bundle）。6 個の source step は途中 commit なしで実装され、最後に単一 source commit へ統合。Trade-off：bisect は「v2.21.0 vs pre-v2.21.0」を分離可能だが milestone 内の単一 step は特定不可。緩和策：source 変更がファイル境界（base/core/dialog/context/greeting/features/chat それぞれ独自の scope）に従っているため、本番リグレッション時は file-level cherry-pick が可能。
+
+### ✅ 検証
+
+- `npm run verify`：lint + bundle + PHPUnit（27 tests / 59 assertions）両 commit 共に独立して pass。
+- 完全移行された変数の source grep が 0 hit を確認。
+- `window.mpuMsgList` / `window.mpuBaseAutoTalkInterval` の source 参照は base.js helper 内部の compat bridge 書込みと defensive fallback のみ。
+- `git diff --check` クリーン。
+
+### ⚠️ 既知の制限
+
+- **Release 前に manual smoke test 必須**。PHPUnit はバックエンドのみカバー、JS runtime リグレッションは検出不可。Plan §2.3 #6 検証 path：auto-talk / chat / context / SSE / typewriter / wake_ghost / first-visit greeting / SPA navigation / sleep-mode interval。
+- **`mpuGetDialogStore()` defensive fallback は通常運用下では dead code**：`typeof window.mpuMsgList !== "undefined"` は base.js init 後常に truthy（`typeof null === "object"`）、`MPU_STATE.dialog.msgList` fallback は実行されません。**意図的に保持**して外部スクリプトが `window.mpuMsgList = undefined` に設定するケースの安全網としており、inline comment で意図を説明。
+
+### 📋 Milestone メモ
+
+凍結表の v2.21.0 を完了。次の予定：**v2.22.0 = #7 runtime_state helper**（Avatar §4）または **#9 CSS theme / i18n hot swap**（Avatar §7 + §8）— 実装複雑度次第で決定。
+
+---
+
 ## [2.20.0] - 2026-05-20
 
 ### 🔧 utility-functions.php のドメイン分割（v2.20.0 #6 milestone）
