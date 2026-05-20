@@ -127,11 +127,7 @@ function startAutoTalk() {
     const isDeepSleep = mpu_isDeepSleepTime();
 
     // 獲取基礎間隔（從全域變數或當前設定）
-    const baseInterval =
-      typeof window.mpuBaseAutoTalkInterval !== "undefined" &&
-      window.mpuBaseAutoTalkInterval > 0
-        ? window.mpuBaseAutoTalkInterval
-        : mpuAutoTalkInterval;
+    const baseInterval = mpuGetBaseAutoTalkInterval();
 
     if (isDeepSleep) {
       // 睡眠模式：使用 frequency_multiplier = 0.111（間隔延長 9 倍，約 3 分鐘）
@@ -154,7 +150,7 @@ function startAutoTalk() {
       "🌙 睡眠模式啟用（00:00~06:00），間隔調整為",
       currentInterval,
       "ms（原始:",
-      window.mpuBaseAutoTalkInterval || mpuAutoTalkInterval,
+      mpuGetBaseAutoTalkInterval(),
       "ms）",
     );
   }
@@ -162,8 +158,8 @@ function startAutoTalk() {
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(400);
 
   mpuLogger.log("startAutoTalk: 設置計時器，間隔 =", currentInterval, "ms, mpuAutoTalk =", mpuAutoTalk);
-  mpuAutoTalkTimer = setTimeout(function () {
-    mpuAutoTalkTimer = null; // 清除計時器引用，表示已觸發
+  mpuSetAutoTalkTimer(setTimeout(function () {
+    mpuSetAutoTalkTimer(null); // 清除計時器引用，表示已觸發
     mpuLogger.log(
       "自動對話計時器觸發, mpuAutoTalk =",
       mpuAutoTalk,
@@ -230,7 +226,7 @@ function startAutoTalk() {
     } else {
       stopAutoTalk();
     }
-  }, currentInterval);
+  }, currentInterval));
 }
 
 /**
@@ -239,7 +235,7 @@ function startAutoTalk() {
 function stopAutoTalk() {
   if (mpuAutoTalkTimer !== null) {
     clearInterval(mpuAutoTalkTimer);
-    mpuAutoTalkTimer = null;
+    mpuSetAutoTalkTimer(null);
   }
 }
 
@@ -492,9 +488,9 @@ function mpu_nextmsg(trigger) {
   }
 
   // 頁面感知即將觸發（3 秒內），避免 startup 的 BOT 對話搶先覆蓋頁面感知
-  if (isStartup && window.mpuContextPending) {
+  if (isStartup && mpuIsContextPending()) {
     mpuLogger.log("mpu_nextmsg: 頁面感知已排程，跳過 startup 以避免 BOT 對話覆蓋");
-    mpuOllamaRequesting = false;
+    mpuSetOllamaRequesting(false);
     return;
   }
 
@@ -530,7 +526,7 @@ function mpu_nextmsg(trigger) {
   if (mpuOllamaReplaceDialogue) {
     mpuLogger.log("mpu_nextmsg: 使用 LLM 生成對話");
 
-    mpuOllamaRequesting = true;
+    mpuSetOllamaRequesting(true);
     const curNum = window.mpuInfo?.num || "default_1";
     const curMsgnum =
       parseInt(
@@ -589,7 +585,7 @@ function mpu_nextmsg(trigger) {
         }
 
         if (res && res.msg) {
-          const auto = window.mpuMsgList?.auto_msg || "";
+          const auto = mpuGetDialogStore()?.auto_msg || "";
           const out = res.msg + auto;
 
           // 觸發角色動畫（手動觸發時強制播放）
@@ -647,7 +643,7 @@ function mpu_nextmsg(trigger) {
             window.mpuEmojiManager.showEmoji(res.emoji);
           }
 
-          mpuLastLLMResponse = res.msg;
+          mpuSetLastLLMResponse(res.msg);
 
           if (mpuLLMResponseHistory.length >= mpuMaxResponseHistory) {
             mpuLLMResponseHistory.shift();
@@ -720,8 +716,8 @@ function mpu_nextmsg(trigger) {
                 ? mpuL10n.apiMagicInsufficient
                 : "…ちょっと待って。API魔力が足りない";
 
-            mpuLastLLMResponse = "";
-            mpuLLMResponseHistory = [];
+            mpuSetLastLLMResponse("");
+            mpuResetLLMResponseHistory();
 
             // 顯示 API 魔力不足提示，暫時阻擋自發對話
             mpu_showMsgText();
@@ -731,11 +727,11 @@ function mpu_nextmsg(trigger) {
             );
             mpu_showmsg(400);
 
-            mpuMessageBlocking = true;
+            mpuSetMessageBlocking(true);
             const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
             setTimeout(function () {
-              mpuMessageBlocking = false;
+              mpuSetMessageBlocking(false);
 
               // 顯示一條內建對話作為後備，避免角色一直沉默
               mpu_nextmsg_fallback();
@@ -747,8 +743,8 @@ function mpu_nextmsg(trigger) {
             }, waitTime);
           } else {
             mpuLogger.warn("mpu_nextmsg: LLM 回應沒有 msg，使用後備對話");
-            mpuLastLLMResponse = "";
-            mpuLLMResponseHistory = [];
+            mpuSetLastLLMResponse("");
+            mpuResetLLMResponseHistory();
             mpu_nextmsg_fallback();
 
             // ⚠️ 即使 fallback，也等待打字完成再啟動自動對話
@@ -765,11 +761,11 @@ function mpu_nextmsg(trigger) {
           }
         }
 
-        mpuOllamaRequesting = false;
+        mpuSetOllamaRequesting(false);
         mpu_processOllamaQueue();
       })
       .catch((error) => {
-        mpuOllamaRequesting = false;
+        mpuSetOllamaRequesting(false);
         mpu_processOllamaQueue();
 
         // ⚠️ 即使出錯，也等待打字完成再啟動自動對話
@@ -793,18 +789,18 @@ function mpu_nextmsg(trigger) {
           error,
         );
 
-        if (debugMode || window.mpuDebugMode) {
+        if (mpuIsDebugMode()) {
           const errorMsg = error.message || "LLM 連接失敗";
           const debugMessage = `<span style="color: #ff4444;">[LLM 錯誤: ${errorMsg}]</span>`;
           mpu_showMsgText();
           mpu_typewriter(debugMessage, "#ukagaka_msg");
           mpu_showmsg(400);
           setTimeout(() => {
-            mpuLastLLMResponse = "";
+            mpuSetLastLLMResponse("");
             mpu_nextmsg_fallback();
           }, 2000);
         } else {
-          mpuLastLLMResponse = "";
+          mpuSetLastLLMResponse("");
           mpu_nextmsg_fallback();
         }
       });
@@ -812,18 +808,18 @@ function mpu_nextmsg(trigger) {
   }
 
   setTimeout(function () {
-    const store = window.mpuMsgList;
+    const store = mpuGetDialogStore();
 
     if (!store) {
       mpuLogger.warn("mpu_nextmsg: 對話尚未載入，等待載入完成...");
-      const retryCount = window.__mpu_retry_count || 0;
+      const retryCount = mpuGetState().retry.nextMessage || 0;
       if (retryCount < 3) {
-        window.__mpu_retry_count = retryCount + 1;
+        mpuGetState().retry.nextMessage = retryCount + 1;
         setTimeout(() => {
           mpu_nextmsg(trigger);
         }, 1000);
       } else {
-        window.__mpu_retry_count = 0;
+        mpuGetState().retry.nextMessage = 0;
         mpu_showMsgText();
         mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
@@ -832,7 +828,7 @@ function mpu_nextmsg(trigger) {
       return;
     }
 
-    window.__mpu_retry_count = 0;
+    mpuGetState().retry.nextMessage = 0;
 
     if (!Array.isArray(store.msg) || store.msg.length === 0) {
       const errorMsg =
@@ -918,18 +914,18 @@ function mpu_nextmsg_fallback() {
       return;
     }
 
-    const store = window.mpuMsgList;
+    const store = mpuGetDialogStore();
 
     if (!store) {
       mpuLogger.warn("mpu_nextmsg_fallback: 對話尚未載入，等待載入完成...");
-      const retryCount = window.__mpu_fallback_retry_count || 0;
+      const retryCount = mpuGetState().retry.fallbackMessage || 0;
       if (retryCount < 2) {
-        window.__mpu_fallback_retry_count = retryCount + 1;
+        mpuGetState().retry.fallbackMessage = retryCount + 1;
         setTimeout(() => {
           mpu_nextmsg_fallback();
         }, 1500);
       } else {
-        window.__mpu_fallback_retry_count = 0;
+        mpuGetState().retry.fallbackMessage = 0;
         mpu_showMsgText();
         mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
@@ -938,7 +934,7 @@ function mpu_nextmsg_fallback() {
       return;
     }
 
-    window.__mpu_fallback_retry_count = 0;
+    mpuGetState().retry.fallbackMessage = 0;
 
     if (!Array.isArray(store.msg) || store.msg.length === 0) {
       const errorMsg =
@@ -1121,13 +1117,14 @@ function mpuChange(num) {
         loadExternalDialog(pure);
       } else if (payload.msglist) {
         try {
-          window.mpuMsgList =
+          mpuSetDialogStore(
             typeof payload.msglist === "string"
               ? JSON.parse(payload.msglist)
-              : payload.msglist;
+              : payload.msglist
+          );
         } catch (e) {
           mpu_handle_error(e, "mpuChange:parse_msglist");
-          window.mpuMsgList = null;
+          mpuSetDialogStore(null);
         }
       }
 
@@ -1149,7 +1146,7 @@ function mpuChange(num) {
       mpu_handle_error(error, "mpuChange", {
         showToUser: true,
         userMessage:
-          debugMode || window.mpuDebugMode
+          mpuIsDebugMode()
             ? `読み込みに失敗しました: ${error.message}`
             : ((window.mpuL10n && window.mpuL10n.loadingFailed) || "読み込みに失敗しました。後でもう一度お試しください。"),
       });

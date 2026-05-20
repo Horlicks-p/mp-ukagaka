@@ -2,7 +2,6 @@
 // 對話模式狀態
 window.mpuChatModeActive = false;
 window.mpuChatRequesting = false;
-let mpuEnableChatMode = false; // 後台設定：是否啟用互動對話功能
 const MPU_CHAT_HISTORY_KEY = "mpu_chat_history";
 const MPU_CHAT_SESSION_KEY = "mpu_chat_session_id";
 const MPU_MAX_CHAT_HISTORY = 40; // synthetic+assistant 各佔一則，20 個互動事件 = 40 entries
@@ -185,7 +184,7 @@ function mpu_toggleChatMode(enable) {
     $msgbox.removeClass("chat-mode");
 
     // 設置訊息阻擋，防止退出後立即說話
-    mpuMessageBlocking = true;
+    mpuSetMessageBlocking(true);
 
     // 顯示「結束對話」的訊息（不觸發動畫，只在回答問題時播放）
     const exitMsg =
@@ -199,16 +198,17 @@ function mpu_toggleChatMode(enable) {
     setTimeout(() => {
       // 再次確認還沒重新進入對話模式
       if (!mpuChatModeActive) {
-        mpuMessageBlocking = false;
+        mpuSetMessageBlocking(false);
 
         // 顯示一條隨機對話
+        const store = mpuGetDialogStore();
         if (
-          window.mpuMsgList &&
-          Array.isArray(window.mpuMsgList.msg) &&
-          window.mpuMsgList.msg.length > 0
+          store &&
+          Array.isArray(store.msg) &&
+          store.msg.length > 0
         ) {
-          const msgArr = window.mpuMsgList.msg;
-          const auto = window.mpuMsgList.auto_msg || "";
+          const msgArr = store.msg;
+          const auto = store.auto_msg || "";
           const randomIdx = Math.floor(Math.random() * msgArr.length);
           const exitContent = mpu_unescapeHTML(msgArr[randomIdx] + auto);
           mpu_typewriter(exitContent, "#ukagaka_msg");
@@ -931,7 +931,7 @@ jQuery(document).ready(function () {
   // 第三個按鈕點擊事件：根據設定決定是對話還是切換春菜
   jQuery("#mpu_chat_toggle").on("click", function (e) {
     e.preventDefault();
-    if (mpuEnableChatMode) {
+    if (mpuIsChatModeEnabled()) {
       // 啟用互動對話模式
       mpu_toggleChatMode();
     } else {

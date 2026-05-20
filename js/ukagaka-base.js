@@ -2,11 +2,74 @@
 const mpuClick = "next";
 const mpuNextModeInitial = "sequential"; // 暫存變數，實際模式由 mpuMsgList.next_msg 決定
 const mpuDefaultMsgInitial = 0;         // 暫存變數，0: 隨機第一條, 1: 第一條
-let mpuNextMode = mpuNextModeInitial;
-let mpuDefaultMsg = mpuDefaultMsgInitial;
-let mpuAutoTalk = false;                // 自動對話開關，預設關閉
-let mpuAutoTalkInterval = 12000;        // 自動對話間隔時間（毫秒），預設 12 秒
-let mpuAutoTalkTimer = null;            // 自動對話計時器
+
+window.MPU_STATE = window.MPU_STATE || {
+    dialog: {
+        nextMode: mpuNextModeInitial,
+        defaultMsg: mpuDefaultMsgInitial,
+        msgList: null,
+    },
+    autoTalk: {
+        enabled: false,
+        interval: 12000,
+        baseInterval: 0,
+        timer: null,
+    },
+    typewriter: {
+        timer: null,
+        speed: 40,
+    },
+    llm: {
+        aiTextColor: "#000000",
+        aiDisplayDuration: 8,
+        aiDisplayTimer: null,
+        ollamaReplaceDialogue: false,
+        aiContextInProgress: false,
+        messageBlocking: false,
+        lastResponse: "",
+        responseHistory: [],
+        lastUserActionTime: Date.now(),
+        ollamaRequesting: false,
+        ollamaRequestQueue: [],
+    },
+    request: {
+        sessionToken: "",
+        sessionTokenPromise: null,
+    },
+    flags: {
+        debugMode: (typeof window !== "undefined" && window.mpuDebugMode === true) || false,
+        greetInProgress: false,
+        contextPending: false,
+        settingsProcessed: false,
+        settingsLoaded: false,
+        enableChatMode: false,
+    },
+    retry: {
+        nextMessage: 0,
+        fallbackMessage: 0,
+    },
+    storage: {},
+};
+
+const mpuState = window.MPU_STATE;
+
+function mpuGetState() {
+    return window.MPU_STATE;
+}
+
+function mpuIsDebugMode() {
+    const state = mpuGetState();
+    return !!(
+        state.flags.debugMode ||
+        (typeof window !== "undefined" && window.mpuDebugMode === true)
+    );
+}
+
+let mpuNextMode = mpuState.dialog.nextMode;
+let mpuDefaultMsg = mpuState.dialog.defaultMsg;
+let mpuAutoTalk = mpuState.autoTalk.enabled;                // 自動對話開關，預設關閉
+let mpuAutoTalkInterval = mpuState.autoTalk.interval;        // 自動對話間隔時間（毫秒），預設 12 秒
+let mpuAutoTalkTimer = mpuState.autoTalk.timer;            // 自動對話計時器
 
 // F5/Reload 偵測：重整時清空對話記憶與 Session ID（SPA 路由切換不觸發，只有真正的 reload 才清空）
 (function () {
@@ -42,17 +105,19 @@ let mpuAutoTalkTimer = null;            // 自動對話計時器
 window.mpuChatHistory = window.mpuChatHistory || [];
 window.mpuChatSessionId = window.mpuChatSessionId || "";
 
-let debugMode = (typeof window !== 'undefined' && window.mpuDebugMode === true) || false; // 調試模式，可在瀏覽器控制台輸入 window.mpuDebugMode = true 啟用
-let mpuAiTextColor = "#000000";         // AI 對話文字顏色
-let mpuAiDisplayDuration = 8;           // AI 對話顯示時間（秒）
-let mpuAiDisplayTimer = null;           // AI 對話顯示計時器
-let mpuGreetInProgress = false;         // 首次訪客打招呼是否正在進行中
-let mpuTypewriterTimer = null;          // 打字效果計時器
-let mpuTypewriterSpeed = 40;            // 打字速度（毫秒/字元），將從後台設定讀取
-let mpuOllamaReplaceDialogue = false;   // 是否使用 LLM 取代內建對話
+let mpuAiTextColor = mpuState.llm.aiTextColor;         // AI 對話文字顏色
+let mpuAiDisplayDuration = mpuState.llm.aiDisplayDuration;           // AI 對話顯示時間（秒）
+let mpuAiDisplayTimer = mpuState.llm.aiDisplayTimer;           // AI 對話顯示計時器
+let mpuGreetInProgress = mpuState.flags.greetInProgress;         // 首次訪客打招呼是否正在進行中
+let mpuTypewriterTimer = mpuState.typewriter.timer;          // 打字效果計時器
+let mpuTypewriterSpeed = mpuState.typewriter.speed;            // 打字速度（毫秒/字元），將從後台設定讀取
+let mpuOllamaReplaceDialogue = mpuState.llm.ollamaReplaceDialogue;   // 是否使用 LLM 取代內建對話
 
 // Session token 懶取得 — 避免 server-render token 被 full-page cache 污染
-let _mpuSessionTokenPromise = null;
+window.mpuSessionToken = window.mpuSessionToken || mpuState.request.sessionToken;
+window.__mpuStorage = window.__mpuStorage || mpuState.storage;
+mpuState.storage = window.__mpuStorage;
+let _mpuSessionTokenPromise = mpuState.request.sessionTokenPromise;
 async function mpuEnsureSessionToken() {
     if (typeof mpuSessionToken === 'string' && mpuSessionToken) return mpuSessionToken;
     if (!_mpuSessionTokenPromise) {
@@ -65,11 +130,13 @@ async function mpuEnsureSessionToken() {
                 });
                 const data = await resp.json();
                 window.mpuSessionToken = data.token || '';
+                mpuState.request.sessionToken = window.mpuSessionToken;
                 return window.mpuSessionToken;
             } catch (_) {
                 return '';
             }
         })();
+        mpuState.request.sessionTokenPromise = _mpuSessionTokenPromise;
     }
     return _mpuSessionTokenPromise;
 }
@@ -78,25 +145,167 @@ async function mpuEnsureSessionToken() {
 if (typeof mpuPreSettings !== 'undefined') {
     if (typeof mpuPreSettings.typewriter_speed !== 'undefined') {
         mpuTypewriterSpeed = parseInt(mpuPreSettings.typewriter_speed, 10) || 40;
+        mpuState.typewriter.speed = mpuTypewriterSpeed;
     }
     if (typeof mpuPreSettings.ollama_replace !== 'undefined') {
         mpuOllamaReplaceDialogue = mpuPreSettings.ollama_replace === true;
+        mpuState.llm.ollamaReplaceDialogue = mpuOllamaReplaceDialogue;
     }
 }
-let mpuAiContextInProgress = false;     // 頁面感知 AI 是否正在進行中（防止自動對話打斷）
-let mpuMessageBlocking = false;         // 強制阻擋訊息切換（用於顯示錯誤或重要訊息時防止被打斷）
-let mpuLastLLMResponse = '';            // 上一次 LLM 生成的回應（用於避免重複對話）
-let mpuLLMResponseHistory = [];         // LLM 回應歷史（最近10次，用於更嚴格的重複檢測）
+let mpuAiContextInProgress = mpuState.llm.aiContextInProgress;     // 頁面感知 AI 是否正在進行中（防止自動對話打斷）
+let mpuMessageBlocking = mpuState.llm.messageBlocking;         // 強制阻擋訊息切換（用於顯示錯誤或重要訊息時防止被打斷）
+let mpuLastLLMResponse = mpuState.llm.lastResponse;            // 上一次 LLM 生成的回應（用於避免重複對話）
+let mpuLLMResponseHistory = mpuState.llm.responseHistory;         // LLM 回應歷史（最近10次，用於更嚴格的重複檢測）
 const mpuMaxResponseHistory = 10;       // 最大歷史記錄數量
-let mpuLastUserActionTime = Date.now(); // 記錄最後動作時間（用於閒置偵測）
+let mpuLastUserActionTime = mpuState.llm.lastUserActionTime; // 記錄最後動作時間（用於閒置偵測）
 const mpuIdleThreshold = 60000;         // 閒置閾值：60 秒（1 分鐘），超過此時間則暫停自動對話（可根據需求調整：30秒=30000, 90秒=90000, 180秒=180000）
 
-let mpuOllamaRequesting = false;
-let mpuOllamaRequestQueue = [];
+let mpuOllamaRequesting = mpuState.llm.ollamaRequesting;
+let mpuOllamaRequestQueue = mpuState.llm.ollamaRequestQueue;
 const mpuOllamaQueueDelay = 1500;
 
 // 以記憶體保存已解析的對話資料
-window.mpuMsgList = null;
+window.mpuMsgList = mpuState.dialog.msgList;
+
+function mpuSetAutoTalkTimer(timer) {
+    mpuAutoTalkTimer = timer;
+    mpuGetState().autoTalk.timer = timer;
+}
+
+function mpuSetAutoTalkEnabled(isEnabled) {
+    mpuAutoTalk = isEnabled;
+    mpuGetState().autoTalk.enabled = isEnabled;
+}
+
+function mpuSetAutoTalkInterval(interval) {
+    mpuAutoTalkInterval = interval;
+    mpuGetState().autoTalk.interval = interval;
+}
+
+function mpuSetBaseAutoTalkInterval(interval) {
+    window.mpuBaseAutoTalkInterval = interval;
+    mpuGetState().autoTalk.baseInterval = interval;
+}
+
+function mpuGetBaseAutoTalkInterval() {
+    const interval = mpuGetState().autoTalk.baseInterval;
+    return interval > 0 ? interval : mpuAutoTalkInterval;
+}
+
+function mpuSetTypewriterTimer(timer) {
+    mpuTypewriterTimer = timer;
+    mpuGetState().typewriter.timer = timer;
+}
+
+function mpuSetAiTextColor(color) {
+    mpuAiTextColor = color;
+    mpuGetState().llm.aiTextColor = color;
+}
+
+function mpuSetAiDisplayDuration(duration) {
+    mpuAiDisplayDuration = duration;
+    mpuGetState().llm.aiDisplayDuration = duration;
+}
+
+function mpuSetAiDisplayTimer(timer) {
+    mpuAiDisplayTimer = timer;
+    mpuGetState().llm.aiDisplayTimer = timer;
+}
+
+function mpuSetAiContextInProgress(isInProgress) {
+    mpuAiContextInProgress = isInProgress;
+    mpuGetState().llm.aiContextInProgress = isInProgress;
+}
+
+function mpuSetMessageBlocking(isBlocking) {
+    mpuMessageBlocking = isBlocking;
+    mpuGetState().llm.messageBlocking = isBlocking;
+}
+
+function mpuSetOllamaReplaceDialogue(isEnabled) {
+    mpuOllamaReplaceDialogue = isEnabled;
+    mpuGetState().llm.ollamaReplaceDialogue = isEnabled;
+}
+
+function mpuSetLastLLMResponse(response) {
+    mpuLastLLMResponse = response;
+    mpuGetState().llm.lastResponse = response;
+}
+
+function mpuResetLLMResponseHistory() {
+    mpuLLMResponseHistory = [];
+    mpuGetState().llm.responseHistory = mpuLLMResponseHistory;
+}
+
+function mpuSetOllamaRequesting(isRequesting) {
+    mpuOllamaRequesting = isRequesting;
+    mpuGetState().llm.ollamaRequesting = isRequesting;
+}
+
+function mpuSetLastUserActionTime(timestamp) {
+    mpuLastUserActionTime = timestamp;
+    mpuGetState().llm.lastUserActionTime = timestamp;
+}
+
+function mpuSetGreetInProgress(isInProgress) {
+    mpuGreetInProgress = isInProgress;
+    mpuGetState().flags.greetInProgress = isInProgress;
+}
+
+function mpuSetContextPending(isPending) {
+    mpuGetState().flags.contextPending = isPending;
+}
+
+function mpuIsContextPending() {
+    return !!mpuGetState().flags.contextPending;
+}
+
+function mpuSetSettingsProcessed(isProcessed) {
+    mpuGetState().flags.settingsProcessed = isProcessed;
+}
+
+function mpuIsSettingsProcessed() {
+    return !!mpuGetState().flags.settingsProcessed;
+}
+
+function mpuSetSettingsLoaded(isLoaded) {
+    mpuGetState().flags.settingsLoaded = isLoaded;
+}
+
+function mpuIsSettingsLoaded() {
+    return !!mpuGetState().flags.settingsLoaded;
+}
+
+function mpuSetEnableChatMode(isEnabled) {
+    mpuGetState().flags.enableChatMode = isEnabled;
+}
+
+function mpuIsChatModeEnabled() {
+    return !!mpuGetState().flags.enableChatMode;
+}
+
+function mpuSetDialogStore(store) {
+    window.mpuMsgList = store;
+    mpuGetState().dialog.msgList = store;
+}
+
+function mpuGetDialogStore() {
+    // Defensive: base.js initializes window.mpuMsgList, but external scripts can unset it.
+    if (typeof window.mpuMsgList !== "undefined") {
+        return window.mpuMsgList;
+    }
+    return mpuGetState().dialog.msgList;
+}
+
+function mpuSetDialogNextMode(nextMode) {
+    mpuNextMode = nextMode;
+    mpuGetState().dialog.nextMode = nextMode;
+}
+
+function mpuSetDialogDefaultMsg(defaultMsg) {
+    mpuDefaultMsg = defaultMsg;
+    mpuGetState().dialog.defaultMsg = defaultMsg;
+}
 
 // ====== 工具 ======
 
@@ -106,7 +315,7 @@ window.mpuMsgList = null;
  */
 const mpuLogger = {
     _isDebug: function () {
-        return debugMode || (typeof window !== 'undefined' && window.mpuDebugMode === true);
+        return mpuIsDebugMode();
     },
     log: function (...args) {
         if (this._isDebug()) { console.log('[MP Ukagaka]', ...args); }
@@ -182,7 +391,7 @@ function mpu_handle_error(error, context, options = {}) {
     // 記錄錯誤（除非靜默模式）
     if (!silent) {
         mpuLogger.error(`[${context}]`, errorMessage);
-        if (errorStack && (debugMode || window.mpuDebugMode)) {
+        if (errorStack && mpuIsDebugMode()) {
             mpuLogger.error('Stack trace:', errorStack);
         }
     }
@@ -190,7 +399,7 @@ function mpu_handle_error(error, context, options = {}) {
     // 如果需要向用戶顯示錯誤
     if (showToUser) {
         const displayMessage = userMessage ||
-            (debugMode || window.mpuDebugMode ? errorMessage : ((window.mpuL10n && window.mpuL10n.errorOccurred) || 'エラーが発生しました。後でもう一度お試しください。'));
+            (mpuIsDebugMode() ? errorMessage : ((window.mpuL10n && window.mpuL10n.errorOccurred) || 'エラーが発生しました。後でもう一度お試しください。'));
         const $msgBox = jQuery("#ukagaka_msg");
         if ($msgBox.length) {
             mpu_typewriter(displayMessage, $msgBox);
@@ -219,7 +428,7 @@ function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
     // 清除之前的打字效果
     if (mpuTypewriterTimer !== null) {
         clearTimeout(mpuTypewriterTimer);
-        mpuTypewriterTimer = null;
+        mpuSetTypewriterTimer(null);
     }
 
     if (!text) {
@@ -315,7 +524,7 @@ function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
                 cancelAnimationFrame(rafId);
                 rafId = null;
             }
-            mpuTypewriterTimer = null;
+            mpuSetTypewriterTimer(null);
             animationTriggered = false;
             return;
         }
@@ -352,7 +561,7 @@ function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
                     }
 
                     const batchDelay = Math.max(typeSpeed, typeSpeed * batchSize * 0.7);
-                    mpuTypewriterTimer = setTimeout(processNextChar, batchDelay);
+                    mpuSetTypewriterTimer(setTimeout(processNextChar, batchDelay));
                 } else {
                     currentHTML += part.content[charIndex];
                     pendingUpdate = true;
@@ -365,7 +574,7 @@ function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
                         });
                     }
 
-                    mpuTypewriterTimer = setTimeout(processNextChar, typeSpeed);
+                    mpuSetTypewriterTimer(setTimeout(processNextChar, typeSpeed));
                 }
             } else {
                 partIndex++;
@@ -386,7 +595,7 @@ function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
 function mpu_cancelTypewriter() {
     if (mpuTypewriterTimer !== null) {
         clearTimeout(mpuTypewriterTimer);
-        mpuTypewriterTimer = null;
+        mpuSetTypewriterTimer(null);
         mpuLogger.log('打字效果已被中斷');
         return true;
     }
@@ -605,10 +814,10 @@ function mpu_init_idle_detection() {
         return false;
     }
 
-    mpuLastUserActionTime = Date.now();
+    mpuSetLastUserActionTime(Date.now());
 
     jQuery(document).on('mousemove keydown scroll click', function() {
-        mpuLastUserActionTime = Date.now();
+        mpuSetLastUserActionTime(Date.now());
     });
 
     mpuLogger.log('閒置偵測已初始化，閾值：', mpuIdleThreshold / 1000, '秒');

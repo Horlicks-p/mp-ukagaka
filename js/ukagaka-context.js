@@ -348,10 +348,10 @@ function mpu_chat_context() {
     stopAutoTalk();
   }
 
-  mpuAiContextInProgress = true;
+  mpuSetAiContextInProgress(true);
 
   // 設置阻擋標誌，完全阻止自發對話
-  mpuMessageBlocking = true;
+  mpuSetMessageBlocking(true);
 
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
 
@@ -453,23 +453,23 @@ function mpu_chat_context() {
         // 這樣用戶可以自由設定 AI 回應的顯示時間
         if (mpuAiDisplayTimer !== null) {
           clearTimeout(mpuAiDisplayTimer);
-          mpuAiDisplayTimer = null;
+          mpuSetAiDisplayTimer(null);
         }
 
         mpu_waitForTypewriterComplete(function () {
           // 打字完成後，開始 displayDuration 計時
           const displayDurationMs = mpuAiDisplayDuration * 1000;
-          mpuAiDisplayTimer = setTimeout(function () {
-            mpuAiDisplayTimer = null;
-            mpuMessageBlocking = false;
-            mpuAiContextInProgress = false;
+          mpuSetAiDisplayTimer(setTimeout(function () {
+            mpuSetAiDisplayTimer(null);
+            mpuSetMessageBlocking(false);
+            mpuSetAiContextInProgress(false);
             // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；
             // startup 被跳過時 auto-talk 從未啟動，wasAutoTalkRunning = false，
             // 但 mpuAutoTalk 仍為 true，因此改用 mpuAutoTalk 作為判斷依據。
             if (mpuAutoTalk && !mpuAutoTalkTimer) {
               startAutoTalk();
             }
-          }, displayDurationMs);
+          }, displayDurationMs));
         });
       } else {
         mpuLogger.warn("AI 對話失敗，使用預設對話系統:", res);
@@ -489,19 +489,20 @@ function mpu_chat_context() {
             "#ukagaka_msg",
           );
 
-          mpuMessageBlocking = true;
+          mpuSetMessageBlocking(true);
           const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
           setTimeout(function () {
-            mpuMessageBlocking = false;
-            mpuAiContextInProgress = false;
+            mpuSetMessageBlocking(false);
+            mpuSetAiContextInProgress(false);
+            const dialogStore = mpuGetDialogStore();
             if (
-              window.mpuMsgList &&
-              Array.isArray(window.mpuMsgList.msg) &&
-              window.mpuMsgList.msg.length > 0
+              dialogStore &&
+              Array.isArray(dialogStore.msg) &&
+              dialogStore.msg.length > 0
             ) {
-              const msgArr = window.mpuMsgList.msg;
-              const auto = window.mpuMsgList.auto_msg || "";
+              const msgArr = dialogStore.msg;
+              const auto = dialogStore.auto_msg || "";
               const randomIdx = Math.floor(Math.random() * msgArr.length);
               mpu_typewriter(
                 mpu_unescapeHTML(msgArr[randomIdx] + auto),
@@ -513,21 +514,22 @@ function mpu_chat_context() {
             }
           }, waitTime);
         } else {
-          mpuMessageBlocking = false;
+          mpuSetMessageBlocking(false);
+          const dialogStore = mpuGetDialogStore();
           if (
-            window.mpuMsgList &&
-            Array.isArray(window.mpuMsgList.msg) &&
-            window.mpuMsgList.msg.length > 0
+            dialogStore &&
+            Array.isArray(dialogStore.msg) &&
+            dialogStore.msg.length > 0
           ) {
-            const msgArr = window.mpuMsgList.msg;
-            const auto = window.mpuMsgList.auto_msg || "";
+            const msgArr = dialogStore.msg;
+            const auto = dialogStore.auto_msg || "";
             const randomIdx = Math.floor(Math.random() * msgArr.length);
             mpu_typewriter(
               mpu_unescapeHTML(msgArr[randomIdx] + auto),
               "#ukagaka_msg",
             );
           }
-          mpuAiContextInProgress = false;
+          mpuSetAiContextInProgress(false);
           if (wasAutoTalkRunning && mpuAutoTalk) {
             startAutoTalk();
           }
@@ -539,21 +541,22 @@ function mpu_chat_context() {
         showToUser: false, // 已經有 fallback 處理，不需要顯示錯誤
       });
 
-      mpuMessageBlocking = false;
+      mpuSetMessageBlocking(false);
+      const dialogStore = mpuGetDialogStore();
       if (
-        window.mpuMsgList &&
-        Array.isArray(window.mpuMsgList.msg) &&
-        window.mpuMsgList.msg.length > 0
+        dialogStore &&
+        Array.isArray(dialogStore.msg) &&
+        dialogStore.msg.length > 0
       ) {
-        const msgArr = window.mpuMsgList.msg;
-        const auto = window.mpuMsgList.auto_msg || "";
+        const msgArr = dialogStore.msg;
+        const auto = dialogStore.auto_msg || "";
         const randomIdx = Math.floor(Math.random() * msgArr.length);
         mpu_typewriter(
           mpu_unescapeHTML(msgArr[randomIdx] + auto),
           "#ukagaka_msg",
         );
       }
-      mpuAiContextInProgress = false;
+      mpuSetAiContextInProgress(false);
       if (wasAutoTalkRunning && mpuAutoTalk) {
         startAutoTalk();
       }

@@ -68,12 +68,12 @@ function loadExternalDialog(file, skipFirstMessage = false) {
       if (resp && !resp.error && Array.isArray(resp.msg)) {
         if (resp.msg.length === 0) {
           mpuLogger.warn("loadExternalDialog: 對話文件為空");
-          window.mpuMsgList = {
+          mpuSetDialogStore({
             msg: [],
             auto_msg: resp.auto_msg || "",
             next_msg: resp.next_msg || 0,
             default_msg: resp.default_msg || 0,
-          };
+          });
           if (skipFirstMessage) {
             mpuLogger.log(
               "loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成",
@@ -90,9 +90,9 @@ function loadExternalDialog(file, skipFirstMessage = false) {
         }
 
         try {
-          window.mpuMsgList = resp;
-          mpuNextMode = resp.next_msg == 1 ? "random" : "sequential";
-          mpuDefaultMsg = resp.default_msg == 1 ? 1 : 0;
+          mpuSetDialogStore(resp);
+          mpuSetDialogNextMode(resp.next_msg == 1 ? "random" : "sequential");
+          mpuSetDialogDefaultMsg(resp.default_msg == 1 ? 1 : 0);
 
           if (skipFirstMessage) {
             mpuLogger.log(
@@ -167,7 +167,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
           mpu_handle_error(e, "loadExternalDialog:process_data", {
             showToUser: true,
             userMessage:
-              debugMode || window.mpuDebugMode
+              mpuIsDebugMode()
                 ? `処理データの読み込みに失敗しました：${e.message}`
                 : ((window.mpuL10n && window.mpuL10n.processingError) || "ダイアログデータの処理中にエラーが発生しました。後でもう一度お試しください。"),
           });
@@ -176,13 +176,13 @@ function loadExternalDialog(file, skipFirstMessage = false) {
         const errorMsg = resp && resp.error ? resp.error : ((window.mpuL10n && window.mpuL10n.loadingFailed) || "読み込みに失敗しました。後でもう一度お試しください。");
         jQuery("#ukagaka_msg").html(errorMsg);
 
-        if (!window.mpuMsgList) {
-          window.mpuMsgList = {
+        if (!mpuGetDialogStore()) {
+          mpuSetDialogStore({
             msg: [],
             auto_msg: "",
             next_msg: 0,
             default_msg: 0,
-          };
+          });
           mpuLogger.warn(
             "loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 -",
             errorMsg,
@@ -196,18 +196,18 @@ function loadExternalDialog(file, skipFirstMessage = false) {
       mpu_handle_error(error, "loadExternalDialog", {
         showToUser: true,
         userMessage:
-          debugMode || window.mpuDebugMode
+          mpuIsDebugMode()
             ? `ダイアログの読み込みに失敗しました：${error.message}`
             : ((window.mpuL10n && window.mpuL10n.dialogLoadFailed) || "ダイアログファイルの読み込みに失敗しました。後でもう一度お試しください。"),
       });
 
-      if (!window.mpuMsgList) {
-        window.mpuMsgList = {
+      if (!mpuGetDialogStore()) {
+        mpuSetDialogStore({
           msg: [],
           auto_msg: "",
           next_msg: 0,
           default_msg: 0,
-        };
+        });
         mpuLogger.warn(
           "loadExternalDialog: 載入失敗，設置空的 mpuMsgList 作為後備",
         );

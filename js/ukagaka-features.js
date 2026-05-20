@@ -41,14 +41,16 @@ jQuery(document).ready(function () {
       try {
         const jsonText = msgListElem ? msgListElem.innerHTML.trim() : "";
         if (jsonText) {
-          window.mpuMsgList = JSON.parse(jsonText);
+          const dialogStore = JSON.parse(jsonText);
+          mpuSetDialogStore(dialogStore);
 
-          if (window.mpuMsgList.next_msg !== undefined) {
-            mpuNextMode =
-              window.mpuMsgList.next_msg == 1 ? "random" : "sequential";
+          if (dialogStore.next_msg !== undefined) {
+            mpuSetDialogNextMode(
+              dialogStore.next_msg == 1 ? "random" : "sequential"
+            );
           }
-          if (window.mpuMsgList.default_msg !== undefined) {
-            mpuDefaultMsg = window.mpuMsgList.default_msg == 1 ? 1 : 0;
+          if (dialogStore.default_msg !== undefined) {
+            mpuSetDialogDefaultMsg(dialogStore.default_msg == 1 ? 1 : 0);
           }
         }
       } catch (e) {
@@ -68,11 +70,11 @@ jQuery(document).ready(function () {
    */
   function processSettings(res) {
     // 防止重複調用（可能由 mpuInitComplete 和預載資料同時觸發）
-    if (window.mpuSettingsProcessed) {
+    if (mpuIsSettingsProcessed()) {
       mpuLogger.log("processSettings: 已處理過設定，跳過重複調用");
       return;
     }
-    window.mpuSettingsProcessed = true;
+    mpuSetSettingsProcessed(true);
     
     if (!res || typeof res !== "object") {
       mpuLogger.warn("mpu_get_settings: 無效的回應", res);
@@ -82,7 +84,7 @@ jQuery(document).ready(function () {
     mpuLogger.log("mpu_get_settings: 收到設定 =", JSON.stringify(res));
     mpuLogger.log("mpu_get_settings: auto_talk =", res.auto_talk, ", ollama_replace_dialogue =", res.ollama_replace_dialogue);
 
-    mpuAutoTalk = res.auto_talk === true;
+    mpuSetAutoTalkEnabled(res.auto_talk === true);
     mpuLogger.log("mpu_get_settings: 設置 mpuAutoTalk =", mpuAutoTalk);
 
     if (res.auto_talk_interval) {
@@ -91,7 +93,7 @@ jQuery(document).ready(function () {
         const baseInterval = iv * 1000;
         
         // 保存基礎間隔（用於動態調整睡眠模式）
-        window.mpuBaseAutoTalkInterval = baseInterval;
+        mpuSetBaseAutoTalkInterval(baseInterval);
         
         // 初始設定：檢查當前是否為睡眠模式
         // 優先使用伺服器端時間判定（避免客戶端/伺服器時區差異）
@@ -115,21 +117,21 @@ jQuery(document).ready(function () {
           mpuLogger.log("🌙 睡眠模式啟用（00:00~06:00），間隔調整為", interval, "ms（原始:", baseInterval, "ms）");
         }
         
-        mpuAutoTalkInterval = interval;
+        mpuSetAutoTalkInterval(interval);
       }
       mpuLogger.log("mpu_get_settings: 設置 mpuAutoTalkInterval =", mpuAutoTalkInterval, "ms");
     }
     if (res.ai_text_color) {
-      mpuAiTextColor = res.ai_text_color;
+      mpuSetAiTextColor(res.ai_text_color);
     }
     if (res.ai_display_duration) {
-      mpuAiDisplayDuration = parseInt(res.ai_display_duration, 10) || 8;
+      mpuSetAiDisplayDuration(parseInt(res.ai_display_duration, 10) || 8);
     }
-    mpuOllamaReplaceDialogue = !!res.ollama_replace_dialogue;
-    mpuEnableChatMode = !!res.enable_chat_mode;
+    mpuSetOllamaReplaceDialogue(!!res.ollama_replace_dialogue);
+    mpuSetEnableChatMode(!!res.enable_chat_mode);
     mpuLogger.log(
       "LLM 取代對話設定: " + (mpuOllamaReplaceDialogue ? "啟用" : "停用") +
-      "，互動對話模式: " + (mpuEnableChatMode ? "啟用" : "停用")
+      "，互動對話模式: " + (mpuIsChatModeEnabled() ? "啟用" : "停用")
     );
 
     // 睡眠模式檢測（移到外面以便後續判斷使用）
@@ -146,7 +148,7 @@ jQuery(document).ready(function () {
         // 睡眠模式下，完全跳過初始的 LLM 對話觸發
         // 讓睡眠訊息保持顯示，直到自動對話計時器自然觸發（約 300 秒後）
         mpuLogger.log("🌙 睡眠模式：跳過初始 LLM 對話觸發，保持睡眠訊息顯示");
-        mpuLogger.log("🌙 睡眠訊息將保持顯示，直到自動對話計時器觸發（約 " + Math.round((window.mpuBaseAutoTalkInterval || mpuAutoTalkInterval) / 0.0667 / 1000) + " 秒後）");
+        mpuLogger.log("🌙 睡眠訊息將保持顯示，直到自動對話計時器觸發（約 " + Math.round(mpuGetBaseAutoTalkInterval() / 0.0667 / 1000) + " 秒後）");
       } else {
         // 正常模式下，立即觸發 LLM 對話
       mpuLogger.log("LLM 取代對話已啟用，等待初始訊息完成後觸發 LLM 對話");
@@ -186,17 +188,17 @@ jQuery(document).ready(function () {
       if (typeof jQuery.cookie === "undefined") {
         const isFirstVisit = !mpu_getCookie(firstVisitCookie);
         if (isFirstVisit) {
-          mpuGreetInProgress = true;
+          mpuSetGreetInProgress(true);
           mpu_greet_first_visitor(res)
             .then(() => {
               mpu_setCookie(firstVisitCookie, "1", 365, "/");
-              mpuGreetInProgress = false;
+              mpuSetGreetInProgress(false);
             })
             .catch((error) => {
               mpu_handle_error(error, "首次訪客打招呼:catch", {
                 showToUser: false,
               });
-              mpuGreetInProgress = false;
+              mpuSetGreetInProgress(false);
             });
         }
         return;
@@ -205,7 +207,7 @@ jQuery(document).ready(function () {
       const isFirstVisit = !jQuery.cookie(firstVisitCookie);
 
       if (isFirstVisit) {
-        mpuGreetInProgress = true;
+        mpuSetGreetInProgress(true);
         mpu_greet_first_visitor(res)
           .then(() => {
             if (typeof jQuery.cookie !== "undefined") {
@@ -216,13 +218,13 @@ jQuery(document).ready(function () {
             } else {
               mpu_setCookie(firstVisitCookie, "1", 365, "/");
             }
-            mpuGreetInProgress = false;
+            mpuSetGreetInProgress(false);
           })
           .catch((error) => {
             mpu_handle_error(error, "首次訪客打招呼:catch2", {
               showToUser: false,
             });
-            mpuGreetInProgress = false;
+            mpuSetGreetInProgress(false);
           });
         return;
       }
@@ -250,9 +252,9 @@ jQuery(document).ready(function () {
         if (roll <= probability) {
           mpuLogger.log("頁面感知 AI 將在 3 秒後觸發");
           // 設置旗標，讓 startup/auto-talk 在頁面感知觸發前不搶先顯示 BOT 對話
-          window.mpuContextPending = true;
+          mpuSetContextPending(true);
           setTimeout(function () {
-            window.mpuContextPending = false;
+            mpuSetContextPending(false);
             mpu_chat_context();
           }, 3000);
           return;
@@ -282,7 +284,7 @@ jQuery(document).ready(function () {
     
     // Fallback：如果 500ms 內沒有收到資料，發送獨立 AJAX
     setTimeout(function() {
-      if (!window.mpuSettings && !window.mpuSettingsLoaded) {
+      if (!window.mpuSettings && !mpuIsSettingsLoaded()) {
         mpuLogger.log("Fallback: 發送獨立 mpu_get_settings AJAX");
         const settingsUrl = `${mpuRestUrl}settings`;
         
@@ -293,7 +295,7 @@ jQuery(document).ready(function () {
           retries: 2,
         })
           .then((res) => {
-            window.mpuSettingsLoaded = true;
+            mpuSetSettingsLoaded(true);
             processSettings(res);
           })
           .catch((error) => {
@@ -311,7 +313,7 @@ jQuery(document).ready(function () {
 
     jQuery("#toggleAutoTalk").on("click", function (e) {
       e.preventDefault();
-      mpuAutoTalk = !mpuAutoTalk;
+      mpuSetAutoTalkEnabled(!mpuAutoTalk);
       if (mpuAutoTalk) startAutoTalk();
       else stopAutoTalk();
       setAutoTalkUI();
@@ -362,7 +364,7 @@ jQuery(document).ready(function () {
         mpu_handle_error(error, "mpu_extend", {
           showToUser: true,
           userMessage:
-            debugMode || window.mpuDebugMode
+            mpuIsDebugMode()
               ? `読み込みに失敗しました: ${error.message}`
               : ((window.mpuL10n && window.mpuL10n.loadingFailed) || "読み込みに失敗しました。後でもう一度お試しください。"),
         });

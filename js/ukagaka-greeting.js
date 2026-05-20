@@ -142,14 +142,14 @@ function mpu_greet_first_visitor(settings) {
           // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
           if (mpuAiDisplayTimer !== null) {
             clearTimeout(mpuAiDisplayTimer);
-            mpuAiDisplayTimer = null;
+            mpuSetAiDisplayTimer(null);
           }
 
           mpu_waitForTypewriterComplete(function () {
             // 打字完成後，開始 displayDuration 計時
             const displayDurationMs = mpuAiDisplayDuration * 1000;
-            mpuAiDisplayTimer = setTimeout(function () {
-              mpuAiDisplayTimer = null;
+            mpuSetAiDisplayTimer(setTimeout(function () {
+              mpuSetAiDisplayTimer(null);
               if (
                 wasAutoTalkRunning &&
                 settings.auto_talk === true &&
@@ -158,7 +158,7 @@ function mpu_greet_first_visitor(settings) {
                 startAutoTalk();
               }
               resolve();
-            }, displayDurationMs);
+            }, displayDurationMs));
           });
         } else {
           mpuLogger.warn("首次訪客打招呼失敗:", res);
@@ -178,19 +178,20 @@ function mpu_greet_first_visitor(settings) {
               "#ukagaka_msg",
             );
 
-            mpuMessageBlocking = true;
+            mpuSetMessageBlocking(true);
             const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
             setTimeout(function () {
-              mpuMessageBlocking = false;
+              mpuSetMessageBlocking(false);
 
+              const dialogStore = mpuGetDialogStore();
               if (
-                window.mpuMsgList &&
-                Array.isArray(window.mpuMsgList.msg) &&
-                window.mpuMsgList.msg.length > 0
+                dialogStore &&
+                Array.isArray(dialogStore.msg) &&
+                dialogStore.msg.length > 0
               ) {
-                const msgArr = window.mpuMsgList.msg;
-                const auto = window.mpuMsgList.auto_msg || "";
+                const msgArr = dialogStore.msg;
+                const auto = dialogStore.auto_msg || "";
                 const randomIdx = Math.floor(Math.random() * msgArr.length);
                 mpu_typewriter(
                   mpu_unescapeHTML(msgArr[randomIdx] + auto),
@@ -207,13 +208,14 @@ function mpu_greet_first_visitor(settings) {
               resolve();
             }, waitTime);
           } else {
+            const dialogStore = mpuGetDialogStore();
             if (
-              window.mpuMsgList &&
-              Array.isArray(window.mpuMsgList.msg) &&
-              window.mpuMsgList.msg.length > 0
+              dialogStore &&
+              Array.isArray(dialogStore.msg) &&
+              dialogStore.msg.length > 0
             ) {
-              const msgArr = window.mpuMsgList.msg;
-              const auto = window.mpuMsgList.auto_msg || "";
+              const msgArr = dialogStore.msg;
+              const auto = dialogStore.auto_msg || "";
               const randomIdx = Math.floor(Math.random() * msgArr.length);
               mpu_typewriter(
                 mpu_unescapeHTML(msgArr[randomIdx] + auto),
@@ -236,13 +238,14 @@ function mpu_greet_first_visitor(settings) {
           showToUser: false,
         });
 
+        const dialogStore = mpuGetDialogStore();
         if (
-          window.mpuMsgList &&
-          Array.isArray(window.mpuMsgList.msg) &&
-          window.mpuMsgList.msg.length > 0
+          dialogStore &&
+          Array.isArray(dialogStore.msg) &&
+          dialogStore.msg.length > 0
         ) {
-          const msgArr = window.mpuMsgList.msg;
-          const auto = window.mpuMsgList.auto_msg || "";
+          const msgArr = dialogStore.msg;
+          const auto = dialogStore.auto_msg || "";
           const randomIdx = Math.floor(Math.random() * msgArr.length);
           mpu_typewriter(
             mpu_unescapeHTML(msgArr[randomIdx] + auto),
