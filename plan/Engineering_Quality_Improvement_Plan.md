@@ -210,22 +210,75 @@ Sleep 系統分鐘精度延伸 v2.19.1 動態整點機制，仍屬 character fea
 
 #### 舊 `mpu_get_daily_deep_sleep_start()` / `_oversleep_end()` 變死碼
 
-升級為 `_mod` 後，舊整點版本只剩 `wake_ghost` fallback 引用，邏輯上是 dead code。清理排進 **v2.20.0 #6 utility 拆分**（同 PR 移除冗餘函數，與檔案重組同前提）。
+升級為 `_mod` 後，舊整點版本只剩 `wake_ghost` fallback 引用，邏輯上是 dead code。清理已隨 **v2.20.0 #6 utility 拆分**完成（同 PR 移除冗餘函數，與檔案重組同前提）。
 
 ---
 
-## v2.20+ 執行順序（2026-05-19 凍結 / 2026-05-20 整批往前推）
+## ✅ v2.20.0 完成報告（2026-05-20）
+
+> #6 utility-functions 拆分 milestone，2026-05-20 在 `feature/code-quality-hardening` 完成、release tag `v2.20.0`。
+> 三份 CHANGELOG + readme.txt 已寫；`mp-ukagaka.zip` release asset 由 GitHub Actions 自動掛上。
+
+### 項目盤點
+
+| Commit | 內容 | 規模 |
+|---|---|---|
+| `refactor(utility): split utility-functions.php into 5 domain files` | 5 個新 domain 檔（合計 ~1,179 行）+ `utility-functions.php` 剩 36 行常數 + `mp-ukagaka.php` $core_modules 載入順序 + `tests/bootstrap.php` 同步 | +1,192 / -1,132 net 約等量搬移 |
+| `chore(cleanup): remove redundant function_exists + dead sleep helpers` | 5 個檔的 `function_exists` 守衛清理（10+ 處）+ 整點 sleep helper 兩函數刪除 + `wake_ghost` 三層 fallback 簡化 | +15 / -146 |
+
+兩 commit 分開是為了 bisect — 若上線後出 bug 可快速隔離「拆檔搬移」vs「移除防護」。
+
+### 拆檔歸屬決定（plan #5 動手前定案）
+
+| 檔 | 主題 | 雜項函數 |
+|---|---|---|
+| `template-functions.php` (142 行) | 字串 / template / output filter | `array2str` / `str2array` / `output_filter` / `js_filter` / `render_prompt_template` / `build_user_info_prompt` |
+| `file-functions.php` (174 行) | 安全檔案 I/O | `is_path_within_allowed_dir` / `secure_file_read` / `secure_file_write` / `get_dialogs_dir` / `ensure_dialogs_dir` |
+| `encryption-functions.php` (190 行) | API key 加密 | `get_encryption_key` / `encrypt_api_key` / `decrypt_api_key` / `is_api_key_encrypted` / `get_provider_api_key` / `get_current_provider` |
+| `wp-info-functions.php` (284 行) | WP 環境 / 使用者 / personality | `get_wordpress_info` / `get_current_user_info` / `country_code_to_name` / `resolve_personality_id` |
+| `network-functions.php` (389 行) | HTTP / cache / rate limit / session | `get_client_ip` / `get_client_ip_strict` / `fetch_external_api` / `clear_api_cache` / `check_rate_limit` / `rest_check_rate_limit` / `generate_session_token` / `validate_session_token` |
+
+### 載入順序（`mp-ukagaka.php`）
+
+```
+debug → core → utility(常數) → template → file → encryption → wp-info → network → input-role → personality → ...
+```
+
+- encryption 在 wp-info 之前：`mpu_get_provider_api_key()` 依賴 encrypt/decrypt helpers
+- network 最後：`fetch_external_api` 等同時用到 cache、rate limit、session helpers，所有上游必須就緒
+
+### 清理範圍（commit 2）
+
+- 5 個檔移除冗餘 `function_exists` 守衛：`chat/class-mpu-chat-history-service.php` / `integrations/akismet-integration.php` / `llm/class-mpu-chat-lock.php` / `rest/class-mpu-rest-base.php` / `rest/class-mpu-rest-dialog.php` — 目標函數 `mpu_chat_integrity_*` / `mpu_rest_check_rate_limit` 全部因載入順序保證存在
+- chat-lock `normalize_session_id()` 移除內聯 fallback — chat-integrity 版本與 fallback byte-equivalent，drop 無行為差
+- `llm-context-builder.php` 移除整點 `mpu_get_daily_deep_sleep_start()` / `mpu_get_daily_oversleep_end()`
+- `rest-dialog.php` `wake_ghost()` 移除 3 層 `function_exists` fallback，直接呼叫 `_mod` 版本
+
+### 驗證
+
+- `npm run verify` 全綠（27 tests / 59 assertions）— 兩 commit 各自跑 `test:php` 自包綠
+- `grep -h "^function mpu_" includes/core/*.php | sort | uniq -d` 為空 — 拆檔無重複定義
+- code-path grep 對舊整點 helper 只剩 doc/changelog/plan 歷史記錄
+
+### v2.20.0 起跑線 / 下一站
+
+- `feature/code-quality-hardening` 與 `main` 同步至 `v2.20.0` tag
+- 下一版 **v2.21.0 = #8 JS 全域狀態封裝**（surface 大、manual smoke test 必要、不與後端打包）
+
+---
+
+## v2.21+ 執行順序（2026-05-20 更新）
 
 > 經 Claude + CODEX 討論定案，supersede 頂部「Execution Decision」表格 #5–#10 的 milestone 標記。
-> 原 v2.20.0 sleep minute precision 已 patch 為 **v2.19.2**，後續 milestone 整批往前推一版。
+> 原 v2.20.0 sleep minute precision 已 patch 為 **v2.19.2**，後續 milestone 整批往前推一版。v2.20.0 #6 utility 拆分於 2026-05-20 完成。
 > 此順序已凍結，新項目應在 v2.22 之後插入或建立新 milestone。
 
 ### 最終執行順序
 
 | Version | 內容 | 來源 | 風險 |
 |:-:|------|------|:----:|
-| ~~v2.19.2~~ | ~~Sleep minute precision~~（已完成，見上方 v2.19 完成報告） | v2.19.1 延伸 | — |
-| **v2.20.0** | **#6 utility-functions 拆分** + 順手清 v2.19 標記的冗餘 `function_exists` + 清理 v2.19.2 留下的舊整點 sleep 函數 | Eng. Phase 2.2 | 低 |
+| ~~v2.19.2~~ | ~~Sleep minute precision~~（已完成，見 v2.19 完成報告） | v2.19.1 延伸 | — |
+| ~~v2.20.0~~ | ~~**#6 utility-functions 拆分** + 順手清冗餘 `function_exists` + 清理 v2.19.2 舊整點 sleep 函數~~（已完成，見 v2.20.0 完成報告） | Eng. Phase 2.2 | — |
 | **v2.21.0** | **#8 JS 全域狀態封裝** | Eng. Phase 2.3 | 中 |
 | v2.21+ 或穿插 | **#7 runtime_state helper** | Avatar §4 | 中 |
 | v2.22+ | #9 CSS theme / i18n hot swap | Avatar §7 + §8 | — |
@@ -240,23 +293,15 @@ Sleep 系統分鐘精度延伸 v2.19.1 動態整點機制，仍屬 character fea
 | #7 runtime_state **可穿插 v2.21 或同版** | 它是「角色 runtime 狀態暴露給前端」的 REST helper，跟 JS 封裝概念連動，看實作複雜度決定 |
 | **MPU_Config 維持否決** | Avatar X-1 — 沒到「設定數量爆炸到需要抽象層」的點，現在引入只是 over-engineering |
 
-### v2.20.0 範圍邊界（hard limits）
-
-1. **只拆五個檔**：`encryption-functions.php` (~178 行) / `network-functions.php` (~290 行) / `wp-info-functions.php` (~260 行) / `template-functions.php` (~80 行) / `file-functions.php` (~159 行)
-2. **只搬不改邏輯**：每拆一個檔 sub-commit + 跑一次 `npm --prefix tools/node run verify`
-3. **同步更新** `mp-ukagaka.php` 的 `$core_modules` 載入順序（加密函式被多處依賴必須最早載入）
-4. **順手清 v2.19.0 標記的冗餘** `function_exists`（同 PR — 因為拆檔可能改變載入順序，與移除防護是同一前提）
-5. **順手清 v2.19.2 留下的舊整點 sleep 函數**：`mpu_get_daily_deep_sleep_start()` / `mpu_get_daily_oversleep_end()` 整點版本可移除（`wake_ghost` fallback 一併調整），與拆檔同 PR 完成
-6. **雜項函數歸屬決定**：`mpu_array2str` / `mpu_str2array` / `mpu_output_filter` / `mpu_js_filter` / `mpu_fetch_external_api` / `mpu_clear_api_cache` / `mpu_resolve_personality_id` — 留在「核心 utility」剩餘檔，或分到 string/api-cache 各自的檔，**動手前先決定**寫進 commit message
-7. **不**做型別宣告（v2.19 已限縮在四個核心 class，utility 函數不在範圍）
-
 ### v2.21.0 範圍邊界（hard limits）
 
-1. **收進 `window.MPU_STATE`** 命名空間（不改邏輯）
-2. **保留** `window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId` 不動（跨模組依賴深，plan 已明示）
-3. **漸進式三步**：定義 namespace → 9 個 JS 檔全域替換引用 → bundle 重建
-4. **manual smoke test 是必要驗收**（PHPUnit 無法測 JS）：auto-talk / chat / context / SSE / typewriter / wake_ghost / first-visit greeting 全流程
-5. **不**做 jQuery 移除 / ES Modules 遷移（Phase 4.x 範圍，等大版本再做）
+1. **只封裝 runtime mutable state**：建立 `window.MPU_STATE`，先收 `ukagaka-base.js` 宣告的散落 `let` 狀態與少數 `window.__mpu*` runtime scratch；不改演算法、不改 REST payload、不改 UI 行為
+2. **保留外部契約全域**：`mpuInfo` / `mpuSettings` / `mpuPreSettings` / `mpuRestUrl` / `mpuRestNonce` / `mpuL10n` / `mpuInitData` / `mpuInitParams` / `mpuPersonalityId` / `mpuCanvasManager` / `mpuEmojiManager` / `mpuFrierenManager` / `MPU_EVENTS` 不搬，因為它們是 PHP localized data、跨模組 manager、或可被主題/外掛讀取的 integration surface
+3. **保留 chat 三大全域不動**：`window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId` 仍維持原位置；本版最多補註解說明為 legacy shared state，不建立 proxy，不搬進 `MPU_STATE.chat`
+4. **先加相容 helper，再改引用**：新增 `mpuState` / `mpuGetState()`（名稱實作前可微調）後，再逐檔替換引用；禁止一次性 regex 大掃除造成 scope/silent diff
+5. **漸進式提交順序**：base namespace + helper → base/core auto-talk/typewriter/context 狀態 → dialog/context/greeting/features 消費點 → chat 只讀取 shared runtime 但不搬 chat state → bundle 重建
+6. **manual smoke test 是必要驗收**（PHPUnit 無法測 JS）：auto-talk / chat / context / SSE / typewriter / wake_ghost / first-visit greeting / SPA navigation / sleep-mode interval 全流程
+7. **不**做 jQuery 移除 / ES Modules 遷移 / manager class 重寫 / localStorage key rename / REST schema 改動（Phase 4.x 或 #7 runtime_state helper 範圍）
 
 ---
 
@@ -384,37 +429,95 @@ $system_prompt = mpu_resolve_system_prompt(...);
 
 ### 2.3 前端 JS 全域變數封裝
 
-**現狀**：`ukagaka-base.js` 開頭有 30+ 個全域變數。
+**現狀**：前端仍同時使用三種全域狀態形式：
+- `ukagaka-base.js` 檔案級 `let`：`mpuAutoTalk` / `mpuAutoTalkInterval` / `mpuAutoTalkTimer` / `mpuDefaultMsg` / `mpuTypewriterTimer` / `mpuTypewriterSpeed` / `mpuOllamaReplaceDialogue` / `mpuAiContextInProgress` / `mpuMessageBlocking` / `mpuLastLLMResponse` / `mpuLLMResponseHistory` / `mpuLastUserActionTime` / `mpuOllamaRequesting` / `mpuOllamaRequestQueue` / `mpuGreetInProgress` / `debugMode` 等
+- `window.mpu*` runtime scratch：`window.mpuMsgList` / `window.mpuBaseAutoTalkInterval` / `window.mpuContextPending` / `window.mpuSettingsProcessed` / `window.mpuSettingsLoaded` / `window.mpuSessionToken` / `window.__mpuStorage` / `window.__mpu_retry_count` / `window.__mpu_fallback_retry_count`
+- 外部契約全域：PHP localized data、REST nonce/url、manager objects、chat shared state、主題可擴充的 SPA events
 
-**步驟**（漸進式，不一次大改）：
+**目標**：把「外掛自己維護、可變、跨檔共享」的 runtime state 收進 `window.MPU_STATE`，降低散落全域變數數量；外部契約全域保持穩定，避免破壞主題整合、localized script data、聊天歷史與既有 debug workflow。
 
-1. **第一步**：將狀態變數收進一個命名空間物件：
-   ```javascript
-   // Before: 30+ 散落的 let/const
-   // After: 收進 window.MPU_STATE
-   window.MPU_STATE = {
-     autoTalk: false,
-     autoTalkInterval: 12000,
-     autoTalkTimer: null,
-     aiTextColor: "#000000",
-     aiDisplayDuration: 8,
-     aiDisplayTimer: null,
-     typewriterTimer: null,
-     typewriterSpeed: 40,
-     ollamaReplaceDialogue: false,
-     ollamaRequesting: false,
-     messageBlocking: false,
-     lastLLMResponse: '',
-     llmResponseHistory: [],
-     lastUserActionTime: Date.now(),
-     // ...
-   };
-   ```
-2. **第二步**：全域搜尋替換引用（`mpuAutoTalk` → `MPU_STATE.autoTalk`）。
-3. **第三步**：保留 `window.mpuChatHistory` 和 `window.mpuChatModeActive`，因為跨模組依賴太深，短期內不動。
+**不搬清單（明確保留）**：
+- `window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId`：chat 模組跨檔深依賴，且 localStorage/session 邏輯仍以現名為中心
+- `mpuInfo` / `mpuSettings` / `mpuPreSettings` / `mpuRestUrl` / `mpuRestNonce` / `mpuL10n` / `mpuInitData` / `mpuInitParams` / `mpuPersonalityId`：PHP 注入或 REST/localized data contract
+- `window.mpuCanvasManager` / `window.mpuEmojiManager` / `window.mpuFrierenManager` / `window.loadEmojiConfig`：manager/integration API，不是單純 state
+- `window.MPU_EVENTS`：SSE event constant namespace 已經乾淨，不混入 runtime state
+- `window.mpuSpaEvents`：刻意保留給主題或 SPA framework 擴充
 
-**風險**：中。需要更新所有 JS 檔案中的引用，且 bundle 必須重建。
-**建議**：搭配 Phase 1 的測試做，至少有 manual smoke test checklist。
+**建議 `MPU_STATE` 初版 shape**（實作時可按現有命名微調，但分類不要發散）：
+```javascript
+window.MPU_STATE = window.MPU_STATE || {
+  dialog: {
+    nextMode: "sequential",
+    defaultMsg: 0,
+    msgList: null,
+  },
+  autoTalk: {
+    enabled: false,
+    interval: 12000,
+    baseInterval: 0,
+    timer: null,
+  },
+  typewriter: {
+    timer: null,
+    speed: 40,
+  },
+  llm: {
+    aiTextColor: "#000000",
+    aiDisplayDuration: 8,
+    aiDisplayTimer: null,
+    ollamaReplaceDialogue: false,
+    aiContextInProgress: false,
+    messageBlocking: false,
+    lastResponse: "",
+    responseHistory: [],
+    lastUserActionTime: Date.now(),
+    ollamaRequesting: false,
+    ollamaRequestQueue: [],
+  },
+  request: {
+    sessionToken: "",
+    sessionTokenPromise: null,
+  },
+  flags: {
+    debugMode: false,
+    greetInProgress: false,
+    contextPending: false,
+    settingsProcessed: false,
+    settingsLoaded: false,
+  },
+  retry: {
+    nextMessage: 0,
+    fallbackMessage: 0,
+  },
+  storage: {},
+};
+```
+
+**相容策略**：
+1. 新增單一初始化區塊於 `ukagaka-base.js`，在任何消費者執行前建立 `window.MPU_STATE`。
+2. 檔案內部優先使用短別名，例如 `const mpuState = window.MPU_STATE;`；跨函式需要最新值時用 `window.MPU_STATE` 或 `mpuGetState()`，避免把 primitive value 解構後失去同步。
+3. `window.mpuMsgList` / `window.mpuBaseAutoTalkInterval` / `window.mpuContextPending` 這類舊全域若有外部讀取可能，v2.21.0 可保留 accessor alias 或同步寫入一版；若沒有明確外部契約，改成 `MPU_STATE` 後用 grep 確認只剩 dist bundle。
+4. `debugMode` 要維持 console workflow：`window.mpuDebugMode = true` 仍能即時開啟 log；因此 logger 判斷需讀 `MPU_STATE.flags.debugMode || window.mpuDebugMode === true`。
+5. 不使用 `Object.freeze()`，因為本次目標是收斂命名空間，不是建立不可變 store。
+
+**實作步驟**：
+1. **Inventory commit**：用 `rg` 列出 `mpuAutoTalk|mpuAutoTalkTimer|mpuMsgList|mpuContextPending|__mpu` 等引用，更新本節清單；不改 runtime code。
+2. **Namespace commit**：在 `ukagaka-base.js` 建立 `window.MPU_STATE` 與 helper；只把初始值搬入 object，保留舊變數暫時指向/讀寫原值，先跑 build。
+3. **Base/core commit**：替換 `ukagaka-base.js` / `ukagaka-core.js` 中 auto-talk、typewriter、LLM queue、retry counter 的讀寫；這是最高風險區，做完立刻 rebuild + manual auto-talk/typewriter smoke。
+4. **Dialog/context/greeting commit**：替換 `ukagaka-dialog.js` / `ukagaka-context.js` / `ukagaka-greeting.js` 中 dialog store、auto-talk resume、context pending 的引用；確認 LLM fallback、page context、first-visit greeting 都仍會 append history。
+5. **Features commit**：替換 `ukagaka-features.js` 中 settings processed/loaded、base interval、toggle auto-talk、SPA events 的可搬項；`window.mpuSpaEvents` 保留原契約。
+6. **Chat boundary commit**：`ukagaka-chat.js` 只改它讀到的 shared runtime（例如 session token / nonce fallback / `mpuInfo` mutation 以外的 helper），不搬 `window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId`。
+7. **Bundle commit**：`npm --prefix tools/node run build`，確認 dist 只反映 source 變更。
+
+**驗證清單**：
+- `npm --prefix tools/node run verify`
+- `rg -n "let mpuAutoTalk|let mpuAutoTalkTimer|window.__mpu|window.mpuContextPending|window.mpuSettingsProcessed|window.mpuSettingsLoaded" js --glob "*.js" --glob "!dist/**"` 應只剩允許項或為空
+- manual smoke：初始載入、顯示/隱藏、typewriter、auto-talk start/stop、blur/focus/visibility pause-resume、LLM replace dialogue、page context、first-visit greeting、chat send、SSE streaming + nonce refresh、wake_ghost、sleep-mode interval、SPA navigation event
+- console compatibility：`window.mpuDebugMode = true` 後 log 仍即時生效；`window.mpuChatHistory.length` 仍可查看
+
+**Rollback 條件**：若 manual smoke 發現 chat history、SSE streaming、auto-talk timer、sleep-mode wake 任何一項出現非平凡 regression，先 revert 該 commit，不把後續檔案一起混入；本 milestone 允許留下部分已封裝 state，但不允許留下半同步 alias。
+
+**風險**：中。主要風險不是 namespace 本身，而是 primitive 變數改成 object property 後，跨檔讀寫時機不同步；因此實作要按檔案分段，不做一次性 regex 替換。
 
 ---
 

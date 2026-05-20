@@ -4,6 +4,53 @@
 
 ---
 
+## [2.20.0] - 2026-05-20
+
+### 🔧 utility-functions.php のドメイン分割（v2.20.0 #6 milestone）
+
+純粋なファイル移動のみで、ロジック変更はありません。約 1,143 行の catch-all ファイルを 5 つのドメインファイルに分割しました。`utility-functions.php` には定数のみ残存（36 行）。
+
+| 新ファイル | 行数 | 関数 |
+|---|---|---|
+| `core/template-functions.php` | 142 | `array2str` / `str2array` / `output_filter` / `js_filter` / `render_prompt_template` / `build_user_info_prompt` |
+| `core/file-functions.php` | 174 | `is_path_within_allowed_dir` / `secure_file_read` / `secure_file_write` / `get_dialogs_dir` / `ensure_dialogs_dir` |
+| `core/encryption-functions.php` | 190 | `get_encryption_key` / `encrypt_api_key` / `decrypt_api_key` / `is_api_key_encrypted` / `get_provider_api_key` / `get_current_provider` |
+| `core/wp-info-functions.php` | 284 | `get_wordpress_info` / `get_current_user_info` / `country_code_to_name` / `resolve_personality_id` |
+| `core/network-functions.php` | 389 | `get_client_ip` / `get_client_ip_strict` / `fetch_external_api` / `clear_api_cache` / `check_rate_limit` / `rest_check_rate_limit` / `generate_session_token` / `validate_session_token` |
+
+- **`mp-ukagaka.php` のロード順**：`debug → core → utility (定数) → template → file → encryption → wp-info → network → ...` — encryption は wp-info より前（provider key resolver が encryption に依存）、network はその他 utility 関数の最大消費者なので最後にロード。
+- **tests/bootstrap.php**：PHPUnit でも同じ順序でロード。
+- **雑関数の配置決定**（plan #5 の事前判断）：`array2str` / `str2array` / `output_filter` / `js_filter` → template；`fetch_external_api` / `clear_api_cache` → network；`resolve_personality_id` → wp-info。
+
+### 🧹 冗長な防御コードの整理
+
+`mp-ukagaka.php` のロード順により、以下のヘルパーは caller より前に必ず存在することが保証されているため、`function_exists` ガードはノイズでした：
+
+- `chat/class-mpu-chat-history-service.php`：`mpu_chat_integrity_normalize_session_id` / `verify_history` / `store_history` の 3 ガード削除。
+- `integrations/akismet-integration.php`：`mpu_chat_integrity_*` および `mpu_rest_check_rate_limit` の 4 ガード削除。
+- `llm/class-mpu-chat-lock.php`：`normalize_session_id()` のインライン fallback 削除 — chat-integrity 版と byte-equivalent（`is_scalar` → `sanitize_key` → `substr 64`）。
+- `rest/class-mpu-rest-base.php`：`rate_limit()` ガード削除。
+- `rest/class-mpu-rest-dialog.php`：`mpu_chat_integrity_*` の 2 ガード削除。
+
+### 🪦 旧 Sleep ヘルパーの dead code 削除（v2.19.2 follow-up）
+
+v2.19.2 で正時版 sleep ヘルパーは dead code として明示されました（`wake_ghost` の fallback 参照のみ）。本リリースで正式削除：
+
+- `llm/llm-context-builder.php`：`mpu_get_daily_deep_sleep_start()` と `mpu_get_daily_oversleep_end()` を削除。`_mod` 版は継続使用。
+- `rest/class-mpu-rest-dialog.php`：`wake_ghost()` の 3 層 `function_exists` fallback を `_mod` への直接呼び出しに集約。
+
+### ✅ 検証
+
+- `npm run verify`：lint + bundle + PHPUnit（27 tests / 59 assertions）全て pass。
+- `grep -h "^function mpu_" includes/core/*.php | sort | uniq -d` 空 — 重複定義なし。
+- 旧正時ヘルパーの code-path grep は doc / changelog / plan の履歴記録のみ。
+
+### 📋 Milestone メモ
+
+本リリースは凍結表の v2.20.0 を完了します（v2.19.2 patch により 1 枠前倒しになった後の slot）。次の予定：**v2.21.0 = #8 JS グローバル状態の封装** — surface が大きく manual smoke test が必須のため、バックエンド作業とはバンドルせず独立リリース。
+
+---
+
 ## [2.19.2] - 2026-05-20
 
 ### ✨ 睡眠システムの分単位精度

@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.19.2
+Stable tag: 2.20.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,20 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-20 =
+* v2.20.0
+* [REFACTOR] utility-functions.php domain split (v2.20.0 #6 milestone): the ~1,143-line catch-all file is now five focused domain files — template-functions.php (string / output helpers), file-functions.php (secure file ops / dialogs dir), encryption-functions.php (API key encrypt/decrypt), wp-info-functions.php (WordPress environment / personality resolver), network-functions.php (HTTP / cache / rate limit / session token). utility-functions.php retains constants only (36 lines).
+* [CLEANUP] Removed redundant function_exists() guards on mpu_chat_integrity_* and mpu_rest_check_rate_limit across chat-history-service, akismet-integration, chat-lock, rest-base, and rest-dialog — load order in mp-ukagaka.php already guarantees these functions exist before any caller. Behavior unchanged; reduces dead defensive code.
+* [CLEANUP] Removed v2.19.2 dead code: hour-precision mpu_get_daily_deep_sleep_start() / mpu_get_daily_oversleep_end() (only wake_ghost fallback referenced them); wake_ghost() now calls _mod variants directly.
+* [VERIFY] npm run verify: lint + bundle + PHPUnit (27 tests / 59 assertions) all green; no duplicate function definitions across core/.
+
+= 2026-05-20 =
+* v2.19.2
+* [NEW] Sleep system minute precision: new _mod-suffix helpers (mpu_get_daily_deep_sleep_start_mod / mpu_get_daily_oversleep_end_mod) return minutes-of-day (0–1439). For [22, 23] deep_sleep_start, the daily roll picks any minute in 22:00–23:59 inclusive instead of only on the hour. Manifest schema unchanged (still authored in hours).
+* [IMPROVE] mpu_is_deep_sleep_time(), mpu_is_ip_woken_today(), mpu_mark_ip_as_woken() all upgraded to minutes-of-day comparisons (cross-midnight handled via $start_mod > $end_mod OR-branch). frontend-functions.php caller upgraded to _mod to keep render boundary in sync with backend.
+* [BREAKING] Cache keys take _mod suffix to force a miss against v2.19.1 hour-based values; no backward-compat read. oversleep_max_hour: 9 now means "wake by 09:59" (was "wake by 09:00 sharp") and IP-record window expanded by 59 minutes to match.
+* [VERIFY] npm run verify: lint + bundle + PHPUnit (27 tests / 59 assertions) all green. Manual smoke test required for minute-precision behavior — PHPUnit does not mock set_transient / random_int / DateTimeImmutable.
 
 = 2026-05-19 =
 * v2.19.1

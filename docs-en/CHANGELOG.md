@@ -4,6 +4,53 @@
 
 ---
 
+## [2.20.0] - 2026-05-20
+
+### 🔧 utility-functions.php Domain Split (v2.20.0 #6 milestone)
+
+Pure file moves — no logic changes. The ~1,143-line catch-all is now five domain files; original `utility-functions.php` retains constants only (36 lines).
+
+| New file | Lines | Functions |
+|---|---|---|
+| `core/template-functions.php` | 142 | `array2str` / `str2array` / `output_filter` / `js_filter` / `render_prompt_template` / `build_user_info_prompt` |
+| `core/file-functions.php` | 174 | `is_path_within_allowed_dir` / `secure_file_read` / `secure_file_write` / `get_dialogs_dir` / `ensure_dialogs_dir` |
+| `core/encryption-functions.php` | 190 | `get_encryption_key` / `encrypt_api_key` / `decrypt_api_key` / `is_api_key_encrypted` / `get_provider_api_key` / `get_current_provider` |
+| `core/wp-info-functions.php` | 284 | `get_wordpress_info` / `get_current_user_info` / `country_code_to_name` / `resolve_personality_id` |
+| `core/network-functions.php` | 389 | `get_client_ip` / `get_client_ip_strict` / `fetch_external_api` / `clear_api_cache` / `check_rate_limit` / `rest_check_rate_limit` / `generate_session_token` / `validate_session_token` |
+
+- **Load order in `mp-ukagaka.php`**: `debug → core → utility (constants) → template → file → encryption → wp-info → network → ...` — encryption loads before wp-info (provider key resolver depends on encryption), network loads last as the heaviest consumer of other utilities.
+- **tests/bootstrap.php**: same load order replicated for PHPUnit.
+- **Stray-function placement** (per plan #5 hand-write decision): `array2str` / `str2array` / `output_filter` / `js_filter` → `template`; `fetch_external_api` / `clear_api_cache` → `network`; `resolve_personality_id` → `wp-info`.
+
+### 🧹 Redundant Defense Cleanup
+
+Load order in `mp-ukagaka.php` guarantees these helpers exist before any caller; the guards were noise:
+
+- `chat/class-mpu-chat-history-service.php`: 3 `function_exists` guards on `mpu_chat_integrity_normalize_session_id` / `verify_history` / `store_history` removed.
+- `integrations/akismet-integration.php`: 4 guards on `mpu_chat_integrity_*` and `mpu_rest_check_rate_limit` removed.
+- `llm/class-mpu-chat-lock.php`: `normalize_session_id()` inline fallback removed — chat-integrity version is byte-equivalent (`is_scalar` → `sanitize_key` → `substr 64`).
+- `rest/class-mpu-rest-base.php`: `rate_limit()` guard removed.
+- `rest/class-mpu-rest-dialog.php`: 2 guards on `mpu_chat_integrity_*` removed.
+
+### 🪦 Dead Sleep Helper Removal (v2.19.2 follow-up)
+
+v2.19.2 marked the hour-precision sleep helpers as dead code (only `wake_ghost` fallback referenced them). Removed in this release:
+
+- `llm/llm-context-builder.php`: `mpu_get_daily_deep_sleep_start()` and `mpu_get_daily_oversleep_end()` deleted. `_mod` variants remain.
+- `rest/class-mpu-rest-dialog.php`: `wake_ghost()` 3-layer `function_exists` fallback collapsed to direct `_mod` calls.
+
+### ✅ Verification
+
+- `npm run verify`: lint + bundle + PHPUnit (27 tests / 59 assertions) all green.
+- `grep -h "^function mpu_" includes/core/*.php | sort | uniq -d` empty — no duplicate definitions.
+- Code-path grep for old hour helpers returns only doc / changelog / plan history references.
+
+### 📋 Milestone Notes
+
+This release closes v2.20.0 in the freeze table (which had already shifted forward one slot after v2.19.2 was patched out of the original v2.20.0 plan). Next up: **v2.21.0 = #8 JS global state encapsulation** — larger surface, manual smoke test required, not bundled with backend work.
+
+---
+
 ## [2.19.2] - 2026-05-20
 
 ### ✨ Sleep System Minute Precision

@@ -4,6 +4,53 @@
 
 ---
 
+## [2.20.0] - 2026-05-20
+
+### 🔧 utility-functions.php 領域拆分（v2.20.0 #6 milestone）
+
+純檔案搬移，無邏輯改動。原本 ~1,143 行 catch-all 拆成五個領域檔；`utility-functions.php` 留 36 行常數。
+
+| 新檔 | 行數 | 函數 |
+|---|---|---|
+| `core/template-functions.php` | 142 | `array2str` / `str2array` / `output_filter` / `js_filter` / `render_prompt_template` / `build_user_info_prompt` |
+| `core/file-functions.php` | 174 | `is_path_within_allowed_dir` / `secure_file_read` / `secure_file_write` / `get_dialogs_dir` / `ensure_dialogs_dir` |
+| `core/encryption-functions.php` | 190 | `get_encryption_key` / `encrypt_api_key` / `decrypt_api_key` / `is_api_key_encrypted` / `get_provider_api_key` / `get_current_provider` |
+| `core/wp-info-functions.php` | 284 | `get_wordpress_info` / `get_current_user_info` / `country_code_to_name` / `resolve_personality_id` |
+| `core/network-functions.php` | 389 | `get_client_ip` / `get_client_ip_strict` / `fetch_external_api` / `clear_api_cache` / `check_rate_limit` / `rest_check_rate_limit` / `generate_session_token` / `validate_session_token` |
+
+- **`mp-ukagaka.php` 載入順序**：`debug → core → utility (常數) → template → file → encryption → wp-info → network → ...` — encryption 在 wp-info 之前（provider key resolver 依賴 encryption），network 最後（最重的下游消費者）。
+- **tests/bootstrap.php**：PHPUnit 同步載入。
+- **雜項函數歸屬決定**（plan #5 動手前決定）：`array2str` / `str2array` / `output_filter` / `js_filter` → template；`fetch_external_api` / `clear_api_cache` → network；`resolve_personality_id` → wp-info。
+
+### 🧹 冗餘防護清理
+
+`mp-ukagaka.php` 載入順序保證下列 helper 在 caller 之前已存在，原本 `function_exists` 守衛屬冗餘：
+
+- `chat/class-mpu-chat-history-service.php`：3 個 `mpu_chat_integrity_normalize_session_id` / `verify_history` / `store_history` 守衛移除。
+- `integrations/akismet-integration.php`：4 個 `mpu_chat_integrity_*` 與 `mpu_rest_check_rate_limit` 守衛移除。
+- `llm/class-mpu-chat-lock.php`：`normalize_session_id()` 內聯 fallback 移除 — chat-integrity 版本與 fallback byte-equivalent（`is_scalar` → `sanitize_key` → `substr 64`）。
+- `rest/class-mpu-rest-base.php`：`rate_limit()` 守衛移除。
+- `rest/class-mpu-rest-dialog.php`：2 個 `mpu_chat_integrity_*` 守衛移除。
+
+### 🪦 舊 Sleep helper 死碼移除（v2.19.2 follow-up）
+
+v2.19.2 把整點 sleep helper 標記為 dead code（僅 `wake_ghost` fallback 引用）。本版正式移除：
+
+- `llm/llm-context-builder.php`：`mpu_get_daily_deep_sleep_start()` 與 `mpu_get_daily_oversleep_end()` 刪除。`_mod` 變體繼續使用。
+- `rest/class-mpu-rest-dialog.php`：`wake_ghost()` 三層 `function_exists` fallback 簡化為直接呼叫 `_mod`。
+
+### ✅ 驗證
+
+- `npm run verify`：lint + bundle + PHPUnit（27 tests / 59 assertions）全綠。
+- `grep -h "^function mpu_" includes/core/*.php | sort | uniq -d` 為空 — 無重複定義。
+- Code-path grep 對舊整點 helper 只剩 doc / changelog / plan 歷史記錄引用。
+
+### 📋 Milestone 註記
+
+本版收尾凍結表中的 v2.20.0（v2.19.2 patch 後該欄已往前推一格）。下一站：**v2.21.0 = #8 JS 全域狀態封裝** — surface 較大、需 manual smoke test，故獨立成版，不與後端工作打包。
+
+---
+
 ## [2.19.2] - 2026-05-20
 
 ### ✨ 睡眠系統分鐘精度
