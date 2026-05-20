@@ -297,9 +297,9 @@ debug → core → utility(常數) → template → file → encryption → wp-i
 
 1. **只封裝 runtime mutable state**：建立 `window.MPU_STATE`，先收 `ukagaka-base.js` 宣告的散落 `let` 狀態與少數 `window.__mpu*` runtime scratch；不改演算法、不改 REST payload、不改 UI 行為
 2. **保留外部契約全域**：`mpuInfo` / `mpuSettings` / `mpuPreSettings` / `mpuRestUrl` / `mpuRestNonce` / `mpuL10n` / `mpuInitData` / `mpuInitParams` / `mpuPersonalityId` / `mpuCanvasManager` / `mpuEmojiManager` / `mpuFrierenManager` / `MPU_EVENTS` 不搬，因為它們是 PHP localized data、跨模組 manager、或可被主題/外掛讀取的 integration surface
-3. **保留 chat 三大全域不動**：`window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId` 仍維持原位置；本版最多補註解說明為 legacy shared state，不建立 proxy，不搬進 `MPU_STATE.chat`
+3. **保留 chat shared state 不動**：`window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId` / `window.mpuChatRequesting` 仍維持原位置；本版最多補註解說明為 legacy shared state，不建立 proxy，不搬進 `MPU_STATE.chat`。`mpuEnableChatMode` 不是 chat shared state，而是 settings flag，本版搬入 `MPU_STATE.flags.enableChatMode`
 4. **先加相容 helper，再改引用**：新增 `mpuState` / `mpuGetState()`（名稱實作前可微調）後，再逐檔替換引用；禁止一次性 regex 大掃除造成 scope/silent diff
-5. **漸進式提交順序**：base namespace + helper → base/core auto-talk/typewriter/context 狀態 → dialog/context/greeting/features 消費點 → chat 只讀取 shared runtime 但不搬 chat state → bundle 重建
+5. **漸進式提交順序**：base namespace + helper → base/core auto-talk/typewriter/context 狀態 → dialog/context/greeting/features 消費點 → chat 只讀取 shared runtime 但不搬 chat state → bundle 重建；每個 commit 都要自包通過 `npm --prefix tools/node run verify`
 6. **manual smoke test 是必要驗收**（PHPUnit 無法測 JS）：auto-talk / chat / context / SSE / typewriter / wake_ghost / first-visit greeting / SPA navigation / sleep-mode interval 全流程
 7. **不**做 jQuery 移除 / ES Modules 遷移 / manager class 重寫 / localStorage key rename / REST schema 改動（Phase 4.x 或 #7 runtime_state helper 範圍）
 
@@ -430,18 +430,22 @@ $system_prompt = mpu_resolve_system_prompt(...);
 ### 2.3 前端 JS 全域變數封裝
 
 **現狀**：前端仍同時使用三種全域狀態形式：
-- `ukagaka-base.js` 檔案級 `let`：`mpuAutoTalk` / `mpuAutoTalkInterval` / `mpuAutoTalkTimer` / `mpuDefaultMsg` / `mpuTypewriterTimer` / `mpuTypewriterSpeed` / `mpuOllamaReplaceDialogue` / `mpuAiContextInProgress` / `mpuMessageBlocking` / `mpuLastLLMResponse` / `mpuLLMResponseHistory` / `mpuLastUserActionTime` / `mpuOllamaRequesting` / `mpuOllamaRequestQueue` / `mpuGreetInProgress` / `debugMode` 等
+- `ukagaka-base.js` 檔案級 `let`：`mpuNextMode` / `mpuDefaultMsg` / `mpuAutoTalk` / `mpuAutoTalkInterval` / `mpuAutoTalkTimer` / `debugMode` / `mpuAiTextColor` / `mpuAiDisplayDuration` / `mpuAiDisplayTimer` / `mpuTypewriterTimer` / `mpuTypewriterSpeed` / `mpuOllamaReplaceDialogue` / `mpuAiContextInProgress` / `mpuMessageBlocking` / `mpuLastLLMResponse` / `mpuLLMResponseHistory` / `mpuLastUserActionTime` / `mpuOllamaRequesting` / `mpuOllamaRequestQueue` / `mpuGreetInProgress` 等
 - `window.mpu*` runtime scratch：`window.mpuMsgList` / `window.mpuBaseAutoTalkInterval` / `window.mpuContextPending` / `window.mpuSettingsProcessed` / `window.mpuSettingsLoaded` / `window.mpuSessionToken` / `window.__mpuStorage` / `window.__mpu_retry_count` / `window.__mpu_fallback_retry_count`
 - 外部契約全域：PHP localized data、REST nonce/url、manager objects、chat shared state、主題可擴充的 SPA events
 
 **目標**：把「外掛自己維護、可變、跨檔共享」的 runtime state 收進 `window.MPU_STATE`，降低散落全域變數數量；外部契約全域保持穩定，避免破壞主題整合、localized script data、聊天歷史與既有 debug workflow。
 
 **不搬清單（明確保留）**：
-- `window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId`：chat 模組跨檔深依賴，且 localStorage/session 邏輯仍以現名為中心
+- `window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId` / `window.mpuChatRequesting`：chat 模組跨檔深依賴，且 localStorage/session/requesting 邏輯仍以現名為中心
+- `mpuChatAbortController`：chat 模組內部 request lifecycle state；不進 shared `MPU_STATE`，除非後續把 chat state 作為獨立 milestone 處理
 - `mpuInfo` / `mpuSettings` / `mpuPreSettings` / `mpuRestUrl` / `mpuRestNonce` / `mpuL10n` / `mpuInitData` / `mpuInitParams` / `mpuPersonalityId`：PHP 注入或 REST/localized data contract
-- `window.mpuCanvasManager` / `window.mpuEmojiManager` / `window.mpuFrierenManager` / `window.loadEmojiConfig`：manager/integration API，不是單純 state
+- `window.mpuCanvasManager` / `window.mpuEmojiManager` / `window.mpuEmojiConfig` / `window.mpuFrierenManager` / `window.loadEmojiConfig`：manager/integration API 或 emoji config/cache surface，不是單純 state
 - `window.MPU_EVENTS`：SSE event constant namespace 已經乾淨，不混入 runtime state
 - `window.mpuSpaEvents`：刻意保留給主題或 SPA framework 擴充
+
+**搬入清單（明確納入）**：
+- `mpuEnableChatMode`：settings flag，現由 settings processing 寫入、chat toggle 讀取；本版搬到 `MPU_STATE.flags.enableChatMode`，但不連帶搬 chat history / requesting / abort controller
 
 **建議 `MPU_STATE` 初版 shape**（實作時可按現有命名微調，但分類不要發散）：
 ```javascript
@@ -484,6 +488,7 @@ window.MPU_STATE = window.MPU_STATE || {
     contextPending: false,
     settingsProcessed: false,
     settingsLoaded: false,
+    enableChatMode: false,
   },
   retry: {
     nextMessage: 0,
@@ -493,21 +498,25 @@ window.MPU_STATE = window.MPU_STATE || {
 };
 ```
 
+`request.sessionToken` 是 string，`request.sessionTokenPromise` 是 `Promise|null`，初始值必須是 `null`；不要用空字串表示尚未建立的 lazy-load promise。`dialog.nextMode` 命名沿用現有 dialog data 語意，但實際消費點包含 `mpu_selectNextMessage()` 這類 core flow，實作時不要誤解為「只限對話框 UI」。`retry.nextMessage` 是 `window.__mpu_retry_count` 的語意化 rename，`retry.fallbackMessage` 是 `window.__mpu_fallback_retry_count` 的語意化 rename；這個 snake_case → camelCase + 語意命名變更是有意的。
+
 **相容策略**：
 1. 新增單一初始化區塊於 `ukagaka-base.js`，在任何消費者執行前建立 `window.MPU_STATE`。
 2. 檔案內部優先使用短別名，例如 `const mpuState = window.MPU_STATE;`；跨函式需要最新值時用 `window.MPU_STATE` 或 `mpuGetState()`，避免把 primitive value 解構後失去同步。
 3. `window.mpuMsgList` / `window.mpuBaseAutoTalkInterval` / `window.mpuContextPending` 這類舊全域若有外部讀取可能，v2.21.0 可保留 accessor alias 或同步寫入一版；若沒有明確外部契約，改成 `MPU_STATE` 後用 grep 確認只剩 dist bundle。
-4. `debugMode` 要維持 console workflow：`window.mpuDebugMode = true` 仍能即時開啟 log；因此 logger 判斷需讀 `MPU_STATE.flags.debugMode || window.mpuDebugMode === true`。
-5. 不使用 `Object.freeze()`，因為本次目標是收斂命名空間，不是建立不可變 store。
+4. `debugMode` 順手修正 init-only 限制：目前 `debugMode` 只在載入時讀一次 `window.mpuDebugMode`，本版允許 console 內 `window.mpuDebugMode = true` 即時開啟 log；因此 logger 判斷需讀 `MPU_STATE.flags.debugMode || window.mpuDebugMode === true`。
+5. `mpuOllamaReplaceDialogue` 目前在腳本載入期間由 `mpuPreSettings` 寫入；`MPU_STATE` 初始化必須早於這段 pre-settings hydrate，避免寫入尚未建立的 `MPU_STATE.llm`。
+6. `mpuAutoTalk` / `mpuAutoTalkTimer` / `mpuMessageBlocking` 這類高引用變數應先建立區域短別名（例如 `const autoTalkState = MPU_STATE.autoTalk;`），再分段替換，避免一次性 search-replace 造成 scope 錯誤。
+7. 不使用 `Object.freeze()`：runtime 必須持續 mutation（例如 `autoTalk.timer = setTimeout(...)`、`responseHistory.push(...)`、`ollamaRequestQueue.push(...)`），freeze 會破壞現有流程；本次不是建立不可變 store。
 
 **實作步驟**：
 1. **Inventory commit**：用 `rg` 列出 `mpuAutoTalk|mpuAutoTalkTimer|mpuMsgList|mpuContextPending|__mpu` 等引用，更新本節清單；不改 runtime code。
 2. **Namespace commit**：在 `ukagaka-base.js` 建立 `window.MPU_STATE` 與 helper；只把初始值搬入 object，保留舊變數暫時指向/讀寫原值，先跑 build。
 3. **Base/core commit**：替換 `ukagaka-base.js` / `ukagaka-core.js` 中 auto-talk、typewriter、LLM queue、retry counter 的讀寫；這是最高風險區，做完立刻 rebuild + manual auto-talk/typewriter smoke。
 4. **Dialog/context/greeting commit**：替換 `ukagaka-dialog.js` / `ukagaka-context.js` / `ukagaka-greeting.js` 中 dialog store、auto-talk resume、context pending 的引用；確認 LLM fallback、page context、first-visit greeting 都仍會 append history。
-5. **Features commit**：替換 `ukagaka-features.js` 中 settings processed/loaded、base interval、toggle auto-talk、SPA events 的可搬項；`window.mpuSpaEvents` 保留原契約。
-6. **Chat boundary commit**：`ukagaka-chat.js` 只改它讀到的 shared runtime（例如 session token / nonce fallback / `mpuInfo` mutation 以外的 helper），不搬 `window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId`。
-7. **Bundle commit**：`npm --prefix tools/node run build`，確認 dist 只反映 source 變更。
+5. **Features commit**：替換 `ukagaka-features.js` 中 settings processed/loaded、base interval、toggle auto-talk、`mpuEnableChatMode`、SPA events 的可搬項；`window.mpuSpaEvents` 保留原契約。
+6. **Chat boundary commit**：`ukagaka-chat.js` 只改它讀到的 shared runtime（例如 session token / nonce fallback / `mpuInfo` mutation 以外的 helper）與 `MPU_STATE.flags.enableChatMode`，不搬 `window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId` / `window.mpuChatRequesting` / `mpuChatAbortController`。
+7. **Bundle commit**：`npm --prefix tools/node run build`，確認 dist 只反映 source 變更；實作期間禁止人工編輯 `js/dist/`，所有 dist diff 只能來自本 build commit。
 
 **驗證清單**：
 - `npm --prefix tools/node run verify`
