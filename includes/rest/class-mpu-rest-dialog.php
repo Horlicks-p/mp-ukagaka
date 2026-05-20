@@ -191,11 +191,9 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         if ($is_llm_enabled && !$use_fallback && isset($msg) && $msg !== '' &&
             $msg !== __('ローカルの Ollama が起動していません。Ollama サービスが起動しているか確認してください。', 'mp-ukagaka')) {
             $chat_session_id_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
-            $chat_session_id = function_exists('mpu_chat_integrity_normalize_session_id')
-                ? mpu_chat_integrity_normalize_session_id($chat_session_id_param)
-                : '';
+            $chat_session_id = mpu_chat_integrity_normalize_session_id($chat_session_id_param);
 
-            if (!empty($chat_session_id) && function_exists('mpu_chat_integrity_store_history') && !connection_aborted()) {
+            if (!empty($chat_session_id) && !connection_aborted()) {
                 $prior_history = [];
                 $history_param = $request->get_param('history');
                 if (!empty($history_param)) {
@@ -411,8 +409,8 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                 if (function_exists('mpu_get_sleep_settings')) {
                     $sleep_settings = mpu_get_sleep_settings($personality_id);
                     $current_mod    = (int) wp_date('G') * 60 + (int) wp_date('i');
-                    $d_start_mod    = function_exists('mpu_get_daily_deep_sleep_start_mod') ? mpu_get_daily_deep_sleep_start_mod($personality_id) : (function_exists('mpu_sleep_hour_to_start_mod') && function_exists('mpu_get_daily_deep_sleep_start') ? mpu_sleep_hour_to_start_mod(mpu_get_daily_deep_sleep_start($personality_id)) : 0);
-                    $d_end_mod      = function_exists('mpu_sleep_hour_to_boundary_mod') ? mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end']) : max(0, min(1439, (int) $sleep_settings['deep_sleep_end'] * 60));
+                    $d_start_mod    = mpu_get_daily_deep_sleep_start_mod($personality_id);
+                    $d_end_mod      = mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end']);
 
                     if ($d_start_mod < $d_end_mod) {
                         $is_deep_sleep = ($current_mod >= $d_start_mod && $current_mod < $d_end_mod);

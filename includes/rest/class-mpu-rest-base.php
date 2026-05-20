@@ -41,10 +41,7 @@ abstract class MPU_REST_Base {
      * @return WP_REST_Response|null  超限回傳 429 Response，允許回傳 null
      */
     protected function rate_limit(string $key, int $max, int $window): ?WP_REST_Response {
-        if (function_exists('mpu_rest_check_rate_limit')) {
-            return mpu_rest_check_rate_limit($key, $max, $window);
-        }
-        return null;
+        return mpu_rest_check_rate_limit($key, $max, $window);
     }
 
     /**

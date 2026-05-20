@@ -64,12 +64,11 @@ function mpu_on_akismet_spam_caught()
  */
 function mpu_store_spam_event_checksum( WP_REST_Request $request, $message )
 {
-    if (empty($message) || !function_exists('mpu_chat_integrity_store_history') || connection_aborted()) {
+    if (empty($message) || connection_aborted()) {
         return;
     }
     $cs_sid_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
-    $cs_sid = function_exists('mpu_chat_integrity_normalize_session_id')
-        ? mpu_chat_integrity_normalize_session_id($cs_sid_param) : '';
+    $cs_sid = mpu_chat_integrity_normalize_session_id($cs_sid_param);
 
     if (empty($cs_sid)) return;
 
@@ -92,18 +91,14 @@ function mpu_store_spam_event_checksum( WP_REST_Request $request, $message )
         }
     }
     $prior[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($message), 'type' => 'event'];
-    if (function_exists('mpu_chat_integrity_slice_for_store')) {
-        mpu_chat_integrity_store_history($cs_sid, mpu_chat_integrity_slice_for_store($prior, 10));
-    }
+    mpu_chat_integrity_store_history($cs_sid, mpu_chat_integrity_slice_for_store($prior, 10));
 }
 
 function mpu_rest_check_spam_event( WP_REST_Request $request )
 {
     // 速率限制 - 20次/分鐘（跟隨 auto_talk 頻率）
-    if (function_exists('mpu_rest_check_rate_limit')) {
-        $rl = mpu_rest_check_rate_limit('check_spam_event', 20, 60);
-        if ($rl !== null) return $rl;
-    }
+    $rl = mpu_rest_check_rate_limit('check_spam_event', 20, 60);
+    if ($rl !== null) return $rl;
 
     $is_llm_enabled = function_exists('mpu_is_llm_replace_dialogue_enabled')
         && mpu_is_llm_replace_dialogue_enabled();

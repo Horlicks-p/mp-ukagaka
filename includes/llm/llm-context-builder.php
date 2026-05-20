@@ -552,63 +552,6 @@ function mpu_sleep_hour_to_boundary_mod($hour)
     return mpu_sleep_clamp_mod((int) $hour * 60);
 }
 
-/**
- * 獲取今天的隨機賴床結束時間（每個人格每天各自抽一次）
- *
- * @param string|null $personality_id 角色 ID
- * @return int 賴床結束的小時數（deep_sleep_end ~ oversleep_max_hour）
- */
-function mpu_get_daily_oversleep_end($personality_id = null)
-{
-    $today = wp_date('Y-m-d');
-    $pid   = mpu_norm_personality_key($personality_id);
-
-    $cache_key = "mpu_oversleep_end_{$today}_{$pid}";
-    $cached = get_transient($cache_key);
-    if ($cached !== false) {
-        return (int) $cached;
-    }
-
-    $sleep_settings     = mpu_get_sleep_settings($personality_id);
-    $deep_sleep_end     = (int) $sleep_settings['deep_sleep_end'];
-    $oversleep_max_hour = (int) $sleep_settings['oversleep_max_hour'];
-    $probability        = (float) $sleep_settings['oversleep_probability'];
-    $oversleep_enabled  = !empty($sleep_settings['oversleep_enabled']);
-
-    // 到午夜的秒數（站點時區）
-    $tz  = wp_timezone();
-    $now = new DateTimeImmutable('now', $tz);
-    $mid = new DateTimeImmutable('tomorrow', $tz);
-    $seconds_until_midnight = max(60, $mid->getTimestamp() - $now->getTimestamp());
-
-    // 未啟用賴床：直接固定為 deep_sleep_end
-    if (!$oversleep_enabled) {
-        $oversleep_end = $deep_sleep_end;
-        set_transient($cache_key, $oversleep_end, $seconds_until_midnight);
-        return $oversleep_end;
-    }
-
-    // 設定合理性檢查
-    if ($oversleep_max_hour <= $deep_sleep_end) {
-        mpu_log_warning('睡眠設定錯誤：oversleep_max_hour 必須大於 deep_sleep_end');
-        $oversleep_end = $deep_sleep_end;
-        // 也用「到午夜」過期，確保每天一致
-        set_transient($cache_key, $oversleep_end, $seconds_until_midnight);
-        return $oversleep_end;
-    }
-
-    // 抽籤決定是否賴床
-    if (random_int(1, 100) <= $probability * 100) {
-        // 賴床：deep_sleep_end ~ oversleep_max_hour（含）
-        $oversleep_end = random_int($deep_sleep_end, $oversleep_max_hour);
-    } else {
-        // 不賴床
-        $oversleep_end = $deep_sleep_end;
-    }
-
-    set_transient($cache_key, $oversleep_end, $seconds_until_midnight);
-    return $oversleep_end;
-}
 
 /**
  * 獲取今天的隨機賴床結束時間（分鐘精度，每個人格每天各自抽一次）
@@ -672,53 +615,6 @@ function mpu_get_daily_oversleep_end_mod($personality_id = null)
     return $end_mod;
 }
 
-/**
- * 獲取今天的隨機睡眠開始時間（每個人格每天各自抽一次）
- *
- * @param string|null $personality_id 角色 ID
- * @return int 睡眠開始的小時數
- */
-function mpu_get_daily_deep_sleep_start($personality_id = null)
-{
-    $today = wp_date('Y-m-d');
-    $pid   = mpu_norm_personality_key($personality_id);
-
-    $cache_key = "mpu_deep_sleep_start_{$today}_{$pid}";
-    $cached = get_transient($cache_key);
-    if ($cached !== false) {
-        return (int) $cached;
-    }
-
-    $sleep_settings = mpu_get_sleep_settings($personality_id);
-    $start_setting = $sleep_settings['deep_sleep_start'] ?? 0;
-
-    // 到午夜的秒數（站點時區）
-    $tz  = wp_timezone();
-    $now = new DateTimeImmutable('now', $tz);
-    $mid = new DateTimeImmutable('tomorrow', $tz);
-    $seconds_until_midnight = max(60, $mid->getTimestamp() - $now->getTimestamp());
-
-    if (is_array($start_setting)) {
-        if (count($start_setting) === 2) {
-            $a = (int)$start_setting[0];
-            $b = (int)$start_setting[1];
-            $deep_sleep_start = random_int(min($a, $b), max($a, $b));
-        } else {
-            mpu_log_warning('睡眠設定錯誤：deep_sleep_start array must have exactly 2 elements');
-            $deep_sleep_start = (int) ($start_setting[0] ?? 0);
-        }
-    } else {
-        $deep_sleep_start = (int) $start_setting;
-    }
-
-    // 明確處理 24 的情況，轉換為跨日午夜 (0)
-    if ($deep_sleep_start === 24) {
-        $deep_sleep_start = 0;
-    }
-
-    set_transient($cache_key, $deep_sleep_start, $seconds_until_midnight);
-    return $deep_sleep_start;
-}
 
 /**
  * 獲取今天的隨機睡眠開始時間（分鐘精度，每個人格每天各自抽一次）

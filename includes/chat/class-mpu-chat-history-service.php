@@ -26,9 +26,7 @@ class MPU_Chat_History_Service {
      */
     public static function get_session_id(WP_REST_Request $request): string {
         $param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
-        return function_exists('mpu_chat_integrity_normalize_session_id')
-            ? mpu_chat_integrity_normalize_session_id($param)
-            : '';
+        return mpu_chat_integrity_normalize_session_id($param);
     }
 
     /**
@@ -77,7 +75,7 @@ class MPU_Chat_History_Service {
      * audit/warn 模式只記錄後回傳 null；block 模式驗證失敗時回傳 WP_Error。
      */
     public static function verify(string $session_id, array $history): ?WP_Error {
-        if (empty($session_id) || !function_exists('mpu_chat_integrity_verify_history')) {
+        if (empty($session_id)) {
             return null;
         }
         $result = mpu_chat_integrity_verify_history(
@@ -97,10 +95,7 @@ class MPU_Chat_History_Service {
         string $assistant_reply,
         string $msg_type
     ): void {
-        if (empty($session_id)
-            || !function_exists('mpu_chat_integrity_store_history')
-            || connection_aborted()
-        ) {
+        if (empty($session_id) || connection_aborted()) {
             return;
         }
         $prior_history[] = [
@@ -131,10 +126,7 @@ class MPU_Chat_History_Service {
         string $assistant_reply,
         bool $dedup_user = true
     ): void {
-        if (empty($session_id)
-            || !function_exists('mpu_chat_integrity_store_history')
-            || connection_aborted()
-        ) {
+        if (empty($session_id) || connection_aborted()) {
             return;
         }
         if ($dedup_user) {

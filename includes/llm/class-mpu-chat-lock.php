@@ -107,16 +107,7 @@ class MPU_Chat_Lock {
     }
 
     private static function normalize_session_id($session_id) {
-        if (function_exists('mpu_chat_integrity_normalize_session_id')) {
-            return mpu_chat_integrity_normalize_session_id($session_id);
-        }
-
-        if (!is_scalar($session_id)) {
-            return '';
-        }
-
-        $normalized = sanitize_key((string) $session_id);
-        return substr($normalized, 0, 64);
+        return mpu_chat_integrity_normalize_session_id($session_id);
     }
 
     private static function generate_token() {
