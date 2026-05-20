@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.18.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.21.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,15 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.18.0 の新機能
+## 🎉 v2.21.0 の新機能
 
-**PHPUnit テスト基盤**：chat-integrity、encryption、input role、session event、template rendering、新規 chat lock を含む 6 つの初期スイート（22 tests / 51 assertions）。`npm run verify` が PHP lint → bundle build → PHPUnit を順に実行し、`build.js` は minify 失敗時に非 0 で exit するので CI が誤って pass することはありません。
+**JS グローバル状態の封装**（#8 milestone）：フロントエンドの runtime state はこれまで 19 個の file-level `let` と 9 個の `window.*` グローバルに分散していましたが、構造化された `window.MPU_STATE` namespace に集約し、31 個の setter/getter helper function 経由でアクセスするように再編しました（`mpuState` const alias を含めると合計 32 entry）。アルゴリズム変更なし、REST payload 変更なし、UI 動作変更なし — 純粋な構造リファクタです。
 
-**Chat Lifecycle Lock**：新しい `MPU_Chat_Lock` は `add_option` ベースの atomic check-and-set を採用しました（transient は並行リクエスト下で atomic ではないため非採用）。60 秒 TTL、`hash_equals` による token 検証 release、期限切れ lock の retry を備えます。`/chat/user` と `/chat/user-stream` のみ対象で、衝突は既存の fail envelope 経由で HTTP 429 を返します。
+**動作変更**：`window.mpuDebugMode = true` がブラウザコンソールで即座に有効に。従来は `let debugMode` がスクリプト読込時に一度だけ window flag をキャプチャしていたため、console 切替が反映されませんでした。新しい `mpuIsDebugMode()` helper は呼び出し毎に即時チェックします。
 
-**REST Chat 重複削減**：新しい `prepare_auto_chat_context()` ヘルパーが `chat_context()` と `chat_greet()` で重複していた provider / personality / system_prompt の前処理を集約します。response shape と checksum の挙動は変更なし。
+**utility-functions.php のドメイン分割**（v2.20.0 #6 milestone）：約 1,143 行の catch-all ファイルを 5 つのドメインファイル（template / file / encryption / wp-info / network）に分割。`utility-functions.php` には定数のみ残存（36 行）。冗長な `function_exists` ガードと v2.19.2 の正時 sleep ヘルパーの dead code も整理。
 
-**SSE State Badge**：`#ukagaka_msgbox` に表示される `.mpu-state-badge` が 6 つのローカライズ状態（thinking / streaming / tool / error / timeout / busy）を、2.17.0 で導入した `data-mpu-stream-state` 属性に基づいて描画します。chat lock 衝突は汎用エラーではなく `busy` 状態としてローカライズメッセージで提示されます。
+**コア Class への型宣言**（v2.19.0 #5 milestone）：4 つのコア class / 関数群に PHP 7.4 互換の type hint を追加。睡眠システムの分単位精度やフリーレンの動的睡眠時間などの character feature も v2.19.1–v2.19.2 で完了済み。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

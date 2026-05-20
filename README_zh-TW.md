@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.18.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.21.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,15 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.18.0 新功能
+## 🎉 v2.21.0 新功能
 
-**PHPUnit 測試基礎建設**：六個初始測試套件涵蓋 chat-integrity、encryption、input role、session event、template 渲染與新增的 chat lock，合計 22 tests / 51 assertions。`npm run verify` 現在依序執行 PHP lint → bundle build → PHPUnit；`build.js` 在 minify 失敗時改回非 0 exit code，CI 不會再假通過。
+**JS 全域狀態封裝**（#8 milestone）：前端 runtime state 原本散落在 19 個 file-level `let` 與 9 個 `window.*` 全域，現在收進結構化的 `window.MPU_STATE` namespace，透過 31 個 setter/getter helper function 存取（外加 `mpuState` const alias）。無演算法改動、無 REST payload 改動、無 UI 行為改動 — 純結構性 refactor。
 
-**Chat Lifecycle Lock**：新增的 `MPU_Chat_Lock` 採用 `add_option` 為底的 atomic check-and-set（不用 transient，因為它在並行請求下不是 atomic），備有 60 秒 TTL、`hash_equals` 驗證的 release、過期 lock retry。只接在 `/chat/user` 與 `/chat/user-stream`；衝突透過既有 fail envelope 回 HTTP 429。
+**行為調整**：`window.mpuDebugMode = true` 在 console 即時生效。原 `let debugMode` 在腳本載入時 capture 一次，console 修改不會立即生效。新 `mpuIsDebugMode()` helper 每次呼叫都即時讀雙旗，console 切換立即啟用 log。
 
-**REST Chat 重複消除**：新增 `prepare_auto_chat_context()` helper，集中 `chat_context()` 與 `chat_greet()` 共用的 provider / personality / system_prompt 前處理。response shape 與 checksum 行為都不變。
+**utility-functions.php 領域拆分**（v2.20.0 #6 milestone）：原本 ~1,143 行 catch-all 拆成五個領域檔（template / file / encryption / wp-info / network），`utility-functions.php` 留 36 行常數。同時清理冗餘 `function_exists` 守衛與 v2.19.2 整點 sleep helper 死碼。
 
-**SSE 狀態 Badge**：`#ukagaka_msgbox` 上的 `.mpu-state-badge` 渲染六個在地化狀態（thinking / streaming / tool / error / timeout / busy），底層用 2.17.0 已有的 `data-mpu-stream-state` 屬性。chat lock 衝突現在會顯示為 `busy` 狀態並附在地化訊息，而不是通用錯誤。
+**核心 class 型別宣告**（v2.19.0 #5 milestone）：4 個核心 class / 函數族加 PHP 7.4 相容的 type hints。Sleep 系統分鐘精度、Frieren 動態睡眠時間等 character feature 也已在 v2.19.1–v2.19.2 完成。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

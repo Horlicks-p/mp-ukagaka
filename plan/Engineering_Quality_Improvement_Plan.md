@@ -276,7 +276,7 @@ debug → core → utility(常數) → template → file → encryption → wp-i
 
 | Commit | 內容 | 規模 |
 |---|---|---|
-| `refactor(js): encapsulate runtime state into window.MPU_STATE (v2.21.0 #8)` | 7 個 source 檔遷移；新建 `MPU_STATE` shape + 28 個 helper（base.js）+ 19 個 file-level `let` 重新指向 + 9 個 `window.*` 全域中 7 個完全消滅、2 個保留 compat bridge | +388 / -174 net |
+| `refactor(js): encapsulate runtime state into window.MPU_STATE (v2.21.0 #8)` | 7 個 source 檔遷移；新建 `MPU_STATE` shape + 31 個 helper function（base.js，含 `mpuState` const alias 共 32 個 entry）+ 19 個 file-level `let` 重新指向 + 9 個 `window.*` 全域中 7 個完全消滅、2 個保留 compat bridge | +388 / -174 net |
 | `chore(build): rebuild dist bundle for v2.21.0 #8 MPU_STATE migration` | 純 `tools/node/build.js` 輸出 | +390 / -176 |
 
 兩 commit 拆分為「source 改動」+「dist 重建」，目的同 v2.20.0：bisect 時可精準隔離程式碼變更 vs build-tool 副作用。
@@ -307,11 +307,11 @@ Plan 列了 7 步 commit（Inventory / Namespace / Base+core / Dialog+context+gr
 - **Debug**：`mpuIsDebugMode`
 - **AutoTalk**：`mpuSetAutoTalkTimer` / `mpuSetAutoTalkEnabled` / `mpuSetAutoTalkInterval` / `mpuSetBaseAutoTalkInterval` / `mpuGetBaseAutoTalkInterval`
 - **Typewriter**：`mpuSetTypewriterTimer`
-- **LLM/AI**：`mpuSetAiTextColor` / `mpuSetAiDisplayDuration` / `mpuSetAiDisplayTimer` / `mpuSetAiContextInProgress` / `mpuSetMessageBlocking` / `mpuSetOllamaReplaceDialogue` / `mpuSetLastLLMResponse` / `mpuResetLLMResponseHistory` / `mpuSetOllamaRequesting` / `mpuSetLastUserActionTime` / `mpuSetGreetInProgress`
+- **LLM/AI**：`mpuSetAiTextColor` / `mpuSetAiDisplayDuration` / `mpuSetAiDisplayTimer` / `mpuSetAiContextInProgress` / `mpuSetMessageBlocking` / `mpuSetOllamaReplaceDialogue` / `mpuSetLastLLMResponse` / `mpuResetLLMResponseHistory` / `mpuSetOllamaRequesting` / `mpuSetLastUserActionTime`
 - **Dialog**：`mpuSetDialogStore` / `mpuGetDialogStore` / `mpuSetDialogNextMode` / `mpuSetDialogDefaultMsg`
-- **Flags**：`mpuSetContextPending` / `mpuIsContextPending` / `mpuSetSettingsProcessed` / `mpuIsSettingsProcessed` / `mpuSetSettingsLoaded` / `mpuIsSettingsLoaded` / `mpuSetEnableChatMode` / `mpuIsChatModeEnabled`
+- **Flags**：`mpuSetGreetInProgress` / `mpuSetContextPending` / `mpuIsContextPending` / `mpuSetSettingsProcessed` / `mpuIsSettingsProcessed` / `mpuSetSettingsLoaded` / `mpuIsSettingsLoaded` / `mpuSetEnableChatMode` / `mpuIsChatModeEnabled`
 
-合計 28 個 helper，全部集中在 `js/ukagaka-base.js`。
+合計 31 個 helper function（+1 個 `mpuState` const alias = 32 個 entry），全部集中在 `js/ukagaka-base.js`。`mpuSetGreetInProgress` 對應 `MPU_STATE.flags.greetInProgress`，歸類 Flags 而非 LLM/AI。
 
 ### 與原 plan §2.3 #6 的偏離（實作優於計畫）
 
@@ -360,10 +360,10 @@ Step 5（features.js 遷移期間），`mpuSetEnableChatMode` 必須處理「`ch
 
 **`mpuGetDialogStore()` defensive fallback 為實質 dead code**：`typeof window.mpuMsgList !== "undefined"` 在 base.js init 將其設為 `null` 後永遠為 truthy（`typeof null === "object"`），fallback branch 不會走到。**刻意保留**作為「未來若外部 script unset window.mpuMsgList = undefined」的安全網，附 inline comment 說明。
 
-### v2.21.0 起跑線 / 下一站
+### v2.22+ 起跑線 / 下一站
 
 - source + dist commit 落於 `feature/code-quality-hardening`，等 smoke pass + 寫 CHANGELOG / readme.txt 後可下 release commit + tag `v2.21.0`
-- 下一站 **v2.22.0 = #7 runtime_state helper**（Avatar §4）或 **#9 CSS theme / i18n hot swap**（Avatar §7+§8），看實作複雜度與順序需求
+- 下一站照下方執行順序表：**#7 runtime_state helper** 可 v2.22+ 或穿插，**#9 CSS theme / i18n hot swap** 與 **#10 observation buffer MVP** 排 v2.22+；實際順序看實作複雜度與相依性
 
 ---
 

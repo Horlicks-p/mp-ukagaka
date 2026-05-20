@@ -8,7 +8,7 @@
 
 ### 🏗️ JS Global State Encapsulation (v2.21.0 #8 milestone)
 
-Frontend runtime state previously scattered across 19 file-level `let` declarations and 9 `window.*` globals is now collected into a structured `window.MPU_STATE` namespace, accessed via 28 setter/getter helpers. No algorithm changes, no REST payload changes, no UI behavior changes — pure structural refactor of how mutable state is owned and accessed.
+Frontend runtime state previously scattered across 19 file-level `let` declarations and 9 `window.*` globals is now collected into a structured `window.MPU_STATE` namespace, accessed via 31 setter/getter helper functions (plus `mpuState` const alias for 32 entries total). No algorithm changes, no REST payload changes, no UI behavior changes — pure structural refactor of how mutable state is owned and accessed.
 
 **Migration tiers**:
 
@@ -27,15 +27,15 @@ Frontend runtime state previously scattered across 19 file-level `let` declarati
 
 ### 📐 Helper Inventory (`js/ukagaka-base.js`)
 
-28 helpers total:
+31 helper functions (+1 `mpuState` const alias = 32 entries total):
 
-- **State access**: `mpuGetState`, `mpuState`
+- **State access**: `mpuGetState`, `mpuState` (const alias)
 - **Debug**: `mpuIsDebugMode`
 - **AutoTalk**: `mpuSetAutoTalkTimer`, `mpuSetAutoTalkEnabled`, `mpuSetAutoTalkInterval`, `mpuSetBaseAutoTalkInterval`, `mpuGetBaseAutoTalkInterval`
 - **Typewriter**: `mpuSetTypewriterTimer`
-- **LLM/AI**: `mpuSetAiTextColor`, `mpuSetAiDisplayDuration`, `mpuSetAiDisplayTimer`, `mpuSetAiContextInProgress`, `mpuSetMessageBlocking`, `mpuSetOllamaReplaceDialogue`, `mpuSetLastLLMResponse`, `mpuResetLLMResponseHistory`, `mpuSetOllamaRequesting`, `mpuSetLastUserActionTime`, `mpuSetGreetInProgress`
+- **LLM/AI**: `mpuSetAiTextColor`, `mpuSetAiDisplayDuration`, `mpuSetAiDisplayTimer`, `mpuSetAiContextInProgress`, `mpuSetMessageBlocking`, `mpuSetOllamaReplaceDialogue`, `mpuSetLastLLMResponse`, `mpuResetLLMResponseHistory`, `mpuSetOllamaRequesting`, `mpuSetLastUserActionTime`
 - **Dialog**: `mpuSetDialogStore`, `mpuGetDialogStore`, `mpuSetDialogNextMode`, `mpuSetDialogDefaultMsg`
-- **Flags**: `mpuSetContextPending`, `mpuIsContextPending`, `mpuSetSettingsProcessed`, `mpuIsSettingsProcessed`, `mpuSetSettingsLoaded`, `mpuIsSettingsLoaded`, `mpuSetEnableChatMode`, `mpuIsChatModeEnabled`
+- **Flags**: `mpuSetGreetInProgress`, `mpuSetContextPending`, `mpuIsContextPending`, `mpuSetSettingsProcessed`, `mpuIsSettingsProcessed`, `mpuSetSettingsLoaded`, `mpuIsSettingsLoaded`, `mpuSetEnableChatMode`, `mpuIsChatModeEnabled`
 
 ### 🔁 Deviation from Plan §2.3 #6 (Better than Literal)
 

@@ -8,7 +8,7 @@
 
 ### 🏗️ JS 全域狀態封裝（v2.21.0 #8 milestone）
 
-前端 runtime state 原本散落在 19 個 file-level `let` 與 9 個 `window.*` 全域，現在收進結構化的 `window.MPU_STATE` namespace，透過 28 個 setter/getter helper 存取。**無演算法改動、無 REST payload 改動、無 UI 行為改動** — 純結構性 refactor，重整 mutable state 的擁有權與存取方式。
+前端 runtime state 原本散落在 19 個 file-level `let` 與 9 個 `window.*` 全域，現在收進結構化的 `window.MPU_STATE` namespace，透過 31 個 setter/getter helper function 存取（外加 `mpuState` const alias 共 32 個 entry）。**無演算法改動、無 REST payload 改動、無 UI 行為改動** — 純結構性 refactor，重整 mutable state 的擁有權與存取方式。
 
 **遷移分層**：
 
@@ -27,15 +27,15 @@
 
 ### 📐 Helper 一覽（`js/ukagaka-base.js`）
 
-合計 28 個：
+合計 31 個 function（+1 個 `mpuState` const alias = 32 個 entry）：
 
-- **State access**：`mpuGetState`, `mpuState`
+- **State access**：`mpuGetState`, `mpuState`（const alias）
 - **Debug**：`mpuIsDebugMode`
 - **AutoTalk**：`mpuSetAutoTalkTimer`, `mpuSetAutoTalkEnabled`, `mpuSetAutoTalkInterval`, `mpuSetBaseAutoTalkInterval`, `mpuGetBaseAutoTalkInterval`
 - **Typewriter**：`mpuSetTypewriterTimer`
-- **LLM/AI**：`mpuSetAiTextColor`, `mpuSetAiDisplayDuration`, `mpuSetAiDisplayTimer`, `mpuSetAiContextInProgress`, `mpuSetMessageBlocking`, `mpuSetOllamaReplaceDialogue`, `mpuSetLastLLMResponse`, `mpuResetLLMResponseHistory`, `mpuSetOllamaRequesting`, `mpuSetLastUserActionTime`, `mpuSetGreetInProgress`
+- **LLM/AI**：`mpuSetAiTextColor`, `mpuSetAiDisplayDuration`, `mpuSetAiDisplayTimer`, `mpuSetAiContextInProgress`, `mpuSetMessageBlocking`, `mpuSetOllamaReplaceDialogue`, `mpuSetLastLLMResponse`, `mpuResetLLMResponseHistory`, `mpuSetOllamaRequesting`, `mpuSetLastUserActionTime`
 - **Dialog**：`mpuSetDialogStore`, `mpuGetDialogStore`, `mpuSetDialogNextMode`, `mpuSetDialogDefaultMsg`
-- **Flags**：`mpuSetContextPending`, `mpuIsContextPending`, `mpuSetSettingsProcessed`, `mpuIsSettingsProcessed`, `mpuSetSettingsLoaded`, `mpuIsSettingsLoaded`, `mpuSetEnableChatMode`, `mpuIsChatModeEnabled`
+- **Flags**：`mpuSetGreetInProgress`, `mpuSetContextPending`, `mpuIsContextPending`, `mpuSetSettingsProcessed`, `mpuIsSettingsProcessed`, `mpuSetSettingsLoaded`, `mpuIsSettingsLoaded`, `mpuSetEnableChatMode`, `mpuIsChatModeEnabled`
 
 ### 🔁 與 plan §2.3 #6 的偏離（實作優於計畫）
 

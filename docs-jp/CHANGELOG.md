@@ -8,7 +8,7 @@
 
 ### 🏗️ JS グローバル状態の封装（v2.21.0 #8 milestone）
 
-フロントエンドの runtime state はこれまで 19 個の file-level `let` と 9 個の `window.*` グローバルに分散していましたが、構造化された `window.MPU_STATE` namespace に集約し、28 個の setter/getter helper 経由でアクセスするように再編しました。**アルゴリズム変更なし、REST payload 変更なし、UI 動作変更なし** — 純粋な構造リファクタです。
+フロントエンドの runtime state はこれまで 19 個の file-level `let` と 9 個の `window.*` グローバルに分散していましたが、構造化された `window.MPU_STATE` namespace に集約し、31 個の setter/getter helper function 経由でアクセスするように再編しました（`mpuState` const alias を含めると合計 32 entry）。**アルゴリズム変更なし、REST payload 変更なし、UI 動作変更なし** — 純粋な構造リファクタです。
 
 **移行レイヤー**：
 
@@ -27,15 +27,15 @@
 
 ### 📐 Helper 一覧（`js/ukagaka-base.js`）
 
-合計 28 個：
+合計 31 個 function（+1 個 `mpuState` const alias = 32 entry）：
 
-- **State access**：`mpuGetState`, `mpuState`
+- **State access**：`mpuGetState`, `mpuState`（const alias）
 - **Debug**：`mpuIsDebugMode`
 - **AutoTalk**：`mpuSetAutoTalkTimer`, `mpuSetAutoTalkEnabled`, `mpuSetAutoTalkInterval`, `mpuSetBaseAutoTalkInterval`, `mpuGetBaseAutoTalkInterval`
 - **Typewriter**：`mpuSetTypewriterTimer`
-- **LLM/AI**：`mpuSetAiTextColor`, `mpuSetAiDisplayDuration`, `mpuSetAiDisplayTimer`, `mpuSetAiContextInProgress`, `mpuSetMessageBlocking`, `mpuSetOllamaReplaceDialogue`, `mpuSetLastLLMResponse`, `mpuResetLLMResponseHistory`, `mpuSetOllamaRequesting`, `mpuSetLastUserActionTime`, `mpuSetGreetInProgress`
+- **LLM/AI**：`mpuSetAiTextColor`, `mpuSetAiDisplayDuration`, `mpuSetAiDisplayTimer`, `mpuSetAiContextInProgress`, `mpuSetMessageBlocking`, `mpuSetOllamaReplaceDialogue`, `mpuSetLastLLMResponse`, `mpuResetLLMResponseHistory`, `mpuSetOllamaRequesting`, `mpuSetLastUserActionTime`
 - **Dialog**：`mpuSetDialogStore`, `mpuGetDialogStore`, `mpuSetDialogNextMode`, `mpuSetDialogDefaultMsg`
-- **Flags**：`mpuSetContextPending`, `mpuIsContextPending`, `mpuSetSettingsProcessed`, `mpuIsSettingsProcessed`, `mpuSetSettingsLoaded`, `mpuIsSettingsLoaded`, `mpuSetEnableChatMode`, `mpuIsChatModeEnabled`
+- **Flags**：`mpuSetGreetInProgress`, `mpuSetContextPending`, `mpuIsContextPending`, `mpuSetSettingsProcessed`, `mpuIsSettingsProcessed`, `mpuSetSettingsLoaded`, `mpuIsSettingsLoaded`, `mpuSetEnableChatMode`, `mpuIsChatModeEnabled`
 
 ### 🔁 Plan §2.3 #6 からの逸脱（実装が計画より優れている）
 
