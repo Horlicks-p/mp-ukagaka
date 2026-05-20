@@ -362,8 +362,8 @@ Step 5（features.js 遷移期間），`mpuSetEnableChatMode` 必須處理「`ch
 
 ### v2.22+ 起跑線 / 下一站
 
-- source + dist commit 落於 `feature/code-quality-hardening`，等 smoke pass + 寫 CHANGELOG / readme.txt 後可下 release commit + tag `v2.21.0`
-- 下一站照下方執行順序表：**#7 runtime_state helper** 可 v2.22+ 或穿插，**#9 CSS theme / i18n hot swap** 與 **#10 observation buffer MVP** 排 v2.22+；實際順序看實作複雜度與相依性
+- v2.21.0 已 tag 並推上 origin，等生產驗證後同步 main
+- 下一站照下方執行順序表：**v2.22.0 = #7 Ghost Runtime State helper**；**#9 已刪除**，**#10 Observation Buffer MVP** 只保留設計文件，未列入 v2.22.0 實作範圍
 
 ---
 
@@ -394,6 +394,66 @@ Step 5（features.js 遷移期間），`mpuSetEnableChatMode` 必須處理「`ch
 | **#9 從 plan 刪除**（2026-05-20）| 與 Avatar plan v3 同步：i18n hot-swap 已被 reviewer（CODEX + Gemini）正式卻下為 X-2（WordPress locale 是 per-request，前端切 locale 跟 SSE/admin 文字脫節）；CSS theme 在 Avatar 優先度表標為「保留 — 低 ROI」非排程項。留在 Engineering plan 只會誤導未來實作者 |
 | **#10 設計但不立刻做**（2026-05-20）| 揮發性 MVP 設計可以先釘死，但完整實作前置條件是 User Memory v2，而 User Memory MVP (v2.16.0) 目前只支援 admin。建立 design doc 凍結 scope，避免未來 over-engineering 或 privacy regression（global transient = 跨訪客洩漏） |
 | **MPU_Config 維持否決** | Avatar X-1 — 沒到「設定數量爆炸到需要抽象層」的點，現在引入只是 over-engineering |
+
+### v2.22.0 #7 Ghost Runtime State helper 範圍邊界（hard limits）
+
+> 來源：Avatar §4 / P2-1。Avatar pseudo-code 使用 `mpu_get_session_key()` 作示意，**本專案目前沒有此函式**；實作時必須以現有 session token 機制或明確新增的小型 helper 為準，不可直接照抄。
+
+**目標**：新增 transient-based helper，記錄「某個前台 session / 使用者目前的角色 runtime state」，作為後續 runtime UI / 觀測整合的基礎。它是後端短期狀態，不是 v2.21.0 的前端 `window.MPU_STATE` 延伸。
+
+**允許的 state set（先凍結）**：
+
+`idle / thinking / speaking / chatting / sleeping / waking / tool_running / suspended / error`
+
+**建議 public API（名稱可微調，但語意不要擴張）**：
+
+```php
+mpu_runtime_state_allowed_states(): array
+mpu_runtime_state_scope_key(?string $session_token = null): ?string
+mpu_set_runtime_state(string $state, ?string $session_token = null): bool
+mpu_get_runtime_state(?string $session_token = null): ?array
+mpu_clear_runtime_state(?string $session_token = null): void
+```
+
+回傳 payload 維持最小 shape：`['state' => string, 'ts' => int]`。v2.22.0 不加 arbitrary metadata，避免它變成 Observation Buffer 或 visitor memory 的替代品。
+
+**Scope / keying 規則**：
+
+1. 優先使用現有 `X-MPU-Session-Token` / `session_token`，且必須通過 `mpu_validate_session_token()` 後才可用於 scope。
+2. transient key 必須 hash token，例如 `mpu_runtime_state_{sha256(token)}`；不要把 raw token 放進 key。
+3. 不使用 PHP `session_id()` / `session_start()`；會破壞 WordPress page cache。
+4. 不使用 IP / referrer / browser fingerprint 作為 scope；這些屬於 Observation / Visitor Signals 隱私邊界，不是 #7。
+5. 不寫入 `mpu_opt` / `update_option()`；runtime state 是高頻短期資料，只能用 transient。
+
+**檔案與載入順序**：
+
+- 新檔建議：`includes/core/runtime-state-functions.php`
+- 載入位置：`mp-ukagaka.php` 的 `$core_modules` 中，放在 `core/network-functions.php` 之後（可使用 session token helpers），REST controller 之前。
+- 若新增 PHPUnit，測試檔放 `tests/Unit/RuntimeStateTest.php`，使用既有 WordPress transient mock pattern；不要引入外部測試框架。
+
+**v2.22.0 hard limits**：
+
+1. 只做 helper + 最小必要 wiring；不做 Observation Buffer、不注入 LLM prompt、不寫 User Memory / Visitor Memory。
+2. 不新增 autonomous trigger，不因 state 變化主動呼叫 LLM。
+3. 不改 REST response shape；若要讓前端讀 state，必須走獨立小 endpoint 或既有 debug/status route，不能塞進 chat payload。
+4. 不搬動 v2.21.0 的 `window.MPU_STATE`，也不把 chat shared state 搬進後端 runtime state。
+5. TTL 預設 5 分鐘（沿用 Avatar §4），可加 filter 但需 clamp 在合理範圍（建議 60–900 秒）。
+6. state value 必須 whitelist；未知值 return false 或 normalize 為 `error`，不要任意寫入。
+7. 清除行為要明確：request 完成 / error / abort 後至少回到 `idle` 或刪 transient；避免 stale `thinking` 卡住。
+8. 不做 admin UI、不做 CSS theme、不做 i18n hot swap。
+
+**建議最小 wiring（由實作者按風險切 commit）**：
+
+- `/chat/user`：進入 LLM 前 `thinking`，回覆輸出時 `speaking`，完成後 `idle`，catch 時 `error` → `idle`
+- `/chat/user-stream`：SSE start `thinking`，tool event `tool_running`，delta/done `speaking`，done/abort 後 `idle`
+- `wake_ghost`：有合法 session token 時可短暫設 `waking`，完成後 `idle`；若 token 不在該 endpoint 流程中，不為了 #7 擴張驗證模型
+
+**驗證條件**：
+
+- `npm --prefix tools/node run verify` 全綠
+- PHPUnit 覆蓋：valid state 寫入/讀取、invalid state 拒絕、invalid token 不產生 key、clear 後讀取為 null、TTL/filter clamp（若有 filter）
+- Manual smoke：chat normal / SSE stream / SSE abort / tool event / wake_ghost 後 state 不殘留 `thinking` 或 `tool_running`
+- Grep red line：不得出現 `session_start(`、`session_id(`、`update_option(.*runtime`、`mpu_opt['runtime_state']`
 
 ### v2.21.0 範圍邊界（hard limits）
 
