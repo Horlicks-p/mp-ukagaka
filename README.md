@@ -100,7 +100,7 @@ For detailed information, please refer to:
 
 ## 🎉 What's New in v2.21.0
 
-**JS Global State Encapsulation** (#8 milestone): Frontend runtime state, previously scattered across 19 file-level `let` variables and 9 `window.*` globals, is now centralized into a structured `window.MPU_STATE` namespace accessed via 28 setter/getter helpers. No algorithm changes, no REST payload changes, no UI behavior changes — purely a structural refactor.
+**JS Global State Encapsulation** (#8 milestone): Frontend runtime state, previously scattered across 19 file-level `let` variables and 9 `window.*` globals, is now centralized into a structured `window.MPU_STATE` namespace accessed via 31 setter/getter helper functions (plus `mpuState` const alias for 32 entries total). No algorithm changes, no REST payload changes, no UI behavior changes — purely a structural refactor.
 
 **Behavior Adjustment**: `window.mpuDebugMode = true` now takes effect immediately in the console. Previously, `let debugMode` captured the window flag once on script load, meaning console modifications wouldn't apply immediately. The new `mpuIsDebugMode()` helper reads the flags instantly on every call, enabling immediate logging upon console toggle.
 
