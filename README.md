@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.18.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.21.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.18.0
+## 🎉 What's New in v2.21.0
 
-**PHPUnit Testing Infrastructure**: Six initial test suites cover chat-integrity, encryption, input role, session event, template rendering, and the new chat lock — 22 tests / 51 assertions. `npm run verify` now chains PHP lint → bundle build → PHPUnit, and `build.js` exits non-zero on minify failure so CI never silently passes.
+**JS Global State Encapsulation** (#8 milestone): Frontend runtime state, previously scattered across 19 file-level `let` variables and 9 `window.*` globals, is now centralized into a structured `window.MPU_STATE` namespace accessed via 28 setter/getter helpers. No algorithm changes, no REST payload changes, no UI behavior changes — purely a structural refactor.
 
-**Chat Lifecycle Lock**: A new `MPU_Chat_Lock` uses `add_option`-based atomic check-and-set (not transient — transient is not atomic under parallel requests) with 60-second TTL, token-validated release via `hash_equals`, and expired-lock retry. Only `/chat/user` and `/chat/user-stream` are gated; conflicts return HTTP 429 via the existing fail envelope.
+**Behavior Adjustment**: `window.mpuDebugMode = true` now takes effect immediately in the console. Previously, `let debugMode` captured the window flag once on script load, meaning console modifications wouldn't apply immediately. The new `mpuIsDebugMode()` helper reads the flags instantly on every call, enabling immediate logging upon console toggle.
 
-**REST Chat Dedup**: A new `prepare_auto_chat_context()` helper centralizes the provider / personality / system_prompt boilerplate previously duplicated between `chat_context()` and `chat_greet()`. Response shape and checksum behavior are unchanged.
+**utility-functions.php Domain Split** (v2.20.0 #6 milestone): The original ~1,143 line catch-all file was split into five domain files (template / file / encryption / wp-info / network), leaving only 36 lines of constants in `utility-functions.php`. Also cleaned up redundant `function_exists` guards and dead code from the v2.19.2 top-of-hour sleep helper.
 
-**SSE State Badge**: A visible `.mpu-state-badge` on `#ukagaka_msgbox` renders six localized states (thinking / streaming / tool / error / timeout / busy) backed by the existing `data-mpu-stream-state` attribute. Chat lock conflicts now surface as the `busy` state with a localized message instead of a generic error.
+**Core Class Type Declarations** (v2.19.0 #5 milestone): Added PHP 7.4 compatible type hints to 4 core classes / function families. Character features like minute-precision sleep system and Frieren's dynamic sleep time were also completed in v2.19.1–v2.19.2.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
