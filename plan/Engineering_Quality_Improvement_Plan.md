@@ -379,10 +379,10 @@ Step 5（features.js 遷移期間），`mpuSetEnableChatMode` 必須處理「`ch
 |:-:|------|------|:----:|
 | ~~v2.19.2~~ | ~~Sleep minute precision~~（已完成，見 v2.19 完成報告） | v2.19.1 延伸 | — |
 | ~~v2.20.0~~ | ~~**#6 utility-functions 拆分** + 順手清冗餘 `function_exists` + 清理 v2.19.2 舊整點 sleep 函數~~（已完成，見 v2.20.0 完成報告） | Eng. Phase 2.2 | — |
-| ~~v2.21.0~~ | ~~**#8 JS 全域狀態封裝**~~（source + dist 已 commit，等 smoke + release，見 v2.21.0 完成報告） | Eng. Phase 2.3 | 中 |
-| **v2.22+ 或穿插** | **#7 runtime_state helper** | Avatar §4 | 中 |
-| v2.22+ | #9 CSS theme / i18n hot swap | Avatar §7 + §8 | — |
-| v2.22+ | #10 observation buffer MVP | Avatar §9 + 補充 D | — |
+| ~~v2.21.0~~ | ~~**#8 JS 全域狀態封裝**~~（已 tag `v2.21.0`，等生產驗證後同步 main，見 v2.21.0 完成報告） | Eng. Phase 2.3 | 中 |
+| **v2.22.0** | **#7 Ghost Runtime State helper**（transient-based，跨 request 角色狀態） | Avatar §4 / P2-1 | 中 |
+| ⏸️ 設計階段 | **#10 Observation Buffer MVP**（揮發性、session-scoped，等 User Memory v2 才升級為持久化）—— 詳見 [`plan/Observation_Buffer_Design.md`](Observation_Buffer_Design.md) | Avatar §9 / P2-3 + 補充 D | 中 |
+| ❌ 已刪除 | ~~#9 CSS theme / i18n hot swap~~（i18n hot-swap 已被 Avatar plan X-2 卻下；CSS theme 為「保留」低 ROI 項，無立即價值） | — | — |
 
 ### 關鍵決策
 
@@ -390,7 +390,9 @@ Step 5（features.js 遷移期間），`mpuSetEnableChatMode` 必須處理「`ch
 |------|------|
 | v2.19.2 sleep minute precision **獨立 patch 而非 minor release** | 純後端 cache key migration，跟 #6/#8 完全 isolated；行為改變僅限分鐘精度（manifest schema 不變、IP 機制不動），語義上是 v2.19.1 動態整點的延伸而非新功能，patch level 較合適。後續 milestone 因此整批往前推一版 |
 | #6 **在 #8 之前** | utility-functions 拆分是後端 isolated 動作、邊界最清楚、bisect 容易；JS 封裝需 manual smoke test 較費神，留到後面 |
-| #7 runtime_state **可穿插 v2.21 或同版** | 它是「角色 runtime 狀態暴露給前端」的 REST helper，跟 JS 封裝概念連動，看實作複雜度決定 |
+| #7 落 v2.22.0 而非「穿插」| v2.21.0 完成後重新評估，#7 是後端 isolated 新模組（transient-based），跟 v2.21.0 前端 JS state encapsulation 無耦合，獨立成版 milestone 邊界清楚 |
+| **#9 從 plan 刪除**（2026-05-20）| 與 Avatar plan v3 同步：i18n hot-swap 已被 reviewer（CODEX + Gemini）正式卻下為 X-2（WordPress locale 是 per-request，前端切 locale 跟 SSE/admin 文字脫節）；CSS theme 在 Avatar 優先度表標為「保留 — 低 ROI」非排程項。留在 Engineering plan 只會誤導未來實作者 |
+| **#10 設計但不立刻做**（2026-05-20）| 揮發性 MVP 設計可以先釘死，但完整實作前置條件是 User Memory v2，而 User Memory MVP (v2.16.0) 目前只支援 admin。建立 design doc 凍結 scope，避免未來 over-engineering 或 privacy regression（global transient = 跨訪客洩漏） |
 | **MPU_Config 維持否決** | Avatar X-1 — 沒到「設定數量爆炸到需要抽象層」的點，現在引入只是 over-engineering |
 
 ### v2.21.0 範圍邊界（hard limits）
@@ -792,4 +794,4 @@ if (function_exists('mpu_fetch_slimstat_stats')) { ... }
 
 ---
 
-*Last updated: 2026-05-20 — v2.21.0 (#8 JS 全域狀態封裝) source + dist commit 已落於 `feature/code-quality-hardening`；release commit + tag 等 manual smoke test 通過後再下。下一站為 #7 runtime_state helper 或 #9 CSS theme / i18n hot swap。*
+*Last updated: 2026-05-20 — v2.21.0 (#8 JS 全域狀態封裝) 已 tag `v2.21.0` 並推上 origin，等生產驗證後同步 main。v2.22+ 執行順序重整：#9 已刪（與 Avatar X-2 同步），#10 移到設計階段（見 `plan/Observation_Buffer_Design.md`），v2.22.0 = #7 Ghost Runtime State helper。*
