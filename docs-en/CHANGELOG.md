@@ -4,6 +4,35 @@
 
 ---
 
+## [2.19.2] - 2026-05-20
+
+### ✨ Sleep System Minute Precision
+
+Extends v2.19.1 dynamic hour-roll to minute precision. Pure backend cache-key migration — manifest schema unchanged (still authored in hours).
+
+- **New `_mod` suffix functions**: `mpu_get_daily_deep_sleep_start_mod()` / `mpu_get_daily_oversleep_end_mod()` return minutes-of-day (0–1439). For `[22, 23]` deep_sleep_start, the daily roll now picks any minute in `random_int(22*60, 23*60+59) = random_int(1320, 1439)` — i.e. anywhere between 22:00 and 23:59 inclusive — rather than only "22 or 23 on the hour".
+- **All comparisons upgraded to minutes-of-day**: `mpu_is_deep_sleep_time()` cross-midnight handling rewritten in minute units (`$start_mod > $end_mod` OR-branch); `mpu_is_ip_woken_today()` / `mpu_mark_ip_as_woken()` window boundaries also moved to minute units.
+- **Cache keys take `_mod` suffix**: forces a cache miss against old hour values stored under the v2.19.1 key prefix. No backward-compat read of the old keys.
+- **Frontend caller upgraded**: `includes/core/frontend-functions.php` previously called the hour-based helpers; switched to `_mod` to keep the rendered chat-block boundary in sync with backend logic.
+- **`wake_ghost()` updated**: now reads `_mod` helpers with the same `function_exists` fallback safety net.
+- **Semantic shift on `oversleep_max_hour`**: a value of `9` now means "wake by 09:59" (previously "wake by 09:00 sharp"), consistent with minute-precision intent. IP-record window expanded by 59 minutes to match.
+
+### ⚠️ Known Limitations
+
+- **Old hour-based helpers are now dead code**: `mpu_get_daily_deep_sleep_start()` / `mpu_get_daily_oversleep_end()` only remain as a `wake_ghost` fallback reference. Cleanup deferred to **v2.20.0** (`#6` utility-functions split), since file moves + dead-code removal share the same precondition.
+- **Sleep settings input clamping deferred**: `_mod` functions only handle positive cross-day overflow via `% 1440`. Negative integers in manifest would break minutes-of-day comparisons (PHP `%` preserves dividend sign). Not triggered today because manifest is hand-written by character authors — a full input-validation pass is scheduled with the future admin UI PR, not as an isolated clamp.
+
+### ✅ Verification
+
+- `npm run verify`: lint + bundle + PHPUnit (27 tests / 59 assertions) all green.
+- **PHPUnit does not cover the new `_mod` helpers**: same `set_transient` / `random_int` / `DateTimeImmutable` mock gap as v2.19.1. Manual smoke test path: cross-midnight switch, same-day cache hit, oversleep + IP record (now minute-precision), malformed settings, old cache transition (`_mod` suffix forces miss).
+
+### 📦 Versioning Note
+
+The two commits landing this feature (`b54d96c`, `239a5d1`) carry `feat(v2.20.0):` / `docs(plan): v2.20.0` in their messages — they were authored when the milestone freeze table still listed sleep-minute-precision as v2.20.0. Released as **v2.19.2** patch because the behavior is a refinement of v2.19.1 (manifest schema unchanged, IP machinery unchanged, only internal time-unit upgraded). Subsequent milestones in the freeze table shift forward one version (utility-functions split → v2.20.0, JS global state encapsulation → v2.21.0, etc.).
+
+---
+
 ## [2.19.1] - 2026-05-19
 
 ### ✨ Frieren Dynamic Sleep Time (Daily Roll)
@@ -17,7 +46,7 @@
 
 ### ⚠️ Known Limitations
 
-- **Sleep start still aligned to the hour**: this release only randomizes "which hour"; minute-level randomization (22:43 sleep / 07:35 wake) is scheduled for **v2.20.0** together with wake-time minute precision and cache key migration.
+- **Sleep start still aligned to the hour**: this release only randomizes "which hour"; minute-level randomization (22:43 sleep / 07:35 wake) is scheduled for **v2.19.2** together with wake-time minute precision and cache key migration.
 
 ### ✅ Verification
 

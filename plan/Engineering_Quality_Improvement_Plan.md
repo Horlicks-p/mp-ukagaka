@@ -133,10 +133,10 @@ npm --prefix tools/node run verify
 
 ---
 
-## ✅ v2.19 完成報告（2026-05-19）
+## ✅ v2.19 完成報告（2026-05-19 / 2026-05-20）
 
-> 公司端 CLAUDE / CODEX 接手前必讀。本 milestone 在 2026-05-19 完成（家用機 + 公司機協作）。
-> 已 tag 並 release **v2.19.0** + **v2.19.1**，三份 CHANGELOG + readme.txt 已寫；`mp-ukagaka.zip` 已自動附 release asset。
+> 公司端 CLAUDE / CODEX 接手前必讀。本 milestone 在 2026-05-19 完成（家用機 + 公司機協作），v2.19.2 sleep 分鐘精度 patch 於 2026-05-20 補上。
+> 已 tag 並 release **v2.19.0** + **v2.19.1** + **v2.19.2**，三份 CHANGELOG + readme.txt 已寫；`mp-ukagaka.zip` 已自動附 release asset。
 
 ### 項目盤點
 
@@ -144,6 +144,7 @@ npm --prefix tools/node run verify
 |:-:|------|---------|------|
 | v2.19.0 | #5 核心 class 型別宣告 | 4 個核心 class / 函數族加 scalar / nullable return type hints（PHP 7.4 相容，未使用 typed properties 等 7.4 新語法） | ~30 行 net |
 | v2.19.1 | Frieren 動態 `deep_sleep_start`（character feature） | manifest schema + `mpu_get_daily_deep_sleep_start()` + 2 call site | +50 行 |
+| v2.19.2 | Sleep 系統分鐘精度（character feature） | `_mod` 版本函數 + cache key 遷移 + 全比較升級 minutes-of-day | +209 行 net |
 
 ### v2.19.0 關鍵決策
 
@@ -164,38 +165,13 @@ Frieren 動態 `deep_sleep_start` 是 character feature，不在本 plan 範圍�
 - manifest `deep_sleep_start` 支援 `[start, end]` 整點 array（Frieren 改 `[22, 23]`、`oversleep_probability: 1.0`）
 - 新 `mpu_get_daily_deep_sleep_start()` 每日抽一次、transient 對齊次日午夜（比照 `mpu_get_daily_oversleep_end()`）
 - array 防呆：`random_int(min, max)` 自動修正範圍倒置、`count !== 2` 走 `mpu_log_warning` + fallback、`24 → 0` 顯式處理
-- **入睡時刻仍對齊整點**，分鐘級隨機排定在 v2.20.0
+- **入睡時刻仍對齊整點**，分鐘級隨機排定在 v2.19.2
 
----
+### v2.19.2 額外項目（非 Engineering plan 範圍）
 
-## v2.20+ 執行順序（2026-05-19 凍結）
+Sleep 系統分鐘精度延伸 v2.19.1 動態整點機制，仍屬 character feature。歷史 commit message 標為 `feat(v2.20.0)` 是因為原規劃凍結表把它列為 v2.20.0；release 時降版為 v2.19.2 patch，後續 milestone 整批往前推一版（詳見「v2.20+ 執行順序」）。
 
-> 經 Claude + CODEX 討論定案，supersede 頂部「Execution Decision」表格 #5–#10 的 milestone 標記。
-> 此順序已凍結，新項目應在 v2.22 之後插入或建立新 milestone。
-
-### 最終執行順序
-
-| Version | 內容 | 來源 | 風險 |
-|:-:|------|------|:----:|
-| **v2.20.0** | Sleep minute precision（character feature，非 Eng plan 範圍） | v2.19.1 延伸 | 低 |
-| **v2.21.0** | **#6 utility-functions 拆分** + 順手清 v2.19 標記的冗餘 `function_exists` | Eng. Phase 2.2 | 低 |
-| **v2.22.0** | **#8 JS 全域狀態封裝** | Eng. Phase 2.3 | 中 |
-| v2.22+ 或穿插 | **#7 runtime_state helper** | Avatar §4 | 中 |
-| v2.23+ | #9 CSS theme / i18n hot swap | Avatar §7 + §8 | — |
-| v2.23+ | #10 observation buffer MVP | Avatar §9 + 補充 D | — |
-
-### 關鍵決策
-
-| 決策 | 理由 |
-|------|------|
-| v2.20 sleep minute precision **單獨成版** | 純後端 cache key migration，跟 #6/#8 完全 isolated，出包不會牽連；且 v2.19.1 才上線，先讓動態整點機制跑幾天確認沒踩雷再升級 |
-| #6 **在 #8 之前** | utility-functions 拆分是後端 isolated 動作、邊界最清楚、bisect 容易；JS 封裝需 manual smoke test 較費神，留到後面 |
-| #7 runtime_state **可穿插 v2.22 或同版** | 它是「角色 runtime 狀態暴露給前端」的 REST helper，跟 JS 封裝概念連動，看實作複雜度決定 |
-| **MPU_Config 維持否決** | Avatar X-1 — 沒到「設定數量爆炸到需要抽象層」的點，現在引入只是 over-engineering |
-
-### v2.20.0 範圍邊界（hard limits）
-
-避免膨脹的硬性限制：
+#### 範圍邊界（hard limits）
 
 1. **升級到 minutes-of-day 精度**：`mpu_get_daily_deep_sleep_start_mod()` / `mpu_get_daily_oversleep_end_mod()` 都回傳 0–1439
 2. **cache key 加 `_mod` 後綴**：強制 cache miss 重抽避免讀到舊「小時」值；**不**做 backward-compat 讀舊值
@@ -204,18 +180,19 @@ Frieren 動態 `deep_sleep_start` 是 character feature，不在本 plan 範圍�
 5. **不**動賴床機率 / IP 記錄機制 / wake_ghost endpoint 整體邏輯（只升級內部比較的單位）
 6. **不**順手做其他 character feature 改動
 
-### v2.20.0 完成條件
+#### 完成條件
 
-- [ ] `mpu_get_daily_deep_sleep_start_mod()` 抽 minutes-of-day (0–1439)
-- [ ] `mpu_get_daily_oversleep_end_mod()` 同樣升級（`random_int(deep_sleep_end*60, oversleep_max_hour*60)`）
-- [ ] `mpu_is_deep_sleep_time()` 全部比較換 minutes-of-day（含跨午夜：`$start_mod > $end_mod` 走 OR 分支）
-- [ ] `mpu_is_ip_woken_today()` / `mpu_mark_ip_as_woken()` 邊界檢查升級為 minutes-of-day
-- [ ] `wake_ghost()` 同步更新（含 `function_exists` fallback 對應修正）
-- [ ] cache key 全部加 `_mod` 後綴
-- [ ] `npm --prefix tools/node run verify` pass
-- [ ] manual smoke test：跨日切換、同日 cache hit、賴床+IP、設定錯誤、舊 cache 過渡（`_mod` 後綴強制 miss）
+- [x] `mpu_get_daily_deep_sleep_start_mod()` 抽 minutes-of-day (0–1439)
+- [x] `mpu_get_daily_oversleep_end_mod()` 同樣升級（`random_int(deep_sleep_end*60, oversleep_max_hour*60)`）
+- [x] `mpu_is_deep_sleep_time()` 全部比較換 minutes-of-day（含跨午夜：`$start_mod > $end_mod` 走 OR 分支）
+- [x] `mpu_is_ip_woken_today()` / `mpu_mark_ip_as_woken()` 邊界檢查升級為 minutes-of-day
+- [x] `wake_ghost()` 同步更新（含 `function_exists` fallback 對應修正）
+- [x] cache key 全部加 `_mod` 後綴
+- [x] `frontend-functions.php` caller 同步升級（原 plan checklist 漏列、實作補上）
+- [x] 27 tests / 59 assertions 全綠
+- [ ] manual smoke test：跨日切換、同日 cache hit、賴床+IP、設定錯誤、舊 cache 過渡（`_mod` 後綴強制 miss）— 上線後 soak
 
-### v2.20.0 已知限制 / Future Hardening
+#### 已知限制 / Future Hardening
 
 **Sleep settings input clamping deferred** — 當前 `_start_mod` / `_end_mod` 函數只用 `% 1440` 處理正向跨日溢位（`[22, 24]` 抽到 1499 → 59 ✓），**不** clamp 負數或極大值。PHP `%` 對負數保留 dividend sign（`-100 % 1440 = -100`），會 break 後續 minutes-of-day 比較。
 
@@ -229,18 +206,51 @@ Frieren 動態 `deep_sleep_start` 是 character feature，不在本 plan 範圍�
 - 衝突檢查：`deep_sleep_end > deep_sleep_start` 不能跨午夜矛盾、`oversleep_max_hour > deep_sleep_end`
 - UI form validation
 
-這些都應跟 **admin UI PR 同 milestone** 一起做（input validation 是 admin UI 的一部分，孤立 clamp 沒意義）。本項列入 plan 是 future-proof 備忘，不在 v2.20.x patch 範圍。
+這些都應跟 **admin UI PR 同 milestone** 一起做（input validation 是 admin UI 的一部分，孤立 clamp 沒意義）。本項列入 plan 是 future-proof 備忘，不在 v2.19.x patch 範圍。
 
-### v2.21.0 範圍邊界（hard limits）
+#### 舊 `mpu_get_daily_deep_sleep_start()` / `_oversleep_end()` 變死碼
+
+升級為 `_mod` 後，舊整點版本只剩 `wake_ghost` fallback 引用，邏輯上是 dead code。清理排進 **v2.20.0 #6 utility 拆分**（同 PR 移除冗餘函數，與檔案重組同前提）。
+
+---
+
+## v2.20+ 執行順序（2026-05-19 凍結 / 2026-05-20 整批往前推）
+
+> 經 Claude + CODEX 討論定案，supersede 頂部「Execution Decision」表格 #5–#10 的 milestone 標記。
+> 原 v2.20.0 sleep minute precision 已 patch 為 **v2.19.2**，後續 milestone 整批往前推一版。
+> 此順序已凍結，新項目應在 v2.22 之後插入或建立新 milestone。
+
+### 最終執行順序
+
+| Version | 內容 | 來源 | 風險 |
+|:-:|------|------|:----:|
+| ~~v2.19.2~~ | ~~Sleep minute precision~~（已完成，見上方 v2.19 完成報告） | v2.19.1 延伸 | — |
+| **v2.20.0** | **#6 utility-functions 拆分** + 順手清 v2.19 標記的冗餘 `function_exists` + 清理 v2.19.2 留下的舊整點 sleep 函數 | Eng. Phase 2.2 | 低 |
+| **v2.21.0** | **#8 JS 全域狀態封裝** | Eng. Phase 2.3 | 中 |
+| v2.21+ 或穿插 | **#7 runtime_state helper** | Avatar §4 | 中 |
+| v2.22+ | #9 CSS theme / i18n hot swap | Avatar §7 + §8 | — |
+| v2.22+ | #10 observation buffer MVP | Avatar §9 + 補充 D | — |
+
+### 關鍵決策
+
+| 決策 | 理由 |
+|------|------|
+| v2.19.2 sleep minute precision **獨立 patch 而非 minor release** | 純後端 cache key migration，跟 #6/#8 完全 isolated；行為改變僅限分鐘精度（manifest schema 不變、IP 機制不動），語義上是 v2.19.1 動態整點的延伸而非新功能，patch level 較合適。後續 milestone 因此整批往前推一版 |
+| #6 **在 #8 之前** | utility-functions 拆分是後端 isolated 動作、邊界最清楚、bisect 容易；JS 封裝需 manual smoke test 較費神，留到後面 |
+| #7 runtime_state **可穿插 v2.21 或同版** | 它是「角色 runtime 狀態暴露給前端」的 REST helper，跟 JS 封裝概念連動，看實作複雜度決定 |
+| **MPU_Config 維持否決** | Avatar X-1 — 沒到「設定數量爆炸到需要抽象層」的點，現在引入只是 over-engineering |
+
+### v2.20.0 範圍邊界（hard limits）
 
 1. **只拆五個檔**：`encryption-functions.php` (~178 行) / `network-functions.php` (~290 行) / `wp-info-functions.php` (~260 行) / `template-functions.php` (~80 行) / `file-functions.php` (~159 行)
 2. **只搬不改邏輯**：每拆一個檔 sub-commit + 跑一次 `npm --prefix tools/node run verify`
 3. **同步更新** `mp-ukagaka.php` 的 `$core_modules` 載入順序（加密函式被多處依賴必須最早載入）
 4. **順手清 v2.19.0 標記的冗餘** `function_exists`（同 PR — 因為拆檔可能改變載入順序，與移除防護是同一前提）
-5. **雜項函數歸屬決定**：`mpu_array2str` / `mpu_str2array` / `mpu_output_filter` / `mpu_js_filter` / `mpu_fetch_external_api` / `mpu_clear_api_cache` / `mpu_resolve_personality_id` — 留在「核心 utility」剩餘檔，或分到 string/api-cache 各自的檔，**動手前先決定**寫進 commit message
-6. **不**做型別宣告（v2.19 已限縮在四個核心 class，utility 函數不在範圍）
+5. **順手清 v2.19.2 留下的舊整點 sleep 函數**：`mpu_get_daily_deep_sleep_start()` / `mpu_get_daily_oversleep_end()` 整點版本可移除（`wake_ghost` fallback 一併調整），與拆檔同 PR 完成
+6. **雜項函數歸屬決定**：`mpu_array2str` / `mpu_str2array` / `mpu_output_filter` / `mpu_js_filter` / `mpu_fetch_external_api` / `mpu_clear_api_cache` / `mpu_resolve_personality_id` — 留在「核心 utility」剩餘檔，或分到 string/api-cache 各自的檔，**動手前先決定**寫進 commit message
+7. **不**做型別宣告（v2.19 已限縮在四個核心 class，utility 函數不在範圍）
 
-### v2.22.0 範圍邊界（hard limits）
+### v2.21.0 範圍邊界（hard limits）
 
 1. **收進 `window.MPU_STATE`** 命名空間（不改邏輯）
 2. **保留** `window.mpuChatHistory` / `window.mpuChatModeActive` / `window.mpuChatSessionId` 不動（跨模組依賴深，plan 已明示）

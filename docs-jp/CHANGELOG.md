@@ -4,6 +4,35 @@
 
 ---
 
+## [2.19.2] - 2026-05-20
+
+### ✨ 睡眠システムの分単位精度
+
+v2.19.1 の「毎日の正時抽選」を分単位精度まで拡張。manifest schema は変更なし（引き続き正時で記述）、純粋なバックエンド側の cache key 世代交代です。
+
+- **`_mod` サフィックス関数の新設**：`mpu_get_daily_deep_sleep_start_mod()` / `mpu_get_daily_oversleep_end_mod()` は minutes-of-day（0–1439）を返します。`[22, 23]` の deep_sleep_start は `random_int(22*60, 23*60+59) = random_int(1320, 1439)` で抽選され、「22:00 ～ 23:59 のいずれかの分」inclusive に拡張されます（従来は「22 時または 23 時の正時のみ」）。
+- **比較処理を全て minutes-of-day に**：`mpu_is_deep_sleep_time()` の日跨ぎ判定を分単位で書き直し（`$start_mod > $end_mod` で OR 分岐）、`mpu_is_ip_woken_today()` / `mpu_mark_ip_as_woken()` の境界判定も分単位に揃えました。
+- **cache key に `_mod` サフィックス**：v2.19.1 の正時 key に残った旧値を強制的に miss させます。旧 key の backward-compat 読みは**行いません**。
+- **フロントエンド側 caller も同時更新**：`includes/core/frontend-functions.php` は従来正時版を呼んでいましたが、`_mod` に切り替え、フロントの chat block 描画境界とバックエンドの判定を揃えます。
+- **`wake_ghost()` 更新**：`_mod` ヘルパーを読むように変更。`function_exists` fallback は load 順序の保険として継続。
+- **`oversleep_max_hour` の意味が微調整**：値 `9` は従来「09:00 ぴったりまでに起床」でしたが、分単位精度に合わせて「09:59 までに起床」に変わります。IP 記録ウィンドウもこれに合わせて 59 分延長されています。
+
+### ⚠️ 既知の制限
+
+- **旧正時ヘルパーは dead code に**：`mpu_get_daily_deep_sleep_start()` / `mpu_get_daily_oversleep_end()` は `wake_ghost` の fallback としてのみ残存し、ロジック上は到達しません。整理は **v2.20.0**（`#6` utility-functions 分割）で実施 — ファイル移動と dead code 削除は同じ前提条件のため、同 PR で扱います。
+- **Sleep settings の入力 clamping は先送り**：`_mod` 関数は正の日跨ぎオーバーフローを `% 1440` で処理するのみで、負数の clamp は**行いません**。manifest に負値を入れると minutes-of-day 比較が破綻します（PHP `%` は dividend の符号を保持）。manifest は角色作者が手書きで管理しており admin UI が無いため、実害は出ません。完全な入力 validation は将来の admin UI PR と同じ milestone で実装すべきで、単独 clamp は無意味です。
+
+### ✅ 検証
+
+- `npm run verify`：lint + bundle + PHPUnit（27 tests / 59 assertions）全て pass。
+- **PHPUnit は新 `_mod` 関数をカバーしていません**：v2.19.1 と同じく `set_transient` / `random_int` / `DateTimeImmutable` が `tests/bootstrap.php` で mock されていません。Manual smoke test の経路：日跨ぎ切替、同日 cache hit、二度寝+IP 記録（分単位精度に上昇）、設定不正、旧 cache 過渡期（`_mod` サフィックスで強制 miss）。
+
+### 📦 バージョン表記について
+
+本リリースの 2 commit（`b54d96c`, `239a5d1`）の commit message は `feat(v2.20.0):` / `docs(plan): v2.20.0` と書かれています — これは凍結表でこの機能を v2.20.0 として扱っていた時に commit された名残です。Release では **v2.19.2** patch として確定 — v2.19.1 の延長線上（manifest schema 不変・IP 機構不変・内部時間単位のみ精度向上）であるため。後続の凍結表 milestone は一つ前倒し（utility-functions 分割 → v2.20.0、JS グローバル状態の封装 → v2.21.0、以下同様）。
+
+---
+
 ## [2.19.1] - 2026-05-19
 
 ### ✨ フリーレンの動的な睡眠時間（毎日抽選）
@@ -17,7 +46,7 @@
 
 ### ⚠️ 既知の制限
 
-- **入眠時刻は引き続き「正時」に揃います**：本リリースでは「何時に」の部分だけランダム化しました。分単位ランダム（22:43 入眠 / 07:35 起床）は起床側の分単位化と cache key 世代交代と合わせて **v2.20.0** で導入予定です。
+- **入眠時刻は引き続き「正時」に揃います**：本リリースでは「何時に」の部分だけランダム化しました。分単位ランダム（22:43 入眠 / 07:35 起床）は起床側の分単位化と cache key 世代交代と合わせて **v2.19.2** で導入予定です。
 
 ### ✅ 検証
 

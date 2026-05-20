@@ -4,6 +4,35 @@
 
 ---
 
+## [2.19.2] - 2026-05-20
+
+### ✨ 睡眠系統分鐘精度
+
+延伸 v2.19.1 的「每日整點抽籤」到分鐘精度。純後端 cache key 換代 — manifest schema 不動（仍以整點撰寫）。
+
+- **新增 `_mod` 後綴函數族**：`mpu_get_daily_deep_sleep_start_mod()` / `mpu_get_daily_oversleep_end_mod()` 回傳 minutes-of-day（0–1439）。`[22, 23]` 的 deep_sleep_start 抽籤範圍升級為 `random_int(22*60, 23*60+59) = random_int(1320, 1439)`，即「22:00 ~ 23:59 任一分鐘」inclusive，而非只能抽「22 或 23 整點」。
+- **所有比較全部換為 minutes-of-day**：`mpu_is_deep_sleep_time()` 跨午夜判斷改寫為分鐘單位（`$start_mod > $end_mod` 走 OR 分支）；`mpu_is_ip_woken_today()` / `mpu_mark_ip_as_woken()` 邊界檢查也升級為分鐘單位。
+- **cache key 加 `_mod` 後綴**：強制 cache miss 重抽，避免讀到 v2.19.1 整點 key 留下的舊值。**不**做 backward-compat 讀舊 key。
+- **前端 caller 同步升級**：`includes/core/frontend-functions.php` 原本呼叫整點版本，改呼 `_mod` 版本以對齊前端 chat block 渲染邊界與後端邏輯。
+- **`wake_ghost()` 更新**：改讀 `_mod` 函數，保留 `function_exists` fallback 安全網。
+- **`oversleep_max_hour` 語義微調**：`9` 從原本「09:00 整點起床」變成「09:59 之前起床」，與分鐘精度意圖一致。IP 記錄視窗對應延長 59 分鐘。
+
+### ⚠️ 已知限制
+
+- **舊整點函數變成 dead code**：`mpu_get_daily_deep_sleep_start()` / `mpu_get_daily_oversleep_end()` 僅剩 `wake_ghost` fallback 引用，邏輯上已死。清理延至 **v2.20.0**（`#6` utility-functions 拆分），因為檔案搬移與 dead code 移除是同一個前提條件。
+- **Sleep settings input clamping 延後**：`_mod` 函數只用 `% 1440` 處理正向跨日溢位，**不** clamp 負數。manifest 設負整數會 break minutes-of-day 比較（PHP `%` 對負數保留 dividend sign）。實務上 manifest 由角色作者手寫，沒 admin UI 不會踩雷 — 完整 input validation 應跟未來 admin UI PR 一起做，孤立 clamp 沒意義。
+
+### ✅ 驗證
+
+- `npm run verify`：lint + bundle + PHPUnit（27 tests / 59 assertions）全綠。
+- **PHPUnit 不涵蓋新 `_mod` 函數**：跟 v2.19.1 一樣，`set_transient` / `random_int` / `DateTimeImmutable` 在 `tests/bootstrap.php` 中未 mock。Manual smoke test 路徑：跨午夜切換、同日 cache hit、賴床+IP 記錄（已升級為分鐘精度）、設定錯誤、舊 cache 過渡（`_mod` 後綴強制 miss）。
+
+### 📦 版本標記說明
+
+本次 release 的兩個 commit（`b54d96c`, `239a5d1`）commit message 寫成 `feat(v2.20.0):` / `docs(plan): v2.20.0` — 是因為當時凍結表把 sleep-minute-precision 列為 v2.20.0。Release 時降版為 **v2.19.2** patch 是因為行為上是 v2.19.1 的延伸（manifest schema 不變、IP 機制不動，只換內部時間單位）。後續凍結表 milestone 因此整批往前推一版（utility-functions 拆分 → v2.20.0、JS 全域狀態封裝 → v2.21.0，依此類推）。
+
+---
+
 ## [2.19.1] - 2026-05-19
 
 ### ✨ Frieren 動態睡眠時間（每日抽籤）
@@ -17,7 +46,7 @@
 
 ### ⚠️ 已知限制
 
-- **入睡時刻仍對齊整點**：本版只把「哪一個整點」隨機化。分鐘級隨機（22:43 入睡 / 07:35 起床）排定在 **v2.20.0** 與起床時間分鐘化、cache key 換代一起發佈。
+- **入睡時刻仍對齊整點**：本版只把「哪一個整點」隨機化。分鐘級隨機（22:43 入睡 / 07:35 起床）排定在 **v2.19.2** 與起床時間分鐘化、cache key 換代一起發佈。
 
 ### ✅ 驗證
 
