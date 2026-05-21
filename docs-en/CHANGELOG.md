@@ -4,6 +4,75 @@
 
 ---
 
+## [2.22.0] - 2026-05-22
+
+### 👻 Ghost Runtime State Helper (v2.22.0 #7 milestone)
+
+A new transient-backed helper records a single short-lived ghost runtime state per session, providing the backend foundation for future runtime UI / observation features. Lands per `plan/Engineering_Quality_Improvement_Plan.md` §v2.22.0 #7 hard limits — no LLM prompt injection, no Observation Buffer, no user/visitor memory writes.
+
+### 📐 Public API (`includes/core/runtime-state-functions.php`)
+
+State whitelist (9): `idle` / `thinking` / `speaking` / `chatting` / `sleeping` / `waking` / `tool_running` / `suspended` / `error`. Payload shape: `['state' => string, 'ts' => int]`.
+
+| Function | Purpose |
+|---|---|
+| `mpu_runtime_state_allowed_states(): array` | Return the whitelist |
+| `mpu_runtime_state_scope_key(?$session_token): ?string` | Resolve a transient key; raw token is `sha256`-hashed, never stored verbatim |
+| `mpu_set_runtime_state(string $state, ?$session_token): bool` | Write state; invalid state or unresolvable scope → `false` |
+| `mpu_get_runtime_state(?$session_token): ?array` | Read state; returns `null` if missing, malformed, or state no longer in whitelist |
+| `mpu_clear_runtime_state(?$session_token): void` | Delete transient |
+| `mpu_runtime_state_ttl(): int` | TTL in seconds, default 300, filterable via `mpu_runtime_state_ttl`, clamped to `[60, 900]` |
+
+### 🔌 REST Wiring (`MPU_REST_Base` + chat/dialog controllers)
+
+- **`/chat/user`** — `thinking` before LLM call → `speaking` on success → `idle` in `finally`; error branch → `error` then `idle`. `register_shutdown_function` writes `idle` as a fallback if the request dies before `finally`.
+- **`/chat/user-stream`** — `thinking` at SSE start; the stream callback flips to `tool_running` on `status` events with `type=executing_tool`, and to `speaking` on `delta` events. `exit_if_stream_aborted()` writes `idle` before `exit` so client-side aborts release state. `done` → `idle`; error mid-stream → `error` then `idle`. Same shutdown fallback.
+- **`wake_ghost`** — Sets `waking` immediately after token resolution; a `try/finally` block guarantees the eventual `idle` regardless of which early `WP_Error` branch is taken.
+
+A protected `MPU_REST_Base::runtime_session_token(WP_REST_Request)` resolves and validates the `X-MPU-Session-Token` header / `session_token` parameter via `mpu_validate_session_token()` before any state write — there is no second source of truth.
+
+### 🛡️ Plan §v2.22.0 #7 Hard Limits — Compliance Check
+
+| Limit | Status |
+|---|---|
+| No `session_start()` / `session_id()` | ✅ 0 hits (word-boundary regrep) |
+| No IP / referrer / fingerprint as scope | ✅ Token-only (+ optional logged-in `user_id` fallback, see below) |
+| No `mpu_opt` / `update_option(...runtime...)` writes | ✅ 0 hits |
+| No REST response shape changes | ✅ Wiring is write-only; no payload field added |
+| TTL clamped, default 5 min | ✅ `[60, 900]` clamp |
+| State whitelist enforced | ✅ Unknown values → `false` on write, `null` on read |
+| Clear on error/abort/done | ✅ `finally` + SSE abort + shutdown fallback |
+
+### 🟡 One Documented Deviation from Plan
+
+`mpu_runtime_state_scope_key()` adds a **logged-in user fallback**: when the caller passes no session token (or one that fails validation) and `is_user_logged_in()` is true, the helper falls back to a `mpu_runtime_state_user_{user_id}` transient key. The plan permits only token-based scoping, but the user-id branch:
+
+- Does not use IP / referrer / fingerprint (plan §scope rule 4 stays satisfied)
+- Uses a distinct key prefix from token-hashed keys (no collision)
+- Enables admin-only flows like `wp-admin` direct access that never go through the front-end session-token bootstrap
+
+If this fallback proves unnecessary in practice, it can be removed without changing the public signature.
+
+### 🧪 Tests (`tests/Unit/RuntimeStateTest.php`)
+
+Eight cases covering: valid write/read round-trip; invalid state rejected; invalid token does not create a scope key; anonymous request without token has no scope; scope key hashes the token without leaking the raw value; `clear` deletes the transient; TTL filter clamps both upper (`999999 → 900`) and lower (`1 → 60`) bounds; logged-in user fallback works without a session token. `tests/bootstrap.php` gains `wp_salt()` and `get_current_user_id()` mocks to support the new fixtures.
+
+### ✅ Verification
+
+- `npm --prefix tools/node run lint:php`: all PHP files clean.
+- `npm --prefix tools/node run test:php`: **35 tests / 76 assertions, all green** (baseline before v2.22.0 was 27/59; this milestone adds +8 tests / +17 assertions).
+- Red-line greps (`session_start(` / `session_id(` word-boundary, `update_option(...runtime` / `mpu_opt['runtime_state']`, `mpu_get_session_key`): all 0 hits in source.
+
+### 📦 Commit Layout
+
+Single feature commit `feat(v2.22.0): ghost runtime state helper (#7)` + this CHANGELOG commit. No build artifact changes (PHP-only milestone).
+
+### 📋 Milestone Notes
+
+Closes v2.22.0 in the freeze table. Next up: **#10 Observation Buffer MVP** remains in design phase (`plan/Observation_Buffer_Design.md`); implementation gated on User Memory v2.
+
+---
+
 ## [2.21.0] - 2026-05-20
 
 ### 🏗️ JS Global State Encapsulation (v2.21.0 #8 milestone)

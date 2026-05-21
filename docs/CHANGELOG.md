@@ -4,6 +4,75 @@
 
 ---
 
+## [2.22.0] - 2026-05-22
+
+### 👻 Ghost Runtime State Helper（v2.22.0 #7 milestone）
+
+新增 transient-based helper，記錄「某個前台 session 目前的角色 runtime state」，作為後續 runtime UI / 觀測整合的後端基礎。對齊 `plan/Engineering_Quality_Improvement_Plan.md` §v2.22.0 #7 hard limits —— 不注入 LLM prompt、不做 Observation Buffer、不寫 User / Visitor Memory。
+
+### 📐 Public API（`includes/core/runtime-state-functions.php`）
+
+State whitelist（9 個）：`idle` / `thinking` / `speaking` / `chatting` / `sleeping` / `waking` / `tool_running` / `suspended` / `error`。Payload shape：`['state' => string, 'ts' => int]`。
+
+| Function | 用途 |
+|---|---|
+| `mpu_runtime_state_allowed_states(): array` | 回傳白名單 |
+| `mpu_runtime_state_scope_key(?$session_token): ?string` | 解析 transient key；raw token 經 `sha256` hash，不會原樣進入 key |
+| `mpu_set_runtime_state(string $state, ?$session_token): bool` | 寫入；invalid state 或無法 resolve scope → `false` |
+| `mpu_get_runtime_state(?$session_token): ?array` | 讀取；缺失、格式錯誤、state 不在白名單 → `null` |
+| `mpu_clear_runtime_state(?$session_token): void` | 刪除 transient |
+| `mpu_runtime_state_ttl(): int` | TTL（秒），預設 300，可透過 `mpu_runtime_state_ttl` filter 調整，clamp 在 `[60, 900]` |
+
+### 🔌 REST Wiring（`MPU_REST_Base` + chat/dialog controllers）
+
+- **`/chat/user`** —— LLM 呼叫前 `thinking`，成功 return 前 `speaking`，`finally` 拉回 `idle`；error 分支 → `error` 再 → `idle`。`register_shutdown_function` 在 request 異常中斷時保底寫 `idle`。
+- **`/chat/user-stream`** —— SSE start 寫 `thinking`；stream callback 偵測到 `status` 事件且 `type=executing_tool` 時切 `tool_running`，遇到 `delta` 事件切 `speaking`。`exit_if_stream_aborted()` 在 client 中途斷線 `exit` 前先寫 `idle` 釋放狀態。`done` → `idle`；stream 中途出錯 → `error` 再 → `idle`。一樣有 shutdown fallback。
+- **`wake_ghost`** —— 取得 token 後立刻 `waking`，整段 endpoint 包在 `try/finally`，不論哪個早 return `WP_Error` 分支，最終都會回到 `idle`。
+
+新增 `MPU_REST_Base::runtime_session_token(WP_REST_Request)` 統一從 `X-MPU-Session-Token` header / `session_token` 參數解析並透過 `mpu_validate_session_token()` 驗證，所有 state 寫入路徑共用同一條 token resolver。
+
+### 🛡️ Plan §v2.22.0 #7 Hard Limits 合規檢查
+
+| 限制 | 狀態 |
+|---|---|
+| 不用 `session_start()` / `session_id()` | ✅ word-boundary regrep 0 hit |
+| 不用 IP / referrer / fingerprint 作 scope | ✅ 僅 token-based（外加可選的 logged-in `user_id` fallback，見下） |
+| 不寫 `mpu_opt` / `update_option(...runtime...)` | ✅ 0 hit |
+| 不改 REST response shape | ✅ wiring 純 write-only，payload 無新欄位 |
+| TTL clamp，預設 5 分鐘 | ✅ `[60, 900]` clamp |
+| State whitelist 強制 | ✅ 未知值寫入回 `false`，讀取回 `null` |
+| error/abort/done 後清除 | ✅ `finally` + SSE abort + shutdown fallback 三重保險 |
+
+### 🟡 Plan 之外的延伸（明確標註）
+
+`mpu_runtime_state_scope_key()` 新增 **logged-in user fallback**：當 caller 沒傳 session token（或 token 驗證失敗）且 `is_user_logged_in()` 為 true，helper 退回 `mpu_runtime_state_user_{user_id}` 作為 transient key。Plan 只規定 token-based scope，但這個 user-id 分支：
+
+- 沒踩 IP / referrer / fingerprint 紅線（§scope rule 4 仍滿足）
+- 與 token-hashed key 用不同 prefix，無 collision
+- 讓 admin 從 wp-admin 直連等沒走前台 session-token bootstrap 的場景也能寫狀態
+
+若實務證明這個 fallback 不需要，可在不破壞 public signature 的前提下移除。
+
+### 🧪 測試（`tests/Unit/RuntimeStateTest.php`）
+
+8 個 case：valid 寫入/讀取 round-trip、invalid state 拒絕、invalid token 不建 scope、匿名無 token 無 scope、scope key 確實 hash token 不洩漏、`clear` 確實刪 transient、TTL filter 上下界 clamp（`999999 → 900`、`1 → 60`）、logged-in user 無 token 也能寫入。`tests/bootstrap.php` 補 `wp_salt()` 與 `get_current_user_id()` mock 支援新 fixture。
+
+### ✅ 驗證
+
+- `npm --prefix tools/node run lint:php`：所有 PHP 檔乾淨
+- `npm --prefix tools/node run test:php`：**35 tests / 76 assertions 全綠**（v2.22.0 起點 27/59，本 milestone 新增 +8 tests / +17 assertions）
+- Red-line greps（`session_start(` / `session_id(` word-boundary、`update_option(...runtime` / `mpu_opt['runtime_state']`、`mpu_get_session_key`）：source 全部 0 hit
+
+### 📦 Commit 配置
+
+一個 feature commit `feat(v2.22.0): ghost runtime state helper (#7)` + 本 CHANGELOG commit。本 milestone 為 PHP-only，無 build artifact 變更。
+
+### 📋 Milestone Notes
+
+關閉 v2.22.0 freeze 表。下一站：**#10 Observation Buffer MVP** 仍在設計階段（`plan/Observation_Buffer_Design.md`），實作門檻為 User Memory v2。
+
+---
+
 ## [2.21.0] - 2026-05-20
 
 ### 🏗️ JS 全域狀態封裝（v2.21.0 #8 milestone）

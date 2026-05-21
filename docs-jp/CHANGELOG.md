@@ -4,6 +4,75 @@
 
 ---
 
+## [2.22.0] - 2026-05-22
+
+### 👻 Ghost Runtime State Helper（v2.22.0 #7 milestone）
+
+新規の transient ベース helper で、フロントエンドセッションごとの「ゴースト runtime state」を短期記録します。今後の runtime UI / 観測機能のためのバックエンド基盤です。`plan/Engineering_Quality_Improvement_Plan.md` §v2.22.0 #7 の hard limits に対応 —— LLM prompt 注入なし、Observation Buffer 不実装、User / Visitor Memory への書込みなし。
+
+### 📐 Public API（`includes/core/runtime-state-functions.php`）
+
+State whitelist（9 個）：`idle` / `thinking` / `speaking` / `chatting` / `sleeping` / `waking` / `tool_running` / `suspended` / `error`。Payload shape：`['state' => string, 'ts' => int]`。
+
+| Function | 用途 |
+|---|---|
+| `mpu_runtime_state_allowed_states(): array` | whitelist を返す |
+| `mpu_runtime_state_scope_key(?$session_token): ?string` | transient key を解決；raw token は `sha256` で hash 化、key にそのまま入れない |
+| `mpu_set_runtime_state(string $state, ?$session_token): bool` | 書き込み；invalid state または scope 解決失敗 → `false` |
+| `mpu_get_runtime_state(?$session_token): ?array` | 読み出し；欠落・不正・whitelist 外 → `null` |
+| `mpu_clear_runtime_state(?$session_token): void` | transient 削除 |
+| `mpu_runtime_state_ttl(): int` | TTL（秒）、デフォルト 300、`mpu_runtime_state_ttl` filter で調整可、`[60, 900]` clamp |
+
+### 🔌 REST Wiring（`MPU_REST_Base` + chat/dialog controllers）
+
+- **`/chat/user`** —— LLM 呼び出し前 `thinking`、成功 return 前 `speaking`、`finally` で `idle` へ復帰。error 分岐 → `error` → `idle`。`register_shutdown_function` で異常中断時にも `idle` を書く二重保険。
+- **`/chat/user-stream`** —— SSE start で `thinking`。stream callback が `status` イベント（`type=executing_tool`）を検知すると `tool_running`、`delta` イベントで `speaking` に切替。`exit_if_stream_aborted()` がクライアント切断時 `exit` 前に `idle` を書いて状態解放。`done` → `idle`、stream 途中エラー → `error` → `idle`。同様の shutdown fallback あり。
+- **`wake_ghost`** —— token 取得直後に `waking`、endpoint 全体を `try/finally` で囲み、どの早 return `WP_Error` 分岐でも最終的に `idle` に戻る。
+
+新規 `MPU_REST_Base::runtime_session_token(WP_REST_Request)` が `X-MPU-Session-Token` header / `session_token` パラメータを解析し `mpu_validate_session_token()` で検証、すべての state 書込み経路が同一の token resolver を共有。
+
+### 🛡️ Plan §v2.22.0 #7 Hard Limits コンプライアンス
+
+| 制限 | 状態 |
+|---|---|
+| `session_start()` / `session_id()` 使用禁止 | ✅ word-boundary regrep で 0 hit |
+| IP / referrer / fingerprint を scope に使用禁止 | ✅ token-only（option として logged-in `user_id` fallback あり、下記参照） |
+| `mpu_opt` / `update_option(...runtime...)` 書込み禁止 | ✅ 0 hit |
+| REST response shape 変更禁止 | ✅ wiring は write-only、payload に新規 field なし |
+| TTL clamp、デフォルト 5 分 | ✅ `[60, 900]` clamp |
+| State whitelist 強制 | ✅ 未知値は書込み `false`、読出し `null` |
+| error/abort/done 後にクリア | ✅ `finally` + SSE abort + shutdown fallback の三重保険 |
+
+### 🟡 Plan からの逸脱（明示記録）
+
+`mpu_runtime_state_scope_key()` は **logged-in user fallback** を追加：caller が session token を渡さない（あるいは検証失敗）かつ `is_user_logged_in()` が true の場合、`mpu_runtime_state_user_{user_id}` を transient key として使用。Plan は token-based scope のみを定義しているが、この user-id 分岐は：
+
+- IP / referrer / fingerprint レッドラインに抵触しない（§scope rule 4 を満たす）
+- token-hashed key と異なる prefix で衝突なし
+- admin が wp-admin から直接アクセスするような、フロント session-token bootstrap を経由しない経路でも state 書込み可能
+
+実用上この fallback が不要と判断されれば、public signature を壊さずに削除可能。
+
+### 🧪 テスト（`tests/Unit/RuntimeStateTest.php`）
+
+8 ケース：valid 書込み/読出し round-trip、invalid state 拒否、invalid token は scope key を作らない、匿名で token なしは scope なし、scope key が token を hash 化し raw 値を漏らさない、`clear` で transient 削除、TTL filter 上下界 clamp（`999999 → 900`、`1 → 60`）、logged-in user は token なしでも書込み可能。`tests/bootstrap.php` に `wp_salt()` と `get_current_user_id()` mock を追加して新 fixture を支援。
+
+### ✅ 検証
+
+- `npm --prefix tools/node run lint:php`：全 PHP ファイル clean
+- `npm --prefix tools/node run test:php`：**35 tests / 76 assertions 全グリーン**（v2.22.0 起点 27/59、本 milestone で +8 tests / +17 assertions）
+- Red-line greps（`session_start(` / `session_id(` word-boundary、`update_option(...runtime` / `mpu_opt['runtime_state']`、`mpu_get_session_key`）：source 内 0 hit
+
+### 📦 Commit 構成
+
+feature commit `feat(v2.22.0): ghost runtime state helper (#7)` + 本 CHANGELOG commit の 2 commit。本 milestone は PHP-only で build artifact 変更なし。
+
+### 📋 Milestone ノート
+
+v2.22.0 freeze 表をクローズ。次の段階：**#10 Observation Buffer MVP** は引き続き設計フェーズ（`plan/Observation_Buffer_Design.md`）、実装は User Memory v2 待ち。
+
+---
+
 ## [2.21.0] - 2026-05-20
 
 ### 🏗️ JS グローバル状態の封装（v2.21.0 #8 milestone）
