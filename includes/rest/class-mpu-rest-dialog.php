@@ -384,66 +384,73 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         $rl = $this->rate_limit('wake_ghost', 10, 60);
         if ($rl !== null) return $rl;
 
-        $personality_id = sanitize_text_field($request->get_param('personality_id') ?: '');
+        $runtime_session_token = $this->runtime_session_token($request);
+        $this->set_runtime_state($runtime_session_token, 'waking');
 
-        if (empty($personality_id)) {
-            $ukagaka_num = sanitize_text_field($request->get_param('ukagaka_num') ?: '');
-            if (!empty($ukagaka_num) && function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-                $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_num);
+        try {
+            $personality_id = sanitize_text_field($request->get_param('personality_id') ?: '');
+
+            if (empty($personality_id)) {
+                $ukagaka_num = sanitize_text_field($request->get_param('ukagaka_num') ?: '');
+                if (!empty($ukagaka_num) && function_exists('mpu_get_personality_id_from_ukagaka_name')) {
+                    $personality_id = mpu_get_personality_id_from_ukagaka_name($ukagaka_num);
+                }
             }
-        }
 
-        if (empty($personality_id)) {
-            return new WP_Error(
-                'rest_wake_ghost_missing_param',
-                __('キャラクター ID パラメーター（personality_id / ukagaka_num）が不足しています', 'mp-ukagaka'),
-                ['status' => 400]
-            );
-        }
-
-        if (function_exists('mpu_mark_ip_as_woken')) {
-            $result = mpu_mark_ip_as_woken($personality_id);
-
-            if (!$result) {
-                $is_deep_sleep = false;
-                if (function_exists('mpu_get_sleep_settings')) {
-                    $sleep_settings = mpu_get_sleep_settings($personality_id);
-                    $current_mod    = (int) wp_date('G') * 60 + (int) wp_date('i');
-                    $d_start_mod    = mpu_get_daily_deep_sleep_start_mod($personality_id);
-                    $d_end_mod      = mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end']);
-
-                    if ($d_start_mod < $d_end_mod) {
-                        $is_deep_sleep = ($current_mod >= $d_start_mod && $current_mod < $d_end_mod);
-                    } else {
-                        $is_deep_sleep = ($current_mod >= $d_start_mod || $current_mod < $d_end_mod);
-                    }
-                }
-
-                if ($is_deep_sleep) {
-                    return $this->ok([
-                        'success'        => true,
-                        'message'        => __('キャラクターが一時的に起こされました（深い眠り中。ページを更新すると再び眠ります）', 'mp-ukagaka'),
-                        'personality_id' => $personality_id,
-                        'is_temporary'   => true,
-                    ]);
-                }
-
+            if (empty($personality_id)) {
                 return new WP_Error(
-                    'rest_wake_ghost_unavailable',
-                    __('現在キャラクターを起こすことができません（二度寝時間外か、機能が無効の可能性があります）', 'mp-ukagaka'),
-                    [
-                        'status'         => 400,
-                        'personality_id' => $personality_id,
-                        'current_time'   => wp_date('H:i:s'),
-                    ]
+                    'rest_wake_ghost_missing_param',
+                    __('キャラクター ID パラメーター（personality_id / ukagaka_num）が不足しています', 'mp-ukagaka'),
+                    ['status' => 400]
                 );
             }
-        }
 
-        return $this->ok([
-            'success'        => true,
-            'message'        => __('キャラクターが起こされました', 'mp-ukagaka'),
-            'personality_id' => $personality_id,
-        ]);
+            if (function_exists('mpu_mark_ip_as_woken')) {
+                $result = mpu_mark_ip_as_woken($personality_id);
+
+                if (!$result) {
+                    $is_deep_sleep = false;
+                    if (function_exists('mpu_get_sleep_settings')) {
+                        $sleep_settings = mpu_get_sleep_settings($personality_id);
+                        $current_mod    = (int) wp_date('G') * 60 + (int) wp_date('i');
+                        $d_start_mod    = mpu_get_daily_deep_sleep_start_mod($personality_id);
+                        $d_end_mod      = mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end']);
+
+                        if ($d_start_mod < $d_end_mod) {
+                            $is_deep_sleep = ($current_mod >= $d_start_mod && $current_mod < $d_end_mod);
+                        } else {
+                            $is_deep_sleep = ($current_mod >= $d_start_mod || $current_mod < $d_end_mod);
+                        }
+                    }
+
+                    if ($is_deep_sleep) {
+                        return $this->ok([
+                            'success'        => true,
+                            'message'        => __('キャラクターが一時的に起こされました（深い眠り中。ページを更新すると再び眠ります）', 'mp-ukagaka'),
+                            'personality_id' => $personality_id,
+                            'is_temporary'   => true,
+                        ]);
+                    }
+
+                    return new WP_Error(
+                        'rest_wake_ghost_unavailable',
+                        __('現在キャラクターを起こすことができません（二度寝時間外か、機能が無効の可能性があります）', 'mp-ukagaka'),
+                        [
+                            'status'         => 400,
+                            'personality_id' => $personality_id,
+                            'current_time'   => wp_date('H:i:s'),
+                        ]
+                    );
+                }
+            }
+
+            return $this->ok([
+                'success'        => true,
+                'message'        => __('キャラクターが起こされました', 'mp-ukagaka'),
+                'personality_id' => $personality_id,
+            ]);
+        } finally {
+            $this->set_runtime_state($runtime_session_token, 'idle');
+        }
     }
 }

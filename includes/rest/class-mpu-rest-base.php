@@ -110,4 +110,27 @@ abstract class MPU_REST_Base {
         }
         return new WP_Error($code, $message, $error_data);
     }
+
+    /**
+     * Resolve a valid front-end session token from a REST request.
+     */
+    protected function runtime_session_token(WP_REST_Request $request): string {
+        $token = $request->get_header('X-MPU-Session-Token') ?: (string) $request->get_param('session_token');
+        $token = trim((string) $token);
+
+        if ($token !== '' && function_exists('mpu_validate_session_token') && mpu_validate_session_token($token)) {
+            return $token;
+        }
+
+        return '';
+    }
+
+    /**
+     * Write ghost runtime state when the helper module is loaded.
+     */
+    protected function set_runtime_state(?string $session_token, string $state): void {
+        if (function_exists('mpu_set_runtime_state')) {
+            mpu_set_runtime_state($state, $session_token);
+        }
+    }
 }

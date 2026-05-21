@@ -70,6 +70,7 @@ function mpu_load_modules()
         'core/encryption-functions.php',
         'core/wp-info-functions.php',
         'core/network-functions.php',
+        'core/runtime-state-functions.php',
         'core/class-mpu-input-role.php', // LLM / tool input role resolver
         'personality/personality-loader.php',  // 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
         'personality/personality-prompts.php', // 人格提示詞模組（動態提示詞、變數替換）

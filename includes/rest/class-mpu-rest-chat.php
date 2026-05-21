@@ -509,6 +509,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
     protected function prepare_user_chat_args(WP_REST_Request $request) {
         $st = $this->check_session_token($request);
         if ($st !== null) return $st;
+        $runtime_session_token = $this->runtime_session_token($request);
         $rl = $this->rate_limit('user_chat', 30, 60);
         // 如果 rate_limit 返回 Response（報錯時），直接傳回，避免呼叫端誤用為陣列
         if ($rl !== null) return $rl;
@@ -930,7 +931,12 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'chat_history'         => $chat_history,
             'user_message'         => $user_message,
             'ukagaka_display_name' => $ukagaka_display_name,
+            'runtime_session_token' => $runtime_session_token,
         ];
+    }
+
+    protected function set_runtime_state_for_args(array $args, string $state): void {
+        $this->set_runtime_state($args['runtime_session_token'] ?? null, $state);
     }
 
     protected function release_chat_lock($session_id, $lock): void {
@@ -952,8 +958,19 @@ class MPU_REST_Chat extends MPU_REST_Base {
         });
     }
 
+    protected function register_runtime_state_shutdown(?string $session_token): void {
+        if (!function_exists('mpu_set_runtime_state')) {
+            return;
+        }
+
+        register_shutdown_function(static function () use ($session_token) {
+            mpu_set_runtime_state('idle', $session_token);
+        });
+    }
+
     protected function exit_if_stream_aborted(array $args): void {
         if (connection_aborted()) {
+            $this->set_runtime_state_for_args($args, 'idle');
             $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
             exit;
         }
@@ -1008,6 +1025,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         // 如果返回的是 WP_REST_Response (報錯時) 或 WP_Error
         if ($args instanceof WP_REST_Response || is_wp_error($args)) return $args;
         $this->register_chat_lock_shutdown($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
+        $this->register_runtime_state_shutdown($args['runtime_session_token'] ?? null);
 
         try {
             // [Debug] MCP Tool Diagnostics
@@ -1017,6 +1035,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
                 return $this->ok(['msg' => $report]);
             }
 
+            $this->set_runtime_state_for_args($args, 'thinking');
 
             $result = mpu_call_ai_api_with_messages(
                 $args['provider'],
@@ -1028,6 +1047,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             );
 
             if (is_wp_error($result)) {
+                $this->set_runtime_state_for_args($args, 'error');
                 return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
             }
 
@@ -1064,8 +1084,10 @@ class MPU_REST_Chat extends MPU_REST_Base {
                 $result
             );
 
+            $this->set_runtime_state_for_args($args, 'speaking');
             return $this->ok(['msg' => $result, 'emoji' => $emoji]);
         } finally {
+            $this->set_runtime_state_for_args($args, 'idle');
             $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
         }
     }
@@ -1075,6 +1097,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         // 如果返回的是 WP_REST_Response (報錯或 /debug_mcp) 或 WP_Error
         if ($args instanceof WP_REST_Response || is_wp_error($args)) return $args;
         $this->register_chat_lock_shutdown($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
+        $this->register_runtime_state_shutdown($args['runtime_session_token'] ?? null);
 
         if (!empty($args['is_debug_mcp'])) {
             $report = $this->build_debug_mcp_report();
@@ -1096,13 +1119,17 @@ class MPU_REST_Chat extends MPU_REST_Base {
             // Fallback 到同步模式
             mpu_sse_init();
             $msg = is_wp_error($provider_instance) ? $provider_instance->get_error_message() : __('現在のプロバイダーはストリーミングモードに対応していません', 'mp-ukagaka');
+            $this->set_runtime_state_for_args($args, 'error');
             mpu_sse_send_event('error', ['message' => $msg]);
+            $this->set_runtime_state_for_args($args, 'idle');
             $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
             exit;
         }
 
         // 初始化 SSE
         mpu_sse_init();
+
+        $this->set_runtime_state_for_args($args, 'thinking');
 
         // 發送開始事件
         mpu_sse_send_event('start', [
@@ -1126,6 +1153,11 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $args, 
             function($event, $data) use (&$full_response_content, $args) {
                 // 轉發到 SSE
+                if ($event === 'status' && isset($data['type']) && $data['type'] === 'executing_tool') {
+                    $this->set_runtime_state_for_args($args, 'tool_running');
+                } elseif ($event === 'delta') {
+                    $this->set_runtime_state_for_args($args, 'speaking');
+                }
                 mpu_sse_send_event($event, $data);
                 $this->exit_if_stream_aborted($args);
                 
@@ -1138,7 +1170,9 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         if (is_wp_error($stream_result)) {
             // 如果串流中途出錯且尚未結束，發送錯誤事件
+            $this->set_runtime_state_for_args($args, 'error');
             mpu_sse_send_event('error', ['message' => $stream_result->get_error_message()]);
+            $this->set_runtime_state_for_args($args, 'idle');
             $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
             exit;
         }
@@ -1180,11 +1214,13 @@ class MPU_REST_Chat extends MPU_REST_Base {
         );
 
         // 發送完成事件
+        $this->set_runtime_state_for_args($args, 'speaking');
         mpu_sse_send_event('done', [
             'msg'   => $result,
             'emoji' => $emoji,
         ]);
 
+        $this->set_runtime_state_for_args($args, 'idle');
         $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
         exit;
     }

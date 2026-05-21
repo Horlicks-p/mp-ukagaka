@@ -33,6 +33,7 @@ $GLOBALS['_mpu_test_transients'] = [];
 $GLOBALS['_mpu_test_options'] = [];
 $GLOBALS['_mpu_test_current_user_can'] = false;
 $GLOBALS['_mpu_test_is_user_logged_in'] = false;
+$GLOBALS['_mpu_test_current_user_id'] = 0;
 
 if (!class_exists('WP_Error')) {
     class WP_Error {
@@ -146,8 +147,16 @@ function is_user_logged_in() {
     return (bool) $GLOBALS['_mpu_test_is_user_logged_in'];
 }
 
+function get_current_user_id() {
+    return (int) $GLOBALS['_mpu_test_current_user_id'];
+}
+
 function wp_generate_uuid4() {
     return '00000000-0000-4000-8000-000000000000';
+}
+
+function wp_salt($scheme = 'auth') {
+    return 'mpu-test-salt-' . $scheme;
 }
 
 function gmdate_test_safe($format) {
@@ -215,4 +224,5 @@ require_once MPU_TESTS_ROOT . '/includes/core/file-functions.php';
 require_once MPU_TESTS_ROOT . '/includes/core/encryption-functions.php';
 require_once MPU_TESTS_ROOT . '/includes/core/wp-info-functions.php';
 require_once MPU_TESTS_ROOT . '/includes/core/network-functions.php';
+require_once MPU_TESTS_ROOT . '/includes/core/runtime-state-functions.php';
 require_once MPU_TESTS_ROOT . '/includes/llm/provider-helpers.php';
