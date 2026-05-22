@@ -598,6 +598,7 @@ function mpu_nextmsg(trigger) {
               forceAnimation && window.mpuSkipNextManualBookFlip === true;
             if (skipBookFlip) {
               window.mpuSkipNextManualBookFlip = false;
+              window.mpuSkipBookFlipExpireToken = null;
             }
 
             // 喚醒動畫完成後顯示對話
@@ -870,6 +871,7 @@ function mpu_nextmsg(trigger) {
         isManual && window.mpuSkipNextManualBookFlip === true;
       if (skipBookFlip) {
         window.mpuSkipNextManualBookFlip = false;
+        window.mpuSkipBookFlipExpireToken = null;
       }
 
       const isWakingUp = window.mpuCanvasManager.triggerCharacterAnimation(

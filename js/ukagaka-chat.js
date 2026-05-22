@@ -1008,6 +1008,16 @@ jQuery(document).ready(function () {
           true,
           function () {
             window.mpuSkipNextManualBookFlip = true;
+            // chat 模式下 handleOkAction 會走 mpu_sendUserMessage，不會消費此旗標；
+            // 設一個 8 秒上限的後備清理，避免旗標殘留影響後續手動互動。
+            const expireToken = Date.now();
+            window.mpuSkipBookFlipExpireToken = expireToken;
+            setTimeout(function () {
+              if (window.mpuSkipBookFlipExpireToken === expireToken) {
+                window.mpuSkipNextManualBookFlip = false;
+                window.mpuSkipBookFlipExpireToken = null;
+              }
+            }, 8000);
             handleOkAction();
           },
           true

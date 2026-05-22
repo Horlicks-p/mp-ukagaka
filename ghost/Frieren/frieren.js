@@ -867,9 +867,9 @@
      */
     wakeUp: function () {
       const isForced = window.mpuForceWakeUpNextTime === true;
+      window.mpuForceWakeUpNextTime = false;
       if ((this.isSleepMessage() || isForced) && !this.sleepModeAwoken) {
         this.sleepModeAwoken = true;
-        window.mpuForceWakeUpNextTime = false;
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
           mpuLogger.log("☀️ 芙莉蓮被喚醒了！" + (isForced ? " (forceWakeUp)" : ""));
         }

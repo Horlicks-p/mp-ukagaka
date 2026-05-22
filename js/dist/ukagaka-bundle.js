@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-22T00:20:09.307Z
+ * Generated: 2026-05-22T00:38:48.483Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -1779,6 +1779,7 @@ function mpu_nextmsg(trigger) {
               forceAnimation && window.mpuSkipNextManualBookFlip === true;
             if (skipBookFlip) {
               window.mpuSkipNextManualBookFlip = false;
+              window.mpuSkipBookFlipExpireToken = null;
             }
 
             // 喚醒動畫完成後顯示對話
@@ -2051,6 +2052,7 @@ function mpu_nextmsg(trigger) {
         isManual && window.mpuSkipNextManualBookFlip === true;
       if (skipBookFlip) {
         window.mpuSkipNextManualBookFlip = false;
+        window.mpuSkipBookFlipExpireToken = null;
       }
 
       const isWakingUp = window.mpuCanvasManager.triggerCharacterAnimation(
@@ -5209,6 +5211,16 @@ jQuery(document).ready(function () {
           true,
           function () {
             window.mpuSkipNextManualBookFlip = true;
+            // chat 模式下 handleOkAction 會走 mpu_sendUserMessage，不會消費此旗標；
+            // 設一個 8 秒上限的後備清理，避免旗標殘留影響後續手動互動。
+            const expireToken = Date.now();
+            window.mpuSkipBookFlipExpireToken = expireToken;
+            setTimeout(function () {
+              if (window.mpuSkipBookFlipExpireToken === expireToken) {
+                window.mpuSkipNextManualBookFlip = false;
+                window.mpuSkipBookFlipExpireToken = null;
+              }
+            }, 8000);
             handleOkAction();
           },
           true
