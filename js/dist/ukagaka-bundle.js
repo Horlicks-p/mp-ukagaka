@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-20T14:25:43.761Z
+ * Generated: 2026-05-22T00:20:09.307Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -1775,6 +1775,11 @@ function mpu_nextmsg(trigger) {
             window.mpuCanvasManager.isCharacterMode
           ) {
             const forceAnimation = !isAuto && !isStartup;
+            const skipBookFlip =
+              forceAnimation && window.mpuSkipNextManualBookFlip === true;
+            if (skipBookFlip) {
+              window.mpuSkipNextManualBookFlip = false;
+            }
 
             // 喚醒動畫完成後顯示對話
             const isWakingUp =
@@ -1787,6 +1792,7 @@ function mpu_nextmsg(trigger) {
                   mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
                   mpu_showmsg(400);
                 },
+                skipBookFlip
               );
 
             if (!isWakingUp) {
@@ -2041,6 +2047,12 @@ function mpu_nextmsg(trigger) {
       window.mpuCanvasManager.isFrierenMode
     ) {
       // 喚醒動畫完成後顯示對話
+      const skipBookFlip =
+        isManual && window.mpuSkipNextManualBookFlip === true;
+      if (skipBookFlip) {
+        window.mpuSkipNextManualBookFlip = false;
+      }
+
       const isWakingUp = window.mpuCanvasManager.triggerCharacterAnimation(
         isManual,
         function () {
@@ -2051,6 +2063,7 @@ function mpu_nextmsg(trigger) {
           $msgnum.html(msgNum);
           mpu_showmsg(400);
         },
+        skipBookFlip
       );
 
       if (!isWakingUp) {
@@ -4310,6 +4323,7 @@ function mpu_toggleChatMode(enable) {
           window.mpuCanvasManager.hasWakeUpAnimation();
 
         if (hasWakeUpAnimation) {
+          window.mpuForceWakeUpNextTime = true;
           // 有喚醒動畫：先淡出對話框（隱藏 ZZZ），等待喚醒動畫完成後再顯示
           $msgbox.fadeOut(1000, function () {
             // 在對話框隱藏後，開始喚醒動畫（skipBookFlip = true：不翻書）
@@ -5187,13 +5201,18 @@ jQuery(document).ready(function () {
 
     if (needsWakeUp && hasWakeUpAnimation) {
       const $msgbox = jQuery("#ukagaka_msgbox");
+      window.mpuForceWakeUpNextTime = true;
       // 有喚醒動畫：先淡出對話框（隱藏 ZZZ），等待喚醒動畫完成後再顯示
       $msgbox.fadeOut(1000, function () {
         // 在對話框隱藏後，開始喚醒動畫（skipBookFlip = true：不翻書）
-        window.mpuCanvasManager.triggerCharacterAnimation(true, null, true);
-
-        // 同時呼叫後續動作（如生成 LLM 對話）
-        handleOkAction();
+        window.mpuCanvasManager.triggerCharacterAnimation(
+          true,
+          function () {
+            window.mpuSkipNextManualBookFlip = true;
+            handleOkAction();
+          },
+          true
+        );
       });
       return;
     }

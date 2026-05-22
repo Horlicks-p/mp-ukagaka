@@ -594,6 +594,11 @@ function mpu_nextmsg(trigger) {
             window.mpuCanvasManager.isCharacterMode
           ) {
             const forceAnimation = !isAuto && !isStartup;
+            const skipBookFlip =
+              forceAnimation && window.mpuSkipNextManualBookFlip === true;
+            if (skipBookFlip) {
+              window.mpuSkipNextManualBookFlip = false;
+            }
 
             // 喚醒動畫完成後顯示對話
             const isWakingUp =
@@ -606,6 +611,7 @@ function mpu_nextmsg(trigger) {
                   mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
                   mpu_showmsg(400);
                 },
+                skipBookFlip
               );
 
             if (!isWakingUp) {
@@ -860,6 +866,12 @@ function mpu_nextmsg(trigger) {
       window.mpuCanvasManager.isFrierenMode
     ) {
       // 喚醒動畫完成後顯示對話
+      const skipBookFlip =
+        isManual && window.mpuSkipNextManualBookFlip === true;
+      if (skipBookFlip) {
+        window.mpuSkipNextManualBookFlip = false;
+      }
+
       const isWakingUp = window.mpuCanvasManager.triggerCharacterAnimation(
         isManual,
         function () {
@@ -870,6 +882,7 @@ function mpu_nextmsg(trigger) {
           $msgnum.html(msgNum);
           mpu_showmsg(400);
         },
+        skipBookFlip
       );
 
       if (!isWakingUp) {

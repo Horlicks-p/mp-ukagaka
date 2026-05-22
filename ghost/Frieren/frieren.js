@@ -866,10 +866,12 @@
      * @returns {boolean} 是否需要播放醒來動畫
      */
     wakeUp: function () {
-      if (this.isSleepMessage() && !this.sleepModeAwoken) {
+      const isForced = window.mpuForceWakeUpNextTime === true;
+      if ((this.isSleepMessage() || isForced) && !this.sleepModeAwoken) {
         this.sleepModeAwoken = true;
+        window.mpuForceWakeUpNextTime = false;
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("☀️ 芙莉蓮被喚醒了！");
+          mpuLogger.log("☀️ 芙莉蓮被喚醒了！" + (isForced ? " (forceWakeUp)" : ""));
         }
         return true;
       }
@@ -1024,6 +1026,16 @@
       if (this.isSleepMessage()) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
           mpuLogger.log("🌙 睡眠模式：跳過翻書動畫");
+        }
+        return false;
+      }
+
+      if (skipBookFlip) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.log("📖 手動喚醒對話：跳過翻書動畫");
+        }
+        if (onWakeUpComplete) {
+          onWakeUpComplete();
         }
         return false;
       }

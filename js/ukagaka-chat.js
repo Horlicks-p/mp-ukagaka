@@ -122,6 +122,7 @@ function mpu_toggleChatMode(enable) {
           window.mpuCanvasManager.hasWakeUpAnimation();
 
         if (hasWakeUpAnimation) {
+          window.mpuForceWakeUpNextTime = true;
           // 有喚醒動畫：先淡出對話框（隱藏 ZZZ），等待喚醒動畫完成後再顯示
           $msgbox.fadeOut(1000, function () {
             // 在對話框隱藏後，開始喚醒動畫（skipBookFlip = true：不翻書）
@@ -999,13 +1000,18 @@ jQuery(document).ready(function () {
 
     if (needsWakeUp && hasWakeUpAnimation) {
       const $msgbox = jQuery("#ukagaka_msgbox");
+      window.mpuForceWakeUpNextTime = true;
       // 有喚醒動畫：先淡出對話框（隱藏 ZZZ），等待喚醒動畫完成後再顯示
       $msgbox.fadeOut(1000, function () {
         // 在對話框隱藏後，開始喚醒動畫（skipBookFlip = true：不翻書）
-        window.mpuCanvasManager.triggerCharacterAnimation(true, null, true);
-
-        // 同時呼叫後續動作（如生成 LLM 對話）
-        handleOkAction();
+        window.mpuCanvasManager.triggerCharacterAnimation(
+          true,
+          function () {
+            window.mpuSkipNextManualBookFlip = true;
+            handleOkAction();
+          },
+          true
+        );
       });
       return;
     }
