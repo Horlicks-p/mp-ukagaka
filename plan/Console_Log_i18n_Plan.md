@@ -117,12 +117,27 @@ PHP 端（`includes/core/frontend-functions.php` 的 `wp_localize_script`）：
 
 最大陷阱是 `warn`：**direct `console.warn(...)` 永遠輸出，但 `mpuLogger.warn(...)` 只在 debug mode 輸出**。如果 mechanical replace 把 frieren.js 那 4 條 `console.warn("[MP Ukagaka] 無法載入裝飾配置…")` 改成 `mpuLogger.warnL('decorationConfigLoadFailed', ...)`，會把 production 永遠可見的警告靜默化，使用者回報 bug 時失去重要線索。
 
-i18n migration 必須維持原 production 輸出時機。具體規則：
+i18n migration 必須維持原 production 輸出時機。具體規則（純字串 vs 含 placeholder 各自分支）：
 
-- **direct `console.error("中文")`** → 改成 `mpuLogger.errorL(key, fallback, ...)` ✓（兩者皆 always 輸出，行為相容）
-- **direct `console.warn("中文")`** → **不可**直接改成 `mpuLogger.warnL`；應改成 `mpuLogger.warnAlways(key, fallback, ...)`（不做 debug-gated，專門收這類 always-output warn）
-- **direct `console.log("中文")`** → 可改成 `mpuLogger.logL`（兩者都是 debug-gated 即可，但 direct console.log 預設不 gated，需逐條判斷該 log 是否真該 debug-only）
-- **`mpuLogger.warn("中文")`** → 改成 `mpuLogger.warnL(...)` ✓（兩者皆 debug-gated）
+| 原型 | 字串型態 | 遷移目標 |
+|---|---|---|
+| direct `console.error("中文")` | 純字串（可帶 object dump args） | `mpuLogger.errorL` |
+| direct `console.error("中文 %s", v)` 或拼接 | 含 placeholder / 變數 | `mpuLogger.errorF` |
+| direct `console.warn("中文")` | 純字串（可帶 object dump args） | `mpuLogger.warnAlways`（**不可**用 `warnL`，會把 production 永遠輸出的警告靜默化） |
+| direct `console.warn("中文 %d", n)` 或拼接 | 含 placeholder / 變數 | `mpuLogger.warnAlwaysF` |
+| direct `console.log("中文")` | 純字串 | `mpuLogger.logL`（先逐條判斷是否真該 debug-only） |
+| direct `console.log("中文 %s", v)` 或拼接 | 含 placeholder / 變數 | `mpuLogger.logF`（同上） |
+| `mpuLogger.warn("中文")` | 純字串 | `mpuLogger.warnL` ✓ |
+| `mpuLogger.warn("中文 %d", n)` 或拼接 | 含 placeholder / 變數 | `mpuLogger.warnF` |
+| `mpuLogger.log` / `info` 同理 | 純字串 vs 含 placeholder | `logL` / `infoL` vs `logF` / `infoF` |
+
+判斷「是否含 placeholder」的具體訊號：
+
+- 字串內含 `%s` / `%d` → 必走 `*F`
+- 字串拼接 `"閾值：" + n + "秒"` → 必改為含 `%s`/`%d` 的 template + `*F`
+- 字串後接 object dump（如 `console.error("失敗：", err)`，err 是 Error 物件）→ 用 `*L`，err 自動成為 console 第三 arg dump 出物件詳情
+
+實作時若無法判斷，預設先用 `*L`，code review 時抓出來改成 `*F`。
 
 **Prefix 處理規則**（Codex 第 4 點防呆）：
 
@@ -133,6 +148,16 @@ i18n migration 必須維持原 production 輸出時機。具體規則：
 - JS 端 `mpuLogger.errorL('canvasManagerMissing', 'Canvas 管理器未初始化')` — fallback 不寫 prefix
 
 否則輸出會變 `[MP Ukagaka ERROR] [MP Ukagaka] Canvas 管理器未初始化`，雙 prefix。
+
+**Prefix Normalization 是 deliberate**（Codex 第三輪建議）：
+
+direct console 原本可能寫 `[MP Ukagaka]` prefix，遷移到 `mpuLogger.errorL` 後 prefix 會自動變成 `[MP Ukagaka ERROR]`（mpuLogger.error 的 console.error 慣例）。這是 **deliberate output prefix normalization**，不是 unintended change：
+
+- 統一所有 error 都用 `[MP Ukagaka ERROR]`，warn 都用 `[MP Ukagaka]`，方便 console 過濾與 GitHub issue 搜尋
+- 既有 `mpuLogger.error()` 已經採用 ERROR prefix，遷移後一致
+- code review 時不需質疑「為何 prefix 變了」，這是規格
+
+如果某些 call site 必須維持原始 `[MP Ukagaka]` prefix（極罕見），保留 direct console call，列入「例外清單」處理。
 
 ### 2. Logger API 擴展（向下相容）
 
@@ -269,10 +294,12 @@ mpuLogger.warnL('getSettingsInvalidResponse', 'mpu_get_settings: 無效的回應
 
 **MVP 必做拆分**：
 
-| Bucket | 內容 | 注入時機 |
-|---|---|---|
-| `mpuL10n.logs` | production-visible：`errorL` / `warnAlways` 使用的字串（約 30-40 條：16 條 direct console + mpuLogger.error 系列） | 一律注入 |
-| `mpuL10n.logsDebug` | debug-only：`logL` / `warnL` / `infoL` 使用的字串（約 124-134 條） | **僅當 PHP `defined('WP_DEBUG') && WP_DEBUG === true` 時注入** |
+| Bucket | 對應糖衣（純字串） | 對應糖衣（含 placeholder） | 約略條數 | 注入時機 |
+|---|---|---|---:|---|
+| `mpuL10n.logs` | `errorL` / `warnAlways` | `errorF` / `warnAlwaysF` | ~30-40（16 direct console + mpuLogger.error 系列） | 一律注入 |
+| `mpuL10n.logsDebug` | `logL` / `warnL` / `infoL` | `logF` / `warnF` / `infoF` | ~124-134 | **僅當 PHP `defined('WP_DEBUG') && WP_DEBUG === true` 時注入** |
+
+註：`*L` 與 `*F` 共用同一 bucket，因為 i18n key 本身不區分純字串還是含 placeholder（key 是給人讀的識別碼，字串內容才決定是否含 `%s`/`%d`）。`mpuLogger.t()` 與 `mpuLogger.tFormat()` 內部都先查 `logs` 再查 `logsDebug`，無 bucket 預判邏輯。
 
 注入條件選 **`WP_DEBUG`**（PHP standard constant）作為單一來源，理由：
 
@@ -314,12 +341,16 @@ mpuLogger.warnL('getSettingsInvalidResponse', 'mpu_get_settings: 無效的回應
 
 ### 階段 1：基礎設施（無 behavior change）
 
-- 新增 `mpuLogger.t()` / `tFormat()` / `logL()` / `warnL()` / `errorL()` / `infoL()` / `warnAlways()` 方法
-- 新增 `mpuL10n.logs` 與 `mpuL10n.logsDebug` placeholder（PHP 端依 debug mode 條件注入空物件 `[]`）
+- 新增 `mpuLogger` 方法（共 12 個 entry）：
+  - 取值 helpers：`t()` / `tFormat()`
+  - 純字串 i18n 糖衣（`*L`）：`logL()` / `warnL()` / `errorL()` / `infoL()`
+  - 含 placeholder i18n 糖衣（`*F`）：`logF()` / `warnF()` / `errorF()` / `infoF()`
+  - always-output warn 專用：`warnAlways()` / `warnAlwaysF()`
+- 新增 `mpuL10n.logs` 與 `mpuL10n.logsDebug` placeholder（PHP 端依 `WP_DEBUG` 條件注入空物件 `[]`）
 - 不改任何 call site
-- 補 Node smoke script：`t()` 兩 bucket fallback、`tFormat()` placeholder 替換
+- 補 Node smoke script：`t()` 兩 bucket fallback、`tFormat()` placeholder 替換、`*L` vs `*F` 對照（含 lint demo）
 
-預估：1 個 PR，~80 行 diff。
+預估：1 個 PR，~120 行 diff。
 
 ### 階段 2：production-visible call site（error + direct console.error/warn）
 
@@ -433,9 +464,17 @@ mpuLogger.warnL('getSettingsInvalidResponse', 'mpu_get_settings: 無效的回應
 - `tFormat('key', 'fmt %s %s', 'a', 'b')` → `'fmt a b'`
 - `tFormat('key', 'fmt %d', 1, 2, 3)` → `'fmt 1'`（多餘參數忽略，不錯誤）
 - `tFormat('key', 'fmt %d %d', 1)` → `'fmt 1 '`（不足參數用空字串填充，不錯誤）
-- `tFormat('key', 'fmt %d', [60])` → `'fmt 60'`（array 是邊界情況，String([60]) 巧合等於 '60'，但 array 路徑不保證；測試確認與規格一致：rest args 才是合約）
+- **Negative test（合約強制）**：`tFormat('key', 'fmt %s %s', [60, 'sec'])` → `'fmt 60,sec '`（`String([60, 'sec'])` 為 `'60,sec'`，整個 array 被視為 `%s` 的第一個 value）。此測試**只是文件化「不支援 array」的後果**，實際 lint / grep 規則應禁止 `tFormat(..., [...])` 寫法。
 - `logF('key', 'fmt %d', 60)` debug mode → console.log 輸出 `'[MP Ukagaka] fmt 60'`，**單一 prefix**
 - `logL('key', 'fmt %d 秒', 60)` debug mode → console.log 輸出 `'[MP Ukagaka] fmt %d 秒 60'`（demonstrate logL 不會跑 tFormat 的設計後果，供 lint 規則檢測「含 placeholder 字串誤用 logL」用）
+
+### Lint / grep 規則建議（階段 1 補做）
+
+實作時建議補幾條 grep / lint 規則，定期 CI 跑：
+
+- 偵測 `mpuLogger\.(logL|warnL|errorL|infoL|warnAlways)\([^)]*%[sd]` → 警告「含 placeholder 字串應改用 *F 系列」
+- 偵測 `mpuLogger\.tFormat\([^)]*,\s*\[` → 警告「tFormat values 不接受 array，請改 rest args」
+- 偵測 `mpuLogger\.(logL|warnL|errorL|infoL|warnAlways|logF|warnF|errorF|infoF|warnAlwaysF)\([^)]*'?\[MP Ukagaka` → 警告「fallback 字串不應含 [MP Ukagaka] prefix」
 
 未來若 repo 引入 Jest / Vitest，可把 smoke script 升級為正式 unit test。本案不阻擋。
 
@@ -492,6 +531,14 @@ mpuLogger.warnL('getSettingsInvalidResponse', 'mpu_get_settings: 無效的回應
 - **修正（Codex #4）**：direct console migration 時，原始字串多半已含 `[MP Ukagaka]` prefix（e.g. `console.error("[MP Ukagaka] Canvas 管理器未初始化")`）。若直接搬到 fallback 會雙 prefix。已在 §1.5 補「Prefix 處理規則」明訂 localized string 與 fallback 字串只放 message body，並加 Hard Limit #10。
 - **修正（Codex #5）**：原 `tFormat` 註解寫「values 可為單一值或 array」，但實作 `...values` 不 flatten array，傳 array 會變 `String([60, 'sec'])` 即 `"60,sec"`。已刪掉「array」描述，固定 rest args 合約，並加 Hard Limit #11；§Verification 加 `tFormat('key', 'fmt %d', [60])` 邊界測試。
 
+### Codex 現場覆核（2026-05-22，第三輪）
+
+- **修正（Codex #1）**：Phase 1 checklist 漏列 `*F` helpers，原本只寫 `t / tFormat / logL / warnL / errorL / infoL / warnAlways` 共 7 個 method，會讓實作者漏做含 placeholder 系列。已補齊：12 個 entry，含 `logF / warnF / errorF / infoF / warnAlwaysF` 共 5 個新增。
+- **修正（Codex #2）**：§5 payload 表格沒同步 `*F` 對應的 bucket，導致格式化 log 可能找不到 key 的隱憂。已重寫表格列出純字串 vs 含 placeholder 兩個糖衣 column，並補註說明 `*L` 與 `*F` 共用同一 bucket 的設計理由（i18n key 識別碼不區分字串型態）。
+- **修正（Codex #3）**：§1.5 direct console migration 規則只列了純字串路徑，沒提含 placeholder / 變數的情境。實際很多 direct console 帶 `err` 物件 dump 或字串拼接，需明確走 `*F` 系列。已把規則改成完整表格，列出 8 種來源型態與遷移目標，並補「判斷是否含 placeholder」的具體訊號清單。
+- **修正（Codex #4）**：原 Verification 寫的 `tFormat(..., [60]) → 'fmt 60'` 邊界測試會讓讀者誤以為 array 是合法 API。已改寫為 **negative test**：`tFormat('key', 'fmt %s %s', [60, 'sec']) → 'fmt 60,sec '`（明確展示 array 被視為單一 `%s` value 的錯誤後果），並補 lint / grep 規則建議三條，包含「禁止 array 參數」自動偵測。
+- **補充（Codex 第三輪非阻擋建議）**：在 §1.5 「Prefix 處理規則」之後新增「**Prefix Normalization 是 deliberate**」子段，明說 `[MP Ukagaka]` → `[MP Ukagaka ERROR]` 是規格內的正規化，不是 unintended output change，避免實作 PR 被 reviewer 誤抓。
+
 ---
 
-_Last updated: 2026-05-22 — Codex 第二輪現場覆核後修訂，草案，待三輪審查或凍結。_
+_Last updated: 2026-05-22 — Codex 第三輪現場覆核後修訂，草案接近凍結，建議交家裡 Codex 進實作前審查。_
