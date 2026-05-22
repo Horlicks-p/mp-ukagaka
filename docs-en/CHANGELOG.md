@@ -4,6 +4,37 @@
 
 ---
 
+## [2.22.1] - 2026-05-22
+
+### 👻 Ghost Sleep-Wake Grumble Mechanism (v2.22.1)
+
+When a visitor wakes the character via `/wake-ghost` during `deep_sleep` or `oversleep`, the backend now uses the LLM to generate a short, in-character Japanese grumble. The frontend typewriters this grumble to the user instead of showing the default welcome message.
+
+### ⚙️ Backend REST API & LLM Generation (`includes/rest/class-mpu-rest-dialog.php`)
+
+- Adds `get_wake_sleep_phase()` to classify the active sleep phase as `deep_sleep` or `oversleep` before marking the IP as woken.
+- Adds `generate_wake_reaction()` to dynamically pick the corresponding prompt, call `mpu_call_ai_api` with `max_tokens=120`, and filter `<think>` tags and HTML tags. Returns an empty string `''` on failure for a safe fallback while logging details.
+- Returns `sleep_phase` and `wake_reaction` fields in the wake-ghost API response.
+- Protects the Ollama path with a `busy-lock` to prevent concurrent local LLM execution.
+
+### 📐 Personality Config & Prompts (`ghost/Frieren/sleep_mode.json` & `includes/personality/personality-prompts.php`)
+
+- Adds `wake_reaction_prompts` in `sleep_mode.json`, defining three prompt variants each for `deep_sleep` and `oversleep`.
+- Adds `mpu_pick_wake_reaction_prompt()` in `personality-prompts.php` to securely filter and randomly extract the prompt.
+
+### 🔌 Frontend Integration (`js/ukagaka-chat.js`)
+
+- Updates `mpu_send_wake_up_request()` to return a Promise and guards against duplicate concurrent clicks via `window.mpuWakeRequestPromise`, extending the timeout to 60s for LLM processing.
+- Adds `mpu_display_wake_reaction()` to typewriter the grumble and push a `{ type: 'wake_reaction' }` entry into `window.mpuChatHistory` to preserve conversational context.
+- Integrates `mpu_toggleChatMode()` and the OK-button handler to await the wake animation before firing the request, safely falling back to the default welcome message if no grumble is generated.
+
+### 📦 Files Changed & Build
+
+- Updates the main plugin entry `mp-ukagaka.php` and its version constant `MPU_VERSION` to `2.22.1`.
+- Rebuilds frontend assets (`js/dist/ukagaka-bundle.js` and `js/dist/ukagaka-bundle.min.js`).
+
+---
+
 ## [2.22.0] - 2026-05-22
 
 ### 👻 Ghost Runtime State Helper (v2.22.0 #7 milestone)

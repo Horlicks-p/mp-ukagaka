@@ -1087,11 +1087,29 @@ jQuery(document).ready(function () {
  * 發送喚醒角色請求給後端
  */
 function mpu_display_wake_reaction(res) {
-  if (!res || !res.wake_reaction) {
-    return false;
-  }
-
-  const reaction = String(res.wake_reaction).trim();
+  const fallbackPool =
+    res && res.sleep_phase === "oversleep"
+      ? [
+          "……もう少し寝ていたかったんだけど。",
+          "……起こすの、少し早くない？",
+          "……あと少しだけ寝るつもりだったのに。",
+          "……二度寝の途中だったんだけど。",
+          "……もう朝？ まだ眠い。",
+        ]
+      : res && res.sleep_phase === "deep_sleep"
+        ? [
+            "……今、起こす必要あった？",
+            "……うるさい。まだ寝てたんだけど。",
+            "……なに。急ぎの用？",
+            "……眠い。あとでいい？",
+            "……せっかく寝てたのに。",
+          ]
+        : [];
+  const fallbackReaction =
+    fallbackPool.length > 0
+      ? fallbackPool[Math.floor(Math.random() * fallbackPool.length)]
+      : "";
+  const reaction = String((res && res.wake_reaction) || fallbackReaction).trim();
   if (!reaction) {
     return false;
   }

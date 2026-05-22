@@ -4,6 +4,37 @@
 
 ---
 
+## [2.22.1] - 2026-05-22
+
+### 👻 ゴースト睡眠復帰時の愚痴/起床気メカニズム（v2.22.1）
+
+訪客がキャラクターの「深眠（deep_sleep）」または「寝坊（oversleep）」中に起こすボタン（`/wake-ghost`）をクリックした際、バックエンドで LLM を使用してキャラクターらしい日本語の起床時の愚痴（起床気）を動的に生成し、フロントエンドでタイプライター効果を用いて表示する機能を追加しました（従来のデフォルト歓迎メッセージを置き換えます）。
+
+### ⚙️ バックエンド REST API と LLM 生成（`includes/rest/class-mpu-rest-dialog.php`）
+
+- 新規関数 `get_wake_sleep_phase()` を追加し、状態書き込み前に現在のフェーズが `deep_sleep` か `oversleep` かを判定。
+- 新規関数 `generate_wake_reaction()` を追加し、対応する日本語の AI プロンプトを動的に選択して `mpu_call_ai_api` を呼び出し（`max_tokens=120` 制限）、`<think>` タグや HTML タグを除去。エラー時は空文字列 `''` を返して安全にフォールバックさせ、デバッグログを出力。
+- 起こし REST API レスポンスに `sleep_phase` と `wake_reaction` フィールドを追加。
+- Ollama ローカルモデル用パスにおいて `busy-lock` ミューテックスを適用し、並行リクエストによる負荷を防ぐ。
+
+### 📐 人格設定とプロンプト（`ghost/Frieren/sleep_mode.json` & `includes/personality/personality-prompts.php`）
+
+- `sleep_mode.json` に `wake_reaction_prompts` 設定を追加し、`deep_sleep` と `oversleep` それぞれに 3 つのランダム AI プロンプトを定義。
+- `personality-prompts.php` に `mpu_pick_wake_reaction_prompt()` を追加し、安全性のバリデーションを行いながらプロンプトをランダム抽出。
+
+### 🔌 フロントエンド対話の統合（`js/ukagaka-chat.js`）
+
+- `mpu_send_wake_up_request()` を Promise を返すように変更し、`window.mpuWakeRequestPromise` で並行の重複クリックを防止。LLM 生成時間を考慮してタイムアウトを 60 秒に延長。
+- 新規関数 `mpu_display_wake_reaction()` を追加し、タイプライターで愚痴を表示させ、さらに `{ type: 'wake_reaction' }` を `window.mpuChatHistory` に追加して後続の対話文脈（起床気コンテキスト）を維持。
+- `mpu_toggleChatMode()` および OK ボタンハンドラを統合し、起こしアニメーション完了後にリクエストを await させ、愚痴が生成されなかった場合は安全に既存の歓迎メッセージへフォールバック。
+
+### 📦 変更ファイルとビルド
+
+- `mp-ukagaka.php` 主ファイルおよびバージョン定数を `2.22.1` に更新。
+- フロントエンドアセット（`js/dist/ukagaka-bundle.js` および `js/dist/ukagaka-bundle.min.js`）を再ビルド。
+
+---
+
 ## [2.22.0] - 2026-05-22
 
 ### 👻 Ghost Runtime State Helper（v2.22.0 #7 milestone）

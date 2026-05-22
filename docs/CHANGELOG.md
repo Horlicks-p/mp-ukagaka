@@ -4,6 +4,37 @@
 
 ---
 
+## [2.22.1] - 2026-05-22
+
+### 👻 角色睡眠喚醒抱怨機制（v2.22.1）
+
+當訪客在角色處於「深眠（deep_sleep）」或「賴床（oversleep）」狀態下點擊喚醒按鈕（`/wake-ghost`）時，後端現在會透過 LLM 生成一段角色專屬的日文起床氣/抱怨台詞，前端並以打字機效果展示，取代原有的預設歡迎語。
+
+### ⚙️ 後端 REST API 與 LLM 生成（`includes/rest/class-mpu-rest-dialog.php`）
+
+- 新增 `get_wake_sleep_phase()` 函數，在寫入喚醒狀態前判定當前處於 `deep_sleep` 還是 `oversleep` 階段。
+- 新增 `generate_wake_reaction()` 函數，動態挑選對應的日文 AI 提示詞調用 `mpu_call_ai_api`（限制 `max_tokens=120`），並處理 AI 回覆的 `<think>` 內容與過濾 HTML 標籤。若失敗則回傳空字串 `''` 提供安全降級 fallback，並輸出除錯日誌。
+- 喚醒 API 回傳結果新增 `sleep_phase` 與 `wake_reaction` 欄位。
+- Ollama 本地模型路徑採用 `busy-lock` 互斥鎖保護，防止並行請求過載。
+
+### 📐 人格配置與提示詞（`ghost/Frieren/sleep_mode.json` & `includes/personality/personality-prompts.php`）
+
+- 於 `sleep_mode.json` 新增 `wake_reaction_prompts` 配置，為 `deep_sleep` 與 `oversleep` 各自定義 3 個隨機 AI 提示指令。
+- 於 `personality-prompts.php` 新增 `mpu_pick_wake_reaction_prompt()` 安全過濾並隨機抽取提示詞。
+
+### 🔌 前端對話整合（`js/ukagaka-chat.js`）
+
+- `mpu_send_wake_up_request()` 改為回傳 Promise，並使用 `window.mpuWakeRequestPromise` 防止重複點擊，並將超時時間延長至 60 秒以容納 LLM 生成延遲。
+- 新增 `mpu_display_wake_reaction()`，透過打字機效果輸出抱怨語，並將 `{ type: 'wake_reaction' }` 推入 `window.mpuChatHistory` 歷史對話，確保後續 LLM 對話能連貫起床氣上下文。
+- 整合 `mpu_toggleChatMode()` 與 OK 按鈕流程，在喚醒動畫完成後再發送請求；若無抱怨語生成則安全 fallback 至原迎賓語路徑。
+
+### 📦 變更檔案與建置
+
+- 更新 `mp-ukagaka.php` 主外掛檔與版本常量為 `2.22.1`。
+- 重新建置前端打包檔（`js/dist/ukagaka-bundle.js` 與 `js/dist/ukagaka-bundle.min.js`）。
+
+---
+
 ## [2.22.0] - 2026-05-22
 
 ### 👻 Ghost Runtime State Helper（v2.22.0 #7 milestone）

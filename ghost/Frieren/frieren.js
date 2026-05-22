@@ -1209,23 +1209,33 @@
 
       // 如果處於睡眠模式，觸發喚醒動畫
       if (isAsleep) {
+        const wakeThenContinue = () => {
+          if (typeof mpu_send_wake_up_request !== "function") {
+            executeAjaxReq();
+            return;
+          }
+
+          mpu_send_wake_up_request()
+            .then((reactionDisplayed) => {
+              if (!reactionDisplayed) {
+                executeAjaxReq();
+              } else {
+                this.waitForTypewriterAndRestore();
+              }
+            })
+            .catch(() => {
+              executeAjaxReq();
+            });
+        };
+
         if ($msgbox.is(":visible")) {
           $msgbox.fadeOut(1000, () => {
-            if (typeof mpu_send_wake_up_request === "function") {
-              mpu_send_wake_up_request();
-            }
             this.triggerFrierenSpeaking(true, null);
-            
-            // 清空對話框準備顯示新訊息
-            jQuery("#ukagaka_msg").html("");
-            executeAjaxReq();
+            wakeThenContinue();
           });
         } else {
-          if (typeof mpu_send_wake_up_request === "function") {
-            mpu_send_wake_up_request();
-          }
           this.triggerFrierenSpeaking(true, null);
-          executeAjaxReq();
+          wakeThenContinue();
         }
       } else {
         // 一般模式：顯示思考中
@@ -1503,23 +1513,33 @@
 
       // 如果處於睡眠模式，觸發喚醒動畫
       if (isAsleep) {
+        const wakeThenContinue = () => {
+          if (typeof mpu_send_wake_up_request !== "function") {
+            executeAjaxReq();
+            return;
+          }
+
+          mpu_send_wake_up_request()
+            .then((reactionDisplayed) => {
+              if (!reactionDisplayed) {
+                executeAjaxReq();
+              } else {
+                self.waitForTypewriterAndRestore();
+              }
+            })
+            .catch(() => {
+              executeAjaxReq();
+            });
+        };
+
         if ($msgbox.is(":visible")) {
           $msgbox.fadeOut(1000, () => {
-            if (typeof mpu_send_wake_up_request === "function") {
-              mpu_send_wake_up_request();
-            }
             self.triggerFrierenSpeaking(true, null);
-            
-            // 清空對話框準備顯示新訊息
-            jQuery("#ukagaka_msg").html("");
-            executeAjaxReq();
+            wakeThenContinue();
           });
         } else {
-          if (typeof mpu_send_wake_up_request === "function") {
-            mpu_send_wake_up_request();
-          }
           self.triggerFrierenSpeaking(true, null);
-          executeAjaxReq();
+          wakeThenContinue();
         }
       } else {
         // 一般模式：顯示思考中
