@@ -539,6 +539,16 @@ mpuLogger.warnL('getSettingsInvalidResponse', 'mpu_get_settings: 無效的回應
 - **修正（Codex #4）**：原 Verification 寫的 `tFormat(..., [60]) → 'fmt 60'` 邊界測試會讓讀者誤以為 array 是合法 API。已改寫為 **negative test**：`tFormat('key', 'fmt %s %s', [60, 'sec']) → 'fmt 60,sec '`（明確展示 array 被視為單一 `%s` value 的錯誤後果），並補 lint / grep 規則建議三條，包含「禁止 array 參數」自動偵測。
 - **補充（Codex 第三輪非阻擋建議）**：在 §1.5 「Prefix 處理規則」之後新增「**Prefix Normalization 是 deliberate**」子段，明說 `[MP Ukagaka]` → `[MP Ukagaka ERROR]` 是規格內的正規化，不是 unintended output change，避免實作 PR 被 reviewer 誤抓。
 
+### Antigravity 現場覆核（2026-05-22，第四輪）
+
+- **修復 `window.mpuDebugMode` 的前置 PR**：同意並強烈支持先以獨立小 PR 修復此 bug，以利後續的 logsDebug 與相關 API 的開發及驗證。
+- **維持 `tFormat` 診斷值行為**：同意將 `undefined`/`null` 保持為 `"undefined"`/`"null"` 的 String 輸出，以提供精準的除錯訊號；無需在 MVP 實作過於複雜的 `%%` 轉義。
+- **CI 靜態檢查規則修正**：接受並同意 Codex 的修正建議。最初提出的 blanket grep (`[一-鿿]`) 會誤判合法的 JS 內部 fallback 字串（例如 `mpuLogger.logL('key', '中文原文')`）。正確的 CI 檢查規則必須只針對：
+  1. 帶有中文且未經 i18n 化的原生 `console.*` 呼叫。
+  2. 帶有中文且未經 i18n 化的舊 `mpuLogger.*` 呼叫。
+  3. 應排除 `*L` 與 `*F` 糖衣呼叫中的第二參數（即合法 fallback 中文字串）。
+  4. 建議透過 AST 解析或 ESLint 規則來處理，以防範註解與多行拼接的誤判。
+
 ---
 
-_Last updated: 2026-05-22 — Codex 第三輪現場覆核後修訂，草案接近凍結，建議交家裡 Codex 進實作前審查。_
+_Last updated: 2026-05-22 — 歷經 Codex 多輪與 Antigravity 現場覆核，本設計已整合全數覆核意見，規格凍結，準備進入實作階段。_
