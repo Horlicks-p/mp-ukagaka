@@ -2,7 +2,7 @@
 
 > 2026-05-22 草案。**狀態：設計討論中，尚未凍結，尚未實作。**
 >
-> 本文件記錄「將 ~161 條 JS console log 中文字串改為 i18n 化」的需求盤點、架構選項與分批策略，作為未來 milestone（暫定 #X）的設計基礎。在凍結之前，所有決策可調整。
+> 本文件記錄「將 ~164 條 JS console log 硬編碼字串改為 i18n 化」的需求盤點、架構選項與分批策略，作為未來 milestone（暫定 #X）的設計基礎。在凍結之前，所有決策可調整。
 
 ---
 
@@ -19,7 +19,7 @@ v2.21.1 patch 撰寫 CHANGELOG 時注意到 console log 字串全部 hard-coded 
 - 不破壞既有 `mpuLogger` debug-mode gating 行為
 - 不引入新前端 i18n 框架
 - 翻譯成本可分階段攤提，不強求一次補齊
-- 至少維持中文 fallback，翻譯缺漏時不出現 `undefined` 或英文 key
+- 至少維持日文 fallback，翻譯缺漏時不出現 `undefined` 或英文 key
 
 本案明確**不做**：
 
@@ -100,16 +100,32 @@ const mpuLogger = {
 
 ## 架構決策
 
+### 0. Source-language convention：日文 source / fallback
+
+本案採用 Claude 家裡審查提出的選項 A：**log source string 與 JS fallback 字串都統一使用日文**。
+
+理由：
+
+- 既有 `mpuL10n` source string 已是日文；同一 `mp-ukagaka` textdomain 不應混入日文 UI source 與中文 log source。
+- 本作品本身源於日文語境；其他語言是附加翻譯層。
+- `.pot` / `.po` 對譯者的 source-language convention 必須一致，避免譯者無法判斷哪些字串是原文、哪些字串是待譯。
+
+實作影響：
+
+- 164 條既有中文 log 在 i18n migration 時，應先改成日文 source / fallback，再由 `.po` 補繁中與英文翻譯。
+- JS call site 的第二參數 fallback 不再寫中文原文，而是日文原文。
+- 中文原文可保留在 PR review notes 或 migration 對照表，但不進 `__()` source string，也不作為 runtime fallback。
+
 ### 1. 字串來源：`mpuL10n.logs` 子物件
 
 PHP 端（`includes/core/frontend-functions.php` 的 `wp_localize_script`）：
 
 ```php
 'logs' => [
-    'jqueryReady'          => __('jQuery ready 已執行', 'mp-ukagaka'),
-    'wakeUpFrieren'        => __('☀️ 芙莉蓮被喚醒了！', 'mp-ukagaka'),
-    'wakeUpFrierenForced'  => __('☀️ 芙莉蓮被喚醒了！(forceWakeUp)', 'mp-ukagaka'),
-    'skipBookFlipAfterWake'=> __('📖 喚醒後跳過翻書動畫', 'mp-ukagaka'),
+    'jqueryReady'          => __('jQuery ready を実行しました', 'mp-ukagaka'),
+    'wakeUpFrieren'        => __('☀️ フリーレンが目を覚ましました！', 'mp-ukagaka'),
+    'wakeUpFrierenForced'  => __('☀️ フリーレンが目を覚ましました！(forceWakeUp)', 'mp-ukagaka'),
+    'skipBookFlipAfterWake'=> __('📖 起床後のページめくりアニメーションをスキップしました', 'mp-ukagaka'),
     // ... 約 150 條
 ]
 ```
@@ -195,7 +211,22 @@ const mpuLogger = {
       (typeof mpuL10n !== "undefined" && mpuL10n && mpuL10n.logs) || {};
     const debugLogs =
       (typeof mpuL10n !== "undefined" && mpuL10n && mpuL10n.logsDebug) || {};
-    return logs[key] || debugLogs[key] || fallback || key;
+    if (Object.prototype.hasOwnProperty.call(logs, key)) {
+      return logs[key];
+    }
+    if (Object.prototype.hasOwnProperty.call(debugLogs, key)) {
+      return debugLogs[key];
+    }
+    if (this._isDebug && this._isDebug()) {
+      this._debugMissingI18nKey(key);
+    }
+    return fallback || key;
+  },
+  _missingI18nKeys: new Set(),
+  _debugMissingI18nKey: function (key) {
+    if (this._missingI18nKeys.has(key)) return;
+    this._missingI18nKeys.add(key);
+    console.debug("[MP Ukagaka i18n missing]", key);
   },
 
   // 含 placeholder 的 i18n 取值（與 PHP sprintf 一致，支援 %s/%d 與 %1$s/%2$s 等位置定位符）
@@ -294,13 +325,14 @@ mechanical 拼接如 `mpuLogger.log('閒置偵測已初始化，閾值：', 60, 
 mpuLogger.log('閒置偵測已初始化，閾值：', threshold / 1000, '秒');
 
 // After（PHP 端）
-'idleDetectionInit' => __('閒置偵測已初始化，閾值：%d 秒', 'mp-ukagaka'),
+/* translators: 開発者向け console log。%d は秒数。 */
+'idleDetectionInit' => __('アイドル検知を初期化しました。しきい値：%d 秒', 'mp-ukagaka'),
 
 // After（JS 端 — 用 logF 含 placeholder 糖衣，最簡潔）
-mpuLogger.logF('idleDetectionInit', '閒置偵測已初始化，閾值：%d 秒', threshold / 1000);
+mpuLogger.logF('idleDetectionInit', 'アイドル検知を初期化しました。しきい値：%d 秒', threshold / 1000);
 
-// ⚠️ 不要用 logL —— logL 不會跑 tFormat，會輸出「閾值：%d 秒 60」而不是「閾值：60 秒」：
-// mpuLogger.logL('idleDetectionInit', '閒置偵測已初始化，閾值：%d 秒', threshold / 1000); // BAD
+// ⚠️ 不要用 logL —— logL 不會跑 tFormat，會輸出「しきい値：%d 秒 60」而不是「しきい値：60 秒」：
+// mpuLogger.logL('idleDetectionInit', 'アイドル検知を初期化しました。しきい値：%d 秒', threshold / 1000); // BAD
 ```
 
 對純字串 log（無變數）則用一般 `logL/warnL/errorL/infoL`，不需要 tFormat。
@@ -314,7 +346,7 @@ mpuLogger.warn("mpu_get_settings: 無效的回應", res);
 // After（使用 warnL 糖衣，res 物件作為 console.warn 第三 arg，i18n 不處理物件 dump）
 mpuLogger.warnL(
   "getSettingsInvalidResponse",
-  "mpu_get_settings: 無效的回應",
+  "mpu_get_settings: 無効なレスポンス",
   res,
 );
 ```
@@ -324,14 +356,16 @@ mpuLogger.warnL(
 `mpuLogger.t(key, fallback)` 三層 fallback：
 
 1. `mpuL10n.logs[key]` 存在 → 用翻譯後的字串
-2. 翻譯缺漏（key 不存在於 `mpuL10n.logs`）→ 用 caller 提供的 `fallback`（建議寫**原中文字串**）
+2. 翻譯缺漏（key 不存在於 `mpuL10n.logs` / `logsDebug`）→ 用 caller 提供的 `fallback`（必須寫**日文 source string**）
 3. caller 沒給 fallback → 退回 key 本身（顯示如 `getSettingsInvalidResponse`，明顯是 i18n 漏網之魚，方便除錯）
 
-**Fallback 字串建議寫原中文**，不寫英文。理由：
+**Fallback 字串必須寫日文 source string**，不寫中文或英文。理由：
 
-- 翻譯漏網時，UI 顯示中文 ≥ 顯示英文（既有行為是中文，符合最小驚訝原則）
-- caller 端閱讀程式碼時，中文 fallback 比 key 更易理解該 log 的語境
+- 與既有 `mpuL10n` source-language convention 對齊
+- 翻譯漏網時，console 顯示日文 source，符合作品語境與既有前端 UI source
 - `mpuL10n.logs` 若整個 PHP 端忘記注入，整個 plugin 仍可運作
+
+`t()` 必須用 key existence 判斷（`hasOwnProperty`），不可用 truthy fallback。debug mode 下若找不到 key，允許 per-key `console.debug('[MP Ukagaka i18n missing]', key)` 一次，方便發現 key 拼錯或 PHP 端漏注入。
 
 ### 4. Key 命名規範
 
@@ -349,7 +383,7 @@ mpuLogger.warnL(
 
 ### 5. Payload 拆分（Codex 提示後從「未來優化」升級為 MVP 必做）
 
-平均每條 key + 中文字串約 50 bytes。164 條全部 inline ≈ 8.2 KB，每位匿名訪客都會在頁面載入時下載 — 不划算。
+平均每條 key + 日文字串約 50 bytes。164 條全部 inline ≈ 8.2 KB，每位匿名訪客都會在頁面載入時下載 — 不划算。
 
 **MVP 必做拆分**：
 
@@ -432,15 +466,11 @@ mpuLogger.warnL(
 
 預估：5-8 個 PR，按檔案分批。
 
-### 階段 3.5：早於 mpuLogger 定義的 console（見「例外清單」）
-
-少量例外 call site 需個別決定處理方式，不混入 mechanical replace 批次。
-
 ### 階段 4：translation
 
-`.po` / `.mo` 補日英翻譯。可由社群 / 機器翻譯 + 校對。
+`.po` / `.mo` 補繁中與英文翻譯。可由社群 / 機器翻譯 + 校對。
 
-**不阻擋階段 1-3.5**：階段 1-3.5 完成後，所有 call site 已 i18n 化，缺翻譯時 fallback 為中文（= 原行為），不影響任何使用者。
+**不阻擋階段 1-3**：階段 1-3 完成後，所有 call site 已 i18n 化，缺翻譯時 fallback 為日文 source string，不影響功能。
 
 ---
 
@@ -452,7 +482,7 @@ mpuLogger.warnL(
    - direct `console.warn` → `mpuLogger.warnAlways`（不可改成 debug-gated 的 `warnL`）
    - direct `console.log` → 須逐條判斷是否 debug-only，再決定 `logL` 或保留 direct
    - `mpuLogger.warn`/`log`/`info` → `mpuLogger.warnL`/`logL`/`infoL` ✓（同為 debug-gated）
-3. 所有 i18n 化的 call site 必須提供 fallback 字串（中文原文）。禁止傳 `mpuLogger.t('key')` 不帶 fallback。
+3. 所有 i18n 化的 call site 必須提供 fallback 字串（日文 source string）。禁止傳 `mpuLogger.t('key')` 不帶 fallback。
 4. `mpuL10n.logs` / `mpuL10n.logsDebug` 缺失（PHP 端意外沒注入）時，logger 仍可運作，落到 fallback 字串。
 5. 不引入新 npm dependency。
 6. 不改變既有 debug-mode gating 行為（log/warn/info 仍 gated，error 仍永遠輸出，warnAlways 永遠輸出）。
@@ -461,6 +491,10 @@ mpuLogger.warnL(
 9. 含變數 / 單位 / 順序可能因語言改變的 log 必須用 `*F` 糖衣（`logF` / `warnF` / `errorF` / `infoF`），不拆段 string concat。
 10. i18n key 的 localized string 與 fallback 字串**只含 message body**，不寫 `[MP Ukagaka]` / `[MP Ukagaka ERROR]` prefix；prefix 由 `mpuLogger.*L / *F / warnAlways` 自動添加。
 11. `tFormat` values 固定用 rest args（`tFormat(key, fallback, v1, v2)`），不接受 array（`tFormat(key, fallback, [v1, v2])` 會變 `String([v1, v2])`）。
+12. `mpuLogger.t()` / `tFormat()` 只作為 logger i18n 內部 helper；禁止拿來做一般 UI i18n。UI 字串仍使用既有 `mpuL10n.xxx` contract。
+13. MVP 不支援 plural API（例如 `_n()` / `*N` / `*NF` 糖衣）。含計數的 log 先用 `*F`；英文 plural 不完美列為未來獨立改善。
+14. i18n source / fallback / translation 禁止內嵌 session token、API key、user_id、IP、email 等敏感資料。動態敏感值不得被寫進 localized string。
+15. `__()` log source string 前應提供 `/* translators: ... */` context 註解；production-visible `mpuL10n.logs` 必須提供，debug-only `logsDebug` 由 code review 盡量補齊。
 
 ---
 
@@ -513,6 +547,8 @@ mpuLogger.warnL(
 本 repo 尚未引入 JS unit test framework（`tools/node/package.json` 只有 build / PHP lint+test，無 Jest / Vitest / Mocha）。階段 1 不引入 Jest，改以一個 standalone Node smoke script 驗證 `mpuLogger.t` 與 `tFormat` 行為，例如 `tools/node/test-logger-smoke.js`：
 
 - `t('existingKey', 'fallback')` 兩 bucket 命中順序：先 `logs` 再 `logsDebug` 再 `fallback` 再 `key`
+- `t()` 用 `hasOwnProperty` 判斷 key 是否存在，不用 truthy 判斷
+- debug mode 下 missing key 時，每個 key 只輸出一次 `console.debug('[MP Ukagaka i18n missing]', key)`
 - `t('missingKey', 'fallback')` → 回 `'fallback'`
 - `t('missingKey')` → 回 `'missingKey'`
 - `t('key')` with `mpuL10n` undefined → 不 throw，回 `'key'`
@@ -534,10 +570,17 @@ mpuLogger.warnL(
 
 未來若 repo 引入 Jest / Vitest，可把 smoke script 升級為正式 unit test。本案不阻擋。
 
+### Code review 必查項
+
+- `__()` source string 與 JS fallback 是否都是日文。
+- `mpuL10n.logs` production-visible key 上方是否有 `/* translators: ... */` 註解。
+- `mpuLogger.t()` / `tFormat()` 是否只由 logger 糖衣使用，沒有被 UI 字串直接呼叫。
+- source 改動後是否以 build 重建 `js/dist/*`，且 dist 未手寫修改。
+
 ### Manual
 
 - 切換 WP locale 為 `ja`，重整頁面，觸發 wake-up，console 出現日文版 log（假設翻譯已補）
-- 故意拔掉 `mpuL10n.logs.wakeUpFrieren`，觸發 wake-up，console 出現中文 fallback
+- 故意拔掉 `mpuL10n.logs.wakeUpFrieren`，觸發 wake-up，console 出現日文 fallback
 - production mode（`mpuIsDebugMode()` 回 false），所有 `logL` / `warnL` / `infoL` 不輸出，但 `errorL` 與 `warnAlways` 仍輸出
 - production mode 下 `mpuL10n.logsDebug` 未注入，但 `mpuL10n.logs` 存在；error log 取得到翻譯，debug log fallback 到中文（但因 debug-gated 也不會真的輸出）
 - debug mode 下 `mpuL10n.logsDebug` 注入；所有 log 取得到翻譯
@@ -611,7 +654,7 @@ mpuLogger.warnL(
 - **徹底消除例外清單**：重新檢視 `js/ukagaka-base.js` 最前方的 reload 偵測 IIFE。因為它不依賴下方的任何全域變數，我們決定直接將該 IIFE 移動至 `mpuLogger` 宣告下方，從而徹底消除例外清單。這使核心 JS 檔案達到 100% 潔淨 logger 替換的標準。
 - **Ghost 專屬 Log 的 Key 命名規範**：為防止第三方或未來內建多個 Ghost 時的 log keys 與核心外掛衝突，明訂內建 Ghost（如 Frieren）的專用 log keys 必須加上 Ghost 名稱前綴（如 `frierenCanvasInitFailed`）。
 - **CI 靜態檢查與 `*L` 糖衣的變數拼接防呆**：明訂靜態檢查或 CI 規則中，必須警告並禁止在 `*L` 系列（純字串）糖衣的第二個參數（fallback）中使用 ES6 模板字串或 `+` 進行變數拼接，因為這會破壞 i18n 機制。格式化輸出必須強制使用 `*F` 系列。
-- **Debug 注入邊界防禦**：提醒未來如果外掛引入 PHP 端 debug_mode 選項，應確保 `logsDebug` 的注入條件改為 `(defined('WP_DEBUG') && WP_DEBUG) || mpu_get_option('debug_mode')`，避免前端 debug mode 開啟時 logsDebug 因 WP_DEBUG 未啟動而未被注入，導致 debug log 退回中文 fallback 的問題。
+- **Debug 注入邊界防禦**：提醒未來如果外掛引入 PHP 端 debug_mode 選項，應確保 `logsDebug` 的注入條件改為 `(defined('WP_DEBUG') && WP_DEBUG) || mpu_get_option('debug_mode')`，避免前端 debug mode 開啟時 logsDebug 因 WP_DEBUG 未啟動而未被注入，導致 debug log 退回日文 fallback 的問題。
 
 ### Codex 家裡審查（2026-05-22夜，第一輪）
 
@@ -630,7 +673,7 @@ mpuLogger.warnL(
   - (B) **log 中文 / UI 日文混存**（保留現提案、最省力；代價：.pot 是 mixed-source，需在譯者導讀中明文化此情況）
   - (C) 統一以**英文**為 source（WP 業界慣例；代價：UI 既有日文要回譯，動到本案 scope 外）
 
-  建議 (B)，理由：(A) 會把整個 milestone 卡在翻譯前置工作，(C) 動到本案 scope 外的 UI 字串。但 (B) 必須補一段「譯者導讀」明說 mixed-source 現象，且未來若做 source-language unification 列為獨立 milestone。
+  **Human 決議：採 (A)**。理由：本作品本身是日文語境，其他語言都是附加翻譯層；log source / fallback 應與既有 `mpuL10n` 日文 source convention 完全對齊。此決議已整合到 §0 Source-language convention、§1 範例、§3 Fallback 策略、Hard Limits 與 Verification。
 
 - **`_n()` plural form 完全沒提**：`errorL` / `warnAlways` 系列在 production 永遠輸出，含計數的 log 翻成英文會出現「Retry failed 1 times」/「1 seconds elapsed」這類錯誤，**而且是直接被站長看到的**。MVP 不一定要做 plural（會放大 API 表面，需新增 `*N` / `*NF` 系列糖衣），但 Hard Limits 應明寫「**MVP 不支援 plural；含計數的 production-visible log 暫接受英文 plural 不正確；plural 支援列為未來獨立 milestone**」，否則實作者會誤把含 `%d 次` 的字串硬塞進 `*F` 然後在 .po 翻成 wrong-plural。
 
@@ -650,9 +693,9 @@ mpuLogger.warnL(
 - **`t()` 找不到 key 時建議 `console.debug` once（i18n drift surface）**：debug mode 下若 key 拼錯或 PHP 端漏注入，目前只能靠肉眼從 console 看 raw key 字串。可在 `t()` 內加：fallback 觸發時，per-key 只 `console.debug('[MP Ukagaka i18n missing]', key)` 一次（用模組層 `Set` 去重），production 不影響（`console.debug` 預設隱藏），但 i18n drift 浮現速度大幅提升。與家裡 Codex 建議的 `hasOwnProperty` 嚴判 key 存在性互補（hasOwnProperty 決定何時觸發 fallback，console.debug 決定如何被觀察到）。
 
 - **文件本身兩處內部不一致需要在凍結前清理**：
-  - §分批策略「階段 3.5：早於 mpuLogger 定義的 console（見「例外清單」）」仍在（line 435-437），但 §例外清單已標記「已透過重構消除」（line 467 之後）。應刪除階段 3.5 整段，並把 line 443「不阻擋階段 1-3.5」改為「不阻擋階段 1-3」。
-  - §3「Fallback 策略」line 327 仍寫「建議寫**原中文**」，與本輪 source-language 三選一決議（待定）需要同步更新。
+  - §分批策略「階段 3.5：早於 mpuLogger 定義的 console（見「例外清單」）」仍在（line 435-437），但 §例外清單已標記「已透過重構消除」（line 467 之後）。應刪除階段 3.5 整段，並把 line 443「不阻擋階段 1-3.5」改為「不阻擋階段 1-3」。**已整合：階段 3.5 已刪除，阻擋文字已改為階段 1-3。**
+  - §3「Fallback 策略」line 327 仍寫「建議寫**原中文**」，與本輪 source-language 三選一決議（待定）需要同步更新。**已整合：fallback 改為日文 source string。**
 
 ---
 
-_Last updated: 2026-05-22 — 歷經 Codex 多輪、Antigravity 現場與家裡覆核、Codex 與 Claude 家裡夜間覆核，本設計已整合全數覆核意見；凍結前尚待確認 source-language convention 三選一與其他內部一致性。_
+_Last updated: 2026-05-22 — 歷經 Codex 多輪、Antigravity 現場與家裡覆核、Codex 與 Claude 家裡夜間覆核；Human 已決議 source-language 採日文 source/fallback，相關規格已整合。_
