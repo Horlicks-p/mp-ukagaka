@@ -51,7 +51,13 @@ v2.21.1 patch 撰寫 CHANGELOG 時注意到 console log 字串全部 hard-coded 
 | **合計**                         |            **148** |                  **16** |
 | **總計**                         |                    |                 **164** |
 
-初版草案誤列 `frieren.js` direct console 為 0，實際有 10 條（`shellInfo 無效` / `Canvas 管理器未初始化` / `芙莉蓮圖片載入失敗` / `裝飾配置載入失敗` / `觸摸區域對話請求失敗` 等）。grep regex `[`'"][^`'"]_[一-鿿]`要求字串首字為中文，漏掉`console.error("[MP Ukagaka] 芙莉蓮…")`這種前綴為英文方括號的型態。已用`console\.(...)\s_\([^)]\*[一-鿿]` 修正盤點。
+初版草案誤列 `frieren.js` direct console 為 0，實際有 10 條（`shellInfo 無效` / `Canvas 管理器未初始化` / `芙莉蓮圖片載入失敗` / `裝飾配置載入失敗` / `觸摸區域對話請求失敗` 等）。原 grep regex 漏抓「英文 prefix + 中文內容」型態（如 `console.error("[MP Ukagaka] 芙莉蓮…")`）。已改用：
+
+```regex
+console\.(...)\s*\([^)]*[一-鿿]
+```
+
+重新盤點得 direct console 16 條（不是 6 條），總計 164 條（不是 154 條）。
 
 ### Direct console 的特殊性
 
@@ -390,16 +396,16 @@ mpuLogger.warnL(
 | Bucket              | 對應糖衣（純字串）         | 對應糖衣（含 placeholder） |                                           約略條數 | 注入時機                                                       |
 | ------------------- | -------------------------- | -------------------------- | -------------------------------------------------: | -------------------------------------------------------------- |
 | `mpuL10n.logs`      | `errorL` / `warnAlways`    | `errorF` / `warnAlwaysF`   | ~30-40（16 direct console + mpuLogger.error 系列） | 一律注入                                                       |
-| `mpuL10n.logsDebug` | `logL` / `warnL` / `infoL` | `logF` / `warnF` / `infoF` |                                           ~124-134 | **僅當 PHP `defined('WP_DEBUG') && WP_DEBUG === true` 時注入** |
+| `mpuL10n.logsDebug` | `logL` / `warnL` / `infoL` | `logF` / `warnF` / `infoF` |                                           ~124-134 | **僅當最終 front-end debug 安全判定為 true 時注入** |
 
 註：`*L` 與 `*F` 共用同一 bucket，因為 i18n key 本身不區分純字串還是含 placeholder（key 是給人讀的識別碼，字串內容才決定是否含 `%s`/`%d`）。`mpuLogger.t()` 與 `mpuLogger.tFormat()` 內部都先查 `logs` 再查 `logsDebug`，無 bucket 預判邏輯。
 
-注入條件選 **`WP_DEBUG`**（PHP standard constant）作為單一來源，理由：
+注入條件必須與前置 PR 修好的 `window.mpuDebugMode` 安全判定**完全同源**。目前建議的保守方向是 `defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')`，或另設明確常數 / filter 控制「是否對前台訪客啟用 JS debug」。不可直接裸用 `WP_DEBUG` 對匿名前台訪客開啟 debug console，理由：
 
 - 既有 plugin 沒有 `mpu_opt['debug_mode']` 設定（grep 全 repo 0 hit）
 - 不在本案範圍內新增 PHP-side debug option（避免 scope creep）
-- `WP_DEBUG` 是 WordPress 開發者熟悉的標準開關，wp-config.php 容易切換
-- 站長若想看 debug log，本來就會開 `WP_DEBUG`
+- `WP_DEBUG` 可作為開發模式訊號，但不應單獨決定前台訪客是否看得到 debug log
+- `logsDebug` payload 注入條件與 `mpuIsDebugMode()` 輸出條件若不同源，會造成 payload 已送出但不輸出，或輸出時只能 fallback 的錯位
 
 效益：production 預設只送 ~1.5-2 KB（`logs`），debug 模式才送 ~6-7 KB（`logs` + `logsDebug`）。
 
@@ -408,8 +414,8 @@ mpuLogger.warnL(
 >
 > 這跟本案直接相關：實作 PR 前應該先決定要不要修這個 defect。三個選項：
 >
-> 1. **修 defect**：PHP 端注入 `window.mpuDebugMode = (defined('WP_DEBUG') && WP_DEBUG)`，讓既有 debug-gated log 重新可運作。建議走這條，但需獨立 PR 不混在本案。
-> 2. **不修 defect，本案照計畫做**：i18n migration 完成後 debug log 仍然 dead，但 `logsDebug` payload 依 `WP_DEBUG` 條件注入這條規則仍正確（將來修 defect 後立刻生效）。
+> 1. **修 defect**：PHP 端注入 `window.mpuDebugMode`，但條件必須是保守的 front-end debug 安全判定（例如 `defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')`，或明確常數 / filter），讓既有 debug-gated log 重新可運作。建議走這條，但需獨立 PR 不混在本案。
+> 2. **不修 defect，本案照計畫做**：i18n migration 完成後 debug log 仍然 dead，但 `logsDebug` payload 會在日後前置 PR 修好後依同一安全判定生效。
 > 3. **本案順手修 defect**：scope creep，不建議。
 >
 > 建議先獨立提一個小 PR 修 defect，再走本案。
@@ -439,7 +445,7 @@ mpuLogger.warnL(
   - 純字串 i18n 糖衣（`*L`）：`logL()` / `warnL()` / `errorL()` / `infoL()`
   - 含 placeholder i18n 糖衣（`*F`）：`logF()` / `warnF()` / `errorF()` / `infoF()`
   - always-output warn 專用：`warnAlways()` / `warnAlwaysF()`
-- 新增 `mpuL10n.logs` 與 `mpuL10n.logsDebug` placeholder（PHP 端依 `WP_DEBUG` 條件注入空物件 `[]`）
+- 新增 `mpuL10n.logs` 與 `mpuL10n.logsDebug` placeholder（PHP 端依最終 front-end debug 安全判定注入空物件 `[]`）
 - 不改任何 call site
 - 補 Node smoke script：`t()` 兩 bucket fallback、`tFormat()` placeholder 替換、`*L` vs `*F` 對照（含 lint demo）
 
@@ -582,8 +588,81 @@ mpuLogger.warnL(
 - 切換 WP locale 為 `ja`，重整頁面，觸發 wake-up，console 出現日文版 log（假設翻譯已補）
 - 故意拔掉 `mpuL10n.logs.wakeUpFrieren`，觸發 wake-up，console 出現日文 fallback
 - production mode（`mpuIsDebugMode()` 回 false），所有 `logL` / `warnL` / `infoL` 不輸出，但 `errorL` 與 `warnAlways` 仍輸出
-- production mode 下 `mpuL10n.logsDebug` 未注入，但 `mpuL10n.logs` 存在；error log 取得到翻譯，debug log fallback 到中文（但因 debug-gated 也不會真的輸出）
+- production mode 下 `mpuL10n.logsDebug` 未注入，但 `mpuL10n.logs` 存在；error log 取得到翻譯，debug log fallback 到日文（但因 debug-gated 也不會真的輸出）
 - debug mode 下 `mpuL10n.logsDebug` 注入；所有 log 取得到翻譯
+
+---
+
+## 最終實作與審查 Checklist (Final Checklist)
+
+本 Checklist 供實作者與 Code Review 審查者（御三家）逐項核對，確保本案實作符合既定架構與安全要求。
+
+### 1. 前置準備與範圍判定
+- [ ] **前置修復 `window.mpuDebugMode` PR**：必須先獨立提交 PR 修復前端 debug mode 讀取 undefined 的問題。此 PR 必須採用保守判定條件（例如加上 `current_user_can('manage_options')` 或特定安全過濾，避免前台訪客看見大量 front-end debug console）。
+- [ ] **`logsDebug` 注入條件對齊**：PHP 端 `logsDebug` 注入的條件，必須與最終 `window.mpuDebugMode` 的安全判定條件完全一致，防止 payload 與輸出行為錯位。
+- [ ] **Ghost 邊界確認**：本案僅處理 Repo 內建之 `ghost/Frieren/` 所產生的 log，絕不處理任何第三方或使用者自建 ghost。
+- [ ] **PHP inline front-end console 盤點**：`includes/core/frontend-functions.php` 內 inline script 的 front-end `console.*` 必須納入 migration 或明列例外；不能只清 `js/` 與 `ghost/Frieren/` 後留下 PHP inline console surface 未交代。
+- [ ] **Scope freeze**：實作前必須凍結本 milestone 是「中文 hard-coded console log」還是「所有 front-end console log」。若只處理中文，英文 / 日文 hard-coded console 必須列入後續 backlog 或例外清單。
+
+### 2. 日文原文 (A) 實作順序
+- [ ] **前置翻譯**：在修改任何 JS call site 之前，實作者**必須先將該 log 原始中文翻譯為日文**，並將 JS 內的第二參數 fallback 設定為日文字串，以符合與 `mpuL10n` 的日文 source 慣例。避免實作中途才發現漏翻或格式錯誤。
+
+### 3. API 語法防禦與機制設計
+- [ ] **`t()` 嚴格存在性檢查**：`t()` 內必須使用 `Object.prototype.hasOwnProperty.call(logs, key)` 進行 key 的存在性判定，避免當翻譯檔意外為空字串時直接落入 truthy 判斷的 fallback。
+- [ ] **去重 missing key 偵錯**：debug mode 下若發生 missing key，必須在運行時用 `_missingI18nKeys` Set 容器進行去重，保證 per-key 僅 `console.debug` 警示一次。
+- [ ] **UI 層隔離 (Hard Limit #12)**：`mpuLogger.t()` 與 `tFormat()` 僅限於 logger 內部（`*L`、`*F`、`warnAlways` 系列）呼叫，**禁止被外掛 UI 層直接呼叫**（Code Review 必查）。
+- [ ] **無 Plural 糖衣 (Hard Limit #13)**：不引入 `_n()` 或複數型糖衣。含計數的 log 暫以普通 `*F` 糖衣處理（可接受英文複數格式在 MVP 階段不完美）。
+- [ ] **`tFormat()` placeholder 語意**：`%s` / `%d` 在 MVP 只是 placeholder token，使用 `String(value)` 替換；不做數字格式化、四捨五入或 locale number formatting。必須支援 `%1$s` / `%2$s` 位置定位符，並以 smoke test 覆蓋語序調換。
+
+### 3.5. Production 輸出行為保留 (Hard Limit #2)
+
+最容易把 production warning 靜默化的雷區，§1.5 8-type migration 表為此而設。
+
+- [ ] **direct `console.warn` 必須遷移到 `warnAlways` / `warnAlwaysF`**，**禁止**用 debug-gated 的 `warnL` / `warnF`。否則 production 永遠輸出的警告會被靜默化（Frieren 4 條 production warning 即為此風險）。
+- [ ] **direct `console.error` 遷移到 `errorL` / `errorF`**（同為 always-output，行為等價）。
+- [ ] **direct `console.log` 必須逐條判斷是否 debug-only**，再決定走 `logL` / `logF` 或保留 direct。
+- [ ] **Direct console migration Code Review 必查**：以 §1.5「Direct console 與 mpuLogger 的語意差異」8-type 表格逐條對照來源型態與遷移目標，不可憑印象遷移。
+
+### 3.6. Prefix 與 Placeholder 防呆 (Hard Limit #9, #10, #11)
+
+對應 §Verification「Lint / grep 規則建議」三條，CI 必擋。
+
+- [ ] **Hard Limit #10**：i18n key 的 localized string 與 JS fallback 字串**只含 message body**，**禁止**內嵌 `[MP Ukagaka]` / `[MP Ukagaka ERROR]` prefix；prefix 由 `*L` / `*F` / `warnAlways` 自動添加，重複會造成雙 prefix 輸出。CI lint 必擋。
+- [ ] **Hard Limit #9**：含 `%s` / `%d` / `%1$s` placeholder 的字串**禁止**用 `*L` 系列糖衣 — 必用 `*F`。否則 `*L` 不會跑 `tFormat()`，會輸出 raw placeholder（例如「閾值：%d 秒 60」）。CI lint 必擋。
+- [ ] **Hard Limit #11**：`tFormat(key, fallback, ...values)` 固定 rest args，**禁止傳 array**（`tFormat(key, fb, [v1, v2])` 會 `String(array)` 變 `"v1,v2"`，整個 array 被當成單一 `%s` value）。CI lint 必擋。
+
+### 4. 安全與隱私保護 (Hard Limit #14)
+- [ ] **隱私邊界**：所有 i18n key、日文 fallback 或翻譯字串中，**禁止**包含任何 Token、API Key、user_id、IP 或 email 等敏感資料（PII）。動態敏感值不得被寫進 localized string。
+
+### 5. 譯者上下文註解 (Hard Limit #15)
+- [ ] **譯者註解**：在 PHP 端 `mpuL10n.logs` 及 `logsDebug` 的每個 key 定義上方，必須撰寫 `/* translators: [說明/變數義] */` 格式的註解，以提供給 .po/.mo 譯者充分的脈絡背景（Code Review 必查）。
+
+### 6. 編譯與打包驗證 (Build Dist)
+- [ ] **重建 Build Dist**：每個實作階段/PR 的驗證與合併前，必須在 workdir 下執行 `npm run build` (或 `node build.js`) 重建 `js/dist/*`。
+- [ ] **Dist Diff 檢驗**：在 Git diff 中，`js/dist/*` 的所有變更必須完全來自編譯器產出，**禁止任何手動修改**。
+
+### 7. CI / Lint 規則清單
+
+把散在文件各處（§Verification、§1.5、§2.5、§4）的 lint / grep / AST 建議集中為 PR 必裝的 CI 規則。
+
+- [ ] **建立至少四條 CI 靜態檢查規則**（grep / AST / ESLint 任選，但必須能跑在 PR 上）：
+  1. 偵測 `mpuLogger.(logL|warnL|errorL|infoL|warnAlways)(...)` 含 `%s` / `%d` 字串 → 「含 placeholder 應改 `*F`」
+  2. 偵測 `mpuLogger.tFormat(..., [...])` array 參數 → 「不接受 array，請改 rest args」
+  3. 偵測 `mpuLogger.*L` / `*F` / `warnAlways` 系列 fallback 字串含 `[MP Ukagaka]` 或 `[MP Ukagaka ERROR]` → 「fallback 不應含 prefix」
+  4. 偵測 `*L` 系列第二參數使用 ES6 template literal（含 `${...}`）或 `+` 變數拼接 → 「破壞 i18n，應改 `*F`」
+- [ ] **AST 規則必須排除合法 fallback**：規則必須能識別「`mpuLogger.logL('key', '日文 fallback')` 第二參數的合法日文字串」，**不可**簡單用 `[一-鿿]` blanket grep 誤判合法 fallback 為 lint fail（家裡 Antigravity 第四輪 + 家裡 Antigravity 夜間覆核共識）。
+- [ ] **內建 Ghost key 命名前綴 lint**：偵測 `ghost/Frieren/*.js` 內的 logger 呼叫，key 必須以 `frieren` 前綴開頭（家裡 Antigravity 共識）；無前綴 → 警告。
+
+### 8. 既有 contract 不動清單 (Hard Limit #1, #4, #5, #6, #7, #8)
+
+對應 Hard Limits 中描述「不變動」的條目；Code Review 與實作者中途自查項。
+
+- [ ] **既有 `mpuLogger.error/warn/log/info` 簽章保留**（#1）：12 個新方法以 `L` / `F` / `Always` 後綴**並存**，不可取代既有 4 個 method 的簽章與行為。
+- [ ] **debug-mode gating 行為不變**（#6）：`log` / `warn` / `info` 仍 debug-gated；`error` 仍永遠輸出；`warnAlways` 永遠輸出；新糖衣（`*L` / `*F`）的 gating 行為對齊既有對應 method。
+- [ ] **`mpuL10n.logs` / `mpuL10n.logsDebug` 缺失時 logger 仍可運作**（#4）：PHP 端忘記注入時，`t()` / `tFormat()` 必須能落到 caller fallback，不可 throw、不可顯示 `undefined`。
+- [ ] **emoji 留在字串內，不抽出**（#7）：☀️ / 🌙 / 📖 等保留在 localized string 中，譯者自行複製到目標語言。
+- [ ] **PHP 端 `mpu_log_*` server-side log 不在本案範圍**（#8）：本案僅處理 JS console；server-side log i18n 視為獨立 milestone。
+- [ ] **不引入新 npm dependency**（#5）：階段 1 只新增 `mpuLogger` 方法與 PHP 端 `wp_localize_script` 注入；不引入 i18next / formatjs / vue-i18n 等前端 i18n library。
 
 ---
 
@@ -623,7 +702,7 @@ mpuLogger.warnL(
 
 ### Codex 公司覆核（2026-05-22昼，第二輪）
 
-- **反證**：第一輪後的 `logsDebug` 注入條件寫「`WP_DEBUG === true` 或 `mpu_opt['debug_mode']`」，但 `mpu_opt['debug_mode']` PHP grep 全 repo 0 hit，並不存在。已修正為「**僅當 `defined('WP_DEBUG') && WP_DEBUG === true` 時注入**」，單一明確來源，本案不在 scope 內新增 PHP debug option。
+- **反證**：第一輪後的 `logsDebug` 注入條件寫「`WP_DEBUG === true` 或 `mpu_opt['debug_mode']`」，但 `mpu_opt['debug_mode']` PHP grep 全 repo 0 hit，並不存在。後續再依 Antigravity / Codex 家裡覆核修正為「**與最終 `window.mpuDebugMode` 的 front-end debug 安全判定同源**」，避免裸 `WP_DEBUG` 對匿名前台訪客開啟大量 debug console。
 - **Plan 之外的 observed defect**：grep 進一步發現 `mpuDebugMode` 在 PHP 端 0 hit，意味著 `window.mpuDebugMode` 從未被注入，`mpuIsDebugMode()` 永遠回 `false`，現有所有 `mpuLogger.log/warn/info` 在 production 都是 dead code。已在 §5 加附註並提供三選項處理建議（推薦獨立小 PR 修 defect，再走本案）。
 - **修正（Codex #2）**：`logL()` 本身不會跑 `tFormat()`，原草案範例 `mpuLogger.logL('key', 'fmt %d 秒', 60)` 會輸出「fmt %d 秒 60」而不是替換 `%d`。已新增 `logF / warnF / errorF / infoF / warnAlwaysF` 含 placeholder 糖衣系列，並明訂「`*L` 給純字串、`*F` 給含 placeholder」的 API 選擇規則；§2.5 範例同步改為 `logF`，並補一條 ⚠️ 警示避免誤用 `logL`。
 - **修正（Codex #3）**：草案範例 `mpuLogger.log('[MP Ukagaka]', mpuLogger.tFormat(...))` 會雙 prefix。已移除手寫 `[MP Ukagaka]` 並補「禁止寫法」程式碼區塊作防呆教材。
@@ -654,7 +733,7 @@ mpuLogger.warnL(
 - **徹底消除例外清單**：重新檢視 `js/ukagaka-base.js` 最前方的 reload 偵測 IIFE。因為它不依賴下方的任何全域變數，我們決定直接將該 IIFE 移動至 `mpuLogger` 宣告下方，從而徹底消除例外清單。這使核心 JS 檔案達到 100% 潔淨 logger 替換的標準。
 - **Ghost 專屬 Log 的 Key 命名規範**：為防止第三方或未來內建多個 Ghost 時的 log keys 與核心外掛衝突，明訂內建 Ghost（如 Frieren）的專用 log keys 必須加上 Ghost 名稱前綴（如 `frierenCanvasInitFailed`）。
 - **CI 靜態檢查與 `*L` 糖衣的變數拼接防呆**：明訂靜態檢查或 CI 規則中，必須警告並禁止在 `*L` 系列（純字串）糖衣的第二個參數（fallback）中使用 ES6 模板字串或 `+` 進行變數拼接，因為這會破壞 i18n 機制。格式化輸出必須強制使用 `*F` 系列。
-- **Debug 注入邊界防禦**：提醒未來如果外掛引入 PHP 端 debug_mode 選項，應確保 `logsDebug` 的注入條件改為 `(defined('WP_DEBUG') && WP_DEBUG) || mpu_get_option('debug_mode')`，避免前端 debug mode 開啟時 logsDebug 因 WP_DEBUG 未啟動而未被注入，導致 debug log 退回日文 fallback 的問題。
+- **Debug 注入邊界防禦**：提醒未來如果外掛引入 PHP 端 debug_mode 選項，應確保 `logsDebug` 的注入條件與最終 `window.mpuDebugMode` 安全判定維持同源；可包含 `(defined('WP_DEBUG') && WP_DEBUG)` 或顯式 option / filter，但不能讓 payload 條件與前端輸出條件分裂，避免 debug log 退回日文 fallback 或對不該看到 debug 的訪客送出 payload。
 
 ### Codex 家裡審查（2026-05-22夜，第一輪）
 
