@@ -354,11 +354,11 @@ mpuLogger.warnL('getSettingsInvalidResponse', 'mpu_get_settings: 無效的回應
 
 ### 階段 2：production-visible call site（error + direct console.error/warn）
 
-只改「production 一律輸出」的 log。原因：使用者實際看得到，i18n 價值最高，且全部對應 `errorL` / `warnAlways`，兩者皆 always-output，行為相容。
+只改「production 一律輸出」的 log。原因：使用者實際看得到，i18n 價值最高，且全部對應 always-output 糖衣，行為相容。純字串走 `errorL` / `warnAlways`；含 placeholder、字串拼接，或翻譯後語序可能改變的變數內容走 `errorF` / `warnAlwaysF`。
 
 - `mpuLogger.error()` call site（grep `mpuLogger.error` 中文）
-- direct `console.error("中文")` call site → 改為 `mpuLogger.errorL`
-- direct `console.warn("中文")` call site → 改為 `mpuLogger.warnAlways`
+- direct `console.error("中文")` call site → 純字串改為 `mpuLogger.errorL`；含 placeholder / 拼接改為 `mpuLogger.errorF`
+- direct `console.warn("中文")` call site → 純字串改為 `mpuLogger.warnAlways`；含 placeholder / 拼接改為 `mpuLogger.warnAlwaysF`
 - 估計約 30-40 條：16 條 direct console（全部 error/warn）+ 約 15-20 條 `mpuLogger.error`
 
 預估：3-5 個 PR，每 PR 改 1-2 個檔案。frieren.js 因為 ghost-specific，獨立成一個 PR。
@@ -529,7 +529,7 @@ mpuLogger.warnL('getSettingsInvalidResponse', 'mpu_get_settings: 無效的回應
 - **修正（Codex #2）**：`logL()` 本身不會跑 `tFormat()`，原草案範例 `mpuLogger.logL('key', 'fmt %d 秒', 60)` 會輸出「fmt %d 秒 60」而不是替換 `%d`。已新增 `logF / warnF / errorF / infoF / warnAlwaysF` 含 placeholder 糖衣系列，並明訂「`*L` 給純字串、`*F` 給含 placeholder」的 API 選擇規則；§2.5 範例同步改為 `logF`，並補一條 ⚠️ 警示避免誤用 `logL`。
 - **修正（Codex #3）**：草案範例 `mpuLogger.log('[MP Ukagaka]', mpuLogger.tFormat(...))` 會雙 prefix。已移除手寫 `[MP Ukagaka]` 並補「禁止寫法」程式碼區塊作防呆教材。
 - **修正（Codex #4）**：direct console migration 時，原始字串多半已含 `[MP Ukagaka]` prefix（e.g. `console.error("[MP Ukagaka] Canvas 管理器未初始化")`）。若直接搬到 fallback 會雙 prefix。已在 §1.5 補「Prefix 處理規則」明訂 localized string 與 fallback 字串只放 message body，並加 Hard Limit #10。
-- **修正（Codex #5）**：原 `tFormat` 註解寫「values 可為單一值或 array」，但實作 `...values` 不 flatten array，傳 array 會變 `String([60, 'sec'])` 即 `"60,sec"`。已刪掉「array」描述，固定 rest args 合約，並加 Hard Limit #11；§Verification 加 `tFormat('key', 'fmt %d', [60])` 邊界測試。
+- **修正（Codex #5）**：原 `tFormat` 註解寫「values 可為單一值或 array」，但實作 `...values` 不 flatten array，傳 array 會變 `String([60, 'sec'])` 即 `"60,sec"`。已刪掉「array」描述，固定 rest args 合約，並加 Hard Limit #11；§Verification 以 negative test 文件化 array 被當成單一 value 的錯誤後果。
 
 ### Codex 現場覆核（2026-05-22，第三輪）
 
