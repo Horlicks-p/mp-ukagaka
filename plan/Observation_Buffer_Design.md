@@ -25,15 +25,15 @@
 
 Observation Buffer 與 `Visitor_Signals_Plan.md` 是兩套系統，不合併、不互相替代。
 
-| 維度 | Visitor Signals | Observation Buffer |
-|---|---|---|
-| 觸發模型 | Push：偵測事件後自動觸發 LLM 生成 auto_talk | Pull/Drain：累積事件，訪客主動 chat 時注入 system prompt |
-| 對話路徑 | `auto_talk` / `mpu_common_msg()` | `/chat/user` + `/chat/user-stream` |
-| 事件來源 | AI crawler UA / foreign visitor / late night / bot blocker | page view / stay duration / touch / lifecycle / bot signal |
-| Scope | Frieren 整站 global pulse 冷卻 | Per-session |
-| 是否觸發 LLM | 是 | 否 |
-| 持久化 | transient 冷卻、Slimstat 永久 log | transient 短 TTL，drain 後刪除 |
-| 對應 sleep mode | 是 | 否，drain 前 sleep 檢查由 caller 負責 |
+| 維度            | Visitor Signals                                            | Observation Buffer                                         |
+| --------------- | ---------------------------------------------------------- | ---------------------------------------------------------- |
+| 觸發模型        | Push：偵測事件後自動觸發 LLM 生成 auto_talk                | Pull/Drain：累積事件，訪客主動 chat 時注入 system prompt   |
+| 對話路徑        | `auto_talk` / `mpu_common_msg()`                           | `/chat/user` + `/chat/user-stream`                         |
+| 事件來源        | AI crawler UA / foreign visitor / late night / bot blocker | page view / stay duration / touch / lifecycle / bot signal |
+| Scope           | Frieren 整站 global pulse 冷卻                             | Per-session                                                |
+| 是否觸發 LLM    | 是                                                         | 否                                                         |
+| 持久化          | transient 冷卻、Slimstat 永久 log                          | transient 短 TTL，drain 後刪除                             |
+| 對應 sleep mode | 是                                                         | 否，drain 前 sleep 檢查由 caller 負責                      |
 
 語意差異：Visitor Signals 是「Frieren 注意到」，Observation Buffer 是「Frieren 想起剛才」。
 
@@ -142,13 +142,13 @@ Race condition 決策：MVP 接受 best-effort。若 production log 證明 trans
 
 `content` 是縮略字串，不存物件、不存全文、不存 PII。`content` 不得超過 200 bytes，超過由 `push()` 使用 `mb_strcut()` 做 UTF-8 safe hard truncate。
 
-| Type | Content 格式 | Client `/observation/push` | Server-side 寫入路徑 | 範例 |
-|---|---|---:|---|---|
-| `page_view` | `post:{id}:{slug_or_title_60chars}` | 是 | 無 | `post:123:平方根的計算-入門指南` |
-| `stay_duration` | `post:{id}:{seconds}s` | 是 | 無 | `post:123:240s` |
-| `touch` | `{part}:{count}` | 否 | 既有 `/touch` endpoint hook | `head:3` |
-| `lifecycle_event` | `{event}` 或 `{event}:{detail}` | 否 | `wake_ghost` / sleep helper / `/chat/context` handler | `wake` / `sleep` / `context_triggered` |
-| `bot_signal` | `{signal_type}` | 否 | Turnstile / honeypot / Akismet handler 的 soft signal only | `soft_suspicious` |
+| Type              | Content 格式                        | Client `/observation/push` | Server-side 寫入路徑                                       | 範例                                   |
+| ----------------- | ----------------------------------- | -------------------------: | ---------------------------------------------------------- | -------------------------------------- |
+| `page_view`       | `post:{id}:{slug_or_title_60chars}` |                         是 | 無                                                         | `post:123:平方根的計算-入門指南`       |
+| `stay_duration`   | `post:{id}:{seconds}s`              |                         是 | 無                                                         | `post:123:240s`                        |
+| `touch`           | `{part}:{count}`                    |                         否 | 既有 `/touch` endpoint hook                                | `head:3`                               |
+| `lifecycle_event` | `{event}` 或 `{event}:{detail}`     |                         否 | `wake_ghost` / sleep helper / `/chat/context` handler      | `wake` / `sleep` / `context_triggered` |
+| `bot_signal`      | `{signal_type}`                     |                         否 | Turnstile / honeypot / Akismet handler 的 soft signal only | `soft_suspicious`                      |
 
 `touch` count 語意：單次 push 代表一次 touch event，content 可帶該 session 內的當次累計值。相同 part 以 dedupe/replace 更新。
 
@@ -429,12 +429,12 @@ if ( ! empty( $observations ) && mpu_user_memory_v2_available() ) {
 
 ## 與其他 Plan 文件的關係
 
-| 文件 | 關係 |
-|---|---|
-| `Engineering_Quality_Improvement_Plan.md` v2.22+ #10 行 | 指標項，描述與連結到本文件 |
-| `Avatar_UI_Learnings.md` P2-3 + 補論 D | 設計藍本，本文件是 MP-Ukagaka 版本具體化 |
-| `Visitor_Signals_Plan.md` | 不同系統，push vs pull 模型 |
-| `UnifiedHistory_MemoryPlan.md` | User Memory MVP 記錄，升級階段 2 才相關 |
+| 文件                                                    | 關係                                     |
+| ------------------------------------------------------- | ---------------------------------------- |
+| `Engineering_Quality_Improvement_Plan.md` v2.22+ #10 行 | 指標項，描述與連結到本文件               |
+| `Avatar_UI_Learnings.md` P2-3 + 補論 D                  | 設計藍本，本文件是 MP-Ukagaka 版本具體化 |
+| `Visitor_Signals_Plan.md`                               | 不同系統，push vs pull 模型              |
+| `UnifiedHistory_MemoryPlan.md`                          | User Memory MVP 記錄，升級階段 2 才相關  |
 
 ---
 
@@ -442,18 +442,18 @@ if ( ! empty( $observations ) && mpu_user_memory_v2_available() ) {
 
 以下保留決策來源，避免日後追溯不到為何收斂成上述規格。
 
-### Antigravity
+### 家裡Antigravity（2026-05-21）
 
 - 第一輪指出首訪 session token 延遲、REST 防刷、transient race condition、relative timestamp、stream drain at-most-once 等風險。
 - 第二輪確認私密文章過濾、untrusted payload、dedupe/replace、取消 `user_id` fallback、對齊 #7 session token、PHPUnit scope 隔離測試。
 - 第三輪確認 REST client type allowlist、TTL clamp、observation 排除於 chat integrity checksum 外、相對時間 i18n 格式。
 
-### Codex
+### 家裡Codex （2026-05-21）
 
 - 補充 #10 不應建立第二套 scope/session helper，必須沿用 #7 `X-MPU-Session-Token` / `mpu_validate_session_token()` / `sha256(token)`。
 - 補充 payload 是 untrusted hint、timestamp 用 server receive time、race condition MVP 先採 best-effort、drain 定義為 at-most-once。
 
-### Claude
+### 家裡Claude （2026-05-21）
 
 - 補充 private / password-protected post 的 server-side 正規化規則。
 - 補充取消 `user_id` fallback 的理由：#10 與 #7 的資料敏感度和 TTL 不同。
@@ -461,13 +461,13 @@ if ( ! empty( $observations ) && mpu_user_memory_v2_available() ) {
 - 補充 push 觸發點與 drain 觸發點分離。
 - 補充 PHPUnit 必測 scope 隔離、TTL、checksum 不衝突。
 
-### Antigravity 現場覆核（2026-05-22）
+### 公司Antigravity 現場覆核（2026-05-22）
 
 - **`stay_duration` 流量節流**：建議針對前端 `stay_duration` 進行節流或採用非線性間隔（例如 10秒、30秒、60秒、3分鐘、10分鐘），避免對 REST API server 頻繁推送，防止觸發 Rate Limit。
 - **多位元組截斷安全**：後端對 payload content 進行 200 bytes 的 `mb_strcut` 截斷時，需明確指定 `'UTF-8'` 編碼參數，避免切碎 UTF-8 字元編碼導致亂碼。
 - **Nonce 備用機制**：對於首訪未登入的訪客，標準的 REST API Nonce 驗證可能因為快取或時間差失效，此時系統應能安全降級（Safe Fallback），僅依賴 `X-MPU-Session-Token` 進行寫入校驗。
 
-### Codex 現場覆核（2026-05-22）
+### 公司Codex 現場覆核（2026-05-22）
 
 - 反證：`mpu_validate_session_token()` 並非缺失，已存在於 `includes/core/network-functions.php`，驗證 server-issued token transient 與 IP hash；Observation Buffer 不應退回 client-generated `mpuChatSessionId` 格式檢查。
 - 修正：現有 `/session-token` 對 logged-in user 回空 token；MVP 若堅持不使用 `user_id` fallback，logged-in 前台預設不進 Observation Buffer，文件需明講。
@@ -475,7 +475,7 @@ if ( ! empty( $observations ) && mpu_user_memory_v2_available() ) {
 - 修正：實作整合點指定為 `class-mpu-rest-chat.php::prepare_user_chat_args()` 的 `$system_parts` 組裝流程，而不是泛稱 LLM Context Builder。
 - 補充：dedupe 必須先於 ring buffer slice，命中後移到末尾；truncate 使用 `mb_strcut()`；`stay_duration` clamp；`bot_signal` 僅允許 soft coarse label；touch endpoints 必須帶 session token。
 
-### Claude 現場覆核（2026-05-22 晚間）
+### 公司Claude 現場覆核（2026-05-22 ）
 
 - 補充：明文選邊 token rotation 行為。token TTL 過期或 IP 變更後重發新 token 時，舊 buffer 不搬遷、不關聯，靠 TTL 自然回收。理由是跨 token 搬遷需要 token-to-token 關聯機制，違反「禁止 global key」與「不允許跨訪客洩漏」（IP 變更後無法區分「同一人換網路」與「不同人共用 IP」），代價是訪客跨 2 小時或換網路後最多遺失 5 筆觀察，符合短期語意。對應位於 §1 Session Scope、最終 checklist 與 Manual Smoke。
 
