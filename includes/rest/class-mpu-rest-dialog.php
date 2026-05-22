@@ -380,6 +380,155 @@ class MPU_REST_Dialog extends MPU_REST_Base {
     // 特殊 WP_Error codes: rest_wake_ghost_missing_param, rest_wake_ghost_unavailable
     // =========================================================================
 
+    /**
+     * Detect which sleep phase is active before the wake marker is written.
+     *
+     * @param string $personality_id Personality ID.
+     * @return string|null deep_sleep, oversleep, or null.
+     */
+    private function get_wake_sleep_phase(string $personality_id): ?string {
+        if (!function_exists('mpu_get_sleep_settings')) {
+            return null;
+        }
+
+        $sleep_settings = mpu_get_sleep_settings($personality_id);
+        if (empty($sleep_settings)) {
+            return null;
+        }
+
+        $current_mod = (int) wp_date('G') * 60 + (int) wp_date('i');
+        $start_mod = function_exists('mpu_get_daily_deep_sleep_start_mod')
+            ? (int) mpu_get_daily_deep_sleep_start_mod($personality_id)
+            : 0;
+        $end_mod = function_exists('mpu_sleep_hour_to_boundary_mod')
+            ? mpu_sleep_hour_to_boundary_mod($sleep_settings['deep_sleep_end'] ?? 6)
+            : max(0, min(1439, (int) ($sleep_settings['deep_sleep_end'] ?? 6) * 60));
+
+        $in_deep_sleep = $start_mod < $end_mod
+            ? ($current_mod >= $start_mod && $current_mod < $end_mod)
+            : ($current_mod >= $start_mod || $current_mod < $end_mod);
+
+        if ($in_deep_sleep) {
+            return 'deep_sleep';
+        }
+
+        if (empty($sleep_settings['oversleep_enabled'])) {
+            return null;
+        }
+
+        $oversleep_end_mod = function_exists('mpu_get_daily_oversleep_end_mod')
+            ? (int) mpu_get_daily_oversleep_end_mod($personality_id)
+            : $end_mod;
+
+        if ($oversleep_end_mod <= $end_mod) {
+            return null;
+        }
+
+        return ($current_mod >= $end_mod && $current_mod < $oversleep_end_mod)
+            ? 'oversleep'
+            : null;
+    }
+
+    /**
+     * Generate the first line after a visitor wakes the character.
+     *
+     * @param string      $personality_id Personality ID.
+     * @param string      $ukagaka_num    Current ukagaka key.
+     * @param string|null $sleep_phase    deep_sleep or oversleep.
+     * @return string
+     */
+    private function generate_wake_reaction(string $personality_id, string $ukagaka_num, ?string $sleep_phase): string {
+        if (
+            empty($sleep_phase) ||
+            !function_exists('mpu_pick_wake_reaction_prompt') ||
+            !function_exists('mpu_call_ai_api') ||
+            !function_exists('mpu_build_optimized_system_prompt')
+        ) {
+            return '';
+        }
+
+        $reaction_prompt = mpu_pick_wake_reaction_prompt($personality_id, $sleep_phase);
+        if ($reaction_prompt === false) {
+            return '';
+        }
+
+        $mpu_opt = mpu_get_option();
+        $provider = function_exists('mpu_get_current_provider')
+            ? mpu_get_current_provider($mpu_opt)
+            : ($mpu_opt['llm_provider'] ?? ($mpu_opt['ai_provider'] ?? 'gemini'));
+        $language = $mpu_opt['ai_language'] ?? 'ja';
+
+        if (empty($ukagaka_num)) {
+            $ukagaka_num = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+        }
+
+        $wp_info = function_exists('mpu_get_wordpress_info') ? mpu_get_wordpress_info() : [];
+        $user_info = function_exists('mpu_get_current_user_info') ? mpu_get_current_user_info() : [];
+        $visitor_info = function_exists('mpu_get_visitor_info_for_llm') ? mpu_get_visitor_info_for_llm() : [];
+        $time_context = function_exists('mpu_get_time_context') ? mpu_get_time_context($personality_id) : '';
+
+        $system_prompt = mpu_build_optimized_system_prompt(
+            $mpu_opt,
+            $wp_info,
+            $user_info,
+            $visitor_info,
+            $ukagaka_num,
+            $time_context,
+            $language,
+            $personality_id
+        );
+
+        $phase_label = $sleep_phase === 'oversleep' ? '二度寝' : '深い眠り';
+        $user_prompt = "【現在の状況】\n";
+        $user_prompt .= "あなたは{$phase_label}の途中で、訪問者に起こされました。\n";
+        $user_prompt .= "これは通常会話ではなく、起こされた直後の最初の一言です。\n\n";
+        $user_prompt .= "【反応指示】\n{$reaction_prompt}\n\n";
+        $user_prompt .= "【出力ルール】\n";
+        $user_prompt .= "- 返答は一言だけ。\n";
+        $user_prompt .= "- 30文字以内。\n";
+        $user_prompt .= "- 説明文、括弧書き、前置きは禁止。\n";
+        $user_prompt .= "- 訪問者の入力文を待たず、起こされた直後として自然に反応する。";
+
+        $max_tokens = 120;
+        if ($provider === 'ollama') {
+            $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
+            $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
+            if (function_exists('mpu_is_ollama_busy') && mpu_is_ollama_busy($endpoint, $model)) {
+                return '';
+            }
+            if (function_exists('mpu_set_ollama_busy')) {
+                mpu_set_ollama_busy($endpoint, $model, 30);
+            }
+            try {
+                $result = mpu_call_ai_api($provider, '', $system_prompt, $user_prompt, $language, $mpu_opt, $max_tokens);
+            } finally {
+                if (function_exists('mpu_release_ollama_lock')) {
+                    mpu_release_ollama_lock($endpoint, $model);
+                }
+            }
+        } else {
+            $api_key = function_exists('mpu_get_provider_api_key') ? mpu_get_provider_api_key($provider, $mpu_opt) : '';
+            $result = mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt, $max_tokens);
+        }
+
+        if (is_wp_error($result)) {
+            if (function_exists('mpu_debug_log')) {
+                mpu_debug_log('wake_reaction LLM call failed: ' . $result->get_error_message());
+            }
+            return '';
+        }
+
+        if (!is_string($result) || trim($result) === '') {
+            return '';
+        }
+
+        if (function_exists('mpu_filter_thinking_content')) {
+            $result = mpu_filter_thinking_content($result);
+        }
+
+        return trim(wp_strip_all_tags($result));
+    }
+
     public function wake_ghost(WP_REST_Request $request) {
         $rl = $this->rate_limit('wake_ghost', 10, 60);
         if ($rl !== null) return $rl;
@@ -405,6 +554,10 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                 );
             }
 
+            $ukagaka_num = sanitize_text_field($request->get_param('ukagaka_num') ?: '');
+            $sleep_phase = $this->get_wake_sleep_phase($personality_id);
+            $wake_reaction = '';
+
             if (function_exists('mpu_mark_ip_as_woken')) {
                 $result = mpu_mark_ip_as_woken($personality_id);
 
@@ -424,11 +577,14 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                     }
 
                     if ($is_deep_sleep) {
+                        $wake_reaction = $this->generate_wake_reaction($personality_id, $ukagaka_num, $sleep_phase);
                         return $this->ok([
                             'success'        => true,
                             'message'        => __('キャラクターが一時的に起こされました（深い眠り中。ページを更新すると再び眠ります）', 'mp-ukagaka'),
                             'personality_id' => $personality_id,
                             'is_temporary'   => true,
+                            'sleep_phase'    => $sleep_phase,
+                            'wake_reaction'  => $wake_reaction,
                         ]);
                     }
 
@@ -444,10 +600,14 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                 }
             }
 
+            $wake_reaction = $this->generate_wake_reaction($personality_id, $ukagaka_num, $sleep_phase);
             return $this->ok([
                 'success'        => true,
                 'message'        => __('キャラクターが起こされました', 'mp-ukagaka'),
                 'personality_id' => $personality_id,
+                'is_temporary'   => $sleep_phase !== null,
+                'sleep_phase'    => $sleep_phase,
+                'wake_reaction'  => $wake_reaction,
             ]);
         } finally {
             $this->set_runtime_state($runtime_session_token, 'idle');

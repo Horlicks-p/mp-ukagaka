@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-22T00:38:48.483Z
+ * Generated: 2026-05-22T15:14:36.196Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -4313,16 +4313,33 @@ function mpu_toggleChatMode(enable) {
         mpu_isUnawokenSleepMode();
 
       if (needsWakeUp) {
-        // 發送喚醒請求給後端
-        if (typeof mpu_send_wake_up_request === "function") {
-          mpu_send_wake_up_request();
-        }
-
         // 檢查是否有喚醒動畫文件（通用方法，支援各種角色管理器）
         const hasWakeUpAnimation =
           typeof window.mpuCanvasManager !== "undefined" &&
           typeof window.mpuCanvasManager.hasWakeUpAnimation === "function" &&
           window.mpuCanvasManager.hasWakeUpAnimation();
+        const showChatAfterWake = function (reactionDisplayed) {
+          $msgbox.addClass("chat-mode");
+          $chatInput.slideDown(400, function () {
+            if (!reactionDisplayed) {
+              showWelcome();
+            } else if ($msgbox.is(":hidden")) {
+              mpu_showmsg(400);
+            }
+            setTimeout(() => $input.focus(), 250);
+          });
+        };
+        const requestWakeThenShowChat = function () {
+          if (typeof mpu_send_wake_up_request !== "function") {
+            showChatAfterWake(false);
+            return;
+          }
+          mpu_send_wake_up_request()
+            .then(showChatAfterWake)
+            .catch(function () {
+              showChatAfterWake(false);
+            });
+        };
 
         if (hasWakeUpAnimation) {
           window.mpuForceWakeUpNextTime = true;
@@ -4332,21 +4349,15 @@ function mpu_toggleChatMode(enable) {
             window.mpuCanvasManager.triggerCharacterAnimation(
               true,
               function () {
-                // 喚醒動畫完成後，顯示輸入框和歡迎訊息
-                $msgbox.addClass("chat-mode");
-                $chatInput.slideDown(400, function () {
-                  showWelcome();
-                });
+                // 喚醒動畫完成後，再取得被喚醒的第一句反應
+                requestWakeThenShowChat();
               },
               true,
             ); // skipBookFlip = true：開啟對話時不翻書
           });
         } else {
-          // 沒有喚醒動畫：直接顯示輸入框（跳過淡出步驟）
-          $msgbox.addClass("chat-mode");
-          $chatInput.slideDown(400, function () {
-            showWelcome();
-          });
+          // 沒有喚醒動畫：直接取得被喚醒的第一句反應
+          requestWakeThenShowChat();
         }
       } else {
         // 非睡眠模式：正常流程（不觸發動畫，只在回答問題時播放）
@@ -5173,16 +5184,6 @@ jQuery(document).ready(function () {
       return;
     }
 
-    // 賴床功能：如果是睡眠模式被喚醒，記錄 IP
-    if (
-      typeof window.mpuInfo !== "undefined" &&
-      window.mpuInfo.isDeepSleepTime
-    ) {
-      if (typeof mpu_send_wake_up_request === "function") {
-        mpu_send_wake_up_request();
-      }
-    }
-
     var handleOkAction = function () {
       if (mpuChatModeActive) {
         mpu_sendUserMessage();
@@ -5200,8 +5201,28 @@ jQuery(document).ready(function () {
       window.mpuCanvasManager.isCharacterMode &&
       typeof window.mpuCanvasManager.hasWakeUpAnimation === "function" &&
       window.mpuCanvasManager.hasWakeUpAnimation();
+    var handleWakeThenOkAction = function () {
+      if (typeof mpu_send_wake_up_request !== "function") {
+        handleOkAction();
+        return;
+      }
+      mpu_send_wake_up_request()
+        .then(function (reactionDisplayed) {
+          if (!reactionDisplayed) {
+            handleOkAction();
+          }
+        })
+        .catch(function () {
+          handleOkAction();
+        });
+    };
 
-    if (needsWakeUp && hasWakeUpAnimation) {
+    if (needsWakeUp) {
+      if (!hasWakeUpAnimation) {
+        handleWakeThenOkAction();
+        return;
+      }
+
       const $msgbox = jQuery("#ukagaka_msgbox");
       window.mpuForceWakeUpNextTime = true;
       // 有喚醒動畫：先淡出對話框（隱藏 ZZZ），等待喚醒動畫完成後再顯示
@@ -5221,7 +5242,7 @@ jQuery(document).ready(function () {
                 window.mpuSkipBookFlipExpireToken = null;
               }
             }, 8000);
-            handleOkAction();
+            handleWakeThenOkAction();
           },
           true
         );
@@ -5268,7 +5289,43 @@ jQuery(document).ready(function () {
 /**
  * 發送喚醒角色請求給後端
  */
+function mpu_display_wake_reaction(res) {
+  if (!res || !res.wake_reaction) {
+    return false;
+  }
+
+  const reaction = String(res.wake_reaction).trim();
+  if (!reaction) {
+    return false;
+  }
+
+  const output =
+    typeof mpu_parseMarkdown === "function" ? mpu_parseMarkdown(reaction) : reaction;
+  mpu_typewriter(output, "#ukagaka_msg", null, true);
+  if (jQuery("#ukagaka_msgbox").is(":hidden")) {
+    mpu_showmsg(400);
+  }
+
+  if (Array.isArray(window.mpuChatHistory)) {
+    window.mpuChatHistory.push({
+      role: "assistant",
+      content: reaction,
+      type: "wake_reaction",
+      timestamp: Date.now(),
+    });
+    if (typeof mpu_saveChatHistory === "function") {
+      mpu_saveChatHistory();
+    }
+  }
+
+  return true;
+}
+
 function mpu_send_wake_up_request() {
+  if (window.mpuWakeRequestPromise) {
+    return window.mpuWakeRequestPromise;
+  }
+
   if (typeof mpuLogger !== "undefined") {
     mpuLogger.log("🌅 喚醒角色！正在準備發送請求...");
   }
@@ -5300,7 +5357,7 @@ function mpu_send_wake_up_request() {
         "喚醒請求已取消：缺少 personality_id/ukagaka_num，避免人格狀態錯亂",
       );
     }
-    return;
+    return Promise.resolve(false);
   }
 
   // 發送喚醒請求
@@ -5312,10 +5369,10 @@ function mpu_send_wake_up_request() {
     wakeFormData.append("ukagaka_num", ukagakaNum);
   }
 
-  mpuFetch(mpuRestUrl + "wake-ghost", {
+  window.mpuWakeRequestPromise = mpuFetch(mpuRestUrl + "wake-ghost", {
     method: "POST",
     body: wakeFormData,
-    timeout: 5000,
+    timeout: 60000,
   })
     .then(function (res) {
       if (res && res.success) {
@@ -5334,17 +5391,25 @@ function mpu_send_wake_up_request() {
             window.mpuInfo.isTemporaryWakeUp = true;
           }
         }
+        return mpu_display_wake_reaction(res);
       } else {
         if (typeof mpuLogger !== "undefined") {
           mpuLogger.warn("喚醒請求回應失敗:", res);
         }
       }
+      return false;
     })
     .catch(function (err) {
       if (typeof mpuLogger !== "undefined") {
         mpuLogger.warn("喚醒請求失敗，但不影響正常操作:", err);
       }
+      return false;
+    })
+    .finally(function () {
+      window.mpuWakeRequestPromise = null;
     });
+
+  return window.mpuWakeRequestPromise;
 }
 
 // ========== ukagaka-features.js ==========

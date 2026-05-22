@@ -141,6 +141,44 @@ function mpu_pick_sleep_dream_line($personality_id, $category, $merge_basic = tr
 }
 
 /**
+ * Pick a wake reaction prompt from sleep_mode.json.
+ *
+ * This returns an instruction for LLM generation, not a finished dialogue line.
+ *
+ * Expected schema:
+ * {
+ *   "wake_reaction_prompts": {
+ *     "deep_sleep": ["..."],
+ *     "oversleep": ["..."]
+ *   }
+ * }
+ *
+ * @param string|null $personality_id Character ID.
+ * @param string      $phase          Sleep phase: deep_sleep or oversleep.
+ * @return string|false
+ */
+function mpu_pick_wake_reaction_prompt($personality_id, $phase)
+{
+    $phase = sanitize_key($phase);
+    if (!in_array($phase, ['deep_sleep', 'oversleep'], true)) {
+        return false;
+    }
+
+    $sleep_config = mpu_load_personality_sleep_mode($personality_id);
+    if (empty($sleep_config['enabled'])) {
+        return false;
+    }
+
+    $prompts = $sleep_config['wake_reaction_prompts'][$phase] ?? [];
+    if (empty($prompts) || !is_array($prompts)) {
+        return false;
+    }
+
+    $prompt = $prompts[array_rand($prompts)];
+    return is_string($prompt) && trim($prompt) !== '' ? trim($prompt) : false;
+}
+
+/**
  * Load personality calendar configuration
  * 
  * Calendar includes holidays, custom anniversaries, and dynamic holidays.
