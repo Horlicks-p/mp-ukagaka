@@ -73,6 +73,52 @@ v2.22.0 freeze 表をクローズ。次の段階：**#10 Observation Buffer MVP*
 
 ---
 
+## [2.21.1] - 2026-05-22
+
+### 🐛 寝坊中フリーレンの起こし動作修正
+
+「対話ウィンドウを開く」ボタンで寝坊中のフリーレンを起こす際、設計上は「目を開く + 対話ウィンドウを開く」のはずが、実際は「目を開く + 本めくりアニメ」が起こり、対話ウィンドウが開かない不具合。
+
+### 🔍 根本原因
+
+並存する 2 つの問題チェーン：
+
+**起こし競合（race condition）**
+
+- `mpu_toggleChatMode` は起こし分岐で先に `mpu_send_wake_up_request()`（バックエンド AJAX）を呼び、続いて `$msgbox.fadeOut(1000, ...)`、最後に callback 内で `triggerCharacterAnimation` を呼ぶ流れ。
+- 1 秒の fadeOut 遅延中にバックエンドの起こしレスポンスが返ると `isSleepMessage()` の判定が変化（`data-initial-msg` クリアや `mpuInfo.isTemporaryWakeUp` 反転）。
+- 結果：`wakeUp()` が false を返す → 起こしアニメ分岐をスキップ → `triggerFrierenSpeaking` 後段の本めくり経路に落ちる。さらに `onWakeUpComplete` が呼ばれないため対話ウィンドウは永遠に開かない。
+
+**OK ボタン経路でのフラグ残留**
+
+- OK ボタン起こし後に `mpuSkipNextManualBookFlip = true` を設定し、後続の手動操作で `mpu_nextmsg` に消費させる想定。
+- しかし chat モードでは `handleOkAction` が `mpu_sendUserMessage()`（SSE ストリーム）を呼ぶため `mpu_nextmsg` に届かず、フラグが消費されない。
+- 次回の手動操作で本めくりアニメを誤ってスキップしてしまう。
+
+### 🛠️ 修正
+
+| Commit | 内容 |
+|---|---|
+| `2433729` | (1) `window.mpuForceWakeUpNextTime` フラグを追加、`fadeOut` の前にセットして「今回は必ず起こす」をロック、バックエンドレスポンスに上書きされないようにする；(2) `triggerFrierenSpeaking` に `skipBookFlip` early-return 経路を追加、`sleepModeAwoken` が既に true でも本めくりが誤発火しないように、かつ `onWakeUpComplete` は呼んで対話ウィンドウを開く；(3) OK ボタン経路を、起こしアニメ完了後に `handleOkAction` を呼ぶよう変更、LLM 対話即時トリガーによるアニメ衝突を回避 |
+| `6ceb36f` | (1) `wakeUp()` 冒頭で無条件に `mpuForceWakeUpNextTime` をクリア、`sleepModeAwoken` が既に true の場合のフラグ残留を防止；(2) `mpuSkipNextManualBookFlip` に `Date.now()` token + 8 秒 timeout フォールバックを追加；(3) consumer 側で正常消費時に token を null クリア、timeout 発火時の自然 no-op 化、「古い timeout が新しいフラグを誤クリア」リグレッション窓を閉じる |
+
+### 📦 変更ファイル
+
+- `ghost/Frieren/frieren.js` — `wakeUp()` / `triggerFrierenSpeaking()`
+- `js/ukagaka-chat.js` — `mpu_toggleChatMode` / OK ボタン handler
+- `js/ukagaka-core.js` — `mpu_nextmsg` 内の manual animation トリガー 2 箇所
+- `js/dist/ukagaka-bundle.js` / `ukagaka-bundle.min.js` — `tools/node/build.js` でリビルド
+
+### ✅ 検証ガイド
+
+実機で 3 つのシナリオを確認、console log は以下のとおり（ログ文字列は繁体中文でハードコードされており、WordPress ロケールに追従しません — 既知の UX ギャップ、今後の改善課題として記録）：
+
+- 寝坊中に「対話ウィンドウを開く」ボタンをクリック：`☀️ 芙莉蓮被喚醒了！(forceWakeUp)` + `📖 喚醒後跳過翻書動畫` + 対話ウィンドウが開く
+- 寝坊中に OK ボタンをクリック：起こしアニメ完了後に LLM 返答が生成され、本めくりは出ない
+- すでに起きている状態で通常操作：本めくりアニメが正常に再生され、誤ってスキップされない
+
+---
+
 ## [2.21.0] - 2026-05-20
 
 ### 🏗️ JS グローバル状態の封装（v2.21.0 #8 milestone）

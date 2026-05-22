@@ -73,6 +73,52 @@ State whitelist（9 個）：`idle` / `thinking` / `speaking` / `chatting` / `sl
 
 ---
 
+## [2.21.1] - 2026-05-22
+
+### 🐛 賴床中芙莉蓮喚醒流程修正
+
+點擊「開啟對話視窗」按鈕喚醒賴床中的芙莉蓮時，原本設計應為「睜開眼睛 + 開啟對話視窗」，實際卻是「睜開眼睛 + 翻書動畫」且對話視窗沒開。
+
+### 🔍 根因分析
+
+兩條並存的問題鏈：
+
+**喚醒競態（race condition）**
+
+- `mpu_toggleChatMode` 在喚醒分支先呼叫 `mpu_send_wake_up_request()` 後端 AJAX，接著 `$msgbox.fadeOut(1000, ...)`，最後在 callback 內才呼叫 `triggerCharacterAnimation`。
+- 1 秒 fadeOut 延遲中，後端喚醒回應可能改變 `isSleepMessage()` 判定（清掉 `data-initial-msg` 或翻轉 `mpuInfo.isTemporaryWakeUp`）。
+- 結果：`wakeUp()` 回傳 false → 跳過喚醒動畫分支 → 落入 `triggerFrierenSpeaking` 後段翻書路徑，且 `onWakeUpComplete` 從未被呼叫，對話視窗永遠打不開。
+
+**OK 按鈕路徑的旗標殘留**
+
+- OK 按鈕喚醒後設 `mpuSkipNextManualBookFlip = true`，預期由 `mpu_nextmsg` 在後續手動互動時消費。
+- 但 chat 模式下 `handleOkAction` 走 `mpu_sendUserMessage()`（SSE 流），完全不會碰 `mpu_nextmsg`，旗標永遠不會被消費。
+- 下一次手動互動會誤跳過翻書動畫。
+
+### 🛠️ 修正
+
+| Commit | 內容 |
+|---|---|
+| `2433729` | (1) 加 `window.mpuForceWakeUpNextTime` 旗標，在 fadeOut 之前鎖定「這次一定要喚醒」，避免被後端回應改寫；(2) `triggerFrierenSpeaking` 加 `skipBookFlip` 早退路徑，確保即使 `sleepModeAwoken` 已為 true 也不誤播翻書，並仍呼叫 `onWakeUpComplete` 讓對話視窗開啟；(3) OK 按鈕路徑改為等 wake-up 動畫完成後才呼叫 `handleOkAction`，避免立即觸發 LLM 對話導致連續動畫衝突 |
+| `6ceb36f` | (1) `wakeUp()` 開頭無條件清掉 `mpuForceWakeUpNextTime`，避免 `sleepModeAwoken` 已為 true 時旗標殘留；(2) `mpuSkipNextManualBookFlip` 加 `Date.now()` token + 8 秒 timeout 後備清理；(3) consumer 端正常消費時把 token 清為 null，讓 timeout 觸發時自然 no-op，避免「舊 timeout 誤清新旗標」 |
+
+### 📦 變更檔案
+
+- `ghost/Frieren/frieren.js` — `wakeUp()` / `triggerFrierenSpeaking()`
+- `js/ukagaka-chat.js` — `mpu_toggleChatMode` / OK 按鈕 handler
+- `js/ukagaka-core.js` — `mpu_nextmsg` 兩處 manual animation 觸發點
+- `js/dist/ukagaka-bundle.js` / `ukagaka-bundle.min.js` — 透過 `tools/node/build.js` 重建
+
+### ✅ 驗證指引
+
+實機檢查三種情境，console log 應如下：
+
+- 賴床中點「開啟對話視窗」按鈕：`☀️ 芙莉蓮被喚醒了！(forceWakeUp)` + `📖 喚醒後跳過翻書動畫` + 對話視窗打開
+- 賴床中點 OK 按鈕：喚醒動畫完成後才生成 LLM 回應，不出現翻書動畫
+- 已醒著直接互動：正常播放翻書動畫，不被誤跳過
+
+---
+
 ## [2.21.0] - 2026-05-20
 
 ### 🏗️ JS 全域狀態封裝（v2.21.0 #8 milestone）

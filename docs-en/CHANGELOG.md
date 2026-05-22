@@ -73,6 +73,52 @@ Closes v2.22.0 in the freeze table. Next up: **#10 Observation Buffer MVP** rema
 
 ---
 
+## [2.21.1] - 2026-05-22
+
+### 🐛 Sleep wake-up flow fix for Frieren
+
+When clicking the "Open Chat Window" button to wake a sleeping Frieren, the intended behavior was "open eyes + open chat window". The actual behavior was "open eyes + book-flip animation" with the chat window never opening.
+
+### 🔍 Root Cause Analysis
+
+Two coexisting problem chains:
+
+**Wake-up race condition**
+
+- In the wake-up branch, `mpu_toggleChatMode` first calls `mpu_send_wake_up_request()` (backend AJAX), then `$msgbox.fadeOut(1000, ...)`, and finally invokes `triggerCharacterAnimation` inside the callback.
+- During the 1-second `fadeOut` delay, the backend wake response can flip `isSleepMessage()` (clearing `data-initial-msg` or resetting `mpuInfo.isTemporaryWakeUp`).
+- Result: `wakeUp()` returns false → wake-up animation branch is skipped → control falls into the book-flip path inside `triggerFrierenSpeaking`, and `onWakeUpComplete` is never called — the chat window stays closed forever.
+
+**Stale flag in the OK-button path**
+
+- After wake-up via the OK button, `mpuSkipNextManualBookFlip = true` is set, expecting `mpu_nextmsg` to consume it on the next manual interaction.
+- But in chat mode `handleOkAction` calls `mpu_sendUserMessage()` (SSE stream) and never touches `mpu_nextmsg`, so the flag is never consumed.
+- The next manual interaction incorrectly skips the book-flip animation.
+
+### 🛠️ Fixes
+
+| Commit | Content |
+|---|---|
+| `2433729` | (1) Introduces `window.mpuForceWakeUpNextTime` flag, set before `fadeOut` to lock in "must wake this time" so backend responses cannot override it; (2) Adds a `skipBookFlip` early-return path in `triggerFrierenSpeaking` so a stale `sleepModeAwoken=true` no longer triggers a phantom book-flip, while still calling `onWakeUpComplete` to open the chat window; (3) Reroutes the OK-button path to await the wake-up animation before calling `handleOkAction`, eliminating concurrent-animation conflicts when LLM dialogue is triggered. |
+| `6ceb36f` | (1) `wakeUp()` now unconditionally clears `mpuForceWakeUpNextTime` at entry, preventing flag leaks when `sleepModeAwoken` is already true; (2) `mpuSkipNextManualBookFlip` gets a `Date.now()` token + 8-second timeout fallback; (3) The consumer clears the token to `null` on normal consumption, so a fired timeout becomes a no-op — closing the "old timeout clears the new flag" regression window. |
+
+### 📦 Files Changed
+
+- `ghost/Frieren/frieren.js` — `wakeUp()` / `triggerFrierenSpeaking()`
+- `js/ukagaka-chat.js` — `mpu_toggleChatMode` / OK-button handler
+- `js/ukagaka-core.js` — two manual-animation trigger points in `mpu_nextmsg`
+- `js/dist/ukagaka-bundle.js` / `ukagaka-bundle.min.js` — rebuilt via `tools/node/build.js`
+
+### ✅ Verification
+
+Live-check the three scenarios; console output should match (log strings are hard-coded in Traditional Chinese and do not localize with WordPress locale — a known UX gap, tracked for future improvement):
+
+- Click "Open Chat Window" while Frieren is sleeping: `☀️ 芙莉蓮被喚醒了！(forceWakeUp)` + `📖 喚醒後跳過翻書動畫` + chat window opens
+- Click OK button while Frieren is sleeping: LLM reply is generated only after the wake-up animation finishes, with no book-flip
+- Interact normally while Frieren is already awake: book-flip plays as expected, not accidentally skipped
+
+---
+
 ## [2.21.0] - 2026-05-20
 
 ### 🏗️ JS Global State Encapsulation (v2.21.0 #8 milestone)
