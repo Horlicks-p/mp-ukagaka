@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.22.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.22.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,15 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.22.0 新功能
+## 🎉 v2.22.1 新功能
 
-**JS 全域狀態封裝**（#8 milestone）：前端 runtime state 原本散落在 19 個 file-level `let` 與 9 個 `window.*` 全域，現在收進結構化的 `window.MPU_STATE` namespace，透過 31 個 setter/getter helper function 存取（外加 `mpuState` const alias）。無演算法改動、無 REST payload 改動、無 UI 行為改動 — 純結構性 refactor。
+**角色睡眠喚醒抱怨機制**（v2.22.1）：當訪客在角色處於「深眠（deep_sleep）」或「賴床（oversleep）」狀態下點擊喚醒按鈕時，後端現在會透過 LLM 生成一段角色專屬的日文起床氣/抱怨台詞，前端並以打字機效果展示，取代原有的預設歡迎語。
 
-**行為調整**：`window.mpuDebugMode = true` 在 console 即時生效。原 `let debugMode` 在腳本載入時 capture 一次，console 修改不會立即生效。新 `mpuIsDebugMode()` helper 每次呼叫都即時讀雙旗，console 切換立即啟用 log。
+**Ghost Runtime State Helper**（v2.22.0 #7 milestone）：新增基於 Transient 的 Helper，用於記錄前台 Session 目前角色的 Runtime 狀態（如 `idle` / `thinking` / `speaking` / `sleeping` 等），為後續 Runtime UI 或觀測整合奠定後端基礎。完全遵循不注入 Prompt、不寫 User Memory 等品質安全原則。
+
+**JS 全域狀態封裝**（v2.21.0 #8 milestone）：前端 runtime state 原本散落在 19 個 file-level `let` 與 9 個 `window.*` 全域，現在收進結構化的 `window.MPU_STATE` namespace，透過 31 個 setter/getter helper function 存取。
 
 **utility-functions.php 領域拆分**（v2.20.0 #6 milestone）：原本 ~1,143 行 catch-all 拆成五個領域檔（template / file / encryption / wp-info / network），`utility-functions.php` 留 36 行常數。同時清理冗餘 `function_exists` 守衛與 v2.19.2 整點 sleep helper 死碼。
-
-**核心 class 型別宣告**（v2.19.0 #5 milestone）：4 個核心 class / 函數族加 PHP 7.4 相容的 type hints。Sleep 系統分鐘精度、Frieren 動態睡眠時間等 character feature 也已在 v2.19.1–v2.19.2 完成。
 
 [查看完整更新日誌](docs/CHANGELOG.md)
 

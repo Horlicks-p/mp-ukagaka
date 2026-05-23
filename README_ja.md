@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.22.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.22.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,15 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.22.0 の新機能
+## 🎉 v2.22.1 の新機能
 
-**JS グローバル状態の封装**（#8 milestone）：フロントエンドの runtime state はこれまで 19 個の file-level `let` と 9 個の `window.*` グローバルに分散していましたが、構造化された `window.MPU_STATE` namespace に集約し、31 個の setter/getter helper function 経由でアクセスするように再編しました（`mpuState` const alias を含めると合計 32 entry）。アルゴリズム変更なし、REST payload 変更なし、UI 動作変更なし — 純粋な構造リファクタです。
+**キャラクター起床時の愚痴・文句生成メカニズム**（v2.22.1）：キャラクターが「深眠（deep_sleep）」または「二度寝（oversleep）」状態のときに、訪問者が起こす（`/wake-ghost`）ボタンをクリックすると、バックエンドが LLM を介してキャラクター専用の日本語の寝起き悪口・愚痴セリフを生成し、フロントエンドでタイプライター効果を伴って表示します。
 
-**動作変更**：`window.mpuDebugMode = true` がブラウザコンソールで即座に有効に。従来は `let debugMode` がスクリプト読込時に一度だけ window flag をキャプチャしていたため、console 切替が反映されませんでした。新しい `mpuIsDebugMode()` helper は呼び出し毎に即時チェックします。
+**Ghost Runtime State Helper**（v2.22.0 #7 milestone）：フロントエンドセッションにおけるキャラクターの現在の runtime 状態（`idle` / `thinking` / `speaking` / `sleeping` など）を記録する Transient ベースのヘルパーを追加。これは、将来の runtime UI や観測機能のバックエンド基盤となります。
 
-**utility-functions.php のドメイン分割**（v2.20.0 #6 milestone）：約 1,143 行の catch-all ファイルを 5 つのドメインファイル（template / file / encryption / wp-info / network）に分割。`utility-functions.php` には定数のみ残存（36 行）。冗長な `function_exists` ガードと v2.19.2 の正時 sleep ヘルパーの dead code も整理。
+**JS グローバル状態のカプセル化**（v2.21.0 #8 milestone）：フロントエンドの runtime state はこれまで 19 個の file-level `let` と 9 個 of `window.*` グローバルに分散していましたが、構造化された `window.MPU_STATE` namespace に集約し、31 個の setter/getter helper function 経由でアクセスするように再編しました。
 
-**コア Class への型宣言**（v2.19.0 #5 milestone）：4 つのコア class / 関数群に PHP 7.4 互換の type hint を追加。睡眠システムの分単位精度やフリーレンの動的睡眠時間などの character feature も v2.19.1–v2.19.2 で完了済み。
+**utility-functions.php のドメイン分割**（v2.20.0 #6 milestone）：約 1,143 行の catch-all ファイルを 5 つのドメインファイルに分割。`utility-functions.php` には定数のみ残存。冗長なガードと v2.19.2 の正時 sleep ヘルパーの dead code も整理。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.22.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.22.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.22.0
+## 🎉 What's New in v2.22.1
 
-**JS Global State Encapsulation** (#8 milestone): Frontend runtime state, previously scattered across 19 file-level `let` variables and 9 `window.*` globals, is now centralized into a structured `window.MPU_STATE` namespace accessed via 31 setter/getter helper functions (plus `mpuState` const alias for 32 entries total). No algorithm changes, no REST payload changes, no UI behavior changes — purely a structural refactor.
+**Character Wake-Up Complaint Mechanism** (v2.22.1): When a visitor clicks the wake-up button (`/wake-ghost`) while the character is in a "deep sleep" (`deep_sleep`) or "oversleep" (`oversleep`) state, the backend uses LLM to generate a character-specific Japanese wake-up complaint, displayed with a typewriter effect instead of the default greeting.
 
-**Behavior Adjustment**: `window.mpuDebugMode = true` now takes effect immediately in the console. Previously, `let debugMode` captured the window flag once on script load, meaning console modifications wouldn't apply immediately. The new `mpuIsDebugMode()` helper reads the flags instantly on every call, enabling immediate logging upon console toggle.
+**Ghost Runtime State Helper** (v2.22.0 #7 milestone): Added a transient-based helper to record the current runtime state of characters (such as `idle`, `thinking`, `speaking`, `sleeping`, etc.) in frontend sessions, serving as a backend foundation for future runtime UI/observation integrations. Fully respects the safety limits of not injecting prompts or writing user memory.
 
-**utility-functions.php Domain Split** (v2.20.0 #6 milestone): The original ~1,143 line catch-all file was split into five domain files (template / file / encryption / wp-info / network), leaving only 36 lines of constants in `utility-functions.php`. Also cleaned up redundant `function_exists` guards and dead code from the v2.19.2 top-of-hour sleep helper.
+**JS Global State Encapsulation** (v2.21.0 #8 milestone): Frontend runtime state, previously scattered across 19 file-level `let` variables and 9 `window.*` globals, is now centralized into a structured `window.MPU_STATE` namespace accessed via 31 setter/getter helper functions.
 
-**Core Class Type Declarations** (v2.19.0 #5 milestone): Added PHP 7.4 compatible type hints to 4 core classes / function families. Character features like minute-precision sleep system and Frieren's dynamic sleep time were also completed in v2.19.1–v2.19.2.
+**utility-functions.php Domain Split** (v2.20.0 #6 milestone): Split the catch-all file into five domain files (template / file / encryption / wp-info / network), leaving constants only in `utility-functions.php`. Also cleaned up redundant guards and dead code.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.22.0
+Stable tag: 2.22.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,19 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-22 =
+* v2.22.1
+* [NEW] Character Wake-up Complaint: When waking up from deep_sleep or oversleep, the character generates Japanese complaint lines via LLM, displayed with a typewriter effect on the frontend.
+* [IMPROVE] Backend REST API & LLM Generation (class-mpu-rest-dialog.php): Added get_wake_sleep_phase() and generate_wake_reaction(). Pick reaction prompts randomly, filter think tags, handle API failure fallbacks, and lock Ollama paths.
+* [IMPROVE] Frontend Chat Integration (ukagaka-chat.js): mpu_send_wake_up_request() returns Promise, uses window.mpuWakeRequestPromise to prevent double-clicks, and timeouts at 60s. Display complaints with typewriter effect and push to chat history.
+
+= 2026-05-22 =
+* v2.22.0
+* [NEW] Ghost Runtime State Helper (#7 milestone): Added transient-based helper tracking frontend session runtime state (idle / thinking / speaking / chatting / sleeping / waking / tool_running / suspended / error) without clobbering options or session_start().
+* [IMPROVE] Public API (runtime-state-functions.php): Whitelisted 9 states, transient key hashes session token via sha256. Added logged-in user fallback.
+* [IMPROVE] REST Wiring: Integrated into /chat/user, /chat/user-stream, and wake_ghost. Ensures cleanup on exit, abort, and shutdown via register_shutdown_function().
+* [TEST] Unit tests for RuntimeState: Added 8 test cases verifying state transition round-trips, security hashing, invalid tokens, and TTL clamping (60s to 900s).
 
 = 2026-05-20 =
 * v2.21.0
