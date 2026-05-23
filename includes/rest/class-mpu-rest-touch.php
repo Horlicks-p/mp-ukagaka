@@ -121,6 +121,10 @@ class MPU_REST_Touch extends MPU_REST_Base {
             mpu_record_conversation('decoration');
         }
 
+        if (function_exists('mpu_observation_push_touch')) {
+            mpu_observation_push_touch($request, 'decoration_' . sanitize_key($decoration_type));
+        }
+
         return $this->ok([
             'msg'   => $result,
             'emoji' => $emoji,
@@ -234,6 +238,10 @@ class MPU_REST_Touch extends MPU_REST_Base {
 
         if (function_exists('mpu_record_conversation')) {
             mpu_record_conversation('touch');
+        }
+
+        if (function_exists('mpu_observation_push_touch')) {
+            mpu_observation_push_touch($request, sanitize_key($touch_zone));
         }
 
         return $this->ok([

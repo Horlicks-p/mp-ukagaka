@@ -337,6 +337,11 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'context'
         );
 
+        if (class_exists('MPU_Observation_Buffer')) {
+            $token = $request->get_header('X-MPU-Session-Token') ?: (string) $request->get_param('session_token');
+            MPU_Observation_Buffer::push('lifecycle_event', 'context_triggered', $token);
+        }
+
         return $this->ok(['msg' => $result, 'emoji' => $emoji]);
     }
 
@@ -867,6 +872,14 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $rejection_rule .= "\n- 拒否する際は、次のようなあなたのキャラクターらしい言い方を使ってください：「{$random_rejection}」";
             $reject_lines[]  = $rejection_rule;
             $system_parts[]  = implode("\n", $reject_lines);
+        }
+
+        if (class_exists('MPU_Observation_Buffer')) {
+            $observations = MPU_Observation_Buffer::drain($runtime_session_token);
+            $observation_block = MPU_Observation_Buffer::format_prompt_block($observations);
+            if ($observation_block !== '') {
+                $system_parts[] = $observation_block;
+            }
         }
 
         $system_prompt = implode("\n\n", $system_parts);

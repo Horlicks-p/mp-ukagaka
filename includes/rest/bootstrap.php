@@ -45,6 +45,9 @@ $mpu_oo_rest_controllers = [
     // Phase 3 — Touch Controller（停用 rest-touch.php 後啟用）
     'MPU_REST_Touch' => 'class-mpu-rest-touch.php',
 
+    // Observation Buffer — session-scoped visitor activity hints for the next user chat.
+    'MPU_REST_Observation' => 'class-mpu-rest-observation.php',
+
     // Phase 4 — Chat Controller（停用 rest-chat.php + chat/*.php 後啟用）
     'MPU_REST_Chat' => 'class-mpu-rest-chat.php',
 

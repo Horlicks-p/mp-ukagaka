@@ -118,8 +118,14 @@ window.mpuSessionToken = window.mpuSessionToken || mpuState.request.sessionToken
 window.__mpuStorage = window.__mpuStorage || mpuState.storage;
 mpuState.storage = window.__mpuStorage;
 let _mpuSessionTokenPromise = mpuState.request.sessionTokenPromise;
-async function mpuEnsureSessionToken() {
-    if (typeof mpuSessionToken === 'string' && mpuSessionToken) return mpuSessionToken;
+async function mpuEnsureSessionToken(forceRefresh = false) {
+    if (forceRefresh) {
+        window.mpuSessionToken = "";
+        mpuState.request.sessionToken = "";
+        mpuState.request.sessionTokenPromise = null;
+        _mpuSessionTokenPromise = null;
+    }
+    if (typeof window.mpuSessionToken === 'string' && window.mpuSessionToken) return window.mpuSessionToken;
     if (!_mpuSessionTokenPromise) {
         _mpuSessionTokenPromise = (async () => {
             if (typeof mpuRestUrl === 'undefined') return '';

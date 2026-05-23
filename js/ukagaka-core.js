@@ -40,6 +40,68 @@ function mpu_hidemsg(speed = 400) {
   }
 }
 
+async function mpuObservationPush(type, content) {
+  if (!window.mpuPageContext || !window.mpuPageContext.postId) return;
+  if (typeof window.mpuRestUrl === "undefined") return;
+
+  const send = async () => {
+    const headers = { "Content-Type": "application/json" };
+    if (typeof window.mpuRestNonce !== "undefined" && window.mpuRestNonce) {
+      headers["X-WP-Nonce"] = window.mpuRestNonce;
+    }
+    if (typeof mpuEnsureSessionToken === "function") {
+      const token = await mpuEnsureSessionToken();
+      if (token) headers["X-MPU-Session-Token"] = token;
+    }
+
+    return fetch(window.mpuRestUrl + "observation/push", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers,
+      body: JSON.stringify({ type, content }),
+    });
+  };
+
+  try {
+    let response = await send();
+    if (response.status === 403 && typeof mpuEnsureSessionToken === "function") {
+      await mpuEnsureSessionToken(true);
+      response = await send();
+    }
+    if (!response.ok && mpuIsDebugMode()) {
+      mpuLogger.log("Observation push dropped:", response.status);
+    }
+  } catch (error) {
+    if (mpuIsDebugMode()) {
+      mpuLogger.log("Observation push failed:", error && error.message ? error.message : error);
+    }
+  }
+}
+
+function mpuInitObservationTracking() {
+  if (window.__mpuObservationStarted) return;
+  if (!window.mpuPageContext || !window.mpuPageContext.postId) return;
+  window.__mpuObservationStarted = true;
+
+  const postId = parseInt(window.mpuPageContext.postId, 10);
+  if (!postId || postId <= 0) return;
+
+  mpuObservationPush("page_view", `post:${postId}`);
+
+  const stayTimers = [];
+  [10, 30, 60, 180, 600].forEach((seconds) => {
+    const timer = setTimeout(() => {
+      mpuObservationPush("stay_duration", `post:${postId}:${seconds}s`);
+    }, seconds * 1000);
+    stayTimers.push(timer);
+  });
+
+  window.addEventListener("beforeunload", () => {
+    stayTimers.forEach((timer) => clearTimeout(timer));
+  });
+}
+
 function mpu_showMsgText() {
   const $msg = jQuery("#ukagaka_msg");
   if ($msg.length) $msg.css("visibility", "visible");
@@ -1170,3 +1232,7 @@ function mpuChange(num) {
       document.body.style.cursor = "auto";
     });
 }
+
+jQuery(function () {
+  mpuInitObservationTracking();
+});

@@ -596,6 +596,10 @@ function mpu_head()
     // Token 不再嵌入 HTML（避免 full-page cache 把第一訪客 token 送給他人）
     // JS 會在首次 API 呼叫前透過 /session-token 端點懶取得
     echo "var mpuSessionToken = null;\n";
+    $mpu_page_context = [
+        'postId' => is_singular() ? (int) get_queried_object_id() : 0,
+    ];
+    echo 'var mpuPageContext = ' . wp_json_encode($mpu_page_context) . ";\n";
 
     // ★ 先獲取當前 personality_id，再用於睡眠判定
     $current_personality = function_exists('mpu_get_current_personality_id')

@@ -30,6 +30,7 @@ $GLOBALS['_mpu_test_filters'] = [];
 $GLOBALS['_mpu_test_actions'] = [];
 $GLOBALS['_mpu_test_action_log'] = [];
 $GLOBALS['_mpu_test_transients'] = [];
+$GLOBALS['_mpu_test_transient_expirations'] = [];
 $GLOBALS['_mpu_test_options'] = [];
 $GLOBALS['_mpu_test_current_user_can'] = false;
 $GLOBALS['_mpu_test_is_user_logged_in'] = false;
@@ -119,6 +120,10 @@ function sanitize_text_field($value) {
     return trim(strip_tags((string) $value));
 }
 
+function wp_strip_all_tags($value) {
+    return strip_tags((string) $value);
+}
+
 function wp_unslash($value) {
     return is_string($value) ? stripslashes($value) : $value;
 }
@@ -198,12 +203,28 @@ function delete_option($key) {
 
 function set_transient($key, $value, $expiration = 0) {
     $GLOBALS['_mpu_test_transients'][$key] = $value;
+    $GLOBALS['_mpu_test_transient_expirations'][$key] = $expiration;
     return true;
 }
 
 function delete_transient($key) {
     unset($GLOBALS['_mpu_test_transients'][$key]);
+    unset($GLOBALS['_mpu_test_transient_expirations'][$key]);
     return true;
+}
+
+function get_post($post_id) {
+    return $GLOBALS['_mpu_test_posts'][(int) $post_id] ?? null;
+}
+
+function get_the_title($post = 0) {
+    if (is_object($post) && isset($post->post_title)) {
+        return $post->post_title;
+    }
+    $post_id = (int) $post;
+    return isset($GLOBALS['_mpu_test_posts'][$post_id])
+        ? $GLOBALS['_mpu_test_posts'][$post_id]->post_title
+        : '';
 }
 
 function current_time($format) {
@@ -225,4 +246,5 @@ require_once MPU_TESTS_ROOT . '/includes/core/encryption-functions.php';
 require_once MPU_TESTS_ROOT . '/includes/core/wp-info-functions.php';
 require_once MPU_TESTS_ROOT . '/includes/core/network-functions.php';
 require_once MPU_TESTS_ROOT . '/includes/core/runtime-state-functions.php';
+require_once MPU_TESTS_ROOT . '/includes/core/class-mpu-observation-buffer.php';
 require_once MPU_TESTS_ROOT . '/includes/llm/provider-helpers.php';

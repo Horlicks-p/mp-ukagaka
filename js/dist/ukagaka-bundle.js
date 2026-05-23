@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-23T13:12:45.037Z
+ * Generated: 2026-05-23T15:16:26.228Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -126,8 +126,14 @@ window.mpuSessionToken = window.mpuSessionToken || mpuState.request.sessionToken
 window.__mpuStorage = window.__mpuStorage || mpuState.storage;
 mpuState.storage = window.__mpuStorage;
 let _mpuSessionTokenPromise = mpuState.request.sessionTokenPromise;
-async function mpuEnsureSessionToken() {
-    if (typeof mpuSessionToken === 'string' && mpuSessionToken) return mpuSessionToken;
+async function mpuEnsureSessionToken(forceRefresh = false) {
+    if (forceRefresh) {
+        window.mpuSessionToken = "";
+        mpuState.request.sessionToken = "";
+        mpuState.request.sessionTokenPromise = null;
+        _mpuSessionTokenPromise = null;
+    }
+    if (typeof window.mpuSessionToken === 'string' && window.mpuSessionToken) return window.mpuSessionToken;
     if (!_mpuSessionTokenPromise) {
         _mpuSessionTokenPromise = (async () => {
             if (typeof mpuRestUrl === 'undefined') return '';
@@ -1219,6 +1225,68 @@ function mpu_hidemsg(speed = 400) {
   } else {
     jQuery("#ukagaka_msgbox").fadeOut(speed);
   }
+}
+
+async function mpuObservationPush(type, content) {
+  if (!window.mpuPageContext || !window.mpuPageContext.postId) return;
+  if (typeof window.mpuRestUrl === "undefined") return;
+
+  const send = async () => {
+    const headers = { "Content-Type": "application/json" };
+    if (typeof window.mpuRestNonce !== "undefined" && window.mpuRestNonce) {
+      headers["X-WP-Nonce"] = window.mpuRestNonce;
+    }
+    if (typeof mpuEnsureSessionToken === "function") {
+      const token = await mpuEnsureSessionToken();
+      if (token) headers["X-MPU-Session-Token"] = token;
+    }
+
+    return fetch(window.mpuRestUrl + "observation/push", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers,
+      body: JSON.stringify({ type, content }),
+    });
+  };
+
+  try {
+    let response = await send();
+    if (response.status === 403 && typeof mpuEnsureSessionToken === "function") {
+      await mpuEnsureSessionToken(true);
+      response = await send();
+    }
+    if (!response.ok && mpuIsDebugMode()) {
+      mpuLogger.log("Observation push dropped:", response.status);
+    }
+  } catch (error) {
+    if (mpuIsDebugMode()) {
+      mpuLogger.log("Observation push failed:", error && error.message ? error.message : error);
+    }
+  }
+}
+
+function mpuInitObservationTracking() {
+  if (window.__mpuObservationStarted) return;
+  if (!window.mpuPageContext || !window.mpuPageContext.postId) return;
+  window.__mpuObservationStarted = true;
+
+  const postId = parseInt(window.mpuPageContext.postId, 10);
+  if (!postId || postId <= 0) return;
+
+  mpuObservationPush("page_view", `post:${postId}`);
+
+  const stayTimers = [];
+  [10, 30, 60, 180, 600].forEach((seconds) => {
+    const timer = setTimeout(() => {
+      mpuObservationPush("stay_duration", `post:${postId}:${seconds}s`);
+    }, seconds * 1000);
+    stayTimers.push(timer);
+  });
+
+  window.addEventListener("beforeunload", () => {
+    stayTimers.forEach((timer) => clearTimeout(timer));
+  });
 }
 
 function mpu_showMsgText() {
@@ -2351,6 +2419,10 @@ function mpuChange(num) {
       document.body.style.cursor = "auto";
     });
 }
+
+jQuery(function () {
+  mpuInitObservationTracking();
+});
 
 // ========== ukagaka-anime.js ==========
 /**

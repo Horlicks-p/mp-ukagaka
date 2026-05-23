@@ -578,6 +578,11 @@ class MPU_REST_Dialog extends MPU_REST_Base {
 
                     if ($is_deep_sleep) {
                         $wake_reaction = $this->generate_wake_reaction($personality_id, $ukagaka_num, $sleep_phase);
+                        if (class_exists('MPU_Observation_Buffer')) {
+                            $token = $request->get_header('X-MPU-Session-Token') ?: (string) $request->get_param('session_token');
+                            MPU_Observation_Buffer::push('lifecycle_event', 'wake_from_sleep', $token);
+                        }
+
                         return $this->ok([
                             'success'        => true,
                             'message'        => __('キャラクターが一時的に起こされました（深い眠り中。ページを更新すると再び眠ります）', 'mp-ukagaka'),
@@ -601,6 +606,12 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             }
 
             $wake_reaction = $this->generate_wake_reaction($personality_id, $ukagaka_num, $sleep_phase);
+            if (class_exists('MPU_Observation_Buffer')) {
+                $token = $request->get_header('X-MPU-Session-Token') ?: (string) $request->get_param('session_token');
+                $event = $sleep_phase === 'deep_sleep' ? 'wake_from_sleep' : 'wake';
+                MPU_Observation_Buffer::push('lifecycle_event', $event, $token);
+            }
+
             return $this->ok([
                 'success'        => true,
                 'message'        => __('キャラクターが起こされました', 'mp-ukagaka'),

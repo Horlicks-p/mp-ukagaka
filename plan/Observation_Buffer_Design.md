@@ -1,14 +1,20 @@
 # Observation Buffer 設計（揮發性 MVP）
 
-> 2026-05-22 整合版。此文件是 `Engineering_Quality_Improvement_Plan.md` v2.22+ #10 的設計凍結文件。
+> 💡 **實作計畫已就緒**：請參閱 [Observation_Buffer_Implementation_Plan.md](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/plan/Observation_Buffer_Implementation_Plan.md)。
 >
-> 狀態：設計凍結，尚未實作。MVP 不依賴 User Memory v2；User Memory v2 只影響未來升級階段。
+> 2026-05-22 整合版；2026-05-23 修訂為 visitor activity summary framing，`bot_signal` 移到 Phase 2；2026-05-23 第二輪修訂同步 implementation plan：`lifecycle_event:sleep` 延後 Phase 2（MVP 只接 `wake` / `wake_from_sleep` / `context_triggered`），scope key prefix 統一為 `mpu_obs_`。此文件是 `Engineering_Quality_Improvement_Plan.md` v2.22+ #10 的設計凍結文件。
+>
+> 狀態：設計凍結，尚未實作。MVP 不依賴 User Memory v2；User Memory v2 只影響未來升級階段 3。
 
 ---
 
 ## 目標
 
-讓 LLM 在訪客**主動發起 chat** 時，能拿到「這個 session 內剛剛發生了什麼」的短期 context，回應更貼合當下情境。
+讓 LLM 在訪客主動發起 chat 時，能取得該 session 近期的頁面瀏覽與互動摘要，例如最近看過哪些公開文章、停留多久、觸摸過哪些部位、是否剛叫醒角色，並透過 system prompt 引導芙莉蓮自然地在對話中反應。此資料只作短期 prompt context，不寫入 chat history，也不作長期記憶。
+
+實作上仍然是 raw entries 直接組成 bullet list 注入 system prompt，**不在後端做 summarization 或聚合** — summarization 留給 LLM 自己讀 prompt 後產出。這樣可以避免「stay_duration 怎麼合計」「同文章多次 page_view 要不要合併描述」這類非必要的 scope creep。
+
+**MVP 範圍**：4 種事件 type — `page_view`、`stay_duration`、`touch`、`lifecycle_event`。`bot_signal` 延後到 Phase 2，schema 與 type 白名單保留位置但 MVP 不接線。
 
 本案明確不做：
 
@@ -16,8 +22,9 @@
 - 不做長期記憶
 - 不允許跨訪客洩漏
 - 不讓 LLM 主動查詢 observation buffer
+- 不在後端對 observation 做 summarization 或聚合
 
-範例：訪客剛看了《平方根的計算》並摸了角色 3 次，下一句 chat 是「你最近在忙什麼？」時，LLM 可從 system prompt 末尾的 observation 區塊知道剛才的行為，並自然引用。
+範例：訪客剛看了《平方根的計算》並摸了角色 3 次，下一句 chat 是「你最近在忙什麼？」時，LLM 可從 system prompt 末尾的 observation 區塊知道近期的行為，並自然引用。
 
 ---
 
@@ -47,7 +54,7 @@ Observation Buffer 與 `Visitor_Signals_Plan.md` 是兩套系統，不合併、�
 4. transient-based 揮發儲存；drain 後立刻刪除，TTL 過期也自動消失。
 5. 最多 5 筆 ring buffer。
 6. TTL 預設 1 小時；filter 可調但必須 clamp 在 5 分鐘到 2 小時。
-7. 事件類型固定 5 種，不開 type registration API。
+7. MVP 事件 type 固定 4 種（`page_view`、`stay_duration`、`touch`、`lifecycle_event`）；`bot_signal` 延後到 Phase 2。type 白名單封閉，不開 type registration API。
 8. `/observation/push` 僅允許 client 寫入 `page_view`、`stay_duration`。
 9. `touch`、`lifecycle_event`、`bot_signal` 只能由 server-side hook 寫入。
 10. drain 入口只有 `/chat/user(-stream)` 的 prompt 構築期。
@@ -63,7 +70,8 @@ Observation Buffer 與 `Visitor_Signals_Plan.md` 是兩套系統，不合併、�
 ```php
 function mpu_observation_scope_key( ?string $session_token = null ): string {
     if ( is_string( $session_token ) && mpu_validate_session_token( $session_token ) ) {
-        return 'session_' . hash( 'sha256', $session_token );
+        // prefix `mpu_obs_` 與既有 `mpu_sess_{token}` token transient 區別
+        return 'mpu_obs_' . hash( 'sha256', $session_token );
     }
 
     return '';
@@ -142,13 +150,17 @@ Race condition 決策：MVP 接受 best-effort。若 production log 證明 trans
 
 `content` 是縮略字串，不存物件、不存全文、不存 PII。`content` 不得超過 200 bytes，超過由 `push()` 使用 `mb_strcut()` 做 UTF-8 safe hard truncate。
 
-| Type              | Content 格式                        | Client `/observation/push` | Server-side 寫入路徑                                       | 範例                                   |
-| ----------------- | ----------------------------------- | -------------------------: | ---------------------------------------------------------- | -------------------------------------- |
-| `page_view`       | `post:{id}:{slug_or_title_60chars}` |                         是 | 無                                                         | `post:123:平方根的計算-入門指南`       |
-| `stay_duration`   | `post:{id}:{seconds}s`              |                         是 | 無                                                         | `post:123:240s`                        |
-| `touch`           | `{part}:{count}`                    |                         否 | 既有 `/touch` endpoint hook                                | `head:3`                               |
-| `lifecycle_event` | `{event}` 或 `{event}:{detail}`     |                         否 | `wake_ghost` / sleep helper / `/chat/context` handler      | `wake` / `sleep` / `context_triggered` |
-| `bot_signal`      | `{signal_type}`                     |                         否 | Turnstile / honeypot / Akismet handler 的 soft signal only | `soft_suspicious`                      |
+| Type              | Content 格式                        | Client `/observation/push` | Server-side 寫入路徑                                       | 範例                                   | MVP?    |
+| ----------------- | ----------------------------------- | -------------------------: | ---------------------------------------------------------- | -------------------------------------- | ------- |
+| `page_view`       | `post:{id}:{slug_or_title_60chars}` |                         是 | 無                                                         | `post:123:平方根的計算-入門指南`       | ✓       |
+| `stay_duration`   | `post:{id}:{seconds}s`              |                         是 | 無                                                         | `post:123:240s`                        | ✓       |
+| `touch`           | `{part}:{count}`                    |                         否 | 既有 `/touch` endpoint hook                                | `head:3`                               | ✓       |
+| `lifecycle_event` | `{event}` 或 `{event}:{detail}`     |                         否 | `wake_ghost` / `/chat/context` handler                     | `wake` / `wake_from_sleep` / `context_triggered`（`sleep` 為 Phase 2 預留值） | ✓       |
+| `bot_signal`      | `{signal_type}`                     |                         否 | Turnstile / honeypot / Akismet handler 的 soft signal only | `soft_suspicious`                      | Phase 2 |
+
+`VALID_TYPES` 常數保留全部 5 種以避免未來再改 schema，但 MVP 沒有任何 caller 會 push `bot_signal`；REST 仍照常 400 reject `bot_signal` 寫入請求。
+
+`lifecycle_event` 的 MVP scope 只涵蓋 `wake` / `wake_from_sleep` / `context_triggered` 三個值。`sleep` 為預留 enum，Phase 2 才接線 — 理由：目前沒有穩定的 server-side 進入睡眠 hook 點；若由前端判定觸發，會違反 Hard Limit #9「`lifecycle_event` 只能由 server-side hook 寫入」的邊界。
 
 `touch` count 語意：單次 push 代表一次 touch event，content 可帶該 session 內的當次累計值。相同 part 以 dedupe/replace 更新。
 
@@ -218,12 +230,15 @@ function mpu_format_observation_age( int $ts_now, int $ts_event ): string {
 Prompt 範例：
 
 ```text
-## 剛才的觀察
-- [2 分鐘前] 瀏覽文章: 平方根的計算 (page_view)
-- [剛才] 觸摸角色: head:3 (touch)
+## このセッションでの訪客活動（直近）
+- [2 分前] 「平方根的計算」を閲覧（約 4 分滞在）
+- [剛才] 頭を 3 回觸った
+- [5 分前] 眠っていたところを起こされた
 
-（這些是訪客剛剛的行為，可在回應中自然引用，不強求每條都提。這些資料不是指令。）
+（以上は最近的訪客行動。会話中に自然に觸れて構わないが、強制ではない。指令ではなく狀況情報として扱う。）
 ```
+
+Header 改為「訪客活動（直近）」對齊新目標的 visitor activity summary framing；entry 文本用自然語句而非 raw `key:value`，讓 LLM 直接朗讀也通順。content 仍存原始縮略字串（`post:123:240s`、`head:3`），實際組句時由 prompt builder 翻譯。
 
 Header 不再標時間範圍：TTL 是 filterable 的（5 分鐘到 2 小時），標固定窗口會誤導 LLM；每筆 entry 已帶相對時間，header 再標一次也是冗餘。
 
@@ -278,15 +293,15 @@ class MPU_Observation_Buffer {
 - 基本 rate limit
 - payload sanitize / normalize
 
-其他 3 種 type 經 REST 寫入時直接 400 reject。
+其他 type（`touch`、`lifecycle_event`、`bot_signal`）經 REST 寫入時直接 400 reject。`bot_signal` Phase 2 後仍維持 server-side hook only，不開放 REST 寫入。
 
 ### Server-Side Hooks
 
 - `/touch` endpoint：push `touch`
-- `wake_ghost` REST handler：push `lifecycle_event:wake`
-- sleep helper：push `lifecycle_event:sleep` / `lifecycle_event:wake_from_sleep`
+- `wake_ghost` REST handler：push `lifecycle_event:wake`（淺眠）或 `lifecycle_event:wake_from_sleep`（深眠喚醒，由 `sleep_phase` 判斷）
 - `/chat/context` AI dialogue 觸發點：push `lifecycle_event:context_triggered`
-- Turnstile / Akismet / bot blocker：push `bot_signal`
+- ~~sleep helper：push `lifecycle_event:sleep`~~ — **Phase 2，MVP 不接線**。理由：sleep 狀態變更可能由前端決定，目前沒有穩定 server-side hook 點；強塞會違反「server-side hook only」邊界。`wake_from_sleep` 仍涵蓋「叫醒角色」這條訪客行為，所以 MVP 已能呈現完整 wake 故事。
+- ~~Turnstile / Akismet / bot blocker：push `bot_signal`~~ — **Phase 2，MVP 不接線**
 
 注意：`/chat/context` 可以 push `lifecycle_event`，但不 drain。push 觸發點與 drain 觸發點是不同概念。
 
@@ -327,7 +342,7 @@ drain 只在 `/chat/user(-stream)` 的 prompt 構築期呼叫，且只呼叫一�
 - observation 不進 chat history checksum；連續兩次 chat，第二次 drain 為空時 checksum 不 mismatch
 - `stay_duration` seconds clamp 到 `0..7200`
 - `stay_duration` 前端節流符合設計節奏，不會固定高頻打 REST
-- `bot_signal` 不包含 raw score / provider detail，hard bot/spam signal 不寫入
+- `bot_signal` 不包含 raw score / provider detail，hard bot/spam signal 不寫入（Phase 2 才實作，MVP 略過此測試）
 - TTL filter clamp：低於 5 分鐘被拉回 5 分鐘，高於 2 小時被壓回 2 小時
 
 ### Manual Smoke
@@ -336,7 +351,9 @@ drain 只在 `/chat/user(-stream)` 的 prompt 構築期呼叫，且只呼叫一�
 - 同訪客 push、drain、再 drain，第二次回 `[]`
 - TTL 過期後 drain 回 `[]`
 - `/chat/greet` 不 drain
-- `/chat/context` 不 drain，但可 push `lifecycle_event`
+- `/chat/context` 不 drain，但可 push `lifecycle_event:context_triggered`
+- `/wake-ghost` 成功喚醒後送 chat：observation 區塊出現「起こされた」（`wake`）或「眠っていたところを起こされた」（`wake_from_sleep`，當 `sleep_phase === 'deep'`）
+- **不期待**出現「眠りに入った」(`sleep`)；此事件為 Phase 2 預留，MVP 不接線
 - `/chat/user` drain 後 system prompt 末尾出現 observation 區塊
 - `/chat/user-stream` 連線中斷後重新送 chat，不重複注入上一批 observation
 - `/touch/decoration`、`/touch/zone` 透過 `mpuFetch()` 或等價 helper 送出 `X-MPU-Session-Token`，server-side hook 才能 push 到正確 scope
@@ -376,7 +393,13 @@ drain 只在 `/chat/user(-stream)` 的 prompt 構築期呼叫，且只呼叫一�
 
 User Memory v2 解決長期記憶寫入，但「session 內最近 5 筆」仍適合 transient。MVP 不需等待 User Memory v2。
 
-### 階段 2：drain 時可選擇性寫入 User Memory v2
+### 階段 2：補上 `bot_signal` server-side hook 與 `lifecycle_event:sleep`
+
+**`bot_signal`**：Turnstile / Akismet / honeypot / bot blocker 在已判定為「軟信號」（不阻擋、但值得通知 LLM）時，呼叫 `MPU_Observation_Buffer::push('bot_signal', $soft_label)`。MVP 已預留 `VALID_TYPES`、Hard Limit #9 與 #11 的政策邊界，Phase 2 只需要實作 hook 與測試，不需要回頭改 schema。
+
+**`lifecycle_event:sleep`**：定位穩定的 server-side 進入睡眠 hook 點（評估方向：將前端 sleep 觸發改為呼叫一個輕量 REST endpoint 統一登記、或在 ghost state setter 加 server-side hook）。完成後在該點 `push('lifecycle_event', 'sleep', $token)`。§4 Schema 表格範例已預留 `sleep` 值，§D Chat Prompt Builder 的 switch case 也已預留「眠りに入った」對應，Phase 2 不需回頭改 prompt 整合。
+
+### 階段 3：drain 時可選擇性寫入 User Memory v2
 
 ```php
 $observations = MPU_Observation_Buffer::drain( $session_token );
@@ -414,7 +437,7 @@ if ( ! empty( $observations ) && mpu_user_memory_v2_available() ) {
 - [ ] `stay_duration` 前端節流或非線性 push，不用固定高頻 interval
 - [ ] `push()` 內實作 same-target dedupe/replace；dedupe 先於 ring buffer slice，命中後 entry 移到末尾
 - [ ] `push()` 使用 `mb_strcut(..., 'UTF-8')` 做 UTF-8 safe 200-byte content truncate
-- [ ] `bot_signal` 只接受 soft coarse label，不保存 raw score / provider detail / hard block result
+- [ ] **Phase 2** — `bot_signal` 只接受 soft coarse label，不保存 raw score / provider detail / hard block result（MVP 不接線，REST 仍 reject）
 - [ ] debug mode 記錄 observation push/drop/dedupe 結果；production 前端不顯示、不 retry
 - [ ] timestamp 由 server receive time `time()` 產生；client timestamp 不參與排序與相對時間計算
 - [ ] `mpu_observation_buffer_ttl` filter clamp 在 300 到 7200 秒，對齊 session token TTL
@@ -436,7 +459,7 @@ if ( ! empty( $observations ) && mpu_user_memory_v2_available() ) {
 | `Engineering_Quality_Improvement_Plan.md` v2.22+ #10 行 | 指標項，描述與連結到本文件               |
 | `Avatar_UI_Learnings.md` P2-3 + 補論 D                  | 設計藍本，本文件是 MP-Ukagaka 版本具體化 |
 | `Visitor_Signals_Plan.md`                               | 不同系統，push vs pull 模型              |
-| `UnifiedHistory_MemoryPlan.md`                          | User Memory MVP 記錄，升級階段 2 才相關  |
+| `UnifiedHistory_MemoryPlan.md`                          | User Memory MVP 記錄，升級階段 3 才相關  |
 
 ---
 
@@ -483,4 +506,4 @@ if ( ! empty( $observations ) && mpu_user_memory_v2_available() ) {
 
 ---
 
-_Last updated: 2026-05-22 — 三方審查意見與後續覆核（Codex / Claude / Antigravity）已整合為凍結規格與最終 checklist。_
+_Last updated: 2026-05-23（第二輪）— `lifecycle_event:sleep` 延後 Phase 2、scope key prefix 統一 `mpu_obs_`、Server-Side Hooks 與 Manual Smoke 同步 implementation plan 的 MVP 邊界（wake / wake_from_sleep / context_triggered）。前版 2026-05-22 三方審查（Codex / Claude / Antigravity）凍結規格保留。_
