@@ -4,6 +4,23 @@
 
 ---
 
+## [2.23.2] - 2026-05-24
+
+### 🐛 Bug Fixes
+
+#### Observation Buffer — SPA navigation tracking
+
+- Observation tracking (`page_view` / `stay_duration`) now also starts after client-side (SPA) navigation into a single post, not only when a single post is the initial page load.
+- The post ID is re-detected from the DOM (`postid-` / `page-id-` body class, `data-post-id`, `article[id^="post-"]`), with the PHP-injected `mpuPageContext.postId` taking priority when present.
+- Listing, archive, and home pages are guarded against false starts, and the stale post ID is cleared on each SPA navigation before re-detection.
+
+#### Page-context self-talk — auto-talk resume
+
+- Removed the fragile `!mpuAutoTalkTimer` guard in the page-awareness self-talk display callback. Under production API latency a stale timer reference could leave auto-talk permanently stalled (not reproducible locally).
+- `startAutoTalk()` already stops any existing timer first, so resume is now unconditional whenever auto-talk is enabled — no double timer, original cadence preserved.
+
+---
+
 ## [2.23.1] - 2026-05-24
 
 ### 🌐 Language Setting Unification and Fallback Fix
