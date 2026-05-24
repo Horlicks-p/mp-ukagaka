@@ -1,3 +1,16 @@
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+if (!isset($mpu_opt) || !is_array($mpu_opt)) {
+    $mpu_opt = function_exists('mpu_get_option') ? mpu_get_option() : [];
+}
+
+if (empty($mpu_opt['ukagakas']) || !is_array($mpu_opt['ukagakas'])) {
+    $mpu_opt['ukagakas'] = [];
+}
+?>
 <div>
     <h3><?php _e('👻 偽春菜們', 'mp-ukagaka'); ?></h3>
     <p style="color: #8A7FA0; margin-bottom: 20px;">

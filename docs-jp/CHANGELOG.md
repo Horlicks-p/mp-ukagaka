@@ -4,6 +4,49 @@
 
 ---
 
+## [2.23.1] - 2026-05-24
+
+### 🌐 言語設定の統一とフォールバックロジックの修正
+
+- ゴーストの言語設定の競合を修正しました。言語解決の優先順位は次のようになりました：バックエンドの明示的設定 > ゴースト専用 `manifest.json` > 最終フォールバック 日本語 (`ja`)。
+- バックエンドの一般設定とAI設定の言語ドロップダウンに「デフォルト」オプションを追加し、管理者が言語の決定をゴーストの `manifest.json` に委ねることができるようにしました。
+- 未使用の簡体字中国語と韓国語のマッピングを削除し、言語リストを簡素化しました。
+
+---
+
+## [2.23.0] - 2026-05-23
+
+### 🧠 Observation Buffer (観察バッファ)
+
+#### 🧩 セッション単位の観察ヒント
+
+`MPU_Observation_Buffer` を追加し、訪問者の直近行動を session token 単位で transient に一時保存し、次のユーザー主導チャットへ状況情報として注入できるようにしました。
+
+- Observation Buffer は WordPress transient を使用します。scope key は session token の hash から生成し、元の token を key にそのまま保存しません。
+- 1 session あたり最大 5 件、1 件あたり 200 bytes まで保存します。TTL はデフォルト 1 時間で、`mpu_observation_buffer_ttl` filter により 5 分〜2 時間の範囲で調整できます。
+- `/chat/user` が system prompt を組み立てるタイミングで buffer を `drain()` するため、同じ観察セットが重複して注入されることはありません。
+
+#### 🔌 REST API とフロントエンド追跡
+
+- `POST /mp-ukagaka/v1/observation/push` を追加しました。現時点では frontend からの `page_view` と `stay_duration` を受け付けます。
+- endpoint は有効な session token を必須とし、`60 秒あたり 20 回` の rate limit を適用します。
+- frontend に `mpuObservationPush()` と `mpuInitObservationTracking()` を追加し、記事ページの閲覧と 10 / 30 / 60 / 180 / 600 秒時点の滞在時間を記録します。
+- session token が古く 403 になった場合、frontend は token を再取得して 1 回だけ再試行し、長時間滞在や SPA 遷移時の取りこぼしを減らします。
+
+#### 👻 インタラクションイベント連携
+
+- キャラクター本体や装飾物への touch は `touch` 観察として蓄積され、同じ部位への接触は重複排除しつつ回数として合算されます。
+- 起こし、睡眠中からの起こし、ページ文脈トリガーなどの lifecycle event も buffer に入り、次の会話で「直前に何が起きたか」を自然に扱えるようになりました。
+- `/chat/user` は観察情報を「最近の訪問者行動」ブロックとして整形し、指示ではなく状況情報として system prompt に追加します。
+
+#### 🛡️ 安全性と境界
+
+- 観察内容は許可 type のみ受け付け、type ごとの形式検証、HTML 除去、長さ制限を行います。非公開記事やパスワード保護記事はタイトルを出さず `[non-public]` として扱います。
+- Buffer は短期 transient の文脈情報のみで、User Memory へは書き込まず、永続的な訪問者プロフィールも作成しません。
+- `bot_signal` は将来の phase 2 用として予約されており、現時点では書き込みを拒否します。
+
+---
+
 ## [2.22.1] - 2026-05-22
 
 ### 👻 ゴースト睡眠復帰時の愚痴/起床気メカニズム（v2.22.1）

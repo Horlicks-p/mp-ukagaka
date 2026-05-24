@@ -44,6 +44,17 @@
             <?php endif; ?>
 
             <div class="mpu-field-group">
+                <label for="ai_language"><?php _e('AI 回應語言：', 'mp-ukagaka'); ?></label>
+                <select id="ai_language" name="ai_language" style="width: 100%; max-width: 300px;">
+                    <option value="" <?php selected($mpu_opt['ai_language'] ?? '', ''); ?>><?php _e('預設', 'mp-ukagaka'); ?></option>
+                    <option value="zh-TW" <?php selected($mpu_opt['ai_language'] ?? '', 'zh-TW'); ?>><?php _e('繁體中文', 'mp-ukagaka'); ?></option>
+                    <option value="ja" <?php selected($mpu_opt['ai_language'] ?? '', 'ja'); ?>><?php _e('日本語', 'mp-ukagaka'); ?></option>
+                    <option value="en" <?php selected($mpu_opt['ai_language'] ?? '', 'en'); ?>><?php _e('English', 'mp-ukagaka'); ?></option>
+                </select>
+                <small><?php _e('用於 {{language}} prompt 變數，也會同步更新 AI 設定頁的語言。', 'mp-ukagaka'); ?></small>
+            </div>
+
+            <div class="mpu-field-group">
                 <label for="admin_nickname"><?php _e('Admin full nickname:', 'mp-ukagaka'); ?></label>
                 <input type="text" id="admin_nickname" name="admin_nickname" value="<?php echo isset($mpu_opt['admin_nickname']) ? esc_attr($mpu_opt['admin_nickname']) : ''; ?>" style="width: 100%; max-width: 300px;" />
                 <small><?php _e('Used for {{admin_nickname}} in personality prompts.', 'mp-ukagaka'); ?></small>

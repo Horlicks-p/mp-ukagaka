@@ -562,6 +562,7 @@ Conversation history is retained on the current page only (cleared after refresh
 | `/help` | Everyone | Displays the list of available commands |
 | `/reset` | Admin only | Clears the current chat history |
 | `/clear` | Admin only | Same as `/reset` |
+| `/remember` | Admin only | Extracts facts from recent conversations and saves them as character memory |
 | `/debug_mcp` | Admin only | Displays MCP/Abilities diagnostic report |
 
 > Admin-only commands are determined by WordPress login status. If a non-logged-in user types these commands, the character will refuse in-character.

@@ -997,7 +997,9 @@ function mpu_build_optimized_system_prompt(
     // 準備變數陣列
     $variables = [
         'ukagaka_display_name' => $ukagaka_display_name,
-        'language' => $language,
+        'language' => function_exists('mpu_resolve_language')
+            ? mpu_resolve_language($personality_id, $language)
+            : $language,
         'time_context' => $time_context,
         'wp_version' => $wp_info['wp_version'] ?? '',
         'php_version' => $wp_info['php_version'] ?? '',

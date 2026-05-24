@@ -614,6 +614,11 @@ msgstr ""
 msgid "語言設定："
 msgstr ""
 
+#: options/options_general.php:49
+#: options_page_ai.php:14
+msgid "預設"
+msgstr ""
+
 #: options_page_ai.php:111
 msgid "繁體中文"
 msgstr ""
@@ -624,6 +629,10 @@ msgstr ""
 
 #: options_page_ai.php:117
 msgid "English"
+msgstr ""
+
+#: options_page_ai.php:28
+msgid "此為全域 AI 回應語言，也會用於 {{language}} prompt 變數；選擇預設時會跟隨角色 manifest.json 的 language。"
 msgstr ""
 
 #: options_page_ai.php:122

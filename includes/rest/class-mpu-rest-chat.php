@@ -83,14 +83,21 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $wp_info              = mpu_get_wordpress_info();
         $ukagaka_name         = $mpu_opt['cur_ukagaka'] ?? 'default_1';
         $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
-        $language             = $mpu_opt['ai_language'] ?? 'zh-TW';
+        $language             = $mpu_opt['ai_language'] ?? '';
 
         $personality_id = mpu_resolve_personality_id($ukagaka_name);
+        $language = function_exists('mpu_resolve_language_code')
+            ? mpu_resolve_language_code($personality_id, $language)
+            : ($language !== '' ? $language : 'zh-TW');
         $time_context   = mpu_get_time_context($personality_id);
+
+        $prompt_language = function_exists('mpu_resolve_language')
+            ? mpu_resolve_language($personality_id, $language)
+            : $language;
 
         $variables = [
             'ukagaka_display_name' => $ukagaka_display_name,
-            'language'             => $language,
+            'language'             => $prompt_language,
             'time_context'         => $time_context,
             'wp_version'           => $wp_info['wp_version'] ?? '',
             'php_version'          => $wp_info['php_version'] ?? '',
@@ -707,15 +714,22 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         $ukagaka_name         = $mpu_opt['cur_ukagaka'] ?? 'default_1';
         $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
-        $language             = $mpu_opt['ai_language'] ?? 'zh-TW';
+        $language             = $mpu_opt['ai_language'] ?? '';
 
         $personality_id = mpu_resolve_personality_id($ukagaka_name);
+        $language = function_exists('mpu_resolve_language_code')
+            ? mpu_resolve_language_code($personality_id, $language)
+            : ($language !== '' ? $language : 'zh-TW');
         $time_context   = mpu_get_time_context($personality_id);
 
         $wp_info   = mpu_get_wordpress_info();
+        $prompt_language = function_exists('mpu_resolve_language')
+            ? mpu_resolve_language($personality_id, $language)
+            : $language;
+
         $variables = [
             'ukagaka_display_name'  => $ukagaka_display_name,
-            'language'              => $language,
+            'language'              => $prompt_language,
             'time_context'          => $time_context,
             'wp_version'            => $wp_info['wp_version'] ?? '',
             'php_version'           => $wp_info['php_version'] ?? '',

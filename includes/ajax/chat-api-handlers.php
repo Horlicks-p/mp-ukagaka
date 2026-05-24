@@ -25,6 +25,13 @@ if (!defined('ABSPATH')) {
  */
 function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
 {
+    if (function_exists('mpu_resolve_language_code')) {
+        $personality_id = function_exists('mpu_get_current_personality_id') ? mpu_get_current_personality_id() : null;
+        $language = mpu_resolve_language_code($personality_id, $language);
+    } elseif (empty($language)) {
+        $language = 'zh-TW';
+    }
+
     // 記錄發送給 AI 的提示詞
     // 檢查 WP_DEBUG 或 WP_DEBUG_LOG，如果都未啟用則強制記錄（用於調試）
     $wp_debug_enabled = defined('WP_DEBUG') && WP_DEBUG;

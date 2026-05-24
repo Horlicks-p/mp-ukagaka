@@ -68,7 +68,7 @@ function mpu_default_opt()
         "claude_api_key" => "",
         "claude_model" => "claude-sonnet-4-6",
         "ollama_replace_dialogue" => false,
-        "ai_language" => "zh-TW",
+        "ai_language" => "",
         "ai_system_prompt" => "你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。",
         "ai_probability" => 10,
         "ai_trigger_pages" => "is_single",

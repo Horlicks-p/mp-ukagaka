@@ -27,6 +27,13 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
         mpu_ensure_request_state('llm_single_turn');
     }
 
+    if (function_exists('mpu_resolve_language_code')) {
+        $personality_id = function_exists('mpu_get_current_personality_id') ? mpu_get_current_personality_id() : null;
+        $language = mpu_resolve_language_code($personality_id, $language);
+    } elseif (empty($language)) {
+        $language = 'zh-TW';
+    }
+
     // ===== 統計：記錄開始時間 =====
     $start_time = microtime(true);
 
@@ -189,13 +196,13 @@ function mpu_get_language_instruction($language)
 {
     switch ($language) {
         case "zh-TW":
-            return "請用繁體中文回應。";
+            return "輸出語言優先規則：請一律使用繁體中文回應。即使角色設定、範例台詞或其他提示詞使用不同語言，也必須以繁體中文輸出；只保留角色語氣，不要切換到其他語言。";
         case "ja":
-            return "日本語で応答してください。";
+            return "出力言語の最優先ルール：必ず日本語で応答してください。キャラクター設定、例文、他のプロンプトが別の言語で書かれていても、出力は日本語に統一してください。口調だけを保ち、他の言語へ切り替えないでください。";
         case "en":
-            return "Please respond in English.";
+            return "Highest-priority output language rule: Always respond in English. Even if the character profile, example lines, or other prompt text is written in another language, the final user-facing reply must be in English. Preserve only the character's tone; do not switch to another language.";
         default:
-            return "請用繁體中文回應。";
+            return "輸出語言優先規則：請一律使用繁體中文回應。即使角色設定、範例台詞或其他提示詞使用不同語言，也必須以繁體中文輸出；只保留角色語氣，不要切換到其他語言。";
     }
 }
 

@@ -4,6 +4,55 @@
 
 ---
 
+## [2.23.1] - 2026-05-24
+
+### 🌐 Language Setting Unification and Fallback Fix
+
+# MP Ukagaka Version History
+
+> 📋 Update records for all versions
+
+---
+
+## [2.23.1] - 2026-05-24
+
+### 🌐 Language Setting Unification and Fallback Fix
+
+- Fixed ghost language setting conflicts. The language resolution priority is now: Backend explicit setting > Ghost's `manifest.json` > Final fallback Japanese (`ja`).
+- Added a "Default" option to the language dropdowns in General Settings and AI Settings, allowing admins to yield the language choice to the ghost's `manifest.json`.
+- Removed unused Simplified Chinese and Korean mappings from the language list.
+
+---
+
+## [2.23.0] - 2026-05-23
+
+### 🧠 Observation Buffer
+
+- Observation data is stored in WordPress transients. The scope key is derived from a hashed session token, so the raw token is never stored in the key.
+- Each session keeps at most 5 observations, with each entry capped at 200 bytes. The default TTL is 1 hour and can be adjusted via the `mpu_observation_buffer_ttl` filter, clamped between 5 minutes and 2 hours.
+- The buffer is drained when `/chat/user` builds the system prompt, so the same observation batch is injected at most once.
+
+#### 🔌 REST API and Frontend Tracking
+
+- Added `POST /mp-ukagaka/v1/observation/push`, currently accepting the frontend observation types `page_view` and `stay_duration`.
+- The endpoint requires a valid session token and applies a `20 requests / 60 seconds` rate limit.
+- Added frontend helpers `mpuObservationPush()` and `mpuInitObservationTracking()` to record post page views and dwell-time checkpoints at 10 / 30 / 60 / 180 / 600 seconds.
+- If a stale session token returns 403, the frontend refreshes the token and retries once to reduce missed observations on long-lived or SPA pages.
+
+#### 👻 Interaction Event Integration
+
+- Touching the character or decorations now accumulates `touch` observations, deduping by part and merging repeated touches into a count.
+- Wake events, wake-from-sleep events, and page-context triggers are pushed as lifecycle observations so the next chat can naturally reference what just happened.
+- `/chat/user` formats observations as a "recent visitor activity" block and explicitly treats them as context, not instructions, so the LLM may reference them naturally without being forced by them.
+
+#### 🛡️ Safety and Boundaries
+
+- Observation content is checked against an allowlist, validated by type-specific formats, stripped of HTML, and length-capped. Private or password-protected posts are represented as `[non-public]` instead of exposing titles.
+- The buffer is short-lived transient context only. It does not write User Memory and does not create a persistent visitor profile.
+- `bot_signal` is reserved for a later phase 2 and is currently rejected.
+
+---
+
 ## [2.22.1] - 2026-05-22
 
 ### 👻 Ghost Sleep-Wake Grumble Mechanism (v2.22.1)

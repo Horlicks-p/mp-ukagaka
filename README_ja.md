@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.22.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.23.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.22.1 の新機能
+## 🎉 v2.23.1 の新機能
+
+**言語設定の統一**（v2.23.1）：言語設定の競合を修正し、バックエンド設定を優先させるとともに、ゴーストのmanifestに制御を戻す「デフォルト」オプションを追加しました。
+
+**Observation Buffer (観察バッファ)**（v2.23.0）：セッションスコープの短期観察バッファを追加し、ページビュー、滞在時間、タッチ、起床などの最近のイベントを記録し、次回のチャット時にコンテキスト情報として注入できるようにしました。
 
 **キャラクター起床時の愚痴・文句生成メカニズム**（v2.22.1）：キャラクターが「深眠（deep_sleep）」または「二度寝（oversleep）」状態のときに、訪問者が起こす（`/wake-ghost`）ボタンをクリックすると、バックエンドが LLM を介してキャラクター専用の日本語の寝起き悪口・愚痴セリフを生成し、フロントエンドでタイプライター効果を伴って表示します。
 

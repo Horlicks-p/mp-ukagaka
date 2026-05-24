@@ -8,16 +8,16 @@
 
 ### User Documentation
 
-| Document                                           | Description                                               | Audience       |
-| -------------------------------------------------- | --------------------------------------------------------- | -------------- |
+| Document                                              | Description                                               | Audience       |
+| ----------------------------------------------------- | --------------------------------------------------------- | -------------- |
 | [User Guide](./USER_GUIDE.md)                         | Complete guide for installation, configuration, and usage | General Users  |
 | [Personality Creation Guide](./GHOST_CREATE_GUIDE.md) | How to create new character personalities                 | Advanced Users |
 | [Changelog](./CHANGELOG.md)                           | Update history for all versions                           | Everyone       |
 
 ### Developer Documentation
 
-| Document                                                    | Description                                                        | Audience                   |
-| ----------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------- |
+| Document                                                       | Description                                                        | Audience                   |
+| -------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------- |
 | [Developer Guide](./DEVELOPER_GUIDE.md)                        | Architecture overview, module structure, and extension development | Developers                 |
 | [API Reference](./API_REFERENCE.md)                            | Detailed reference for functions, Hooks, and AJAX endpoints        | Developers                 |
 | [Canvas Animation &amp; Custom CSS](./CANVAS_CUSTOMIZATION.md) | Canvas animation features and CSS positioning guide                | Developers, Advanced Users |
@@ -48,8 +48,8 @@
 
 ## 📋 Version Information
 
-- **Current Version**: 2.22.0
-- **Last Updated**: 2026-05-22
+- **Current Version**: 2.22.1
+- **Last Updated**: 2026-05-23
 - **WordPress Requirement**: 5.0+
 - **PHP Requirement**: 7.4+
 

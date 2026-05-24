@@ -314,6 +314,9 @@ msgstr "Claude 模型："
 msgid "語言設定："
 msgstr "語言設定："
 
+msgid "預設"
+msgstr "預設"
+
 msgid "繁體中文"
 msgstr "繁體中文"
 
@@ -322,6 +325,9 @@ msgstr "日本語"
 
 msgid "English"
 msgstr "English"
+
+msgid "此為全域 AI 回應語言，也會用於 {{language}} prompt 變數；選擇預設時會跟隨角色 manifest.json 的 language。"
+msgstr "此為全域 AI 回應語言，也會用於 {{language}} prompt 變數；選擇預設時會跟隨角色 manifest.json 的 language。"
 
 msgid "人格設定 (System Prompt)："
 msgstr "人格設定（System Prompt）："

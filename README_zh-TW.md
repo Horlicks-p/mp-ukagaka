@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.22.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.23.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.22.1 新功能
+## 🎉 v2.23.1 新功能
+
+**語言設定統一**（v2.23.1）：修正了語言設定衝突，優先採用後台設定，並新增「預設」選項以交回角色 manifest 控制權。
+
+**Observation Buffer (觀察緩衝區)**（v2.23.0）：新增 session-scoped 短期觀察緩衝區，記錄頁面瀏覽、停留時間、觸摸與喚醒等近期事件，並在下一次聊天時作為情境資訊注入。
 
 **角色睡眠喚醒抱怨機制**（v2.22.1）：當訪客在角色處於「深眠（deep_sleep）」或「賴床（oversleep）」狀態下點擊喚醒按鈕時，後端現在會透過 LLM 生成一段角色專屬的日文起床氣/抱怨台詞，前端並以打字機效果展示，取代原有的預設歡迎語。
 

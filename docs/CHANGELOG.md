@@ -4,6 +4,49 @@
 
 ---
 
+## [2.23.1] - 2026-05-24
+
+### 🌐 語言設定統一與 fallback 邏輯修正
+
+- 修正了角色語言設定衝突的問題，現在語言解析的優先順序為：後台明確設定 > 角色專屬 `manifest.json` > 最終預設日文 (`ja`)。
+- 在後台「通用設定」與「AI 設定」的語言下拉選單中新增「預設」選項，允許管理員將語言決定權交回給角色的 `manifest.json`。
+- 移除了未使用的簡體中文與韓文映射，精簡語言清單。
+
+---
+
+## [2.23.0] - 2026-05-23
+
+### 🧠 Observation Buffer (觀察緩衝區)
+
+#### 🧩 Session-scoped 觀察提示
+
+新增 `MPU_Observation_Buffer`，以 session token 為 scope 暫存最近的訪客行為，並在下一次使用者主動聊天時注入為「情境資訊」。
+
+- Observation Buffer 使用 WordPress transient 儲存，scope key 由 session token 雜湊產生，不會保存原始 token。
+- 每個 session 最多保留 5 筆觀察，每筆內容限制 200 bytes；預設 TTL 為 1 小時，並可透過 `mpu_observation_buffer_ttl` filter 調整（限制在 5 分鐘到 2 小時之間）。
+- Buffer 會在 `/chat/user` 組 system prompt 時 `drain()`，同一批觀察最多只會被注入一次，避免重複影響後續對話。
+
+#### 🔌 REST API 與前端追蹤
+
+- 新增 `POST /mp-ukagaka/v1/observation/push`，目前允許 `page_view` 與 `stay_duration` 兩種前端觀察類型。
+- REST endpoint 需要有效 session token，並套用 `20 次 / 60 秒` 的 rate limit。
+- 前端新增 `mpuObservationPush()` 與 `mpuInitObservationTracking()`，在文章頁記錄頁面瀏覽，並於停留 10 / 30 / 60 / 180 / 600 秒時推送停留時間。
+- 若 session token 過期導致 403，前端會重新取得 token 後重試一次，降低 SPA 或長時間停留頁面的漏記機率。
+
+#### 👻 互動事件整合
+
+- 觸摸角色與裝飾物時會累積 `touch` 類型觀察，並對同一部位進行去重與計數合併。
+- 角色被喚醒、從睡眠中被喚醒、頁面情境觸發等 lifecycle event 會進入 buffer，讓下一次對話能自然知道剛剛發生過什麼。
+- `/chat/user` 會把觀察資料格式化為「最近訪客活動」區塊，明確標示為情境資訊而非指令，讓 LLM 可以自然引用但不被強制牽引。
+
+#### 🛡️ 安全與邊界
+
+- 觀察內容會經過白名單類型檢查、格式驗證、HTML 清理與長度裁切；非公開文章或密碼文章只會以 `[non-public]` 表示，不暴露標題。
+- Buffer 採短期 transient 設計，不寫入 User Memory，也不建立長期訪客檔案。
+- `bot_signal` 類型保留為後續 phase 2 擴充，目前會被拒絕寫入。
+
+---
+
 ## [2.22.1] - 2026-05-22
 
 ### 👻 角色睡眠喚醒抱怨機制（v2.22.1）

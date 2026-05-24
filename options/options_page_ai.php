@@ -1,3 +1,12 @@
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+if (!isset($mpu_opt) || !is_array($mpu_opt)) {
+    $mpu_opt = function_exists('mpu_get_option') ? mpu_get_option() : [];
+}
+?>
 <div>
     <h3><?php _e('🧠 AI 設定 (Context Awareness)', 'mp-ukagaka'); ?></h3>
     <p style="color: #8A7FA0; margin-bottom: 20px;">
@@ -12,7 +21,10 @@
             <div class="mpu-field-group">
                 <label for="ai_language"><?php _e('語言設定：', 'mp-ukagaka'); ?></label>
                 <select id="ai_language" name="ai_language" style="width: 100%; max-width: 300px;">
-                    <option value="zh-TW" <?php if (!isset($mpu_opt['ai_language']) || $mpu_opt['ai_language'] == 'zh-TW') {
+                    <option value="" <?php if (!isset($mpu_opt['ai_language']) || $mpu_opt['ai_language'] === '') {
+                                            echo ' selected="selected"';
+                                        } ?>><?php _e('預設', 'mp-ukagaka'); ?></option>
+                    <option value="zh-TW" <?php if (isset($mpu_opt['ai_language']) && $mpu_opt['ai_language'] == 'zh-TW') {
                                                 echo ' selected="selected"';
                                             } ?>><?php _e('繁體中文', 'mp-ukagaka'); ?></option>
                     <option value="ja" <?php if (isset($mpu_opt['ai_language']) && $mpu_opt['ai_language'] == 'ja') {
@@ -22,6 +34,7 @@
                                             echo ' selected="selected"';
                                         } ?>><?php _e('English', 'mp-ukagaka'); ?></option>
                 </select>
+                <small><?php _e('此為全域 AI 回應語言，也會用於 {{language}} prompt 變數；選擇預設時會跟隨角色 manifest.json 的 language。', 'mp-ukagaka'); ?></small>
             </div>
             <div class="mpu-field-group">
                 <label for="ai_system_prompt"><?php _e('人格設定 (System Prompt)：', 'mp-ukagaka'); ?></label>
