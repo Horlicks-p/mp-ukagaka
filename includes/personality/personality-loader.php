@@ -723,10 +723,6 @@ function mpu_resolve_language_code($personality_id, $fallback = '')
 /**
  * Convert a language code to its display name for LLM prompts.
  *
-
-/**
- * Convert a language code to its display name for LLM prompts.
- *
  * @param string $code Language code (e.g. 'ja', 'zh-TW', 'en').
  * @return string Human-readable language name.
  */

@@ -8,16 +8,6 @@
 
 ### 🌐 Language Setting Unification and Fallback Fix
 
-# MP Ukagaka Version History
-
-> 📋 Update records for all versions
-
----
-
-## [2.23.1] - 2026-05-24
-
-### 🌐 Language Setting Unification and Fallback Fix
-
 - Fixed ghost language setting conflicts. The language resolution priority is now: Backend explicit setting > Ghost's `manifest.json` > Final fallback Japanese (`ja`).
 - Added a "Default" option to the language dropdowns in General Settings and AI Settings, allowing admins to yield the language choice to the ghost's `manifest.json`.
 - Removed unused Simplified Chinese and Korean mappings from the language list.
