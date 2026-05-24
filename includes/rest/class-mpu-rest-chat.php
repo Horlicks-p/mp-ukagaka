@@ -891,6 +891,13 @@ class MPU_REST_Chat extends MPU_REST_Base {
         if (class_exists('MPU_Observation_Buffer')) {
             $observations = MPU_Observation_Buffer::drain($runtime_session_token);
             $observation_block = MPU_Observation_Buffer::format_prompt_block($observations);
+            if (function_exists('mpu_debug_log')) {
+                mpu_debug_log(sprintf(
+                    '[observation] drain count=%d block=%s',
+                    count($observations),
+                    $observation_block !== '' ? "\n" . $observation_block : '(empty)'
+                ));
+            }
             if ($observation_block !== '') {
                 $system_parts[] = $observation_block;
             }

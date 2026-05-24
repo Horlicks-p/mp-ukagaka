@@ -272,7 +272,7 @@ class MPU_Observation_Buffer {
                     $part = $matches[1];
                     $count = (int) $matches[2];
                     if (strpos($part, 'decoration_') === 0) {
-                        $decoration = substr($part, strlen('decoration_'));
+                        $decoration = self::get_decoration_display_name(substr($part, strlen('decoration_')));
                         return sprintf('%s（装飾）に %d 回触れた', $decoration, $count);
                     }
 
@@ -298,6 +298,32 @@ class MPU_Observation_Buffer {
         }
 
         return '';
+    }
+
+    private static function get_decoration_display_name(string $type): string {
+        if (function_exists('mpu_load_personality_decorations')) {
+            $personality_id = function_exists('mpu_get_current_personality_id')
+                ? mpu_get_current_personality_id()
+                : null;
+            $decorations = mpu_load_personality_decorations($personality_id);
+            if (!empty($decorations['items']) && is_array($decorations['items'])) {
+                foreach ($decorations['items'] as $item) {
+                    if (!is_array($item) || ($item['type'] ?? '') !== $type) {
+                        continue;
+                    }
+                    foreach (['name', 'label', 'display_name', 'title'] as $key) {
+                        if (!empty($item[$key]) && is_string($item[$key])) {
+                            return sanitize_text_field($item[$key]);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        // 無對應 JSON name 時，把 type 轉成可讀字串。
+        // 不硬編特定角色的裝飾類型——此類別為 ghost-agnostic，名稱應由各 ghost 的 decorations.json 提供。
+        return str_replace('_', ' ', $type);
     }
 
     private static function debug_log(string $action, string $type, string $detail): void {

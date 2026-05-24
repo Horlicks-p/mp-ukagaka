@@ -7,6 +7,7 @@
   "items": [
     {
       "type": "suitcase",
+      "name": "スーツケース",
       "image": "suitcase.png",
       "position": {
         "top": "82%",
@@ -23,6 +24,7 @@
     },
     {
       "type": "evil_horns",
+      "name": "巨大な頭蓋骨",
       "image": "evil_horns.png",
       "position": {
         "top": "37%",
@@ -37,8 +39,9 @@
       "z_index": 5,
       "prompt": "相手があなたの後ろにある巨大な頭蓋骨をクリックしました。フリーレンとして、この頭蓋骨について語ってください。これは衝動買いしてしまったものです。使い道は決まっていませんが、無駄遣いとしてフェルンに怒られましたと50文字以内で語る。"
     },
-        {
+    {
       "type": "dark_dragon_horn",
+      "name": "暗黒竜の角",
       "image": "dark_dragon_horn.png",
       "position": {
         "top": "80%",
@@ -56,6 +59,7 @@
     },
     {
       "type": "staff",
+      "name": "魔法杖",
       "image": "staff.png",
       "position": {
         "top": "25%",
@@ -72,6 +76,7 @@
     },
     {
       "type": "books",
+      "name": "魔導書",
       "image": "books.png",
       "position": {
         "top": "38%",
@@ -86,8 +91,9 @@
       "z_index": 6,
       "prompt": "相手があなたの後ろにある大量の魔導書をクリックしました。フリーレンとして、これらの魔導書について語ってください。これらはあなたの収集或いは解読中の書籍で、失われた古代魔法や強力な魔法が記されていと50文字以内で語る。"
     },
-        {
+    {
       "type": "potion",
+      "name": "服だけ溶かす薬",
       "image": "potion.png",
       "position": {
         "top": "50%",
