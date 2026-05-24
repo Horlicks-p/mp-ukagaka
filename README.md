@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.23.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.23.2-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,9 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.23.1
+## 🎉 What's New in v2.23.2
+
+**Bug Fixes** (v2.23.2): Observation Buffer now also begins tracking after SPA (client-side) navigation into an article, not only on initial page load, with DOM-based post-ID detection and listing/archive/home-page guards. Page-awareness self-talk no longer leaves auto-talk permanently stalled in production.
 
 **Language Setting Unification** (v2.23.1): Fixed language setting conflicts, prioritizing backend settings, and added a "Default" option to return control to the ghost's manifest.
 

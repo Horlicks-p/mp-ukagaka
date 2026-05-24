@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-23T15:16:26.228Z
+ * Generated: 2026-05-24T07:45:41.155Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -1266,13 +1266,70 @@ async function mpuObservationPush(type, content) {
   }
 }
 
-function mpuInitObservationTracking() {
-  if (window.__mpuObservationStarted) return;
-  if (!window.mpuPageContext || !window.mpuPageContext.postId) return;
-  window.__mpuObservationStarted = true;
+function mpuGetObservationPostId() {
+  const ctxId = parseInt(window.mpuPageContext && window.mpuPageContext.postId, 10);
+  if (ctxId > 0) return ctxId;
 
-  const postId = parseInt(window.mpuPageContext.postId, 10);
-  if (!postId || postId <= 0) return;
+  const candidates = [];
+  const addCandidate = (value) => {
+    const id = parseInt(value, 10);
+    if (id > 0 && !candidates.includes(id)) candidates.push(id);
+  };
+
+  const path = window.location.pathname || "";
+  if (
+    path === "/" ||
+    /^\/(category|tag|author|search|archive|feed)(\/|$)/.test(path) ||
+    /\/page\/\d+\/?$/.test(path)
+  ) {
+    return 0;
+  }
+
+  const bodyClass = document.body ? document.body.className || "" : "";
+  const hasSingularBodyClass = /\b(single|single-post|page)\b/.test(bodyClass);
+  const articlePostElements = document.querySelectorAll("article[id^='post-'], .hentry[id^='post-']");
+  if (!hasSingularBodyClass && articlePostElements.length > 1) {
+    return 0;
+  }
+
+  const bodyMatch = bodyClass.match(/\b(?:postid|page-id)-(\d+)\b/);
+  if (bodyMatch) addCandidate(bodyMatch[1]);
+
+  const postElement = document.querySelector("[data-post-id], article[id^='post-'], .hentry[id^='post-']");
+  if (postElement) {
+    addCandidate(postElement.getAttribute("data-post-id"));
+    const idMatch = (postElement.id || "").match(/\bpost-(\d+)\b/);
+    if (idMatch) addCandidate(idMatch[1]);
+  }
+
+  return candidates[0] || 0;
+}
+
+function mpuClearObservationTracking() {
+  const state = window.__mpuObservationState;
+  if (state && Array.isArray(state.stayTimers)) {
+    state.stayTimers.forEach((timer) => clearTimeout(timer));
+  }
+  window.__mpuObservationState = null;
+  delete window.__mpuObservationStarted;
+}
+
+function mpuInitObservationTracking() {
+  const postId = mpuGetObservationPostId();
+  if (!postId || postId <= 0) {
+    mpuClearObservationTracking();
+    if (window.mpuPageContext) window.mpuPageContext.postId = 0;
+    return;
+  }
+
+  if (!window.mpuPageContext) window.mpuPageContext = {};
+  window.mpuPageContext.postId = postId;
+
+  const state = window.__mpuObservationState;
+  if (state && state.postId === postId && window.__mpuObservationStarted) return;
+
+  mpuClearObservationTracking();
+  window.__mpuObservationStarted = true;
 
   mpuObservationPush("page_view", `post:${postId}`);
 
@@ -1284,10 +1341,10 @@ function mpuInitObservationTracking() {
     stayTimers.push(timer);
   });
 
-  window.addEventListener("beforeunload", () => {
-    stayTimers.forEach((timer) => clearTimeout(timer));
-  });
+  window.__mpuObservationState = { postId, stayTimers };
 }
+
+window.addEventListener("beforeunload", mpuClearObservationTracking);
 
 function mpu_showMsgText() {
   const $msg = jQuery("#ukagaka_msg");
@@ -3662,10 +3719,12 @@ function mpu_chat_context() {
             mpuSetAiDisplayTimer(null);
             mpuSetMessageBlocking(false);
             mpuSetAiContextInProgress(false);
-            // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；
-            // startup 被跳過時 auto-talk 從未啟動，wasAutoTalkRunning = false，
-            // 但 mpuAutoTalk 仍為 true，因此改用 mpuAutoTalk 作為判斷依據。
-            if (mpuAutoTalk && !mpuAutoTalkTimer) {
+            // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；startup 被跳過時
+            // auto-talk 從未啟動（wasAutoTalkRunning=false），但 mpuAutoTalk 仍為 true，
+            // 因此改用 mpuAutoTalk 判斷。不再加 !mpuAutoTalkTimer guard：生產環境 API
+            // 延遲會讓此刻殘留 stale timer 參照，guard 會誤判而永不重啟（本機 API 快、
+            // 重現不出）。startAutoTalk() 內部已先 stopAutoTalk()，重複呼叫不會疊計時器。
+            if (mpuAutoTalk) {
               startAutoTalk();
             }
           }, displayDurationMs));
@@ -5963,6 +6022,11 @@ function mpu_handleSpaNavigation(e) {
 
   // 延遲一下讓新內容載入完成，然後檢查是否要觸發頁面感知對話
   setTimeout(function () {
+    if (typeof mpuInitObservationTracking === "function") {
+      if (window.mpuPageContext) window.mpuPageContext.postId = 0;
+      mpuInitObservationTracking();
+    }
+
     // 檢查 AI 和頁面感知功能是否啟用
     if (
       typeof window.mpuSettings !== "undefined" &&

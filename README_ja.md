@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.23.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.23.2-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,9 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.23.1 の新機能
+## 🎉 v2.23.2 の新機能
+
+**バグ修正**（v2.23.2）：Observation Buffer が初回読み込み時だけでなく、SPA（クライアントサイド）ナビゲーションで記事に遷移した後も計測を開始するようになりました（DOM ベースの投稿 ID 検出、一覧/アーカイブ/トップページの誤発火ガード付き）。また、ページ感知の自動発話後に自動会話が本番環境で停止したままになる不具合を修正しました。
 
 **言語設定の統一**（v2.23.1）：言語設定の競合を修正し、バックエンド設定を優先させるとともに、ゴーストのmanifestに制御を戻す「デフォルト」オプションを追加しました。
 

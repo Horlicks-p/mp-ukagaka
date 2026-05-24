@@ -79,13 +79,70 @@ async function mpuObservationPush(type, content) {
   }
 }
 
-function mpuInitObservationTracking() {
-  if (window.__mpuObservationStarted) return;
-  if (!window.mpuPageContext || !window.mpuPageContext.postId) return;
-  window.__mpuObservationStarted = true;
+function mpuGetObservationPostId() {
+  const ctxId = parseInt(window.mpuPageContext && window.mpuPageContext.postId, 10);
+  if (ctxId > 0) return ctxId;
 
-  const postId = parseInt(window.mpuPageContext.postId, 10);
-  if (!postId || postId <= 0) return;
+  const candidates = [];
+  const addCandidate = (value) => {
+    const id = parseInt(value, 10);
+    if (id > 0 && !candidates.includes(id)) candidates.push(id);
+  };
+
+  const path = window.location.pathname || "";
+  if (
+    path === "/" ||
+    /^\/(category|tag|author|search|archive|feed)(\/|$)/.test(path) ||
+    /\/page\/\d+\/?$/.test(path)
+  ) {
+    return 0;
+  }
+
+  const bodyClass = document.body ? document.body.className || "" : "";
+  const hasSingularBodyClass = /\b(single|single-post|page)\b/.test(bodyClass);
+  const articlePostElements = document.querySelectorAll("article[id^='post-'], .hentry[id^='post-']");
+  if (!hasSingularBodyClass && articlePostElements.length > 1) {
+    return 0;
+  }
+
+  const bodyMatch = bodyClass.match(/\b(?:postid|page-id)-(\d+)\b/);
+  if (bodyMatch) addCandidate(bodyMatch[1]);
+
+  const postElement = document.querySelector("[data-post-id], article[id^='post-'], .hentry[id^='post-']");
+  if (postElement) {
+    addCandidate(postElement.getAttribute("data-post-id"));
+    const idMatch = (postElement.id || "").match(/\bpost-(\d+)\b/);
+    if (idMatch) addCandidate(idMatch[1]);
+  }
+
+  return candidates[0] || 0;
+}
+
+function mpuClearObservationTracking() {
+  const state = window.__mpuObservationState;
+  if (state && Array.isArray(state.stayTimers)) {
+    state.stayTimers.forEach((timer) => clearTimeout(timer));
+  }
+  window.__mpuObservationState = null;
+  delete window.__mpuObservationStarted;
+}
+
+function mpuInitObservationTracking() {
+  const postId = mpuGetObservationPostId();
+  if (!postId || postId <= 0) {
+    mpuClearObservationTracking();
+    if (window.mpuPageContext) window.mpuPageContext.postId = 0;
+    return;
+  }
+
+  if (!window.mpuPageContext) window.mpuPageContext = {};
+  window.mpuPageContext.postId = postId;
+
+  const state = window.__mpuObservationState;
+  if (state && state.postId === postId && window.__mpuObservationStarted) return;
+
+  mpuClearObservationTracking();
+  window.__mpuObservationStarted = true;
 
   mpuObservationPush("page_view", `post:${postId}`);
 
@@ -97,10 +154,10 @@ function mpuInitObservationTracking() {
     stayTimers.push(timer);
   });
 
-  window.addEventListener("beforeunload", () => {
-    stayTimers.forEach((timer) => clearTimeout(timer));
-  });
+  window.__mpuObservationState = { postId, stayTimers };
 }
+
+window.addEventListener("beforeunload", mpuClearObservationTracking);
 
 function mpu_showMsgText() {
   const $msg = jQuery("#ukagaka_msg");

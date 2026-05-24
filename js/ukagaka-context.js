@@ -463,10 +463,12 @@ function mpu_chat_context() {
             mpuSetAiDisplayTimer(null);
             mpuSetMessageBlocking(false);
             mpuSetAiContextInProgress(false);
-            // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；
-            // startup 被跳過時 auto-talk 從未啟動，wasAutoTalkRunning = false，
-            // 但 mpuAutoTalk 仍為 true，因此改用 mpuAutoTalk 作為判斷依據。
-            if (mpuAutoTalk && !mpuAutoTalkTimer) {
+            // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；startup 被跳過時
+            // auto-talk 從未啟動（wasAutoTalkRunning=false），但 mpuAutoTalk 仍為 true，
+            // 因此改用 mpuAutoTalk 判斷。不再加 !mpuAutoTalkTimer guard：生產環境 API
+            // 延遲會讓此刻殘留 stale timer 參照，guard 會誤判而永不重啟（本機 API 快、
+            // 重現不出）。startAutoTalk() 內部已先 stopAutoTalk()，重複呼叫不會疊計時器。
+            if (mpuAutoTalk) {
               startAutoTalk();
             }
           }, displayDurationMs));

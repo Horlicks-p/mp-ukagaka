@@ -458,6 +458,11 @@ function mpu_handleSpaNavigation(e) {
 
   // 延遲一下讓新內容載入完成，然後檢查是否要觸發頁面感知對話
   setTimeout(function () {
+    if (typeof mpuInitObservationTracking === "function") {
+      if (window.mpuPageContext) window.mpuPageContext.postId = 0;
+      mpuInitObservationTracking();
+    }
+
     // 檢查 AI 和頁面感知功能是否啟用
     if (
       typeof window.mpuSettings !== "undefined" &&

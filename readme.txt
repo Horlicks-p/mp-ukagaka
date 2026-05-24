@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.23.1
+Stable tag: 2.23.2
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,11 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-24 =
+* v2.23.2
+* [FIX] Observation Buffer SPA navigation: page_view / stay_duration tracking now also starts after client-side (SPA) navigation into a single post, not only on initial single-post load. The post ID is re-detected from the DOM (body postid/page-id class, data-post-id, article[id^=post-]) with the PHP-injected mpuPageContext.postId taking priority; listing / archive / home pages are guarded against false starts.
+* [FIX] Page-context auto-talk resume: removed the fragile !mpuAutoTalkTimer guard that could leave auto-talk permanently stalled in production after a page-awareness self-talk (API latency left a stale timer reference). startAutoTalk() already stops any existing timer first, so resume is now unconditional whenever auto-talk is enabled.
 
 = 2026-05-24 =
 * v2.23.1
