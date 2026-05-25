@@ -3,6 +3,8 @@
 > 2026-05-22 草案。**狀態：設計討論中，尚未凍結，尚未實作。**
 >
 > 本文件記錄「將 ~164 條 JS console log 硬編碼字串改為 i18n 化」的需求盤點、架構選項與分批策略，作為未來 milestone（暫定 #X）的設計基礎。在凍結之前，所有決策可調整。
+>
+> 2026-05-25 凍結前整理：吸收家裡 Claude / Codex / Antigravity 的覆核意見，補上 blocking dependency、翻譯流程、bucket 分流、防敏感值、direct console inventory 與 acceptance criteria。本文件仍是 plan，尚未開始實作。
 
 ---
 
@@ -14,12 +16,29 @@ v2.21.1 patch 撰寫 CHANGELOG 時注意到 console log 字串全部 hard-coded 
 
 ## 目標
 
-讓 console log 字串能依 WordPress locale 切換語言，同時：
+讓「repo 內建前端 source 中的中文 hard-coded console log」能依 WordPress locale 切換語言，同時：
 
 - 不破壞既有 `mpuLogger` debug-mode gating 行為
 - 不引入新前端 i18n 框架
 - 翻譯成本可分階段攤提，不強求一次補齊
 - 至少維持日文 fallback，翻譯缺漏時不出現 `undefined` 或英文 key
+
+### Scope freeze（2026-05-25）
+
+本 milestone 的 scope 凍結為：**中文 hard-coded front-end console log**。
+
+包含：
+
+- `js/**/*.js` source（不含 `js/dist/**`）
+- repo 內建 ghost：`ghost/Frieren/**/*.js`
+- 由上述 source 經 build 產出的 `js/dist/*`（只能由 build 產生，不手改）
+
+不包含：
+
+- server-side PHP logs：`error_log()` / `mpu_debug_log()` / `mpu_log_*`
+- 英文或日文 hard-coded console log（列入後續 backlog，除非與中文同一 call site 遷移時順手處理）
+- `includes/core/frontend-functions.php` 內 inline script 的兩條英文 `console.error`（`Init failed` / `AJAX init failed`）：本 milestone 明列為例外，不納入中文 log i18n 計數；未來若啟動「全部 front-end console log i18n」再處理
+- 使用者自建 / 第三方 ghost；本案只處理 repo 內建 `ghost/Frieren/`
 
 本案明確**不做**：
 
@@ -34,6 +53,8 @@ v2.21.1 patch 撰寫 CHANGELOG 時注意到 console log 字串全部 hard-coded 
 ## 現狀盤點（2026-05-22，Codex 覆核後修正）
 
 ### Call site 計數（source files，不含 dist bundle）
+
+> 注意：下表是 2026-05-22 盤點快照。2026-05-25 再 grep 發現 direct console 已是 17 條（詳見下方 breakdown），因此凍結前必須重新跑 inventory script / grep 更新總數；不要再以 164 作為實作估工的唯一依據。
 
 | 檔案                             | mpuLogger 中文 log | direct console 中文 log |
 | -------------------------------- | -----------------: | ----------------------: |
@@ -57,11 +78,31 @@ v2.21.1 patch 撰寫 CHANGELOG 時注意到 console log 字串全部 hard-coded 
 console\.(...)\s*\([^)]*[一-鿿]
 ```
 
-重新盤點得 direct console 16 條（不是 6 條），總計 164 條（不是 154 條）。
+2026-05-22 重新盤點得 direct console 16 條（不是 6 條），總計 164 條（不是 154 條）；2026-05-25 再查核已更新為 direct console 17 條，因此實作前仍需重跑 inventory。
 
 ### Direct console 的特殊性
 
-16 條 direct console 全部是 **`console.error` / `console.warn`**，沒有 `console.log` debug 用途。這代表這 16 條目前**在 production 永遠輸出**（瀏覽器 native），跟 `mpuLogger.warn` debug-gated 的行為截然不同。i18n migration 必須保留此行為差異（見 §架構決策 1.5 與 Hard Limit #2）。
+2026-05-25 重新查核，中文 direct console 目前是 **17 條**：12 條 `console.error`、4 條 `console.warn`、1 條 `console.log`。其中 16 條 error/warn 目前**在 production 永遠輸出**（瀏覽器 native），跟 `mpuLogger.warn` debug-gated 的行為截然不同。i18n migration 必須保留此行為差異（見 §架構決策 1.5 與 Hard Limit #2）。
+
+| 檔案 | 行號 | 原型 | 遷移判定 |
+| --- | ---: | --- | --- |
+| `js/ukagaka-base.js` | 99 | `console.log` | IIFE 下移後改 `mpuLogger.logL` 或保留 direct；需逐條判斷 debug-only |
+| `js/ukagaka-anime.js` | 65 | `console.error` | `errorL` |
+| `js/ukagaka-anime.js` | 72 | `console.error` | `errorL` |
+| `js/ukagaka-anime.js` | 89 | `console.warn` | `warnAlways` |
+| `js/ukagaka-anime.js` | 160 | `console.error` + URL dump | `errorL` + object/value dump |
+| `js/ukagaka-anime.js` | 221 | `console.error` + URL dump | `errorL` + object/value dump |
+| `ghost/Frieren/frieren.js` | 52 | `console.error` | `errorL`，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 86 | `console.error` | `errorL`，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 114 | `console.error` + URL dump | `errorL` + object/value dump，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 298 | `console.error` | `errorL`，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 493 | `console.warn` + error dump/fallback | `warnAlways`，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 497 | `console.error` + error dump | `errorL`，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 501 | `console.warn` | `warnAlways`，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 512 | `console.warn` | `warnAlways`，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 728 | `console.error` + type dump | `errorL`，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 799 | `console.warn` + type/error dump | `warnAlways`，key 必須 `frieren` prefix |
+| `ghost/Frieren/frieren.js` | 1505 | `console.error` + error dump | `errorL`，key 必須 `frieren` prefix |
 
 ### Logger 現狀（`js/ukagaka-base.js:316-332`）
 
@@ -106,6 +147,23 @@ const mpuLogger = {
 
 ## 架構決策
 
+### -1. Blocking dependency：先修 `window.mpuDebugMode`
+
+本案依賴 front-end debug 判定來決定：
+
+- `mpuLogger.log/warn/info` 是否輸出
+- `mpuL10n.logsDebug` 是否注入
+- debug-only i18n key 是否能在 smoke/manual 測試中被驗證
+
+目前 repo 中 PHP 端沒有注入 `window.mpuDebugMode`，導致 `mpuIsDebugMode()` 永遠為 false。這不是本案可以「邊做邊等」的小問題，而是 **blocking dependency**。
+
+規則：
+
+- Console Log i18n migration PR 不得早於 debug-mode defect PR merge。
+- PR description 必須填入 debug-mode defect PR 連結與 merge commit hash。
+- debug 判定不可裸用 `WP_DEBUG` 給匿名前台訪客；建議條件是 `defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')`，或由明確 filter / 常數控制。
+- `logsDebug` 注入條件必須與最終 `window.mpuDebugMode` 安全判定同源；不可一邊注入、一邊不輸出，或一邊輸出、一邊沒 payload。
+
 ### 0. Source-language convention：日文 source / fallback
 
 本案採用 Claude 家裡審查提出的選項 A：**log source string 與 JS fallback 字串都統一使用日文**。
@@ -121,6 +179,19 @@ const mpuLogger = {
 - 164 條既有中文 log 在 i18n migration 時，應先改成日文 source / fallback，再由 `.po` 補繁中與英文翻譯。
 - JS call site 的第二參數 fallback 不再寫中文原文，而是日文原文。
 - 中文原文可保留在 PR review notes 或 migration 對照表，但不進 `__()` source string，也不作為 runtime fallback。
+
+### 0.5 翻譯流程：先集中翻譯，再遷移 call site
+
+日文 source 決議會把「中文 log → 日文 source」變成實作前置工作。不能把翻譯判斷分散到每個 call-site migration PR，否則每個 PR 都會卡在日文品質 review。
+
+因此在階段 1 後、階段 2 前新增 **階段 1.5：批次產出中文到日文對照表**：
+
+- 產物：`plan/translation-tables/console-logs-zh-to-ja.md`
+- 內容：每條中文原文、建議 i18n key、日文 source / fallback、bucket（`logs` 或 `logsDebug`）、call site、是否含 placeholder、譯者註解草稿
+- 流程：可先用 NMT / LLM 產生初稿，但必須由同一位負責人集中校對一次；後續 migration PR 只照表 copy-paste，不在 PR 內重新爭論翻譯
+- Review：懂日文者或熟悉角色語境者抽查；若沒有合適 reviewer，至少要求整批用語一致（同一概念同一譯法）
+
+階段 2 / 3 的 PR description 必須引用該對照表行號或 anchor；沒有對照表的 call site 不得遷移。
 
 ### 1. 字串來源：`mpuL10n.logs` 子物件
 
@@ -240,7 +311,8 @@ const mpuLogger = {
   tFormat: function (key, fallback, ...values) {
     const tpl = this.t(key, fallback);
     // 優先支援 %1$s, %2$s 等位置定位符（解決不同語言間語序顛倒的翻譯痛點）
-    if (tpl.includes("$")) {
+    // 注意：不可用 tpl.includes("$")，普通金額字串（如 "$100"）也會誤入此分支。
+    if (/%\d+\$[sd]/.test(tpl)) {
       return tpl.replace(/%(\d+)\$[sd]/g, (match, index) => {
         const idx = parseInt(index, 10) - 1;
         return idx >= 0 && idx < values.length ? String(values[idx]) : "";
@@ -400,6 +472,34 @@ mpuLogger.warnL(
 
 註：`*L` 與 `*F` 共用同一 bucket，因為 i18n key 本身不區分純字串還是含 placeholder（key 是給人讀的識別碼，字串內容才決定是否含 `%s`/`%d`）。`mpuLogger.t()` 與 `mpuLogger.tFormat()` 內部都先查 `logs` 再查 `logsDebug`，無 bucket 預判邏輯。
 
+PHP 端不得靠「手工把 array 寫對」維護 bucket。階段 1 必須提供小型 helper / builder，集中收集並檢查 key。
+
+建議位置：新增 `includes/core/class-mpu-log-i18n-builder.php`，並由 plugin bootstrap 在 `includes/core/frontend-functions.php` 載入前 require。若既有載入慣例偏好 functions 檔，也可改放 `includes/core/i18n-functions.php`，但 PR 必須明確說明 load order。
+
+Lifecycle：builder 採 **per-request stateless instance**；每次組 front-end localized payload 時 `new` 一個 builder，不跨 hook / admin / front-end 累積，不提供 global singleton，也不需要 `reset()`。
+
+```php
+$log_i18n = mpu_console_log_i18n_builder();
+
+/* translators: 開発者向け console log。起床アニメーション後に出力されます。 */
+$log_i18n->always('wakeUpFrieren', __('☀️ フリーレンが目を覚ましました！', 'mp-ukagaka'));
+
+/* translators: 開発者向け console log。%d は秒数。 */
+$log_i18n->debug('idleDetectionInit', __('アイドル検知を初期化しました。しきい値：%d 秒', 'mp-ukagaka'));
+
+$payload['logs'] = $log_i18n->logs();
+if ($frontend_debug_enabled) {
+    $payload['logsDebug'] = $log_i18n->logs_debug();
+}
+```
+
+helper / builder 必須檢查：
+
+- key 不可重複出現在 `logs` 與 `logsDebug`
+- key 命名只允許 `[A-Za-z0-9_]` 或既定 camelCase 規範
+- `ghost/Frieren/**` 的 key 必須以 `frieren` 前綴開頭
+- helper 只負責分類與輸出，不在其中決定 debug 安全條件；debug 安全條件由同源的 `frontend_debug_enabled` 提供
+
 注入條件必須與前置 PR 修好的 `window.mpuDebugMode` 安全判定**完全同源**。目前建議的保守方向是 `defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')`，或另設明確常數 / filter 控制「是否對前台訪客啟用 JS debug」。不可直接裸用 `WP_DEBUG` 對匿名前台訪客開啟 debug console，理由：
 
 - 既有 plugin 沒有 `mpu_opt['debug_mode']` 設定（grep 全 repo 0 hit）
@@ -436,7 +536,7 @@ mpuLogger.warnL(
 
 ## 分批策略
 
-**不允許一個 PR 改 154 條**。風險太高，code review 不可能徹底。分階段：
+**不允許一個 PR 改全部 call site**。風險太高，code review 不可能徹底。凍結前須重新盤點總數；2026-05-22 快照是 164 條，2026-05-25 已確認 direct console 至少增加為 17 條。分階段：
 
 ### 階段 1：基礎設施（無 behavior change）
 
@@ -446,10 +546,18 @@ mpuLogger.warnL(
   - 含 placeholder i18n 糖衣（`*F`）：`logF()` / `warnF()` / `errorF()` / `infoF()`
   - always-output warn 專用：`warnAlways()` / `warnAlwaysF()`
 - 新增 `mpuL10n.logs` 與 `mpuL10n.logsDebug` placeholder（PHP 端依最終 front-end debug 安全判定注入空物件 `[]`）
+- 新增 PHP 端 log i18n builder/helper，明確 `always()` → `logs`、`debug()` → `logsDebug`
 - 不改任何 call site
 - 補 Node smoke script：`t()` 兩 bucket fallback、`tFormat()` placeholder 替換、`*L` vs `*F` 對照（含 lint demo）
 
-預估：1 個 PR，~120 行 diff。
+預估：1 個 PR，約 200-280 行 diff。此階段已包含 mpuLogger 12 個方法、PHP builder/helper、兩個 bucket 注入、key 檢查與 Node smoke script，不能再用早期 ~120 行估值規劃 review。
+
+### 階段 1.5：中文到日文對照表（blocking for migration）
+
+- 產出 `plan/translation-tables/console-logs-zh-to-ja.md`
+- 每條列出：中文原文、日文 source / fallback、key、bucket、call site、placeholder、譯者註解草稿
+- 完成集中校對後，階段 2 / 3 才能開始
+- 後續 migration PR 僅依表遷移，不在 PR 內重新翻譯
 
 ### 階段 2：production-visible call site（error + direct console.error/warn）
 
@@ -458,7 +566,8 @@ mpuLogger.warnL(
 - `mpuLogger.error()` call site（grep `mpuLogger.error` 中文）
 - direct `console.error("中文")` call site → 純字串改為 `mpuLogger.errorL`；含 placeholder / 拼接改為 `mpuLogger.errorF`
 - direct `console.warn("中文")` call site → 純字串改為 `mpuLogger.warnAlways`；含 placeholder / 拼接改為 `mpuLogger.warnAlwaysF`
-- 估計約 30-40 條：16 條 direct console（全部 error/warn）+ 約 15-20 條 `mpuLogger.error`
+- 估計約 30-40 條：17 條 direct console（其中 16 條 error/warn、1 條 log 需先判斷）+ 約 15-20 條 `mpuLogger.error`
+- 第一個階段 2 PR 必須同步更新 CHANGELOG / developer docs，明確說明 console log source 會逐步改為日文並依 WP locale 顯示，避免使用者誤以為日文 fallback 是 regression
 
 預估：3-5 個 PR，每 PR 改 1-2 個檔案。frieren.js 因為 ghost-specific，獨立成一個 PR。
 
@@ -472,9 +581,18 @@ mpuLogger.warnL(
 
 預估：5-8 個 PR，按檔案分批。
 
+每個階段 3 PR 必須抽樣 smoke 至少 5% call site：開啟 front-end debug mode、實際觸發該路徑、在 PR description 貼出 console 輸出摘要。debug-gated log 不能因「反正 production 看不到」而 rubber-stamp。
+
 ### 階段 4：translation
 
 `.po` / `.mo` 補繁中與英文翻譯。可由社群 / 機器翻譯 + 校對。
+
+Acceptance criteria：
+
+- `mpuL10n.logs`（production-visible）繁中與英文翻譯 100% 完成
+- `mpuL10n.logsDebug` 繁中與英文翻譯至少 50% 完成；剩餘可暫用日文 fallback，但需列 backlog
+- 每個語言至少抽查 10 條 production-visible log 與 10 條 debug log，由懂該語言或熟悉專案語境者 review
+- placeholder 數量與順序必須與 source 相容；若需要調整語序，使用 `%1$s` / `%2$s`
 
 **不阻擋階段 1-3**：階段 1-3 完成後，所有 call site 已 i18n 化，缺翻譯時 fallback 為日文 source string，不影響功能。
 
@@ -482,7 +600,8 @@ mpuLogger.warnL(
 
 ## Hard Limits
 
-1. 不破壞 `mpuLogger.error/warn/log/info` 既有 API 簽章。新方法以 `L` 後綴並存。
+0. `window.mpuDebugMode` defect PR 是 blocking dependency；未 merge 前不得開始 call-site migration。Console i18n PR description 必須引用該 PR link 與 merge commit hash。
+1. 不破壞 `mpuLogger.error/warn/log/info` 既有 API 簽章。新方法以 `L` / `F` / `Always` 後綴並存。
 2. **任何 i18n migration 不得改變該 log 是否在 production 輸出的行為。**
    - direct `console.error` → `mpuLogger.errorL` ✓（同為 always-output）
    - direct `console.warn` → `mpuLogger.warnAlways`（不可改成 debug-gated 的 `warnL`）
@@ -490,6 +609,7 @@ mpuLogger.warnL(
    - `mpuLogger.warn`/`log`/`info` → `mpuLogger.warnL`/`logL`/`infoL` ✓（同為 debug-gated）
 3. 所有 i18n 化的 call site 必須提供 fallback 字串（日文 source string）。禁止傳 `mpuLogger.t('key')` 不帶 fallback。
 4. `mpuL10n.logs` / `mpuL10n.logsDebug` 缺失（PHP 端意外沒注入）時，logger 仍可運作，落到 fallback 字串。
+4.1 PHP 端必須透過 builder/helper 分流 `logs` 與 `logsDebug`，不可手寫兩個無檢查的大 array；helper 必須檢查 key 重複與 Frieren key prefix。
 5. 不引入新 npm dependency。
 6. 不改變既有 debug-mode gating 行為（log/warn/info 仍 gated，error 仍永遠輸出，warnAlways 永遠輸出）。
 7. emoji 留在字串內，不抽出。
@@ -500,17 +620,24 @@ mpuLogger.warnL(
 12. `mpuLogger.t()` / `tFormat()` 只作為 logger i18n 內部 helper；禁止拿來做一般 UI i18n。UI 字串仍使用既有 `mpuL10n.xxx` contract。
 13. MVP 不支援 plural API（例如 `_n()` / `*N` / `*NF` 糖衣）。含計數的 log 先用 `*F`；英文 plural 不完美列為未來獨立改善。
 14. i18n source / fallback / translation 禁止內嵌 session token、API key、user_id、IP、email 等敏感資料。動態敏感值不得被寫進 localized string。
+14.1 `*F` / `tFormat()` 的 value 參數同樣不得傳入 token、API key、password、secret、完整 IP、email 等敏感值；key/fallback 乾淨但 runtime placeholder 洩密仍是違規。
 15. `__()` log source string 前應提供 `/* translators: ... */` context 註解；production-visible `mpuL10n.logs` 必須提供，debug-only `logsDebug` 由 code review 盡量補齊。
+16. 本 milestone scope 是中文 hard-coded front-end console log；英文 inline PHP `console.error` 兩條明列例外/backlog，不納入本次計數。
+    - 若遇到同一 call site 內中文與英文不可分割（例如同一個 `console.error()` 同時包含英文 prefix 與中文 message），可在本 milestone 一併整理；PR description 必須明列此例外，計數仍歸入「中文」milestone。
 
 ---
 
-## 例外清單（已透過重構消除）
+## 例外清單 / Backlog
 
-原本預期有以下例外，但經第五輪審查後，已確定可透過調整程式碼結構徹底消除：
+本 milestone 只處理中文 hard-coded front-end console log。以下項目不進本次計數：
 
 - **`mpuLogger` 定義前的 console call**：`js/ukagaka-base.js` 最前方的 reload 偵測 IIFE 原本因為宣告在 `mpuLogger` 定義（行 316）之前而無法使用 logger。
   - **解決方案**：該 IIFE 僅依賴原生瀏覽器環境（`window.performance` 與 `localStorage`），完全不依賴後續定義的任何變數。因此，**直接將該 IIFE 的位置下移到 `mpuLogger` 聲明（原行 332）之後即可**。
-  - **結論**：核心 JS 檔案（不含第三方擴充）將實現 **100% 潔淨 logger 替換**，不再殘留任何 direct console 呼叫，例外清單清空。
+  - **結論**：這不是永久例外；階段 2/3 遷移時一併消除。
+- **PHP inline front-end console（英文）**：`includes/core/frontend-functions.php` 內 `console.error("[MP Ukagaka] Init failed:", ...)` 與 `console.error("[MP Ukagaka] AJAX init failed:", ...)` 屬於 front-end console surface，但不是中文 hard-coded log。
+  - **結論**：本 milestone 明列例外，放入後續「全部 front-end console log i18n」backlog。
+- **英文 / 日文 hard-coded console log**：如 `SSE Error`、`REST Nonce refreshed via SSE`、日文既有 error 等。
+  - **結論**：不納入本次中文 console log milestone，除非與同一 call site 的中文遷移不可分割。
 
 ---
 
@@ -532,11 +659,11 @@ mpuLogger.warnL(
    - `ghost/Frieren/frieren.js` 有 20 條中文 log，未來若有第三方 Sakura ghost 也會帶自己的 log
    - 選項 A：第三方 ghost 自己負責 i18n，本案只處理 plugin 內建檔案
    - 選項 B：提供 `mpuLogger.tGhost(ghostName, key, fallback)` 讓 ghost 註冊自己的 `mpuL10n.logs.ghosts.frieren.*`
-   - 建議：A，避免第一版就把擴充介面定死
+   - 決議：A，避免第一版就把擴充介面定死；CI lint scope 也只覆蓋 `js/**` 與 `ghost/Frieren/**`
 
 4. **是否要批量工具？**
    - Codemod / ts-morph script 可半自動替換 call site
-   - 但 154 條規模未必需要寫工具，手工 + grep 也能完成
+   - 但目前規模未必需要寫工具，手工 + grep 也能完成
    - 建議：先試做階段 2 一個檔案，評估工時，再決定要不要寫工具
 
 5. **debug-only logs 是否要從 production bundle 排除？**
@@ -598,14 +725,14 @@ mpuLogger.warnL(
 本 Checklist 供實作者與 Code Review 審查者（御三家）逐項核對，確保本案實作符合既定架構與安全要求。
 
 ### 1. 前置準備與範圍判定
-- [ ] **前置修復 `window.mpuDebugMode` PR**：必須先獨立提交 PR 修復前端 debug mode 讀取 undefined 的問題。此 PR 必須採用保守判定條件（例如加上 `current_user_can('manage_options')` 或特定安全過濾，避免前台訪客看見大量 front-end debug console）。
+- [ ] **前置修復 `window.mpuDebugMode` PR**：必須先獨立提交並 merge PR 修復前端 debug mode 讀取 undefined 的問題。此 PR 必須採用保守判定條件（例如加上 `current_user_can('manage_options')` 或特定安全過濾，避免前台訪客看見大量 front-end debug console）。Console i18n PR description 必須填入該 PR link 與 merge commit hash。
 - [ ] **`logsDebug` 注入條件對齊**：PHP 端 `logsDebug` 注入的條件，必須與最終 `window.mpuDebugMode` 的安全判定條件完全一致，防止 payload 與輸出行為錯位。
 - [ ] **Ghost 邊界確認**：本案僅處理 Repo 內建之 `ghost/Frieren/` 所產生的 log，絕不處理任何第三方或使用者自建 ghost。
-- [ ] **PHP inline front-end console 盤點**：`includes/core/frontend-functions.php` 內 inline script 的 front-end `console.*` 必須納入 migration 或明列例外；不能只清 `js/` 與 `ghost/Frieren/` 後留下 PHP inline console surface 未交代。
-- [ ] **Scope freeze**：實作前必須凍結本 milestone 是「中文 hard-coded console log」還是「所有 front-end console log」。若只處理中文，英文 / 日文 hard-coded console 必須列入後續 backlog 或例外清單。
+- [ ] **PHP inline front-end console 例外確認**：`includes/core/frontend-functions.php` 內兩條英文 `console.error` 已列為本 milestone 例外/backlog，不得混入中文 log 計數。
+- [ ] **Scope freeze 已確認**：本 milestone 只處理中文 hard-coded front-end console log；英文 / 日文 hard-coded console 列入後續 backlog 或例外清單。
 
 ### 2. 日文原文 (A) 實作順序
-- [ ] **前置翻譯**：在修改任何 JS call site 之前，實作者**必須先將該 log 原始中文翻譯為日文**，並將 JS 內的第二參數 fallback 設定為日文字串，以符合與 `mpuL10n` 的日文 source 慣例。避免實作中途才發現漏翻或格式錯誤。
+- [ ] **前置翻譯表**：在修改任何 JS call site 之前，必須先完成 `plan/translation-tables/console-logs-zh-to-ja.md`，集中校對中文原文到日文 source / fallback 的對照。migration PR 只依表 copy-paste，不在 PR 內重新翻譯。
 
 ### 3. API 語法防禦與機制設計
 - [ ] **`t()` 嚴格存在性檢查**：`t()` 內必須使用 `Object.prototype.hasOwnProperty.call(logs, key)` 進行 key 的存在性判定，避免當翻譯檔意外為空字串時直接落入 truthy 判斷的 fallback。
@@ -633,6 +760,7 @@ mpuLogger.warnL(
 
 ### 4. 安全與隱私保護 (Hard Limit #14)
 - [ ] **隱私邊界**：所有 i18n key、日文 fallback 或翻譯字串中，**禁止**包含任何 Token、API Key、user_id、IP 或 email 等敏感資料（PII）。動態敏感值不得被寫進 localized string。
+- [ ] **格式化值邊界**：`*F` / `tFormat()` 第三個之後的 value 參數不得傳入 token、API key、password、secret、完整 IP、email 等敏感值。
 
 ### 5. 譯者上下文註解 (Hard Limit #15)
 - [ ] **譯者註解**：在 PHP 端 `mpuL10n.logs` 及 `logsDebug` 的每個 key 定義上方，必須撰寫 `/* translators: [說明/變數義] */` 格式的註解，以提供給 .po/.mo 譯者充分的脈絡背景（Code Review 必查）。
@@ -645,11 +773,13 @@ mpuLogger.warnL(
 
 把散在文件各處（§Verification、§1.5、§2.5、§4）的 lint / grep / AST 建議集中為 PR 必裝的 CI 規則。
 
-- [ ] **建立至少四條 CI 靜態檢查規則**（grep / AST / ESLint 任選，但必須能跑在 PR 上）：
+- [ ] **建立至少五條 CI 靜態檢查規則**（grep / AST / ESLint 任選，但必須能跑在 PR 上）：
   1. 偵測 `mpuLogger.(logL|warnL|errorL|infoL|warnAlways)(...)` 含 `%s` / `%d` 字串 → 「含 placeholder 應改 `*F`」
   2. 偵測 `mpuLogger.tFormat(..., [...])` array 參數 → 「不接受 array，請改 rest args」
   3. 偵測 `mpuLogger.*L` / `*F` / `warnAlways` 系列 fallback 字串含 `[MP Ukagaka]` 或 `[MP Ukagaka ERROR]` → 「fallback 不應含 prefix」
   4. 偵測 `*L` 系列第二參數使用 ES6 template literal（含 `${...}`）或 `+` 變數拼接 → 「破壞 i18n，應改 `*F`」
+  5. 偵測 `mpuLogger.(logF|warnF|errorF|infoF|warnAlwaysF)` 或 `tFormat()` value 參數疑似傳入 `token` / `apiKey` / `password` / `secret` / `email` / `ip` 命名變數 → 「格式化值可能洩漏敏感資料」
+- [ ] **CI lint scope**：規則適用於 `js/**` 與 `ghost/Frieren/**`，排除 `js/dist/**`（由 build 產生）與 `ghost/!(Frieren)/**` 第三方/使用者 ghost。
 - [ ] **AST 規則必須排除合法 fallback**：規則必須能識別「`mpuLogger.logL('key', '日文 fallback')` 第二參數的合法日文字串」，**不可**簡單用 `[一-鿿]` blanket grep 誤判合法 fallback 為 lint fail（家裡 Antigravity 第四輪 + 家裡 Antigravity 夜間覆核共識）。
 - [ ] **內建 Ghost key 命名前綴 lint**：偵測 `ghost/Frieren/*.js` 內的 logger 呼叫，key 必須以 `frieren` 前綴開頭（家裡 Antigravity 共識）；無前綴 → 警告。
 
@@ -689,6 +819,8 @@ mpuLogger.warnL(
 ---
 
 ## 審查整合紀錄
+
+以下保留各輪審查的歷史脈絡。若本章的舊數字與前文 `Scope freeze` / `Direct console 的特殊性` 不一致，以前文 2026-05-25 凍結前整理為準。
 
 ### Codex 公司覆核（2026-05-22昼，第一輪）
 
@@ -777,4 +909,4 @@ mpuLogger.warnL(
 
 ---
 
-_Last updated: 2026-05-22 — 歷經 Codex 多輪、Antigravity 現場與家裡覆核、Codex 與 Claude 家裡夜間覆核；Human 已決議 source-language 採日文 source/fallback，相關規格已整合。_
+_Last updated: 2026-05-25 — 歷經 Codex 多輪、Antigravity 現場與家裡覆核、Codex 與 Claude 家裡夜間覆核；Human 已決議 source-language 採日文 source/fallback，2026-05-25 再整合 blocking dependency、翻譯表、scope freeze、direct console 17 條盤點與驗收標準。_
