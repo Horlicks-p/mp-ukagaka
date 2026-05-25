@@ -48,7 +48,7 @@ const overrides = {
   },
   "ghost/Frieren/frieren.js:86:console.error": {
     key: "frierenImageCanvasManagerMissing",
-    jaSource: "Canvas マネージャーが初期化されていません",
+    jaSource: "画像読み込み前に Canvas マネージャーが初期化されていません",
     translatorComment: "console log. フリーレン画像の読み込み前に Canvas 管理オブジェクトが見つからない状態。",
   },
   "ghost/Frieren/frieren.js:114:console.error": {
@@ -58,7 +58,7 @@ const overrides = {
   },
   "ghost/Frieren/frieren.js:298:console.error": {
     key: "frierenDrawCanvasManagerMissing",
-    jaSource: "Canvas マネージャーが初期化されていません",
+    jaSource: "描画前に Canvas マネージャーが初期化されていません",
     translatorComment: "console log. フリーレン描画処理の前提となる Canvas 管理オブジェクトが見つからない状態。",
   },
   "ghost/Frieren/frieren.js:493:console.warn": {
@@ -123,7 +123,7 @@ const overrides = {
   },
   "js/ukagaka-base.js:99:console.log": {
     key: "pageReloadClearedChatSession",
-    jaSource: "ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました",
+    jaSource: "🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました",
     translatorComment: "console log. direct console.log のため migration 前に debug-only かどうかを判定すること。",
   },
   "js/ukagaka-features.js:7:mpuLogger.error": {
