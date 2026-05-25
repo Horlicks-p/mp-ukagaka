@@ -27,12 +27,10 @@ Normalize each row manually before migration:
 
 ## Inventory Summary
 
-- Included zh-TW/CJK rows: 204
+- Included zh-TW/CJK rows: 197
 - Excluded source/backlog rows: 1
 
 - TODO:console.log: 1
-- logs:console.error: 6
-- logs:console.warn: 1
 - logs:mpuLogger.error: 1
 - logsDebug:mpuLogger.log: 159
 - logsDebug:mpuLogger.warn: 36
@@ -47,39 +45,32 @@ Normalize each row manually before migration:
 | ghost/Frieren/frieren-emoji.js | 99 | mpuLogger.warn | logsDebug | frierenEmojiWarn99 | mpuEmojiManager: 表情圖片載入失敗: | TODO | dynamic args present | mpuLogger.warn('mpuEmojiManager: 表情圖片載入失敗:', emojiUrl) | TODO |
 | ghost/Frieren/frieren-emoji.js | 114 | mpuLogger.log | logsDebug | frierenEmojiLog114 | mpuEmojiManager: 顯示表情: | TODO | dynamic args present | mpuLogger.log('mpuEmojiManager: 顯示表情:', emojiName) | TODO |
 | ghost/Frieren/frieren-emoji.js | 231 | mpuLogger.log | logsDebug | frierenEmojiLog231 | mpuEmojiManager: 移除表情 | TODO | none | mpuLogger.log('mpuEmojiManager: 移除表情') | TODO |
-| ghost/Frieren/frieren.js | 52 | console.error | logs | frierenShellInfoInvalid | 芙莉蓮模式：shellInfo 無效 | フリーレンモード：shellInfo が無効です | none | console.error("[MP Ukagaka] 芙莉蓮模式：shellInfo 無效") | console log. shellInfo はキャラクター画像と表示設定を含む初期化データ。 |
-| ghost/Frieren/frieren.js | 86 | console.error | logs | frierenImageCanvasManagerMissing | Canvas 管理器未初始化 | 画像読み込み前に Canvas マネージャーが初期化されていません | none | console.error("[MP Ukagaka] Canvas 管理器未初始化") | console log. フリーレン画像の読み込み前に Canvas 管理オブジェクトが見つからない状態。 |
-| ghost/Frieren/frieren.js | 114 | console.error | logs | frierenImageLoadFailed | 芙莉蓮圖片載入失敗: | フリーレン画像の読み込みに失敗しました：%s | dynamic args present | console.error("[MP Ukagaka] 芙莉蓮圖片載入失敗:", url) | console log. %s は読み込みに失敗した画像 URL。 |
 | ghost/Frieren/frieren.js | 248 | mpuLogger.log | logsDebug | frierenLog248 | 🌙 顯示睡眠圖片 frieren[s].png / ☀️ 顯示閒置圖片 frieren[0].png | TODO | none | mpuLogger.log( shouldShowSleep ? "🌙 顯示睡眠圖片 frieren[s].png" : "☀️ 顯示閒置圖片 frieren[0].png" ) | TODO |
-| ghost/Frieren/frieren.js | 298 | console.error | logs | frierenDrawCanvasManagerMissing | Canvas 管理器未初始化 | 描画前に Canvas マネージャーが初期化されていません | none | console.error("[MP Ukagaka] Canvas 管理器未初始化") | console log. フリーレン描画処理の前提となる Canvas 管理オブジェクトが見つからない状態。 |
 | ghost/Frieren/frieren.js | 437 | mpuLogger.log | logsDebug | frierenLog437 | 裝飾物已載入，跳過重複載入 | TODO | none | mpuLogger.log("[MP Ukagaka] 裝飾物已載入，跳過重複載入") | TODO |
 | ghost/Frieren/frieren.js | 547 | mpuLogger.log | logsDebug | frierenLog547 | 已從 JSON 配置載入 / 個裝飾物 | TODO | none | mpuLogger.log( "[MP Ukagaka] 已從 JSON 配置載入 " + sortedConfig.length + " 個裝飾物" ) | TODO |
 | ghost/Frieren/frieren.js | 687 | mpuLogger.log | logsDebug | frierenLog687 | 點擊到透明區域，忽略: | TODO | dynamic args present | mpuLogger.log("點擊到透明區域，忽略:", config.type) | TODO |
 | ghost/Frieren/frieren.js | 694 | mpuLogger.log | logsDebug | frierenLog694 | 裝飾物被點擊（像素命中）: | TODO | dynamic args present | mpuLogger.log("裝飾物被點擊（像素命中）:", config.type) | TODO |
-| ghost/Frieren/frieren.js | 732 | console.error | logs | frierenPixelCanvasCreateFailed | 無法創建像素檢測 Canvas: | ピクセル判定用 Canvas を作成できません：%s | dynamic args present | console.error("[MP Ukagaka] 無法創建像素檢測 Canvas:", type) | console log. %s は装飾物タイプ。 |
 | ghost/Frieren/frieren.js | 746 | mpuLogger.log | logsDebug | frierenLog746 | 像素檢測 Canvas 已創建: | TODO | dynamic args present | mpuLogger.log( "像素檢測 Canvas 已創建:", type, hitCanvas.width + "x" + hitCanvas.height ) | TODO |
 | ghost/Frieren/frieren.js | 791 | mpuLogger.log | logsDebug | frierenLog791 | 像素檢測: | TODO | dynamic args present | mpuLogger.log( "像素檢測:", type, "x=" + pixelX, "y=" + pixelY, "alpha=" + alpha, "threshold=" + this.pixelHitThreshold ) | TODO |
-| ghost/Frieren/frieren.js | 803 | console.warn | logs | frierenPixelDataUnavailable | 無法獲取像素數據（可能是跨域問題）: | ピクセルデータを取得できません（クロスオリジンの可能性があります）：%1$s / %2$s | dynamic args present | console.warn( "[MP Ukagaka] 無法獲取像素數據（可能是跨域問題）:", type, e.message ) | console log. %1$s は装飾物タイプ、%2$s は例外メッセージ。 |
-| ghost/Frieren/frieren.js | 878 | mpuLogger.log | logsDebug | frierenLog878 | ☀️ 芙莉蓮被喚醒了！ | TODO | none | mpuLogger.log("☀️ 芙莉蓮被喚醒了！" + (isForced ? " (forceWakeUp)" : "")) | TODO |
-| ghost/Frieren/frieren.js | 900 | mpuLogger.log | logsDebug | frierenLog900 | 👀 播放醒來動畫 frieren[w1-w5].png | TODO | none | mpuLogger.log("👀 播放醒來動畫 frieren[w1-w5].png") | TODO |
-| ghost/Frieren/frieren.js | 1009 | mpuLogger.log | logsDebug | frierenLog1009 | 🌅 開始喚醒動畫, skipBookFlip = | TODO | dynamic args present | mpuLogger.log("🌅 開始喚醒動畫, skipBookFlip =", skipBookFlip) | TODO |
-| ghost/Frieren/frieren.js | 1014 | mpuLogger.log | logsDebug | frierenLog1014 | 📖 喚醒後播放翻書動畫 | TODO | none | mpuLogger.log("📖 喚醒後播放翻書動畫") | TODO |
-| ghost/Frieren/frieren.js | 1019 | mpuLogger.log | logsDebug | frierenLog1019 | 📖 喚醒後跳過翻書動畫 | TODO | none | mpuLogger.log("📖 喚醒後跳過翻書動畫") | TODO |
-| ghost/Frieren/frieren.js | 1032 | mpuLogger.log | logsDebug | frierenLog1032 | 🌙 睡眠模式：跳過翻書動畫 | TODO | none | mpuLogger.log("🌙 睡眠模式：跳過翻書動畫") | TODO |
-| ghost/Frieren/frieren.js | 1039 | mpuLogger.log | logsDebug | frierenLog1039 | 📖 手動喚醒對話：跳過翻書動畫 | TODO | none | mpuLogger.log("📖 手動喚醒對話：跳過翻書動畫") | TODO |
-| ghost/Frieren/frieren.js | 1072 | mpuLogger.log | logsDebug | frierenLog1072 | handleDecorationClick 被調用，裝飾物類型: | TODO | dynamic args present | mpuLogger.log( "handleDecorationClick 被調用，裝飾物類型:", decorationType ) | TODO |
-| ghost/Frieren/frieren.js | 1084 | mpuLogger.log | logsDebug | frierenLog1084 | 裝飾物對話正在進行中，忽略本次點擊 | TODO | none | mpuLogger.log("裝飾物對話正在進行中，忽略本次點擊") | TODO |
-| ghost/Frieren/frieren.js | 1091 | mpuLogger.log | logsDebug | frierenLog1091 | AI 功能未啟用，跳過裝飾物對話 | TODO | none | mpuLogger.log("AI 功能未啟用，跳過裝飾物對話") | TODO |
-| ghost/Frieren/frieren.js | 1115 | mpuLogger.log | logsDebug | frierenLog1115 | 裝飾物點擊：已取消請求 | TODO | dynamic args present | mpuLogger.log("裝飾物點擊：已取消請求", requestId) | TODO |
-| ghost/Frieren/frieren.js | 1321 | mpuLogger.log | logsDebug | frierenLog1321 | 裝飾物對話完成，狀態已恢復 | TODO | none | mpuLogger.log("裝飾物對話完成，狀態已恢復") | TODO |
-| ghost/Frieren/frieren.js | 1368 | mpuLogger.log | logsDebug | frierenLog1368 | 觸摸區域檢測: | TODO | dynamic args present | mpuLogger.log( "觸摸區域檢測:", zoneName, "relativeY=", relativeY.toFixed(2) ) | TODO |
-| ghost/Frieren/frieren.js | 1388 | mpuLogger.log | logsDebug | frierenLog1388 | handleTouchZone 被調用，區域: | TODO | dynamic args present | mpuLogger.log("handleTouchZone 被調用，區域:", zoneName) | TODO |
-| ghost/Frieren/frieren.js | 1397 | mpuLogger.log | logsDebug | frierenLog1397 | 區域冷卻中，忽略點擊: | TODO | dynamic args present | mpuLogger.log("區域冷卻中，忽略點擊:", zoneName) | TODO |
-| ghost/Frieren/frieren.js | 1404 | mpuLogger.log | logsDebug | frierenLog1404 | 區域達到點擊上限，進入冷卻: | TODO | dynamic args present | mpuLogger.log("區域達到點擊上限，進入冷卻:", zoneName) | TODO |
-| ghost/Frieren/frieren.js | 1432 | mpuLogger.log | logsDebug | frierenLog1432 | 觸摸區域點擊：已取消請求 | TODO | dynamic args present | mpuLogger.log("觸摸區域點擊：已取消請求", requestId) | TODO |
-| ghost/Frieren/frieren.js | 1509 | console.error | logs | frierenTouchZoneDialogRequestFailed | 觸摸區域對話請求失敗: | タッチ領域の会話リクエストに失敗しました：%s | dynamic args present | console.error("觸摸區域對話請求失敗:", err) | console log. %s は request failure の error object/message。 |
-| ghost/Frieren/frieren.js | 1624 | mpuLogger.log | logsDebug | frierenLog1624 | 角色觸摸事件已設置 | TODO | none | mpuLogger.log("角色觸摸事件已設置") | TODO |
-| ghost/Frieren/frieren.js | 1691 | mpuLogger.log | logsDebug | frierenLog1691 | 區域進入冷卻: / 冷卻時間: / 秒 | TODO | dynamic args present | mpuLogger.log( "區域進入冷卻:", zoneName, "冷卻時間:", limit.cooldownMs / 1000, "秒" ) | TODO |
+| ghost/Frieren/frieren.js | 879 | mpuLogger.log | logsDebug | frierenLog879 | ☀️ 芙莉蓮被喚醒了！ | TODO | none | mpuLogger.log("☀️ 芙莉蓮被喚醒了！" + (isForced ? " (forceWakeUp)" : "")) | TODO |
+| ghost/Frieren/frieren.js | 901 | mpuLogger.log | logsDebug | frierenLog901 | 👀 播放醒來動畫 frieren[w1-w5].png | TODO | none | mpuLogger.log("👀 播放醒來動畫 frieren[w1-w5].png") | TODO |
+| ghost/Frieren/frieren.js | 1010 | mpuLogger.log | logsDebug | frierenLog1010 | 🌅 開始喚醒動畫, skipBookFlip = | TODO | dynamic args present | mpuLogger.log("🌅 開始喚醒動畫, skipBookFlip =", skipBookFlip) | TODO |
+| ghost/Frieren/frieren.js | 1015 | mpuLogger.log | logsDebug | frierenLog1015 | 📖 喚醒後播放翻書動畫 | TODO | none | mpuLogger.log("📖 喚醒後播放翻書動畫") | TODO |
+| ghost/Frieren/frieren.js | 1020 | mpuLogger.log | logsDebug | frierenLog1020 | 📖 喚醒後跳過翻書動畫 | TODO | none | mpuLogger.log("📖 喚醒後跳過翻書動畫") | TODO |
+| ghost/Frieren/frieren.js | 1033 | mpuLogger.log | logsDebug | frierenLog1033 | 🌙 睡眠模式：跳過翻書動畫 | TODO | none | mpuLogger.log("🌙 睡眠模式：跳過翻書動畫") | TODO |
+| ghost/Frieren/frieren.js | 1040 | mpuLogger.log | logsDebug | frierenLog1040 | 📖 手動喚醒對話：跳過翻書動畫 | TODO | none | mpuLogger.log("📖 手動喚醒對話：跳過翻書動畫") | TODO |
+| ghost/Frieren/frieren.js | 1073 | mpuLogger.log | logsDebug | frierenLog1073 | handleDecorationClick 被調用，裝飾物類型: | TODO | dynamic args present | mpuLogger.log( "handleDecorationClick 被調用，裝飾物類型:", decorationType ) | TODO |
+| ghost/Frieren/frieren.js | 1085 | mpuLogger.log | logsDebug | frierenLog1085 | 裝飾物對話正在進行中，忽略本次點擊 | TODO | none | mpuLogger.log("裝飾物對話正在進行中，忽略本次點擊") | TODO |
+| ghost/Frieren/frieren.js | 1092 | mpuLogger.log | logsDebug | frierenLog1092 | AI 功能未啟用，跳過裝飾物對話 | TODO | none | mpuLogger.log("AI 功能未啟用，跳過裝飾物對話") | TODO |
+| ghost/Frieren/frieren.js | 1116 | mpuLogger.log | logsDebug | frierenLog1116 | 裝飾物點擊：已取消請求 | TODO | dynamic args present | mpuLogger.log("裝飾物點擊：已取消請求", requestId) | TODO |
+| ghost/Frieren/frieren.js | 1322 | mpuLogger.log | logsDebug | frierenLog1322 | 裝飾物對話完成，狀態已恢復 | TODO | none | mpuLogger.log("裝飾物對話完成，狀態已恢復") | TODO |
+| ghost/Frieren/frieren.js | 1369 | mpuLogger.log | logsDebug | frierenLog1369 | 觸摸區域檢測: | TODO | dynamic args present | mpuLogger.log( "觸摸區域檢測:", zoneName, "relativeY=", relativeY.toFixed(2) ) | TODO |
+| ghost/Frieren/frieren.js | 1389 | mpuLogger.log | logsDebug | frierenLog1389 | handleTouchZone 被調用，區域: | TODO | dynamic args present | mpuLogger.log("handleTouchZone 被調用，區域:", zoneName) | TODO |
+| ghost/Frieren/frieren.js | 1398 | mpuLogger.log | logsDebug | frierenLog1398 | 區域冷卻中，忽略點擊: | TODO | dynamic args present | mpuLogger.log("區域冷卻中，忽略點擊:", zoneName) | TODO |
+| ghost/Frieren/frieren.js | 1405 | mpuLogger.log | logsDebug | frierenLog1405 | 區域達到點擊上限，進入冷卻: | TODO | dynamic args present | mpuLogger.log("區域達到點擊上限，進入冷卻:", zoneName) | TODO |
+| ghost/Frieren/frieren.js | 1433 | mpuLogger.log | logsDebug | frierenLog1433 | 觸摸區域點擊：已取消請求 | TODO | dynamic args present | mpuLogger.log("觸摸區域點擊：已取消請求", requestId) | TODO |
+| ghost/Frieren/frieren.js | 1625 | mpuLogger.log | logsDebug | frierenLog1625 | 角色觸摸事件已設置 | TODO | none | mpuLogger.log("角色觸摸事件已設置") | TODO |
+| ghost/Frieren/frieren.js | 1692 | mpuLogger.log | logsDebug | frierenLog1692 | 區域進入冷卻: / 冷卻時間: / 秒 | TODO | dynamic args present | mpuLogger.log( "區域進入冷卻:", zoneName, "冷卻時間:", limit.cooldownMs / 1000, "秒" ) | TODO |
 | js/ukagaka-anime.js | 41 | mpuLogger.log | logsDebug | ukagakaAnimeLog41 | ⏭️ 已在芙莉蓮模式，跳過重新初始化 | TODO | none | mpuLogger.log('⏭️ 已在芙莉蓮模式，跳過重新初始化') | TODO |
 | js/ukagaka-base.js | 99 | console.log | TODO | pageReloadClearedChatSession | 🔄 偵測到頁面重整，清空對話記憶與 Session ID | 🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました | none | console.log("[MPU] \uD83D\uDD04 偵測到頁面重整，清空對話記憶與 Session ID") | console log. direct console.log のため migration 前に debug-only かどうかを判定すること。 |
 | js/ukagaka-base.js | 672 | mpuLogger.log | logsDebug | ukagakaBaseLog672 | 打字效果已被中斷 | TODO | none | mpuLogger.log('打字效果已被中斷') | TODO |
@@ -250,4 +241,4 @@ Normalize each row manually before migration:
 
 | Source file | Line | Channel | Bucket | Key | Original | Call preview | Reason |
 | --- | ---: | --- | --- | --- | --- | --- | --- |
-| ghost/Frieren/frieren.js | 1200 | mpuLogger.error | logs | frierenDecorationDialogRequestFailed | 装飾品対話リクエストに失敗しました: | mpuLogger.error("装飾品対話リクエストに失敗しました:", error) | Japanese source/backlog |
+| ghost/Frieren/frieren.js | 1201 | mpuLogger.error | logs | frierenDecorationDialogRequestFailed | 装飾品対話リクエストに失敗しました: | mpuLogger.error("装飾品対話リクエストに失敗しました:", error) | Japanese source/backlog |

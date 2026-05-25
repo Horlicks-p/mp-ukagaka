@@ -561,6 +561,20 @@ function mpu_enqueue_frontend_assets()
         $log_i18n->always('frierenDecorationConfigRuntimeUnavailable', __('jQuery または mpuurl が利用できないため、装飾設定を読み込めません', 'mp-ukagaka'), ['scope' => 'frieren']);
         /* translators: console log. The decoration_config structure is not in the expected format. */
         $log_i18n->always('frierenDecorationConfigInvalid', __('装飾設定が無効です', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. shellInfo contains the character image URL and display settings. */
+        $log_i18n->always('frierenShellInfoInvalid', __('フリーレンモード：shellInfo が無効です', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. Canvas manager is missing before Frieren images are loaded. */
+        $log_i18n->always('frierenImageCanvasManagerMissing', __('画像読み込み前に Canvas マネージャーが初期化されていません', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. %s is the Frieren image URL that failed to load. */
+        $log_i18n->always('frierenImageLoadFailed', __('フリーレン画像の読み込みに失敗しました：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. Canvas manager is missing before drawing Frieren. */
+        $log_i18n->always('frierenDrawCanvasManagerMissing', __('描画前に Canvas マネージャーが初期化されていません', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. %s is the decoration type for which pixel-hit Canvas creation failed. */
+        $log_i18n->always('frierenPixelCanvasCreateFailed', __('ピクセル判定用 Canvas を作成できません：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. %1$s is the decoration type, %2$s is the exception message. */
+        $log_i18n->always('frierenPixelDataUnavailable', __('ピクセルデータを取得できません（クロスオリジンの可能性があります）：タイプ=%1$s、メッセージ=%2$s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. The request error object is logged as an additional console argument. */
+        $log_i18n->always('frierenTouchZoneDialogRequestFailed', __('タッチ領域の会話リクエストに失敗しました', 'mp-ukagaka'), ['scope' => 'frieren']);
     }
 
     $l10n = [

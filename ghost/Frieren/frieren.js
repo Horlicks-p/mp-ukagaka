@@ -49,7 +49,7 @@
       this.frierenIsSpeaking = false;
 
       if (!shellInfo || !shellInfo.url) {
-        console.error("[MP Ukagaka] 芙莉蓮模式：shellInfo 無效");
+        mpuLogger.errorL('frierenShellInfoInvalid', 'フリーレンモード：shellInfo が無効です');
         return;
       }
 
@@ -83,7 +83,7 @@
      */
     loadFrierenImages: function () {
       if (!window.mpuCanvasManager || !window.mpuCanvasManager.canvas) {
-        console.error("[MP Ukagaka] Canvas 管理器未初始化");
+        mpuLogger.errorL('frierenImageCanvasManagerMissing', '画像読み込み前に Canvas マネージャーが初期化されていません');
         return;
       }
 
@@ -111,7 +111,7 @@
         }.bind(this);
 
         img.onerror = function (url) {
-          console.error("[MP Ukagaka] 芙莉蓮圖片載入失敗:", url);
+          mpuLogger.errorF('frierenImageLoadFailed', 'フリーレン画像の読み込みに失敗しました：%s', url);
           loadedCount++;
           if (loadedCount === totalImages) {
             window.mpuCanvasManager.imagesLoaded = true;
@@ -295,7 +295,7 @@
         !window.mpuCanvasManager.canvas ||
         !window.mpuCanvasManager.ctx
       ) {
-        console.error("[MP Ukagaka] Canvas 管理器未初始化");
+        mpuLogger.errorL('frierenDrawCanvasManagerMissing', '描画前に Canvas マネージャーが初期化されていません');
         return;
       }
 
@@ -729,7 +729,7 @@
 
       const ctx = hitCanvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) {
-        console.error("[MP Ukagaka] 無法創建像素檢測 Canvas:", type);
+        mpuLogger.errorF('frierenPixelCanvasCreateFailed', 'ピクセル判定用 Canvas を作成できません：%s', type);
         return;
       }
 
@@ -800,8 +800,9 @@
 
         return alpha > this.pixelHitThreshold;
       } catch (e) {
-        console.warn(
-          "[MP Ukagaka] 無法獲取像素數據（可能是跨域問題）:",
+        mpuLogger.warnAlwaysF(
+          'frierenPixelDataUnavailable',
+          'ピクセルデータを取得できません（クロスオリジンの可能性があります）：タイプ=%1$s、メッセージ=%2$s',
           type,
           e.message
         );
@@ -1506,7 +1507,7 @@
                 mpu_showmsg(400);
               }
 
-              console.error("觸摸區域對話請求失敗:", err);
+              mpuLogger.errorL('frierenTouchZoneDialogRequestFailed', 'タッチ領域の会話リクエストに失敗しました', err);
               self.restoreAfterDecorationChat();
             });
         }

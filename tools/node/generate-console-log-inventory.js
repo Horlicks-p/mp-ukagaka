@@ -41,41 +41,6 @@ const stringPattern = /(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
 const prefixPattern = /^\s*(?:\[MPU?\]|\[MP Ukagaka(?: ERROR)?\])\s*/;
 
 const overrides = {
-  "ghost/Frieren/frieren.js:52:console.error": {
-    key: "frierenShellInfoInvalid",
-    jaSource: "フリーレンモード：shellInfo が無効です",
-    translatorComment: "console log. shellInfo はキャラクター画像と表示設定を含む初期化データ。",
-  },
-  "ghost/Frieren/frieren.js:86:console.error": {
-    key: "frierenImageCanvasManagerMissing",
-    jaSource: "画像読み込み前に Canvas マネージャーが初期化されていません",
-    translatorComment: "console log. フリーレン画像の読み込み前に Canvas 管理オブジェクトが見つからない状態。",
-  },
-  "ghost/Frieren/frieren.js:114:console.error": {
-    key: "frierenImageLoadFailed",
-    jaSource: "フリーレン画像の読み込みに失敗しました：%s",
-    translatorComment: "console log. %s は読み込みに失敗した画像 URL。",
-  },
-  "ghost/Frieren/frieren.js:298:console.error": {
-    key: "frierenDrawCanvasManagerMissing",
-    jaSource: "描画前に Canvas マネージャーが初期化されていません",
-    translatorComment: "console log. フリーレン描画処理の前提となる Canvas 管理オブジェクトが見つからない状態。",
-  },
-  "ghost/Frieren/frieren.js:732:console.error": {
-    key: "frierenPixelCanvasCreateFailed",
-    jaSource: "ピクセル判定用 Canvas を作成できません：%s",
-    translatorComment: "console log. %s は装飾物タイプ。",
-  },
-  "ghost/Frieren/frieren.js:803:console.warn": {
-    key: "frierenPixelDataUnavailable",
-    jaSource: "ピクセルデータを取得できません（クロスオリジンの可能性があります）：%1$s / %2$s",
-    translatorComment: "console log. %1$s は装飾物タイプ、%2$s は例外メッセージ。",
-  },
-  "ghost/Frieren/frieren.js:1509:console.error": {
-    key: "frierenTouchZoneDialogRequestFailed",
-    jaSource: "タッチ領域の会話リクエストに失敗しました：%s",
-    translatorComment: "console log. %s は request failure の error object/message。",
-  },
   "js/ukagaka-base.js:99:console.log": {
     key: "pageReloadClearedChatSession",
     jaSource: "🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました",
@@ -86,7 +51,7 @@ const overrides = {
     jaSource: "jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります",
     translatorComment: "console log. jQuery.cookie 初期化失敗により cookie 依存機能が使えない可能性がある状態。",
   },
-  "ghost/Frieren/frieren.js:1200:mpuLogger.error": {
+  "ghost/Frieren/frieren.js:1201:mpuLogger.error": {
     key: "frierenDecorationDialogRequestFailed",
   },
 };
