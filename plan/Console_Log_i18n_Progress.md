@@ -15,7 +15,7 @@
 
 ---
 
-## Commit 序列（feature/code-quality-hardening，9 個未 push commit）
+## Commit 序列（feature/code-quality-hardening；2026-05-25 session 後已 push 至 origin）
 
 | Commit  | 主旨                                          | 階段       |
 | ------- | --------------------------------------------- | ---------- |
@@ -28,6 +28,10 @@
 | 45f0625 | Translate production console log inventory    | Phase 1.5 Commit B（18 條） |
 | 3a1f283 | Refine production console log translations    | Phase 1.5 hotfix（emoji + Canvas msgid） |
 | b256574 | Migrate anime console logs to i18n            | Phase 2 第一個 migration PR |
+| 0e1904f | Document Phase 1/1.5/2 progress and handoff   | 進度文件 + handoff |
+| 0241ecc | Migrate Frieren decoration-config console logs to i18n | Phase 2 第二個 migration PR（+ 方案 A 工具落地：verify pass、刪 anime overrides） |
+| 9d7a2f0 | Migrate Frieren canvas/image/pixel/touch console logs to i18n | Phase 2 第三個 migration PR（7 條） |
+| ad68012 | Migrate core-bundle console logs to i18n and finish Phase 2 production-visible | Phase 2 收尾（features.js + base.js:99 + rebuild dist；首條 logsDebug） |
 
 ---
 
