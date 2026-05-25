@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-25T07:29:44.422Z
+ * Generated: 2026-05-25T08:21:55.854Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -2613,14 +2613,14 @@ jQuery(function () {
             // 獲取 Canvas 元素
             this.canvas = document.getElementById('cur_ukagaka');
             if (!this.canvas) {
-                console.error('[MP Ukagaka] Canvas 元素不存在');
+                mpuLogger.errorL('animeCanvasElementMissing', 'Canvas 要素が存在しません');
                 return;
             }
 
             // 獲取 Canvas 上下文
             this.ctx = this.canvas.getContext('2d');
             if (!this.ctx) {
-                console.error('[MP Ukagaka] 無法獲取 Canvas 上下文');
+                mpuLogger.errorL('animeCanvasContextUnavailable', 'Canvas コンテキストを取得できません');
                 return;
             }
 
@@ -2637,7 +2637,7 @@ jQuery(function () {
                     // 芙莉蓮模式 - 首次初始化（重複初始化已在函數開頭被阻擋）
                     window.mpuFrierenManager.initFrierenMode(shellInfo, name);
                 } else {
-                    console.warn('[MP Ukagaka] 芙莉蓮管理器未載入，使用通用模式');
+                    mpuLogger.warnAlways('animeFrierenManagerMissing', 'フリーレンマネージャーが読み込まれていないため、汎用モードを使用します');
                     // 降級為通用模式
                     this.initGenericMode(shellInfo);
                 }
@@ -2708,7 +2708,7 @@ jQuery(function () {
             }).bind(this);
 
             img.onerror = function() {
-                console.error('[MP Ukagaka] 圖片載入失敗:', imageUrl);
+                mpuLogger.errorF('animeImageLoadFailed', '画像の読み込みに失敗しました：%s', imageUrl);
             };
 
             img.src = imageUrl;
@@ -2769,7 +2769,7 @@ jQuery(function () {
                 }).bind(this);
 
                 img.onerror = (function(url) {
-                    console.error('[MP Ukagaka] 圖片載入失敗:', url);
+                    mpuLogger.errorF('animeFrameImageLoadFailed', 'フレーム画像の読み込みに失敗しました：%s', url);
                     loadedCount++;
                     
                     // 即使有圖片載入失敗，也要檢查是否所有圖片都已處理

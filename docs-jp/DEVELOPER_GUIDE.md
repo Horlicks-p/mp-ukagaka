@@ -1265,6 +1265,8 @@ _e('文字列', 'mp-ukagaka')
 sprintf(__('ようこそ %s', 'mp-ukagaka'), $name)
 ```
 
+フロントエンドの console log も i18n 対象です。Production-visible な log は PHP 側で `mpu_console_log_i18n_builder()->always()` を使って `mpuL10n.logs` に登録し、JS call site では `mpuLogger.errorL/errorF` または `mpuLogger.warnAlways/warnAlwaysF` を使用します。always-output の `console.warn` を debug-gated な `warnL` に変更してはいけません。移行期間中、console fallback は段階的に日本語 source へ切り替わり、実際の表示は WordPress locale に従って翻訳されます。
+
 ### テスト
 
 1. 開発環境ですべての機能をテストする。

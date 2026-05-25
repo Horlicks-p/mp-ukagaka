@@ -540,6 +540,19 @@ function mpu_enqueue_frontend_assets()
         ? mpu_console_log_i18n_builder()
         : null;
 
+    if ($log_i18n) {
+        /* translators: console log. Character drawing canvas DOM element is missing. */
+        $log_i18n->always('animeCanvasElementMissing', __('Canvas 要素が存在しません', 'mp-ukagaka'));
+        /* translators: console log. CanvasRenderingContext2D could not be acquired. */
+        $log_i18n->always('animeCanvasContextUnavailable', __('Canvas コンテキストを取得できません', 'mp-ukagaka'));
+        /* translators: console log. Frieren-specific manager is missing, so generic mode is used. */
+        $log_i18n->always('animeFrierenManagerMissing', __('フリーレンマネージャーが読み込まれていないため、汎用モードを使用します', 'mp-ukagaka'));
+        /* translators: console log. %s is the image URL that failed to load. */
+        $log_i18n->always('animeImageLoadFailed', __('画像の読み込みに失敗しました：%s', 'mp-ukagaka'));
+        /* translators: console log. %s is the frame image URL that failed to load. */
+        $log_i18n->always('animeFrameImageLoadFailed', __('フレーム画像の読み込みに失敗しました：%s', 'mp-ukagaka'));
+    }
+
     $l10n = [
         // AI 相關訊息
         'loadingArticle' => __('（…ああ、記事か。どれどれ…）', 'mp-ukagaka'),

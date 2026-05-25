@@ -4,6 +4,13 @@
 
 ---
 
+## [Unreleased] - Console log 國際化遷移
+
+### 🌐 Frontend console log i18n
+
+- 前端 console log 字串正逐步從硬編碼繁中遷移為日文 source，並透過 WordPress locale 與 `mpuL10n.logs` 顯示對應翻譯。
+- 第一批遷移 `js/ukagaka-anime.js` 的 5 條 production-visible error/warn；輸出時機維持不變，direct `console.warn` 仍使用 always-output 路徑。
+
 ## [2.23.2] - 2026-05-24
 
 ### 🐛 錯誤修正

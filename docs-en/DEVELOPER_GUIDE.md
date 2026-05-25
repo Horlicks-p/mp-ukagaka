@@ -1533,6 +1533,8 @@ _e('String', 'mp-ukagaka')
 sprintf(__('Welcome %s', 'mp-ukagaka'), $name)
 ```
 
+Frontend console logs also use i18n. Production-visible logs must be registered on the PHP side with `mpu_console_log_i18n_builder()->always()` into `mpuL10n.logs`, while JS call sites use `mpuLogger.errorL/errorF` or `mpuLogger.warnAlways/warnAlwaysF`. Do not convert an always-output `console.warn` into debug-gated `warnL`. During migration, console fallbacks are gradually changing to Japanese source strings, with displayed output translated by the active WordPress locale.
+
 ### Testing
 
 1. Test all features in the development environment

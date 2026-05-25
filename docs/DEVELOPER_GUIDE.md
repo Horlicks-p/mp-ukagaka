@@ -1532,6 +1532,8 @@ _e('字串', 'mp-ukagaka')
 sprintf(__('歡迎 %s', 'mp-ukagaka'), $name)
 ```
 
+Frontend console log 也走 i18n。Production-visible log 必須在 PHP 端用 `mpu_console_log_i18n_builder()->always()` 註冊到 `mpuL10n.logs`，JS call site 使用 `mpuLogger.errorL/errorF` 或 `mpuLogger.warnAlways/warnAlwaysF`，不可把原本 always-output 的 `console.warn` 改成 debug-gated `warnL`。遷移期間 console fallback 會逐步改為日文 source，實際顯示依 WordPress locale 翻譯。
+
 ### 測試
 
 1. 在開發環境測試所有功能
