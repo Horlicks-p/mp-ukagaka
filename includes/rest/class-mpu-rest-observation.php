@@ -50,14 +50,15 @@ class MPU_REST_Observation extends MPU_REST_Base {
         return $this->ok(['ok' => $ok]);
     }
 
-    private function require_valid_session_token(WP_REST_Request $request): ?WP_REST_Response {
+    private function require_valid_session_token(WP_REST_Request $request) {
         $token = $this->request_session_token($request);
         if ($token !== '' && function_exists('mpu_validate_session_token') && mpu_validate_session_token($token)) {
             return null;
         }
 
-        return new WP_REST_Response(
-            ['code' => 'missing_session_token', 'message' => __('有効なセッショントークンが必要です。', 'mp-ukagaka')],
+        return $this->fail(
+            'missing_session_token',
+            __('有効なセッショントークンが必要です。', 'mp-ukagaka'),
             403
         );
     }
