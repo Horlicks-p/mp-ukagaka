@@ -4,7 +4,7 @@ jQuery(document).ready(function () {
 
   // 確保 jQuery.cookie 已初始化
   if (!mpu_init_jquery_cookie()) {
-    mpuLogger.error("無法初始化 jQuery.cookie，某些功能可能無法正常工作");
+    mpuLogger.errorL('jqueryCookieInitFailed', 'jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります');
   } else {
     mpuLogger.log("jQuery.cookie 已成功初始化");
   }

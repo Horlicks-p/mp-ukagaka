@@ -72,7 +72,7 @@ let mpuAutoTalkInterval = mpuState.autoTalk.interval;        // 自動對話間�
 let mpuAutoTalkTimer = mpuState.autoTalk.timer;            // 自動對話計時器
 
 // F5/Reload 偵測：重整時清空對話記憶與 Session ID（SPA 路由切換不觸發，只有真正的 reload 才清空）
-(function () {
+function mpuClearReloadChatSession() {
   var isReload = false;
   // 優先使用 PerformanceNavigationTiming（現代瀏覽器）
   if (window.performance && typeof performance.getEntriesByType === "function") {
@@ -94,12 +94,12 @@ let mpuAutoTalkTimer = mpuState.autoTalk.timer;            // 自動對話計時
     } catch (e) {
       // localStorage 不可用時靜默略過
     }
-    // mpuLogger 尚未定義，使用 console
-    if (window.console) {
-      console.log("[MPU] \uD83D\uDD04 偵測到頁面重整，清空對話記憶與 Session ID");
-    }
+    mpuLogger.logL(
+      'pageReloadClearedChatSession',
+      '🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました'
+    );
   }
-})();
+}
 
 // 對話歷史與 Session ID 全域共享（確保各個 JS 模組同步，避免 Checksum Mismatch）
 window.mpuChatHistory = window.mpuChatHistory || [];
@@ -403,7 +403,7 @@ const mpuLogger = {
         console.warn('[MP Ukagaka]', this.tFormat(key, fallback, ...values));
     }
 };
-
+mpuClearReloadChatSession();
 // 向後兼容：保留 debugLog 函數
 function debugLog() {
     mpuLogger.log.apply(mpuLogger, arguments);

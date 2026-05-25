@@ -8,10 +8,10 @@
 
 ## TL;DR
 
-- Phase 1（infrastructure）已完成、Phase 1.5（inventory + 18 條 production-visible 翻譯）已完成、Phase 2 migration 已完成三批：`js/ukagaka-anime.js` 5 條、`ghost/Frieren/frieren.js` decoration config 4 條、`ghost/Frieren/frieren.js` Canvas/Image/Pixel/Touch 7 條。
+- Phase 1（infrastructure）已完成、Phase 1.5（inventory + 18 條 production-visible 翻譯）已完成、Phase 2 production-visible migration 已完成：anime 5 條、Frieren 11 條、core bundle 收尾 2 條。
 - 公司端 reviewer 已逐 commit 審查通過，無阻斷問題。
-- silent-drop 隱患已採 **方案 A** 落地：migrated overrides 刪除、generator 加 unused-override verify pass；目前對照表為 197 included rows + 1 backlog。
-- production-visible 尚餘 2 條：`js/ukagaka-features.js:7` 單條、`base.js:99` TODO bucket 單條；`base.js:99` 仍需先拍板 debug-only-or-prod。
+- silent-drop 隱患已採 **方案 A** 落地：migrated overrides 刪除、generator 加 unused-override verify pass；目前對照表為 195 included rows + 1 backlog。
+- production-visible 已清零；Phase 3（約 195 條 debug-gated `mpuLogger.log/warn/info`）留給公司端御三家處理。
 
 ---
 
@@ -52,13 +52,12 @@
 - `npm run verify` 已串入 `npm run test:logger`
 
 ### Phase 1.5 — Translation table（c5989d8 + 45f0625 + 3a1f283）
-- Inventory generator：`tools/node/generate-console-log-inventory.js`（369 行，含括弧 / quote / template literal 巢狀解析，並有 unused-override verify pass）
+- Inventory generator：`tools/node/generate-console-log-inventory.js`（359 行，含括弧 / quote / template literal 巢狀解析，並有 unused-override verify pass）
 - 對照表：`plan/translation-tables/console-logs-zh-to-ja.md`
-- Inventory 統計：Phase 1.5 翻譯完成時為 **213 included rows + 1 backlog**；Phase 2 三批 migration 後，已遷移的 anime 5 條與 Frieren 11 條從 staging table 移除，目前為 **197 included rows + 1 backlog**
-  - TODO:console.log: 1
+- Inventory 統計：Phase 1.5 翻譯完成時為 **213 included rows + 1 backlog**；Phase 2 production-visible migration 完成後，目前為 **195 included rows + 1 backlog**
   - logs:console.error: 0（Phase 1.5 時為 11；anime 4 條、Frieren 7 條已 migrate）
   - logs:console.warn: 0（Phase 1.5 時為 5；anime 1 條、Frieren 4 條已 migrate）
-  - logs:mpuLogger.error: 1
+  - logs:mpuLogger.error: 0（`jqueryCookieInitFailed` 已 migrate）
   - logsDebug:mpuLogger.log: 159
   - logsDebug:mpuLogger.warn: 36
 - Generator 設計：`overrides` table 注入 semantic key / jaSource / translatorComment，lookup 用 `relativePath:line:channel`，raw inventory 仍從 source 重新生成（determinism 與翻譯成果共存）
@@ -66,7 +65,7 @@
   - `frieren*` 11 條（shellInfo、Image/Draw CanvasManager、ImageLoad、DecorationConfig×4、PixelCanvas、PixelData、TouchZoneDialog）
   - `anime*` 5 條（CanvasElement、CanvasContext、FrierenManager、ImageLoad、FrameImageLoad）
   - `jqueryCookieInitFailed` 1 條
-  - `pageReloadClearedChatSession` 1 條（TODO bucket，console.log 待 migration 時逐條決定 debug-only-or-prod）
+  - `pageReloadClearedChatSession` 1 條（原 TODO bucket；已拍板改為 debug-only 並完成 migration）
 - Backlog 1 條（既有日文 source）：`frierenDecorationDialogRequestFailed`
 - Hotfix（3a1f283）：
   - `pageReloadClearedChatSession` emoji 🔄 補回（Hard Limit #7）
@@ -104,6 +103,14 @@
 - fallback 字串無 `[MP Ukagaka]` prefix（Hard Limit #10）
 - 依方案 A 刪除對應 7 條 overrides，translation table 重生為 197 included rows + 1 backlog
 
+### Phase 2 core bundle 收尾 — `features.js:7` + `base.js:99` 2 條（working tree）
+- `js/ukagaka-features.js:7`：`mpuLogger.error` → `mpuLogger.errorL`，PHP 端 `$log_i18n->always('jqueryCookieInitFailed', ...)`
+- `js/ukagaka-base.js:99`：direct `console.log` → `mpuLogger.logL`，PHP 端 `$log_i18n->debug('pageReloadClearedChatSession', ...)`
+- `base.js:99` 已拍板改為 debug-only；這是 milestone 第一條 debug-gated migration
+- 為避免 `mpuLogger` 尚未定義，reload cleanup IIFE 改成 `mpuClearReloadChatSession()`，於 `mpuLogger` 定義後呼叫
+- 依方案 A 刪除對應 2 條 overrides，translation table 重生為 195 included rows + 1 backlog
+- source 改動位於 core bundle，已執行 `node tools/node/build.js` 重建 `js/dist/ukagaka-bundle.js` / `.min.js`
+
 ---
 
 ## ✅ 已決策（2026-05-25 家裡）：silent-drop 隱患採方案 A
@@ -128,7 +135,7 @@
 
 - 已刪 migrate 完成的 `js/ukagaka-anime.js` 5 條 overrides
 - `generate-console-log-inventory.js` 已加 **unused-override verify pass**：override lookup key 若在本次 inventory 未被任何 row 命中 → **explicit error**（把 silent drop 升級成 build 失敗），同時防護未來 override 拼錯 / 行號漂移
-- `plan/translation-tables/console-logs-zh-to-ja.md` 已於方案 A 首次落地時重生為 **208 included rows + 1 backlog**；Frieren decoration config 第二批 migration 後為 **204 included rows + 1 backlog**；Frieren Canvas/Image/Pixel/Touch 第三批 migration 後，目前為 **197 included rows + 1 backlog**
+- `plan/translation-tables/console-logs-zh-to-ja.md` 已於方案 A 首次落地時重生為 **208 included rows + 1 backlog**；Frieren decoration config 第二批 migration 後為 **204 included rows + 1 backlog**；Frieren Canvas/Image/Pixel/Touch 第三批 migration 後為 **197 included rows + 1 backlog**；core bundle 收尾後，目前為 **195 included rows + 1 backlog**
 - migrated 字串 trace 權威 = PHP `$log_i18n->always(...)` + `.po`
 
 ### 補記：三案都沒解到的脆弱點
@@ -188,14 +195,9 @@ Phase 2 第一個 PR (b256574) 後 anime.js 5 條 call site 已遷移到糖衣�
 
 ---
 
-## Phase 2 後續 PR 範圍
+## Phase 3 後續 PR 範圍
 
-剩 2 條 production-visible（18 - anime 5 - Frieren decoration 4 - Frieren Canvas/Image/Pixel/Touch 7 = 2）：
-
-| 候選 | 條數 | 評估 |
-|---|---|---|
-| `js/ukagaka-features.js:7` 單條 (`jqueryCookieInitFailed`) | 1 | 太小，但可當熱身 PR |
-| `base.js:99` (`pageReloadClearedChatSession`) | 1 | TODO bucket，需先決 debug-only-or-prod |
+production-visible console log 已清零；後續剩約 195 條 debug-gated `mpuLogger.log/warn/info`，全部屬 Phase 3 / `logsDebug` 大宗，交由公司端御三家分批處理。
 
 ---
 
@@ -208,7 +210,7 @@ Phase 2 第一個 PR (b256574) 後 anime.js 5 條 call site 已遷移到糖衣�
 - **(e)** Generator 加 unused-override verify pass — **已完成**（方案 A 落地）
 - **(f)** Generator 內嵌的對照表 status block 已過時（line 392-397 still 寫「This commit intentionally fills raw inventory only」）— **已完成**（方案 A 落地時同步更新為 migration staging table）
 
-debug 195 條翻譯（Commit B2）尚未動工，先處理上述 silent-drop 決策再進。
+debug 195 條翻譯（Commit B2 / Phase 3）尚未動工，交由公司端御三家接手。
 
 ---
 
@@ -257,4 +259,4 @@ git status --short
 
 ---
 
-_Last updated: 2026-05-25 — Phase 2 第三批 `ghost/Frieren/frieren.js` Canvas/Image/Pixel/Touch 7 條已遷移；translation table 重生為 197 included rows。下一更新點：production-visible 剩餘 2 條處理前。_
+_Last updated: 2026-05-25 — Phase 2 production-visible migration 已完成並清零；core bundle 收尾 2 條已遷移並 rebuild dist，translation table 重生為 195 included rows。下一更新點：Phase 3 debug-gated migration 啟動前。_

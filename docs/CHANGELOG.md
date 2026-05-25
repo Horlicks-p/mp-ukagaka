@@ -9,7 +9,7 @@
 ### 🌐 Frontend console log i18n
 
 - 前端 console log 字串正逐步從硬編碼繁中遷移為日文 source，並透過 WordPress locale 與 `mpuL10n.logs` 顯示對應翻譯。
-- 已遷移 `js/ukagaka-anime.js` 的 5 條 production-visible error/warn，以及 `ghost/Frieren/frieren.js` 的 11 條 production-visible error/warn（裝飾配置、Canvas/Image、Pixel、Touch Zone）；輸出時機維持不變，direct `console.warn` 仍使用 always-output 路徑。
+- 已遷移所有 production-visible console log：`js/ukagaka-anime.js` 5 條、`ghost/Frieren/frieren.js` 11 條，以及 core bundle 收尾的 `js/ukagaka-features.js` / `js/ukagaka-base.js` 2 條。`base.js` reload cleanup 訊息已改為 debug-only，其他 error/warn 輸出時機維持不變。
 
 ## [2.23.2] - 2026-05-24
 

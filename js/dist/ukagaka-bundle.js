@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-25T08:21:55.854Z
+ * Generated: 2026-05-25T14:40:04.279Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -80,7 +80,7 @@ let mpuAutoTalkInterval = mpuState.autoTalk.interval;        // 自動對話間�
 let mpuAutoTalkTimer = mpuState.autoTalk.timer;            // 自動對話計時器
 
 // F5/Reload 偵測：重整時清空對話記憶與 Session ID（SPA 路由切換不觸發，只有真正的 reload 才清空）
-(function () {
+function mpuClearReloadChatSession() {
   var isReload = false;
   // 優先使用 PerformanceNavigationTiming（現代瀏覽器）
   if (window.performance && typeof performance.getEntriesByType === "function") {
@@ -102,12 +102,12 @@ let mpuAutoTalkTimer = mpuState.autoTalk.timer;            // 自動對話計時
     } catch (e) {
       // localStorage 不可用時靜默略過
     }
-    // mpuLogger 尚未定義，使用 console
-    if (window.console) {
-      console.log("[MPU] \uD83D\uDD04 偵測到頁面重整，清空對話記憶與 Session ID");
-    }
+    mpuLogger.logL(
+      'pageReloadClearedChatSession',
+      '🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました'
+    );
   }
-})();
+}
 
 // 對話歷史與 Session ID 全域共享（確保各個 JS 模組同步，避免 Checksum Mismatch）
 window.mpuChatHistory = window.mpuChatHistory || [];
@@ -411,7 +411,7 @@ const mpuLogger = {
         console.warn('[MP Ukagaka]', this.tFormat(key, fallback, ...values));
     }
 };
-
+mpuClearReloadChatSession();
 // 向後兼容：保留 debugLog 函數
 function debugLog() {
     mpuLogger.log.apply(mpuLogger, arguments);
@@ -5635,7 +5635,7 @@ jQuery(document).ready(function () {
 
   // 確保 jQuery.cookie 已初始化
   if (!mpu_init_jquery_cookie()) {
-    mpuLogger.error("無法初始化 jQuery.cookie，某些功能可能無法正常工作");
+    mpuLogger.errorL('jqueryCookieInitFailed', 'jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります');
   } else {
     mpuLogger.log("jQuery.cookie 已成功初始化");
   }

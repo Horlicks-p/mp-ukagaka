@@ -7,7 +7,10 @@ function loadLogger(l10n, debugMode) {
   const sourcePath = path.resolve(__dirname, "..", "..", "js", "ukagaka-base.js");
   const source = fs.readFileSync(sourcePath, "utf8");
   const start = source.indexOf("const mpuLogger =");
-  const end = source.indexOf("// 向後兼容：保留 debugLog 函數", start);
+  let end = source.indexOf("mpuClearReloadChatSession();", start);
+  if (end === -1) {
+    end = source.indexOf("// 向後兼容：保留 debugLog 函數", start);
+  }
 
   if (start === -1 || end === -1) {
     throw new Error("Unable to locate mpuLogger block in js/ukagaka-base.js");

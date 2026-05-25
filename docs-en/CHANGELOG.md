@@ -9,7 +9,7 @@
 ### 🌐 Frontend console log i18n
 
 - Frontend console log strings are being migrated from hard-coded Traditional Chinese to Japanese source strings, then displayed through WordPress locale translations via `mpuL10n.logs`.
-- Migrated 5 production-visible error/warn logs in `js/ukagaka-anime.js` and 11 production-visible error/warn logs in `ghost/Frieren/frieren.js` covering decoration config, Canvas/Image, Pixel, and Touch Zone paths; output timing is unchanged, and direct `console.warn` still uses an always-output path.
+- Migrated all production-visible console logs: 5 in `js/ukagaka-anime.js`, 11 in `ghost/Frieren/frieren.js`, and the final 2 core-bundle logs in `js/ukagaka-features.js` / `js/ukagaka-base.js`. The `base.js` reload cleanup message is now debug-only; other error/warn output timing is unchanged.
 
 ## [2.23.2] - 2026-05-24
 

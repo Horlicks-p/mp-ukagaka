@@ -41,16 +41,6 @@ const stringPattern = /(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
 const prefixPattern = /^\s*(?:\[MPU?\]|\[MP Ukagaka(?: ERROR)?\])\s*/;
 
 const overrides = {
-  "js/ukagaka-base.js:99:console.log": {
-    key: "pageReloadClearedChatSession",
-    jaSource: "🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました",
-    translatorComment: "console log. direct console.log のため migration 前に debug-only かどうかを判定すること。",
-  },
-  "js/ukagaka-features.js:7:mpuLogger.error": {
-    key: "jqueryCookieInitFailed",
-    jaSource: "jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります",
-    translatorComment: "console log. jQuery.cookie 初期化失敗により cookie 依存機能が使えない可能性がある状態。",
-  },
   "ghost/Frieren/frieren.js:1201:mpuLogger.error": {
     key: "frierenDecorationDialogRequestFailed",
   },

@@ -27,11 +27,9 @@ Normalize each row manually before migration:
 
 ## Inventory Summary
 
-- Included zh-TW/CJK rows: 197
+- Included zh-TW/CJK rows: 195
 - Excluded source/backlog rows: 1
 
-- TODO:console.log: 1
-- logs:mpuLogger.error: 1
 - logsDebug:mpuLogger.log: 159
 - logsDebug:mpuLogger.warn: 36
 
@@ -72,7 +70,6 @@ Normalize each row manually before migration:
 | ghost/Frieren/frieren.js | 1625 | mpuLogger.log | logsDebug | frierenLog1625 | 角色觸摸事件已設置 | TODO | none | mpuLogger.log("角色觸摸事件已設置") | TODO |
 | ghost/Frieren/frieren.js | 1692 | mpuLogger.log | logsDebug | frierenLog1692 | 區域進入冷卻: / 冷卻時間: / 秒 | TODO | dynamic args present | mpuLogger.log( "區域進入冷卻:", zoneName, "冷卻時間:", limit.cooldownMs / 1000, "秒" ) | TODO |
 | js/ukagaka-anime.js | 41 | mpuLogger.log | logsDebug | ukagakaAnimeLog41 | ⏭️ 已在芙莉蓮模式，跳過重新初始化 | TODO | none | mpuLogger.log('⏭️ 已在芙莉蓮模式，跳過重新初始化') | TODO |
-| js/ukagaka-base.js | 99 | console.log | TODO | pageReloadClearedChatSession | 🔄 偵測到頁面重整，清空對話記憶與 Session ID | 🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました | none | console.log("[MPU] \uD83D\uDD04 偵測到頁面重整，清空對話記憶與 Session ID") | console log. direct console.log のため migration 前に debug-only かどうかを判定すること。 |
 | js/ukagaka-base.js | 672 | mpuLogger.log | logsDebug | ukagakaBaseLog672 | 打字效果已被中斷 | TODO | none | mpuLogger.log('打字效果已被中斷') | TODO |
 | js/ukagaka-base.js | 686 | mpuLogger.warn | logsDebug | ukagakaBaseWarn686 | mpu_waitForTypewriterComplete: callback 不是函數 | TODO | none | mpuLogger.warn('mpu_waitForTypewriterComplete: callback 不是函數') | TODO |
 | js/ukagaka-base.js | 704 | mpuLogger.warn | logsDebug | ukagakaBaseWarn704 | mpu_waitForTypewriterComplete: 等待超時，強制執行回調 | TODO | none | mpuLogger.warn('mpu_waitForTypewriterComplete: 等待超時，強制執行回調') | TODO |
@@ -203,7 +200,6 @@ Normalize each row manually before migration:
 | js/ukagaka-emoji.js | 99 | mpuLogger.log | logsDebug | ukagakaEmojiLog99 | mpuEmojiManager: 顯示表情: | TODO | dynamic args present | mpuLogger.log('mpuEmojiManager: 顯示表情:', emojiName) | TODO |
 | js/ukagaka-emoji.js | 216 | mpuLogger.log | logsDebug | ukagakaEmojiLog216 | mpuEmojiManager: 移除表情 | TODO | none | mpuLogger.log('mpuEmojiManager: 移除表情') | TODO |
 | js/ukagaka-features.js | 3 | mpuLogger.log | logsDebug | ukagakaFeaturesLog3 | jQuery ready 已執行 | TODO | none | mpuLogger.log("jQuery ready 已執行") | TODO |
-| js/ukagaka-features.js | 7 | mpuLogger.error | logs | jqueryCookieInitFailed | 無法初始化 jQuery.cookie，某些功能可能無法正常工作 | jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります | none | mpuLogger.error("無法初始化 jQuery.cookie，某些功能可能無法正常工作") | console log. jQuery.cookie 初期化失敗により cookie 依存機能が使えない可能性がある状態。 |
 | js/ukagaka-features.js | 9 | mpuLogger.log | logsDebug | ukagakaFeaturesLog9 | jQuery.cookie 已成功初始化 | TODO | none | mpuLogger.log("jQuery.cookie 已成功初始化") | TODO |
 | js/ukagaka-features.js | 29 | mpuLogger.log | logsDebug | ukagakaFeaturesLog29 | LLM 取代對話已啟用，但仍載入內建對話作為後備 | TODO | none | mpuLogger.log("LLM 取代對話已啟用，但仍載入內建對話作為後備") | TODO |
 | js/ukagaka-features.js | 74 | mpuLogger.log | logsDebug | ukagakaFeaturesLog74 | processSettings: 已處理過設定，跳過重複調用 | TODO | none | mpuLogger.log("processSettings: 已處理過設定，跳過重複調用") | TODO |

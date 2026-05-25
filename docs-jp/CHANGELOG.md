@@ -9,7 +9,7 @@
 ### 🌐 フロントエンド console log i18n
 
 - フロントエンドの console log 文字列を、繁体字中国語のハードコードから日本語 source 文字列へ段階的に移行し、WordPress locale と `mpuL10n.logs` を通じて翻訳表示するようにします。
-- `js/ukagaka-anime.js` の production-visible な error/warn 5 件と、`ghost/Frieren/frieren.js` の production-visible な error/warn 11 件（装飾設定、Canvas/Image、Pixel、Touch Zone）を移行しました。出力タイミングは変更せず、direct `console.warn` は always-output 経路のままです。
+- production-visible な console log をすべて移行しました。対象は `js/ukagaka-anime.js` 5 件、`ghost/Frieren/frieren.js` 11 件、core bundle の最終 2 件（`js/ukagaka-features.js` / `js/ukagaka-base.js`）です。`base.js` の reload cleanup メッセージは debug-only に変更し、その他の error/warn の出力タイミングは維持しています。
 
 ## [2.23.2] - 2026-05-24
 
