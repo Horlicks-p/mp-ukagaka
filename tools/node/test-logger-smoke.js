@@ -22,6 +22,7 @@ function loadLogger(l10n, debugMode) {
       warn: (...args) => calls.push(["warn", ...args]),
       error: (...args) => calls.push(["error", ...args]),
       info: (...args) => calls.push(["info", ...args]),
+      debug: (...args) => calls.push(["debug", ...args]),
     },
   };
 
@@ -45,7 +46,18 @@ let fixture = loadLogger(
 assert.strictEqual(fixture.logger.t("alwaysKey", "fallback"), "always translated");
 assert.strictEqual(fixture.logger.t("debugKey", "fallback"), "debug translated");
 assert.strictEqual(fixture.logger.t("missingKey", "fallback"), "fallback");
+assert.strictEqual(fixture.logger.t("missingNoFallback"), "missingNoFallback");
 assert.strictEqual(fixture.logger.t("emptyKey", "fallback"), "");
+assert.deepStrictEqual(fixture.calls[0], [
+  "debug",
+  "[MP Ukagaka i18n missing]",
+  "missingKey",
+]);
+assert.deepStrictEqual(fixture.calls[1], [
+  "debug",
+  "[MP Ukagaka i18n missing]",
+  "missingNoFallback",
+]);
 
 fixture = loadLogger({ logs: {}, logsDebug: {} }, true);
 assert.strictEqual(fixture.logger.tFormat("key", "fmt %d 秒", 60), "fmt 60 秒");

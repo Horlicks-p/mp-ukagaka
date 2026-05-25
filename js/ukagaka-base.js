@@ -341,9 +341,9 @@ const mpuLogger = {
         }
         if (this._isDebug() && !this._missingI18nKeys.has(key)) {
             this._missingI18nKeys.add(key);
-            console.warn('[MP Ukagaka]', 'Missing console log i18n key:', key);
+            console.debug('[MP Ukagaka i18n missing]', key);
         }
-        return typeof fallback === "undefined" ? "" : String(fallback);
+        return typeof fallback === "undefined" ? String(key) : String(fallback);
     },
     tFormat: function (key, fallback, ...values) {
         const tpl = this.t(key, fallback);

@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-25T07:07:02.868Z
+ * Generated: 2026-05-25T07:29:44.422Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -349,9 +349,9 @@ const mpuLogger = {
         }
         if (this._isDebug() && !this._missingI18nKeys.has(key)) {
             this._missingI18nKeys.add(key);
-            console.warn('[MP Ukagaka]', 'Missing console log i18n key:', key);
+            console.debug('[MP Ukagaka i18n missing]', key);
         }
-        return typeof fallback === "undefined" ? "" : String(fallback);
+        return typeof fallback === "undefined" ? String(key) : String(fallback);
     },
     tFormat: function (key, fallback, ...values) {
         const tpl = this.t(key, fallback);
