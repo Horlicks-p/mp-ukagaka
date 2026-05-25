@@ -8,10 +8,10 @@
 
 ## TL;DR
 
-- Phase 1（infrastructure）已完成、Phase 1.5（inventory + 18 條 production-visible 翻譯）已完成、Phase 2 第一個 migration PR（`js/ukagaka-anime.js` 5 條）已完成。
+- Phase 1（infrastructure）已完成、Phase 1.5（inventory + 18 條 production-visible 翻譯）已完成、Phase 2 migration 已完成兩批：`js/ukagaka-anime.js` 5 條、`ghost/Frieren/frieren.js` decoration config 4 條。
 - 公司端 reviewer 已逐 commit 審查通過，無阻斷問題。
-- **下一個 migration PR 開工前必須先處理一個 silent-drop 隱患**（generator 不抓糖衣 → migrated row 在 inventory 中消失但 overrides 變 orphan）。需家裡決策 A / B / C 三方案（見下方）。
-- 公司端建議：Phase 2 第二個 PR 走 `ghost/Frieren/frieren.js` decoration config 4 條。最終由家裡決定。
+- silent-drop 隱患已採 **方案 A** 落地：migrated overrides 刪除、generator 加 unused-override verify pass、對照表重生為 208 included rows + 1 backlog。
+- 下一個 migration PR 候選：`frieren.js` Canvas/Image/Pixel/Touch 7 條、`js/ukagaka-features.js:7` 單條、或 `base.js:99` TODO bucket 單條。
 
 ---
 
@@ -52,12 +52,12 @@
 - `npm run verify` 已串入 `npm run test:logger`
 
 ### Phase 1.5 — Translation table（c5989d8 + 45f0625 + 3a1f283）
-- Inventory generator：`tools/node/generate-console-log-inventory.js`（332 行，含括弧 / quote / template literal 巢狀解析）
+- Inventory generator：`tools/node/generate-console-log-inventory.js`（424 行，含括弧 / quote / template literal 巢狀解析，並有 unused-override verify pass）
 - 對照表：`plan/translation-tables/console-logs-zh-to-ja.md`
-- Inventory 統計：**213 included rows + 1 backlog**
+- Inventory 統計：Phase 1.5 翻譯完成時為 **213 included rows + 1 backlog**；Phase 2 兩批 migration 後，已遷移的 anime 5 條與 Frieren decoration config 4 條從 staging table 移除，目前為 **204 included rows + 1 backlog**
   - TODO:console.log: 1
-  - logs:console.error: 11
-  - logs:console.warn: 5
+  - logs:console.error: 6（Phase 1.5 時為 11；anime 4 條、Frieren decoration 1 條已 migrate）
+  - logs:console.warn: 1（Phase 1.5 時為 5；anime 1 條、Frieren decoration 3 條已 migrate）
   - logs:mpuLogger.error: 1
   - logsDebug:mpuLogger.log: 159
   - logsDebug:mpuLogger.warn: 36
@@ -84,11 +84,49 @@
 - dist rebuild、test:logger、PHPUnit 48/108 全過
 - 三語 CHANGELOG + DEVELOPER_GUIDE 更新
 
+### Phase 2 第二個 migration PR — `ghost/Frieren/frieren.js` decoration config 4 條（working tree）
+- `console.warn` + 動態 fallback ×1 → `mpuLogger.warnAlwaysF`（line 493）— 保留 production always-output 行為
+- `console.error` + 動態 arg ×1 → `mpuLogger.errorF`（line 497）
+- `console.warn` 純字串 ×2 → `mpuLogger.warnAlways`（line 501 / 512）
+- PHP 端 4 條 log strings 全部 `$log_i18n->always(..., ['scope' => 'frieren'])` 註冊，另補 1 條完整 unknown-error log key `frierenDecorationConfigLoadFailedUnknown`（`frontend-functions.php:554-563`），同時驗證 `frieren*` prefix guard；call site 不直接呼叫 `mpuLogger.t()`，維持 `t()` / `tFormat()` internal-only 規格
+- 每條都有 `/* translators: ... */` 註解（英文寫，與日文 fallback 分開）
+- fallback 字串無 `[MP Ukagaka]` prefix（Hard Limit #10）
+- 依方案 A 刪除對應 4 條 overrides，translation table 重生為 204 included rows + 1 backlog
+
 ---
 
-## ⚠️ 待家裡決策：silent-drop 隱患（**進下一個 PR 前必處理**）
+## ✅ 已決策（2026-05-25 家裡）：silent-drop 隱患採方案 A
 
-### 問題
+> 家裡 Claude 審視 generator 實作後提出反對 B 的論證；家裡 Codex 與 Gemini 看過意見後一致同意採 **方案 A**。本結論待告知公司御三家。
+
+### 決策理由（為何 A 優於公司原建議的 B）
+
+核心在於重新認定這張對照表的本質 —— 它是 **migration 前的 staging 工作表，不是 runtime 翻譯權威**。
+
+1. **權威已不在表內。** generator override 的 lookup key 是 `relativePath:line:source.channel`，callPattern 只抓 `console.*` 與 `mpuLogger.log/warn/error/info`（不抓糖衣），raw inventory 每次從原始碼重生。字串一旦 migrate，權威即搬到 **PHP `__()`**（runtime + `.pot` 抽取來源）與 **`.po`/`.mo`**（譯者回查處）。已比對：`frontend-functions.php:545` 的 `animeCanvasElementMissing` / `Canvas 要素が存在しません` 與 override 表完全一致。B 主打的「集中翻譯權威」在此架構下是假象。
+
+2. **B 累積的是墓碑。** migrate 後 line 65 已不是 `console.error`（變 `errorL`、可能換行），但 override key 仍寫死 `:65:console.error`，永遠不會再被任何 call site 命中。`migrated: true` 是保留這個對不上的死 key、再掛旗子**抑制** orphan 警告；Phase 3 完成後累積 ~213 條指向已不存在 call site 的 fiction key。
+
+3. **B ⊃ A 的有用部分。** B 仍需做 unused-override warning（否則新增 override 拼錯照樣 silent）。`B = A 有用部分 + 旗子與抑制邏輯`，多寫的碼全花在養墓碑。**那條 warning 才是真正防 silent-drop 的機制，旗子只是繞過它。**
+
+4. **A 自清。** override 表只留尚未 migrate 的條目，表變空 = migration 完成，是乾淨的進度訊號。
+
+**A 唯一的損失**：override 表 `translatorComment` 是日文，PHP 實作的 `/* translators */` 是英文；刪 override 後該日文註解只剩 git history。但譯者經 `.pot` 拿到的本就是 PHP 英文註解，日文註解是冗餘的編輯期 metadata，成本低。migrated 字串 audit 改用 `grep '$log_i18n->always('`（直接列出 canonical 清單 + translator comment）+ `.po`，不比 B 差。
+
+### A 的落地動作（已實作）
+
+- 已刪 migrate 完成的 `js/ukagaka-anime.js` 5 條 overrides
+- `generate-console-log-inventory.js` 已加 **unused-override verify pass**：override lookup key 若在本次 inventory 未被任何 row 命中 → **explicit error**（把 silent drop 升級成 build 失敗），同時防護未來 override 拼錯 / 行號漂移
+- `plan/translation-tables/console-logs-zh-to-ja.md` 已於方案 A 首次落地時重生為 **208 included rows + 1 backlog**；Frieren decoration config 第二批 migration 後，目前為 **204 included rows + 1 backlog**
+- migrated 字串 trace 權威 = PHP `$log_i18n->always(...)` + `.po`
+
+### 補記：三案都沒解到的脆弱點
+
+override 用**行號**當 lookup key 本身就脆 —— 不 migrate 也一樣：只要編輯 `frieren.js` 推移行號，`frieren.js:NNN:...` override 全部失配、靜默掉回 TODO。根治方向是改用**語意 key 名**或**原文字串**當 lookup key。本次不做（避免擴大 PR），列為後續 generator 強化議題，與 unused-override verify pass 一併評估。
+
+---
+
+### 問題（背景，保留供公司御三家對照）
 
 `generate-console-log-inventory.js:37` 的 `callPattern`：
 
@@ -135,17 +173,16 @@ Phase 2 第一個 PR (b256574) 後 anime.js 5 條 call site 已遷移到糖衣�
 - 改動大（~50 行 generator + 對照表 schema 調整）
 - 注意 regex 不要誤抓 `tFormat` / `t(` 等內部 helper
 
-公司端建議方案 B（改動最小、翻譯權威集中、verify pass 把 silent drop 升級成 explicit error）。家裡若偏好別的方案以家裡為準。
+公司端原建議方案 B（改動最小、verify pass 把 silent drop 升級成 explicit error）。**家裡審視 generator 實作後改採方案 A**，理由見本節開頭「決策理由」。
 
 ---
 
-## 待家裡決策：Phase 2 下一個 PR 範圍
+## Phase 2 後續 PR 範圍
 
-剩 13 條 production-visible（18 - anime 5 = 13）：
+剩 9 條 production-visible（18 - anime 5 - Frieren decoration 4 = 9）：
 
 | 候選 | 條數 | 評估 |
 |---|---|---|
-| **`ghost/Frieren/frieren.js` decoration config 4 條** (493/497/501/512) | 4 | **公司端首選**：同一 flow、含 warnAlways + errorF 兩種 pattern、第一個 ghost-specific PR 可驗證 `frieren*` prefix CI lint |
 | `js/ukagaka-features.js:7` 單條 (`jqueryCookieInitFailed`) | 1 | 太小，但可當熱身 PR |
 | `frieren.js` Canvas/Image/Pixel/Touch 7 條 (52/86/114/298/728/799/1505) | 7 | 跨 flow，建議拆 2 PR |
 | `base.js:99` (`pageReloadClearedChatSession`) | 1 | TODO bucket，需先決 debug-only-or-prod |
@@ -158,8 +195,8 @@ Phase 2 第一個 PR (b256574) 後 anime.js 5 條 call site 已遷移到糖衣�
 
 - **(c)** `frierenPixelDataUnavailable` 條 `%1$s / %2$s` 改成 `タイプ=%1$s、メッセージ=%2$s` 自然日語格式
 - **(d)** `callPreview()` 還原 surrogate pair escape（`🔄` → 🔄），目前 `extractStrings()` 已有 unescape 邏輯可複用到 callPreview
-- **(e)** Generator 加 unused-override verify pass（**已與上述 silent-drop 方案重疊**，做方案 A/B/C 時順手做）
-- **(f)** Generator 內嵌的對照表 status block 已過時（line 392-397 still 寫「This commit intentionally fills raw inventory only」），Commit B2 順手更新
+- **(e)** Generator 加 unused-override verify pass — **已完成**（方案 A 落地）
+- **(f)** Generator 內嵌的對照表 status block 已過時（line 392-397 still 寫「This commit intentionally fills raw inventory only」）— **已完成**（方案 A 落地時同步更新為 migration staging table）
 
 debug 195 條翻譯（Commit B2）尚未動工，先處理上述 silent-drop 決策再進。
 
@@ -169,8 +206,8 @@ debug 195 條翻譯（Commit B2）尚未動工，先處理上述 silent-drop 決
 
 1. **拉新版**：`git pull origin feature/code-quality-hardening`
 2. **檢視 9 個未驗 commit** — 公司端已逐 commit 審過，但家裡可獨立 review
-3. **決策 silent-drop 方案 A / B / C** — 這是進下一個 migration PR 的前置
-4. **決策 Phase 2 第二個 PR 範圍** — 公司端建議 `frieren.js` decoration config 4 條
+3. ~~決策 silent-drop 方案 A / B / C~~ — **已決議採方案 A，且已落地**（刪 5 條 override + unused-override verify pass）
+4. ~~決策 Phase 2 第二個 PR 範圍~~ — 已完成 `frieren.js` decoration config 4 條
 5. （可選）順手處理 nice-to-have (c)(d)(f)
 6. 啟動下一個 migration PR
 
@@ -210,4 +247,4 @@ git status --short
 
 ---
 
-_Last updated: 2026-05-25 — Phase 2 第一個 migration PR (b256574) 合進後。下一更新點：silent-drop 方案決定 + Phase 2 第二個 PR 啟動前。_
+_Last updated: 2026-05-25 — Phase 2 第二批 `ghost/Frieren/frieren.js` decoration config 4 條已遷移；translation table 重生為 204 included rows。下一更新點：Phase 2 下一批 migration PR 啟動前。_

@@ -9,7 +9,7 @@
 ### 🌐 Frontend console log i18n
 
 - Frontend console log strings are being migrated from hard-coded Traditional Chinese to Japanese source strings, then displayed through WordPress locale translations via `mpuL10n.logs`.
-- The first batch migrates 5 production-visible error/warn logs in `js/ukagaka-anime.js`; output timing is unchanged, and direct `console.warn` still uses an always-output path.
+- Migrated 5 production-visible error/warn logs in `js/ukagaka-anime.js` and 4 production-visible decoration-config error/warn logs in `ghost/Frieren/frieren.js`; output timing is unchanged, and direct `console.warn` still uses an always-output path.
 
 ## [2.23.2] - 2026-05-24
 

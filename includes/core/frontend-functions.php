@@ -551,6 +551,16 @@ function mpu_enqueue_frontend_assets()
         $log_i18n->always('animeImageLoadFailed', __('画像の読み込みに失敗しました：%s', 'mp-ukagaka'));
         /* translators: console log. %s is the frame image URL that failed to load. */
         $log_i18n->always('animeFrameImageLoadFailed', __('フレーム画像の読み込みに失敗しました：%s', 'mp-ukagaka'));
+        /* translators: console log. %s is the server-provided decoration config error, or an unknown-error fallback. */
+        $log_i18n->always('frierenDecorationConfigLoadFailed', __('装飾設定を読み込めませんでした：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. Used when decoration config loading fails without a server-provided error message. */
+        $log_i18n->always('frierenDecorationConfigLoadFailedUnknown', __('装飾設定を読み込めませんでした：不明なエラー', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. %s is the jQuery AJAX error value for loading decoration config. */
+        $log_i18n->always('frierenDecorationConfigAjaxFailed', __('AJAX による装飾設定の読み込みに失敗しました：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. Required front-end runtime dependencies for decoration config loading are unavailable. */
+        $log_i18n->always('frierenDecorationConfigRuntimeUnavailable', __('jQuery または mpuurl が利用できないため、装飾設定を読み込めません', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: console log. The decoration_config structure is not in the expected format. */
+        $log_i18n->always('frierenDecorationConfigInvalid', __('装飾設定が無効です', 'mp-ukagaka'), ['scope' => 'frieren']);
     }
 
     $l10n = [

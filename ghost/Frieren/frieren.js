@@ -490,15 +490,19 @@
                 response.decoration_config
               );
             } else {
-              console.warn("[MP Ukagaka] 無法載入裝飾配置:", response.error || "未知錯誤");
+              if (response.error) {
+                mpuLogger.warnAlwaysF('frierenDecorationConfigLoadFailed', '装飾設定を読み込めませんでした：%s', response.error);
+              } else {
+                mpuLogger.warnAlways('frierenDecorationConfigLoadFailedUnknown', '装飾設定を読み込めませんでした：不明なエラー');
+              }
             }
           },
           error: function(xhr, status, error) {
-            console.error("[MP Ukagaka] AJAX 載入裝飾配置失敗:", error);
+            mpuLogger.errorF('frierenDecorationConfigAjaxFailed', 'AJAX による装飾設定の読み込みに失敗しました：%s', error);
           }
         });
       } else {
-        console.warn("[MP Ukagaka] jQuery 或 mpuurl 不可用，無法載入裝飾配置");
+        mpuLogger.warnAlways('frierenDecorationConfigRuntimeUnavailable', 'jQuery または mpuurl が利用できないため、装飾設定を読み込めません');
       }
     },
 
@@ -509,7 +513,7 @@
      */
     _loadDecorationsFromConfig: function(decorationsBaseUrl, decorationConfig) {
       if (!decorationsBaseUrl || !Array.isArray(decorationConfig)) {
-        console.warn("[MP Ukagaka] 裝飾配置無效");
+        mpuLogger.warnAlways('frierenDecorationConfigInvalid', '装飾設定が無効です');
         return;
       }
 
