@@ -577,6 +577,20 @@ function mpu_enqueue_frontend_assets()
 }
 add_action('wp_enqueue_scripts', 'mpu_enqueue_frontend_assets');
 
+/**
+ * Determine whether front-end debug behavior should be enabled.
+ *
+ * Keep this as the single source of truth for browser debug logging and future
+ * debug-only localized payloads. WP_DEBUG alone is intentionally not enough,
+ * because anonymous visitors should not receive verbose diagnostic output.
+ */
+function mpu_is_frontend_debug_mode()
+{
+    $enabled = defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options');
+
+    return (bool) apply_filters('mpu_frontend_debug_mode', $enabled);
+}
+
 function mpu_head()
 {
     if (!mpu_is_show_page()) {
@@ -593,6 +607,7 @@ function mpu_head()
     echo "<script type=\"text/javascript\">\n";
     echo "var mpuRestUrl = '" . esc_url_raw(rest_url('mp-ukagaka/v1/')) . "';\n";
     echo "var mpuRestNonce = '" . wp_create_nonce('wp_rest') . "';\n";
+    echo 'window.mpuDebugMode = ' . wp_json_encode(mpu_is_frontend_debug_mode()) . ";\n";
     // Token 不再嵌入 HTML（避免 full-page cache 把第一訪客 token 送給他人）
     // JS 會在首次 API 呼叫前透過 /session-token 端點懶取得
     echo "var mpuSessionToken = null;\n";
