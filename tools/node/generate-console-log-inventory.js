@@ -40,6 +40,102 @@ const kanaPattern = /[ぁ-んァ-ン]/;
 const stringPattern = /(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
 const prefixPattern = /^\s*(?:\[MPU?\]|\[MP Ukagaka(?: ERROR)?\])\s*/;
 
+const overrides = {
+  "ghost/Frieren/frieren.js:52:console.error": {
+    key: "frierenShellInfoInvalid",
+    jaSource: "フリーレンモード：shellInfo が無効です",
+    translatorComment: "console log. shellInfo はキャラクター画像と表示設定を含む初期化データ。",
+  },
+  "ghost/Frieren/frieren.js:86:console.error": {
+    key: "frierenImageCanvasManagerMissing",
+    jaSource: "Canvas マネージャーが初期化されていません",
+    translatorComment: "console log. フリーレン画像の読み込み前に Canvas 管理オブジェクトが見つからない状態。",
+  },
+  "ghost/Frieren/frieren.js:114:console.error": {
+    key: "frierenImageLoadFailed",
+    jaSource: "フリーレン画像の読み込みに失敗しました：%s",
+    translatorComment: "console log. %s は読み込みに失敗した画像 URL。",
+  },
+  "ghost/Frieren/frieren.js:298:console.error": {
+    key: "frierenDrawCanvasManagerMissing",
+    jaSource: "Canvas マネージャーが初期化されていません",
+    translatorComment: "console log. フリーレン描画処理の前提となる Canvas 管理オブジェクトが見つからない状態。",
+  },
+  "ghost/Frieren/frieren.js:493:console.warn": {
+    key: "frierenDecorationConfigLoadFailed",
+    jaSource: "装飾設定を読み込めませんでした：%s",
+    translatorComment: "console log. %s はサーバーから返されたエラー、または「未知のエラー」に相当する値。",
+  },
+  "ghost/Frieren/frieren.js:497:console.error": {
+    key: "frierenDecorationConfigAjaxFailed",
+    jaSource: "AJAX による装飾設定の読み込みに失敗しました：%s",
+    translatorComment: "console log. %s は jQuery AJAX の error 値。",
+  },
+  "ghost/Frieren/frieren.js:501:console.warn": {
+    key: "frierenDecorationConfigRuntimeUnavailable",
+    jaSource: "jQuery または mpuurl が利用できないため、装飾設定を読み込めません",
+    translatorComment: "console log. 装飾設定を取得するための front-end runtime 依存が不足している状態。",
+  },
+  "ghost/Frieren/frieren.js:512:console.warn": {
+    key: "frierenDecorationConfigInvalid",
+    jaSource: "装飾設定が無効です",
+    translatorComment: "console log. decoration_config の構造が期待形式ではない状態。",
+  },
+  "ghost/Frieren/frieren.js:728:console.error": {
+    key: "frierenPixelCanvasCreateFailed",
+    jaSource: "ピクセル判定用 Canvas を作成できません：%s",
+    translatorComment: "console log. %s は装飾物タイプ。",
+  },
+  "ghost/Frieren/frieren.js:799:console.warn": {
+    key: "frierenPixelDataUnavailable",
+    jaSource: "ピクセルデータを取得できません（クロスオリジンの可能性があります）：%1$s / %2$s",
+    translatorComment: "console log. %1$s は装飾物タイプ、%2$s は例外メッセージ。",
+  },
+  "ghost/Frieren/frieren.js:1505:console.error": {
+    key: "frierenTouchZoneDialogRequestFailed",
+    jaSource: "タッチ領域の会話リクエストに失敗しました：%s",
+    translatorComment: "console log. %s は request failure の error object/message。",
+  },
+  "js/ukagaka-anime.js:65:console.error": {
+    key: "animeCanvasElementMissing",
+    jaSource: "Canvas 要素が存在しません",
+    translatorComment: "console log. キャラクター描画用 Canvas DOM 要素が見つからない状態。",
+  },
+  "js/ukagaka-anime.js:72:console.error": {
+    key: "animeCanvasContextUnavailable",
+    jaSource: "Canvas コンテキストを取得できません",
+    translatorComment: "console log. CanvasRenderingContext2D の取得に失敗した状態。",
+  },
+  "js/ukagaka-anime.js:89:console.warn": {
+    key: "animeFrierenManagerMissing",
+    jaSource: "フリーレンマネージャーが読み込まれていないため、汎用モードを使用します",
+    translatorComment: "console log. Frieren 専用 manager がないため generic mode にフォールバックする状態。",
+  },
+  "js/ukagaka-anime.js:160:console.error": {
+    key: "animeImageLoadFailed",
+    jaSource: "画像の読み込みに失敗しました：%s",
+    translatorComment: "console log. %s は読み込みに失敗した画像 URL。",
+  },
+  "js/ukagaka-anime.js:221:console.error": {
+    key: "animeFrameImageLoadFailed",
+    jaSource: "フレーム画像の読み込みに失敗しました：%s",
+    translatorComment: "console log. %s は読み込みに失敗したフレーム画像 URL。",
+  },
+  "js/ukagaka-base.js:99:console.log": {
+    key: "pageReloadClearedChatSession",
+    jaSource: "ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました",
+    translatorComment: "console log. direct console.log のため migration 前に debug-only かどうかを判定すること。",
+  },
+  "js/ukagaka-features.js:7:mpuLogger.error": {
+    key: "jqueryCookieInitFailed",
+    jaSource: "jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります",
+    translatorComment: "console log. jQuery.cookie 初期化失敗により cookie 依存機能が使えない可能性がある状態。",
+  },
+  "ghost/Frieren/frieren.js:1196:mpuLogger.error": {
+    key: "frierenDecorationDialogRequestFailed",
+  },
+};
+
 function lineForIndex(text, index) {
   return text.slice(0, index).split(/\r?\n/).length;
 }
@@ -182,6 +278,10 @@ function placeholderNotes(callText, strings) {
   return notes.length > 0 ? notes.join("; ") : "none";
 }
 
+function callPreview(callText) {
+  return callText.replace(/\s+/g, " ").trim().slice(0, 140);
+}
+
 const rows = [];
 const excluded = [];
 
@@ -212,16 +312,18 @@ for (const file of sourceFiles) {
     const zhOriginal = strings.join(" / ");
     const isJapaneseSource = kanaPattern.test(zhOriginal) && !/[一-鿿].*[：，、。！]/.test(zhOriginal);
 
+    const override = overrides[`${relativePath}:${line}:${source}.${channel}`] || {};
     const row = {
       sourceFile: relativePath,
       line,
       channel: `${source}.${channel}`,
-      bucket: bucketFor(source, channel),
-      key: draftKey(relativePath, channel, line),
+      bucket: override.bucket || bucketFor(source, channel),
+      key: override.key || draftKey(relativePath, channel, line),
       zhOriginal,
-      jaSource: "TODO",
+      jaSource: override.jaSource || "TODO",
       placeholderNotes: placeholderNotes(callText, strings),
-      translatorComment: "TODO",
+      translatorComment: override.translatorComment || "TODO",
+      callPreview: callPreview(callText),
     };
 
     if (isJapaneseSource) {
@@ -241,8 +343,8 @@ function escapeCell(value) {
 
 function table(rowsToWrite, includeReason = false) {
   const header = includeReason
-    ? "| Source file | Line | Channel | Bucket | Key | Original | Reason |\n| --- | ---: | --- | --- | --- | --- | --- |"
-    : "| Source file | Line | Channel | Bucket | Key | zh-TW original | ja source / fallback | Placeholder notes | Translator comment draft |\n| --- | ---: | --- | --- | --- | --- | --- | --- | --- |";
+    ? "| Source file | Line | Channel | Bucket | Key | Original | Call preview | Reason |\n| --- | ---: | --- | --- | --- | --- | --- | --- |"
+    : "| Source file | Line | Channel | Bucket | Key | zh-TW original | ja source / fallback | Placeholder notes | Call preview | Translator comment draft |\n| --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- |";
 
   const body = rowsToWrite.map((row) => {
     const cells = includeReason
@@ -253,6 +355,7 @@ function table(rowsToWrite, includeReason = false) {
           row.bucket,
           row.key,
           row.zhOriginal,
+          row.callPreview,
           row.reason,
         ]
       : [
@@ -264,6 +367,7 @@ function table(rowsToWrite, includeReason = false) {
           row.zhOriginal,
           row.jaSource,
           row.placeholderNotes,
+          row.callPreview,
           row.translatorComment,
         ];
     return `| ${cells.map(escapeCell).join(" | ")} |`;

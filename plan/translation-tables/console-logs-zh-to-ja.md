@@ -40,224 +40,224 @@ Normalize each row manually before migration:
 
 ## Translation Rows
 
-| Source file | Line | Channel | Bucket | Key | zh-TW original | ja source / fallback | Placeholder notes | Translator comment draft |
-| --- | ---: | --- | --- | --- | --- | --- | --- | --- |
-| ghost/Frieren/frieren-emoji.js | 45 | mpuLogger.warn | logsDebug | frierenEmojiWarn45 | mpuEmojiManager: 無法載入表情配置: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren-emoji.js | 53 | mpuLogger.log | logsDebug | frierenEmojiLog53 | mpuEmojiManager: 表情基礎路徑未設定 | TODO | none | TODO |
-| ghost/Frieren/frieren-emoji.js | 65 | mpuLogger.log | logsDebug | frierenEmojiLog65 | mpuEmojiManager: 找不到 #ukagaka_img 容器 | TODO | none | TODO |
-| ghost/Frieren/frieren-emoji.js | 99 | mpuLogger.warn | logsDebug | frierenEmojiWarn99 | mpuEmojiManager: 表情圖片載入失敗: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren-emoji.js | 114 | mpuLogger.log | logsDebug | frierenEmojiLog114 | mpuEmojiManager: 顯示表情: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren-emoji.js | 231 | mpuLogger.log | logsDebug | frierenEmojiLog231 | mpuEmojiManager: 移除表情 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 52 | console.error | logs | frierenError52 | 芙莉蓮模式：shellInfo 無效 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 86 | console.error | logs | frierenError86 | Canvas 管理器未初始化 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 114 | console.error | logs | frierenError114 | 芙莉蓮圖片載入失敗: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 248 | mpuLogger.log | logsDebug | frierenLog248 | 🌙 顯示睡眠圖片 frieren[s].png / ☀️ 顯示閒置圖片 frieren[0].png | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 298 | console.error | logs | frierenError298 | Canvas 管理器未初始化 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 437 | mpuLogger.log | logsDebug | frierenLog437 | 裝飾物已載入，跳過重複載入 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 493 | console.warn | logs | frierenWarn493 | 無法載入裝飾配置: / 未知錯誤 | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 497 | console.error | logs | frierenError497 | AJAX 載入裝飾配置失敗: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 501 | console.warn | logs | frierenWarn501 | jQuery 或 mpuurl 不可用，無法載入裝飾配置 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 512 | console.warn | logs | frierenWarn512 | 裝飾配置無效 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 543 | mpuLogger.log | logsDebug | frierenLog543 | 已從 JSON 配置載入 / 個裝飾物 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 683 | mpuLogger.log | logsDebug | frierenLog683 | 點擊到透明區域，忽略: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 690 | mpuLogger.log | logsDebug | frierenLog690 | 裝飾物被點擊（像素命中）: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 728 | console.error | logs | frierenError728 | 無法創建像素檢測 Canvas: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 742 | mpuLogger.log | logsDebug | frierenLog742 | 像素檢測 Canvas 已創建: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 787 | mpuLogger.log | logsDebug | frierenLog787 | 像素檢測: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 799 | console.warn | logs | frierenWarn799 | 無法獲取像素數據（可能是跨域問題）: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 874 | mpuLogger.log | logsDebug | frierenLog874 | ☀️ 芙莉蓮被喚醒了！ | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 896 | mpuLogger.log | logsDebug | frierenLog896 | 👀 播放醒來動畫 frieren[w1-w5].png | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 1005 | mpuLogger.log | logsDebug | frierenLog1005 | 🌅 開始喚醒動畫, skipBookFlip = | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 1010 | mpuLogger.log | logsDebug | frierenLog1010 | 📖 喚醒後播放翻書動畫 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 1015 | mpuLogger.log | logsDebug | frierenLog1015 | 📖 喚醒後跳過翻書動畫 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 1028 | mpuLogger.log | logsDebug | frierenLog1028 | 🌙 睡眠模式：跳過翻書動畫 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 1035 | mpuLogger.log | logsDebug | frierenLog1035 | 📖 手動喚醒對話：跳過翻書動畫 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 1068 | mpuLogger.log | logsDebug | frierenLog1068 | handleDecorationClick 被調用，裝飾物類型: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 1080 | mpuLogger.log | logsDebug | frierenLog1080 | 裝飾物對話正在進行中，忽略本次點擊 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 1087 | mpuLogger.log | logsDebug | frierenLog1087 | AI 功能未啟用，跳過裝飾物對話 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 1111 | mpuLogger.log | logsDebug | frierenLog1111 | 裝飾物點擊：已取消請求 | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 1317 | mpuLogger.log | logsDebug | frierenLog1317 | 裝飾物對話完成，狀態已恢復 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 1364 | mpuLogger.log | logsDebug | frierenLog1364 | 觸摸區域檢測: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 1384 | mpuLogger.log | logsDebug | frierenLog1384 | handleTouchZone 被調用，區域: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 1393 | mpuLogger.log | logsDebug | frierenLog1393 | 區域冷卻中，忽略點擊: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 1400 | mpuLogger.log | logsDebug | frierenLog1400 | 區域達到點擊上限，進入冷卻: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 1428 | mpuLogger.log | logsDebug | frierenLog1428 | 觸摸區域點擊：已取消請求 | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 1505 | console.error | logs | frierenError1505 | 觸摸區域對話請求失敗: | TODO | dynamic args present | TODO |
-| ghost/Frieren/frieren.js | 1620 | mpuLogger.log | logsDebug | frierenLog1620 | 角色觸摸事件已設置 | TODO | none | TODO |
-| ghost/Frieren/frieren.js | 1687 | mpuLogger.log | logsDebug | frierenLog1687 | 區域進入冷卻: / 冷卻時間: / 秒 | TODO | dynamic args present | TODO |
-| js/ukagaka-anime.js | 41 | mpuLogger.log | logsDebug | ukagakaAnimeLog41 | ⏭️ 已在芙莉蓮模式，跳過重新初始化 | TODO | none | TODO |
-| js/ukagaka-anime.js | 65 | console.error | logs | ukagakaAnimeError65 | Canvas 元素不存在 | TODO | none | TODO |
-| js/ukagaka-anime.js | 72 | console.error | logs | ukagakaAnimeError72 | 無法獲取 Canvas 上下文 | TODO | none | TODO |
-| js/ukagaka-anime.js | 89 | console.warn | logs | ukagakaAnimeWarn89 | 芙莉蓮管理器未載入，使用通用模式 | TODO | none | TODO |
-| js/ukagaka-anime.js | 160 | console.error | logs | ukagakaAnimeError160 | 圖片載入失敗: | TODO | dynamic args present | TODO |
-| js/ukagaka-anime.js | 221 | console.error | logs | ukagakaAnimeError221 | 圖片載入失敗: | TODO | dynamic args present | TODO |
-| js/ukagaka-base.js | 99 | console.log | TODO | ukagakaBaseLog99 | 🔄 偵測到頁面重整，清空對話記憶與 Session ID | TODO | none | TODO |
-| js/ukagaka-base.js | 672 | mpuLogger.log | logsDebug | ukagakaBaseLog672 | 打字效果已被中斷 | TODO | none | TODO |
-| js/ukagaka-base.js | 686 | mpuLogger.warn | logsDebug | ukagakaBaseWarn686 | mpu_waitForTypewriterComplete: callback 不是函數 | TODO | none | TODO |
-| js/ukagaka-base.js | 704 | mpuLogger.warn | logsDebug | ukagakaBaseWarn704 | mpu_waitForTypewriterComplete: 等待超時，強制執行回調 | TODO | none | TODO |
-| js/ukagaka-base.js | 855 | mpuLogger.warn | logsDebug | ukagakaBaseWarn855 | jQuery 尚未載入，無法初始化 jQuery.cookie | TODO | none | TODO |
-| js/ukagaka-base.js | 886 | mpuLogger.warn | logsDebug | ukagakaBaseWarn886 | jQuery 尚未載入，無法初始化閒置偵測 | TODO | none | TODO |
-| js/ukagaka-base.js | 896 | mpuLogger.log | logsDebug | ukagakaBaseLog896 | 閒置偵測已初始化，閾值： / 秒 | TODO | dynamic args present | TODO |
-| js/ukagaka-base.js | 907 | mpuLogger.log | logsDebug | ukagakaBaseLog907 | 已更新最後訪問時間 | TODO | none | TODO |
-| js/ukagaka-base.js | 909 | mpuLogger.warn | logsDebug | ukagakaBaseWarn909 | 無法更新最後訪問時間: | TODO | dynamic args present | TODO |
-| js/ukagaka-base.js | 922 | mpuLogger.warn | logsDebug | ukagakaBaseWarn922 | 無法獲取最後訪問時間: | TODO | dynamic args present | TODO |
-| js/ukagaka-base.js | 1035 | mpuLogger.log | logsDebug | ukagakaBaseLog1035 | 請求已取消: ${requestId} | TODO | template literal; convert to *F | TODO |
-| js/ukagaka-base.js | 1042 | mpuLogger.log | logsDebug | ukagakaBaseLog1042 | 請求已取消: ${requestId} | TODO | template literal; convert to *F | TODO |
-| js/ukagaka-base.js | 1071 | mpuLogger.log | logsDebug | ukagakaBaseLog1071 | 請求去重，跳過: ${requestId} | TODO | template literal; convert to *F | TODO |
-| js/ukagaka-base.js | 1083 | mpuLogger.warn | logsDebug | ukagakaBaseWarn1083 | 請求超時: ${requestId} | TODO | template literal; convert to *F | TODO |
-| js/ukagaka-base.js | 1110 | mpuLogger.log | logsDebug | ukagakaBaseLog1110 | 重試請求 (${attempt}/${config.retries}): ${requestId} | TODO | template literal; convert to *F | TODO |
-| js/ukagaka-base.js | 1154 | mpuLogger.log | logsDebug | ukagakaBaseLog1154 | REST Nonce 已自動更新 | TODO | none | TODO |
-| js/ukagaka-base.js | 1175 | mpuLogger.warn | logsDebug | ukagakaBaseWarn1175 | 網絡錯誤，將重試: ${error.message} | TODO | template literal; convert to *F | TODO |
-| js/ukagaka-base.js | 1213 | mpuLogger.warn | logsDebug | ukagakaBaseWarn1213 | jQuery 尚未載入，無法初始化右鍵菜單 | TODO | none | TODO |
-| js/ukagaka-base.js | 1223 | mpuLogger.log | logsDebug | ukagakaBaseLog1223 | 右鍵菜單觸發：顯示角色切換選單 | TODO | none | TODO |
-| js/ukagaka-base.js | 1229 | mpuLogger.warn | logsDebug | ukagakaBaseWarn1229 | mpuChange 函數未定義 | TODO | none | TODO |
-| js/ukagaka-base.js | 1235 | mpuLogger.log | logsDebug | ukagakaBaseLog1235 | 右鍵菜單已初始化 | TODO | none | TODO |
-| js/ukagaka-chat.js | 92 | mpuLogger.log | logsDebug | ukagakaChatLog92 | 進入互動對話模式 | TODO | none | TODO |
-| js/ukagaka-chat.js | 192 | mpuLogger.log | logsDebug | ukagakaChatLog192 | 退出互動對話模式 | TODO | none | TODO |
-| js/ukagaka-chat.js | 458 | mpuLogger.log | logsDebug | ukagakaChatLog458 | 正在等待回應，請稍候 | TODO | none | TODO |
-| js/ukagaka-chat.js | 469 | mpuLogger.log | logsDebug | ukagakaChatLog469 | 對話歷史已清除 | TODO | none | TODO |
-| js/ukagaka-chat.js | 533 | mpuLogger.log | logsDebug | ukagakaChatLog533 | 發送用戶訊息: | TODO | dynamic args present | TODO |
-| js/ukagaka-chat.js | 872 | mpuLogger.log | logsDebug | ukagakaChatLog872 | 對話模式已關閉，捨棄本次 AI 回應 | TODO | none | TODO |
-| js/ukagaka-chat.js | 912 | mpuLogger.log | logsDebug | ukagakaChatLog912 | 對話模式已關閉，捨棄錯誤訊息 | TODO | none | TODO |
-| js/ukagaka-chat.js | 937 | mpuLogger.log | logsDebug | ukagakaChatLog937 | 頁面載入：對話歷史已載入，當前記錄數: | TODO | dynamic args present | TODO |
-| js/ukagaka-chat.js | 974 | mpuLogger.log | logsDebug | ukagakaChatLog974 | 裝飾物對話進行中，忽略按鈕點擊 | TODO | none | TODO |
-| js/ukagaka-chat.js | 980 | mpuLogger.log | logsDebug | ukagakaChatLog980 | 訊息被阻擋，忽略按鈕點擊 | TODO | none | TODO |
-| js/ukagaka-chat.js | 1061 | mpuLogger.log | logsDebug | ukagakaChatLog1061 | 退出對話模式 | TODO | none | TODO |
-| js/ukagaka-chat.js | 1070 | mpuLogger.log | logsDebug | ukagakaChatLog1070 | 裝飾物對話進行中，忽略按鈕點擊 | TODO | none | TODO |
-| js/ukagaka-chat.js | 1076 | mpuLogger.log | logsDebug | ukagakaChatLog1076 | 訊息被阻擋，忽略按鈕點擊 | TODO | none | TODO |
-| js/ukagaka-chat.js | 1083 | mpuLogger.log | logsDebug | ukagakaChatLog1083 | 互動對話模式已初始化 | TODO | none | TODO |
-| js/ukagaka-chat.js | 1145 | mpuLogger.log | logsDebug | ukagakaChatLog1145 | 🌅 喚醒角色！正在準備發送請求... | TODO | none | TODO |
-| js/ukagaka-chat.js | 1171 | mpuLogger.warn | logsDebug | ukagakaChatWarn1171 | 喚醒請求已取消：缺少 personality_id/ukagaka_num，避免人格狀態錯亂 | TODO | none | TODO |
-| js/ukagaka-chat.js | 1195 | mpuLogger.log | logsDebug | ukagakaChatLog1195 | 喚醒成功: | TODO | dynamic args present | TODO |
-| js/ukagaka-chat.js | 1204 | mpuLogger.log | logsDebug | ukagakaChatLog1204 | 這是一次深度睡眠期間的暫時喚醒 | TODO | none | TODO |
-| js/ukagaka-chat.js | 1212 | mpuLogger.warn | logsDebug | ukagakaChatWarn1212 | 喚醒請求回應失敗: | TODO | dynamic args present | TODO |
-| js/ukagaka-chat.js | 1219 | mpuLogger.warn | logsDebug | ukagakaChatWarn1219 | 喚醒請求失敗，但不影響正常操作: | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 9 | mpuLogger.log | logsDebug | ukagakaContextLog9 | mpu_check_page_trigger: triggerPages 為空，返回 false | TODO | none | TODO |
-| js/ukagaka-context.js | 17 | mpuLogger.log | logsDebug | ukagakaContextLog17 | mpu_check_page_trigger: 檢查條件 = | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 55 | mpuLogger.log | logsDebug | ukagakaContextLog55 | mpu_check_page_trigger: is_single 檢查 - 排除首頁/歸檔頁面 | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 89 | mpuLogger.log | logsDebug | ukagakaContextLog89 | mpu_check_page_trigger: is_single 檢查 | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 109 | mpuLogger.log | logsDebug | ukagakaContextLog109 | mpu_check_page_trigger: is_page 檢查 | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 144 | mpuLogger.log | logsDebug | ukagakaContextLog144 | mpu_check_page_trigger: is_home/is_front_page 檢查 | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 164 | mpuLogger.log | logsDebug | ukagakaContextLog164 | mpu_check_page_trigger: is_archive 檢查 | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 177 | mpuLogger.log | logsDebug | ukagakaContextLog177 | mpu_check_page_trigger: is_category 檢查 | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 190 | mpuLogger.log | logsDebug | ukagakaContextLog190 | mpu_check_page_trigger: is_tag 檢查 | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 296 | mpuLogger.log | logsDebug | ukagakaContextLog296 | mpu_chat_context: 對話模式中，跳過頁面感知 AI | TODO | none | TODO |
-| js/ukagaka-context.js | 302 | mpuLogger.log | logsDebug | ukagakaContextLog302 | mpu_chat_context: 頁面感知進行中，跳過新觸發 | TODO | none | TODO |
-| js/ukagaka-context.js | 309 | mpuLogger.log | logsDebug | ukagakaContextLog309 | 🌙 睡眠模式（00:00-06:00）：跳過頁面感知 AI，讓角色好好休息 | TODO | none | TODO |
-| js/ukagaka-context.js | 318 | mpuLogger.log | logsDebug | ukagakaContextLog318 | mpu_chat_context: 頁面上下文檢查 | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 326 | mpuLogger.log | logsDebug | ukagakaContextLog326 | mpu_chat_context: 沒有標題和內容，跳過 | TODO | none | TODO |
-| js/ukagaka-context.js | 332 | mpuLogger.log | logsDebug | ukagakaContextLog332 | mpu_chat_context: 首次訪客打招呼進行中，跳過 | TODO | none | TODO |
-| js/ukagaka-context.js | 337 | mpuLogger.log | logsDebug | ukagakaContextLog337 | mpu_chat_context: 內容長度不足 300 字（當前: / ），跳過 | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 448 | mpuLogger.log | logsDebug | ukagakaContextLog448 | mpu_chat_context: 對話已加入歷史並儲存 | TODO | none | TODO |
-| js/ukagaka-context.js | 477 | mpuLogger.warn | logsDebug | ukagakaContextWarn477 | AI 對話失敗，使用預設對話系統: | TODO | dynamic args present | TODO |
-| js/ukagaka-context.js | 580 | mpuLogger.log | logsDebug | ukagakaContextLog580 | 訪客資訊: / 無 / 無 / 無 / 無 / 無 | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 219 | mpuLogger.log | logsDebug | ukagakaCoreLog219 | startAutoTalk: mpuAutoTalk 為 false，退出 | TODO | none | TODO |
-| js/ukagaka-core.js | 225 | mpuLogger.log | logsDebug | ukagakaCoreLog225 | startAutoTalk: 對話模式中，不啟動自動對話 | TODO | none | TODO |
-| js/ukagaka-core.js | 234 | mpuLogger.log | logsDebug | ukagakaCoreLog234 | startAutoTalk: 裝飾物/觸摸對話進行中，不啟動自動對話 | TODO | none | TODO |
-| js/ukagaka-core.js | 240 | mpuLogger.log | logsDebug | ukagakaCoreLog240 | 🌙 睡眠模式且尚未被喚醒：不啟動自動對話，只接受 OK 鈕觸發 | TODO | none | TODO |
-| js/ukagaka-core.js | 268 | mpuLogger.log | logsDebug | ukagakaCoreLog268 | 🌙 睡眠模式啟用（00:00~06:00），間隔調整為 / ms（原始: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 279 | mpuLogger.log | logsDebug | ukagakaCoreLog279 | startAutoTalk: 設置計時器，間隔 = | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 282 | mpuLogger.log | logsDebug | ukagakaCoreLog282 | 自動對話計時器觸發, mpuAutoTalk = | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 293 | mpuLogger.log | logsDebug | ukagakaCoreLog293 | 使用者閒置中（ / 秒），跳過本次自動對話 | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 306 | mpuLogger.log | logsDebug | ukagakaCoreLog306 | 睡眠模式狀態變化（ / 睡眠 / 正常 / 睡眠 / 正常 / ），重新啟動自動對話（新間隔: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 323 | mpuLogger.log | logsDebug | ukagakaCoreLog323 | 🌙 睡眠模式且尚未被喚醒：跳過本次自動對話，只接受 OK 鈕觸發 | TODO | none | TODO |
-| js/ukagaka-core.js | 397 | mpuLogger.log | logsDebug | ukagakaCoreLog397 | 🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 402 | mpuLogger.log | logsDebug | ukagakaCoreLog402 | 🛡️ Turnstile 結界防禦：偵測到結界撞擊事件，攔截次數: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 407 | mpuLogger.log | logsDebug | ukagakaCoreLog407 | 🛡️ Moelog Bot Blocker：偵測到防禦魔法攔截事件，攔截數量: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 412 | mpuLogger.log | logsDebug | ukagakaCoreLog412 | 🤖 AI Crawler：偵測到 AI 爬蟲訪問，crawler: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 419 | mpuLogger.log | logsDebug | ukagakaCoreLog419 | 🌍 Visitor Pulse：訪客脈動訊號，pulse_type: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 424 | mpuLogger.log | logsDebug | ukagakaCoreLog424 | 🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 429 | mpuLogger.log | logsDebug | ukagakaCoreLog429 | 🛡️ Auto-talk 事件（未分類 action）: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 511 | mpuLogger.log | logsDebug | ukagakaCoreLog511 | 🛡️ Turnstile/Akismet/BotBlocker/Bot Check: 無事件 | TODO | none | TODO |
-| js/ukagaka-core.js | 516 | mpuLogger.warn | logsDebug | ukagakaCoreWarn516 | Security Check: 安全檢查失敗: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 526 | mpuLogger.log | logsDebug | ukagakaCoreLog526 | mpu_processOllamaQueue: 佇列為空 | TODO | none | TODO |
-| js/ukagaka-core.js | 532 | mpuLogger.log | logsDebug | ukagakaCoreLog532 | mpu_processOllamaQueue: 處理佇列中的請求, trigger = / , 剩餘佇列長度 = | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 550 | mpuLogger.log | logsDebug | ukagakaCoreLog550 | mpu_nextmsg 被調用, trigger = | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 564 | mpuLogger.log | logsDebug | ukagakaCoreLog564 | mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過 | TODO | none | TODO |
-| js/ukagaka-core.js | 572 | mpuLogger.log | logsDebug | ukagakaCoreLog572 | mpu_nextmsg: 對話模式中，跳過自動對話 | TODO | none | TODO |
-| js/ukagaka-core.js | 581 | mpuLogger.log | logsDebug | ukagakaCoreLog581 | mpu_nextmsg: 裝飾物/觸摸對話進行中，跳過自動對話 | TODO | none | TODO |
-| js/ukagaka-core.js | 586 | mpuLogger.log | logsDebug | ukagakaCoreLog586 | mpu_nextmsg: 自動對話已關閉，退出 | TODO | none | TODO |
-| js/ukagaka-core.js | 592 | mpuLogger.log | logsDebug | ukagakaCoreLog592 | 🌙 睡眠模式且尚未被喚醒：跳過 / 觸發的對話，只接受 OK 鈕觸發 | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 605 | mpuLogger.log | logsDebug | ukagakaCoreLog605 | mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話 | TODO | none | TODO |
-| js/ukagaka-core.js | 611 | mpuLogger.log | logsDebug | ukagakaCoreLog611 | mpu_nextmsg: 頁面感知已排程，跳過 startup 以避免 BOT 對話覆蓋 | TODO | none | TODO |
-| js/ukagaka-core.js | 617 | mpuLogger.log | logsDebug | ukagakaCoreLog617 | mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動/啟動對話 | TODO | none | TODO |
-| js/ukagaka-core.js | 623 | mpuLogger.log | logsDebug | ukagakaCoreLog623 | mpu_nextmsg: Ollama 正在處理請求，自動觸發的請求被跳過 | TODO | none | TODO |
-| js/ukagaka-core.js | 627 | mpuLogger.log | logsDebug | ukagakaCoreLog627 | mpu_nextmsg: Ollama 正在處理請求，此請求加入佇列 | TODO | none | TODO |
-| js/ukagaka-core.js | 630 | mpuLogger.log | logsDebug | ukagakaCoreLog630 | mpu_nextmsg: 佇列已滿，跳過此請求 | TODO | none | TODO |
-| js/ukagaka-core.js | 646 | mpuLogger.log | logsDebug | ukagakaCoreLog646 | mpu_nextmsg: 使用 LLM 生成對話 | TODO | none | TODO |
-| js/ukagaka-core.js | 686 | mpuLogger.log | logsDebug | ukagakaCoreLog686 | mpu_nextmsg: 發送 LLM POST 請求到 | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 697 | mpuLogger.log | logsDebug | ukagakaCoreLog697 | mpu_nextmsg: LLM 回應 = | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 700 | mpuLogger.log | logsDebug | ukagakaCoreLog700 | mpu_nextmsg: LLM 回應被阻擋（頁面感知 AI 正在進行中），跳過顯示 | TODO | none | TODO |
-| js/ukagaka-core.js | 797 | mpuLogger.log | logsDebug | ukagakaCoreLog797 | mpu_nextmsg: 自發對話已加入對話歷史，當前歷史長度: | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 803 | mpuLogger.log | logsDebug | ukagakaCoreLog803 | mpu_nextmsg: 對話歷史已儲存 | TODO | none | TODO |
-| js/ukagaka-core.js | 805 | mpuLogger.warn | logsDebug | ukagakaCoreWarn805 | mpu_nextmsg: mpu_saveChatHistory 函數不存在，無法儲存對話歷史 | TODO | none | TODO |
-| js/ukagaka-core.js | 810 | mpuLogger.warn | logsDebug | ukagakaCoreWarn810 | mpu_nextmsg: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史 | TODO | none | TODO |
-| js/ukagaka-core.js | 821 | mpuLogger.log | logsDebug | ukagakaCoreLog821 | mpu_nextmsg: LLM 回應完成，等待打字完成後啟動自動對話計時器 | TODO | none | TODO |
-| js/ukagaka-core.js | 826 | mpuLogger.log | logsDebug | ukagakaCoreLog826 | mpu_nextmsg: 打字完成，現在啟動自動對話計時器 | TODO | none | TODO |
-| js/ukagaka-core.js | 832 | mpuLogger.warn | logsDebug | ukagakaCoreWarn832 | mpu_nextmsg: LLM 回應沒有 msg | TODO | dynamic args present | TODO |
-| js/ukagaka-core.js | 871 | mpuLogger.warn | logsDebug | ukagakaCoreWarn871 | mpu_nextmsg: LLM 回應沒有 msg，使用後備對話 | TODO | none | TODO |
-| js/ukagaka-core.js | 878 | mpuLogger.log | logsDebug | ukagakaCoreLog878 | mpu_nextmsg: fallback 完成，等待打字完成後啟動計時器 | TODO | none | TODO |
-| js/ukagaka-core.js | 899 | mpuLogger.log | logsDebug | ukagakaCoreLog899 | mpu_nextmsg: 出錯，等待打字完成後啟動計時器 | TODO | none | TODO |
-| js/ukagaka-core.js | 908 | mpuLogger.log | logsDebug | ukagakaCoreLog908 | mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過 | TODO | none | TODO |
-| js/ukagaka-core.js | 940 | mpuLogger.warn | logsDebug | ukagakaCoreWarn940 | mpu_nextmsg: 對話尚未載入，等待載入完成... | TODO | none | TODO |
-| js/ukagaka-core.js | 952 | mpuLogger.warn | logsDebug | ukagakaCoreWarn952 | mpu_nextmsg: 對話載入超時，已重試 3 次 | TODO | none | TODO |
-| js/ukagaka-core.js | 966 | mpuLogger.warn | logsDebug | ukagakaCoreWarn966 | mpu_nextmsg: 無法顯示對話 - | TODO | template literal; convert to *F; dynamic args present | TODO |
-| js/ukagaka-core.js | 1031 | mpuLogger.log | logsDebug | ukagakaCoreLog1031 | mpu_nextmsg: 傳統對話，等待打字完成後啟動計時器 | TODO | none | TODO |
-| js/ukagaka-core.js | 1045 | mpuLogger.log | logsDebug | ukagakaCoreLog1045 | mpu_nextmsg_fallback: 被阻擋（頁面感知 AI 正在進行中），跳過顯示 | TODO | none | TODO |
-| js/ukagaka-core.js | 1054 | mpuLogger.warn | logsDebug | ukagakaCoreWarn1054 | mpu_nextmsg_fallback: 對話尚未載入，等待載入完成... | TODO | none | TODO |
-| js/ukagaka-core.js | 1066 | mpuLogger.warn | logsDebug | ukagakaCoreWarn1066 | mpu_nextmsg_fallback: 對話載入超時，已重試 2 次 | TODO | none | TODO |
-| js/ukagaka-core.js | 1080 | mpuLogger.warn | logsDebug | ukagakaCoreWarn1080 | mpu_nextmsg_fallback: 無法顯示後備對話 - | TODO | template literal; convert to *F; dynamic args present | TODO |
-| js/ukagaka-core.js | 1218 | mpuLogger.warn | logsDebug | ukagakaCoreWarn1218 | mpuChange: Canvas 管理器在 Ajax 成功後才發現不存在，這不應該發生 | TODO | none | TODO |
-| js/ukagaka-dialog.js | 46 | mpuLogger.log | logsDebug | ukagakaDialogLog46 | 🌙 睡眠模式：檢測到睡眠訊息，跳過載入訊息顯示 | TODO | none | TODO |
-| js/ukagaka-dialog.js | 70 | mpuLogger.warn | logsDebug | ukagakaDialogWarn70 | loadExternalDialog: 對話文件為空 | TODO | none | TODO |
-| js/ukagaka-dialog.js | 78 | mpuLogger.log | logsDebug | ukagakaDialogLog78 | loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成 | TODO | none | TODO |
-| js/ukagaka-dialog.js | 98 | mpuLogger.log | logsDebug | ukagakaDialogLog98 | loadExternalDialog: LLM 取代對話模式，已載入後備對話數據，但不顯示第一句 | TODO | none | TODO |
-| js/ukagaka-dialog.js | 121 | mpuLogger.log | logsDebug | ukagakaDialogLog121 | loadExternalDialog: 嘗試重複顯示第一句對話，已阻止 | TODO | none | TODO |
-| js/ukagaka-dialog.js | 132 | mpuLogger.log | logsDebug | ukagakaDialogLog132 | 🌙 睡眠模式且尚未被喚醒：跳過第一句內建對話，保持睡眠訊息 | TODO | none | TODO |
-| js/ukagaka-dialog.js | 186 | mpuLogger.warn | logsDebug | ukagakaDialogWarn186 | loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 - | TODO | dynamic args present | TODO |
-| js/ukagaka-dialog.js | 211 | mpuLogger.warn | logsDebug | ukagakaDialogWarn211 | loadExternalDialog: 載入失敗，設置空的 mpuMsgList 作為後備 | TODO | none | TODO |
-| js/ukagaka-emoji.js | 38 | mpuLogger.log | logsDebug | ukagakaEmojiLog38 | mpuEmojiManager: 表情基礎路徑未設定 | TODO | none | TODO |
-| js/ukagaka-emoji.js | 50 | mpuLogger.log | logsDebug | ukagakaEmojiLog50 | mpuEmojiManager: 找不到 #ukagaka_img 容器 | TODO | none | TODO |
-| js/ukagaka-emoji.js | 84 | mpuLogger.warn | logsDebug | ukagakaEmojiWarn84 | mpuEmojiManager: 表情圖片載入失敗: | TODO | dynamic args present | TODO |
-| js/ukagaka-emoji.js | 99 | mpuLogger.log | logsDebug | ukagakaEmojiLog99 | mpuEmojiManager: 顯示表情: | TODO | dynamic args present | TODO |
-| js/ukagaka-emoji.js | 216 | mpuLogger.log | logsDebug | ukagakaEmojiLog216 | mpuEmojiManager: 移除表情 | TODO | none | TODO |
-| js/ukagaka-features.js | 3 | mpuLogger.log | logsDebug | ukagakaFeaturesLog3 | jQuery ready 已執行 | TODO | none | TODO |
-| js/ukagaka-features.js | 7 | mpuLogger.error | logs | ukagakaFeaturesError7 | 無法初始化 jQuery.cookie，某些功能可能無法正常工作 | TODO | none | TODO |
-| js/ukagaka-features.js | 9 | mpuLogger.log | logsDebug | ukagakaFeaturesLog9 | jQuery.cookie 已成功初始化 | TODO | none | TODO |
-| js/ukagaka-features.js | 29 | mpuLogger.log | logsDebug | ukagakaFeaturesLog29 | LLM 取代對話已啟用，但仍載入內建對話作為後備 | TODO | none | TODO |
-| js/ukagaka-features.js | 74 | mpuLogger.log | logsDebug | ukagakaFeaturesLog74 | processSettings: 已處理過設定，跳過重複調用 | TODO | none | TODO |
-| js/ukagaka-features.js | 80 | mpuLogger.warn | logsDebug | ukagakaFeaturesWarn80 | mpu_get_settings: 無效的回應 | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 84 | mpuLogger.log | logsDebug | ukagakaFeaturesLog84 | mpu_get_settings: 收到設定 = | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 88 | mpuLogger.log | logsDebug | ukagakaFeaturesLog88 | mpu_get_settings: 設置 mpuAutoTalk = | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 117 | mpuLogger.log | logsDebug | ukagakaFeaturesLog117 | 🌙 睡眠模式啟用（00:00~06:00），間隔調整為 / ms（原始: | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 122 | mpuLogger.log | logsDebug | ukagakaFeaturesLog122 | mpu_get_settings: 設置 mpuAutoTalkInterval = | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 132 | mpuLogger.log | logsDebug | ukagakaFeaturesLog132 | LLM 取代對話設定: / 啟用 / 停用 / ，互動對話模式: / 啟用 / 停用 | TODO | none | TODO |
-| js/ukagaka-features.js | 150 | mpuLogger.log | logsDebug | ukagakaFeaturesLog150 | 🌙 睡眠模式：跳過初始 LLM 對話觸發，保持睡眠訊息顯示 | TODO | none | TODO |
-| js/ukagaka-features.js | 151 | mpuLogger.log | logsDebug | ukagakaFeaturesLog151 | 🌙 睡眠訊息將保持顯示，直到自動對話計時器觸發（約 / 秒後） | TODO | none | TODO |
-| js/ukagaka-features.js | 154 | mpuLogger.log | logsDebug | ukagakaFeaturesLog154 | LLM 取代對話已啟用，等待初始訊息完成後觸發 LLM 對話 | TODO | none | TODO |
-| js/ukagaka-features.js | 167 | mpuLogger.log | logsDebug | ukagakaFeaturesLog167 | mpu_get_settings: 準備調用 startAutoTalk/stopAutoTalk, mpuAutoTalk = | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 234 | mpuLogger.log | logsDebug | ukagakaFeaturesLog234 | 頁面感知 AI 已啟用，觸發頁面條件 = | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 237 | mpuLogger.log | logsDebug | ukagakaFeaturesLog237 | 頁面感知檢查結果: shouldTrigger = | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 243 | mpuLogger.log | logsDebug | ukagakaFeaturesLog243 | 頁面感知機率檢查: 設定機率 = / %, 骰子 = / , 觸發 = | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 253 | mpuLogger.log | logsDebug | ukagakaFeaturesLog253 | 頁面感知 AI 將在 3 秒後觸發 | TODO | none | TODO |
-| js/ukagaka-features.js | 262 | mpuLogger.log | logsDebug | ukagakaFeaturesLog262 | 頁面感知 AI 未通過機率檢查，不觸發 | TODO | none | TODO |
-| js/ukagaka-features.js | 265 | mpuLogger.log | logsDebug | ukagakaFeaturesLog265 | 頁面感知 AI 未通過頁面類型檢查，不觸發 | TODO | none | TODO |
-| js/ukagaka-features.js | 268 | mpuLogger.log | logsDebug | ukagakaFeaturesLog268 | 頁面感知 AI 未啟用（ai_enabled = | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 274 | mpuLogger.log | logsDebug | ukagakaFeaturesLog274 | 使用預載設定資料 | TODO | none | TODO |
-| js/ukagaka-features.js | 280 | mpuLogger.log | logsDebug | ukagakaFeaturesLog280 | 從 mpuInitComplete 事件獲取設定 | TODO | none | TODO |
-| js/ukagaka-features.js | 288 | mpuLogger.log | logsDebug | ukagakaFeaturesLog288 | Fallback: 發送獨立 mpu_get_settings AJAX | TODO | none | TODO |
-| js/ukagaka-features.js | 457 | mpuLogger.log | logsDebug | ukagakaFeaturesLog457 | 🔄 SPA 導航：頁面內容已更換 | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 479 | mpuLogger.log | logsDebug | ukagakaFeaturesLog479 | 🎲 SPA 頁面感知檢查：機率 = / , 骰子 = / , 觸發 = | TODO | dynamic args present | TODO |
-| js/ukagaka-features.js | 504 | mpuLogger.log | logsDebug | ukagakaFeaturesLog504 | 腳本載入完成 | TODO | none | TODO |
-| js/ukagaka-greeting.js | 12 | mpuLogger.log | logsDebug | ukagakaGreetingLog12 | 🌙 睡眠模式：跳過初次訪客打招呼，讓角色好好休息 | TODO | none | TODO |
-| js/ukagaka-greeting.js | 32 | mpuLogger.log | logsDebug | ukagakaGreetingLog32 | 訪客資訊: / 無 / 無 / 無 / 無 | TODO | dynamic args present | TODO |
-| js/ukagaka-greeting.js | 130 | mpuLogger.log | logsDebug | ukagakaGreetingLog130 | mpu_greet_first_visitor: 問候已加入歷史並儲存 | TODO | none | TODO |
-| js/ukagaka-greeting.js | 132 | mpuLogger.warn | logsDebug | ukagakaGreetingWarn132 | mpu_greet_first_visitor: mpu_saveChatHistory 函數不存在，無法儲存對話歷史 | TODO | none | TODO |
-| js/ukagaka-greeting.js | 137 | mpuLogger.warn | logsDebug | ukagakaGreetingWarn137 | mpu_greet_first_visitor: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史 | TODO | none | TODO |
-| js/ukagaka-greeting.js | 164 | mpuLogger.warn | logsDebug | ukagakaGreetingWarn164 | 首次訪客打招呼失敗: | TODO | dynamic args present | TODO |
+| Source file | Line | Channel | Bucket | Key | zh-TW original | ja source / fallback | Placeholder notes | Call preview | Translator comment draft |
+| --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- |
+| ghost/Frieren/frieren-emoji.js | 45 | mpuLogger.warn | logsDebug | frierenEmojiWarn45 | mpuEmojiManager: 無法載入表情配置: | TODO | dynamic args present | mpuLogger.warn('mpuEmojiManager: 無法載入表情配置:', error) | TODO |
+| ghost/Frieren/frieren-emoji.js | 53 | mpuLogger.log | logsDebug | frierenEmojiLog53 | mpuEmojiManager: 表情基礎路徑未設定 | TODO | none | mpuLogger.log('mpuEmojiManager: 表情基礎路徑未設定') | TODO |
+| ghost/Frieren/frieren-emoji.js | 65 | mpuLogger.log | logsDebug | frierenEmojiLog65 | mpuEmojiManager: 找不到 #ukagaka_img 容器 | TODO | none | mpuLogger.log('mpuEmojiManager: 找不到 #ukagaka_img 容器') | TODO |
+| ghost/Frieren/frieren-emoji.js | 99 | mpuLogger.warn | logsDebug | frierenEmojiWarn99 | mpuEmojiManager: 表情圖片載入失敗: | TODO | dynamic args present | mpuLogger.warn('mpuEmojiManager: 表情圖片載入失敗:', emojiUrl) | TODO |
+| ghost/Frieren/frieren-emoji.js | 114 | mpuLogger.log | logsDebug | frierenEmojiLog114 | mpuEmojiManager: 顯示表情: | TODO | dynamic args present | mpuLogger.log('mpuEmojiManager: 顯示表情:', emojiName) | TODO |
+| ghost/Frieren/frieren-emoji.js | 231 | mpuLogger.log | logsDebug | frierenEmojiLog231 | mpuEmojiManager: 移除表情 | TODO | none | mpuLogger.log('mpuEmojiManager: 移除表情') | TODO |
+| ghost/Frieren/frieren.js | 52 | console.error | logs | frierenShellInfoInvalid | 芙莉蓮模式：shellInfo 無效 | フリーレンモード：shellInfo が無効です | none | console.error("[MP Ukagaka] 芙莉蓮模式：shellInfo 無效") | console log. shellInfo はキャラクター画像と表示設定を含む初期化データ。 |
+| ghost/Frieren/frieren.js | 86 | console.error | logs | frierenImageCanvasManagerMissing | Canvas 管理器未初始化 | Canvas マネージャーが初期化されていません | none | console.error("[MP Ukagaka] Canvas 管理器未初始化") | console log. フリーレン画像の読み込み前に Canvas 管理オブジェクトが見つからない状態。 |
+| ghost/Frieren/frieren.js | 114 | console.error | logs | frierenImageLoadFailed | 芙莉蓮圖片載入失敗: | フリーレン画像の読み込みに失敗しました：%s | dynamic args present | console.error("[MP Ukagaka] 芙莉蓮圖片載入失敗:", url) | console log. %s は読み込みに失敗した画像 URL。 |
+| ghost/Frieren/frieren.js | 248 | mpuLogger.log | logsDebug | frierenLog248 | 🌙 顯示睡眠圖片 frieren[s].png / ☀️ 顯示閒置圖片 frieren[0].png | TODO | none | mpuLogger.log( shouldShowSleep ? "🌙 顯示睡眠圖片 frieren[s].png" : "☀️ 顯示閒置圖片 frieren[0].png" ) | TODO |
+| ghost/Frieren/frieren.js | 298 | console.error | logs | frierenDrawCanvasManagerMissing | Canvas 管理器未初始化 | Canvas マネージャーが初期化されていません | none | console.error("[MP Ukagaka] Canvas 管理器未初始化") | console log. フリーレン描画処理の前提となる Canvas 管理オブジェクトが見つからない状態。 |
+| ghost/Frieren/frieren.js | 437 | mpuLogger.log | logsDebug | frierenLog437 | 裝飾物已載入，跳過重複載入 | TODO | none | mpuLogger.log("[MP Ukagaka] 裝飾物已載入，跳過重複載入") | TODO |
+| ghost/Frieren/frieren.js | 493 | console.warn | logs | frierenDecorationConfigLoadFailed | 無法載入裝飾配置: / 未知錯誤 | 装飾設定を読み込めませんでした：%s | dynamic args present | console.warn("[MP Ukagaka] 無法載入裝飾配置:", response.error \|\| "未知錯誤") | console log. %s はサーバーから返されたエラー、または「未知のエラー」に相当する値。 |
+| ghost/Frieren/frieren.js | 497 | console.error | logs | frierenDecorationConfigAjaxFailed | AJAX 載入裝飾配置失敗: | AJAX による装飾設定の読み込みに失敗しました：%s | dynamic args present | console.error("[MP Ukagaka] AJAX 載入裝飾配置失敗:", error) | console log. %s は jQuery AJAX の error 値。 |
+| ghost/Frieren/frieren.js | 501 | console.warn | logs | frierenDecorationConfigRuntimeUnavailable | jQuery 或 mpuurl 不可用，無法載入裝飾配置 | jQuery または mpuurl が利用できないため、装飾設定を読み込めません | none | console.warn("[MP Ukagaka] jQuery 或 mpuurl 不可用，無法載入裝飾配置") | console log. 装飾設定を取得するための front-end runtime 依存が不足している状態。 |
+| ghost/Frieren/frieren.js | 512 | console.warn | logs | frierenDecorationConfigInvalid | 裝飾配置無效 | 装飾設定が無効です | none | console.warn("[MP Ukagaka] 裝飾配置無效") | console log. decoration_config の構造が期待形式ではない状態。 |
+| ghost/Frieren/frieren.js | 543 | mpuLogger.log | logsDebug | frierenLog543 | 已從 JSON 配置載入 / 個裝飾物 | TODO | none | mpuLogger.log( "[MP Ukagaka] 已從 JSON 配置載入 " + sortedConfig.length + " 個裝飾物" ) | TODO |
+| ghost/Frieren/frieren.js | 683 | mpuLogger.log | logsDebug | frierenLog683 | 點擊到透明區域，忽略: | TODO | dynamic args present | mpuLogger.log("點擊到透明區域，忽略:", config.type) | TODO |
+| ghost/Frieren/frieren.js | 690 | mpuLogger.log | logsDebug | frierenLog690 | 裝飾物被點擊（像素命中）: | TODO | dynamic args present | mpuLogger.log("裝飾物被點擊（像素命中）:", config.type) | TODO |
+| ghost/Frieren/frieren.js | 728 | console.error | logs | frierenPixelCanvasCreateFailed | 無法創建像素檢測 Canvas: | ピクセル判定用 Canvas を作成できません：%s | dynamic args present | console.error("[MP Ukagaka] 無法創建像素檢測 Canvas:", type) | console log. %s は装飾物タイプ。 |
+| ghost/Frieren/frieren.js | 742 | mpuLogger.log | logsDebug | frierenLog742 | 像素檢測 Canvas 已創建: | TODO | dynamic args present | mpuLogger.log( "像素檢測 Canvas 已創建:", type, hitCanvas.width + "x" + hitCanvas.height ) | TODO |
+| ghost/Frieren/frieren.js | 787 | mpuLogger.log | logsDebug | frierenLog787 | 像素檢測: | TODO | dynamic args present | mpuLogger.log( "像素檢測:", type, "x=" + pixelX, "y=" + pixelY, "alpha=" + alpha, "threshold=" + this.pixelHitThreshold ) | TODO |
+| ghost/Frieren/frieren.js | 799 | console.warn | logs | frierenPixelDataUnavailable | 無法獲取像素數據（可能是跨域問題）: | ピクセルデータを取得できません（クロスオリジンの可能性があります）：%1$s / %2$s | dynamic args present | console.warn( "[MP Ukagaka] 無法獲取像素數據（可能是跨域問題）:", type, e.message ) | console log. %1$s は装飾物タイプ、%2$s は例外メッセージ。 |
+| ghost/Frieren/frieren.js | 874 | mpuLogger.log | logsDebug | frierenLog874 | ☀️ 芙莉蓮被喚醒了！ | TODO | none | mpuLogger.log("☀️ 芙莉蓮被喚醒了！" + (isForced ? " (forceWakeUp)" : "")) | TODO |
+| ghost/Frieren/frieren.js | 896 | mpuLogger.log | logsDebug | frierenLog896 | 👀 播放醒來動畫 frieren[w1-w5].png | TODO | none | mpuLogger.log("👀 播放醒來動畫 frieren[w1-w5].png") | TODO |
+| ghost/Frieren/frieren.js | 1005 | mpuLogger.log | logsDebug | frierenLog1005 | 🌅 開始喚醒動畫, skipBookFlip = | TODO | dynamic args present | mpuLogger.log("🌅 開始喚醒動畫, skipBookFlip =", skipBookFlip) | TODO |
+| ghost/Frieren/frieren.js | 1010 | mpuLogger.log | logsDebug | frierenLog1010 | 📖 喚醒後播放翻書動畫 | TODO | none | mpuLogger.log("📖 喚醒後播放翻書動畫") | TODO |
+| ghost/Frieren/frieren.js | 1015 | mpuLogger.log | logsDebug | frierenLog1015 | 📖 喚醒後跳過翻書動畫 | TODO | none | mpuLogger.log("📖 喚醒後跳過翻書動畫") | TODO |
+| ghost/Frieren/frieren.js | 1028 | mpuLogger.log | logsDebug | frierenLog1028 | 🌙 睡眠模式：跳過翻書動畫 | TODO | none | mpuLogger.log("🌙 睡眠模式：跳過翻書動畫") | TODO |
+| ghost/Frieren/frieren.js | 1035 | mpuLogger.log | logsDebug | frierenLog1035 | 📖 手動喚醒對話：跳過翻書動畫 | TODO | none | mpuLogger.log("📖 手動喚醒對話：跳過翻書動畫") | TODO |
+| ghost/Frieren/frieren.js | 1068 | mpuLogger.log | logsDebug | frierenLog1068 | handleDecorationClick 被調用，裝飾物類型: | TODO | dynamic args present | mpuLogger.log( "handleDecorationClick 被調用，裝飾物類型:", decorationType ) | TODO |
+| ghost/Frieren/frieren.js | 1080 | mpuLogger.log | logsDebug | frierenLog1080 | 裝飾物對話正在進行中，忽略本次點擊 | TODO | none | mpuLogger.log("裝飾物對話正在進行中，忽略本次點擊") | TODO |
+| ghost/Frieren/frieren.js | 1087 | mpuLogger.log | logsDebug | frierenLog1087 | AI 功能未啟用，跳過裝飾物對話 | TODO | none | mpuLogger.log("AI 功能未啟用，跳過裝飾物對話") | TODO |
+| ghost/Frieren/frieren.js | 1111 | mpuLogger.log | logsDebug | frierenLog1111 | 裝飾物點擊：已取消請求 | TODO | dynamic args present | mpuLogger.log("裝飾物點擊：已取消請求", requestId) | TODO |
+| ghost/Frieren/frieren.js | 1317 | mpuLogger.log | logsDebug | frierenLog1317 | 裝飾物對話完成，狀態已恢復 | TODO | none | mpuLogger.log("裝飾物對話完成，狀態已恢復") | TODO |
+| ghost/Frieren/frieren.js | 1364 | mpuLogger.log | logsDebug | frierenLog1364 | 觸摸區域檢測: | TODO | dynamic args present | mpuLogger.log( "觸摸區域檢測:", zoneName, "relativeY=", relativeY.toFixed(2) ) | TODO |
+| ghost/Frieren/frieren.js | 1384 | mpuLogger.log | logsDebug | frierenLog1384 | handleTouchZone 被調用，區域: | TODO | dynamic args present | mpuLogger.log("handleTouchZone 被調用，區域:", zoneName) | TODO |
+| ghost/Frieren/frieren.js | 1393 | mpuLogger.log | logsDebug | frierenLog1393 | 區域冷卻中，忽略點擊: | TODO | dynamic args present | mpuLogger.log("區域冷卻中，忽略點擊:", zoneName) | TODO |
+| ghost/Frieren/frieren.js | 1400 | mpuLogger.log | logsDebug | frierenLog1400 | 區域達到點擊上限，進入冷卻: | TODO | dynamic args present | mpuLogger.log("區域達到點擊上限，進入冷卻:", zoneName) | TODO |
+| ghost/Frieren/frieren.js | 1428 | mpuLogger.log | logsDebug | frierenLog1428 | 觸摸區域點擊：已取消請求 | TODO | dynamic args present | mpuLogger.log("觸摸區域點擊：已取消請求", requestId) | TODO |
+| ghost/Frieren/frieren.js | 1505 | console.error | logs | frierenTouchZoneDialogRequestFailed | 觸摸區域對話請求失敗: | タッチ領域の会話リクエストに失敗しました：%s | dynamic args present | console.error("觸摸區域對話請求失敗:", err) | console log. %s は request failure の error object/message。 |
+| ghost/Frieren/frieren.js | 1620 | mpuLogger.log | logsDebug | frierenLog1620 | 角色觸摸事件已設置 | TODO | none | mpuLogger.log("角色觸摸事件已設置") | TODO |
+| ghost/Frieren/frieren.js | 1687 | mpuLogger.log | logsDebug | frierenLog1687 | 區域進入冷卻: / 冷卻時間: / 秒 | TODO | dynamic args present | mpuLogger.log( "區域進入冷卻:", zoneName, "冷卻時間:", limit.cooldownMs / 1000, "秒" ) | TODO |
+| js/ukagaka-anime.js | 41 | mpuLogger.log | logsDebug | ukagakaAnimeLog41 | ⏭️ 已在芙莉蓮模式，跳過重新初始化 | TODO | none | mpuLogger.log('⏭️ 已在芙莉蓮模式，跳過重新初始化') | TODO |
+| js/ukagaka-anime.js | 65 | console.error | logs | animeCanvasElementMissing | Canvas 元素不存在 | Canvas 要素が存在しません | none | console.error('[MP Ukagaka] Canvas 元素不存在') | console log. キャラクター描画用 Canvas DOM 要素が見つからない状態。 |
+| js/ukagaka-anime.js | 72 | console.error | logs | animeCanvasContextUnavailable | 無法獲取 Canvas 上下文 | Canvas コンテキストを取得できません | none | console.error('[MP Ukagaka] 無法獲取 Canvas 上下文') | console log. CanvasRenderingContext2D の取得に失敗した状態。 |
+| js/ukagaka-anime.js | 89 | console.warn | logs | animeFrierenManagerMissing | 芙莉蓮管理器未載入，使用通用模式 | フリーレンマネージャーが読み込まれていないため、汎用モードを使用します | none | console.warn('[MP Ukagaka] 芙莉蓮管理器未載入，使用通用模式') | console log. Frieren 専用 manager がないため generic mode にフォールバックする状態。 |
+| js/ukagaka-anime.js | 160 | console.error | logs | animeImageLoadFailed | 圖片載入失敗: | 画像の読み込みに失敗しました：%s | dynamic args present | console.error('[MP Ukagaka] 圖片載入失敗:', imageUrl) | console log. %s は読み込みに失敗した画像 URL。 |
+| js/ukagaka-anime.js | 221 | console.error | logs | animeFrameImageLoadFailed | 圖片載入失敗: | フレーム画像の読み込みに失敗しました：%s | dynamic args present | console.error('[MP Ukagaka] 圖片載入失敗:', url) | console log. %s は読み込みに失敗したフレーム画像 URL。 |
+| js/ukagaka-base.js | 99 | console.log | TODO | pageReloadClearedChatSession | 🔄 偵測到頁面重整，清空對話記憶與 Session ID | ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました | none | console.log("[MPU] \uD83D\uDD04 偵測到頁面重整，清空對話記憶與 Session ID") | console log. direct console.log のため migration 前に debug-only かどうかを判定すること。 |
+| js/ukagaka-base.js | 672 | mpuLogger.log | logsDebug | ukagakaBaseLog672 | 打字效果已被中斷 | TODO | none | mpuLogger.log('打字效果已被中斷') | TODO |
+| js/ukagaka-base.js | 686 | mpuLogger.warn | logsDebug | ukagakaBaseWarn686 | mpu_waitForTypewriterComplete: callback 不是函數 | TODO | none | mpuLogger.warn('mpu_waitForTypewriterComplete: callback 不是函數') | TODO |
+| js/ukagaka-base.js | 704 | mpuLogger.warn | logsDebug | ukagakaBaseWarn704 | mpu_waitForTypewriterComplete: 等待超時，強制執行回調 | TODO | none | mpuLogger.warn('mpu_waitForTypewriterComplete: 等待超時，強制執行回調') | TODO |
+| js/ukagaka-base.js | 855 | mpuLogger.warn | logsDebug | ukagakaBaseWarn855 | jQuery 尚未載入，無法初始化 jQuery.cookie | TODO | none | mpuLogger.warn('jQuery 尚未載入，無法初始化 jQuery.cookie') | TODO |
+| js/ukagaka-base.js | 886 | mpuLogger.warn | logsDebug | ukagakaBaseWarn886 | jQuery 尚未載入，無法初始化閒置偵測 | TODO | none | mpuLogger.warn('jQuery 尚未載入，無法初始化閒置偵測') | TODO |
+| js/ukagaka-base.js | 896 | mpuLogger.log | logsDebug | ukagakaBaseLog896 | 閒置偵測已初始化，閾值： / 秒 | TODO | dynamic args present | mpuLogger.log('閒置偵測已初始化，閾值：', mpuIdleThreshold / 1000, '秒') | TODO |
+| js/ukagaka-base.js | 907 | mpuLogger.log | logsDebug | ukagakaBaseLog907 | 已更新最後訪問時間 | TODO | none | mpuLogger.log('已更新最後訪問時間') | TODO |
+| js/ukagaka-base.js | 909 | mpuLogger.warn | logsDebug | ukagakaBaseWarn909 | 無法更新最後訪問時間: | TODO | dynamic args present | mpuLogger.warn('無法更新最後訪問時間:', e) | TODO |
+| js/ukagaka-base.js | 922 | mpuLogger.warn | logsDebug | ukagakaBaseWarn922 | 無法獲取最後訪問時間: | TODO | dynamic args present | mpuLogger.warn('無法獲取最後訪問時間:', e) | TODO |
+| js/ukagaka-base.js | 1035 | mpuLogger.log | logsDebug | ukagakaBaseLog1035 | 請求已取消: ${requestId} | TODO | template literal; convert to *F | mpuLogger.log(`請求已取消: ${requestId}`) | TODO |
+| js/ukagaka-base.js | 1042 | mpuLogger.log | logsDebug | ukagakaBaseLog1042 | 請求已取消: ${requestId} | TODO | template literal; convert to *F | mpuLogger.log(`請求已取消: ${requestId}`) | TODO |
+| js/ukagaka-base.js | 1071 | mpuLogger.log | logsDebug | ukagakaBaseLog1071 | 請求去重，跳過: ${requestId} | TODO | template literal; convert to *F | mpuLogger.log(`請求去重，跳過: ${requestId}`) | TODO |
+| js/ukagaka-base.js | 1083 | mpuLogger.warn | logsDebug | ukagakaBaseWarn1083 | 請求超時: ${requestId} | TODO | template literal; convert to *F | mpuLogger.warn(`請求超時: ${requestId}`) | TODO |
+| js/ukagaka-base.js | 1110 | mpuLogger.log | logsDebug | ukagakaBaseLog1110 | 重試請求 (${attempt}/${config.retries}): ${requestId} | TODO | template literal; convert to *F | mpuLogger.log(`重試請求 (${attempt}/${config.retries}): ${requestId}`) | TODO |
+| js/ukagaka-base.js | 1154 | mpuLogger.log | logsDebug | ukagakaBaseLog1154 | REST Nonce 已自動更新 | TODO | none | mpuLogger.log("REST Nonce 已自動更新") | TODO |
+| js/ukagaka-base.js | 1175 | mpuLogger.warn | logsDebug | ukagakaBaseWarn1175 | 網絡錯誤，將重試: ${error.message} | TODO | template literal; convert to *F | mpuLogger.warn(`網絡錯誤，將重試: ${error.message}`) | TODO |
+| js/ukagaka-base.js | 1213 | mpuLogger.warn | logsDebug | ukagakaBaseWarn1213 | jQuery 尚未載入，無法初始化右鍵菜單 | TODO | none | mpuLogger.warn('jQuery 尚未載入，無法初始化右鍵菜單') | TODO |
+| js/ukagaka-base.js | 1223 | mpuLogger.log | logsDebug | ukagakaBaseLog1223 | 右鍵菜單觸發：顯示角色切換選單 | TODO | none | mpuLogger.log('右鍵菜單觸發：顯示角色切換選單') | TODO |
+| js/ukagaka-base.js | 1229 | mpuLogger.warn | logsDebug | ukagakaBaseWarn1229 | mpuChange 函數未定義 | TODO | none | mpuLogger.warn('mpuChange 函數未定義') | TODO |
+| js/ukagaka-base.js | 1235 | mpuLogger.log | logsDebug | ukagakaBaseLog1235 | 右鍵菜單已初始化 | TODO | none | mpuLogger.log('右鍵菜單已初始化') | TODO |
+| js/ukagaka-chat.js | 92 | mpuLogger.log | logsDebug | ukagakaChatLog92 | 進入互動對話模式 | TODO | none | mpuLogger.log("進入互動對話模式") | TODO |
+| js/ukagaka-chat.js | 192 | mpuLogger.log | logsDebug | ukagakaChatLog192 | 退出互動對話模式 | TODO | none | mpuLogger.log("退出互動對話模式") | TODO |
+| js/ukagaka-chat.js | 458 | mpuLogger.log | logsDebug | ukagakaChatLog458 | 正在等待回應，請稍候 | TODO | none | mpuLogger.log("正在等待回應，請稍候") | TODO |
+| js/ukagaka-chat.js | 469 | mpuLogger.log | logsDebug | ukagakaChatLog469 | 對話歷史已清除 | TODO | none | mpuLogger.log("對話歷史已清除") | TODO |
+| js/ukagaka-chat.js | 533 | mpuLogger.log | logsDebug | ukagakaChatLog533 | 發送用戶訊息: | TODO | dynamic args present | mpuLogger.log("發送用戶訊息:", message) | TODO |
+| js/ukagaka-chat.js | 872 | mpuLogger.log | logsDebug | ukagakaChatLog872 | 對話模式已關閉，捨棄本次 AI 回應 | TODO | none | mpuLogger.log("對話模式已關閉，捨棄本次 AI 回應") | TODO |
+| js/ukagaka-chat.js | 912 | mpuLogger.log | logsDebug | ukagakaChatLog912 | 對話模式已關閉，捨棄錯誤訊息 | TODO | none | mpuLogger.log("對話模式已關閉，捨棄錯誤訊息") | TODO |
+| js/ukagaka-chat.js | 937 | mpuLogger.log | logsDebug | ukagakaChatLog937 | 頁面載入：對話歷史已載入，當前記錄數: | TODO | dynamic args present | mpuLogger.log( "頁面載入：對話歷史已載入，當前記錄數:", window.mpuChatHistory.length, ) | TODO |
+| js/ukagaka-chat.js | 974 | mpuLogger.log | logsDebug | ukagakaChatLog974 | 裝飾物對話進行中，忽略按鈕點擊 | TODO | none | mpuLogger.log("裝飾物對話進行中，忽略按鈕點擊") | TODO |
+| js/ukagaka-chat.js | 980 | mpuLogger.log | logsDebug | ukagakaChatLog980 | 訊息被阻擋，忽略按鈕點擊 | TODO | none | mpuLogger.log("訊息被阻擋，忽略按鈕點擊") | TODO |
+| js/ukagaka-chat.js | 1061 | mpuLogger.log | logsDebug | ukagakaChatLog1061 | 退出對話模式 | TODO | none | mpuLogger.log("退出對話模式") | TODO |
+| js/ukagaka-chat.js | 1070 | mpuLogger.log | logsDebug | ukagakaChatLog1070 | 裝飾物對話進行中，忽略按鈕點擊 | TODO | none | mpuLogger.log("裝飾物對話進行中，忽略按鈕點擊") | TODO |
+| js/ukagaka-chat.js | 1076 | mpuLogger.log | logsDebug | ukagakaChatLog1076 | 訊息被阻擋，忽略按鈕點擊 | TODO | none | mpuLogger.log("訊息被阻擋，忽略按鈕點擊") | TODO |
+| js/ukagaka-chat.js | 1083 | mpuLogger.log | logsDebug | ukagakaChatLog1083 | 互動對話模式已初始化 | TODO | none | mpuLogger.log("互動對話模式已初始化") | TODO |
+| js/ukagaka-chat.js | 1145 | mpuLogger.log | logsDebug | ukagakaChatLog1145 | 🌅 喚醒角色！正在準備發送請求... | TODO | none | mpuLogger.log("🌅 喚醒角色！正在準備發送請求...") | TODO |
+| js/ukagaka-chat.js | 1171 | mpuLogger.warn | logsDebug | ukagakaChatWarn1171 | 喚醒請求已取消：缺少 personality_id/ukagaka_num，避免人格狀態錯亂 | TODO | none | mpuLogger.warn( "喚醒請求已取消：缺少 personality_id/ukagaka_num，避免人格狀態錯亂", ) | TODO |
+| js/ukagaka-chat.js | 1195 | mpuLogger.log | logsDebug | ukagakaChatLog1195 | 喚醒成功: | TODO | dynamic args present | mpuLogger.log("喚醒成功:", res) | TODO |
+| js/ukagaka-chat.js | 1204 | mpuLogger.log | logsDebug | ukagakaChatLog1204 | 這是一次深度睡眠期間的暫時喚醒 | TODO | none | mpuLogger.log("這是一次深度睡眠期間的暫時喚醒") | TODO |
+| js/ukagaka-chat.js | 1212 | mpuLogger.warn | logsDebug | ukagakaChatWarn1212 | 喚醒請求回應失敗: | TODO | dynamic args present | mpuLogger.warn("喚醒請求回應失敗:", res) | TODO |
+| js/ukagaka-chat.js | 1219 | mpuLogger.warn | logsDebug | ukagakaChatWarn1219 | 喚醒請求失敗，但不影響正常操作: | TODO | dynamic args present | mpuLogger.warn("喚醒請求失敗，但不影響正常操作:", err) | TODO |
+| js/ukagaka-context.js | 9 | mpuLogger.log | logsDebug | ukagakaContextLog9 | mpu_check_page_trigger: triggerPages 為空，返回 false | TODO | none | mpuLogger.log("mpu_check_page_trigger: triggerPages 為空，返回 false") | TODO |
+| js/ukagaka-context.js | 17 | mpuLogger.log | logsDebug | ukagakaContextLog17 | mpu_check_page_trigger: 檢查條件 = | TODO | dynamic args present | mpuLogger.log( "mpu_check_page_trigger: 檢查條件 =", conditions, ", path =", path, ) | TODO |
+| js/ukagaka-context.js | 55 | mpuLogger.log | logsDebug | ukagakaContextLog55 | mpu_check_page_trigger: is_single 檢查 - 排除首頁/歸檔頁面 | TODO | dynamic args present | mpuLogger.log( "mpu_check_page_trigger: is_single 檢查 - 排除首頁/歸檔頁面", { path, isHomePage, isSubdirectoryHome, isSpecialPage, isPagination, shou | TODO |
+| js/ukagaka-context.js | 89 | mpuLogger.log | logsDebug | ukagakaContextLog89 | mpu_check_page_trigger: is_single 檢查 | TODO | dynamic args present | mpuLogger.log("mpu_check_page_trigger: is_single 檢查", { path, hasDatePath, hasArticleContent, hasContentContainer, shouldTrigger, }) | TODO |
+| js/ukagaka-context.js | 109 | mpuLogger.log | logsDebug | ukagakaContextLog109 | mpu_check_page_trigger: is_page 檢查 | TODO | dynamic args present | mpuLogger.log("mpu_check_page_trigger: is_page 檢查", { path, pathLength: path.length, isNotSpecial, shouldTrigger: isNotSpecial, }) | TODO |
+| js/ukagaka-context.js | 144 | mpuLogger.log | logsDebug | ukagakaContextLog144 | mpu_check_page_trigger: is_home/is_front_page 檢查 | TODO | dynamic args present | mpuLogger.log("mpu_check_page_trigger: is_home/is_front_page 檢查", { path, normalizedPath, pathParts, isRootPath, isSubdirectoryHome, isHomeP | TODO |
+| js/ukagaka-context.js | 164 | mpuLogger.log | logsDebug | ukagakaContextLog164 | mpu_check_page_trigger: is_archive 檢查 | TODO | dynamic args present | mpuLogger.log("mpu_check_page_trigger: is_archive 檢查", { path, isArchive, }) | TODO |
+| js/ukagaka-context.js | 177 | mpuLogger.log | logsDebug | ukagakaContextLog177 | mpu_check_page_trigger: is_category 檢查 | TODO | dynamic args present | mpuLogger.log("mpu_check_page_trigger: is_category 檢查", { path, isCategory, }) | TODO |
+| js/ukagaka-context.js | 190 | mpuLogger.log | logsDebug | ukagakaContextLog190 | mpu_check_page_trigger: is_tag 檢查 | TODO | dynamic args present | mpuLogger.log("mpu_check_page_trigger: is_tag 檢查", { path, isTag, }) | TODO |
+| js/ukagaka-context.js | 296 | mpuLogger.log | logsDebug | ukagakaContextLog296 | mpu_chat_context: 對話模式中，跳過頁面感知 AI | TODO | none | mpuLogger.log("mpu_chat_context: 對話模式中，跳過頁面感知 AI") | TODO |
+| js/ukagaka-context.js | 302 | mpuLogger.log | logsDebug | ukagakaContextLog302 | mpu_chat_context: 頁面感知進行中，跳過新觸發 | TODO | none | mpuLogger.log("mpu_chat_context: 頁面感知進行中，跳過新觸發") | TODO |
+| js/ukagaka-context.js | 309 | mpuLogger.log | logsDebug | ukagakaContextLog309 | 🌙 睡眠模式（00:00-06:00）：跳過頁面感知 AI，讓角色好好休息 | TODO | none | mpuLogger.log( "🌙 睡眠模式（00:00-06:00）：跳過頁面感知 AI，讓角色好好休息", ) | TODO |
+| js/ukagaka-context.js | 318 | mpuLogger.log | logsDebug | ukagakaContextLog318 | mpu_chat_context: 頁面上下文檢查 | TODO | dynamic args present | mpuLogger.log("mpu_chat_context: 頁面上下文檢查", { hasTitle: !!context.title, title: context.title, contentLength, hasContent: !!context.content, | TODO |
+| js/ukagaka-context.js | 326 | mpuLogger.log | logsDebug | ukagakaContextLog326 | mpu_chat_context: 沒有標題和內容，跳過 | TODO | none | mpuLogger.log("mpu_chat_context: 沒有標題和內容，跳過") | TODO |
+| js/ukagaka-context.js | 332 | mpuLogger.log | logsDebug | ukagakaContextLog332 | mpu_chat_context: 首次訪客打招呼進行中，跳過 | TODO | none | mpuLogger.log("mpu_chat_context: 首次訪客打招呼進行中，跳過") | TODO |
+| js/ukagaka-context.js | 337 | mpuLogger.log | logsDebug | ukagakaContextLog337 | mpu_chat_context: 內容長度不足 300 字（當前: / ），跳過 | TODO | dynamic args present | mpuLogger.log( "mpu_chat_context: 內容長度不足 300 字（當前:", contentLength, "），跳過", ) | TODO |
+| js/ukagaka-context.js | 448 | mpuLogger.log | logsDebug | ukagakaContextLog448 | mpu_chat_context: 對話已加入歷史並儲存 | TODO | none | mpuLogger.log("mpu_chat_context: 對話已加入歷史並儲存") | TODO |
+| js/ukagaka-context.js | 477 | mpuLogger.warn | logsDebug | ukagakaContextWarn477 | AI 對話失敗，使用預設對話系統: | TODO | dynamic args present | mpuLogger.warn("AI 對話失敗，使用預設對話系統:", res) | TODO |
+| js/ukagaka-context.js | 580 | mpuLogger.log | logsDebug | ukagakaContextLog580 | 訪客資訊: / 無 / 無 / 無 / 無 / 無 | TODO | dynamic args present | mpuLogger.log("訪客資訊:", { referrer: visitorInfo.referrer \|\| "無", referrer_host: visitorInfo.referrer_host \|\| "無", search_engine: visitorInfo. | TODO |
+| js/ukagaka-core.js | 219 | mpuLogger.log | logsDebug | ukagakaCoreLog219 | startAutoTalk: mpuAutoTalk 為 false，退出 | TODO | none | mpuLogger.log("startAutoTalk: mpuAutoTalk 為 false，退出") | TODO |
+| js/ukagaka-core.js | 225 | mpuLogger.log | logsDebug | ukagakaCoreLog225 | startAutoTalk: 對話模式中，不啟動自動對話 | TODO | none | mpuLogger.log("startAutoTalk: 對話模式中，不啟動自動對話") | TODO |
+| js/ukagaka-core.js | 234 | mpuLogger.log | logsDebug | ukagakaCoreLog234 | startAutoTalk: 裝飾物/觸摸對話進行中，不啟動自動對話 | TODO | none | mpuLogger.log("startAutoTalk: 裝飾物/觸摸對話進行中，不啟動自動對話") | TODO |
+| js/ukagaka-core.js | 240 | mpuLogger.log | logsDebug | ukagakaCoreLog240 | 🌙 睡眠模式且尚未被喚醒：不啟動自動對話，只接受 OK 鈕觸發 | TODO | none | mpuLogger.log("🌙 睡眠模式且尚未被喚醒：不啟動自動對話，只接受 OK 鈕觸發") | TODO |
+| js/ukagaka-core.js | 268 | mpuLogger.log | logsDebug | ukagakaCoreLog268 | 🌙 睡眠模式啟用（00:00~06:00），間隔調整為 / ms（原始: | TODO | dynamic args present | mpuLogger.log( "🌙 睡眠模式啟用（00:00~06:00），間隔調整為", currentInterval, "ms（原始:", mpuGetBaseAutoTalkInterval(), "ms）", ) | TODO |
+| js/ukagaka-core.js | 279 | mpuLogger.log | logsDebug | ukagakaCoreLog279 | startAutoTalk: 設置計時器，間隔 = | TODO | dynamic args present | mpuLogger.log("startAutoTalk: 設置計時器，間隔 =", currentInterval, "ms, mpuAutoTalk =", mpuAutoTalk) | TODO |
+| js/ukagaka-core.js | 282 | mpuLogger.log | logsDebug | ukagakaCoreLog282 | 自動對話計時器觸發, mpuAutoTalk = | TODO | dynamic args present | mpuLogger.log( "自動對話計時器觸發, mpuAutoTalk =", mpuAutoTalk, ", mpuOllamaReplaceDialogue =", mpuOllamaReplaceDialogue, ) | TODO |
+| js/ukagaka-core.js | 293 | mpuLogger.log | logsDebug | ukagakaCoreLog293 | 使用者閒置中（ / 秒），跳過本次自動對話 | TODO | dynamic args present | mpuLogger.log( "使用者閒置中（", Math.floor(idleTime / 1000), "秒），跳過本次自動對話", ) | TODO |
+| js/ukagaka-core.js | 306 | mpuLogger.log | logsDebug | ukagakaCoreLog306 | 睡眠模式狀態變化（ / 睡眠 / 正常 / 睡眠 / 正常 / ），重新啟動自動對話（新間隔: | TODO | dynamic args present | mpuLogger.log( "睡眠模式狀態變化（", currentIsSleepMode ? "睡眠" : "正常", " → ", newSleepModeInfo.isSleepMode ? "睡眠" : "正常", "），重新啟動自動對話（新間隔:", newSleep | TODO |
+| js/ukagaka-core.js | 323 | mpuLogger.log | logsDebug | ukagakaCoreLog323 | 🌙 睡眠模式且尚未被喚醒：跳過本次自動對話，只接受 OK 鈕觸發 | TODO | none | mpuLogger.log( "🌙 睡眠模式且尚未被喚醒：跳過本次自動對話，只接受 OK 鈕觸發", ) | TODO |
+| js/ukagaka-core.js | 397 | mpuLogger.log | logsDebug | ukagakaCoreLog397 | 🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱: | TODO | dynamic args present | mpuLogger.log( "🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱:", res.bot_name, ) | TODO |
+| js/ukagaka-core.js | 402 | mpuLogger.log | logsDebug | ukagakaCoreLog402 | 🛡️ Turnstile 結界防禦：偵測到結界撞擊事件，攔截次數: | TODO | dynamic args present | mpuLogger.log( "🛡️ Turnstile 結界防禦：偵測到結界撞擊事件，攔截次數:", res.block_count, ) | TODO |
+| js/ukagaka-core.js | 407 | mpuLogger.log | logsDebug | ukagakaCoreLog407 | 🛡️ Moelog Bot Blocker：偵測到防禦魔法攔截事件，攔截數量: | TODO | dynamic args present | mpuLogger.log( "🛡️ Moelog Bot Blocker：偵測到防禦魔法攔截事件，攔截數量:", res.block_count, ) | TODO |
+| js/ukagaka-core.js | 412 | mpuLogger.log | logsDebug | ukagakaCoreLog412 | 🤖 AI Crawler：偵測到 AI 爬蟲訪問，crawler: | TODO | dynamic args present | mpuLogger.log( "🤖 AI Crawler：偵測到 AI 爬蟲訪問，crawler:", res.crawler, "company:", res.company, ) | TODO |
+| js/ukagaka-core.js | 419 | mpuLogger.log | logsDebug | ukagakaCoreLog419 | 🌍 Visitor Pulse：訪客脈動訊號，pulse_type: | TODO | dynamic args present | mpuLogger.log( "🌍 Visitor Pulse：訪客脈動訊號，pulse_type:", res.pulse_type, ) | TODO |
+| js/ukagaka-core.js | 424 | mpuLogger.log | logsDebug | ukagakaCoreLog424 | 🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量: | TODO | dynamic args present | mpuLogger.log( "🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量:", res.spam_count, ) | TODO |
+| js/ukagaka-core.js | 429 | mpuLogger.log | logsDebug | ukagakaCoreLog429 | 🛡️ Auto-talk 事件（未分類 action）: | TODO | dynamic args present | mpuLogger.log( "🛡️ Auto-talk 事件（未分類 action）:", res.action, ) | TODO |
+| js/ukagaka-core.js | 511 | mpuLogger.log | logsDebug | ukagakaCoreLog511 | 🛡️ Turnstile/Akismet/BotBlocker/Bot Check: 無事件 | TODO | none | mpuLogger.log("🛡️ Turnstile/Akismet/BotBlocker/Bot Check: 無事件") | TODO |
+| js/ukagaka-core.js | 516 | mpuLogger.warn | logsDebug | ukagakaCoreWarn516 | Security Check: 安全檢查失敗: | TODO | dynamic args present | mpuLogger.warn("Security Check: 安全檢查失敗:", error) | TODO |
+| js/ukagaka-core.js | 526 | mpuLogger.log | logsDebug | ukagakaCoreLog526 | mpu_processOllamaQueue: 佇列為空 | TODO | none | mpuLogger.log("mpu_processOllamaQueue: 佇列為空") | TODO |
+| js/ukagaka-core.js | 532 | mpuLogger.log | logsDebug | ukagakaCoreLog532 | mpu_processOllamaQueue: 處理佇列中的請求, trigger = / , 剩餘佇列長度 = | TODO | dynamic args present | mpuLogger.log( "mpu_processOllamaQueue: 處理佇列中的請求, trigger =", nextTrigger, ", 剩餘佇列長度 =", mpuOllamaRequestQueue.length, ) | TODO |
+| js/ukagaka-core.js | 550 | mpuLogger.log | logsDebug | ukagakaCoreLog550 | mpu_nextmsg 被調用, trigger = | TODO | dynamic args present | mpuLogger.log( "mpu_nextmsg 被調用, trigger =", trigger, ", isAuto =", isAuto, ", isStartup =", isStartup, ", isManual =", isManual, ", mpuOlla | TODO |
+| js/ukagaka-core.js | 564 | mpuLogger.log | logsDebug | ukagakaCoreLog564 | mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過 | TODO | none | mpuLogger.log( "mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過", ) | TODO |
+| js/ukagaka-core.js | 572 | mpuLogger.log | logsDebug | ukagakaCoreLog572 | mpu_nextmsg: 對話模式中，跳過自動對話 | TODO | none | mpuLogger.log("mpu_nextmsg: 對話模式中，跳過自動對話") | TODO |
+| js/ukagaka-core.js | 581 | mpuLogger.log | logsDebug | ukagakaCoreLog581 | mpu_nextmsg: 裝飾物/觸摸對話進行中，跳過自動對話 | TODO | none | mpuLogger.log("mpu_nextmsg: 裝飾物/觸摸對話進行中，跳過自動對話") | TODO |
+| js/ukagaka-core.js | 586 | mpuLogger.log | logsDebug | ukagakaCoreLog586 | mpu_nextmsg: 自動對話已關閉，退出 | TODO | none | mpuLogger.log("mpu_nextmsg: 自動對話已關閉，退出") | TODO |
+| js/ukagaka-core.js | 592 | mpuLogger.log | logsDebug | ukagakaCoreLog592 | 🌙 睡眠模式且尚未被喚醒：跳過 / 觸發的對話，只接受 OK 鈕觸發 | TODO | dynamic args present | mpuLogger.log( "🌙 睡眠模式且尚未被喚醒：跳過", trigger, "觸發的對話，只接受 OK 鈕觸發", ) | TODO |
+| js/ukagaka-core.js | 605 | mpuLogger.log | logsDebug | ukagakaCoreLog605 | mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話 | TODO | none | mpuLogger.log("mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話") | TODO |
+| js/ukagaka-core.js | 611 | mpuLogger.log | logsDebug | ukagakaCoreLog611 | mpu_nextmsg: 頁面感知已排程，跳過 startup 以避免 BOT 對話覆蓋 | TODO | none | mpuLogger.log("mpu_nextmsg: 頁面感知已排程，跳過 startup 以避免 BOT 對話覆蓋") | TODO |
+| js/ukagaka-core.js | 617 | mpuLogger.log | logsDebug | ukagakaCoreLog617 | mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動/啟動對話 | TODO | none | mpuLogger.log("mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動/啟動對話") | TODO |
+| js/ukagaka-core.js | 623 | mpuLogger.log | logsDebug | ukagakaCoreLog623 | mpu_nextmsg: Ollama 正在處理請求，自動觸發的請求被跳過 | TODO | none | mpuLogger.log("mpu_nextmsg: Ollama 正在處理請求，自動觸發的請求被跳過") | TODO |
+| js/ukagaka-core.js | 627 | mpuLogger.log | logsDebug | ukagakaCoreLog627 | mpu_nextmsg: Ollama 正在處理請求，此請求加入佇列 | TODO | none | mpuLogger.log("mpu_nextmsg: Ollama 正在處理請求，此請求加入佇列") | TODO |
+| js/ukagaka-core.js | 630 | mpuLogger.log | logsDebug | ukagakaCoreLog630 | mpu_nextmsg: 佇列已滿，跳過此請求 | TODO | none | mpuLogger.log("mpu_nextmsg: 佇列已滿，跳過此請求") | TODO |
+| js/ukagaka-core.js | 646 | mpuLogger.log | logsDebug | ukagakaCoreLog646 | mpu_nextmsg: 使用 LLM 生成對話 | TODO | none | mpuLogger.log("mpu_nextmsg: 使用 LLM 生成對話") | TODO |
+| js/ukagaka-core.js | 686 | mpuLogger.log | logsDebug | ukagakaCoreLog686 | mpu_nextmsg: 發送 LLM POST 請求到 | TODO | dynamic args present | mpuLogger.log("mpu_nextmsg: 發送 LLM POST 請求到", mpuRestUrl + "nextmsg") | TODO |
+| js/ukagaka-core.js | 697 | mpuLogger.log | logsDebug | ukagakaCoreLog697 | mpu_nextmsg: LLM 回應 = | TODO | dynamic args present | mpuLogger.log("mpu_nextmsg: LLM 回應 =", res) | TODO |
+| js/ukagaka-core.js | 700 | mpuLogger.log | logsDebug | ukagakaCoreLog700 | mpu_nextmsg: LLM 回應被阻擋（頁面感知 AI 正在進行中），跳過顯示 | TODO | none | mpuLogger.log( "mpu_nextmsg: LLM 回應被阻擋（頁面感知 AI 正在進行中），跳過顯示", ) | TODO |
+| js/ukagaka-core.js | 797 | mpuLogger.log | logsDebug | ukagakaCoreLog797 | mpu_nextmsg: 自發對話已加入對話歷史，當前歷史長度: | TODO | dynamic args present | mpuLogger.log( "mpu_nextmsg: 自發對話已加入對話歷史，當前歷史長度:", window.mpuChatHistory.length, ) | TODO |
+| js/ukagaka-core.js | 803 | mpuLogger.log | logsDebug | ukagakaCoreLog803 | mpu_nextmsg: 對話歷史已儲存 | TODO | none | mpuLogger.log("mpu_nextmsg: 對話歷史已儲存") | TODO |
+| js/ukagaka-core.js | 805 | mpuLogger.warn | logsDebug | ukagakaCoreWarn805 | mpu_nextmsg: mpu_saveChatHistory 函數不存在，無法儲存對話歷史 | TODO | none | mpuLogger.warn( "mpu_nextmsg: mpu_saveChatHistory 函數不存在，無法儲存對話歷史", ) | TODO |
+| js/ukagaka-core.js | 810 | mpuLogger.warn | logsDebug | ukagakaCoreWarn810 | mpu_nextmsg: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史 | TODO | none | mpuLogger.warn( "mpu_nextmsg: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史", ) | TODO |
+| js/ukagaka-core.js | 821 | mpuLogger.log | logsDebug | ukagakaCoreLog821 | mpu_nextmsg: LLM 回應完成，等待打字完成後啟動自動對話計時器 | TODO | none | mpuLogger.log( "mpu_nextmsg: LLM 回應完成，等待打字完成後啟動自動對話計時器", ) | TODO |
+| js/ukagaka-core.js | 826 | mpuLogger.log | logsDebug | ukagakaCoreLog826 | mpu_nextmsg: 打字完成，現在啟動自動對話計時器 | TODO | none | mpuLogger.log("mpu_nextmsg: 打字完成，現在啟動自動對話計時器") | TODO |
+| js/ukagaka-core.js | 832 | mpuLogger.warn | logsDebug | ukagakaCoreWarn832 | mpu_nextmsg: LLM 回應沒有 msg | TODO | dynamic args present | mpuLogger.warn("mpu_nextmsg: LLM 回應沒有 msg", res) | TODO |
+| js/ukagaka-core.js | 871 | mpuLogger.warn | logsDebug | ukagakaCoreWarn871 | mpu_nextmsg: LLM 回應沒有 msg，使用後備對話 | TODO | none | mpuLogger.warn("mpu_nextmsg: LLM 回應沒有 msg，使用後備對話") | TODO |
+| js/ukagaka-core.js | 878 | mpuLogger.log | logsDebug | ukagakaCoreLog878 | mpu_nextmsg: fallback 完成，等待打字完成後啟動計時器 | TODO | none | mpuLogger.log( "mpu_nextmsg: fallback 完成，等待打字完成後啟動計時器", ) | TODO |
+| js/ukagaka-core.js | 899 | mpuLogger.log | logsDebug | ukagakaCoreLog899 | mpu_nextmsg: 出錯，等待打字完成後啟動計時器 | TODO | none | mpuLogger.log("mpu_nextmsg: 出錯，等待打字完成後啟動計時器") | TODO |
+| js/ukagaka-core.js | 908 | mpuLogger.log | logsDebug | ukagakaCoreLog908 | mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過 | TODO | none | mpuLogger.log( "mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過", ) | TODO |
+| js/ukagaka-core.js | 940 | mpuLogger.warn | logsDebug | ukagakaCoreWarn940 | mpu_nextmsg: 對話尚未載入，等待載入完成... | TODO | none | mpuLogger.warn("mpu_nextmsg: 對話尚未載入，等待載入完成...") | TODO |
+| js/ukagaka-core.js | 952 | mpuLogger.warn | logsDebug | ukagakaCoreWarn952 | mpu_nextmsg: 對話載入超時，已重試 3 次 | TODO | none | mpuLogger.warn("mpu_nextmsg: 對話載入超時，已重試 3 次") | TODO |
+| js/ukagaka-core.js | 966 | mpuLogger.warn | logsDebug | ukagakaCoreWarn966 | mpu_nextmsg: 無法顯示對話 - | TODO | template literal; convert to *F; dynamic args present | mpuLogger.warn("mpu_nextmsg: 無法顯示對話 -", { store: store ? "exists" : "null", msgArray: store && Array.isArray(store.msg) ? `length=${store.ms | TODO |
+| js/ukagaka-core.js | 1031 | mpuLogger.log | logsDebug | ukagakaCoreLog1031 | mpu_nextmsg: 傳統對話，等待打字完成後啟動計時器 | TODO | none | mpuLogger.log("mpu_nextmsg: 傳統對話，等待打字完成後啟動計時器") | TODO |
+| js/ukagaka-core.js | 1045 | mpuLogger.log | logsDebug | ukagakaCoreLog1045 | mpu_nextmsg_fallback: 被阻擋（頁面感知 AI 正在進行中），跳過顯示 | TODO | none | mpuLogger.log( "mpu_nextmsg_fallback: 被阻擋（頁面感知 AI 正在進行中），跳過顯示", ) | TODO |
+| js/ukagaka-core.js | 1054 | mpuLogger.warn | logsDebug | ukagakaCoreWarn1054 | mpu_nextmsg_fallback: 對話尚未載入，等待載入完成... | TODO | none | mpuLogger.warn("mpu_nextmsg_fallback: 對話尚未載入，等待載入完成...") | TODO |
+| js/ukagaka-core.js | 1066 | mpuLogger.warn | logsDebug | ukagakaCoreWarn1066 | mpu_nextmsg_fallback: 對話載入超時，已重試 2 次 | TODO | none | mpuLogger.warn("mpu_nextmsg_fallback: 對話載入超時，已重試 2 次") | TODO |
+| js/ukagaka-core.js | 1080 | mpuLogger.warn | logsDebug | ukagakaCoreWarn1080 | mpu_nextmsg_fallback: 無法顯示後備對話 - | TODO | template literal; convert to *F; dynamic args present | mpuLogger.warn("mpu_nextmsg_fallback: 無法顯示後備對話 -", { store: store ? "exists" : "null", msgArray: store && Array.isArray(store.msg) ? `length | TODO |
+| js/ukagaka-core.js | 1218 | mpuLogger.warn | logsDebug | ukagakaCoreWarn1218 | mpuChange: Canvas 管理器在 Ajax 成功後才發現不存在，這不應該發生 | TODO | none | mpuLogger.warn( "mpuChange: Canvas 管理器在 Ajax 成功後才發現不存在，這不應該發生", ) | TODO |
+| js/ukagaka-dialog.js | 46 | mpuLogger.log | logsDebug | ukagakaDialogLog46 | 🌙 睡眠模式：檢測到睡眠訊息，跳過載入訊息顯示 | TODO | none | mpuLogger.log("🌙 睡眠模式：檢測到睡眠訊息，跳過載入訊息顯示") | TODO |
+| js/ukagaka-dialog.js | 70 | mpuLogger.warn | logsDebug | ukagakaDialogWarn70 | loadExternalDialog: 對話文件為空 | TODO | none | mpuLogger.warn("loadExternalDialog: 對話文件為空") | TODO |
+| js/ukagaka-dialog.js | 78 | mpuLogger.log | logsDebug | ukagakaDialogLog78 | loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成 | TODO | none | mpuLogger.log( "loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成", ) | TODO |
+| js/ukagaka-dialog.js | 98 | mpuLogger.log | logsDebug | ukagakaDialogLog98 | loadExternalDialog: LLM 取代對話模式，已載入後備對話數據，但不顯示第一句 | TODO | none | mpuLogger.log( "loadExternalDialog: LLM 取代對話模式，已載入後備對話數據，但不顯示第一句", ) | TODO |
+| js/ukagaka-dialog.js | 121 | mpuLogger.log | logsDebug | ukagakaDialogLog121 | loadExternalDialog: 嘗試重複顯示第一句對話，已阻止 | TODO | none | mpuLogger.log( "loadExternalDialog: 嘗試重複顯示第一句對話，已阻止", ) | TODO |
+| js/ukagaka-dialog.js | 132 | mpuLogger.log | logsDebug | ukagakaDialogLog132 | 🌙 睡眠模式且尚未被喚醒：跳過第一句內建對話，保持睡眠訊息 | TODO | none | mpuLogger.log( "🌙 睡眠模式且尚未被喚醒：跳過第一句內建對話，保持睡眠訊息", ) | TODO |
+| js/ukagaka-dialog.js | 186 | mpuLogger.warn | logsDebug | ukagakaDialogWarn186 | loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 - | TODO | dynamic args present | mpuLogger.warn( "loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 -", errorMsg, ) | TODO |
+| js/ukagaka-dialog.js | 211 | mpuLogger.warn | logsDebug | ukagakaDialogWarn211 | loadExternalDialog: 載入失敗，設置空的 mpuMsgList 作為後備 | TODO | none | mpuLogger.warn( "loadExternalDialog: 載入失敗，設置空的 mpuMsgList 作為後備", ) | TODO |
+| js/ukagaka-emoji.js | 38 | mpuLogger.log | logsDebug | ukagakaEmojiLog38 | mpuEmojiManager: 表情基礎路徑未設定 | TODO | none | mpuLogger.log('mpuEmojiManager: 表情基礎路徑未設定') | TODO |
+| js/ukagaka-emoji.js | 50 | mpuLogger.log | logsDebug | ukagakaEmojiLog50 | mpuEmojiManager: 找不到 #ukagaka_img 容器 | TODO | none | mpuLogger.log('mpuEmojiManager: 找不到 #ukagaka_img 容器') | TODO |
+| js/ukagaka-emoji.js | 84 | mpuLogger.warn | logsDebug | ukagakaEmojiWarn84 | mpuEmojiManager: 表情圖片載入失敗: | TODO | dynamic args present | mpuLogger.warn('mpuEmojiManager: 表情圖片載入失敗:', emojiUrl) | TODO |
+| js/ukagaka-emoji.js | 99 | mpuLogger.log | logsDebug | ukagakaEmojiLog99 | mpuEmojiManager: 顯示表情: | TODO | dynamic args present | mpuLogger.log('mpuEmojiManager: 顯示表情:', emojiName) | TODO |
+| js/ukagaka-emoji.js | 216 | mpuLogger.log | logsDebug | ukagakaEmojiLog216 | mpuEmojiManager: 移除表情 | TODO | none | mpuLogger.log('mpuEmojiManager: 移除表情') | TODO |
+| js/ukagaka-features.js | 3 | mpuLogger.log | logsDebug | ukagakaFeaturesLog3 | jQuery ready 已執行 | TODO | none | mpuLogger.log("jQuery ready 已執行") | TODO |
+| js/ukagaka-features.js | 7 | mpuLogger.error | logs | jqueryCookieInitFailed | 無法初始化 jQuery.cookie，某些功能可能無法正常工作 | jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります | none | mpuLogger.error("無法初始化 jQuery.cookie，某些功能可能無法正常工作") | console log. jQuery.cookie 初期化失敗により cookie 依存機能が使えない可能性がある状態。 |
+| js/ukagaka-features.js | 9 | mpuLogger.log | logsDebug | ukagakaFeaturesLog9 | jQuery.cookie 已成功初始化 | TODO | none | mpuLogger.log("jQuery.cookie 已成功初始化") | TODO |
+| js/ukagaka-features.js | 29 | mpuLogger.log | logsDebug | ukagakaFeaturesLog29 | LLM 取代對話已啟用，但仍載入內建對話作為後備 | TODO | none | mpuLogger.log("LLM 取代對話已啟用，但仍載入內建對話作為後備") | TODO |
+| js/ukagaka-features.js | 74 | mpuLogger.log | logsDebug | ukagakaFeaturesLog74 | processSettings: 已處理過設定，跳過重複調用 | TODO | none | mpuLogger.log("processSettings: 已處理過設定，跳過重複調用") | TODO |
+| js/ukagaka-features.js | 80 | mpuLogger.warn | logsDebug | ukagakaFeaturesWarn80 | mpu_get_settings: 無效的回應 | TODO | dynamic args present | mpuLogger.warn("mpu_get_settings: 無效的回應", res) | TODO |
+| js/ukagaka-features.js | 84 | mpuLogger.log | logsDebug | ukagakaFeaturesLog84 | mpu_get_settings: 收到設定 = | TODO | dynamic args present | mpuLogger.log("mpu_get_settings: 收到設定 =", JSON.stringify(res)) | TODO |
+| js/ukagaka-features.js | 88 | mpuLogger.log | logsDebug | ukagakaFeaturesLog88 | mpu_get_settings: 設置 mpuAutoTalk = | TODO | dynamic args present | mpuLogger.log("mpu_get_settings: 設置 mpuAutoTalk =", mpuAutoTalk) | TODO |
+| js/ukagaka-features.js | 117 | mpuLogger.log | logsDebug | ukagakaFeaturesLog117 | 🌙 睡眠模式啟用（00:00~06:00），間隔調整為 / ms（原始: | TODO | dynamic args present | mpuLogger.log("🌙 睡眠模式啟用（00:00~06:00），間隔調整為", interval, "ms（原始:", baseInterval, "ms）") | TODO |
+| js/ukagaka-features.js | 122 | mpuLogger.log | logsDebug | ukagakaFeaturesLog122 | mpu_get_settings: 設置 mpuAutoTalkInterval = | TODO | dynamic args present | mpuLogger.log("mpu_get_settings: 設置 mpuAutoTalkInterval =", mpuAutoTalkInterval, "ms") | TODO |
+| js/ukagaka-features.js | 132 | mpuLogger.log | logsDebug | ukagakaFeaturesLog132 | LLM 取代對話設定: / 啟用 / 停用 / ，互動對話模式: / 啟用 / 停用 | TODO | none | mpuLogger.log( "LLM 取代對話設定: " + (mpuOllamaReplaceDialogue ? "啟用" : "停用") + "，互動對話模式: " + (mpuIsChatModeEnabled() ? "啟用" : "停用") ) | TODO |
+| js/ukagaka-features.js | 150 | mpuLogger.log | logsDebug | ukagakaFeaturesLog150 | 🌙 睡眠模式：跳過初始 LLM 對話觸發，保持睡眠訊息顯示 | TODO | none | mpuLogger.log("🌙 睡眠模式：跳過初始 LLM 對話觸發，保持睡眠訊息顯示") | TODO |
+| js/ukagaka-features.js | 151 | mpuLogger.log | logsDebug | ukagakaFeaturesLog151 | 🌙 睡眠訊息將保持顯示，直到自動對話計時器觸發（約 / 秒後） | TODO | none | mpuLogger.log("🌙 睡眠訊息將保持顯示，直到自動對話計時器觸發（約 " + Math.round(mpuGetBaseAutoTalkInterval() / 0.0667 / 1000) + " 秒後）") | TODO |
+| js/ukagaka-features.js | 154 | mpuLogger.log | logsDebug | ukagakaFeaturesLog154 | LLM 取代對話已啟用，等待初始訊息完成後觸發 LLM 對話 | TODO | none | mpuLogger.log("LLM 取代對話已啟用，等待初始訊息完成後觸發 LLM 對話") | TODO |
+| js/ukagaka-features.js | 167 | mpuLogger.log | logsDebug | ukagakaFeaturesLog167 | mpu_get_settings: 準備調用 startAutoTalk/stopAutoTalk, mpuAutoTalk = | TODO | dynamic args present | mpuLogger.log("mpu_get_settings: 準備調用 startAutoTalk/stopAutoTalk, mpuAutoTalk =", mpuAutoTalk, ", shouldDelayAutoTalk =", shouldDelayAutoTal | TODO |
+| js/ukagaka-features.js | 234 | mpuLogger.log | logsDebug | ukagakaFeaturesLog234 | 頁面感知 AI 已啟用，觸發頁面條件 = | TODO | dynamic args present | mpuLogger.log("頁面感知 AI 已啟用，觸發頁面條件 =", res.ai_trigger_pages) | TODO |
+| js/ukagaka-features.js | 237 | mpuLogger.log | logsDebug | ukagakaFeaturesLog237 | 頁面感知檢查結果: shouldTrigger = | TODO | dynamic args present | mpuLogger.log("頁面感知檢查結果: shouldTrigger =", shouldTrigger) | TODO |
+| js/ukagaka-features.js | 243 | mpuLogger.log | logsDebug | ukagakaFeaturesLog243 | 頁面感知機率檢查: 設定機率 = / %, 骰子 = / , 觸發 = | TODO | dynamic args present | mpuLogger.log( "頁面感知機率檢查: 設定機率 =", probability, "%, 骰子 =", roll, ", 觸發 =", roll <= probability ) | TODO |
+| js/ukagaka-features.js | 253 | mpuLogger.log | logsDebug | ukagakaFeaturesLog253 | 頁面感知 AI 將在 3 秒後觸發 | TODO | none | mpuLogger.log("頁面感知 AI 將在 3 秒後觸發") | TODO |
+| js/ukagaka-features.js | 262 | mpuLogger.log | logsDebug | ukagakaFeaturesLog262 | 頁面感知 AI 未通過機率檢查，不觸發 | TODO | none | mpuLogger.log("頁面感知 AI 未通過機率檢查，不觸發") | TODO |
+| js/ukagaka-features.js | 265 | mpuLogger.log | logsDebug | ukagakaFeaturesLog265 | 頁面感知 AI 未通過頁面類型檢查，不觸發 | TODO | none | mpuLogger.log("頁面感知 AI 未通過頁面類型檢查，不觸發") | TODO |
+| js/ukagaka-features.js | 268 | mpuLogger.log | logsDebug | ukagakaFeaturesLog268 | 頁面感知 AI 未啟用（ai_enabled = | TODO | dynamic args present | mpuLogger.log("頁面感知 AI 未啟用（ai_enabled =", res.ai_enabled, "）") | TODO |
+| js/ukagaka-features.js | 274 | mpuLogger.log | logsDebug | ukagakaFeaturesLog274 | 使用預載設定資料 | TODO | none | mpuLogger.log("使用預載設定資料") | TODO |
+| js/ukagaka-features.js | 280 | mpuLogger.log | logsDebug | ukagakaFeaturesLog280 | 從 mpuInitComplete 事件獲取設定 | TODO | none | mpuLogger.log("從 mpuInitComplete 事件獲取設定") | TODO |
+| js/ukagaka-features.js | 288 | mpuLogger.log | logsDebug | ukagakaFeaturesLog288 | Fallback: 發送獨立 mpu_get_settings AJAX | TODO | none | mpuLogger.log("Fallback: 發送獨立 mpu_get_settings AJAX") | TODO |
+| js/ukagaka-features.js | 457 | mpuLogger.log | logsDebug | ukagakaFeaturesLog457 | 🔄 SPA 導航：頁面內容已更換 | TODO | dynamic args present | mpuLogger.log("🔄 SPA 導航：頁面內容已更換", url) | TODO |
+| js/ukagaka-features.js | 479 | mpuLogger.log | logsDebug | ukagakaFeaturesLog479 | 🎲 SPA 頁面感知檢查：機率 = / , 骰子 = / , 觸發 = | TODO | dynamic args present | mpuLogger.log( "🎲 SPA 頁面感知檢查：機率 =", probability, ", 骰子 =", roll, ", 觸發 =", roll <= probability ) | TODO |
+| js/ukagaka-features.js | 504 | mpuLogger.log | logsDebug | ukagakaFeaturesLog504 | 腳本載入完成 | TODO | none | mpuLogger.log("腳本載入完成") | TODO |
+| js/ukagaka-greeting.js | 12 | mpuLogger.log | logsDebug | ukagakaGreetingLog12 | 🌙 睡眠模式：跳過初次訪客打招呼，讓角色好好休息 | TODO | none | mpuLogger.log("🌙 睡眠模式：跳過初次訪客打招呼，讓角色好好休息") | TODO |
+| js/ukagaka-greeting.js | 32 | mpuLogger.log | logsDebug | ukagakaGreetingLog32 | 訪客資訊: / 無 / 無 / 無 / 無 | TODO | dynamic args present | mpuLogger.log("訪客資訊:", { referrer: visitorInfo.referrer \|\| "無", referrer_host: visitorInfo.referrer_host \|\| "無", search_engine: visitorInfo. | TODO |
+| js/ukagaka-greeting.js | 130 | mpuLogger.log | logsDebug | ukagakaGreetingLog130 | mpu_greet_first_visitor: 問候已加入歷史並儲存 | TODO | none | mpuLogger.log("mpu_greet_first_visitor: 問候已加入歷史並儲存") | TODO |
+| js/ukagaka-greeting.js | 132 | mpuLogger.warn | logsDebug | ukagakaGreetingWarn132 | mpu_greet_first_visitor: mpu_saveChatHistory 函數不存在，無法儲存對話歷史 | TODO | none | mpuLogger.warn( "mpu_greet_first_visitor: mpu_saveChatHistory 函數不存在，無法儲存對話歷史", ) | TODO |
+| js/ukagaka-greeting.js | 137 | mpuLogger.warn | logsDebug | ukagakaGreetingWarn137 | mpu_greet_first_visitor: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史 | TODO | none | mpuLogger.warn( "mpu_greet_first_visitor: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史", ) | TODO |
+| js/ukagaka-greeting.js | 164 | mpuLogger.warn | logsDebug | ukagakaGreetingWarn164 | 首次訪客打招呼失敗: | TODO | dynamic args present | mpuLogger.warn("首次訪客打招呼失敗:", res) | TODO |
 
 ## Excluded / Backlog Rows
 
-| Source file | Line | Channel | Bucket | Key | Original | Reason |
-| --- | ---: | --- | --- | --- | --- | --- |
-| ghost/Frieren/frieren.js | 1196 | mpuLogger.error | logs | frierenError1196 | 装飾品対話リクエストに失敗しました: | Japanese source/backlog |
+| Source file | Line | Channel | Bucket | Key | Original | Call preview | Reason |
+| --- | ---: | --- | --- | --- | --- | --- | --- |
+| ghost/Frieren/frieren.js | 1196 | mpuLogger.error | logs | frierenDecorationDialogRequestFailed | 装飾品対話リクエストに失敗しました: | mpuLogger.error("装飾品対話リクエストに失敗しました:", error) | Japanese source/backlog |
