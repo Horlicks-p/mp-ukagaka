@@ -320,8 +320,45 @@ function mpuSetDialogDefaultMsg(defaultMsg) {
  * 在生產環境中自動過濾調試訊息，只保留錯誤訊息
  */
 const mpuLogger = {
+    _missingI18nKeys: new Set(),
     _isDebug: function () {
         return mpuIsDebugMode();
+    },
+    _getLogBuckets: function () {
+        const l10n = (typeof window !== "undefined" && window.mpuL10n) || {};
+        return {
+            logs: l10n.logs && typeof l10n.logs === "object" ? l10n.logs : {},
+            logsDebug: l10n.logsDebug && typeof l10n.logsDebug === "object" ? l10n.logsDebug : {},
+        };
+    },
+    t: function (key, fallback) {
+        const buckets = this._getLogBuckets();
+        if (Object.prototype.hasOwnProperty.call(buckets.logs, key)) {
+            return buckets.logs[key];
+        }
+        if (Object.prototype.hasOwnProperty.call(buckets.logsDebug, key)) {
+            return buckets.logsDebug[key];
+        }
+        if (this._isDebug() && !this._missingI18nKeys.has(key)) {
+            this._missingI18nKeys.add(key);
+            console.warn('[MP Ukagaka]', 'Missing console log i18n key:', key);
+        }
+        return typeof fallback === "undefined" ? "" : String(fallback);
+    },
+    tFormat: function (key, fallback, ...values) {
+        const tpl = this.t(key, fallback);
+        if (/%\d+\$[sd]/.test(tpl)) {
+            return tpl.replace(/%(\d+)\$[sd]/g, function (match, index) {
+                const valueIndex = parseInt(index, 10) - 1;
+                return valueIndex >= 0 && valueIndex < values.length ? String(values[valueIndex]) : "";
+            });
+        }
+        let valueIndex = 0;
+        return tpl.replace(/%[sd]/g, function () {
+            const value = valueIndex < values.length ? values[valueIndex] : "";
+            valueIndex += 1;
+            return String(value);
+        });
     },
     log: function (...args) {
         if (this._isDebug()) { console.log('[MP Ukagaka]', ...args); }
@@ -334,6 +371,36 @@ const mpuLogger = {
     },
     info: function (...args) {
         if (this._isDebug()) { console.info('[MP Ukagaka]', ...args); }
+    },
+    logL: function (key, fallback, ...args) {
+        if (this._isDebug()) { console.log('[MP Ukagaka]', this.t(key, fallback), ...args); }
+    },
+    warnL: function (key, fallback, ...args) {
+        if (this._isDebug()) { console.warn('[MP Ukagaka]', this.t(key, fallback), ...args); }
+    },
+    errorL: function (key, fallback, ...args) {
+        console.error('[MP Ukagaka ERROR]', this.t(key, fallback), ...args);
+    },
+    infoL: function (key, fallback, ...args) {
+        if (this._isDebug()) { console.info('[MP Ukagaka]', this.t(key, fallback), ...args); }
+    },
+    logF: function (key, fallback, ...values) {
+        if (this._isDebug()) { console.log('[MP Ukagaka]', this.tFormat(key, fallback, ...values)); }
+    },
+    warnF: function (key, fallback, ...values) {
+        if (this._isDebug()) { console.warn('[MP Ukagaka]', this.tFormat(key, fallback, ...values)); }
+    },
+    errorF: function (key, fallback, ...values) {
+        console.error('[MP Ukagaka ERROR]', this.tFormat(key, fallback, ...values));
+    },
+    infoF: function (key, fallback, ...values) {
+        if (this._isDebug()) { console.info('[MP Ukagaka]', this.tFormat(key, fallback, ...values)); }
+    },
+    warnAlways: function (key, fallback, ...args) {
+        console.warn('[MP Ukagaka]', this.t(key, fallback), ...args);
+    },
+    warnAlwaysF: function (key, fallback, ...values) {
+        console.warn('[MP Ukagaka]', this.tFormat(key, fallback, ...values));
     }
 };
 

@@ -535,8 +535,12 @@ function mpu_enqueue_frontend_assets()
     // 根據模式選擇正確的 script handle
     // 修正：掛載到更基礎的 handle (mpu-core)，確保 mpu-chat 等依賴它的腳本能讀取到 mpuL10n
     $l10n_handle = $use_bundle ? 'mpu-bundle' : 'mpu-core';
-    
-    wp_localize_script($l10n_handle, 'mpuL10n', [
+
+    $log_i18n = function_exists('mpu_console_log_i18n_builder')
+        ? mpu_console_log_i18n_builder()
+        : null;
+
+    $l10n = [
         // AI 相關訊息
         'loadingArticle' => __('（…ああ、記事か。どれどれ…）', 'mp-ukagaka'),
         'loadingOwnDiary' => __('（…あ、これ私の…）', 'mp-ukagaka'),
@@ -573,7 +577,14 @@ function mpu_enqueue_frontend_assets()
             'timeout'   => __('タイムアウト', 'mp-ukagaka'),
             'busy'      => __('混雑中…', 'mp-ukagaka'),
         ],
-    ]);
+        'logs' => $log_i18n ? $log_i18n->logs() : [],
+    ];
+
+    if (mpu_is_frontend_debug_mode()) {
+        $l10n['logsDebug'] = $log_i18n ? $log_i18n->logs_debug() : [];
+    }
+
+    wp_localize_script($l10n_handle, 'mpuL10n', $l10n);
 }
 add_action('wp_enqueue_scripts', 'mpu_enqueue_frontend_assets');
 

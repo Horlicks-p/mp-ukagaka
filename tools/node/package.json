@@ -9,9 +9,10 @@
   },
   "scripts": {
     "build": "cd ../.. && node tools/node/build.js",
+    "test:logger": "cd ../.. && node tools/node/test-logger-smoke.js",
     "lint:php": "cd ../.. && php -r \"$e=0;foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('includes')) as $f){if($f->getExtension()==='php'){$r=0;passthru('php -l '.escapeshellarg($f),$r);$e|=$r;}}foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('options')) as $f){if($f->getExtension()==='php'){$r=0;passthru('php -l '.escapeshellarg($f),$r);$e|=$r;}}$r=0;passthru('php -l mp-ukagaka.php',$r);$e|=$r;exit($e);\"",
     "test:php": "cd ../../tests && php ../tools/php/vendor/bin/phpunit --colors=always",
-    "verify": "npm run lint:php && npm run build && npm run test:php",
+    "verify": "npm run lint:php && npm run test:logger && npm run build && npm run test:php",
     "test": "npm run test:php"
   },
   "repository": {

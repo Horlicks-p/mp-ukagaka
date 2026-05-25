@@ -73,6 +73,7 @@ function mpu_load_modules()
         'core/runtime-state-functions.php',
         'core/class-mpu-input-role.php', // LLM / tool input role resolver
         'core/class-mpu-observation-buffer.php', // Session-scoped volatile visitor activity buffer
+        'core/class-mpu-log-i18n-builder.php', // Front-end console log i18n payload builder
         'personality/personality-loader.php',  // 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
         'personality/personality-prompts.php', // 人格提示詞模組（動態提示詞、變數替換）
         'personality/personality-decorations.php', // 裝飾物系統
