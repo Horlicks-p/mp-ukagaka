@@ -576,7 +576,7 @@ function mpu_enqueue_frontend_assets()
         /* translators: console log. The request error object is logged as an additional console argument. */
         $log_i18n->always('frierenTouchZoneDialogRequestFailed', __('タッチ領域の会話リクエストに失敗しました', 'mp-ukagaka'), ['scope' => 'frieren']);
         /* translators: console log. The decoration dialog request error object is logged as an additional console argument. */
-        $log_i18n->always('frierenDecorationDialogRequestFailed', __('装飾品対話リクエストに失敗しました', 'mp-ukagaka'), ['scope' => 'frieren']);
+        $log_i18n->always('frierenDecorationDialogRequestFailed', __('装飾品会話リクエストに失敗しました', 'mp-ukagaka'), ['scope' => 'frieren']);
         /* translators: console log. jQuery.cookie initialization failed, so cookie-dependent features may not work. */
         $log_i18n->always('jqueryCookieInitFailed', __('jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります', 'mp-ukagaka'));
         /* translators: debug console log. Browser reload cleared chat history and the chat session ID. */
