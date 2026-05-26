@@ -273,13 +273,13 @@ function startAutoTalk() {
   mpuLogger.logF("autoTalkTimerSet", "startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s", currentInterval, mpuAutoTalk);
   mpuSetAutoTalkTimer(setTimeout(function () {
     mpuSetAutoTalkTimer(null); // 清除計時器引用，表示已觸發
-    mpuLogger.logF("autoTalkTimerTriggered", "自動会話タイマーが発火しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s", mpuAutoTalk, mpuOllamaReplaceDialogue);
+    mpuLogger.logF("autoTalkTimerTriggered", "自動会話タイマーが作動しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s", mpuAutoTalk, mpuOllamaReplaceDialogue);
 
     // 閒置檢查：如果用戶閒置超過閾值，跳過本次自動對話
     const now = Date.now();
     const idleTime = now - mpuLastUserActionTime;
     if (idleTime > mpuIdleThreshold) {
-      mpuLogger.logF("autoTalkSkippedUserIdle", "ユーザーがアイドル状態です（%s 秒）。今回の自動会話をスキップします", Math.floor(idleTime / 1000));
+      mpuLogger.logF("autoTalkSkippedUserIdle", "ユーザーが無操作状態です（%s 秒）。今回の自動会話をスキップします", Math.floor(idleTime / 1000));
       // 雖然跳過，但仍需重新啟動計時器以檢測下一次
       if (mpuAutoTalk) startAutoTalk();
       return;

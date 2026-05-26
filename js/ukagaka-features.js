@@ -145,7 +145,7 @@ jQuery(document).ready(function () {
         // 睡眠模式下，完全跳過初始的 LLM 對話觸發
         // 讓睡眠訊息保持顯示，直到自動對話計時器自然觸發（約 300 秒後）
         mpuLogger.logL("featuresSleepModeSkipInitialLlmTrigger", "🌙 睡眠モード：初回 LLM 会話トリガーをスキップし、睡眠メッセージの表示を維持します");
-        mpuLogger.logF("featuresSleepMessageRetainedUntilAutoTalk", "🌙 睡眠メッセージは自動会話タイマーが発火するまで表示を維持します（約 %s 秒後）", Math.round(mpuGetBaseAutoTalkInterval() / 0.0667 / 1000));
+        mpuLogger.logF("featuresSleepMessageRetainedUntilAutoTalk", "🌙 睡眠メッセージは自動会話タイマーが作動するまで表示を維持します（約 %s 秒後）", Math.round(mpuGetBaseAutoTalkInterval() / 0.0667 / 1000));
       } else {
         // 正常模式下，立即觸發 LLM 對話
       mpuLogger.logL("featuresLlmReplaceDialogueDelayInitialTrigger", "LLM 置換会話が有効です。初期メッセージの完了後に LLM 会話をトリガーします");

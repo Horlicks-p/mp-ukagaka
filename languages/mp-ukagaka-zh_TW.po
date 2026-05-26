@@ -1053,7 +1053,7 @@ msgstr "預覽資料不符，請重新上傳。"
 #: includes/admin-functions.php:546
 #: includes/admin-functions.php:581
 msgid "キャラクターの作成に成功しました"
-msgstr "春菜創建成功"
+msgstr "偽春菜創建成功"
 
 #: includes/admin-functions.php:547
 msgid "「キャラクター一覧」ページでダイアログファイルなどの設定を行ってください。"
@@ -1941,13 +1941,13 @@ msgstr "startAutoTalk: 設置計時器，間隔 =%1$s?%2$s"
 #. translators: debug console log. %1$s is the auto-talk flag, %2$s is the LLM replacement flag.
 #: includes/core/frontend-functions.php:595
 #, php-format
-msgid "自動会話タイマーが発火しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s"
+msgid "自動会話タイマーが作動しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s"
 msgstr "自動對話計時器觸發, mpuAutoTalk =%1$s?%2$s"
 
 #. translators: debug console log. %s is the idle duration in seconds.
 #: includes/core/frontend-functions.php:597
 #, php-format
-msgid "ユーザーがアイドル状態です（%s 秒）。今回の自動会話をスキップします"
+msgid "ユーザーが無操作状態です（%s 秒）。今回の自動会話をスキップします"
 msgstr "使用者閒置中（ %s 秒），跳過本次自動對話"
 
 #. translators: debug console log. %1$s is previous state, %2$s is new state, %3$s is the new interval in ms.
@@ -2239,13 +2239,13 @@ msgstr "jQuery 尚未載入，無法初始化 jQuery.cookie"
 
 #. translators: debug console log. jQuery is missing before idle detection initialization.
 #: includes/core/frontend-functions.php:707
-msgid "jQuery がまだ読み込まれていないため、アイドル検出を初期化できません"
+msgid "jQuery がまだ読み込まれていないため、無操作検出を初期化できません"
 msgstr "jQuery 尚未載入，無法初始化閒置偵測"
 
 #. translators: debug console log. %s is the idle threshold in seconds.
 #: includes/core/frontend-functions.php:709
 #, php-format
-msgid "アイドル検出を初期化しました。しきい値：%s 秒"
+msgid "無操作検出を初期化しました。しきい値：%s 秒"
 msgstr "閒置偵測已初始化，閾值： %s 秒"
 
 #. translators: debug console log. Last visit timestamp was updated.
@@ -2307,7 +2307,7 @@ msgstr "jQuery 尚未載入，無法初始化右鍵菜單"
 
 #. translators: debug console log. Context menu opens the character switch menu.
 #: includes/core/frontend-functions.php:731
-msgid "右クリックメニューが発火しました：キャラクター切り替えメニューを表示します"
+msgid "右クリックメニューが作動しました：キャラクター切り替えメニューを表示します"
 msgstr "右鍵菜單觸發：顯示角色切換選單"
 
 #. translators: debug console log. Character change function is unavailable.
@@ -2580,7 +2580,7 @@ msgstr "🌙 睡眠模式：跳過初始 LLM 對話觸發，保持睡眠訊息�
 #. translators: debug console log. %s is the approximate number of seconds until auto-talk triggers.
 #: includes/core/frontend-functions.php:833
 #, php-format
-msgid "🌙 睡眠メッセージは自動会話タイマーが発火するまで表示を維持します（約 %s 秒後）"
+msgid "🌙 睡眠メッセージは自動会話タイマーが作動するまで表示を維持します（約 %s 秒後）"
 msgstr "🌙 睡眠訊息將保持顯示，直到自動對話計時器觸發（約 %s 秒後）"
 
 #. translators: debug console log. LLM dialogue trigger waits for the initial message to finish.

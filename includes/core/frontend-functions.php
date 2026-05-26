@@ -592,9 +592,9 @@ function mpu_enqueue_frontend_assets()
         /* translators: debug console log. %1$s is the timer interval in ms, %2$s is the auto-talk enabled flag. */
         $log_i18n->debug('autoTalkTimerSet', __('startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s', 'mp-ukagaka'));
         /* translators: debug console log. %1$s is the auto-talk flag, %2$s is the LLM replacement flag. */
-        $log_i18n->debug('autoTalkTimerTriggered', __('自動会話タイマーが発火しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s', 'mp-ukagaka'));
+        $log_i18n->debug('autoTalkTimerTriggered', __('自動会話タイマーが作動しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s', 'mp-ukagaka'));
         /* translators: debug console log. %s is the idle duration in seconds. */
-        $log_i18n->debug('autoTalkSkippedUserIdle', __('ユーザーがアイドル状態です（%s 秒）。今回の自動会話をスキップします', 'mp-ukagaka'));
+        $log_i18n->debug('autoTalkSkippedUserIdle', __('ユーザーが無操作状態です（%s 秒）。今回の自動会話をスキップします', 'mp-ukagaka'));
         /* translators: debug console log. %1$s is previous state, %2$s is new state, %3$s is the new interval in ms. */
         $log_i18n->debug('autoTalkSleepModeStateChanged', __('睡眠モード状態が変化しました（%1$s → %2$s）。自動会話を再起動します（新しい間隔: %3$s ms）', 'mp-ukagaka'));
         /* translators: debug console log. A scheduled auto-talk tick is skipped while asleep and not awakened. */
@@ -704,9 +704,9 @@ function mpu_enqueue_frontend_assets()
         /* translators: debug console log. jQuery is missing before jQuery.cookie initialization. */
         $log_i18n->debug('jqueryMissingForCookieInit', __('jQuery がまだ読み込まれていないため、jQuery.cookie を初期化できません', 'mp-ukagaka'));
         /* translators: debug console log. jQuery is missing before idle detection initialization. */
-        $log_i18n->debug('jqueryMissingForIdleDetection', __('jQuery がまだ読み込まれていないため、アイドル検出を初期化できません', 'mp-ukagaka'));
+        $log_i18n->debug('jqueryMissingForIdleDetection', __('jQuery がまだ読み込まれていないため、無操作検出を初期化できません', 'mp-ukagaka'));
         /* translators: debug console log. %s is the idle threshold in seconds. */
-        $log_i18n->debug('idleDetectionInitialized', __('アイドル検出を初期化しました。しきい値：%s 秒', 'mp-ukagaka'));
+        $log_i18n->debug('idleDetectionInitialized', __('無操作検出を初期化しました。しきい値：%s 秒', 'mp-ukagaka'));
         /* translators: debug console log. Last visit timestamp was updated. */
         $log_i18n->debug('lastVisitTimeUpdated', __('最終訪問時刻を更新しました', 'mp-ukagaka'));
         /* translators: debug console log. %s is the caught error value. */
@@ -728,7 +728,7 @@ function mpu_enqueue_frontend_assets()
         /* translators: debug console log. jQuery is missing before context-menu initialization. */
         $log_i18n->debug('jqueryMissingForContextMenu', __('jQuery がまだ読み込まれていないため、右クリックメニューを初期化できません', 'mp-ukagaka'));
         /* translators: debug console log. Context menu opens the character switch menu. */
-        $log_i18n->debug('contextMenuTriggered', __('右クリックメニューが発火しました：キャラクター切り替えメニューを表示します', 'mp-ukagaka'));
+        $log_i18n->debug('contextMenuTriggered', __('右クリックメニューが作動しました：キャラクター切り替えメニューを表示します', 'mp-ukagaka'));
         /* translators: debug console log. Character change function is unavailable. */
         $log_i18n->debug('changeFunctionMissing', __('mpuChange 関数が定義されていません', 'mp-ukagaka'));
         /* translators: debug console log. Context menu initialization completed. */
@@ -830,7 +830,7 @@ function mpu_enqueue_frontend_assets()
         /* translators: debug console log. Initial LLM dialogue trigger is skipped during sleep mode. */
         $log_i18n->debug('featuresSleepModeSkipInitialLlmTrigger', __('🌙 睡眠モード：初回 LLM 会話トリガーをスキップし、睡眠メッセージの表示を維持します', 'mp-ukagaka'));
         /* translators: debug console log. %s is the approximate number of seconds until auto-talk triggers. */
-        $log_i18n->debug('featuresSleepMessageRetainedUntilAutoTalk', __('🌙 睡眠メッセージは自動会話タイマーが発火するまで表示を維持します（約 %s 秒後）', 'mp-ukagaka'));
+        $log_i18n->debug('featuresSleepMessageRetainedUntilAutoTalk', __('🌙 睡眠メッセージは自動会話タイマーが作動するまで表示を維持します（約 %s 秒後）', 'mp-ukagaka'));
         /* translators: debug console log. LLM dialogue trigger waits for the initial message to finish. */
         $log_i18n->debug('featuresLlmReplaceDialogueDelayInitialTrigger', __('LLM 置換会話が有効です。初期メッセージの完了後に LLM 会話をトリガーします', 'mp-ukagaka'));
         /* translators: debug console log. %1$s is the auto-talk flag, %2$s is whether auto-talk should be delayed. */
@@ -874,7 +874,7 @@ function mpu_enqueue_frontend_assets()
         /* translators: debug console log. Emoji display is removed. */
         $log_i18n->debug('frierenEmojiRemoved', __('mpuEmojiManager: 表情を削除します', 'mp-ukagaka'), ['scope' => 'frieren']);
         /* translators: debug console log. Shows which Frieren base image was selected. */
-        $log_i18n->debug('frierenSleepIdleImageSelected', __('🌙 睡眠画像 frieren[s].png を表示します / ☀️ アイドル画像 frieren[0].png を表示します', 'mp-ukagaka'), ['scope' => 'frieren']);
+        $log_i18n->debug('frierenSleepIdleImageSelected', __('🌙 睡眠画像 frieren[s].png を表示します / ☀️ ゴースト画像 frieren[0].png を表示します', 'mp-ukagaka'), ['scope' => 'frieren']);
         /* translators: debug console log. Decoration loading is skipped because it already completed. */
         $log_i18n->debug('frierenDecorationsAlreadyLoaded', __('装飾品は読み込み済みのため、重複読み込みをスキップします', 'mp-ukagaka'), ['scope' => 'frieren']);
         /* translators: debug console log. %s is the number of decorations loaded from JSON config. */

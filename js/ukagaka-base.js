@@ -883,7 +883,7 @@ function mpu_init_jquery_cookie() {
  */
 function mpu_init_idle_detection() {
     if (typeof jQuery === 'undefined') {
-        mpuLogger.warnL("jqueryMissingForIdleDetection", "jQuery がまだ読み込まれていないため、アイドル検出を初期化できません");
+        mpuLogger.warnL("jqueryMissingForIdleDetection", "jQuery がまだ読み込まれていないため、無操作検出を初期化できません");
         return false;
     }
 
@@ -893,7 +893,7 @@ function mpu_init_idle_detection() {
         mpuSetLastUserActionTime(Date.now());
     });
 
-    mpuLogger.logF("idleDetectionInitialized", "アイドル検出を初期化しました。しきい値：%s 秒", mpuIdleThreshold / 1000);
+    mpuLogger.logF("idleDetectionInitialized", "無操作検出を初期化しました。しきい値：%s 秒", mpuIdleThreshold / 1000);
     return true;
 }
 
@@ -1220,7 +1220,7 @@ function mpu_init_context_menu() {
         jQuery(document).on('contextmenu', '#ukagaka_img, #cur_ukagaka', function(e) {
             e.preventDefault(); // 阻止默認的右鍵菜單
             
-            mpuLogger.logL("contextMenuTriggered", "右クリックメニューが発火しました：キャラクター切り替えメニューを表示します");
+            mpuLogger.logL("contextMenuTriggered", "右クリックメニューが作動しました：キャラクター切り替えメニューを表示します");
             
             // 調用現有的 mpuChange() 函數來顯示角色選擇菜單
             if (typeof mpuChange === 'function') {

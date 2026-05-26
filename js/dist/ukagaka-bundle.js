@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-26T13:19:50.351Z
+ * Generated: 2026-05-26T14:36:39.909Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -891,7 +891,7 @@ function mpu_init_jquery_cookie() {
  */
 function mpu_init_idle_detection() {
     if (typeof jQuery === 'undefined') {
-        mpuLogger.warnL("jqueryMissingForIdleDetection", "jQuery がまだ読み込まれていないため、アイドル検出を初期化できません");
+        mpuLogger.warnL("jqueryMissingForIdleDetection", "jQuery がまだ読み込まれていないため、無操作検出を初期化できません");
         return false;
     }
 
@@ -901,7 +901,7 @@ function mpu_init_idle_detection() {
         mpuSetLastUserActionTime(Date.now());
     });
 
-    mpuLogger.logF("idleDetectionInitialized", "アイドル検出を初期化しました。しきい値：%s 秒", mpuIdleThreshold / 1000);
+    mpuLogger.logF("idleDetectionInitialized", "無操作検出を初期化しました。しきい値：%s 秒", mpuIdleThreshold / 1000);
     return true;
 }
 
@@ -1228,7 +1228,7 @@ function mpu_init_context_menu() {
         jQuery(document).on('contextmenu', '#ukagaka_img, #cur_ukagaka', function(e) {
             e.preventDefault(); // 阻止默認的右鍵菜單
             
-            mpuLogger.logL("contextMenuTriggered", "右クリックメニューが発火しました：キャラクター切り替えメニューを表示します");
+            mpuLogger.logL("contextMenuTriggered", "右クリックメニューが作動しました：キャラクター切り替えメニューを表示します");
             
             // 調用現有的 mpuChange() 函數來顯示角色選擇菜單
             if (typeof mpuChange === 'function') {
@@ -1527,13 +1527,13 @@ function startAutoTalk() {
   mpuLogger.logF("autoTalkTimerSet", "startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s", currentInterval, mpuAutoTalk);
   mpuSetAutoTalkTimer(setTimeout(function () {
     mpuSetAutoTalkTimer(null); // 清除計時器引用，表示已觸發
-    mpuLogger.logF("autoTalkTimerTriggered", "自動会話タイマーが発火しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s", mpuAutoTalk, mpuOllamaReplaceDialogue);
+    mpuLogger.logF("autoTalkTimerTriggered", "自動会話タイマーが作動しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s", mpuAutoTalk, mpuOllamaReplaceDialogue);
 
     // 閒置檢查：如果用戶閒置超過閾值，跳過本次自動對話
     const now = Date.now();
     const idleTime = now - mpuLastUserActionTime;
     if (idleTime > mpuIdleThreshold) {
-      mpuLogger.logF("autoTalkSkippedUserIdle", "ユーザーがアイドル状態です（%s 秒）。今回の自動会話をスキップします", Math.floor(idleTime / 1000));
+      mpuLogger.logF("autoTalkSkippedUserIdle", "ユーザーが無操作状態です（%s 秒）。今回の自動会話をスキップします", Math.floor(idleTime / 1000));
       // 雖然跳過，但仍需重新啟動計時器以檢測下一次
       if (mpuAutoTalk) startAutoTalk();
       return;
@@ -5639,7 +5639,7 @@ jQuery(document).ready(function () {
         // 睡眠模式下，完全跳過初始的 LLM 對話觸發
         // 讓睡眠訊息保持顯示，直到自動對話計時器自然觸發（約 300 秒後）
         mpuLogger.logL("featuresSleepModeSkipInitialLlmTrigger", "🌙 睡眠モード：初回 LLM 会話トリガーをスキップし、睡眠メッセージの表示を維持します");
-        mpuLogger.logF("featuresSleepMessageRetainedUntilAutoTalk", "🌙 睡眠メッセージは自動会話タイマーが発火するまで表示を維持します（約 %s 秒後）", Math.round(mpuGetBaseAutoTalkInterval() / 0.0667 / 1000));
+        mpuLogger.logF("featuresSleepMessageRetainedUntilAutoTalk", "🌙 睡眠メッセージは自動会話タイマーが作動するまで表示を維持します（約 %s 秒後）", Math.round(mpuGetBaseAutoTalkInterval() / 0.0667 / 1000));
       } else {
         // 正常模式下，立即觸發 LLM 對話
       mpuLogger.logL("featuresLlmReplaceDialogueDelayInitialTrigger", "LLM 置換会話が有効です。初期メッセージの完了後に LLM 会話をトリガーします");

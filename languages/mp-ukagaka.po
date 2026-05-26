@@ -467,13 +467,13 @@ msgstr ""
 #. translators: debug console log. %1$s is the auto-talk flag, %2$s is the LLM replacement flag.
 #: includes/core/frontend-functions.php:595
 #, php-format
-msgid "自動会話タイマーが発火しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s"
+msgid "自動会話タイマーが作動しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s"
 msgstr ""
 
 #. translators: debug console log. %s is the idle duration in seconds.
 #: includes/core/frontend-functions.php:597
 #, php-format
-msgid "ユーザーがアイドル状態です（%s 秒）。今回の自動会話をスキップします"
+msgid "ユーザーが無操作状態です（%s 秒）。今回の自動会話をスキップします"
 msgstr ""
 
 #. translators: debug console log. %1$s is previous state, %2$s is new state, %3$s is the new interval in ms.
@@ -765,13 +765,13 @@ msgstr ""
 
 #. translators: debug console log. jQuery is missing before idle detection initialization.
 #: includes/core/frontend-functions.php:707
-msgid "jQuery がまだ読み込まれていないため、アイドル検出を初期化できません"
+msgid "jQuery がまだ読み込まれていないため、無操作検出を初期化できません"
 msgstr ""
 
 #. translators: debug console log. %s is the idle threshold in seconds.
 #: includes/core/frontend-functions.php:709
 #, php-format
-msgid "アイドル検出を初期化しました。しきい値：%s 秒"
+msgid "無操作検出を初期化しました。しきい値：%s 秒"
 msgstr ""
 
 #. translators: debug console log. Last visit timestamp was updated.
@@ -833,7 +833,7 @@ msgstr ""
 
 #. translators: debug console log. Context menu opens the character switch menu.
 #: includes/core/frontend-functions.php:731
-msgid "右クリックメニューが発火しました：キャラクター切り替えメニューを表示します"
+msgid "右クリックメニューが作動しました：キャラクター切り替えメニューを表示します"
 msgstr ""
 
 #. translators: debug console log. Character change function is unavailable.
@@ -1106,7 +1106,7 @@ msgstr ""
 #. translators: debug console log. %s is the approximate number of seconds until auto-talk triggers.
 #: includes/core/frontend-functions.php:833
 #, php-format
-msgid "🌙 睡眠メッセージは自動会話タイマーが発火するまで表示を維持します（約 %s 秒後）"
+msgid "🌙 睡眠メッセージは自動会話タイマーが作動するまで表示を維持します（約 %s 秒後）"
 msgstr ""
 
 #. translators: debug console log. LLM dialogue trigger waits for the initial message to finish.
@@ -1230,7 +1230,7 @@ msgstr ""
 
 #. translators: debug console log. Shows which Frieren base image was selected.
 #: includes/core/frontend-functions.php:877
-msgid "🌙 睡眠画像 frieren[s].png を表示します / ☀️ アイドル画像 frieren[0].png を表示します"
+msgid "🌙 睡眠画像 frieren[s].png を表示します / ☀️ ゴースト画像 frieren[0].png を表示します"
 msgstr ""
 
 #. translators: debug console log. Decoration loading is skipped because it already completed.

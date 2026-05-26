@@ -245,7 +245,7 @@
 
           // [Fix] 加回 Debug Log，方便監測切換時機
           if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-            mpuLogger.logL("frierenSleepIdleImageSelected", "🌙 睡眠画像 frieren[s].png を表示します / ☀️ アイドル画像 frieren[0].png を表示します");
+            mpuLogger.logL("frierenSleepIdleImageSelected", "🌙 睡眠画像 frieren[s].png を表示します / ☀️ ゴースト画像 frieren[0].png を表示します");
           }
       };
 
