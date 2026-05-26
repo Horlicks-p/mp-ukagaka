@@ -40,11 +40,7 @@ const kanaPattern = /[ぁ-んァ-ン]/;
 const stringPattern = /(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
 const prefixPattern = /^\s*(?:\[MPU?\]|\[MP Ukagaka(?: ERROR)?\])\s*/;
 
-const overrides = {
-  "ghost/Frieren/frieren.js:1201:mpuLogger.error": {
-    key: "frierenDecorationDialogRequestFailed",
-  },
-};
+const overrides = {};
 
 function lineForIndex(text, index) {
   return text.slice(0, index).split(/\r?\n/).length;
@@ -354,6 +350,6 @@ ${table(rows)}
 ${table(excluded, true)}
 `;
 
-fs.writeFileSync(outputPath, output);
+fs.writeFileSync(outputPath, `${output.trimEnd()}\n`);
 console.log(`Wrote ${rows.length} inventory rows to ${path.relative(repoRoot, outputPath)}`);
 console.log(`Excluded ${excluded.length} rows for backlog review`);

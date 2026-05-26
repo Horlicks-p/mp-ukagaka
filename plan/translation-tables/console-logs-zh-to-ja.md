@@ -28,7 +28,7 @@ Normalize each row manually before migration:
 ## Inventory Summary
 
 - Included zh-TW/CJK rows: 195
-- Excluded source/backlog rows: 1
+- Excluded source/backlog rows: 0
 
 - logsDebug:mpuLogger.log: 159
 - logsDebug:mpuLogger.warn: 36
@@ -237,4 +237,3 @@ Normalize each row manually before migration:
 
 | Source file | Line | Channel | Bucket | Key | Original | Call preview | Reason |
 | --- | ---: | --- | --- | --- | --- | --- | --- |
-| ghost/Frieren/frieren.js | 1201 | mpuLogger.error | logs | frierenDecorationDialogRequestFailed | 装飾品対話リクエストに失敗しました: | mpuLogger.error("装飾品対話リクエストに失敗しました:", error) | Japanese source/backlog |
