@@ -33,6 +33,7 @@
 | 9d7a2f0 | Migrate Frieren canvas/image/pixel/touch console logs to i18n | Phase 2 第三個 migration PR（7 條） |
 | ad68012 | Migrate core-bundle console logs to i18n and finish Phase 2 production-visible | Phase 2 收尾（features.js + base.js:99 + rebuild dist；首條 logsDebug） |
 | this commit | Migrate Frieren decoration dialog error to i18n | Phase 2.5 收尾（既有日文 production-visible backlog 歸零） |
+| next commit | Stabilize console log inventory override lookup | Phase 3-pre（override lookup 改為 `relativePath::zhOriginal`，解掉行號漂移） |
 
 ---
 
@@ -65,7 +66,7 @@
   - logs:mpuLogger.error: 0（`jqueryCookieInitFailed` 已 migrate）
   - logsDebug:mpuLogger.log: 159
   - logsDebug:mpuLogger.warn: 36
-- Generator 設計：`overrides` table 注入 semantic key / jaSource / translatorComment，lookup 用 `relativePath:line:channel`，raw inventory 仍從 source 重新生成（determinism 與翻譯成果共存）
+- Generator 設計：`overrides` table 注入 semantic key / jaSource / translatorComment，lookup 用 `relativePath::normalized zhOriginal`，raw inventory 仍從 source 重新生成（determinism 與翻譯成果共存）
 - 18 條 production-visible（含 1 條 TODO bucket）全部翻成日文 + translator comment：
   - `frieren*` 11 條（shellInfo、Image/Draw CanvasManager、ImageLoad、DecorationConfig×4、PixelCanvas、PixelData、TouchZoneDialog）
   - `anime*` 5 條（CanvasElement、CanvasContext、FrierenManager、ImageLoad、FrameImageLoad）
@@ -122,6 +123,13 @@
 - 這條是 always-output production log，屬 `logs` bucket，不屬 Phase 3 `logsDebug`
 - 依方案 A 刪除最後一條 backlog override，translation table 重生為 195 included rows + 0 backlog
 
+### Phase 3-pre generator lookup 重構 — `tools/node/generate-console-log-inventory.js`（next commit）
+- override lookup 從 `relativePath:line:channel` 改為 `relativePath::normalized zhOriginal`
+- 解掉 Phase 3-0 一次填 195 條 debug 翻譯時的行號漂移風險；後續 migration 改動同檔案行數時，不會讓未遷移 override 因 line number 失配而 orphan
+- `usedOverrides` / unused-override verify pass 保持原邏輯；一條 override 可命中多列，適用於重複 log 文字共用翻譯
+- Phase 3-0 已知重複原文應共用單一 override：`js/ukagaka-base.js::請求已取消: ${requestId}`、`js/ukagaka-chat.js::裝飾物對話進行中，忽略按鈕點擊`、`js/ukagaka-chat.js::訊息被阻擋，忽略按鈕點擊`
+- override key 建議直接照抄對照表的 `Source file` 欄 + `::` + `zh-TW original` 欄；含 `${...}` 的 key 用一般引號，不用 backtick
+
 ---
 
 ## ✅ 已決策（2026-05-25 家裡）：silent-drop 隱患採方案 A
@@ -151,7 +159,7 @@
 
 ### 補記：三案都沒解到的脆弱點
 
-override 用**行號**當 lookup key 本身就脆 —— 不 migrate 也一樣：只要編輯 `frieren.js` 推移行號，`frieren.js:NNN:...` override 全部失配、靜默掉回 TODO。根治方向是改用**語意 key 名**或**原文字串**當 lookup key。本次不做（避免擴大 PR），列為後續 generator 強化議題，與 unused-override verify pass 一併評估。
+override 曾用**行號**當 lookup key，這在 Phase 3-0 一次填 195 條 debug 翻譯時會變成持續摩擦：只要後續 migration 推移同檔案行號，未遷移 override 就會 orphan。Phase 3-pre 已改為 `relativePath::normalized zhOriginal`，把 lookup identity 固定在 migration 前穩定存在的 source text 上。
 
 ---
 
@@ -208,7 +216,7 @@ Phase 2 第一個 PR (b256574) 後 anime.js 5 條 call site 已遷移到糖衣�
 
 ## Phase 3 後續 PR 範圍
 
-production-visible console log 與既有日文 production backlog 已清零；後續剩約 195 條 debug-gated `mpuLogger.log/warn/info`，全部屬 Phase 3 / `logsDebug` 大宗，交由公司端御三家分批處理。
+production-visible console log 與既有日文 production backlog 已清零；後續剩約 195 條 debug-gated `mpuLogger.log/warn/info`，全部屬 Phase 3 / `logsDebug` 大宗。Phase 3-pre 已先完成 generator lookup 重構，Phase 3-0 可開始填 debug 翻譯而不被行號漂移侵蝕。
 
 ---
 
@@ -221,7 +229,7 @@ production-visible console log 與既有日文 production backlog 已清零；�
 - **(e)** Generator 加 unused-override verify pass — **已完成**（方案 A 落地）
 - **(f)** Generator 內嵌的對照表 status block 已過時（line 392-397 still 寫「This commit intentionally fills raw inventory only」）— **已完成**（方案 A 落地時同步更新為 migration staging table）
 
-debug 195 條翻譯（Commit B2 / Phase 3）尚未動工，交由公司端御三家接手。
+debug 195 條翻譯（Phase 3-0）尚未動工；scope 為 `mpuLogger.log` 159 條 + `mpuLogger.warn` 36 條，目前沒有帶 CJK 的 `mpuLogger.info`。
 
 ---
 
@@ -270,4 +278,4 @@ git status --short
 
 ---
 
-_Last updated: 2026-05-26 — Phase 2.5 已清掉既有日文 production-visible backlog；translation table 重生為 195 included rows + 0 backlog。下一更新點：Phase 3-pre generator lookup 重構。_
+_Last updated: 2026-05-26 — Phase 3-pre 已將 generator override lookup 改為 `relativePath::normalized zhOriginal`；translation table 仍為 195 included rows + 0 backlog。下一更新點：Phase 3-0 debug 翻譯表補完。_

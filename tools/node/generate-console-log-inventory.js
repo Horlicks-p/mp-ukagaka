@@ -154,6 +154,15 @@ function draftKey(relativePath, channel, line) {
   return `${prefix}${channel.charAt(0).toUpperCase()}${channel.slice(1)}${line}`;
 }
 
+function normalizeOverrideText(value) {
+  return String(value).replace(/\s+/g, " ").trim();
+}
+
+function overrideKeyFor(relativePath, zhOriginal) {
+  // Duplicate log text in the same file intentionally shares one override.
+  return `${relativePath}::${normalizeOverrideText(zhOriginal)}`;
+}
+
 function bucketFor(source, channel) {
   if (source === "console") {
     if (channel === "error" || channel === "warn") {
@@ -219,7 +228,7 @@ for (const file of sourceFiles) {
     const zhOriginal = strings.join(" / ");
     const isJapaneseSource = kanaPattern.test(zhOriginal) && !/[一-鿿].*[：，、。！]/.test(zhOriginal);
 
-    const overrideKey = `${relativePath}:${line}:${source}.${channel}`;
+    const overrideKey = overrideKeyFor(relativePath, zhOriginal);
     const override = overrides[overrideKey] || {};
     if (Object.prototype.hasOwnProperty.call(overrides, overrideKey)) {
       usedOverrides.add(overrideKey);
