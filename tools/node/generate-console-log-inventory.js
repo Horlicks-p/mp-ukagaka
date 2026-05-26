@@ -239,6 +239,7 @@ for (const file of sourceFiles) {
       channel: `${source}.${channel}`,
       bucket: override.bucket || bucketFor(source, channel),
       key: override.key || draftKey(relativePath, channel, line),
+      overrideKey,
       zhOriginal,
       jaSource: override.jaSource || "TODO",
       placeholderNotes: placeholderNotes(callText, strings),
@@ -259,6 +260,33 @@ if (unusedOverrides.length > 0) {
   console.error("Unused console log inventory overrides:");
   for (const key of unusedOverrides) {
     console.error(`- ${key}`);
+  }
+  process.exit(1);
+}
+
+const rowsBySemanticKey = new Map();
+for (const row of rows) {
+  if (!rowsBySemanticKey.has(row.key)) {
+    rowsBySemanticKey.set(row.key, []);
+  }
+  rowsBySemanticKey.get(row.key).push(row);
+}
+
+const duplicateKeyConflicts = [];
+for (const [key, matchingRows] of rowsBySemanticKey) {
+  const distinctOverrideKeys = new Set(matchingRows.map((row) => row.overrideKey));
+  if (distinctOverrideKeys.size > 1) {
+    duplicateKeyConflicts.push({ key, matchingRows });
+  }
+}
+
+if (duplicateKeyConflicts.length > 0) {
+  console.error("Conflicting console log i18n keys:");
+  for (const conflict of duplicateKeyConflicts) {
+    console.error(`- ${conflict.key}`);
+    for (const row of conflict.matchingRows) {
+      console.error(`  ${row.sourceFile}:${row.line} ${row.channel} :: ${row.zhOriginal}`);
+    }
   }
   process.exit(1);
 }
