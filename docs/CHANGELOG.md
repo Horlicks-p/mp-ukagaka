@@ -4,12 +4,18 @@
 
 ---
 
-## [Unreleased] - Console log 國際化遷移
+## [Unreleased] - Console log 國際化
 
-### 🌐 Frontend console log i18n
+### 🌐 前端 console log i18n —— 完成
 
-- 前端 console log 字串正逐步從硬編碼繁中遷移為日文 source，並透過 WordPress locale 與 `mpuL10n.logs` 顯示對應翻譯。
-- 已遷移所有 production-visible console log：`js/ukagaka-anime.js` 5 條、`ghost/Frieren/frieren.js` 11 條，以及 core bundle 收尾的 `js/ukagaka-features.js` / `js/ukagaka-base.js` 2 條。`base.js` reload cleanup 訊息已改為 debug-only，其他 error/warn 輸出時機維持不變。
+- 前端所有 console log 字串已從硬編碼繁體中文遷移為日文 source 字串，並透過 WordPress locale 顯示對應翻譯。`js/` 與 `ghost/` 中已無任何硬編碼 CJK console log。
+- 遷移涵蓋全部 console log：production-visible 部分（`js/ukagaka-anime.js`、`ghost/Frieren/frieren.js`，以及 core bundle 收尾的 `js/ukagaka-features.js` / `js/ukagaka-base.js`），以及散布於 core bundle、Frieren、dialog、greeting、emoji 模組的 195 條 debug-gated log。
+- log 現在統一經由 `mpuLogger` 輔助方法（`logL` / `logF` / `warnL` / `warnF`，以及一律輸出的 `errorL` / `errorF` / `warnAlways` / `warnAlwaysF`），並以穩定的語意 key 索引。字串分兩個 bucket 注入：`mpuL10n.logs`（一律注入）與 `mpuL10n.logsDebug`（僅在前端 debug 模式注入）。
+- 輸出時機與 gating 維持不變：error/warn 輸出照舊，debug-only log 仍僅在管理員開啟 `WP_DEBUG` 時顯示。
+
+### 🗂️ 翻譯目錄
+
+- 重新產生 `mp-ukagaka.pot` 並合併 `ja`、`zh_TW`、`en_US` 目錄。日文與繁體中文已完成全部 206 條 unique log msgid 的翻譯（212 條註冊，其中 6 條共用相同日文 source）。英文（`en_US`）已合併並編譯，但尚未翻譯，因此英文 locale 網站這些 log 會 fallback 顯示日文 source 字串。
 
 ## [2.23.2] - 2026-05-24
 

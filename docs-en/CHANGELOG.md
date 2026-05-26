@@ -4,12 +4,18 @@
 
 ---
 
-## [Unreleased] - Console log internationalization migration
+## [Unreleased] - Console log internationalization
 
-### 🌐 Frontend console log i18n
+### 🌐 Frontend console log i18n — complete
 
-- Frontend console log strings are being migrated from hard-coded Traditional Chinese to Japanese source strings, then displayed through WordPress locale translations via `mpuL10n.logs`.
-- Migrated all production-visible console logs: 5 in `js/ukagaka-anime.js`, 11 in `ghost/Frieren/frieren.js`, and the final 2 core-bundle logs in `js/ukagaka-features.js` / `js/ukagaka-base.js`. The `base.js` reload cleanup message is now debug-only; other error/warn output timing is unchanged.
+- All frontend console log strings have been migrated from hard-coded Traditional Chinese to Japanese source strings, displayed through WordPress locale translations. No hard-coded CJK console logs remain in `js/` or `ghost/`.
+- The migration covers every console log: the production-visible logs (`js/ukagaka-anime.js`, `ghost/Frieren/frieren.js`, and the core-bundle finishers in `js/ukagaka-features.js` / `js/ukagaka-base.js`) plus the 195 debug-gated logs across the core bundle, Frieren, dialog, greeting, and emoji modules.
+- Logs now go through `mpuLogger` helpers (`logL` / `logF` / `warnL` / `warnF`, plus the always-output `errorL` / `errorF` / `warnAlways` / `warnAlwaysF`), each keyed by a stable semantic key. Strings are delivered in two buckets: `mpuL10n.logs` (always injected) and `mpuL10n.logsDebug` (injected only in front-end debug mode).
+- Output timing and gating are unchanged: error/warn output behaves as before, and debug-only logs still appear only when `WP_DEBUG` is enabled for an administrator.
+
+### 🗂️ Translation catalogs
+
+- Regenerated `mp-ukagaka.pot` and merged the `ja`, `zh_TW`, and `en_US` catalogs. Japanese and Traditional Chinese translations are complete for all 206 unique log message IDs (212 registrations, six of which share identical Japanese source text). English (`en_US`) is merged and compiled but not yet translated, so English-locale sites fall back to the Japanese source string for these logs.
 
 ## [2.23.2] - 2026-05-24
 

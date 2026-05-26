@@ -100,6 +100,8 @@ For detailed information, please refer to:
 
 ## 🎉 What's New in v2.23.2
 
+**Console log internationalization** (Unreleased): All frontend console log strings are now localizable — migrated to Japanese source strings delivered through WordPress locale, with Japanese and Traditional Chinese translations complete (English falls back to the Japanese source for now). Logs go through `mpuLogger` helpers and a two-bucket `mpuL10n` payload; output timing is unchanged and debug logs still appear only for administrators with `WP_DEBUG` enabled.
+
 **Bug Fixes** (v2.23.2): Observation Buffer now also begins tracking after SPA (client-side) navigation into an article, not only on initial page load, with DOM-based post-ID detection and listing/archive/home-page guards. Page-awareness self-talk no longer leaves auto-talk permanently stalled in production.
 
 **Language Setting Unification** (v2.23.1): Fixed language setting conflicts, prioritizing backend settings, and added a "Default" option to return control to the ghost's manifest.
