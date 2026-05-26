@@ -37,6 +37,7 @@
 | next commit | Add console log inventory semantic key gate | Phase 3-0 guard（每次 inventory 自動擋 semantic key 衝突） |
 | next commit | Translate core debug console log inventory | Phase 3-0 commit 1（`js/ukagaka-core.js` 57 條） |
 | next commit | Translate base chat and anime debug console log inventory | Phase 3-0 commit 2（base/chat/anime 41 rows，38 overrides） |
+| next commit | Translate features and context debug console log inventory | Phase 3-0 commit 3（features/context 46 rows） |
 
 ---
 
@@ -154,6 +155,13 @@
   - `chatButtonIgnoredMessageBlocking` covers `ukagaka-chat.js` lines 980 / 1076
 - `npm run inventory:logs` 仍為 195 included rows + 0 backlog，semantic-key gate 通過
 
+### Phase 3-0 commit 3 — `js/ukagaka-features.js` + `js/ukagaka-context.js` 46 rows（next commit）
+- 只填 generator overrides 與 translation table；不改 JS call site
+- `ukagaka-features.js` 27 rows、`ukagaka-context.js` 19 rows 已改為 semantic key、日文 fallback、英文 translator comment
+- 本批沒有 duplicate source text；全部 row 皆使用一對一 semantic key
+- `npm run inventory:logs` 仍為 195 included rows + 0 backlog，semantic-key gate 通過
+- 剩餘 Phase 3-0 staged commits：Frieren/Frieren emoji（32）、dialog/greeting/emoji（19）
+
 ---
 
 ## ✅ 已決策（2026-05-25 家裡）：silent-drop 隱患採方案 A
@@ -253,7 +261,7 @@ production-visible console log 與既有日文 production backlog 已清零；�
 - **(e)** Generator 加 unused-override verify pass — **已完成**（方案 A 落地）
 - **(f)** Generator 內嵌的對照表 status block 已過時（line 392-397 still 寫「This commit intentionally fills raw inventory only」）— **已完成**（方案 A 落地時同步更新為 migration staging table）
 
-debug 195 條翻譯（Phase 3-0）已完成前 2 批共 98 rows：`ukagaka-core.js` 57 rows，base/chat/anime 41 rows；scope 為 `mpuLogger.log` 159 條 + `mpuLogger.warn` 36 條，目前沒有帶 CJK 的 `mpuLogger.info`。
+debug 195 條翻譯（Phase 3-0）已完成前 3 批共 144 rows：`ukagaka-core.js` 57 rows，base/chat/anime 41 rows，features/context 46 rows；scope 為 `mpuLogger.log` 159 條 + `mpuLogger.warn` 36 條，目前沒有帶 CJK 的 `mpuLogger.info`。
 每個 Phase 3-0 staged commit 都應跑 `npm run inventory:logs`，其內建的 unused-override 與 semantic-key gate 必須通過；第 5 個 staged commit 後再跑 no-TODO / no-draftKey 最終驗收。
 
 ---
@@ -303,4 +311,4 @@ git status --short
 
 ---
 
-_Last updated: 2026-05-26 — Phase 3-pre 已將 generator override lookup 改為 `relativePath::normalized zhOriginal` 並加上 semantic-key conflict gate；Phase 3-0 前 2 批已補完 98 rows，translation table 仍為 195 included rows + 0 backlog。下一更新點：Phase 3-0 第 3 批 features/context。_
+_Last updated: 2026-05-26 — Phase 3-pre 已將 generator override lookup 改為 `relativePath::normalized zhOriginal` 並加上 semantic-key conflict gate；Phase 3-0 前 3 批已補完 144 rows，translation table 仍為 195 included rows + 0 backlog。下一更新點：Phase 3-0 第 4 批 Frieren/Frieren emoji。_
