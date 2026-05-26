@@ -4,7 +4,7 @@
 
 ---
 
-## [Unreleased] - Console log internationalization
+## [2.24.0] - 2026-05-26
 
 ### 🌐 Frontend console log i18n — complete
 

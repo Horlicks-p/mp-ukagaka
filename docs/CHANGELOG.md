@@ -4,7 +4,7 @@
 
 ---
 
-## [Unreleased] - Console log 國際化
+## [2.24.0] - 2026-05-26
 
 ### 🌐 前端 console log i18n —— 完成
 

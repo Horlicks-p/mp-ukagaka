@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.23.2-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.24.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,9 +98,9 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.23.2 新功能
+## 🎉 v2.24.0 新功能
 
-**Console log 國際化**（Unreleased）：前端所有 console log 字串現已可在地化 —— 遷移為日文 source 字串並透過 WordPress locale 顯示翻譯，日文與繁體中文翻譯均已完成（英文暫時 fallback 日文 source）。log 統一經由 `mpuLogger` 輔助方法與兩個 bucket 的 `mpuL10n` payload。輸出時機維持不變，debug log 仍僅對開啟 `WP_DEBUG` 的管理員顯示。
+**Console log 國際化**（v2.24.0）：前端所有 console log 字串現已可在地化 —— 遷移為日文 source 字串並透過 WordPress locale 顯示翻譯，日文與繁體中文翻譯均已完成（英文暫時 fallback 日文 source）。log 統一經由 `mpuLogger` 輔助方法與兩個 bucket 的 `mpuL10n` payload。輸出時機維持不變，debug log 仍僅對開啟 `WP_DEBUG` 的管理員顯示。
 
 **錯誤修正**（v2.23.2）：Observation Buffer 現在不只在初次載入，連 SPA（前端）導航進入單篇文章後也會開始追蹤，並具備 DOM 文章 ID 偵測與列表/彙整/首頁的誤啟動防護。另修正了頁面感知自動發話後、自動對話在生產環境會永久卡住的問題。
 

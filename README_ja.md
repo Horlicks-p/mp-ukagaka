@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.23.2-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.24.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,9 +98,9 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.23.2 の新機能
+## 🎉 v2.24.0 の新機能
 
-**Console log の国際化**（Unreleased）：フロントエンドのすべての console log 文字列を多言語化対応にしました。日本語 source 文字列へ移行し WordPress locale を通じて翻訳表示、日本語・繁体字中国語の翻訳は完了済みです（英語は当面日本語 source に fallback）。log は `mpuLogger` ヘルパーと 2 バケットの `mpuL10n` ペイロードを経由します。出力タイミングは変更なし、debug log は `WP_DEBUG` 有効時の管理者にのみ表示されます。
+**Console log の国際化**（v2.24.0）：フロントエンドのすべての console log 文字列を多言語化対応にしました。日本語 source 文字列へ移行し WordPress locale を通じて翻訳表示、日本語・繁体字中国語の翻訳は完了済みです（英語は当面日本語 source に fallback）。log は `mpuLogger` ヘルパーと 2 バケットの `mpuL10n` ペイロードを経由します。出力タイミングは変更なし、debug log は `WP_DEBUG` 有効時の管理者にのみ表示されます。
 
 **バグ修正**（v2.23.2）：Observation Buffer が初回読み込み時だけでなく、SPA（クライアントサイド）ナビゲーションで記事に遷移した後も計測を開始するようになりました（DOM ベースの投稿 ID 検出、一覧/アーカイブ/トップページの誤発火ガード付き）。また、ページ感知の自動発話後に自動会話が本番環境で停止したままになる不具合を修正しました。
 

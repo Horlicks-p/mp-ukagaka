@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.23.2
+Stable tag: 2.24.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,11 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-05-26 =
+* v2.24.0
+* [I18N] Frontend console log internationalization complete: all hard-coded Traditional Chinese console logs (production-visible plus 195 debug-gated) migrated to Japanese source strings, localized via WordPress locale through mpuLogger helpers (logL / logF / warnL / warnF and the always-output errorL / errorF / warnAlways / warnAlwaysF) and a two-bucket mpuL10n payload (logs always injected, logsDebug only in front-end debug mode). Output timing and gating unchanged.
+* [I18N] Translation catalogs: regenerated mp-ukagaka.pot and completed ja / zh_TW translations for all 206 unique log message IDs (212 registrations, six sharing identical Japanese source text). en_US is merged and compiled but not yet translated, so English-locale sites fall back to the Japanese source string.
 
 = 2026-05-24 =
 * v2.23.2

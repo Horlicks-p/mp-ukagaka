@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.23.2-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.24.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,9 +98,9 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.23.2
+## 🎉 What's New in v2.24.0
 
-**Console log internationalization** (Unreleased): All frontend console log strings are now localizable — migrated to Japanese source strings delivered through WordPress locale, with Japanese and Traditional Chinese translations complete (English falls back to the Japanese source for now). Logs go through `mpuLogger` helpers and a two-bucket `mpuL10n` payload; output timing is unchanged and debug logs still appear only for administrators with `WP_DEBUG` enabled.
+**Console log internationalization** (v2.24.0): All frontend console log strings are now localizable — migrated to Japanese source strings delivered through WordPress locale, with Japanese and Traditional Chinese translations complete (English falls back to the Japanese source for now). Logs go through `mpuLogger` helpers and a two-bucket `mpuL10n` payload; output timing is unchanged and debug logs still appear only for administrators with `WP_DEBUG` enabled.
 
 **Bug Fixes** (v2.23.2): Observation Buffer now also begins tracking after SPA (client-side) navigation into an article, not only on initial page load, with DOM-based post-ID detection and listing/archive/home-page guards. Page-awareness self-talk no longer leaves auto-talk permanently stalled in production.
 
