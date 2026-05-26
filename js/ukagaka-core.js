@@ -216,13 +216,13 @@ function mpu_isUnawokenSleepMode() {
 function startAutoTalk() {
   stopAutoTalk();
   if (!mpuAutoTalk) {
-    mpuLogger.log("startAutoTalk: mpuAutoTalk 為 false，退出");
+    mpuLogger.logL("autoTalkDisabledExit", "startAutoTalk: mpuAutoTalk が false のため終了します");
     return;
   }
 
   // 對話模式中不啟動自動對話
   if (typeof mpuChatModeActive !== "undefined" && mpuChatModeActive) {
-    mpuLogger.log("startAutoTalk: 對話模式中，不啟動自動對話");
+    mpuLogger.logL("autoTalkSkippedDuringChatMode", "startAutoTalk: 会話モード中のため自動会話を開始しません");
     return;
   }
 
@@ -231,13 +231,13 @@ function startAutoTalk() {
     typeof window.mpuFrierenManager !== "undefined" &&
     window.mpuFrierenManager.decorationChatInProgress
   ) {
-    mpuLogger.log("startAutoTalk: 裝飾物/觸摸對話進行中，不啟動自動對話");
+    mpuLogger.logL("autoTalkSkippedDuringInteractionDialog", "startAutoTalk: 装飾品またはタッチ会話中のため自動会話を開始しません");
     return;
   }
 
   // 睡眠模式且尚未被喚醒時，不啟動自動對話（只接受 OK 鈕觸發）
   if (mpu_isUnawokenSleepMode()) {
-    mpuLogger.log("🌙 睡眠模式且尚未被喚醒：不啟動自動對話，只接受 OK 鈕觸發");
+    mpuLogger.logL("autoTalkSkippedUnawokenSleepMode", "🌙 睡眠モードでまだ目を覚ましていないため、自動会話を開始せず OK ボタンのみ受け付けます");
     return;
   }
 
@@ -265,36 +265,21 @@ function startAutoTalk() {
   const currentIsSleepMode = sleepModeInfo.isSleepMode;
 
   if (currentIsSleepMode) {
-    mpuLogger.log(
-      "🌙 睡眠模式啟用（00:00~06:00），間隔調整為",
-      currentInterval,
-      "ms（原始:",
-      mpuGetBaseAutoTalkInterval(),
-      "ms）",
-    );
+    mpuLogger.logF("autoTalkSleepModeIntervalAdjusted", "🌙 睡眠モードが有効です（00:00〜06:00）。間隔を %1$s ms に調整しました（元: %2$s ms）", currentInterval, mpuGetBaseAutoTalkInterval());
   }
 
   if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(400);
 
-  mpuLogger.log("startAutoTalk: 設置計時器，間隔 =", currentInterval, "ms, mpuAutoTalk =", mpuAutoTalk);
+  mpuLogger.logF("autoTalkTimerSet", "startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s", currentInterval, mpuAutoTalk);
   mpuSetAutoTalkTimer(setTimeout(function () {
     mpuSetAutoTalkTimer(null); // 清除計時器引用，表示已觸發
-    mpuLogger.log(
-      "自動對話計時器觸發, mpuAutoTalk =",
-      mpuAutoTalk,
-      ", mpuOllamaReplaceDialogue =",
-      mpuOllamaReplaceDialogue,
-    );
+    mpuLogger.logF("autoTalkTimerTriggered", "自動会話タイマーが発火しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s", mpuAutoTalk, mpuOllamaReplaceDialogue);
 
     // 閒置檢查：如果用戶閒置超過閾值，跳過本次自動對話
     const now = Date.now();
     const idleTime = now - mpuLastUserActionTime;
     if (idleTime > mpuIdleThreshold) {
-      mpuLogger.log(
-        "使用者閒置中（",
-        Math.floor(idleTime / 1000),
-        "秒），跳過本次自動對話",
-      );
+      mpuLogger.logF("autoTalkSkippedUserIdle", "ユーザーがアイドル状態です（%s 秒）。今回の自動会話をスキップします", Math.floor(idleTime / 1000));
       // 雖然跳過，但仍需重新啟動計時器以檢測下一次
       if (mpuAutoTalk) startAutoTalk();
       return;
@@ -303,15 +288,7 @@ function startAutoTalk() {
     // 每次觸發前重新檢查睡眠模式，動態調整間隔
     const newSleepModeInfo = checkSleepMode();
     if (newSleepModeInfo.isSleepMode !== currentIsSleepMode) {
-      mpuLogger.log(
-        "睡眠模式狀態變化（",
-        currentIsSleepMode ? "睡眠" : "正常",
-        " → ",
-        newSleepModeInfo.isSleepMode ? "睡眠" : "正常",
-        "），重新啟動自動對話（新間隔:",
-        newSleepModeInfo.interval,
-        "ms）",
-      );
+      mpuLogger.logF("autoTalkSleepModeStateChanged", "睡眠モード状態が変化しました（%1$s → %2$s）。自動会話を再起動します（新しい間隔: %3$s ms）", currentIsSleepMode ? "睡眠" : "通常", newSleepModeInfo.isSleepMode ? "睡眠" : "通常", newSleepModeInfo.interval);
       if (mpuAutoTalk) {
         startAutoTalk();
       }
@@ -320,9 +297,7 @@ function startAutoTalk() {
 
     // 檢查是否為睡眠模式且尚未被喚醒，如果是則跳過本次自動對話
     if (mpu_isUnawokenSleepMode()) {
-      mpuLogger.log(
-        "🌙 睡眠模式且尚未被喚醒：跳過本次自動對話，只接受 OK 鈕觸發",
-      );
+      mpuLogger.logL("autoTalkTickSkippedUnawokenSleepMode", "🌙 睡眠モードでまだ目を覚ましていないため、今回の自動会話をスキップし OK ボタンのみ受け付けます");
       // 重新啟動計時器（雖然這次跳過）
       if (mpuAutoTalk) startAutoTalk();
       return;
@@ -394,42 +369,19 @@ function mpu_checkSpamEvent(callback) {
     .then(function (res) {
       if (res && res.has_event && res.msg) {
         if (res.action === "bot_alert") {
-          mpuLogger.log(
-            "🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱:",
-            res.bot_name,
-          );
+          mpuLogger.logF("autoTalkBotAlertDetected", "🛡️ Bot Alert: Bot の侵入を検出しました。Bot 名: %s", res.bot_name);
         } else if (res.action === "turnstile_block") {
-          mpuLogger.log(
-            "🛡️ Turnstile 結界防禦：偵測到結界撞擊事件，攔截次數:",
-            res.block_count,
-          );
+          mpuLogger.logF("autoTalkTurnstileDefenseDetected", "🛡️ Turnstile 結界防御: 結界衝突イベントを検出しました。ブロック回数: %s", res.block_count);
         } else if (res.action === "bot_blocker_alert") {
-          mpuLogger.log(
-            "🛡️ Moelog Bot Blocker：偵測到防禦魔法攔截事件，攔截數量:",
-            res.block_count,
-          );
+          mpuLogger.logF("autoTalkBotBlockerDetected", "🛡️ Moelog Bot Blocker: 防御魔法のブロックイベントを検出しました。ブロック数: %s", res.block_count);
         } else if (res.action === "ai_crawler_alert") {
-          mpuLogger.log(
-            "🤖 AI Crawler：偵測到 AI 爬蟲訪問，crawler:",
-            res.crawler,
-            "company:",
-            res.company,
-          );
+          mpuLogger.logF("autoTalkAiCrawlerDetected", "🤖 AI Crawler: AI クローラーの訪問を検出しました。crawler=%1$s、company=%2$s", res.crawler, res.company);
         } else if (res.action === "visitor_pulse_alert") {
-          mpuLogger.log(
-            "🌍 Visitor Pulse：訪客脈動訊號，pulse_type:",
-            res.pulse_type,
-          );
+          mpuLogger.logF("autoTalkVisitorPulseDetected", "🌍 Visitor Pulse: 訪問者パルス信号を検出しました。pulse_type=%s", res.pulse_type);
         } else if (res.action === "spam_alert") {
-          mpuLogger.log(
-            "🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量:",
-            res.spam_count,
-          );
+          mpuLogger.logF("autoTalkAkismetSpamDetected", "🛡️ Akismet スパム連携: スパムコメントイベントを検出しました。ブロック数: %s", res.spam_count);
         } else {
-          mpuLogger.log(
-            "🛡️ Auto-talk 事件（未分類 action）:",
-            res.action,
-          );
+          mpuLogger.logF("autoTalkUnclassifiedSecurityEvent", "🛡️ Auto-talk イベント（未分類 action）: %s", res.action);
         }
 
         // 停止當前的自動對話計時器
@@ -508,12 +460,12 @@ function mpu_checkSpamEvent(callback) {
         }, 700);
       } else {
         // 沒有垃圾留言事件
-        mpuLogger.log("🛡️ Turnstile/Akismet/BotBlocker/Bot Check: 無事件");
+        mpuLogger.logL("securityCheckNoEvent", "🛡️ Turnstile/Akismet/BotBlocker/Bot Check: イベントはありません");
         callback(false);
       }
     })
     .catch(function (error) {
-      mpuLogger.warn("Security Check: 安全檢查失敗:", error);
+      mpuLogger.warnF("securityCheckFailed", "Security Check: セキュリティチェックに失敗しました: %s", error);
       // 出錯時不阻擋正常的自動對話
       callback(false);
     });
@@ -523,18 +475,13 @@ function mpu_checkSpamEvent(callback) {
 
 function mpu_processOllamaQueue() {
   if (mpuOllamaRequestQueue.length === 0) {
-    mpuLogger.log("mpu_processOllamaQueue: 佇列為空");
+    mpuLogger.logL("ollamaQueueEmpty", "mpu_processOllamaQueue: キューは空です");
     return;
   }
 
   setTimeout(function () {
     const nextTrigger = mpuOllamaRequestQueue.shift();
-    mpuLogger.log(
-      "mpu_processOllamaQueue: 處理佇列中的請求, trigger =",
-      nextTrigger,
-      ", 剩餘佇列長度 =",
-      mpuOllamaRequestQueue.length,
-    );
+    mpuLogger.logF("ollamaQueueProcessingRequest", "mpu_processOllamaQueue: キュー内のリクエストを処理します。trigger=%1$s、残りキュー長=%2$s", nextTrigger, mpuOllamaRequestQueue.length);
     mpu_nextmsg(nextTrigger);
   }, mpuOllamaQueueDelay);
 }
@@ -547,29 +494,16 @@ function mpu_nextmsg(trigger) {
   const isAuto = trigger === "auto";
   const isStartup = trigger === "startup";
   const isManual = !isAuto && !isStartup; // 手動觸發（使用者點擊按鈕）
-  mpuLogger.log(
-    "mpu_nextmsg 被調用, trigger =",
-    trigger,
-    ", isAuto =",
-    isAuto,
-    ", isStartup =",
-    isStartup,
-    ", isManual =",
-    isManual,
-    ", mpuOllamaReplaceDialogue =",
-    mpuOllamaReplaceDialogue,
-  );
+  mpuLogger.logF("nextMessageCalled", "mpu_nextmsg が呼び出されました。trigger=%1$s、isAuto=%2$s、isStartup=%3$s、isManual=%4$s、mpuOllamaReplaceDialogue=%5$s", trigger, isAuto, isStartup, isManual, mpuOllamaReplaceDialogue);
 
   if (mpuMessageBlocking) {
-    mpuLogger.log(
-      "mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過",
-    );
+    mpuLogger.logL("nextMessageSkippedMessageBlocking", "mpu_nextmsg: メッセージ表示がブロックされています（mpuMessageBlocking=true）。スキップします");
     return;
   }
 
   // 對話模式中不執行自動對話
   if (typeof mpuChatModeActive !== "undefined" && mpuChatModeActive) {
-    mpuLogger.log("mpu_nextmsg: 對話模式中，跳過自動對話");
+    mpuLogger.logL("nextMessageSkippedChatMode", "mpu_nextmsg: 会話モード中のため自動会話をスキップします");
     return;
   }
 
@@ -578,22 +512,18 @@ function mpu_nextmsg(trigger) {
     typeof window.mpuFrierenManager !== "undefined" &&
     window.mpuFrierenManager.decorationChatInProgress
   ) {
-    mpuLogger.log("mpu_nextmsg: 裝飾物/觸摸對話進行中，跳過自動對話");
+    mpuLogger.logL("nextMessageSkippedInteractionDialog", "mpu_nextmsg: 装飾品またはタッチ会話中のため自動会話をスキップします");
     return;
   }
 
   if (isAuto && !mpuAutoTalk) {
-    mpuLogger.log("mpu_nextmsg: 自動對話已關閉，退出");
+    mpuLogger.logL("nextMessageAutoTalkDisabledExit", "mpu_nextmsg: 自動会話が無効のため終了します");
     return;
   }
 
   // 睡眠模式且尚未被喚醒時，跳過自動和啟動觸發（只接受手動觸發）
   if ((isAuto || isStartup) && mpu_isUnawokenSleepMode()) {
-    mpuLogger.log(
-      "🌙 睡眠模式且尚未被喚醒：跳過",
-      trigger,
-      "觸發的對話，只接受 OK 鈕觸發",
-    );
+    mpuLogger.logF("nextMessageSkippedUnawokenSleepMode", "🌙 睡眠モードでまだ目を覚ましていないため、%s トリガーの会話をスキップし OK ボタンのみ受け付けます", trigger);
     return;
   }
 
@@ -602,32 +532,32 @@ function mpu_nextmsg(trigger) {
   stopAutoTalk();
 
   if ((isAuto || isStartup) && mpuAiContextInProgress) {
-    mpuLogger.log("mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話");
+    mpuLogger.logL("nextMessageSkippedPageAwareInProgress", "mpu_nextmsg: ページ感知 AI が進行中のため、自動/起動会話をスキップします");
     return;
   }
 
   // 頁面感知即將觸發（3 秒內），避免 startup 的 BOT 對話搶先覆蓋頁面感知
   if (isStartup && mpuIsContextPending()) {
-    mpuLogger.log("mpu_nextmsg: 頁面感知已排程，跳過 startup 以避免 BOT 對話覆蓋");
+    mpuLogger.logL("nextMessageSkippedScheduledPageAwareStartup", "mpu_nextmsg: ページ感知が予約済みのため、BOT 会話の上書きを避けるため startup をスキップします");
     mpuSetOllamaRequesting(false);
     return;
   }
 
   if ((isAuto || isStartup) && mpuGreetInProgress) {
-    mpuLogger.log("mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動/啟動對話");
+    mpuLogger.logL("nextMessageSkippedGreetingInProgress", "mpu_nextmsg: 初回訪問者への挨拶中のため、自動/起動会話をスキップします");
     return;
   }
 
   if (mpuOllamaReplaceDialogue && mpuOllamaRequesting) {
     if (isAuto) {
-      mpuLogger.log("mpu_nextmsg: Ollama 正在處理請求，自動觸發的請求被跳過");
+      mpuLogger.logL("nextMessageAutoSkippedOllamaBusy", "mpu_nextmsg: Ollama がリクエストを処理中のため、自動トリガーのリクエストをスキップします");
       return;
     }
     if (mpuOllamaRequestQueue.length < 2) {
-      mpuLogger.log("mpu_nextmsg: Ollama 正在處理請求，此請求加入佇列");
+      mpuLogger.logL("nextMessageQueuedOllamaBusy", "mpu_nextmsg: Ollama がリクエストを処理中のため、このリクエストをキューに追加します");
       mpuOllamaRequestQueue.push(trigger);
     } else {
-      mpuLogger.log("mpu_nextmsg: 佇列已滿，跳過此請求");
+      mpuLogger.logL("nextMessageSkippedQueueFull", "mpu_nextmsg: キューが満杯のため、このリクエストをスキップします");
     }
     // 注意：這裡不再啟動計時器
     // startup 觸發已被加入佇列，會在佇列處理時自然完成
@@ -643,7 +573,7 @@ function mpu_nextmsg(trigger) {
   }
 
   if (mpuOllamaReplaceDialogue) {
-    mpuLogger.log("mpu_nextmsg: 使用 LLM 生成對話");
+    mpuLogger.logL("nextMessageUsingLlm", "mpu_nextmsg: LLM を使用して会話を生成します");
 
     mpuSetOllamaRequesting(true);
     const curNum = window.mpuInfo?.num || "default_1";
@@ -683,7 +613,7 @@ function mpu_nextmsg(trigger) {
       formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
     }
 
-    mpuLogger.log("mpu_nextmsg: 發送 LLM POST 請求到", mpuRestUrl + "nextmsg");
+    mpuLogger.logF("nextMessageSendingLlmPost", "mpu_nextmsg: LLM POST リクエストを送信します: %s", mpuRestUrl + "nextmsg");
 
     mpuFetch(mpuRestUrl + "nextmsg", {
       method: "POST",
@@ -694,12 +624,10 @@ function mpu_nextmsg(trigger) {
       cancelPrevious: true,
     })
       .then((res) => {
-        mpuLogger.log("mpu_nextmsg: LLM 回應 =", res);
+        mpuLogger.logF("nextMessageLlmResponse", "mpu_nextmsg: LLM 応答 = %s", res);
 
         if (mpuMessageBlocking || mpuAiContextInProgress) {
-          mpuLogger.log(
-            "mpu_nextmsg: LLM 回應被阻擋（頁面感知 AI 正在進行中），跳過顯示",
-          );
+          mpuLogger.logL("nextMessageLlmResponseSkippedPageAwareInProgress", "mpu_nextmsg: ページ感知 AI が進行中のため、LLM 応答の表示をスキップします");
           return;
         }
 
@@ -794,22 +722,15 @@ function mpu_nextmsg(trigger) {
               type: "auto_talk",
               timestamp: Date.now(),
             });
-            mpuLogger.log(
-              "mpu_nextmsg: 自發對話已加入對話歷史，當前歷史長度:",
-              window.mpuChatHistory.length,
-            );
+            mpuLogger.logF("nextMessageSpontaneousAddedToHistory", "mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s", window.mpuChatHistory.length);
             if (typeof mpu_saveChatHistory === "function") {
               mpu_saveChatHistory();
-              mpuLogger.log("mpu_nextmsg: 對話歷史已儲存");
+              mpuLogger.logL("nextMessageHistorySaved", "mpu_nextmsg: 会話履歴を保存しました");
             } else {
-              mpuLogger.warn(
-                "mpu_nextmsg: mpu_saveChatHistory 函數不存在，無法儲存對話歷史",
-              );
+              mpuLogger.warnL("nextMessageSaveHistoryMissing", "mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
             }
           } else {
-            mpuLogger.warn(
-              "mpu_nextmsg: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史",
-            );
+            mpuLogger.warnL("nextMessageHistoryUnavailable", "mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません");
           }
 
           if (res.msgnum !== undefined) {
@@ -818,18 +739,16 @@ function mpu_nextmsg(trigger) {
 
           // ⚠️ LLM 回應成功後，等待打字效果完成再啟動自動對話計時器
           if (mpuAutoTalk && !mpuAutoTalkTimer) {
-            mpuLogger.log(
-              "mpu_nextmsg: LLM 回應完成，等待打字完成後啟動自動對話計時器",
-            );
+            mpuLogger.logL("nextMessageLlmCompleteWaitingForTypewriter", "mpu_nextmsg: LLM 応答が完了しました。タイピング完了後に自動会話タイマーを開始します");
             mpu_waitForTypewriterComplete(function () {
               if (mpuAutoTalk && !mpuAutoTalkTimer) {
-                mpuLogger.log("mpu_nextmsg: 打字完成，現在啟動自動對話計時器");
+                mpuLogger.logL("nextMessageTypewriterCompleteStartingAutoTalk", "mpu_nextmsg: タイピングが完了しました。自動会話タイマーを開始します");
                 startAutoTalk();
               }
             });
           }
         } else {
-          mpuLogger.warn("mpu_nextmsg: LLM 回應沒有 msg", res);
+          mpuLogger.warnL("nextMessageLlmResponseMissingMessage", "mpu_nextmsg: LLM 応答に msg がありません", res);
 
           // 檢查是否為速率限制錯誤（請求過於頻繁）
           const isRateLimit =
@@ -868,16 +787,14 @@ function mpu_nextmsg(trigger) {
               }
             }, waitTime);
           } else {
-            mpuLogger.warn("mpu_nextmsg: LLM 回應沒有 msg，使用後備對話");
+            mpuLogger.warnL("nextMessageLlmMissingMessageUsingFallback", "mpu_nextmsg: LLM 応答に msg がないため、フォールバック会話を使用します");
             mpuSetLastLLMResponse("");
             mpuResetLLMResponseHistory();
             mpu_nextmsg_fallback();
 
             // ⚠️ 即使 fallback，也等待打字完成再啟動自動對話
             if (mpuAutoTalk && !mpuAutoTalkTimer) {
-              mpuLogger.log(
-                "mpu_nextmsg: fallback 完成，等待打字完成後啟動計時器",
-              );
+              mpuLogger.logL("nextMessageFallbackCompleteWaitingForTypewriter", "mpu_nextmsg: フォールバックが完了しました。タイピング完了後にタイマーを開始します");
               mpu_waitForTypewriterComplete(function () {
                 if (mpuAutoTalk && !mpuAutoTalkTimer) {
                   startAutoTalk();
@@ -896,7 +813,7 @@ function mpu_nextmsg(trigger) {
 
         // ⚠️ 即使出錯，也等待打字完成再啟動自動對話
         if (mpuAutoTalk && !mpuAutoTalkTimer) {
-          mpuLogger.log("mpu_nextmsg: 出錯，等待打字完成後啟動計時器");
+          mpuLogger.logL("nextMessageErrorWaitingForTypewriter", "mpu_nextmsg: エラーが発生しました。タイピング完了後にタイマーを開始します");
           mpu_waitForTypewriterComplete(function () {
             if (mpuAutoTalk && !mpuAutoTalkTimer) {
               startAutoTalk();
@@ -905,9 +822,7 @@ function mpu_nextmsg(trigger) {
         }
 
         if (mpuMessageBlocking || mpuAiContextInProgress) {
-          mpuLogger.log(
-            "mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過",
-          );
+          mpuLogger.logL("nextMessageLlmErrorSkippedPageAwareInProgress", "mpu_nextmsg: ページ感知 AI が進行中のため、LLM エラー処理をスキップします");
           return;
         }
         mpuLogger.warn(
@@ -937,7 +852,7 @@ function mpu_nextmsg(trigger) {
     const store = mpuGetDialogStore();
 
     if (!store) {
-      mpuLogger.warn("mpu_nextmsg: 對話尚未載入，等待載入完成...");
+      mpuLogger.warnL("nextMessageWaitingForDialogLoad", "mpu_nextmsg: 会話がまだ読み込まれていません。読み込み完了を待機します...");
       const retryCount = mpuGetState().retry.nextMessage || 0;
       if (retryCount < 3) {
         mpuGetState().retry.nextMessage = retryCount + 1;
@@ -949,7 +864,7 @@ function mpu_nextmsg(trigger) {
         mpu_showMsgText();
         mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
-        mpuLogger.warn("mpu_nextmsg: 對話載入超時，已重試 3 次");
+        mpuLogger.warnL("nextMessageDialogLoadTimeout", "mpu_nextmsg: 会話読み込みがタイムアウトしました。3 回再試行済みです");
       }
       return;
     }
@@ -963,13 +878,7 @@ function mpu_nextmsg(trigger) {
           : "訊息列表格式錯誤";
       mpu_typewriter(errorMsg, "#ukagaka_msg");
       mpu_showmsg(400);
-      mpuLogger.warn("mpu_nextmsg: 無法顯示對話 -", {
-        store: store ? "exists" : "null",
-        msgArray:
-          store && Array.isArray(store.msg)
-            ? `length=${store.msg.length}`
-            : "not array",
-      });
+      mpuLogger.warnF("nextMessageCannotDisplayDialog", "mpu_nextmsg: 会話を表示できません - store=%1$s、msgArray=%2$s", store ? "exists" : "null", store && Array.isArray(store.msg) ? `length=${store.msg.length}` : "not array");
       return;
     }
 
@@ -1028,7 +937,7 @@ function mpu_nextmsg(trigger) {
 
     // ⚠️ 傳統對話流程：等待打字完成後重啟自動對話計時器
     if (mpuAutoTalk && !mpuAutoTalkTimer) {
-      mpuLogger.log("mpu_nextmsg: 傳統對話，等待打字完成後啟動計時器");
+      mpuLogger.logL("nextMessageTraditionalDialogWaitingForTypewriter", "mpu_nextmsg: 通常会話です。タイピング完了後にタイマーを開始します");
       mpu_waitForTypewriterComplete(function () {
         if (mpuAutoTalk && !mpuAutoTalkTimer) {
           startAutoTalk();
@@ -1042,16 +951,14 @@ function mpu_nextmsg_fallback() {
   setTimeout(function () {
     mpu_showMsgText();
     if (mpuMessageBlocking || mpuAiContextInProgress) {
-      mpuLogger.log(
-        "mpu_nextmsg_fallback: 被阻擋（頁面感知 AI 正在進行中），跳過顯示",
-      );
+      mpuLogger.logL("nextMessageFallbackSkippedPageAwareInProgress", "mpu_nextmsg_fallback: ページ感知 AI が進行中のため、表示をスキップします");
       return;
     }
 
     const store = mpuGetDialogStore();
 
     if (!store) {
-      mpuLogger.warn("mpu_nextmsg_fallback: 對話尚未載入，等待載入完成...");
+      mpuLogger.warnL("nextMessageFallbackWaitingForDialogLoad", "mpu_nextmsg_fallback: 会話がまだ読み込まれていません。読み込み完了を待機します...");
       const retryCount = mpuGetState().retry.fallbackMessage || 0;
       if (retryCount < 2) {
         mpuGetState().retry.fallbackMessage = retryCount + 1;
@@ -1063,7 +970,7 @@ function mpu_nextmsg_fallback() {
         mpu_showMsgText();
         mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
-        mpuLogger.warn("mpu_nextmsg_fallback: 對話載入超時，已重試 2 次");
+        mpuLogger.warnL("nextMessageFallbackDialogLoadTimeout", "mpu_nextmsg_fallback: 会話読み込みがタイムアウトしました。2 回再試行済みです");
       }
       return;
     }
@@ -1077,13 +984,7 @@ function mpu_nextmsg_fallback() {
           : "訊息列表格式錯誤";
       mpu_typewriter(errorMsg, "#ukagaka_msg");
       mpu_showmsg(400);
-      mpuLogger.warn("mpu_nextmsg_fallback: 無法顯示後備對話 -", {
-        store: store ? "exists" : "null",
-        msgArray:
-          store && Array.isArray(store.msg)
-            ? `length=${store.msg.length}`
-            : "not array",
-      });
+      mpuLogger.warnF("nextMessageFallbackCannotDisplayDialog", "mpu_nextmsg_fallback: フォールバック会話を表示できません - store=%1$s、msgArray=%2$s", store ? "exists" : "null", store && Array.isArray(store.msg) ? `length=${store.msg.length}` : "not array");
       return;
     }
 
@@ -1215,9 +1116,7 @@ function mpuChange(num) {
             $imgWrapper.fadeIn(180);
           });
         } else {
-          mpuLogger.warn(
-            "mpuChange: Canvas 管理器在 Ajax 成功後才發現不存在，這不應該發生",
-          );
+          mpuLogger.warnL("changeCanvasManagerMissingAfterAjax", "mpuChange: Ajax 成功後に Canvas マネージャーが存在しないことが判明しました。これは想定外です");
           mpu_handle_error(
             "Canvas 管理器未載入",
             "mpuChange:canvas_manager_fallback",

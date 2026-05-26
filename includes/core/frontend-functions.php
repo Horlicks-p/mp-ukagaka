@@ -579,6 +579,120 @@ function mpu_enqueue_frontend_assets()
         $log_i18n->always('frierenDecorationDialogRequestFailed', __('装飾品会話リクエストに失敗しました', 'mp-ukagaka'), ['scope' => 'frieren']);
         /* translators: console log. jQuery.cookie initialization failed, so cookie-dependent features may not work. */
         $log_i18n->always('jqueryCookieInitFailed', __('jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります', 'mp-ukagaka'));
+        /* translators: debug console log. Auto-talk startup exits because auto-talk is disabled. */
+        $log_i18n->debug('autoTalkDisabledExit', __('startAutoTalk: mpuAutoTalk が false のため終了します', 'mp-ukagaka'));
+        /* translators: debug console log. Auto-talk is not started while chat mode is active. */
+        $log_i18n->debug('autoTalkSkippedDuringChatMode', __('startAutoTalk: 会話モード中のため自動会話を開始しません', 'mp-ukagaka'));
+        /* translators: debug console log. Auto-talk is skipped during decoration or touch dialog. */
+        $log_i18n->debug('autoTalkSkippedDuringInteractionDialog', __('startAutoTalk: 装飾品またはタッチ会話中のため自動会話を開始しません', 'mp-ukagaka'));
+        /* translators: debug console log. Auto-talk is disabled while the character is asleep and not awakened. */
+        $log_i18n->debug('autoTalkSkippedUnawokenSleepMode', __('🌙 睡眠モードでまだ目を覚ましていないため、自動会話を開始せず OK ボタンのみ受け付けます', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is the adjusted interval in ms, %2$s is the original interval in ms. */
+        $log_i18n->debug('autoTalkSleepModeIntervalAdjusted', __('🌙 睡眠モードが有効です（00:00〜06:00）。間隔を %1$s ms に調整しました（元: %2$s ms）', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is the timer interval in ms, %2$s is the auto-talk enabled flag. */
+        $log_i18n->debug('autoTalkTimerSet', __('startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is the auto-talk flag, %2$s is the LLM replacement flag. */
+        $log_i18n->debug('autoTalkTimerTriggered', __('自動会話タイマーが発火しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the idle duration in seconds. */
+        $log_i18n->debug('autoTalkSkippedUserIdle', __('ユーザーがアイドル状態です（%s 秒）。今回の自動会話をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is previous state, %2$s is new state, %3$s is the new interval in ms. */
+        $log_i18n->debug('autoTalkSleepModeStateChanged', __('睡眠モード状態が変化しました（%1$s → %2$s）。自動会話を再起動します（新しい間隔: %3$s ms）', 'mp-ukagaka'));
+        /* translators: debug console log. A scheduled auto-talk tick is skipped while asleep and not awakened. */
+        $log_i18n->debug('autoTalkTickSkippedUnawokenSleepMode', __('🌙 睡眠モードでまだ目を覚ましていないため、今回の自動会話をスキップし OK ボタンのみ受け付けます', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the detected bot name. */
+        $log_i18n->debug('autoTalkBotAlertDetected', __('🛡️ Bot Alert: Bot の侵入を検出しました。Bot 名: %s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the Turnstile block count. */
+        $log_i18n->debug('autoTalkTurnstileDefenseDetected', __('🛡️ Turnstile 結界防御: 結界衝突イベントを検出しました。ブロック回数: %s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the bot blocker block count. */
+        $log_i18n->debug('autoTalkBotBlockerDetected', __('🛡️ Moelog Bot Blocker: 防御魔法のブロックイベントを検出しました。ブロック数: %s', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is the crawler name, %2$s is the company name. */
+        $log_i18n->debug('autoTalkAiCrawlerDetected', __('🤖 AI Crawler: AI クローラーの訪問を検出しました。crawler=%1$s、company=%2$s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the visitor pulse type. */
+        $log_i18n->debug('autoTalkVisitorPulseDetected', __('🌍 Visitor Pulse: 訪問者パルス信号を検出しました。pulse_type=%s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the spam block count. */
+        $log_i18n->debug('autoTalkAkismetSpamDetected', __('🛡️ Akismet スパム連携: スパムコメントイベントを検出しました。ブロック数: %s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the unclassified action name. */
+        $log_i18n->debug('autoTalkUnclassifiedSecurityEvent', __('🛡️ Auto-talk イベント（未分類 action）: %s', 'mp-ukagaka'));
+        /* translators: debug console log. No security event was detected. */
+        $log_i18n->debug('securityCheckNoEvent', __('🛡️ Turnstile/Akismet/BotBlocker/Bot Check: イベントはありません', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the caught error value. */
+        $log_i18n->debug('securityCheckFailed', __('Security Check: セキュリティチェックに失敗しました: %s', 'mp-ukagaka'));
+        /* translators: debug console log. The Ollama request queue has no pending item. */
+        $log_i18n->debug('ollamaQueueEmpty', __('mpu_processOllamaQueue: キューは空です', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is the trigger, %2$s is the remaining queue length. */
+        $log_i18n->debug('ollamaQueueProcessingRequest', __('mpu_processOllamaQueue: キュー内のリクエストを処理します。trigger=%1$s、残りキュー長=%2$s', 'mp-ukagaka'));
+        /* translators: debug console log. Values describe the next-message trigger and mode flags. */
+        $log_i18n->debug('nextMessageCalled', __('mpu_nextmsg が呼び出されました。trigger=%1$s、isAuto=%2$s、isStartup=%3$s、isManual=%4$s、mpuOllamaReplaceDialogue=%5$s', 'mp-ukagaka'));
+        /* translators: debug console log. Next message is skipped because message blocking is active. */
+        $log_i18n->debug('nextMessageSkippedMessageBlocking', __('mpu_nextmsg: メッセージ表示がブロックされています（mpuMessageBlocking=true）。スキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Auto-talk next message is skipped during chat mode. */
+        $log_i18n->debug('nextMessageSkippedChatMode', __('mpu_nextmsg: 会話モード中のため自動会話をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Auto-talk next message is skipped during decoration or touch dialog. */
+        $log_i18n->debug('nextMessageSkippedInteractionDialog', __('mpu_nextmsg: 装飾品またはタッチ会話中のため自動会話をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Next message exits because auto-talk is disabled. */
+        $log_i18n->debug('nextMessageAutoTalkDisabledExit', __('mpu_nextmsg: 自動会話が無効のため終了します', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the trigger that was skipped. */
+        $log_i18n->debug('nextMessageSkippedUnawokenSleepMode', __('🌙 睡眠モードでまだ目を覚ましていないため、%s トリガーの会話をスキップし OK ボタンのみ受け付けます', 'mp-ukagaka'));
+        /* translators: debug console log. Startup or auto next message is skipped while page-aware AI is active. */
+        $log_i18n->debug('nextMessageSkippedPageAwareInProgress', __('mpu_nextmsg: ページ感知 AI が進行中のため、自動/起動会話をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Startup is skipped because page-aware AI is scheduled. */
+        $log_i18n->debug('nextMessageSkippedScheduledPageAwareStartup', __('mpu_nextmsg: ページ感知が予約済みのため、BOT 会話の上書きを避けるため startup をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Startup or auto next message is skipped while greeting is active. */
+        $log_i18n->debug('nextMessageSkippedGreetingInProgress', __('mpu_nextmsg: 初回訪問者への挨拶中のため、自動/起動会話をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Auto-triggered request is skipped because Ollama is busy. */
+        $log_i18n->debug('nextMessageAutoSkippedOllamaBusy', __('mpu_nextmsg: Ollama がリクエストを処理中のため、自動トリガーのリクエストをスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Request is queued because Ollama is busy. */
+        $log_i18n->debug('nextMessageQueuedOllamaBusy', __('mpu_nextmsg: Ollama がリクエストを処理中のため、このリクエストをキューに追加します', 'mp-ukagaka'));
+        /* translators: debug console log. Request is skipped because the queue is full. */
+        $log_i18n->debug('nextMessageSkippedQueueFull', __('mpu_nextmsg: キューが満杯のため、このリクエストをスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Next message will be generated by the LLM. */
+        $log_i18n->debug('nextMessageUsingLlm', __('mpu_nextmsg: LLM を使用して会話を生成します', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the REST endpoint URL. */
+        $log_i18n->debug('nextMessageSendingLlmPost', __('mpu_nextmsg: LLM POST リクエストを送信します: %s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the raw LLM response object. */
+        $log_i18n->debug('nextMessageLlmResponse', __('mpu_nextmsg: LLM 応答 = %s', 'mp-ukagaka'));
+        /* translators: debug console log. LLM response display is skipped while page-aware AI is active. */
+        $log_i18n->debug('nextMessageLlmResponseSkippedPageAwareInProgress', __('mpu_nextmsg: ページ感知 AI が進行中のため、LLM 応答の表示をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the current chat history length. */
+        $log_i18n->debug('nextMessageSpontaneousAddedToHistory', __('mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s', 'mp-ukagaka'));
+        /* translators: debug console log. Chat history was saved. */
+        $log_i18n->debug('nextMessageHistorySaved', __('mpu_nextmsg: 会話履歴を保存しました', 'mp-ukagaka'));
+        /* translators: debug console log. Chat history cannot be saved because the save function is unavailable. */
+        $log_i18n->debug('nextMessageSaveHistoryMissing', __('mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません', 'mp-ukagaka'));
+        /* translators: debug console log. Chat history is unavailable or not an array. */
+        $log_i18n->debug('nextMessageHistoryUnavailable', __('mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません', 'mp-ukagaka'));
+        /* translators: debug console log. Auto-talk timer waits for typewriter completion after LLM response. */
+        $log_i18n->debug('nextMessageLlmCompleteWaitingForTypewriter', __('mpu_nextmsg: LLM 応答が完了しました。タイピング完了後に自動会話タイマーを開始します', 'mp-ukagaka'));
+        /* translators: debug console log. Typewriter completed and auto-talk timer starts. */
+        $log_i18n->debug('nextMessageTypewriterCompleteStartingAutoTalk', __('mpu_nextmsg: タイピングが完了しました。自動会話タイマーを開始します', 'mp-ukagaka'));
+        /* translators: debug console log. LLM response object has no msg field. */
+        $log_i18n->debug('nextMessageLlmResponseMissingMessage', __('mpu_nextmsg: LLM 応答に msg がありません', 'mp-ukagaka'));
+        /* translators: debug console log. Fallback dialog is used because LLM response has no msg. */
+        $log_i18n->debug('nextMessageLlmMissingMessageUsingFallback', __('mpu_nextmsg: LLM 応答に msg がないため、フォールバック会話を使用します', 'mp-ukagaka'));
+        /* translators: debug console log. Timer waits for typewriter completion after fallback dialog. */
+        $log_i18n->debug('nextMessageFallbackCompleteWaitingForTypewriter', __('mpu_nextmsg: フォールバックが完了しました。タイピング完了後にタイマーを開始します', 'mp-ukagaka'));
+        /* translators: debug console log. Timer waits for typewriter completion after an error. */
+        $log_i18n->debug('nextMessageErrorWaitingForTypewriter', __('mpu_nextmsg: エラーが発生しました。タイピング完了後にタイマーを開始します', 'mp-ukagaka'));
+        /* translators: debug console log. LLM error handling is skipped while page-aware AI is active. */
+        $log_i18n->debug('nextMessageLlmErrorSkippedPageAwareInProgress', __('mpu_nextmsg: ページ感知 AI が進行中のため、LLM エラー処理をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Next message waits for dialog data to load. */
+        $log_i18n->debug('nextMessageWaitingForDialogLoad', __('mpu_nextmsg: 会話がまだ読み込まれていません。読み込み完了を待機します...', 'mp-ukagaka'));
+        /* translators: debug console log. Dialog loading timed out after three retries. */
+        $log_i18n->debug('nextMessageDialogLoadTimeout', __('mpu_nextmsg: 会話読み込みがタイムアウトしました。3 回再試行済みです', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s describes the dialog store, %2$s describes the message array. */
+        $log_i18n->debug('nextMessageCannotDisplayDialog', __('mpu_nextmsg: 会話を表示できません - store=%1$s、msgArray=%2$s', 'mp-ukagaka'));
+        /* translators: debug console log. Traditional dialog waits for typewriter completion before timer restart. */
+        $log_i18n->debug('nextMessageTraditionalDialogWaitingForTypewriter', __('mpu_nextmsg: 通常会話です。タイピング完了後にタイマーを開始します', 'mp-ukagaka'));
+        /* translators: debug console log. Fallback display is skipped while page-aware AI is active. */
+        $log_i18n->debug('nextMessageFallbackSkippedPageAwareInProgress', __('mpu_nextmsg_fallback: ページ感知 AI が進行中のため、表示をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Fallback waits for dialog data to load. */
+        $log_i18n->debug('nextMessageFallbackWaitingForDialogLoad', __('mpu_nextmsg_fallback: 会話がまだ読み込まれていません。読み込み完了を待機します...', 'mp-ukagaka'));
+        /* translators: debug console log. Fallback dialog loading timed out after two retries. */
+        $log_i18n->debug('nextMessageFallbackDialogLoadTimeout', __('mpu_nextmsg_fallback: 会話読み込みがタイムアウトしました。2 回再試行済みです', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s describes the dialog store, %2$s describes the message array. */
+        $log_i18n->debug('nextMessageFallbackCannotDisplayDialog', __('mpu_nextmsg_fallback: フォールバック会話を表示できません - store=%1$s、msgArray=%2$s', 'mp-ukagaka'));
+        /* translators: debug console log. Canvas manager is unexpectedly missing after Ajax success. */
+        $log_i18n->debug('changeCanvasManagerMissingAfterAjax', __('mpuChange: Ajax 成功後に Canvas マネージャーが存在しないことが判明しました。これは想定外です', 'mp-ukagaka'));
         /* translators: debug console log. Browser reload cleared chat history and the chat session ID. */
         $log_i18n->debug('pageReloadClearedChatSession', __('🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました', 'mp-ukagaka'));
     }
