@@ -669,7 +669,7 @@ function mpu_cancelTypewriter() {
     if (mpuTypewriterTimer !== null) {
         clearTimeout(mpuTypewriterTimer);
         mpuSetTypewriterTimer(null);
-        mpuLogger.log('打字效果已被中斷');
+        mpuLogger.logL("typewriterInterrupted", "タイピング効果を中断しました");
         return true;
     }
     return false;
@@ -683,7 +683,7 @@ function mpu_cancelTypewriter() {
  */
 function mpu_waitForTypewriterComplete(callback, maxWaitTime, checkInterval) {
     if (typeof callback !== 'function') {
-        mpuLogger.warn('mpu_waitForTypewriterComplete: callback 不是函數');
+        mpuLogger.warnL("typewriterWaitCallbackInvalid", "mpu_waitForTypewriterComplete: callback が関数ではありません");
         return;
     }
     
@@ -701,7 +701,7 @@ function mpu_waitForTypewriterComplete(callback, maxWaitTime, checkInterval) {
         
         // 檢查是否超時
         if (Date.now() - startTime > maxWaitTime) {
-            mpuLogger.warn('mpu_waitForTypewriterComplete: 等待超時，強制執行回調');
+            mpuLogger.warnL("typewriterWaitTimeoutForcingCallback", "mpu_waitForTypewriterComplete: 待機がタイムアウトしたため、callback を強制実行します");
             callback();
             return;
         }
@@ -852,7 +852,7 @@ function mpu_setCookie(name, value, days, path) {
 
 function mpu_init_jquery_cookie() {
     if (typeof jQuery === 'undefined') {
-        mpuLogger.warn('jQuery 尚未載入，無法初始化 jQuery.cookie');
+        mpuLogger.warnL("jqueryMissingForCookieInit", "jQuery がまだ読み込まれていないため、jQuery.cookie を初期化できません");
         return false;
     }
 
@@ -883,7 +883,7 @@ function mpu_init_jquery_cookie() {
  */
 function mpu_init_idle_detection() {
     if (typeof jQuery === 'undefined') {
-        mpuLogger.warn('jQuery 尚未載入，無法初始化閒置偵測');
+        mpuLogger.warnL("jqueryMissingForIdleDetection", "jQuery がまだ読み込まれていないため、アイドル検出を初期化できません");
         return false;
     }
 
@@ -893,7 +893,7 @@ function mpu_init_idle_detection() {
         mpuSetLastUserActionTime(Date.now());
     });
 
-    mpuLogger.log('閒置偵測已初始化，閾值：', mpuIdleThreshold / 1000, '秒');
+    mpuLogger.logF("idleDetectionInitialized", "アイドル検出を初期化しました。しきい値：%s 秒", mpuIdleThreshold / 1000);
     return true;
 }
 
@@ -904,9 +904,9 @@ function mpu_init_idle_detection() {
 function mpu_updateLastVisitTime() {
     try {
         localStorage.setItem('mpu_last_visit_time', Date.now().toString());
-        mpuLogger.log('已更新最後訪問時間');
+        mpuLogger.logL("lastVisitTimeUpdated", "最終訪問時刻を更新しました");
     } catch (e) {
-        mpuLogger.warn('無法更新最後訪問時間:', e);
+        mpuLogger.warnF("lastVisitTimeUpdateFailed", "最終訪問時刻を更新できませんでした：%s", e);
     }
 }
 
@@ -919,7 +919,7 @@ function mpu_getLastVisitTime() {
         const lastVisit = localStorage.getItem('mpu_last_visit_time');
         return lastVisit ? parseInt(lastVisit, 10) : null;
     } catch (e) {
-        mpuLogger.warn('無法獲取最後訪問時間:', e);
+        mpuLogger.warnF("lastVisitTimeReadFailed", "最終訪問時刻を取得できませんでした：%s", e);
         return null;
     }
 }
@@ -1032,14 +1032,14 @@ const mpuRequestManager = {
             const controller = this.activeRequests.get(requestId);
             controller.abort();
             this.activeRequests.delete(requestId);
-            mpuLogger.log(`請求已取消: ${requestId}`);
+            mpuLogger.logF("requestCancelled", "リクエストをキャンセルしました：%s", requestId);
         }
     },
 
     cancelAll: function () {
         this.activeRequests.forEach((controller, requestId) => {
             controller.abort();
-            mpuLogger.log(`請求已取消: ${requestId}`);
+            mpuLogger.logF("requestCancelled", "リクエストをキャンセルしました：%s", requestId);
         });
         this.activeRequests.clear();
     },
@@ -1068,7 +1068,7 @@ async function mpuFetch(url, options = {}) {
     }
 
     if (config.dedupe && mpuRequestManager.activeRequests.has(requestId)) {
-        mpuLogger.log(`請求去重，跳過: ${requestId}`);
+        mpuLogger.logF("requestDeduped", "リクエストを重複排除してスキップします：%s", requestId);
         return Promise.reject(new Error((window.mpuL10n && window.mpuL10n.duplicateRequest) || '重複したリクエストが存在します。後でもう一度お試しください。'));
     }
 
@@ -1080,7 +1080,7 @@ async function mpuFetch(url, options = {}) {
         timeoutId = setTimeout(() => {
             controller.abort();
             mpuRequestManager.cleanup(requestId);
-            mpuLogger.warn(`請求超時: ${requestId}`);
+            mpuLogger.warnF("requestTimedOut", "リクエストがタイムアウトしました：%s", requestId);
         }, config.timeout);
     }
 
@@ -1107,7 +1107,7 @@ async function mpuFetch(url, options = {}) {
     for (let attempt = 0; attempt <= config.retries; attempt++) {
         try {
             if (attempt > 0) {
-                mpuLogger.log(`重試請求 (${attempt}/${config.retries}): ${requestId}`);
+                mpuLogger.logF("requestRetrying", "リクエストを再試行します（%1$s/%2$s）：%3$s", attempt, config.retries, requestId);
                 await new Promise(resolve => setTimeout(resolve, config.retryDelay * attempt));
             }
 
@@ -1151,7 +1151,7 @@ async function mpuFetch(url, options = {}) {
 
             if (result && typeof result === "object" && result.new_token) {
                 window.mpuRestNonce = result.new_token;
-                mpuLogger.log("REST Nonce 已自動更新");
+                mpuLogger.logL("restNonceAutoUpdated", "REST Nonce を自動更新しました");
             }
 
             return result;
@@ -1172,7 +1172,7 @@ async function mpuFetch(url, options = {}) {
                 error.message.includes('NetworkError') ||
                 error.message.includes('network')
             )) {
-                mpuLogger.warn(`網絡錯誤，將重試: ${error.message}`);
+                mpuLogger.warnF("networkErrorWillRetry", "ネットワークエラーのため再試行します：%s", error.message);
                 continue;
             }
 
@@ -1210,7 +1210,7 @@ function mpuCancelAllRequests() {
  */
 function mpu_init_context_menu() {
     if (typeof jQuery === 'undefined') {
-        mpuLogger.warn('jQuery 尚未載入，無法初始化右鍵菜單');
+        mpuLogger.warnL("jqueryMissingForContextMenu", "jQuery がまだ読み込まれていないため、右クリックメニューを初期化できません");
         return false;
     }
 
@@ -1220,19 +1220,19 @@ function mpu_init_context_menu() {
         jQuery(document).on('contextmenu', '#ukagaka_img, #cur_ukagaka', function(e) {
             e.preventDefault(); // 阻止默認的右鍵菜單
             
-            mpuLogger.log('右鍵菜單觸發：顯示角色切換選單');
+            mpuLogger.logL("contextMenuTriggered", "右クリックメニューが発火しました：キャラクター切り替えメニューを表示します");
             
             // 調用現有的 mpuChange() 函數來顯示角色選擇菜單
             if (typeof mpuChange === 'function') {
                 mpuChange(); // 不帶參數調用會顯示選擇菜單
             } else {
-                mpuLogger.warn('mpuChange 函數未定義');
+                mpuLogger.warnL("changeFunctionMissing", "mpuChange 関数が定義されていません");
             }
             
             return false;
         });
         
-        mpuLogger.log('右鍵菜單已初始化');
+        mpuLogger.logL("contextMenuInitialized", "右クリックメニューを初期化しました");
     });
     
     return true;

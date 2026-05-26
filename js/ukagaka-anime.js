@@ -38,7 +38,7 @@
                 window.mpuFrierenManager && 
                 window.mpuFrierenManager.isFrierenMode) {
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                    mpuLogger.log('⏭️ 已在芙莉蓮模式，跳過重新初始化');
+                    mpuLogger.logL("animeSkipFrierenReinit", "⏭️ すでにフリーレンモードのため、再初期化をスキップします");
                 }
                 return;
             }

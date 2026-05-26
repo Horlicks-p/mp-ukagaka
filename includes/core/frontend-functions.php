@@ -693,6 +693,82 @@ function mpu_enqueue_frontend_assets()
         $log_i18n->debug('nextMessageFallbackCannotDisplayDialog', __('mpu_nextmsg_fallback: フォールバック会話を表示できません - store=%1$s、msgArray=%2$s', 'mp-ukagaka'));
         /* translators: debug console log. Canvas manager is unexpectedly missing after Ajax success. */
         $log_i18n->debug('changeCanvasManagerMissingAfterAjax', __('mpuChange: Ajax 成功後に Canvas マネージャーが存在しないことが判明しました。これは想定外です', 'mp-ukagaka'));
+        /* translators: debug console log. Anime initialization is skipped because Frieren mode is already active. */
+        $log_i18n->debug('animeSkipFrierenReinit', __('⏭️ すでにフリーレンモードのため、再初期化をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Typewriter animation was interrupted. */
+        $log_i18n->debug('typewriterInterrupted', __('タイピング効果を中断しました', 'mp-ukagaka'));
+        /* translators: debug console log. The typewriter completion callback is not a function. */
+        $log_i18n->debug('typewriterWaitCallbackInvalid', __('mpu_waitForTypewriterComplete: callback が関数ではありません', 'mp-ukagaka'));
+        /* translators: debug console log. Typewriter wait timed out and callback will be forced. */
+        $log_i18n->debug('typewriterWaitTimeoutForcingCallback', __('mpu_waitForTypewriterComplete: 待機がタイムアウトしたため、callback を強制実行します', 'mp-ukagaka'));
+        /* translators: debug console log. jQuery is missing before jQuery.cookie initialization. */
+        $log_i18n->debug('jqueryMissingForCookieInit', __('jQuery がまだ読み込まれていないため、jQuery.cookie を初期化できません', 'mp-ukagaka'));
+        /* translators: debug console log. jQuery is missing before idle detection initialization. */
+        $log_i18n->debug('jqueryMissingForIdleDetection', __('jQuery がまだ読み込まれていないため、アイドル検出を初期化できません', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the idle threshold in seconds. */
+        $log_i18n->debug('idleDetectionInitialized', __('アイドル検出を初期化しました。しきい値：%s 秒', 'mp-ukagaka'));
+        /* translators: debug console log. Last visit timestamp was updated. */
+        $log_i18n->debug('lastVisitTimeUpdated', __('最終訪問時刻を更新しました', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the caught error value. */
+        $log_i18n->debug('lastVisitTimeUpdateFailed', __('最終訪問時刻を更新できませんでした：%s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the caught error value. */
+        $log_i18n->debug('lastVisitTimeReadFailed', __('最終訪問時刻を取得できませんでした：%s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the request ID. This text appears in two cancel paths. */
+        $log_i18n->debug('requestCancelled', __('リクエストをキャンセルしました：%s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the request ID skipped by dedupe. */
+        $log_i18n->debug('requestDeduped', __('リクエストを重複排除してスキップします：%s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the timed-out request ID. */
+        $log_i18n->debug('requestTimedOut', __('リクエストがタイムアウトしました：%s', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is current attempt, %2$s is max retries, %3$s is request ID. */
+        $log_i18n->debug('requestRetrying', __('リクエストを再試行します（%1$s/%2$s）：%3$s', 'mp-ukagaka'));
+        /* translators: debug console log. REST nonce was refreshed from a response. */
+        $log_i18n->debug('restNonceAutoUpdated', __('REST Nonce を自動更新しました', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the network error message. */
+        $log_i18n->debug('networkErrorWillRetry', __('ネットワークエラーのため再試行します：%s', 'mp-ukagaka'));
+        /* translators: debug console log. jQuery is missing before context-menu initialization. */
+        $log_i18n->debug('jqueryMissingForContextMenu', __('jQuery がまだ読み込まれていないため、右クリックメニューを初期化できません', 'mp-ukagaka'));
+        /* translators: debug console log. Context menu opens the character switch menu. */
+        $log_i18n->debug('contextMenuTriggered', __('右クリックメニューが発火しました：キャラクター切り替えメニューを表示します', 'mp-ukagaka'));
+        /* translators: debug console log. Character change function is unavailable. */
+        $log_i18n->debug('changeFunctionMissing', __('mpuChange 関数が定義されていません', 'mp-ukagaka'));
+        /* translators: debug console log. Context menu initialization completed. */
+        $log_i18n->debug('contextMenuInitialized', __('右クリックメニューを初期化しました', 'mp-ukagaka'));
+        /* translators: debug console log. Interactive chat mode was entered. */
+        $log_i18n->debug('chatModeEntered', __('インタラクティブ会話モードに入りました', 'mp-ukagaka'));
+        /* translators: debug console log. Interactive chat mode was exited. */
+        $log_i18n->debug('chatModeExited', __('インタラクティブ会話モードを終了しました', 'mp-ukagaka'));
+        /* translators: debug console log. User attempted to send while a response is pending. */
+        $log_i18n->debug('chatWaitingForResponse', __('応答待ちです。しばらくお待ちください', 'mp-ukagaka'));
+        /* translators: debug console log. Chat history was cleared. */
+        $log_i18n->debug('chatHistoryCleared', __('会話履歴をクリアしました', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the user message text. */
+        $log_i18n->debug('chatSendingUserMessage', __('ユーザーメッセージを送信します：%s', 'mp-ukagaka'));
+        /* translators: debug console log. AI response is discarded because chat mode closed. */
+        $log_i18n->debug('chatModeClosedDiscardAiResponse', __('会話モードが閉じているため、今回の AI 応答を破棄します', 'mp-ukagaka'));
+        /* translators: debug console log. Error message is discarded because chat mode closed. */
+        $log_i18n->debug('chatModeClosedDiscardError', __('会話モードが閉じているため、エラーメッセージを破棄します', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the current chat history length. */
+        $log_i18n->debug('chatHistoryLoadedOnPageLoad', __('ページ読み込み：会話履歴を読み込みました。現在の記録数：%s', 'mp-ukagaka'));
+        /* translators: debug console log. Button click is ignored while a decoration dialog is active. This text appears in two button handlers. */
+        $log_i18n->debug('chatButtonIgnoredDecorationDialogActive', __('装飾品会話中のため、ボタンクリックを無視します', 'mp-ukagaka'));
+        /* translators: debug console log. Button click is ignored while message blocking is active. This text appears in two button handlers. */
+        $log_i18n->debug('chatButtonIgnoredMessageBlocking', __('メッセージがブロックされているため、ボタンクリックを無視します', 'mp-ukagaka'));
+        /* translators: debug console log. Chat mode exit was requested from a control. */
+        $log_i18n->debug('chatModeExitRequested', __('会話モードを終了します', 'mp-ukagaka'));
+        /* translators: debug console log. Interactive chat mode initialization completed. */
+        $log_i18n->debug('chatModeInitialized', __('インタラクティブ会話モードを初期化しました', 'mp-ukagaka'));
+        /* translators: debug console log. Wake-up request is being prepared. */
+        $log_i18n->debug('wakeRequestPreparing', __('🌅 キャラクターを起こします。リクエスト送信を準備しています...', 'mp-ukagaka'));
+        /* translators: debug console log. Wake request is cancelled because identity data is missing. */
+        $log_i18n->debug('wakeRequestCancelledMissingIdentity', __('目覚めリクエストをキャンセルしました：personality_id/ukagaka_num が不足しているため、人格状態の混乱を避けます', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the wake request response object. */
+        $log_i18n->debug('wakeRequestSucceeded', __('目覚めに成功しました：%s', 'mp-ukagaka'));
+        /* translators: debug console log. Wake-up was temporary during deep sleep. */
+        $log_i18n->debug('wakeRequestTemporaryDuringDeepSleep', __('これは深い睡眠中の一時的な目覚めです', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the failed wake response object. */
+        $log_i18n->debug('wakeRequestResponseFailed', __('目覚めリクエストの応答が失敗しました：%s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the caught wake request error. */
+        $log_i18n->debug('wakeRequestFailedNonBlocking', __('目覚めリクエストに失敗しましたが、通常動作には影響しません：%s', 'mp-ukagaka'));
         /* translators: debug console log. Browser reload cleared chat history and the chat session ID. */
         $log_i18n->debug('pageReloadClearedChatSession', __('🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました', 'mp-ukagaka'));
     }

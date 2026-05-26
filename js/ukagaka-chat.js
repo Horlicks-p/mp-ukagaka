@@ -89,7 +89,7 @@ function mpu_toggleChatMode(enable) {
 
   if (enable) {
     // 進入對話模式
-    mpuLogger.log("進入互動對話模式");
+    mpuLogger.logL("chatModeEntered", "インタラクティブ会話モードに入りました");
 
     // 暫停自動對話
     if (mpuAutoTalkTimer !== null) {
@@ -189,7 +189,7 @@ function mpu_toggleChatMode(enable) {
     }
   } else {
     // 退出對話模式
-    mpuLogger.log("退出互動對話模式");
+    mpuLogger.logL("chatModeExited", "インタラクティブ会話モードを終了しました");
 
     // 隱藏輸入框
     $chatInput.slideUp(400);
@@ -455,7 +455,7 @@ function mpu_sendUserMessage() {
 
   if (!message || mpuChatRequesting) {
     if (mpuChatRequesting) {
-      mpuLogger.log("正在等待回應，請稍候");
+      mpuLogger.logL("chatWaitingForResponse", "応答待ちです。しばらくお待ちください");
     }
     return;
   }
@@ -466,7 +466,7 @@ function mpu_sendUserMessage() {
       mpu_clearChatHistory();
       $input.val("");
       mpu_typewriter("（記憶を消去しました...）", "#ukagaka_msg");
-      mpuLogger.log("對話歷史已清除");
+      mpuLogger.logL("chatHistoryCleared", "会話履歴をクリアしました");
       return;
     }
     // 非管理員：不攔截，讓訊息流入下方 AI 路徑，由 visitor_rejection 引導角色拒絕
@@ -530,7 +530,7 @@ function mpu_sendUserMessage() {
     return;
   }
 
-  mpuLogger.log("發送用戶訊息:", message);
+  mpuLogger.logF("chatSendingUserMessage", "ユーザーメッセージを送信します：%s", message);
   const chatSessionId = mpu_getOrCreateChatSessionId();
 
   // 1. UI 防呆：清空並鎖定輸入框
@@ -869,7 +869,7 @@ function mpu_sendUserMessage() {
     })
       .then((res) => {
         if (!window.mpuChatModeActive) {
-          mpuLogger.log("對話模式已關閉，捨棄本次 AI 回應");
+          mpuLogger.logL("chatModeClosedDiscardAiResponse", "会話モードが閉じているため、今回の AI 応答を破棄します");
           return;
         }
 
@@ -909,7 +909,7 @@ function mpu_sendUserMessage() {
         }
 
         if (!window.mpuChatModeActive) {
-          mpuLogger.log("對話模式已關閉，捨棄錯誤訊息");
+          mpuLogger.logL("chatModeClosedDiscardError", "会話モードが閉じているため、エラーメッセージを破棄します");
           return;
         }
 
@@ -934,10 +934,7 @@ jQuery(document).ready(function () {
   if (typeof mpu_loadChatHistory === "function") {
     mpu_loadChatHistory();
     mpu_getOrCreateChatSessionId();
-    mpuLogger.log(
-      "頁面載入：對話歷史已載入，當前記錄數:",
-      window.mpuChatHistory.length,
-    );
+    mpuLogger.logF("chatHistoryLoadedOnPageLoad", "ページ読み込み：会話履歴を読み込みました。現在の記録数：%s", window.mpuChatHistory.length);
   }
 
   // 第三個按鈕點擊事件：根據設定決定是對話還是切換春菜
@@ -971,13 +968,13 @@ jQuery(document).ready(function () {
       typeof window.mpuCanvasManager !== "undefined" &&
       window.mpuCanvasManager.decorationChatInProgress
     ) {
-      mpuLogger.log("裝飾物對話進行中，忽略按鈕點擊");
+      mpuLogger.logL("chatButtonIgnoredDecorationDialogActive", "装飾品会話中のため、ボタンクリックを無視します");
       return;
     }
 
     // 檢查訊息是否被阻擋
     if (mpuMessageBlocking) {
-      mpuLogger.log("訊息被阻擋，忽略按鈕點擊");
+      mpuLogger.logL("chatButtonIgnoredMessageBlocking", "メッセージがブロックされているため、ボタンクリックを無視します");
       return;
     }
 
@@ -1058,7 +1055,7 @@ jQuery(document).ready(function () {
     // （mpuMessageBlocking 是阻擋自動對話切換用，不應阻擋使用者主動退出）
     if (mpuChatModeActive) {
       mpu_toggleChatMode(false);
-      mpuLogger.log("退出對話模式");
+      mpuLogger.logL("chatModeExitRequested", "会話モードを終了します");
       return;
     }
 
@@ -1067,20 +1064,20 @@ jQuery(document).ready(function () {
       typeof window.mpuCanvasManager !== "undefined" &&
       window.mpuCanvasManager.decorationChatInProgress
     ) {
-      mpuLogger.log("裝飾物對話進行中，忽略按鈕點擊");
+      mpuLogger.logL("chatButtonIgnoredDecorationDialogActive", "装飾品会話中のため、ボタンクリックを無視します");
       return;
     }
 
     // 非對話模式：檢查訊息是否被阻擋
     if (mpuMessageBlocking) {
-      mpuLogger.log("訊息被阻擋，忽略按鈕點擊");
+      mpuLogger.logL("chatButtonIgnoredMessageBlocking", "メッセージがブロックされているため、ボタンクリックを無視します");
       return;
     }
 
     mpu_hidemsg("");
   });
 
-  mpuLogger.log("互動對話模式已初始化");
+  mpuLogger.logL("chatModeInitialized", "インタラクティブ会話モードを初期化しました");
 });
 
 /**
@@ -1142,7 +1139,7 @@ function mpu_send_wake_up_request() {
   }
 
   if (typeof mpuLogger !== "undefined") {
-    mpuLogger.log("🌅 喚醒角色！正在準備發送請求...");
+    mpuLogger.logL("wakeRequestPreparing", "🌅 キャラクターを起こします。リクエスト送信を準備しています...");
   }
 
   // 取得當前角色 ID（後端 mpu_wake_ghost 必填 personality_id）
@@ -1168,9 +1165,7 @@ function mpu_send_wake_up_request() {
 
   if (!personalityId && !ukagakaNum) {
     if (typeof mpuLogger !== "undefined") {
-      mpuLogger.warn(
-        "喚醒請求已取消：缺少 personality_id/ukagaka_num，避免人格狀態錯亂",
-      );
+      mpuLogger.warnL("wakeRequestCancelledMissingIdentity", "目覚めリクエストをキャンセルしました：personality_id/ukagaka_num が不足しているため、人格状態の混乱を避けます");
     }
     return Promise.resolve(false);
   }
@@ -1192,7 +1187,7 @@ function mpu_send_wake_up_request() {
     .then(function (res) {
       if (res && res.success) {
         if (typeof mpuLogger !== "undefined") {
-          mpuLogger.log("喚醒成功:", res);
+          mpuLogger.logF("wakeRequestSucceeded", "目覚めに成功しました：%s", res);
         }
         // 更新本地狀態，避免重複喚醒請求
         if (typeof window.mpuInfo !== "undefined") {
@@ -1201,7 +1196,7 @@ function mpu_send_wake_up_request() {
           // 如果是深度睡眠期間的暫時喚醒，額外記錄狀態供後續參考
           if (res.is_temporary) {
             if (typeof mpuLogger !== "undefined") {
-              mpuLogger.log("這是一次深度睡眠期間的暫時喚醒");
+              mpuLogger.logL("wakeRequestTemporaryDuringDeepSleep", "これは深い睡眠中の一時的な目覚めです");
             }
             window.mpuInfo.isTemporaryWakeUp = true;
           }
@@ -1209,14 +1204,14 @@ function mpu_send_wake_up_request() {
         return mpu_display_wake_reaction(res);
       } else {
         if (typeof mpuLogger !== "undefined") {
-          mpuLogger.warn("喚醒請求回應失敗:", res);
+          mpuLogger.warnF("wakeRequestResponseFailed", "目覚めリクエストの応答が失敗しました：%s", res);
         }
       }
       return false;
     })
     .catch(function (err) {
       if (typeof mpuLogger !== "undefined") {
-        mpuLogger.warn("喚醒請求失敗，但不影響正常操作:", err);
+        mpuLogger.warnF("wakeRequestFailedNonBlocking", "目覚めリクエストに失敗しましたが、通常動作には影響しません：%s", err);
       }
       return false;
     })
