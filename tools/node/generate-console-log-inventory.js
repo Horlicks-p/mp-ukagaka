@@ -746,6 +746,166 @@ const overrides = {
     jaSource: "スクリプトの読み込みが完了しました",
     translatorComment: "debug console log. Feature script loading has completed.",
   },
+  "ghost/Frieren/frieren-emoji.js::mpuEmojiManager: 無法載入表情配置:": {
+    key: "frierenEmojiConfigLoadFailed",
+    jaSource: "mpuEmojiManager: 表情設定を読み込めませんでした：%s",
+    translatorComment: "debug console warning. %s is the caught emoji config load error.",
+  },
+  "ghost/Frieren/frieren-emoji.js::mpuEmojiManager: 表情基礎路徑未設定": {
+    key: "frierenEmojiBasePathMissing",
+    jaSource: "mpuEmojiManager: 表情のベースパスが設定されていません",
+    translatorComment: "debug console log. Emoji base path is not configured.",
+  },
+  "ghost/Frieren/frieren-emoji.js::mpuEmojiManager: 找不到 #ukagaka_img 容器": {
+    key: "frierenEmojiContainerMissing",
+    jaSource: "mpuEmojiManager: #ukagaka_img コンテナが見つかりません",
+    translatorComment: "debug console log. The ukagaka image container is missing.",
+  },
+  "ghost/Frieren/frieren-emoji.js::mpuEmojiManager: 表情圖片載入失敗:": {
+    key: "frierenEmojiImageLoadFailed",
+    jaSource: "mpuEmojiManager: 表情画像の読み込みに失敗しました：%s",
+    translatorComment: "debug console warning. %s is the failed emoji image URL.",
+  },
+  "ghost/Frieren/frieren-emoji.js::mpuEmojiManager: 顯示表情:": {
+    key: "frierenEmojiShown",
+    jaSource: "mpuEmojiManager: 表情を表示します：%s",
+    translatorComment: "debug console log. %s is the emoji name being shown.",
+  },
+  "ghost/Frieren/frieren-emoji.js::mpuEmojiManager: 移除表情": {
+    key: "frierenEmojiRemoved",
+    jaSource: "mpuEmojiManager: 表情を削除します",
+    translatorComment: "debug console log. Emoji display is removed.",
+  },
+  "ghost/Frieren/frieren.js::🌙 顯示睡眠圖片 frieren[s].png / ☀️ 顯示閒置圖片 frieren[0].png": {
+    key: "frierenSleepIdleImageSelected",
+    jaSource: "🌙 睡眠画像 frieren[s].png を表示します / ☀️ アイドル画像 frieren[0].png を表示します",
+    translatorComment: "debug console log. Shows which Frieren base image was selected.",
+  },
+  "ghost/Frieren/frieren.js::裝飾物已載入，跳過重複載入": {
+    key: "frierenDecorationsAlreadyLoaded",
+    jaSource: "装飾品は読み込み済みのため、重複読み込みをスキップします",
+    translatorComment: "debug console log. Decoration loading is skipped because it already completed.",
+  },
+  "ghost/Frieren/frieren.js::已從 JSON 配置載入 / 個裝飾物": {
+    key: "frierenDecorationConfigLoaded",
+    jaSource: "JSON 設定から %s 個の装飾品を読み込みました",
+    translatorComment: "debug console log. %s is the number of decorations loaded from JSON config.",
+  },
+  "ghost/Frieren/frieren.js::點擊到透明區域，忽略:": {
+    key: "frierenDecorationTransparentClickIgnored",
+    jaSource: "透明領域がクリックされたため無視します：%s",
+    translatorComment: "debug console log. %s is the decoration type whose transparent area was clicked.",
+  },
+  "ghost/Frieren/frieren.js::裝飾物被點擊（像素命中）:": {
+    key: "frierenDecorationPixelHitClicked",
+    jaSource: "装飾品がクリックされました（ピクセルヒット）：%s",
+    translatorComment: "debug console log. %s is the decoration type hit by pixel detection.",
+  },
+  "ghost/Frieren/frieren.js::像素檢測 Canvas 已創建:": {
+    key: "frierenPixelDetectionCanvasCreated",
+    jaSource: "ピクセル検出 Canvas を作成しました：%1$s、%2$s",
+    translatorComment: "debug console log. %1$s is the decoration type, %2$s is the canvas size.",
+  },
+  "ghost/Frieren/frieren.js::像素檢測:": {
+    key: "frierenPixelDetectionSample",
+    jaSource: "ピクセル検出：%1$s、x=%2$s、y=%3$s、alpha=%4$s、threshold=%5$s",
+    translatorComment: "debug console log. Values are decoration type, pixel coordinates, alpha, and hit threshold.",
+  },
+  "ghost/Frieren/frieren.js::☀️ 芙莉蓮被喚醒了！": {
+    key: "frierenAwakened",
+    jaSource: "☀️ フリーレンが目を覚ましました！",
+    translatorComment: "debug console log. Frieren has awakened; forceWakeUp may be appended as a separate suffix.",
+  },
+  "ghost/Frieren/frieren.js::👀 播放醒來動畫 frieren[w1-w5].png": {
+    key: "frierenWakeAnimationPlaying",
+    jaSource: "👀 目覚めアニメーション frieren[w1-w5].png を再生します",
+    translatorComment: "debug console log. Wake animation frames are being played.",
+  },
+  "ghost/Frieren/frieren.js::🌅 開始喚醒動畫, skipBookFlip =": {
+    key: "frierenWakeAnimationStarted",
+    jaSource: "🌅 目覚めアニメーションを開始します。skipBookFlip = %s",
+    translatorComment: "debug console log. %s is whether the book-flip animation should be skipped.",
+  },
+  "ghost/Frieren/frieren.js::📖 喚醒後播放翻書動畫": {
+    key: "frierenPostWakeBookFlipPlaying",
+    jaSource: "📖 目覚め後にページめくりアニメーションを再生します",
+    translatorComment: "debug console log. Book-flip animation plays after wake.",
+  },
+  "ghost/Frieren/frieren.js::📖 喚醒後跳過翻書動畫": {
+    key: "frierenPostWakeBookFlipSkipped",
+    jaSource: "📖 目覚め後のページめくりアニメーションをスキップします",
+    translatorComment: "debug console log. Book-flip animation is skipped after wake.",
+  },
+  "ghost/Frieren/frieren.js::🌙 睡眠模式：跳過翻書動畫": {
+    key: "frierenSleepModeBookFlipSkipped",
+    jaSource: "🌙 睡眠モード：ページめくりアニメーションをスキップします",
+    translatorComment: "debug console log. Book-flip animation is skipped during sleep mode.",
+  },
+  "ghost/Frieren/frieren.js::📖 手動喚醒對話：跳過翻書動畫": {
+    key: "frierenManualWakeDialogueBookFlipSkipped",
+    jaSource: "📖 手動の目覚め会話：ページめくりアニメーションをスキップします",
+    translatorComment: "debug console log. Book-flip animation is skipped for manual wake dialogue.",
+  },
+  "ghost/Frieren/frieren.js::handleDecorationClick 被調用，裝飾物類型:": {
+    key: "frierenDecorationClickHandled",
+    jaSource: "handleDecorationClick が呼び出されました。装飾品タイプ：%s",
+    translatorComment: "debug console log. %s is the decoration type passed to the click handler.",
+  },
+  "ghost/Frieren/frieren.js::裝飾物對話正在進行中，忽略本次點擊": {
+    key: "frierenDecorationClickIgnoredDialogActive",
+    jaSource: "装飾品会話中のため、今回のクリックを無視します",
+    translatorComment: "debug console log. Decoration click is ignored while a decoration dialog is active.",
+  },
+  "ghost/Frieren/frieren.js::AI 功能未啟用，跳過裝飾物對話": {
+    key: "frierenDecorationDialogSkippedAiDisabled",
+    jaSource: "AI 機能が有効ではないため、装飾品会話をスキップします",
+    translatorComment: "debug console log. Decoration dialog is skipped because AI is disabled.",
+  },
+  "ghost/Frieren/frieren.js::裝飾物點擊：已取消請求": {
+    key: "frierenDecorationClickRequestCancelled",
+    jaSource: "装飾品クリック：リクエストをキャンセルしました",
+    translatorComment: "debug console log. Additional argument is the cancelled decoration click request ID.",
+  },
+  "ghost/Frieren/frieren.js::裝飾物對話完成，狀態已恢復": {
+    key: "frierenDecorationDialogCompletedStateRestored",
+    jaSource: "装飾品会話が完了し、状態を復元しました",
+    translatorComment: "debug console log. Decoration dialog completed and state was restored.",
+  },
+  "ghost/Frieren/frieren.js::觸摸區域檢測:": {
+    key: "frierenTouchZoneDetected",
+    jaSource: "タッチ領域検出：%1$s、relativeY=%2$s",
+    translatorComment: "debug console log. %1$s is the zone name, %2$s is the relative Y coordinate.",
+  },
+  "ghost/Frieren/frieren.js::handleTouchZone 被調用，區域:": {
+    key: "frierenTouchZoneHandled",
+    jaSource: "handleTouchZone が呼び出されました。領域：%s",
+    translatorComment: "debug console log. %s is the handled touch zone name.",
+  },
+  "ghost/Frieren/frieren.js::區域冷卻中，忽略點擊:": {
+    key: "frierenTouchZoneClickIgnoredCooldown",
+    jaSource: "領域がクールダウン中のため、クリックを無視します：%s",
+    translatorComment: "debug console log. %s is the touch zone currently in cooldown.",
+  },
+  "ghost/Frieren/frieren.js::區域達到點擊上限，進入冷卻:": {
+    key: "frierenTouchZoneClickLimitReached",
+    jaSource: "領域のクリック上限に達したため、クールダウンに入ります：%s",
+    translatorComment: "debug console log. %s is the touch zone entering cooldown after reaching its click limit.",
+  },
+  "ghost/Frieren/frieren.js::觸摸區域點擊：已取消請求": {
+    key: "frierenTouchZoneRequestCancelled",
+    jaSource: "タッチ領域クリック：リクエストをキャンセルしました",
+    translatorComment: "debug console log. Additional argument is the cancelled touch zone request ID.",
+  },
+  "ghost/Frieren/frieren.js::角色觸摸事件已設置": {
+    key: "frierenTouchEventsBound",
+    jaSource: "キャラクターのタッチイベントを設定しました",
+    translatorComment: "debug console log. Character touch event handlers have been bound.",
+  },
+  "ghost/Frieren/frieren.js::區域進入冷卻: / 冷卻時間: / 秒": {
+    key: "frierenTouchZoneCooldownStarted",
+    jaSource: "領域がクールダウンに入りました：%1$s、クールダウン時間：%2$s 秒",
+    translatorComment: "debug console log. %1$s is the touch zone name, %2$s is the cooldown duration in seconds.",
+  },
 };
 
 function lineForIndex(text, index) {
