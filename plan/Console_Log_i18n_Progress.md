@@ -35,6 +35,7 @@
 | this commit | Migrate Frieren decoration dialog error to i18n | Phase 2.5 收尾（既有日文 production-visible backlog 歸零） |
 | next commit | Stabilize console log inventory override lookup | Phase 3-pre（override lookup 改為 `relativePath::zhOriginal`，解掉行號漂移） |
 | next commit | Add console log inventory semantic key gate | Phase 3-0 guard（每次 inventory 自動擋 semantic key 衝突） |
+| next commit | Translate core debug console log inventory | Phase 3-0 commit 1（`js/ukagaka-core.js` 57 條） |
 
 ---
 
@@ -137,6 +138,12 @@
 - 不同 override entry 若產生同一 key，或 override key 撞到其他 row 的 draftKey，會在寫表前 fail-fast
 - no-TODO / no-draftKey 屬 Phase 3-0 最終驗收 gate，不在每個 staged commit 中強制，因為中途仍會有未填檔案
 
+### Phase 3-0 commit 1 — `js/ukagaka-core.js` 57 條（next commit）
+- 只填 generator overrides 與 translation table；不改 JS call site
+- `js/ukagaka-core.js` 57 條 `logsDebug` 已改為 semantic key、日文 fallback、英文 translator comment
+- `npm run inventory:logs` 仍為 195 included rows + 0 backlog，semantic-key gate 通過
+- 剩餘 Phase 3-0 staged commits：base/chat/anime（41）、features/context（46）、Frieren/Frieren emoji（32）、dialog/greeting/emoji（19）
+
 ---
 
 ## ✅ 已決策（2026-05-25 家裡）：silent-drop 隱患採方案 A
@@ -236,7 +243,7 @@ production-visible console log 與既有日文 production backlog 已清零；�
 - **(e)** Generator 加 unused-override verify pass — **已完成**（方案 A 落地）
 - **(f)** Generator 內嵌的對照表 status block 已過時（line 392-397 still 寫「This commit intentionally fills raw inventory only」）— **已完成**（方案 A 落地時同步更新為 migration staging table）
 
-debug 195 條翻譯（Phase 3-0）尚未動工；scope 為 `mpuLogger.log` 159 條 + `mpuLogger.warn` 36 條，目前沒有帶 CJK 的 `mpuLogger.info`。
+debug 195 條翻譯（Phase 3-0）已完成第 1 批 `js/ukagaka-core.js` 57 條；scope 為 `mpuLogger.log` 159 條 + `mpuLogger.warn` 36 條，目前沒有帶 CJK 的 `mpuLogger.info`。
 每個 Phase 3-0 staged commit 都應跑 `npm run inventory:logs`，其內建的 unused-override 與 semantic-key gate 必須通過；第 5 個 staged commit 後再跑 no-TODO / no-draftKey 最終驗收。
 
 ---
@@ -286,4 +293,4 @@ git status --short
 
 ---
 
-_Last updated: 2026-05-26 — Phase 3-pre 已將 generator override lookup 改為 `relativePath::normalized zhOriginal`，並加上 semantic-key conflict gate；translation table 仍為 195 included rows + 0 backlog。下一更新點：Phase 3-0 debug 翻譯表補完。_
+_Last updated: 2026-05-26 — Phase 3-pre 已將 generator override lookup 改為 `relativePath::normalized zhOriginal` 並加上 semantic-key conflict gate；Phase 3-0 第 1 批 `ukagaka-core.js` 57 條已補完，translation table 仍為 195 included rows + 0 backlog。下一更新點：Phase 3-0 第 2 批 base/chat/anime。_

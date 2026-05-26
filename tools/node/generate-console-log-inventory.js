@@ -40,7 +40,293 @@ const kanaPattern = /[ぁ-んァ-ン]/;
 const stringPattern = /(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g;
 const prefixPattern = /^\s*(?:\[MPU?\]|\[MP Ukagaka(?: ERROR)?\])\s*/;
 
-const overrides = {};
+const overrides = {
+  "js/ukagaka-core.js::startAutoTalk: mpuAutoTalk 為 false，退出": {
+    key: "autoTalkDisabledExit",
+    jaSource: "startAutoTalk: mpuAutoTalk が false のため終了します",
+    translatorComment: "debug console log. Auto-talk startup exits because auto-talk is disabled.",
+  },
+  "js/ukagaka-core.js::startAutoTalk: 對話模式中，不啟動自動對話": {
+    key: "autoTalkSkippedDuringChatMode",
+    jaSource: "startAutoTalk: 会話モード中のため自動会話を開始しません",
+    translatorComment: "debug console log. Auto-talk is not started while chat mode is active.",
+  },
+  "js/ukagaka-core.js::startAutoTalk: 裝飾物/觸摸對話進行中，不啟動自動對話": {
+    key: "autoTalkSkippedDuringInteractionDialog",
+    jaSource: "startAutoTalk: 装飾品またはタッチ会話中のため自動会話を開始しません",
+    translatorComment: "debug console log. Auto-talk is skipped during decoration or touch dialog.",
+  },
+  "js/ukagaka-core.js::🌙 睡眠模式且尚未被喚醒：不啟動自動對話，只接受 OK 鈕觸發": {
+    key: "autoTalkSkippedUnawokenSleepMode",
+    jaSource: "🌙 睡眠モードでまだ起床していないため、自動会話を開始せず OK ボタンのみ受け付けます",
+    translatorComment: "debug console log. Auto-talk is disabled while the character is asleep and not awakened.",
+  },
+  "js/ukagaka-core.js::🌙 睡眠模式啟用（00:00~06:00），間隔調整為 / ms（原始:": {
+    key: "autoTalkSleepModeIntervalAdjusted",
+    jaSource: "🌙 睡眠モードが有効です（00:00〜06:00）。間隔を %1$s ms に調整しました（元: %2$s ms）",
+    translatorComment: "debug console log. %1$s is the adjusted interval in ms, %2$s is the original interval in ms.",
+  },
+  "js/ukagaka-core.js::startAutoTalk: 設置計時器，間隔 =": {
+    key: "autoTalkTimerSet",
+    jaSource: "startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s",
+    translatorComment: "debug console log. %1$s is the timer interval in ms, %2$s is the auto-talk enabled flag.",
+  },
+  "js/ukagaka-core.js::自動對話計時器觸發, mpuAutoTalk =": {
+    key: "autoTalkTimerTriggered",
+    jaSource: "自動会話タイマーが発火しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s",
+    translatorComment: "debug console log. %1$s is the auto-talk flag, %2$s is the LLM replacement flag.",
+  },
+  "js/ukagaka-core.js::使用者閒置中（ / 秒），跳過本次自動對話": {
+    key: "autoTalkSkippedUserIdle",
+    jaSource: "ユーザーがアイドル状態です（%s 秒）。今回の自動会話をスキップします",
+    translatorComment: "debug console log. %s is the idle duration in seconds.",
+  },
+  "js/ukagaka-core.js::睡眠模式狀態變化（ / 睡眠 / 正常 / 睡眠 / 正常 / ），重新啟動自動對話（新間隔:": {
+    key: "autoTalkSleepModeStateChanged",
+    jaSource: "睡眠モード状態が変化しました（%1$s → %2$s）。自動会話を再起動します（新しい間隔: %3$s ms）",
+    translatorComment: "debug console log. %1$s is previous state, %2$s is new state, %3$s is the new interval in ms.",
+  },
+  "js/ukagaka-core.js::🌙 睡眠模式且尚未被喚醒：跳過本次自動對話，只接受 OK 鈕觸發": {
+    key: "autoTalkTickSkippedUnawokenSleepMode",
+    jaSource: "🌙 睡眠モードでまだ起床していないため、今回の自動会話をスキップし OK ボタンのみ受け付けます",
+    translatorComment: "debug console log. A scheduled auto-talk tick is skipped while asleep and not awakened.",
+  },
+  "js/ukagaka-core.js::🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱:": {
+    key: "autoTalkBotAlertDetected",
+    jaSource: "🛡️ Bot Alert: Bot の侵入を検出しました。Bot 名: %s",
+    translatorComment: "debug console log. %s is the detected bot name.",
+  },
+  "js/ukagaka-core.js::🛡️ Turnstile 結界防禦：偵測到結界撞擊事件，攔截次數:": {
+    key: "autoTalkTurnstileDefenseDetected",
+    jaSource: "🛡️ Turnstile 結界防御: 結界衝突イベントを検出しました。ブロック回数: %s",
+    translatorComment: "debug console log. %s is the Turnstile block count.",
+  },
+  "js/ukagaka-core.js::🛡️ Moelog Bot Blocker：偵測到防禦魔法攔截事件，攔截數量:": {
+    key: "autoTalkBotBlockerDetected",
+    jaSource: "🛡️ Moelog Bot Blocker: 防御魔法のブロックイベントを検出しました。ブロック数: %s",
+    translatorComment: "debug console log. %s is the bot blocker block count.",
+  },
+  "js/ukagaka-core.js::🤖 AI Crawler：偵測到 AI 爬蟲訪問，crawler:": {
+    key: "autoTalkAiCrawlerDetected",
+    jaSource: "🤖 AI Crawler: AI クローラーの訪問を検出しました。crawler=%1$s、company=%2$s",
+    translatorComment: "debug console log. %1$s is the crawler name, %2$s is the company name.",
+  },
+  "js/ukagaka-core.js::🌍 Visitor Pulse：訪客脈動訊號，pulse_type:": {
+    key: "autoTalkVisitorPulseDetected",
+    jaSource: "🌍 Visitor Pulse: 訪問者パルス信号を検出しました。pulse_type=%s",
+    translatorComment: "debug console log. %s is the visitor pulse type.",
+  },
+  "js/ukagaka-core.js::🛡️ Akismet 垃圾留言連動：偵測到垃圾留言事件，攔截數量:": {
+    key: "autoTalkAkismetSpamDetected",
+    jaSource: "🛡️ Akismet スパム連携: スパムコメントイベントを検出しました。ブロック数: %s",
+    translatorComment: "debug console log. %s is the spam block count.",
+  },
+  "js/ukagaka-core.js::🛡️ Auto-talk 事件（未分類 action）:": {
+    key: "autoTalkUnclassifiedSecurityEvent",
+    jaSource: "🛡️ Auto-talk イベント（未分類 action）: %s",
+    translatorComment: "debug console log. %s is the unclassified action name.",
+  },
+  "js/ukagaka-core.js::🛡️ Turnstile/Akismet/BotBlocker/Bot Check: 無事件": {
+    key: "securityCheckNoEvent",
+    jaSource: "🛡️ Turnstile/Akismet/BotBlocker/Bot Check: イベントはありません",
+    translatorComment: "debug console log. No security event was detected.",
+  },
+  "js/ukagaka-core.js::Security Check: 安全檢查失敗:": {
+    key: "securityCheckFailed",
+    jaSource: "Security Check: セキュリティチェックに失敗しました: %s",
+    translatorComment: "debug console log. %s is the caught error value.",
+  },
+  "js/ukagaka-core.js::mpu_processOllamaQueue: 佇列為空": {
+    key: "ollamaQueueEmpty",
+    jaSource: "mpu_processOllamaQueue: キューは空です",
+    translatorComment: "debug console log. The Ollama request queue has no pending item.",
+  },
+  "js/ukagaka-core.js::mpu_processOllamaQueue: 處理佇列中的請求, trigger = / , 剩餘佇列長度 =": {
+    key: "ollamaQueueProcessingRequest",
+    jaSource: "mpu_processOllamaQueue: キュー内のリクエストを処理します。trigger=%1$s、残りキュー長=%2$s",
+    translatorComment: "debug console log. %1$s is the trigger, %2$s is the remaining queue length.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg 被調用, trigger =": {
+    key: "nextMessageCalled",
+    jaSource: "mpu_nextmsg が呼び出されました。trigger=%1$s、isAuto=%2$s、isStartup=%3$s、isManual=%4$s、mpuOllamaReplaceDialogue=%5$s",
+    translatorComment: "debug console log. Values describe the next-message trigger and mode flags.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 訊息顯示被阻擋 (mpuMessageBlocking=true)，跳過": {
+    key: "nextMessageSkippedMessageBlocking",
+    jaSource: "mpu_nextmsg: メッセージ表示がブロックされています（mpuMessageBlocking=true）。スキップします",
+    translatorComment: "debug console log. Next message is skipped because message blocking is active.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 對話模式中，跳過自動對話": {
+    key: "nextMessageSkippedChatMode",
+    jaSource: "mpu_nextmsg: 会話モード中のため自動会話をスキップします",
+    translatorComment: "debug console log. Auto-talk next message is skipped during chat mode.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 裝飾物/觸摸對話進行中，跳過自動對話": {
+    key: "nextMessageSkippedInteractionDialog",
+    jaSource: "mpu_nextmsg: 装飾品またはタッチ会話中のため自動会話をスキップします",
+    translatorComment: "debug console log. Auto-talk next message is skipped during decoration or touch dialog.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 自動對話已關閉，退出": {
+    key: "nextMessageAutoTalkDisabledExit",
+    jaSource: "mpu_nextmsg: 自動会話が無効のため終了します",
+    translatorComment: "debug console log. Next message exits because auto-talk is disabled.",
+  },
+  "js/ukagaka-core.js::🌙 睡眠模式且尚未被喚醒：跳過 / 觸發的對話，只接受 OK 鈕觸發": {
+    key: "nextMessageSkippedUnawokenSleepMode",
+    jaSource: "🌙 睡眠モードでまだ起床していないため、%s トリガーの会話をスキップし OK ボタンのみ受け付けます",
+    translatorComment: "debug console log. %s is the trigger that was skipped.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話": {
+    key: "nextMessageSkippedPageAwareInProgress",
+    jaSource: "mpu_nextmsg: ページ感知 AI が進行中のため、自動/起動会話をスキップします",
+    translatorComment: "debug console log. Startup or auto next message is skipped while page-aware AI is active.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 頁面感知已排程，跳過 startup 以避免 BOT 對話覆蓋": {
+    key: "nextMessageSkippedScheduledPageAwareStartup",
+    jaSource: "mpu_nextmsg: ページ感知が予約済みのため、BOT 会話の上書きを避けるため startup をスキップします",
+    translatorComment: "debug console log. Startup is skipped because page-aware AI is scheduled.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 首次訪客打招呼正在進行中，跳過自動/啟動對話": {
+    key: "nextMessageSkippedGreetingInProgress",
+    jaSource: "mpu_nextmsg: 初回訪問者への挨拶中のため、自動/起動会話をスキップします",
+    translatorComment: "debug console log. Startup or auto next message is skipped while greeting is active.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: Ollama 正在處理請求，自動觸發的請求被跳過": {
+    key: "nextMessageAutoSkippedOllamaBusy",
+    jaSource: "mpu_nextmsg: Ollama がリクエストを処理中のため、自動トリガーのリクエストをスキップします",
+    translatorComment: "debug console log. Auto-triggered request is skipped because Ollama is busy.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: Ollama 正在處理請求，此請求加入佇列": {
+    key: "nextMessageQueuedOllamaBusy",
+    jaSource: "mpu_nextmsg: Ollama がリクエストを処理中のため、このリクエストをキューに追加します",
+    translatorComment: "debug console log. Request is queued because Ollama is busy.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 佇列已滿，跳過此請求": {
+    key: "nextMessageSkippedQueueFull",
+    jaSource: "mpu_nextmsg: キューが満杯のため、このリクエストをスキップします",
+    translatorComment: "debug console log. Request is skipped because the queue is full.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 使用 LLM 生成對話": {
+    key: "nextMessageUsingLlm",
+    jaSource: "mpu_nextmsg: LLM を使用して会話を生成します",
+    translatorComment: "debug console log. Next message will be generated by the LLM.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 發送 LLM POST 請求到": {
+    key: "nextMessageSendingLlmPost",
+    jaSource: "mpu_nextmsg: LLM POST リクエストを送信します: %s",
+    translatorComment: "debug console log. %s is the REST endpoint URL.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: LLM 回應 =": {
+    key: "nextMessageLlmResponse",
+    jaSource: "mpu_nextmsg: LLM 応答 = %s",
+    translatorComment: "debug console log. %s is the raw LLM response object.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: LLM 回應被阻擋（頁面感知 AI 正在進行中），跳過顯示": {
+    key: "nextMessageLlmResponseSkippedPageAwareInProgress",
+    jaSource: "mpu_nextmsg: ページ感知 AI が進行中のため、LLM 応答の表示をスキップします",
+    translatorComment: "debug console log. LLM response display is skipped while page-aware AI is active.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 自發對話已加入對話歷史，當前歷史長度:": {
+    key: "nextMessageSpontaneousAddedToHistory",
+    jaSource: "mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s",
+    translatorComment: "debug console log. %s is the current chat history length.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 對話歷史已儲存": {
+    key: "nextMessageHistorySaved",
+    jaSource: "mpu_nextmsg: 会話履歴を保存しました",
+    translatorComment: "debug console log. Chat history was saved.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: mpu_saveChatHistory 函數不存在，無法儲存對話歷史": {
+    key: "nextMessageSaveHistoryMissing",
+    jaSource: "mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません",
+    translatorComment: "debug console log. Chat history cannot be saved because the save function is unavailable.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史": {
+    key: "nextMessageHistoryUnavailable",
+    jaSource: "mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません",
+    translatorComment: "debug console log. Chat history is unavailable or not an array.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: LLM 回應完成，等待打字完成後啟動自動對話計時器": {
+    key: "nextMessageLlmCompleteWaitingForTypewriter",
+    jaSource: "mpu_nextmsg: LLM 応答が完了しました。タイピング完了後に自動会話タイマーを開始します",
+    translatorComment: "debug console log. Auto-talk timer waits for typewriter completion after LLM response.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 打字完成，現在啟動自動對話計時器": {
+    key: "nextMessageTypewriterCompleteStartingAutoTalk",
+    jaSource: "mpu_nextmsg: タイピングが完了しました。自動会話タイマーを開始します",
+    translatorComment: "debug console log. Typewriter completed and auto-talk timer starts.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: LLM 回應沒有 msg": {
+    key: "nextMessageLlmResponseMissingMessage",
+    jaSource: "mpu_nextmsg: LLM 応答に msg がありません",
+    translatorComment: "debug console log. LLM response object has no msg field.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: LLM 回應沒有 msg，使用後備對話": {
+    key: "nextMessageLlmMissingMessageUsingFallback",
+    jaSource: "mpu_nextmsg: LLM 応答に msg がないため、フォールバック会話を使用します",
+    translatorComment: "debug console log. Fallback dialog is used because LLM response has no msg.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: fallback 完成，等待打字完成後啟動計時器": {
+    key: "nextMessageFallbackCompleteWaitingForTypewriter",
+    jaSource: "mpu_nextmsg: フォールバックが完了しました。タイピング完了後にタイマーを開始します",
+    translatorComment: "debug console log. Timer waits for typewriter completion after fallback dialog.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 出錯，等待打字完成後啟動計時器": {
+    key: "nextMessageErrorWaitingForTypewriter",
+    jaSource: "mpu_nextmsg: エラーが発生しました。タイピング完了後にタイマーを開始します",
+    translatorComment: "debug console log. Timer waits for typewriter completion after an error.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: LLM 錯誤處理被阻擋（頁面感知 AI 正在進行中），跳過": {
+    key: "nextMessageLlmErrorSkippedPageAwareInProgress",
+    jaSource: "mpu_nextmsg: ページ感知 AI が進行中のため、LLM エラー処理をスキップします",
+    translatorComment: "debug console log. LLM error handling is skipped while page-aware AI is active.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 對話尚未載入，等待載入完成...": {
+    key: "nextMessageWaitingForDialogLoad",
+    jaSource: "mpu_nextmsg: 会話がまだ読み込まれていません。読み込み完了を待機します...",
+    translatorComment: "debug console log. Next message waits for dialog data to load.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 對話載入超時，已重試 3 次": {
+    key: "nextMessageDialogLoadTimeout",
+    jaSource: "mpu_nextmsg: 会話読み込みがタイムアウトしました。3 回再試行済みです",
+    translatorComment: "debug console log. Dialog loading timed out after three retries.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 無法顯示對話 -": {
+    key: "nextMessageCannotDisplayDialog",
+    jaSource: "mpu_nextmsg: 会話を表示できません - store=%1$s、msgArray=%2$s",
+    translatorComment: "debug console log. %1$s describes the dialog store, %2$s describes the message array.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg: 傳統對話，等待打字完成後啟動計時器": {
+    key: "nextMessageTraditionalDialogWaitingForTypewriter",
+    jaSource: "mpu_nextmsg: 通常会話です。タイピング完了後にタイマーを開始します",
+    translatorComment: "debug console log. Traditional dialog waits for typewriter completion before timer restart.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg_fallback: 被阻擋（頁面感知 AI 正在進行中），跳過顯示": {
+    key: "nextMessageFallbackSkippedPageAwareInProgress",
+    jaSource: "mpu_nextmsg_fallback: ページ感知 AI が進行中のため、表示をスキップします",
+    translatorComment: "debug console log. Fallback display is skipped while page-aware AI is active.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg_fallback: 對話尚未載入，等待載入完成...": {
+    key: "nextMessageFallbackWaitingForDialogLoad",
+    jaSource: "mpu_nextmsg_fallback: 会話がまだ読み込まれていません。読み込み完了を待機します...",
+    translatorComment: "debug console log. Fallback waits for dialog data to load.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg_fallback: 對話載入超時，已重試 2 次": {
+    key: "nextMessageFallbackDialogLoadTimeout",
+    jaSource: "mpu_nextmsg_fallback: 会話読み込みがタイムアウトしました。2 回再試行済みです",
+    translatorComment: "debug console log. Fallback dialog loading timed out after two retries.",
+  },
+  "js/ukagaka-core.js::mpu_nextmsg_fallback: 無法顯示後備對話 -": {
+    key: "nextMessageFallbackCannotDisplayDialog",
+    jaSource: "mpu_nextmsg_fallback: フォールバック会話を表示できません - store=%1$s、msgArray=%2$s",
+    translatorComment: "debug console log. %1$s describes the dialog store, %2$s describes the message array.",
+  },
+  "js/ukagaka-core.js::mpuChange: Canvas 管理器在 Ajax 成功後才發現不存在，這不應該發生": {
+    key: "changeCanvasManagerMissingAfterAjax",
+    jaSource: "mpuChange: Ajax 成功後に Canvas マネージャーが存在しないことが判明しました。これは想定外です",
+    translatorComment: "debug console log. Canvas manager is unexpectedly missing after Ajax success.",
+  },
+};
 
 function lineForIndex(text, index) {
   return text.slice(0, index).split(/\r?\n/).length;
