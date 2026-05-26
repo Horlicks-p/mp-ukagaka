@@ -1,12 +1,12 @@
 // ====== 事件處理 ======
 jQuery(document).ready(function () {
-  mpuLogger.log("jQuery ready 已執行");
+  mpuLogger.logL("featuresJqueryReady", "jQuery ready を実行しました");
 
   // 確保 jQuery.cookie 已初始化
   if (!mpu_init_jquery_cookie()) {
     mpuLogger.errorL('jqueryCookieInitFailed', 'jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります');
   } else {
-    mpuLogger.log("jQuery.cookie 已成功初始化");
+    mpuLogger.logL("featuresJqueryCookieInitialized", "jQuery.cookie を正常に初期化しました");
   }
 
   // 顯示初始訊息的打字效果
@@ -26,7 +26,7 @@ jQuery(document).ready(function () {
     const isLLMReplaceEnabled = typeof mpuPreSettings !== 'undefined' && mpuPreSettings.ollama_replace === true;
 
     if (isLLMReplaceEnabled) {
-      mpuLogger.log("LLM 取代對話已啟用，但仍載入內建對話作為後備");
+      mpuLogger.logL("featuresLlmReplaceDialogueFallbackLoaded", "LLM 置換会話が有効ですが、フォールバックとして内蔵会話も読み込みます");
     }
 
     if (
@@ -71,21 +71,21 @@ jQuery(document).ready(function () {
   function processSettings(res) {
     // 防止重複調用（可能由 mpuInitComplete 和預載資料同時觸發）
     if (mpuIsSettingsProcessed()) {
-      mpuLogger.log("processSettings: 已處理過設定，跳過重複調用");
+      mpuLogger.logL("featuresProcessSettingsAlreadyHandled", "processSettings: 設定は処理済みのため、重複呼び出しをスキップします");
       return;
     }
     mpuSetSettingsProcessed(true);
     
     if (!res || typeof res !== "object") {
-      mpuLogger.warn("mpu_get_settings: 無效的回應", res);
+      mpuLogger.warnF("featuresGetSettingsInvalidResponse", "mpu_get_settings: 無効な応答です：%s", res);
       return;
     }
 
-    mpuLogger.log("mpu_get_settings: 收到設定 =", JSON.stringify(res));
+    mpuLogger.logF("featuresGetSettingsReceived", "mpu_get_settings: 設定を受信しました = %s", JSON.stringify(res));
     mpuLogger.log("mpu_get_settings: auto_talk =", res.auto_talk, ", ollama_replace_dialogue =", res.ollama_replace_dialogue);
 
     mpuSetAutoTalkEnabled(res.auto_talk === true);
-    mpuLogger.log("mpu_get_settings: 設置 mpuAutoTalk =", mpuAutoTalk);
+    mpuLogger.logF("featuresGetSettingsAutoTalkSet", "mpu_get_settings: mpuAutoTalk を設定しました = %s", mpuAutoTalk);
 
     if (res.auto_talk_interval) {
       const iv = parseInt(res.auto_talk_interval, 10);
@@ -114,12 +114,12 @@ jQuery(document).ready(function () {
               ? res.sleep_mode.frequency_multiplier 
               : 0.0667;
           interval = Math.round(baseInterval / multiplier);
-          mpuLogger.log("🌙 睡眠模式啟用（00:00~06:00），間隔調整為", interval, "ms（原始:", baseInterval, "ms）");
+          mpuLogger.logF("featuresSleepModeIntervalAdjusted", "🌙 睡眠モードが有効です（00:00~06:00）。間隔を %1$s ms に調整しました（元：%2$s ms）", interval, baseInterval);
         }
         
         mpuSetAutoTalkInterval(interval);
       }
-      mpuLogger.log("mpu_get_settings: 設置 mpuAutoTalkInterval =", mpuAutoTalkInterval, "ms");
+      mpuLogger.logF("featuresGetSettingsAutoTalkIntervalSet", "mpu_get_settings: mpuAutoTalkInterval を設定しました = %s ms", mpuAutoTalkInterval);
     }
     if (res.ai_text_color) {
       mpuSetAiTextColor(res.ai_text_color);
@@ -129,10 +129,7 @@ jQuery(document).ready(function () {
     }
     mpuSetOllamaReplaceDialogue(!!res.ollama_replace_dialogue);
     mpuSetEnableChatMode(!!res.enable_chat_mode);
-    mpuLogger.log(
-      "LLM 取代對話設定: " + (mpuOllamaReplaceDialogue ? "啟用" : "停用") +
-      "，互動對話模式: " + (mpuIsChatModeEnabled() ? "啟用" : "停用")
-    );
+    mpuLogger.logF("featuresLlmReplaceDialogueSettings", "LLM 置換会話設定：%1$s、インタラクティブ会話モード：%2$s", mpuOllamaReplaceDialogue ? "啟用" : "停用", mpuIsChatModeEnabled() ? "啟用" : "停用");
 
     // 睡眠模式檢測（移到外面以便後續判斷使用）
     const isDeepSleep = mpu_isDeepSleepTime();
@@ -147,11 +144,11 @@ jQuery(document).ready(function () {
       if (isDeepSleep && isSleepMessage) {
         // 睡眠模式下，完全跳過初始的 LLM 對話觸發
         // 讓睡眠訊息保持顯示，直到自動對話計時器自然觸發（約 300 秒後）
-        mpuLogger.log("🌙 睡眠模式：跳過初始 LLM 對話觸發，保持睡眠訊息顯示");
-        mpuLogger.log("🌙 睡眠訊息將保持顯示，直到自動對話計時器觸發（約 " + Math.round(mpuGetBaseAutoTalkInterval() / 0.0667 / 1000) + " 秒後）");
+        mpuLogger.logL("featuresSleepModeSkipInitialLlmTrigger", "🌙 睡眠モード：初回 LLM 会話トリガーをスキップし、睡眠メッセージの表示を維持します");
+        mpuLogger.logF("featuresSleepMessageRetainedUntilAutoTalk", "🌙 睡眠メッセージは自動会話タイマーが発火するまで表示を維持します（約 %s 秒後）", Math.round(mpuGetBaseAutoTalkInterval() / 0.0667 / 1000));
       } else {
         // 正常模式下，立即觸發 LLM 對話
-      mpuLogger.log("LLM 取代對話已啟用，等待初始訊息完成後觸發 LLM 對話");
+      mpuLogger.logL("featuresLlmReplaceDialogueDelayInitialTrigger", "LLM 置換会話が有効です。初期メッセージの完了後に LLM 会話をトリガーします");
       mpu_waitForTypewriterComplete(function() {
         setTimeout(function () {
           mpu_nextmsg('startup');
@@ -164,7 +161,7 @@ jQuery(document).ready(function () {
     // 否則計時器會在 LLM 回應返回前就觸發，導致對話互相覆蓋
     const shouldDelayAutoTalk = mpuOllamaReplaceDialogue && !(isDeepSleep && isSleepMessage);
 
-    mpuLogger.log("mpu_get_settings: 準備調用 startAutoTalk/stopAutoTalk, mpuAutoTalk =", mpuAutoTalk, ", shouldDelayAutoTalk =", shouldDelayAutoTalk);
+    mpuLogger.logF("featuresAutoTalkTogglePreparing", "mpu_get_settings: startAutoTalk/stopAutoTalk の呼び出しを準備します。mpuAutoTalk=%1$s、shouldDelayAutoTalk=%2$s", mpuAutoTalk, shouldDelayAutoTalk);
     if (mpuAutoTalk && !shouldDelayAutoTalk) {
       startAutoTalk();
     } else if (!mpuAutoTalk) {
@@ -231,26 +228,19 @@ jQuery(document).ready(function () {
     }
 
     if (res.ai_enabled === true) {
-      mpuLogger.log("頁面感知 AI 已啟用，觸發頁面條件 =", res.ai_trigger_pages);
+      mpuLogger.logF("featuresPageAwareAiEnabled", "ページ感知 AI が有効です。トリガーページ条件 = %s", res.ai_trigger_pages);
       const shouldTrigger = mpu_check_page_trigger(res.ai_trigger_pages);
 
-      mpuLogger.log("頁面感知檢查結果: shouldTrigger =", shouldTrigger);
+      mpuLogger.logF("featuresPageAwareTriggerCheckResult", "ページ感知チェック結果：shouldTrigger = %s", shouldTrigger);
 
       if (shouldTrigger) {
         const probability = parseInt(res.ai_probability || 10, 10);
         const roll = Math.floor(Math.random() * 100) + 1;
 
-        mpuLogger.log(
-          "頁面感知機率檢查: 設定機率 =",
-          probability,
-          "%, 骰子 =",
-          roll,
-          ", 觸發 =",
-          roll <= probability
-        );
+        mpuLogger.logF("featuresPageAwareProbabilityCheck", "ページ感知の確率チェック：設定確率=%1$s%%、ロール=%2$s、トリガー=%3$s", probability, roll, roll <= probability);
 
         if (roll <= probability) {
-          mpuLogger.log("頁面感知 AI 將在 3 秒後觸發");
+          mpuLogger.logL("featuresPageAwareAiTriggerScheduled", "ページ感知 AI は 3 秒後にトリガーされます");
           // 設置旗標，讓 startup/auto-talk 在頁面感知觸發前不搶先顯示 BOT 對話
           mpuSetContextPending(true);
           setTimeout(function () {
@@ -259,25 +249,25 @@ jQuery(document).ready(function () {
           }, 3000);
           return;
         } else {
-          mpuLogger.log("頁面感知 AI 未通過機率檢查，不觸發");
+          mpuLogger.logL("featuresPageAwareAiProbabilitySkipped", "ページ感知 AI は確率チェックを通過しなかったため、トリガーしません");
         }
       } else {
-        mpuLogger.log("頁面感知 AI 未通過頁面類型檢查，不觸發");
+        mpuLogger.logL("featuresPageAwareAiPageTypeSkipped", "ページ感知 AI はページタイプチェックを通過しなかったため、トリガーしません");
       }
     } else {
-      mpuLogger.log("頁面感知 AI 未啟用（ai_enabled =", res.ai_enabled, "）");
+      mpuLogger.logF("featuresPageAwareAiDisabled", "ページ感知 AI は有効ではありません（ai_enabled = %s）", res.ai_enabled);
     }
   }
 
   // 優先使用 mpu_init 預載的設定資料（性能優化）
   if (window.mpuSettings) {
-    mpuLogger.log("使用預載設定資料");
+    mpuLogger.logL("featuresUsingPreloadedSettings", "プリロード済み設定データを使用します");
     processSettings(window.mpuSettings);
   } else {
     // 監聽 mpuInitComplete 事件
     jQuery(document).one("mpuInitComplete", function(event, response) {
       if (response && response.settings) {
-        mpuLogger.log("從 mpuInitComplete 事件獲取設定");
+        mpuLogger.logL("featuresSettingsFromInitComplete", "mpuInitComplete イベントから設定を取得します");
         processSettings(response.settings);
       }
     });
@@ -285,7 +275,7 @@ jQuery(document).ready(function () {
     // Fallback：如果 500ms 內沒有收到資料，發送獨立 AJAX
     setTimeout(function() {
       if (!window.mpuSettings && !mpuIsSettingsLoaded()) {
-        mpuLogger.log("Fallback: 發送獨立 mpu_get_settings AJAX");
+        mpuLogger.logL("featuresFallbackGetSettingsAjax", "Fallback: 独立した mpu_get_settings AJAX を送信します");
         const settingsUrl = `${mpuRestUrl}settings`;
         
         mpuFetch(settingsUrl, {
@@ -454,7 +444,7 @@ window.mpuSpaEvents = window.mpuSpaEvents || [
  */
 function mpu_handleSpaNavigation(e) {
   const url = e.detail?.url || e.detail?.to?.url || window.location.href;
-  mpuLogger.log("🔄 SPA 導航：頁面內容已更換", url);
+  mpuLogger.logL("featuresSpaNavigationContentChanged", "🔄 SPA ナビゲーション：ページ内容が変更されました", url);
 
   // 延遲一下讓新內容載入完成，然後檢查是否要觸發頁面感知對話
   setTimeout(function () {
@@ -476,14 +466,7 @@ function mpu_handleSpaNavigation(e) {
         const probability = parseInt(window.mpuSettings.ai_probability || 10, 10);
         const roll = Math.floor(Math.random() * 100) + 1;
 
-        mpuLogger.log(
-          "🎲 SPA 頁面感知檢查：機率 =",
-          probability,
-          ", 骰子 =",
-          roll,
-          ", 觸發 =",
-          roll <= probability
-        );
+        mpuLogger.logF("featuresSpaPageAwareProbabilityCheck", "🎲 SPA ページ感知チェック：確率=%1$s、ロール=%2$s、トリガー=%3$s", probability, roll, roll <= probability);
 
         if (roll <= probability) {
           // 觸發頁面感知 AI 對話
@@ -501,7 +484,7 @@ window.mpuSpaEvents.forEach(function(eventName) {
   document.addEventListener(eventName, mpu_handleSpaNavigation);
 });
 
-mpuLogger.log("腳本載入完成");
+mpuLogger.logL("featuresScriptLoaded", "スクリプトの読み込みが完了しました");
 
 // ====== 互動對話模式 ======
 // 已移至 ukagaka-chat.js

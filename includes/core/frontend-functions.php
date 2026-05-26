@@ -769,6 +769,98 @@ function mpu_enqueue_frontend_assets()
         $log_i18n->debug('wakeRequestResponseFailed', __('目覚めリクエストの応答が失敗しました：%s', 'mp-ukagaka'));
         /* translators: debug console log. %s is the caught wake request error. */
         $log_i18n->debug('wakeRequestFailedNonBlocking', __('目覚めリクエストに失敗しましたが、通常動作には影響しません：%s', 'mp-ukagaka'));
+        /* translators: debug console log. Page trigger configuration is empty. */
+        $log_i18n->debug('contextTriggerPagesEmpty', __('mpu_check_page_trigger: triggerPages が空のため false を返します', 'mp-ukagaka'));
+        /* translators: debug console log. %s values are the trigger conditions and current path. */
+        $log_i18n->debug('contextTriggerConditionsCheck', __('mpu_check_page_trigger: チェック条件 = %s、path = %s', 'mp-ukagaka'));
+        /* translators: debug console log. Additional object data describes the is_single exclusion check. */
+        $log_i18n->debug('contextTriggerIsSingleExcludingHomeArchive', __('mpu_check_page_trigger: is_single チェック - ホームページ/アーカイブページを除外します', 'mp-ukagaka'));
+        /* translators: debug console log. Additional object data describes the is_single trigger check. */
+        $log_i18n->debug('contextTriggerIsSingleCheck', __('mpu_check_page_trigger: is_single チェック', 'mp-ukagaka'));
+        /* translators: debug console log. Additional object data describes the is_page trigger check. */
+        $log_i18n->debug('contextTriggerIsPageCheck', __('mpu_check_page_trigger: is_page チェック', 'mp-ukagaka'));
+        /* translators: debug console log. Additional object data describes the home/front-page trigger check. */
+        $log_i18n->debug('contextTriggerIsHomeFrontPageCheck', __('mpu_check_page_trigger: is_home/is_front_page チェック', 'mp-ukagaka'));
+        /* translators: debug console log. Additional object data describes the archive trigger check. */
+        $log_i18n->debug('contextTriggerIsArchiveCheck', __('mpu_check_page_trigger: is_archive チェック', 'mp-ukagaka'));
+        /* translators: debug console log. Additional object data describes the category trigger check. */
+        $log_i18n->debug('contextTriggerIsCategoryCheck', __('mpu_check_page_trigger: is_category チェック', 'mp-ukagaka'));
+        /* translators: debug console log. Additional object data describes the tag trigger check. */
+        $log_i18n->debug('contextTriggerIsTagCheck', __('mpu_check_page_trigger: is_tag チェック', 'mp-ukagaka'));
+        /* translators: debug console log. Page-aware AI is skipped while chat mode is active. */
+        $log_i18n->debug('contextChatSkippedChatMode', __('mpu_chat_context: 会話モード中のためページ感知 AI をスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. A new page-aware trigger is skipped while one is already running. */
+        $log_i18n->debug('contextChatSkippedPageAwareInProgress', __('mpu_chat_context: ページ感知処理中のため新しいトリガーをスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Page-aware AI is skipped during sleep mode. */
+        $log_i18n->debug('contextChatSkippedSleepMode', __('🌙 睡眠モード（00:00-06:00）：ページ感知 AI をスキップし、キャラクターを休ませます', 'mp-ukagaka'));
+        /* translators: debug console log. Additional object data describes the page context check. */
+        $log_i18n->debug('contextChatPageContextCheck', __('mpu_chat_context: ページコンテキストチェック', 'mp-ukagaka'));
+        /* translators: debug console log. Page-aware chat is skipped because both title and content are missing. */
+        $log_i18n->debug('contextChatSkippedEmptyTitleContent', __('mpu_chat_context: タイトルと本文がないためスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Page-aware chat is skipped during the first-visitor greeting. */
+        $log_i18n->debug('contextChatSkippedFirstVisitorGreeting', __('mpu_chat_context: 初回訪問者への挨拶中のためスキップします', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the current content length. */
+        $log_i18n->debug('contextChatSkippedShortContent', __('mpu_chat_context: 内容が 300 文字未満です（現在：%s）。スキップします', 'mp-ukagaka'));
+        /* translators: debug console log. Page-aware chat was added to history and saved. */
+        $log_i18n->debug('contextChatSavedToHistory', __('mpu_chat_context: 会話を履歴に追加して保存しました', 'mp-ukagaka'));
+        /* translators: debug console warning. %s is the failed AI response object. */
+        $log_i18n->debug('contextChatAiFailedUseDefault', __('AI 会話に失敗したため、既定の会話システムを使用します：%s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the visitor information object. */
+        $log_i18n->debug('contextVisitorInfo', __('訪問者情報：%s', 'mp-ukagaka'));
+        /* translators: debug console log. jQuery ready handler has run. */
+        $log_i18n->debug('featuresJqueryReady', __('jQuery ready を実行しました', 'mp-ukagaka'));
+        /* translators: debug console log. jQuery.cookie initialization succeeded. */
+        $log_i18n->debug('featuresJqueryCookieInitialized', __('jQuery.cookie を正常に初期化しました', 'mp-ukagaka'));
+        /* translators: debug console log. Built-in dialogue remains loaded as a fallback when LLM replacement is enabled. */
+        $log_i18n->debug('featuresLlmReplaceDialogueFallbackLoaded', __('LLM 置換会話が有効ですが、フォールバックとして内蔵会話も読み込みます', 'mp-ukagaka'));
+        /* translators: debug console log. Duplicate settings processing is skipped. */
+        $log_i18n->debug('featuresProcessSettingsAlreadyHandled', __('processSettings: 設定は処理済みのため、重複呼び出しをスキップします', 'mp-ukagaka'));
+        /* translators: debug console warning. %s is the invalid settings response object. */
+        $log_i18n->debug('featuresGetSettingsInvalidResponse', __('mpu_get_settings: 無効な応答です：%s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the serialized settings response. */
+        $log_i18n->debug('featuresGetSettingsReceived', __('mpu_get_settings: 設定を受信しました = %s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the auto-talk enabled flag. */
+        $log_i18n->debug('featuresGetSettingsAutoTalkSet', __('mpu_get_settings: mpuAutoTalk を設定しました = %s', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is the adjusted interval in ms, %2$s is the original interval in ms. */
+        $log_i18n->debug('featuresSleepModeIntervalAdjusted', __('🌙 睡眠モードが有効です（00:00~06:00）。間隔を %1$s ms に調整しました（元：%2$s ms）', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the auto-talk interval in ms. */
+        $log_i18n->debug('featuresGetSettingsAutoTalkIntervalSet', __('mpu_get_settings: mpuAutoTalkInterval を設定しました = %s ms', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s and %2$s are enabled/disabled labels. */
+        $log_i18n->debug('featuresLlmReplaceDialogueSettings', __('LLM 置換会話設定：%1$s、インタラクティブ会話モード：%2$s', 'mp-ukagaka'));
+        /* translators: debug console log. Initial LLM dialogue trigger is skipped during sleep mode. */
+        $log_i18n->debug('featuresSleepModeSkipInitialLlmTrigger', __('🌙 睡眠モード：初回 LLM 会話トリガーをスキップし、睡眠メッセージの表示を維持します', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the approximate number of seconds until auto-talk triggers. */
+        $log_i18n->debug('featuresSleepMessageRetainedUntilAutoTalk', __('🌙 睡眠メッセージは自動会話タイマーが発火するまで表示を維持します（約 %s 秒後）', 'mp-ukagaka'));
+        /* translators: debug console log. LLM dialogue trigger waits for the initial message to finish. */
+        $log_i18n->debug('featuresLlmReplaceDialogueDelayInitialTrigger', __('LLM 置換会話が有効です。初期メッセージの完了後に LLM 会話をトリガーします', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is the auto-talk flag, %2$s is whether auto-talk should be delayed. */
+        $log_i18n->debug('featuresAutoTalkTogglePreparing', __('mpu_get_settings: startAutoTalk/stopAutoTalk の呼び出しを準備します。mpuAutoTalk=%1$s、shouldDelayAutoTalk=%2$s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the configured page-aware trigger condition. */
+        $log_i18n->debug('featuresPageAwareAiEnabled', __('ページ感知 AI が有効です。トリガーページ条件 = %s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the page-aware trigger result. */
+        $log_i18n->debug('featuresPageAwareTriggerCheckResult', __('ページ感知チェック結果：shouldTrigger = %s', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is probability percent, %2$s is the random roll, %3$s is the trigger result. */
+        $log_i18n->debug('featuresPageAwareProbabilityCheck', __('ページ感知の確率チェック：設定確率=%1$s%%、ロール=%2$s、トリガー=%3$s', 'mp-ukagaka'));
+        /* translators: debug console log. Page-aware AI trigger has been scheduled. */
+        $log_i18n->debug('featuresPageAwareAiTriggerScheduled', __('ページ感知 AI は 3 秒後にトリガーされます', 'mp-ukagaka'));
+        /* translators: debug console log. Page-aware AI is skipped after failing probability check. */
+        $log_i18n->debug('featuresPageAwareAiProbabilitySkipped', __('ページ感知 AI は確率チェックを通過しなかったため、トリガーしません', 'mp-ukagaka'));
+        /* translators: debug console log. Page-aware AI is skipped after failing page type check. */
+        $log_i18n->debug('featuresPageAwareAiPageTypeSkipped', __('ページ感知 AI はページタイプチェックを通過しなかったため、トリガーしません', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the ai_enabled flag. */
+        $log_i18n->debug('featuresPageAwareAiDisabled', __('ページ感知 AI は有効ではありません（ai_enabled = %s）', 'mp-ukagaka'));
+        /* translators: debug console log. Preloaded settings data is being used. */
+        $log_i18n->debug('featuresUsingPreloadedSettings', __('プリロード済み設定データを使用します', 'mp-ukagaka'));
+        /* translators: debug console log. Settings are obtained from the mpuInitComplete event. */
+        $log_i18n->debug('featuresSettingsFromInitComplete', __('mpuInitComplete イベントから設定を取得します', 'mp-ukagaka'));
+        /* translators: debug console log. Fallback settings request is sent separately. */
+        $log_i18n->debug('featuresFallbackGetSettingsAjax', __('Fallback: 独立した mpu_get_settings AJAX を送信します', 'mp-ukagaka'));
+        /* translators: debug console log. Additional argument is the SPA navigation URL. */
+        $log_i18n->debug('featuresSpaNavigationContentChanged', __('🔄 SPA ナビゲーション：ページ内容が変更されました', 'mp-ukagaka'));
+        /* translators: debug console log. %1$s is probability, %2$s is the random roll, %3$s is the trigger result. */
+        $log_i18n->debug('featuresSpaPageAwareProbabilityCheck', __('🎲 SPA ページ感知チェック：確率=%1$s、ロール=%2$s、トリガー=%3$s', 'mp-ukagaka'));
+        /* translators: debug console log. Feature script loading has completed. */
+        $log_i18n->debug('featuresScriptLoaded', __('スクリプトの読み込みが完了しました', 'mp-ukagaka'));
         /* translators: debug console log. Browser reload cleared chat history and the chat session ID. */
         $log_i18n->debug('pageReloadClearedChatSession', __('🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました', 'mp-ukagaka'));
     }

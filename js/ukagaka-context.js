@@ -6,7 +6,7 @@
  */
 function mpu_check_page_trigger(triggerPages) {
   if (!triggerPages) {
-    mpuLogger.log("mpu_check_page_trigger: triggerPages 為空，返回 false");
+    mpuLogger.logL("contextTriggerPagesEmpty", "mpu_check_page_trigger: triggerPages が空のため false を返します");
     return false;
   }
 
@@ -14,12 +14,7 @@ function mpu_check_page_trigger(triggerPages) {
   const path = window.location.pathname;
   const url = window.location.href;
 
-  mpuLogger.log(
-    "mpu_check_page_trigger: 檢查條件 =",
-    conditions,
-    ", path =",
-    path,
-  );
+  mpuLogger.logF("contextTriggerConditionsCheck", "mpu_check_page_trigger: チェック条件 = %s、path = %s", conditions, path);
 
   // 檢查各種 WordPress 條件
   for (let condition of conditions) {
@@ -52,17 +47,14 @@ function mpu_check_page_trigger(triggerPages) {
       const isPagination = path.match(/\/page\/\d+/);
 
       if (isHomePage || isSpecialPage || isPagination) {
-        mpuLogger.log(
-          "mpu_check_page_trigger: is_single 檢查 - 排除首頁/歸檔頁面",
-          {
+        mpuLogger.logL("contextTriggerIsSingleExcludingHomeArchive", "mpu_check_page_trigger: is_single チェック - ホームページ/アーカイブページを除外します", {
             path,
             isHomePage,
             isSubdirectoryHome,
             isSpecialPage,
             isPagination,
             shouldTrigger: false,
-          },
-        );
+          });
         continue; // 跳過此條件，檢查下一個
       }
 
@@ -86,7 +78,7 @@ function mpu_check_page_trigger(triggerPages) {
       const shouldTrigger =
         hasDatePath || hasArticleContent || hasContentContainer;
 
-      mpuLogger.log("mpu_check_page_trigger: is_single 檢查", {
+      mpuLogger.logL("contextTriggerIsSingleCheck", "mpu_check_page_trigger: is_single チェック", {
         path,
         hasDatePath,
         hasArticleContent,
@@ -106,7 +98,7 @@ function mpu_check_page_trigger(triggerPages) {
         !path.match(/^\/(category|tag|author|search|archive|feed)/) &&
         !path.match(/\/\d{4}\/\d{2}\/\d{2}\//);
 
-      mpuLogger.log("mpu_check_page_trigger: is_page 檢查", {
+      mpuLogger.logL("contextTriggerIsPageCheck", "mpu_check_page_trigger: is_page チェック", {
         path,
         pathLength: path.length,
         isNotSpecial,
@@ -141,7 +133,7 @@ function mpu_check_page_trigger(triggerPages) {
         isHomePagination ||
         (hasMultipleArticles && !hasSinglePostFeatures);
 
-      mpuLogger.log("mpu_check_page_trigger: is_home/is_front_page 檢查", {
+      mpuLogger.logL("contextTriggerIsHomeFrontPageCheck", "mpu_check_page_trigger: is_home/is_front_page チェック", {
         path,
         normalizedPath,
         pathParts,
@@ -161,7 +153,7 @@ function mpu_check_page_trigger(triggerPages) {
     else if (condition === "is_archive") {
       const isArchive = path.match(/^\/(category|tag|author|date)/);
 
-      mpuLogger.log("mpu_check_page_trigger: is_archive 檢查", {
+      mpuLogger.logL("contextTriggerIsArchiveCheck", "mpu_check_page_trigger: is_archive チェック", {
         path,
         isArchive,
       });
@@ -174,7 +166,7 @@ function mpu_check_page_trigger(triggerPages) {
     else if (condition === "is_category") {
       const isCategory = path.match(/^\/category\//);
 
-      mpuLogger.log("mpu_check_page_trigger: is_category 檢查", {
+      mpuLogger.logL("contextTriggerIsCategoryCheck", "mpu_check_page_trigger: is_category チェック", {
         path,
         isCategory,
       });
@@ -187,7 +179,7 @@ function mpu_check_page_trigger(triggerPages) {
     else if (condition === "is_tag") {
       const isTag = path.match(/^\/tag\//);
 
-      mpuLogger.log("mpu_check_page_trigger: is_tag 檢查", {
+      mpuLogger.logL("contextTriggerIsTagCheck", "mpu_check_page_trigger: is_tag チェック", {
         path,
         isTag,
       });
@@ -293,29 +285,27 @@ function mpu_get_page_context() {
 function mpu_chat_context() {
   // 新增：如果正在對話模式中，直接取消頁面感知 AI
   if (typeof mpuChatModeActive !== "undefined" && mpuChatModeActive) {
-    mpuLogger.log("mpu_chat_context: 對話模式中，跳過頁面感知 AI");
+    mpuLogger.logL("contextChatSkippedChatMode", "mpu_chat_context: 会話モード中のためページ感知 AI をスキップします");
     return;
   }
 
   // 🔧 如果頁面感知 AI 正在進行中（包含打字），跳過新的觸發
   if (mpuAiContextInProgress) {
-    mpuLogger.log("mpu_chat_context: 頁面感知進行中，跳過新觸發");
+    mpuLogger.logL("contextChatSkippedPageAwareInProgress", "mpu_chat_context: ページ感知処理中のため新しいトリガーをスキップします");
     return;
   }
 
   // 睡眠模式檢查：優先使用伺服器端時間（避免客戶端/伺服器時區差異）
   const isDeepSleep = mpu_isDeepSleepTime();
   if (isDeepSleep) {
-    mpuLogger.log(
-      "🌙 睡眠模式（00:00-06:00）：跳過頁面感知 AI，讓角色好好休息",
-    );
+    mpuLogger.logL("contextChatSkippedSleepMode", "🌙 睡眠モード（00:00-06:00）：ページ感知 AI をスキップし、キャラクターを休ませます");
     return;
   }
 
   const context = mpu_get_page_context();
   const contentLength = context.content ? context.content.length : 0;
 
-  mpuLogger.log("mpu_chat_context: 頁面上下文檢查", {
+  mpuLogger.logL("contextChatPageContextCheck", "mpu_chat_context: ページコンテキストチェック", {
     hasTitle: !!context.title,
     title: context.title,
     contentLength,
@@ -323,22 +313,18 @@ function mpu_chat_context() {
   });
 
   if (!context.title && !context.content) {
-    mpuLogger.log("mpu_chat_context: 沒有標題和內容，跳過");
+    mpuLogger.logL("contextChatSkippedEmptyTitleContent", "mpu_chat_context: タイトルと本文がないためスキップします");
     return;
   }
 
   // 如果首次訪客打招呼正在進行中，跳過頁面感知 AI
   if (mpuGreetInProgress) {
-    mpuLogger.log("mpu_chat_context: 首次訪客打招呼進行中，跳過");
+    mpuLogger.logL("contextChatSkippedFirstVisitorGreeting", "mpu_chat_context: 初回訪問者への挨拶中のためスキップします");
     return;
   }
 
   if (contentLength < 300) {
-    mpuLogger.log(
-      "mpu_chat_context: 內容長度不足 300 字（當前:",
-      contentLength,
-      "），跳過",
-    );
+    mpuLogger.logF("contextChatSkippedShortContent", "mpu_chat_context: 内容が 300 文字未満です（現在：%s）。スキップします", contentLength);
     return;
   }
 
@@ -445,7 +431,7 @@ function mpu_chat_context() {
 
           if (typeof mpu_saveChatHistory === "function") {
             mpu_saveChatHistory();
-            mpuLogger.log("mpu_chat_context: 對話已加入歷史並儲存");
+            mpuLogger.logL("contextChatSavedToHistory", "mpu_chat_context: 会話を履歴に追加して保存しました");
           }
         }
 
@@ -474,7 +460,7 @@ function mpu_chat_context() {
           }, displayDurationMs));
         });
       } else {
-        mpuLogger.warn("AI 對話失敗，使用預設對話系統:", res);
+        mpuLogger.warnF("contextChatAiFailedUseDefault", "AI 会話に失敗したため、既定の会話システムを使用します：%s", res);
 
         // 檢查是否是速率限制錯誤
         const isRateLimit =
@@ -577,7 +563,7 @@ function mpu_test_visitor_info() {
     retries: 1,
   })
     .then((visitorInfo) => {
-      mpuLogger.log("訪客資訊:", {
+      mpuLogger.logF("contextVisitorInfo", "訪問者情報：%s", {
         referrer: visitorInfo.referrer || "無",
         referrer_host: visitorInfo.referrer_host || "無",
         search_engine: visitorInfo.search_engine || "無",

@@ -10,8 +10,8 @@
 
 - Phase 1（infrastructure）已完成、Phase 1.5（inventory + 18 條 production-visible 翻譯）已完成、Phase 2 production-visible migration 已完成：anime 5 條、Frieren 11 條、core bundle 收尾 2 條。
 - 公司端 reviewer 已逐 commit 審查通過，無阻斷問題。
-- silent-drop 隱患已採 **方案 A** 落地：migrated overrides 刪除、generator 加 unused-override verify pass；目前對照表為 97 included rows + 0 backlog。
-- production-visible 已清零；Phase 3.0 debug 翻譯 staging 已由公司端御三家完成，Phase 3 migration 已完成 core 57 條與 base/chat/anime 41 條，剩 97 條 debug-gated `mpuLogger.log/warn/info` 待遷移。
+- silent-drop 隱患已採 **方案 A** 落地：migrated overrides 刪除、generator 加 unused-override verify pass；目前對照表為 51 included rows + 0 backlog。
+- production-visible 已清零；Phase 3.0 debug 翻譯 staging 已由公司端御三家完成，Phase 3 migration 已完成 core 57 條、base/chat/anime 41 條、features/context 46 條，剩 51 條 debug-gated `mpuLogger.log/warn/info` 待遷移。
 
 ---
 
@@ -42,6 +42,7 @@
 | next commit | Translate remaining debug console log inventory | Phase 3-0 commit 5（dialog/greeting/emoji 19 rows，Phase 3-0 complete） |
 | working tree | Migrate core debug console logs to i18n | Phase 3 migration PR 1（`js/ukagaka-core.js` 57 rows + rebuild dist；inventory 195 → 138） |
 | working tree | Migrate base/chat/anime debug console logs to i18n | Phase 3 migration PR 2（base/chat/anime 41 rows、38 unique keys + rebuild dist；inventory 138 → 97） |
+| working tree | Migrate features/context debug console logs to i18n | Phase 3 migration PR 3（features/context 46 rows + rebuild dist；inventory 97 → 51） |
 
 ---
 
@@ -198,6 +199,14 @@
 - source 改動位於 core bundle，已執行 `node tools/node/build.js` 重建 `js/dist/ukagaka-bundle.js` / `.min.js`
 - JS fallback vs PHP `__()` drift、PHP 註冊缺漏、placeholder mismatch 均為 0；`node tools/node/generate-console-log-inventory.js` 已通過
 
+### Phase 3 migration PR 3 — `js/ukagaka-features.js` + `js/ukagaka-context.js` 46 rows（working tree）
+- `ukagaka-features.js` 27 rows、`ukagaka-context.js` 19 rows 已由 `mpuLogger.log/warn` 遷到 `logL/logF/warnL/warnF`
+- 本批以 fallback 是否含 `%s` / positional placeholder 決定 `*F`，避免 object-dump 類 debug log 被 `*F` 吞掉額外 console 參數
+- PHP 端同步補齊 46 條 `$log_i18n->debug()` 註冊與 `/* translators */` 註解，確保 `logsDebug` payload 與 `.pot` 抽取來源完整
+- 依方案 A 刪除 features/context 46 條 overrides，translation table 重生為 51 included rows + 0 backlog
+- source 改動位於 core bundle，已執行 `node tools/node/build.js` 重建 `js/dist/ukagaka-bundle.js` / `.min.js`
+- JS fallback vs PHP `__()` drift、PHP 註冊缺漏、placeholder mismatch 均為 0；`node tools/node/generate-console-log-inventory.js` 已通過
+
 ---
 
 ## ✅ 已決策（2026-05-25 家裡）：silent-drop 隱患採方案 A
@@ -284,7 +293,7 @@ Phase 2 第一個 PR (b256574) 後 anime.js 5 條 call site 已遷移到糖衣�
 
 ## Phase 3 後續 PR 範圍
 
-production-visible console log 與既有日文 production backlog 已清零；Phase 3.0 已補完 195 條 debug 翻譯 staging，Phase 3 migration 已完成 `js/ukagaka-core.js` 57 條與 base/chat/anime 41 條。後續剩 97 條 debug-gated `mpuLogger.log/warn/info`，全部屬 Phase 3 / `logsDebug` 大宗。
+production-visible console log 與既有日文 production backlog 已清零；Phase 3.0 已補完 195 條 debug 翻譯 staging，Phase 3 migration 已完成 `js/ukagaka-core.js` 57 條、base/chat/anime 41 條、features/context 46 條。後續剩 51 條 debug-gated `mpuLogger.log/warn/info`，全部屬 Phase 3 / `logsDebug` 大宗。
 
 ---
 
@@ -298,7 +307,7 @@ production-visible console log 與既有日文 production backlog 已清零；Ph
 - **(f)** Generator 內嵌的對照表 status block 已過時（line 392-397 still 寫「This commit intentionally fills raw inventory only」）— **已完成**（方案 A 落地時同步更新為 migration staging table）
 
 debug 195 條翻譯（Phase 3-0）已完成 195/195 rows：`ukagaka-core.js` 57 rows，base/chat/anime 41 rows，features/context 46 rows，Frieren/Frieren emoji 32 rows，dialog/greeting/emoji 19 rows；scope 為 `mpuLogger.log` 159 條 + `mpuLogger.warn` 36 條，目前沒有帶 CJK 的 `mpuLogger.info`。
-Phase 3 migration 已完成 98/195 rows（`ukagaka-core.js` 57 rows + base/chat/anime 41 rows）；後續剩 97 rows。每個 migration PR 都應跑 `node tools/node/generate-console-log-inventory.js`，其內建的 unused-override 與 semantic-key gate 必須通過。
+Phase 3 migration 已完成 144/195 rows（`ukagaka-core.js` 57 rows + base/chat/anime 41 rows + features/context 46 rows）；後續剩 51 rows。每個 migration PR 都應跑 `node tools/node/generate-console-log-inventory.js`，其內建的 unused-override 與 semantic-key gate 必須通過。
 
 ---
 
@@ -347,4 +356,4 @@ git status --short
 
 ---
 
-_Last updated: 2026-05-26 — Phase 3-pre 已將 generator override lookup 改為 `relativePath::normalized zhOriginal` 並加上 semantic-key conflict gate；Phase 3-0 五批已補完 195/195 rows，且 no-TODO / no-draftKey 最終驗收通過。Phase 3 migration 已完成 98/195 rows，translation table 目前為 97 included rows + 0 backlog。下一更新點：Phase 3 migration 後續 PRs。_
+_Last updated: 2026-05-26 — Phase 3-pre 已將 generator override lookup 改為 `relativePath::normalized zhOriginal` 並加上 semantic-key conflict gate；Phase 3-0 五批已補完 195/195 rows，且 no-TODO / no-draftKey 最終驗收通過。Phase 3 migration 已完成 144/195 rows，translation table 目前為 51 included rows + 0 backlog。下一更新點：Phase 3 migration 後續 PRs。_
