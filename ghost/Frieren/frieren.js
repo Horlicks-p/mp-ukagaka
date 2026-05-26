@@ -1198,7 +1198,7 @@
               }
 
               if (typeof mpuLogger !== "undefined" && mpuLogger.errorL) {
-                mpuLogger.errorL('frierenDecorationDialogRequestFailed', '装飾品対話リクエストに失敗しました', error);
+                mpuLogger.errorL('frierenDecorationDialogRequestFailed', '装飾品会話リクエストに失敗しました', error);
               }
               if (typeof mpu_typewriter !== "undefined") {
                 mpu_typewriter((window.mpuL10n && window.mpuL10n.connectionError) || "（…通信状況が良くないみたいだ…）", "#ukagaka_msg");
