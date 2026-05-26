@@ -906,6 +906,101 @@ const overrides = {
     jaSource: "領域がクールダウンに入りました：%1$s、クールダウン時間：%2$s 秒",
     translatorComment: "debug console log. %1$s is the touch zone name, %2$s is the cooldown duration in seconds.",
   },
+  "js/ukagaka-dialog.js::🌙 睡眠模式：檢測到睡眠訊息，跳過載入訊息顯示": {
+    key: "dialogLoadingMessageSkippedSleepMessage",
+    jaSource: "🌙 睡眠モード：睡眠メッセージを検出したため、読み込みメッセージの表示をスキップします",
+    translatorComment: "debug console log. Loading message display is skipped because the sleep message is active.",
+  },
+  "js/ukagaka-dialog.js::loadExternalDialog: 對話文件為空": {
+    key: "dialogExternalFileEmpty",
+    jaSource: "loadExternalDialog: 会話ファイルが空です",
+    translatorComment: "debug console warning. External dialogue file has no usable content.",
+  },
+  "js/ukagaka-dialog.js::loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成": {
+    key: "dialogExternalFileEmptyLlmFallback",
+    jaSource: "loadExternalDialog: LLM 置換会話モードのため会話ファイルが空です。LLM 生成に依存します",
+    translatorComment: "debug console log. Dialogue file is empty while LLM replacement mode is active.",
+  },
+  "js/ukagaka-dialog.js::loadExternalDialog: LLM 取代對話模式，已載入後備對話數據，但不顯示第一句": {
+    key: "dialogFallbackLoadedFirstLineSuppressed",
+    jaSource: "loadExternalDialog: LLM 置換会話モードで後備会話データを読み込みましたが、最初の一文は表示しません",
+    translatorComment: "debug console log. Fallback dialogue data loaded but first line display is suppressed.",
+  },
+  "js/ukagaka-dialog.js::loadExternalDialog: 嘗試重複顯示第一句對話，已阻止": {
+    key: "dialogFirstLineDuplicateBlocked",
+    jaSource: "loadExternalDialog: 最初の会話文を重複表示しようとしたため阻止しました",
+    translatorComment: "debug console log. Duplicate display of the first dialogue line was blocked.",
+  },
+  "js/ukagaka-dialog.js::🌙 睡眠模式且尚未被喚醒：跳過第一句內建對話，保持睡眠訊息": {
+    key: "dialogFirstLineSkippedUnawokenSleepMode",
+    jaSource: "🌙 睡眠モードでまだ目を覚ましていないため、最初の内蔵会話をスキップし、睡眠メッセージを維持します",
+    translatorComment: "debug console log. First built-in dialogue is skipped while asleep and not awakened.",
+  },
+  "js/ukagaka-dialog.js::loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 -": {
+    key: "dialogBackendErrorUseEmptyFallback",
+    jaSource: "loadExternalDialog: バックエンドがエラーを返したため、空の mpuMsgList をフォールバックとして設定します - %s",
+    translatorComment: "debug console warning. %s is the backend error message.",
+  },
+  "js/ukagaka-dialog.js::loadExternalDialog: 載入失敗，設置空的 mpuMsgList 作為後備": {
+    key: "dialogLoadFailedUseEmptyFallback",
+    jaSource: "loadExternalDialog: 読み込みに失敗したため、空の mpuMsgList をフォールバックとして設定します",
+    translatorComment: "debug console warning. Dialogue loading failed and an empty message list is used as fallback.",
+  },
+  "js/ukagaka-emoji.js::mpuEmojiManager: 表情基礎路徑未設定": {
+    key: "emojiBasePathMissing",
+    jaSource: "mpuEmojiManager: 表情のベースパスが設定されていません",
+    translatorComment: "debug console log. Emoji base path is not configured.",
+  },
+  "js/ukagaka-emoji.js::mpuEmojiManager: 找不到 #ukagaka_img 容器": {
+    key: "emojiContainerMissing",
+    jaSource: "mpuEmojiManager: #ukagaka_img コンテナが見つかりません",
+    translatorComment: "debug console log. The ukagaka image container is missing.",
+  },
+  "js/ukagaka-emoji.js::mpuEmojiManager: 表情圖片載入失敗:": {
+    key: "emojiImageLoadFailed",
+    jaSource: "mpuEmojiManager: 表情画像の読み込みに失敗しました：%s",
+    translatorComment: "debug console warning. %s is the failed emoji image URL.",
+  },
+  "js/ukagaka-emoji.js::mpuEmojiManager: 顯示表情:": {
+    key: "emojiShown",
+    jaSource: "mpuEmojiManager: 表情を表示します：%s",
+    translatorComment: "debug console log. %s is the emoji name being shown.",
+  },
+  "js/ukagaka-emoji.js::mpuEmojiManager: 移除表情": {
+    key: "emojiRemoved",
+    jaSource: "mpuEmojiManager: 表情を削除します",
+    translatorComment: "debug console log. Emoji display is removed.",
+  },
+  "js/ukagaka-greeting.js::🌙 睡眠模式：跳過初次訪客打招呼，讓角色好好休息": {
+    key: "greetingSkippedSleepMode",
+    jaSource: "🌙 睡眠モード：初回訪問者への挨拶をスキップし、キャラクターを休ませます",
+    translatorComment: "debug console log. First-visitor greeting is skipped during sleep mode.",
+  },
+  "js/ukagaka-greeting.js::訪客資訊: / 無 / 無 / 無 / 無": {
+    key: "greetingVisitorInfo",
+    jaSource: "訪問者情報：%s",
+    translatorComment: "debug console log. %s is the visitor information object used for first-visitor greeting.",
+  },
+  "js/ukagaka-greeting.js::mpu_greet_first_visitor: 問候已加入歷史並儲存": {
+    key: "greetingSavedToHistory",
+    jaSource: "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました",
+    translatorComment: "debug console log. First-visitor greeting was added to history and saved.",
+  },
+  "js/ukagaka-greeting.js::mpu_greet_first_visitor: mpu_saveChatHistory 函數不存在，無法儲存對話歷史": {
+    key: "greetingSaveHistoryFunctionMissing",
+    jaSource: "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません",
+    translatorComment: "debug console warning. Chat history cannot be saved because the save function is missing.",
+  },
+  "js/ukagaka-greeting.js::mpu_greet_first_visitor: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史": {
+    key: "greetingChatHistoryUnavailable",
+    jaSource: "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません",
+    translatorComment: "debug console warning. Greeting cannot be added because chat history is unavailable.",
+  },
+  "js/ukagaka-greeting.js::首次訪客打招呼失敗:": {
+    key: "greetingFirstVisitorFailed",
+    jaSource: "初回訪問者への挨拶に失敗しました：%s",
+    translatorComment: "debug console warning. %s is the failed first-visitor greeting response object.",
+  },
 };
 
 function lineForIndex(text, index) {
