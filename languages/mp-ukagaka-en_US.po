@@ -1,1599 +1,3694 @@
-# MP Ukagaka English Translation
-# Copyright (C) 2025 Ariagle (patched by Horlicks)
-# This file is distributed under the same license as the MP Ukagaka plugin.
 msgid ""
 msgstr ""
 "Project-Id-Version: MP Ukagaka 2.4.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/mp-ukagaka\n"
 "Last-Translator: Horlicks <https://www.moelog.com/>\n"
 "Language-Team: English\n"
-"Language: en_US\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2026-01-03 12:00+0800\n"
 "PO-Revision-Date: 2026-01-03 12:00+0800\n"
+"Language: en_US\n"
 "X-Generator: MP Ukagaka\n"
 "X-Domain: mp-ukagaka\n"
 
-# ========================================
-# Core Functions
-# ========================================
-
-msgid "初音"
-msgstr "Miku"
-
-msgid "歡迎光臨～"
-msgstr "Welcome~"
-
-msgid "更換春菜"
-msgstr "Change Character"
-
-msgid "春菜们"
-msgstr "Characters"
-
-msgid "沒有可供選擇的春菜"
-msgstr "No characters available"
-
-msgid "隱藏春菜 ▼"
-msgstr "Hide Character ▼"
-
-msgid "隱藏會話 ▼"
-msgstr "Hide Dialog ▼"
-
-msgid "顯示春菜 ▲"
-msgstr "Show Character ▲"
-
-msgid "顯示會話 ▲"
-msgstr "Show Dialog ▲"
-
-msgid "擴展"
-msgstr "Extensions"
-
-msgid "(思考中...)"
-msgstr "(Thinking...)"
-
-msgid "（えっと…何話せばいいかな…）"
-msgstr "(Hmm... what should I talk about...)"
-
-msgid "回到頂部 ▼"
-msgstr "Back to Top ▼"
-
-# ========================================
-# Admin Pages - Navigation
-# ========================================
-
+#: options/options.php:304
 msgid "MP Ukagaka 選項"
 msgstr "MP Ukagaka Options"
 
-msgid "通用設定"
-msgstr "General Settings"
-
+#: options/options.php:23
+#: options/options.php:315
+#: options/options_general.php:2
 msgid "⚙️ 通用設定"
 msgstr "⚙️ General Settings"
 
-msgid "AI 設定"
-msgstr "AI Settings"
-
+#: options/options.php:28
+#: options/options.php:316
 msgid "🧠 AI 設定"
 msgstr "🧠 AI Settings"
 
-msgid "LLM 設定"
-msgstr "LLM Settings"
-
+#: options/options.php:29
+#: options/options.php:317
+#: options/options_page_llm.php:44
 msgid "🤖 LLM 設定"
 msgstr "🤖 LLM Settings"
 
-msgid "會話"
-msgstr "Messages"
-
+#: options/options.php:27
+#: options/options.php:319
+#: options/options_dialog.php:2
 msgid "💬 會話"
 msgstr "💬 Messages"
 
-msgid "春菜們"
-msgstr "Characters"
-
-msgid "創建新春菜"
-msgstr "Create New Character"
-
+#: options/options.php:24
+#: options/options.php:320
+#: options/options_ukagakas.php:15
 msgid "👻 偽春菜們"
 msgstr "👻 Ukagakas"
 
+#: options/options.php:25
+#: options/options.php:321
+#: options/options_create.php:2
 msgid "✨ 創建新偽春菜"
 msgstr "✨ Create New Ukagaka"
 
+#: options/options.php:26
+#: options/options.php:322
+#: options/options_extend.php:2
 msgid "🔌 擴展"
 msgstr "🔌 Extensions"
 
+#: options/options.php:31
+#: options/options.php:324
 msgid "📊 統計"
 msgstr "📊 Statistics"
 
-# ========================================
-# Admin Pages - Messages
-# ========================================
-
-msgid "春菜"
-msgstr "Character"
-
-msgid "已離你而去…"
-msgstr "has been deleted..."
-
-msgid "不存在此春菜喲"
-msgstr "This character does not exist"
-
-msgid "不允許趕走預設春菜喲"
-msgstr "Cannot delete the default character"
-
-msgid "安全性檢查失敗。"
-msgstr "Security check failed."
-
-msgid "設定已儲存"
-msgstr "Settings saved"
-
-msgid "春菜們已經煥然一新啦"
-msgstr "Characters have been updated"
-
-msgid "，對話檔案已生成"
-msgstr ", dialog file generated"
-
-msgid "春菜創建成功～"
-msgstr "Character created successfully~"
-
-msgid "AI 設定已儲存"
-msgstr "AI settings saved"
-
-msgid "LLM 設定已儲存"
-msgstr "LLM settings saved"
-
-msgid "設定已重置"
-msgstr "Settings have been reset"
-
-msgid "設定未被重置"
-msgstr "Settings were not reset"
-
-# ========================================
-# General Settings Page
-# ========================================
-
-msgid "預設春菜："
-msgstr "Default Character:"
-
-msgid "預設顯示春菜"
-msgstr "Show character by default"
-
+#: options/options_general.php:81
 msgid "預設顯示對話框"
 msgstr "Show dialog by default"
 
+#: options/options_general.php:89
 msgid "預設會話："
 msgstr "Default Message:"
 
+#: options/options_general.php:93
+#: options/options_general.php:107
 msgid "隨機吐槽"
 msgstr "Random message"
 
+#: options/options_general.php:96
 msgid "第一條吐槽"
 msgstr "First message"
 
+#: options/options_general.php:100
 msgid "會話順序："
 msgstr "Message Order:"
 
+#: options/options_general.php:104
 msgid "順序吐槽"
 msgstr "Sequential messages"
 
-msgid "點擊春菜："
-msgstr "On Character Click:"
-
+#: options/options_general.php:115
 msgid "下一條吐槽"
 msgstr "Next message"
 
+#: options/options_general.php:118
 msgid "無操作"
 msgstr "No action"
 
-msgid "自動對話："
-msgstr "Auto Talk:"
-
+#: options/options_general.php:129
 msgid "啟用自動對話功能"
 msgstr "Enable auto talk"
 
+#: options/options_general.php:132
 msgid "自動對話間隔時間（秒）："
 msgstr "Auto talk interval (seconds):"
 
+#: options/options_general.php:137
 msgid "打字效果速度（毫秒/字）："
 msgstr "Typewriter speed (ms/char):"
 
+#: options/options_general.php:140
 msgid "數值越小打字越快，建議範圍 20-80，預設 40"
 msgstr "Lower = faster. Recommended: 20-80, default: 40"
 
+#: options/options_general.php:148
 msgid "外部對話文件格式："
 msgstr "External dialog file format:"
 
+#: options/options_general.php:152
 msgid "純文字格式 (TXT)"
 msgstr "Plain text (TXT)"
 
+#: options/options_general.php:155
 msgid "JSON 格式"
 msgstr "JSON format"
 
-msgid "使用外部對話文件"
-msgstr "Use external dialog files"
-
+#: options/options_general.php:167
 msgid "使用自訂樣式"
 msgstr "Use custom styles"
 
-msgid "HTML 生成位置："
-msgstr "HTML output position:"
-
+#: options/options_general.php:203
 msgid "一般情況下請勿更改"
 msgstr "Do not change unless necessary"
 
+#: options/options_general.php:207
 msgid "在</body>前"
 msgstr "Before </body>"
 
-msgid "當春菜無法顯示（主題尾部無 wp_footer() 函數）或 wp_footer() 位置導致樣式異常時，請勾選此項"
-msgstr "Check this if character doesn't display (theme footer lacks wp_footer()) or styles appear broken"
-
+#: options/options_general.php:211
 msgid "在 wp_footer() 處"
 msgstr "At wp_footer()"
 
-msgid "這是 WordPress 常用方式，但若主題尾部無 wp_footer() 函數，春菜將無法顯示"
-msgstr "Standard WordPress method. Character won't display if theme lacks wp_footer()"
-
-msgid "不在以下頁面顯示春菜"
-msgstr "Hide character on these pages"
-
-msgid "輸入不顯示春菜的頁面 URL，每行一條。"
-msgstr "Enter page URLs where character should not appear, one per line."
-
-msgid "在地址尾部加入 (*) 可進行模糊匹配。"
-msgstr "Add (*) at the end for wildcard matching."
-
+#: options/options_dialog.php:27
+#: options/options_extend.php:36
+#: options/options_general.php:218
+#: options/options_page_ai.php:205
+#: options/options_page_diary.php:313
+#: options/options_page_llm.php:322
+#: options/options_ukagakas.php:76
 msgid " 儲 存 "
 msgstr " Save "
 
-msgid "插件資訊"
-msgstr "Plugin Info"
-
+#: options/options_create.php:100
+#: options/options_general.php:225
 msgid "版本："
 msgstr "Version:"
 
-msgid "春菜數量："
-msgstr "Character Count:"
-
+#: options/options_general.php:227
 msgid "平均會話數："
 msgstr "Average Messages:"
 
+#: options/options_general.php:228
 msgid "維護者網站："
 msgstr "Maintainer's Site:"
 
+#: options/options_general.php:228
 msgid "前往維護者網站"
 msgstr "Visit Maintainer's Site"
 
-msgid "重置設定"
-msgstr "Reset Settings"
-
+#: options/options_general.php:237
 msgid "確認重置"
 msgstr "Confirm Reset"
 
-msgid "重置設定將還原插件的所有配置為預設值，所有設定及春菜將被刪除。此操作無法撤銷，請謹慎操作。"
-msgstr "Resetting will restore all plugin settings to defaults. All settings and characters will be deleted. This cannot be undone."
-
+#: options/options_general.php:240
 msgid " 重 置 "
 msgstr " Reset "
 
-# ========================================
-# AI Settings Page
-# ========================================
-
-msgid "AI 設定 (Context Awareness)"
-msgstr "AI Settings (Context Awareness)"
-
-msgid "啟用頁面感知功能（需要 AI API Key）"
-msgstr "Enable context awareness (requires AI API Key)"
-
-msgid "AI 提供商："
-msgstr "AI Provider:"
-
-msgid "Google Gemini"
-msgstr "Google Gemini"
-
-msgid "OpenAI"
-msgstr "OpenAI"
-
-msgid "Claude (Anthropic)"
-msgstr "Claude (Anthropic)"
-
+#: options/options_page_diary.php:211
+#: options/options_page_llm.php:75
 msgid "Gemini API Key："
 msgstr "Gemini API Key:"
 
+#: options/options_page_llm.php:76
 msgid "請輸入 Google Gemini API Key"
 msgstr "Enter your Google Gemini API Key"
 
+#: options/options_page_llm.php:78
 msgid "請前往 <a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a> 取得 API Key"
 msgstr "Get your API Key from <a href=\"https://makersuite.google.com/app/apikey\" target=\"_blank\">Google AI Studio</a>"
 
+#: options/options_page_llm.php:79
+#: options/options_page_llm.php:109
+#: options/options_page_llm.php:141
 msgid "已設定"
 msgstr "Configured"
 
+#: options/options_page_diary.php:237
+#: options/options_page_llm.php:105
 msgid "OpenAI API Key："
 msgstr "OpenAI API Key:"
 
+#: options/options_page_llm.php:106
 msgid "請輸入 OpenAI API Key"
 msgstr "Enter your OpenAI API Key"
 
+#: options/options_page_llm.php:108
 msgid "請前往 <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a> 取得 API Key"
 msgstr "Get your API Key from <a href=\"https://platform.openai.com/api-keys\" target=\"_blank\">OpenAI Platform</a>"
 
+#: options/options_page_diary.php:245
+#: options/options_page_llm.php:113
 msgid "OpenAI 模型："
 msgstr "OpenAI Model:"
 
+#: options/options_page_diary.php:264
+#: options/options_page_llm.php:137
 msgid "Claude API Key："
 msgstr "Claude API Key:"
 
+#: options/options_page_llm.php:138
 msgid "請輸入 Claude API Key"
 msgstr "Enter your Claude API Key"
 
+#: options/options_page_llm.php:140
 msgid "請前往 <a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a> 取得 API Key"
 msgstr "Get your API Key from <a href=\"https://console.anthropic.com/\" target=\"_blank\">Anthropic Console</a>"
 
+#: options/options_page_diary.php:272
+#: options/options_page_llm.php:145
 msgid "Claude 模型："
 msgstr "Claude Model:"
 
+#: options/options_page_ai.php:22
 msgid "語言設定："
 msgstr "Language:"
 
+#: options/options_general.php:49
+#: options/options_page_ai.php:26
 msgid "預設"
 msgstr "Default"
 
+#: options/options_general.php:50
+#: options/options_page_ai.php:29
 msgid "繁體中文"
 msgstr "Traditional Chinese"
 
+#: options/options_general.php:51
+#: options/options_page_ai.php:32
 msgid "日本語"
 msgstr "Japanese"
 
+#: options/options_general.php:52
+#: options/options_page_ai.php:35
 msgid "English"
 msgstr "English"
 
+#: options/options_page_ai.php:37
 msgid "此為全域 AI 回應語言，也會用於 {{language}} prompt 變數；選擇預設時會跟隨角色 manifest.json 的 language。"
 msgstr "This is the global AI response language and is also used for the {{language}} prompt variable. Select Default to follow the character manifest.json language."
 
+#: options/options_page_ai.php:40
 msgid "人格設定 (System Prompt)："
 msgstr "Personality (System Prompt):"
 
-msgid "AI 回應機率 (%)："
-msgstr "AI Response Probability (%):"
-
+#: options/options_page_ai.php:106
 msgid "設定使用 AI 的機率（1-100%）。建議 10% 以控制成本。"
 msgstr "Set the probability of using AI (1-100%). Recommended: 10% to control costs."
 
+#: options/options_page_ai.php:114
 msgid "觸發頁面："
 msgstr "Trigger Pages:"
 
+#: options/options_page_ai.php:116
 msgid "WordPress 條件標籤，逗號分隔（如：is_single,is_page）"
 msgstr "WordPress conditional tags, comma-separated (e.g., is_single,is_page)"
 
-msgid "AI 對話文字顏色："
-msgstr "AI Dialog Text Color:"
-
+#: options/options_page_ai.php:129
 msgid "設定 AI 對話載入訊息（…ふむ。この記事か。どれ…）的文字顏色"
 msgstr "Set the text color for AI loading message"
 
+#: options/options_page_ai.php:132
 msgid "AI 對話顯示時間（秒）："
 msgstr "AI Dialog Display Time (seconds):"
 
+#: options/options_page_ai.php:134
 msgid "設定 AI 對話顯示的時間長度。在此期間，自動對話會暫停，避免 AI 對話被覆蓋（建議 5-10 秒）"
 msgstr "Set how long AI dialog displays. Auto talk pauses during this time to prevent AI dialog from being overwritten (recommended: 5-10 seconds)"
 
+#: options/options_page_ai.php:144
 msgid "啟用首次訪客打招呼"
 msgstr "Enable first-time visitor greeting"
 
+#: options/options_page_ai.php:146
 msgid "當訪客第一次訪問網站時，根據訪客來源（使用 Slimstat API）用 AI 生成個性化打招呼訊息。每個訪客只會看到一次。"
 msgstr "When a visitor comes for the first time, generate a personalized greeting using AI based on visitor origin (via Slimstat API). Each visitor sees this only once."
 
-msgid "首次訪客打招呼提示詞："
-msgstr "First-time Visitor Greeting Prompt:"
-
-msgid "定義春菜對首次訪客的打招呼風格和語氣"
-msgstr "Define the greeting style and tone for first-time visitors"
-
-msgid "Ollama (本機 LLM，無需 API Key)"
-msgstr "Ollama (Local LLM, No API Key Required)"
-
+#: options/options_page_diary.php:212
+#: options/options_page_diary.php:238
+#: options/options_page_diary.php:265
+#: options/options_page_llm.php:76
+#: options/options_page_llm.php:106
+#: options/options_page_llm.php:138
 msgid "(已隱藏以確保安全)"
 msgstr "(Hidden for security)"
 
-msgid "注意：本機 LLM (Ollama) 設定已移至「LLM 設定」頁面。"
-msgstr "Note: Local LLM (Ollama) settings have been moved to the \"LLM Settings\" page."
-
-# ========================================
-# LLM Settings Page
-# ========================================
-
-msgid "LLM 設定 (Ollama)"
-msgstr "LLM Settings (Ollama)"
-
-msgid "啟用 LLM (Ollama)"
-msgstr "Enable LLM (Ollama)"
-
-msgid "啟用後將使用 Ollama LLM 生成對話，支援本地或遠程連接，無需 API Key，完全免費。"
-msgstr "When enabled, Ollama LLM will be used to generate dialogues. Supports local or remote connections, no API Key required, completely free."
-
-msgid "🔌 連接設定"
-msgstr "🔌 Connection Settings"
-
+#: options/options_page_diary.php:291
+#: options/options_page_llm.php:169
 msgid "Ollama 端點："
 msgstr "Ollama Endpoint:"
 
+#: options/options_page_llm.php:175
 msgid "本地："
 msgstr "Local:"
 
+#: options/options_page_llm.php:176
 msgid "｜ 遠程："
 msgstr "｜ Remote:"
 
+#: options/options_page_diary.php:297
+#: options/options_page_llm.php:180
 msgid "模型名稱："
 msgstr "Model Name:"
 
+#: options/options_page_llm.php:183
 msgid "例如：gemma3:12b, qwen3:8b"
 msgstr "e.g., gemma3:12b, qwen3:8b"
 
+#: options/options_page_llm.php:185
 msgid "使用"
 msgstr "Use"
 
+#: options/options_page_llm.php:185
 msgid "查看已下載的模型"
 msgstr "to view downloaded models"
 
+#: options/options_page_llm.php:97
+#: options/options_page_llm.php:129
+#: options/options_page_llm.php:161
+#: options/options_page_llm.php:188
 msgid "測試連接"
 msgstr "Test Connection"
 
+#: options/options_page_llm.php:204
 msgid "💬 對話設定"
 msgstr "💬 Dialogue Settings"
 
+#: options/options_page_llm.php:208
 msgid "使用 LLM 取代內建對話"
 msgstr "Use LLM to replace built-in dialogues"
 
-msgid "啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。"
-msgstr "When enabled, character dialogues will be generated in real-time by LLM, not using static dialogue lists."
-
+#: options/options_page_llm.php:194
 msgid "關閉思考模式（Qwen3、DeepSeek 等模型）"
 msgstr "Disable thinking mode (for Qwen3, DeepSeek, etc.)"
 
-msgid "部分模型會輸出「思考過程」而非實際對話。啟用此選項可避免此問題。建議啟用。"
-msgstr "Some models output \"thinking process\" instead of actual dialogue. Enable this option to avoid this issue. Recommended to enable."
-
-msgid "使用 Modelfile 角色設定"
-msgstr "Use Modelfile Character Settings"
-
-msgid "如果您的 Ollama 模型是透過 Modelfile 建立的自定義角色（例如：Frieren），請啟用此選項。啟用後，插件將完全不傳送任何 System Message，讓 Modelfile 中的 SYSTEM 提示詞完全生效。這確保角色設定（包括語言、語氣、人格等）完全由 Modelfile 控制。"
-msgstr "If your Ollama model is a custom character created using Modelfile (e.g., Frieren), please enable this option. When enabled, the plugin will not send any System Message at all, allowing the SYSTEM prompt in Modelfile to take full effect. This ensures that character settings (including language, tone, personality, etc.) are completely controlled by Modelfile."
-
+#: options/options_page_llm.php:387
+#: options/options_page_llm.php:456
 msgid "測試中..."
 msgstr "Testing..."
 
-msgid "測試失敗，請檢查網絡連接"
-msgstr "Test failed, please check network connection"
-
-msgid "本機 Ollama 程式未啟動，請檢查 Ollama 服務是否正在運行。"
-msgstr "Local Ollama program is not running. Please check if the Ollama service is running."
-
-msgid "無對話內容"
-msgstr "No dialogue content"
-
-# ========================================
-# Ukagaka Management Page
-# ========================================
-
-msgid "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。"
-msgstr "Enter the full image URL, starting with http://"
-
-msgid "吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
-msgstr "Each line is a message. HTML is not allowed."
-
+#: options/options_ukagakas.php:60
 msgid "每行代表一條吐槽。不可使用 HTML 代碼。"
 msgstr "Each line represents one message. HTML code is not allowed."
 
+#: options/options_ukagakas.php:28
 msgid "刪除"
 msgstr "Delete"
 
+#: options/options_create.php:144
+#: options/options_ukagakas.php:35
 msgid "可顯示"
 msgstr "Visible"
 
+#: options/options_create.php:148
+#: options/options_ukagakas.php:47
 msgid "名稱："
 msgstr "Name:"
 
+#: options/options_create.php:153
+#: options/options_ukagakas.php:52
 msgid "圖片："
 msgstr "Image:"
 
+#: options/options_create.php:159
+#: options/options_ukagakas.php:58
 msgid "吐槽："
 msgstr "Messages:"
 
+#: options/options_create.php:165
+#: options/options_ukagakas.php:64
 msgid "對話檔案名稱："
 msgstr "Dialog Filename:"
 
+#: options/options_create.php:167
+#: options/options_ukagakas.php:66
 msgid "此名稱將用於外部對話檔案，例如：asuna.txt 或 asuna.json"
 msgstr "This name is used for external dialog files, e.g., asuna.txt or asuna.json"
 
+#: options/options_create.php:171
+#: options/options_ukagakas.php:70
 msgid "生成對話檔案"
 msgstr "Generate Dialog File"
 
+#: options/options_create.php:172
+#: options/options_ukagakas.php:71
 msgid "勾選此項將使用上方吐槽內容生成對應的對話檔案"
 msgstr "Check to generate a dialog file from the messages above"
 
+#: options/options_create.php:161
 msgid "每行一條吐槽，不可使用 HTML 代碼。"
 msgstr "One message per line. HTML is not allowed."
 
+#: options/options_create.php:176
 msgid " 創 建 "
 msgstr " Create "
 
-# ========================================
-# Extension Page
-# ========================================
-
+#: options/options_extend.php:4
 msgid "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
 msgstr "Do not modify this page unless you know what you're doing."
 
-msgid "JS 區"
-msgstr "JavaScript"
-
-msgid "可在此填寫 JavaScript 代碼，為春菜自訂更多的回應事件。"
-msgstr "Add custom JavaScript code for additional character events."
-
+#: options/options_extend.php:13
 msgid "無需使用 &lt;script&gt; 標籤，代碼將寫入到 &lt;head&gt; 部分。"
 msgstr "No &lt;script&gt; tags needed. Code is added to the &lt;head&gt; section."
 
-msgid "代碼擴展"
-msgstr "Code Extensions"
-
-msgid "您可以在春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"
-msgstr "You can use special codes in the character's message box to display specific information, such as post lists."
-
+#: options/options_extend.php:30
 msgid "更多擴展代碼資訊請參閱："
 msgstr "For more extension codes, visit:"
 
-# ========================================
-# Message Page
-# ========================================
-
+#: options/options_dialog.php:12
 msgid "固定資訊："
 msgstr "Fixed Message:"
 
+#: options/options_dialog.php:14
 msgid "此資訊將顯示在每條會話的後面，不可使用 HTML 代碼。"
 msgstr "This message appears after every dialog. HTML is not allowed."
 
+#: options/options_dialog.php:21
 msgid "通用會話："
 msgstr "Common Messages:"
 
-msgid "所有春菜共用的會話內容。"
-msgstr "Messages shared by all characters."
-
-msgid "一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
-msgstr "If filled, these messages replace each character's custom messages. Leave empty to use each character's own messages."
-
-# ========================================
-# Security & File Operations
-# ========================================
-
-msgid "找不到指定的文件"
-msgstr "File not found"
-
-msgid "不允許讀取該路徑"
-msgstr "Read access denied for this path"
-
-msgid "文件過大，無法讀取"
-msgstr "File too large to read"
-
-msgid "無法讀取文件"
-msgstr "Unable to read file"
-
-msgid "無法創建目錄"
-msgstr "Unable to create directory"
-
-msgid "不允許寫入該路徑"
-msgstr "Write access denied for this path"
-
-msgid "不合法的文件名"
-msgstr "Invalid filename"
-
-msgid "無法寫入文件"
-msgstr "Unable to write file"
-
-msgid "不合法的對話文件名"
-msgstr "Invalid dialog filename"
-
-msgid "找不到對話文件"
-msgstr "Dialog file not found"
-
-msgid "對話文件過大，載入失敗"
-msgstr "Dialog file too large to load"
-
-msgid "無法讀取對話文件"
-msgstr "Unable to read dialog file"
-
-msgid "JSON 檔案格式錯誤"
-msgstr "Invalid JSON file format"
-
-# ========================================
-# LLM Settings Page - New Strings
-# ========================================
-
+#: options/options_page_llm.php:46
 msgid "此頁面用於設定 AI 提供商、模型選擇和 LLM 功能。頁面感知 AI 的行為參數請前往「AI 設定」頁面。"
 msgstr "This page is for configuring AI providers, model selection, and LLM features. For context awareness AI behavior parameters, please go to the \"AI Settings\" page."
 
+#: options/options_page_llm.php:53
 msgid "🤖 AI 提供商"
 msgstr "🤖 AI Provider"
 
+#: options/options_page_diary.php:219
+#: options/options_page_llm.php:83
 msgid "Gemini 模型："
 msgstr "Gemini Model:"
 
-msgid "啟用後，春菜對話將由 LLM 實時生成，不使用靜態對話列表。支援所有 AI 提供商（Gemini、OpenAI、Claude、Ollama）。"
-msgstr "When enabled, character dialogues will be generated in real-time by LLM, not using static dialogue lists. Supports all AI providers (Gemini, OpenAI, Claude, Ollama)."
-
+#: options/options_page_llm.php:225
 msgid "📄 頁面感知功能"
 msgstr "📄 Context Awareness"
 
+#: options/options_page_llm.php:229
 msgid "啟用頁面感知功能"
 msgstr "Enable context awareness"
 
+#: options/options_page_llm.php:232
 msgid "啟用後，AI 會根據頁面內容生成相關對話。此功能的行為參數（語言、角色、機率等）請在「AI 設定」頁面配置。"
 msgstr "When enabled, AI will generate relevant dialogues based on page content. Behavior parameters (language, character, probability, etc.) for this feature should be configured in the \"AI Settings\" page."
 
-# ========================================
-# Create New Character Page - New Strings
-# ========================================
-
-msgid "創建一個新的春菜角色。圖片請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭。"
-msgstr "Create a new character. Enter the full image URL, starting with http:// or https://"
-
-msgid "➕ 新增春菜"
-msgstr "➕ Add Character"
-
+#: options/options_create.php:155
+#: options/options_ukagakas.php:54
 msgid "請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭"
 msgstr "Enter the full URL, starting with http:// or https://"
 
-# ========================================
-# Extensions Page - New Strings
-# ========================================
-
+#: options/options_extend.php:4
 msgid "⚠️ 警告："
 msgstr "⚠️ Warning:"
 
+#: options/options_extend.php:10
 msgid "📜 JS 區"
 msgstr "📜 JavaScript"
 
+#: options/options_extend.php:27
 msgid "🔧 代碼擴展"
 msgstr "🔧 Code Extensions"
 
-# ========================================
-# Messages Page - New Strings
-# ========================================
-
-msgid "設定所有春菜共用的固定資訊和通用會話內容。"
-msgstr "Configure fixed information and common messages shared by all characters."
-
+#: options/options_dialog.php:10
 msgid "📌 固定資訊"
 msgstr "📌 Fixed Information"
 
-msgid "所有春菜共用的會話內容。一旦填寫此欄，通用會話將取代每個春菜的自訂會話。清空此欄則使用各春菜的預設自訂會話。"
-msgstr "Messages shared by all characters. If filled, these messages replace each character's custom messages. Leave empty to use each character's own messages."
-
-# ========================================
-# AJAX Handlers - New Strings
-# ========================================
-
-msgid "未指定或不合法的檔名"
-msgstr "Filename not specified or invalid"
-
-msgid "JSON 檔案格式錯誤："
-msgstr "Invalid JSON file format:"
-
-msgid "對話文件為空，請檢查對話文件內容"
-msgstr "Dialog file is empty, please check the dialog file content"
-
-msgid "安全性驗證失敗"
-msgstr "Security verification failed"
-
-msgid "請求過於頻繁，請稍後再試"
-msgstr "Request too frequent, please try again later"
-
-msgid "AI 功能未啟用"
-msgstr "AI feature is not enabled"
-
-msgid "首次訪客打招呼功能未啟用"
-msgstr "First-time visitor greeting feature is not enabled"
-
-msgid "頁面內容為空"
-msgstr "Page content is empty"
-
-msgid "連接成功，模型響應正常（預覽：%s...）"
-msgstr "Connection successful, model response normal (preview: %s...)"
-
-msgid "連接成功（%s連接），模型響應正常（預覽：%s...）"
-msgstr "Connection successful (%s connection), model response normal (preview: %s...)"
-
-msgid "API 回應為空，請檢查模型是否正確"
-msgstr "API response is empty, please check if the model is correct"
-
-msgid "HTTP %s 錯誤"
-msgstr "HTTP %s error"
-
-msgid "API 認證失敗：%s。請檢查 API Key 是否正確。"
-msgstr "API authentication failed: %s. Please check if the API Key is correct."
-
-msgid "模型「%s」不存在。請在設定中選擇正確的模型。"
-msgstr "Model \"%s\" does not exist. Please select the correct model in settings."
-
-msgid "API 錯誤（HTTP %s）：%s"
-msgstr "API error (HTTP %s): %s"
-
-msgid "連接失敗（%s連接）：%s"
-msgstr "Connection failed (%s connection): %s"
-
-msgid "連接失敗：%s"
-msgstr "Connection failed: %s"
-
-msgid "請輸入 Gemini API Key"
-msgstr "Please enter Gemini API Key"
-
-msgid "請輸入 OpenAI API Key"
-msgstr "Please enter OpenAI API Key"
-
-msgid "請輸入 Claude API Key"
-msgstr "Please enter Claude API Key"
-
-# ========================================
-# AI Settings Page - New Strings
-# ========================================
-
+#: options/options_page_ai.php:13
 msgid "此頁面用於設定「頁面感知 AI」功能的行為參數。AI 提供商選擇和模型設定請前往「LLM 設定」頁面。"
 msgstr "This page is for configuring behavior parameters of the \"Context Awareness AI\" feature. For AI provider selection and model settings, please go to the \"LLM Settings\" page."
 
+#: options/options_page_ai.php:20
 msgid "🌐 語言與角色設定"
 msgstr "🌐 Language & Character Settings"
 
+#: options/options_page_ai.php:102
 msgid "⚙️ 觸發與機率設定"
 msgstr "⚙️ Trigger & Probability Settings"
 
+#: options/options_page_ai.php:140
 msgid "👋 首次訪客打招呼"
 msgstr "👋 First-time Visitor Greeting"
 
+#: options/options_page_ai.php:104
 msgid "頁面感知確率 (%)："
 msgstr "Context Awareness Probability (%):"
 
+#: options/options_page_ai.php:124
 msgid "頁面感知時 AI 對話文字顏色："
 msgstr "AI Dialog Text Color (Context Awareness):"
 
+#: options/options_page_ai.php:122
 msgid "🎨 顯示設定"
 msgstr "🎨 Display Settings"
 
-# ========================================
-# General Settings Page - New Strings
-# ========================================
-
-msgid "此頁面用於設定春菜的基本顯示和行為選項。"
-msgstr "This page is for configuring basic display and behavior options for characters."
-
+#: options/options_general.php:11
 msgid "👤 基本顯示設定"
 msgstr "👤 Basic Display Settings"
 
+#: options/options_general.php:87
 msgid "💬 對話行為設定"
 msgstr "💬 Dialogue Behavior Settings"
 
+#: options/options_general.php:125
 msgid "⏰ 自動對話設定"
 msgstr "⏰ Auto Talk Settings"
 
+#: options/options_general.php:146
 msgid "📄 對話文件設定"
 msgstr "📄 Dialog File Settings"
 
+#: options/options_general.php:157
 msgid "注意：系統已固定使用外部對話文件，對話將從 dialogs/ 資料夾讀取。"
 msgstr "Note: The system is configured to use external dialog files. Dialogues will be read from the dialogs/ folder."
 
-msgid "輸入不顯示春菜的頁面 URL，每行一條。在地址尾部加入 (*) 可進行模糊匹配。"
-msgstr "Enter page URLs where character should not appear, one per line. Add (*) at the end for wildcard matching."
-
+#: options/options_general.php:223
 msgid "ℹ️ 插件資訊"
 msgstr "ℹ️ Plugin Info"
 
+#: options/options_general.php:235
 msgid "⚠️ 重置設定"
 msgstr "⚠️ Reset Settings"
 
+#: options/options_general.php:163
 msgid "🎨 樣式設定"
 msgstr "🎨 Style Settings"
 
+#: options/options_general.php:190
 msgid "🚫 頁面排除設定"
 msgstr "🚫 Page Exclusion Settings"
 
+#: options/options_general.php:201
 msgid "⚙️ HTML 生成位置"
 msgstr "⚙️ HTML Output Position"
 
-msgid "使用自訂樣式"
-msgstr "Use Custom Style"
-
+#: options/options_general.php:168
 msgid "勾選此項將停用插件內建的 CSS 樣式。"
 msgstr "Check this to disable the plugin's built-in CSS styles."
 
+#: options/options_general.php:171
 msgid "自訂樣式連結"
 msgstr "Custom Style Link"
 
+#: options/options_general.php:173
 msgid "輸入要載入的 CSS 樣式連結，例如："
 msgstr "Enter the CSS stylesheet link to load, for example:"
 
-# ========================================
-# Character Management Page - New Strings
-# ========================================
-
+#: options/options_ukagakas.php:17
 msgid "圖片欄中，請填寫完整的 URL，不要忘記以 http:// 開頭。吐槽欄中，每行代表一條吐槽。不可使用 HTML 代碼。"
 msgstr "Enter the full image URL starting with http://. Each line in the messages field represents one message. HTML is not allowed."
 
-# ========================================
-# Model Selection - New Strings
-# ========================================
-
+#: options/options_page_diary.php:222
+#: options/options_page_llm.php:86
 msgid "Gemini 2.5 Flash (推薦)"
 msgstr "Gemini 2.5 Flash (Recommended)"
 
+#: options/options_page_diary.php:223
 msgid "Gemini 2.5 Pro (更聰明，適合複雜推理)"
 msgstr "Gemini 2.5 Pro (Smarter, suitable for complex reasoning)"
 
+#: options/options_page_diary.php:248
+#: options/options_page_llm.php:116
 msgid "GPT-4.1 Mini (推薦，速度快成本低)"
 msgstr "GPT-4.1 Mini (Recommended, fast and cost-effective)"
 
+#: options/options_page_diary.php:249
+#: options/options_page_llm.php:117
 msgid "GPT-4o Mini (快速且經濟)"
 msgstr "GPT-4o Mini (Fast and economical)"
 
+#: options/options_page_diary.php:250
+#: options/options_page_llm.php:118
 msgid "GPT-4o (更聰明)"
 msgstr "GPT-4o (Smarter)"
 
-msgid "Claude Sonnet 4.5 (推薦)"
-msgstr "Claude Sonnet 4.5 (Recommended)"
-
+#: options/options_page_diary.php:276
+#: options/options_page_llm.php:149
 msgid "Claude Haiku 4.5 (快速)"
 msgstr "Claude Haiku 4.5 (Fast)"
 
-msgid "Claude Opus 4.5 (進階)"
-msgstr "Claude Opus 4.5 (Advanced)"
-
-msgid "提示：支援 Markdown 和 XML 標籤格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
-msgstr "Tip: Supports Markdown and XML tag formats. You can directly use structured formats to enhance model understanding.<br>You can use {{variable_name}} for variable substitution (e.g., {{ukagaka_display_name}}, {{time_context}}, {{language}}, etc.)."
-
-# ========================================
-# Chat Mode API Error Messages
-# ========================================
-
-msgid "Ollama API 錯誤（HTTP %s）"
-msgstr "Ollama API Error (HTTP %s)"
-
-msgid "Ollama 未返回有效回應。%s。請檢查模型響應格式或嘗試啟用思考模式。"
-msgstr "Ollama did not return a valid response. %s. Please check the model response format or try enabling thinking mode."
-
-msgid "OpenAI 未返回有效回應"
-msgstr "OpenAI did not return a valid response"
-
-msgid "Claude 未返回有效回應"
-msgstr "Claude did not return a valid response"
-
-msgid "Gemini 未返回有效回應"
-msgstr "Gemini did not return a valid response"
-
-# ========================================
-# Chat Mode UI Strings
-# ========================================
-
-msgid "輸入訊息..."
-msgstr "Enter message..."
-
-msgid "有什麼想聊的嗎？"
-msgstr "What would you like to chat about?"
-
+#: options/options_page_llm.php:197
 msgid "預設啟用思考模式，AI 會先思考再回答，提高回答品質。勾選此選項可關閉思考、加快回應速度。"
 msgstr "Thinking mode is enabled by default. The AI will think before responding to improve answer quality. Check this option to disable thinking and speed up responses."
 
-msgid "啟用後，前台的「更換春菜」按鈕將變為「對話」按鈕，讓訪客可以直接與春菜對話。關閉則顯示原本的角色切換選單。"
-msgstr "When enabled, the \"Change Ukagaka\" button on the frontend will become a \"Chat\" button, allowing visitors to chat directly with her. When disabled, the original character selection menu is shown."
-
+#: options/options_ukagakas.php:40
 msgid "アクセサリー表示"
 msgstr "Show Accessories"
 
+#: options/options_ukagakas.php:41
 msgid "（スーツケース、巨大な頭蓋骨、魔法の杖と魔法の本）"
 msgstr "(Suitcase, Giant Skull, Magic Wand and Magic Book)"
 
+#: options/options_page_llm.php:216
 msgid "啟用互動對話功能"
 msgstr "Enable interactive chat feature"
 
-
-
-
-#: options_page0.php:121
+#: options/options_general.php:41
 msgid "選擇角色的行為模式和對話風格。人格資料儲存於 ghost/ 資料夾中。"
 msgstr "Select character behavior patterns and dialogue styles. Personality data is stored in the ghost/ folder."
 
-#: options_page0.php:84
+#: options/options_general.php:4
 msgid "此頁面用於設定偽春菜的基本顯示和行為選項。"
 msgstr "This page is used to configure the basic display and behavior options for ukagakas."
 
-#: options_page0.php:274
+#: options/options_general.php:238
 msgid "重置設定將還原插件的所有配置為預設值，所有設定及偽春菜將被刪除。此操作無法撤銷，請謹慎操作。"
 msgstr "Resetting settings will restore all plugin configurations to default values, and all settings and ukagakas will be deleted. This operation cannot be undone. Please proceed with caution."
 
-#: options_page0.php:230
+#: options/options_general.php:194
 msgid "輸入不顯示偽春菜的頁面 URL，每行一條。在地址尾部加入 (*) 可進行模糊匹配。"
 msgstr "Enter URLs of pages where ukagakas should not be displayed, one per line. Add (*) at the end of the address for fuzzy matching."
 
-#: options_page_ai.php:100
+#: options/options_page_ai.php:95
 msgid "提示：支援 Markdown 格式，可直接使用結構化格式增強模型理解。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
 msgstr "Tip: Markdown format is supported. You can directly use structured formats to enhance model understanding.<br>You can use {{variable_name}} for variable substitution (e.g., {{ukagaka_display_name}}, {{time_context}}, {{language}}, etc.)."
 
-#: options_page_llm.php:420
+#: options/options_page_llm.php:211
 msgid "啟用後，偽春菜對話將由 LLM 實時生成，不使用靜態對話列表。支援所有 AI 提供商（Gemini、OpenAI、Claude、Ollama）。"
 msgstr "When enabled, ukagaka dialogues will be generated in real-time by LLM instead of using static dialogue lists. Supports all AI providers (Gemini, OpenAI, Claude, Ollama)."
 
-#: options_page_llm.php:428
+#: options/options_page_llm.php:219
 msgid "啟用後，前台的「更換偽春菜」按鈕將變為「對話」按鈕，讓訪客可以直接與偽春菜對話。關閉則顯示原本的角色切換選單。"
 msgstr "When enabled, the \"Change Ukagaka\" button on the frontend will become a \"Chat\" button, allowing visitors to chat directly with the ukagaka. When disabled, the original character switching menu will be displayed."
 
-#: options_page4.php:74
+#: options/options_dialog.php:4
 msgid "設定所有偽春菜共用的固定資訊和通用會話內容。"
 msgstr "Configure fixed information and common conversation content shared by all ukagakas."
 
-#: options_page4.php:93
+#: options/options_dialog.php:23
 msgid "所有偽春菜共用的會話內容。一旦填寫此欄，通用會話將取代每個偽春菜的自訂會話。清空此欄則使用各偽春菜的預設自訂會話。"
 msgstr "Conversation content shared by all ukagakas. Once this field is filled, common conversations will replace each ukagaka's custom conversations. Clearing this field will use each ukagaka's default custom conversations."
 
-#: options_page2.php:72
-msgid "創建新偽春菜"
-msgstr "Create New Ukagaka"
-
-#: options_page2.php:89
+#: options/options_create.php:43
 msgid "上傳包含 manifest.json、shell/ 等文件的 ZIP 壓縮包，系統會自動解壓並驗證。"
 msgstr "Upload a ZIP archive containing manifest.json, shell/, and other files. The system will automatically extract and validate it."
 
-#: options_page2.php:95
+#: options/options_create.php:49
 msgid "📦 ZIP 文件上傳"
 msgstr "📦 ZIP File Upload"
 
-#: options_page2.php:98
+#: options/options_create.php:52
 msgid "選擇 ZIP 文件："
 msgstr "Select ZIP File:"
 
-#: options_page2.php:100
+#: options/options_create.php:54
 msgid "ZIP 文件應包含：manifest.json（必需）、shell/ 文件夾（必需，包含圖片文件）、prompts.json、weights.json 等（可選）"
 msgstr "ZIP file should contain: manifest.json (required), shell/ folder (required, containing image files), prompts.json, weights.json, etc. (optional)"
 
-#: options_page2.php:104
+#: options/options_create.php:58
 msgid "上傳並驗證"
 msgstr "Upload and Validate"
 
-#: options_page2.php:111
+#: options/options_create.php:65
 msgid "或使用傳統方式創建（僅支援內建對話系統，無法使用 LLM 對話功能）：圖片請填寫完整的 URL，不要忘記以 http:// 或 https:// 開頭。"
 msgstr "Or create using the traditional method (only supports built-in dialogue system, LLM dialogue function is not available): Please enter the full URL for images, and don't forget to start with http:// or https://."
 
-#: options_page2.php:117
+#: options/options_create.php:71
 msgid "✅ ZIP 文件上傳成功！請確認以下資訊："
 msgstr "✅ ZIP file uploaded successfully! Please confirm the following information:"
 
-#: options_page2.php:127
+#: options/options_create.php:81
 msgid "📋 預覽資訊"
 msgstr "📋 Preview Information"
 
-#: options_page2.php:179
+#: options/options_create.php:133
 msgid "➕ 新增偽春菜（手動方式）"
 msgstr "➕ Add New Ukagaka (Manual Method)"
 
-#: options_page2.php:183
+#: options/options_create.php:137
 msgid "⚠️ 重要提示："
 msgstr "⚠️ Important Notice:"
 
-#: options_page2.php:184
-msgid "傳統手動方式創建的偽春菜只能使用內建對話系統（從對話檔案讀取），無法使用 LLM 對話功能。\\n如需使用 LLM 對話功能（AI 生成對話），請使用上方的 ZIP 上傳方式創建，並確保 ZIP 文件包含 manifest.json、prompts.json、weights.json 等必要文件。"
-msgstr "Ukagakas created using the traditional manual method can only use the built-in dialogue system (read from dialogue files) and cannot use the LLM dialogue function.\\nTo use the LLM dialogue function (AI-generated dialogues), please create using the ZIP upload method above and ensure the ZIP file contains necessary files such as manifest.json, prompts.json, weights.json, etc."
-
-#: options_page3.php:103
+#: options/options_extend.php:12
 msgid "可在此填寫 JavaScript 代碼，為偽春菜自訂更多的回應事件。"
 msgstr "You can write JavaScript code here to customize more response events for ukagakas."
 
-#: options_page3.php:112
+#: options/options_extend.php:29
 msgid "您可以在偽春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"
 msgstr "You can use special codes in the ukagaka information box to display specific information, such as log lists."
 
-#: options_page3.php:114
+#: options/options_extend.php:31
 msgid "MP Ukagaka 文檔中心"
 msgstr "MP Ukagaka Documentation Center"
 
-#: options_page2.php:184
+#: options/options_create.php:138
 msgid "傳統手動方式創建的偽春菜只能使用內建對話系統（從對話檔案讀取），無法使用 LLM 對話功能。"
 msgstr "Ukagakas created using the traditional manual method can only use the built-in dialogue system (read from dialogue files) and cannot use the LLM dialogue function."
 
-#: options_page2.php:185
+#: options/options_create.php:139
 msgid "如需使用 LLM 對話功能（AI 生成對話），請使用上方的 ZIP 上傳方式創建，並確保 ZIP 文件包含 manifest.json、prompts.json、weights.json 等必要文件。"
 msgstr "To use the LLM dialogue function (AI-generated dialogues), please create using the ZIP upload method above and ensure the ZIP file contains necessary files such as manifest.json, prompts.json, weights.json, etc."
 
-#: options.php:488
-msgid "偽春菜們"
-msgstr "Ukagakas"
-
-#: options_page0.php:93
+#: options/options_general.php:13
 msgid "預設偽春菜："
 msgstr "Default Ukagaka:"
 
-#: options_page0.php:129
+#: options/options_general.php:76
 msgid "預設顯示偽春菜"
 msgstr "Show Ukagaka by Default"
 
-#: options_page0.php:164
+#: options/options_general.php:111
 msgid "點擊偽春菜："
 msgstr "Click Ukagaka:"
 
-#: options_page0.php:228
+#: options/options_general.php:192
 msgid "不在以下頁面顯示偽春菜"
 msgstr "Hide Ukagaka on the Following Pages"
 
-#: options_page0.php:262
+#: options/options_general.php:226
 msgid "偽春菜數量："
 msgstr "Number of Ukagakas:"
 
-#: options_page_llm.php:452
+#: options/options_page_llm.php:243
 msgid "🌤️ 天氣設定"
 msgstr "🌤️ Weather Settings"
 
-#: options_page_llm.php:456
+#: options/options_page_llm.php:247
 msgid "啟用天氣感知功能"
 msgstr "Enable Weather Awareness"
 
-#: options_page_llm.php:459
+#: options/options_page_llm.php:250
 msgid "讓角色知道當地天氣，並根據天氣發表看法。使用 Open-Meteo 免費 API，無需 API Key。"
 msgstr "Let the character know the local weather and comment on it. Uses Open-Meteo free API, no API Key required."
 
-#: options_page_llm.php:462
+#: options/options_page_llm.php:253
 msgid "位置座標："
 msgstr "Location Coordinates:"
 
-#: options_page_llm.php:465
+#: options/options_page_llm.php:256
 msgid "緯度："
 msgstr "Latitude:"
 
-#: options_page_llm.php:469
+#: options/options_page_llm.php:260
 msgid "經度："
 msgstr "Longitude:"
 
-#: options_page_llm.php:474
+#: options/options_page_llm.php:265
 msgid "預設為台北（25.0330, 121.5654）。可使用"
 msgstr "Default is Taipei (25.0330, 121.5654). You can use"
 
-#: options_page_llm.php:476
+#: options/options_page_llm.php:267
 msgid "查詢座標（右鍵點擊地圖即可複製座標）。"
 msgstr "to look up coordinates (right-click on the map to copy coordinates)."
 
-#: options_page_llm.php:480
+#: options/options_page_llm.php:271
 msgid "測試天氣 API"
 msgstr "Test Weather API"
 
-# ========================================
-# Diary Settings Page
-# ========================================
-
+#: options/options.php:30
+#: options/options.php:318
+#: options/options_page_diary.php:54
 msgid "📓 日記設定"
 msgstr "📓 Diary Settings"
 
+#: options/options_page_diary.php:56
 msgid "設定自動日記功能（フリーレン手記）。角色會以極低機率自動發表日記文章。"
 msgstr "Configure the automatic diary feature. The character will automatically post diary entries at a very low probability."
 
+#: options/options_page_diary.php:125
 msgid "📝 基本設定"
 msgstr "📝 Basic Settings"
 
+#: options/options_page_diary.php:129
 msgid "啟用自動日記功能"
 msgstr "Enable automatic diary"
 
+#: options/options_page_diary.php:132
 msgid "啟用後，角色會以極低機率（由下方設定）自動發表日記文章到指定分類。"
 msgstr "When enabled, the character will automatically post diary entries to the specified category at a very low probability (configured below)."
 
+#: options/options_page_diary.php:136
 msgid "發文分類："
 msgstr "Post Category:"
 
+#: options/options_page_diary.php:142
 msgid "-- 請選擇分類 --"
 msgstr "-- Select Category --"
 
+#: options/options_page_diary.php:150
 msgid "建議先建立「フリーレン手記」分類（slug: frieren-notes）再選擇。"
 msgstr "It's recommended to create a dedicated category (e.g., slug: frieren-notes) first, then select it here."
 
+#: options/options_page_diary.php:154
 msgid "發文作者："
 msgstr "Post Author:"
 
+#: options/options_page_diary.php:164
 msgid "日記將以此使用者身份發表。"
 msgstr "Diary entries will be posted as this user."
 
+#: options/options_page_diary.php:168
 msgid "觸發機率："
 msgstr "Trigger Probability:"
 
+#: options/options_page_diary.php:173
 msgid "每日觸發機率。2% 約等於每月 0~1 篇，5% 約等於每月 1~2 篇。"
 msgstr "Daily trigger probability. 2% is about 0-1 posts per month, 5% is about 1-2 posts per month."
 
+#: options/options_page_diary.php:177
 msgid "文章簽名："
 msgstr "Post Signature:"
 
+#: options/options_page_diary.php:180
 msgid "將附加於每篇日記的末尾。留空則不附加。"
 msgstr "Will be appended to the end of each diary entry. Leave empty to skip."
 
+#: options/options_page_diary.php:186
 msgid "🤖 日記 AI 供應商"
 msgstr "🤖 Diary AI Provider"
 
+#: options/options_page_diary.php:188
 msgid "日記功能使用獨立的 AI 設定，可與對話功能使用不同的模型以節省成本。"
 msgstr "The diary feature uses independent AI settings, allowing you to use a different model than the chat feature to save costs."
 
-msgid "Gemini API Key："
-msgstr "Gemini API Key:"
-
+#: options/options_page_diary.php:212
+#: options/options_page_diary.php:238
+#: options/options_page_diary.php:265
 msgid "請輸入 API Key（或留空使用 LLM 設定頁的 Key）"
 msgstr "Enter API Key (or leave empty to use the key from LLM Settings page)"
 
+#: options/options_page_diary.php:214
+#: options/options_page_diary.php:240
+#: options/options_page_diary.php:267
 msgid "留空則使用 LLM 設定頁面的 API Key。"
 msgstr "Leave empty to use the API Key from LLM Settings page."
 
+#: options/options_page_diary.php:215
+#: options/options_page_diary.php:241
+#: options/options_page_diary.php:268
 msgid "已設定專用 Key"
 msgstr "Dedicated key configured"
 
-msgid "OpenAI API Key："
-msgstr "OpenAI API Key:"
-
-msgid "Claude API Key："
-msgstr "Claude API Key:"
-
-msgid "Ollama 端點："
-msgstr "Ollama Endpoint:"
-
+#: options/options_page_diary.php:294
 msgid "留空則使用 LLM 設定頁面的端點。"
 msgstr "Leave empty to use the endpoint from LLM Settings page."
 
+#: options/options_page_diary.php:305
 msgid "🧪 測試"
 msgstr "🧪 Test"
 
+#: options/options_page_diary.php:307
 msgid "立即生成一篇日記（測試）"
 msgstr "Generate Diary Now (Test)"
 
+#: options/options_page_diary.php:310
 msgid "點擊後會使用上方設定立即生成並發表一篇日記，用於測試功能是否正常。"
 msgstr "Click to immediately generate and publish a diary entry using the above settings to test if the feature works correctly."
 
-msgid "日記設定已儲存"
-msgstr "Diary settings saved"
-
-msgid "日記生成成功！文章 ID："
-msgstr "Diary generated successfully! Post ID:"
-
-msgid "日記生成失敗："
-msgstr "Diary generation failed:"
-
-msgid "日記設定"
-msgstr "Diary Settings"
-
-# ========================================
-# API Cache Settings
-# ========================================
-
+#: options/options_page_llm.php:283
 msgid "💾 API 快取設定"
 msgstr "💾 API Cache Settings"
 
+#: options/options_page_llm.php:287
 msgid "啟用 API 回應快取"
 msgstr "Enable API response caching"
 
+#: options/options_page_llm.php:290
 msgid "啟用後，相同的 AI 請求將使用快取回應，減少 API 費用和響應延遲。適合訪客流量大的網站。"
 msgstr "When enabled, identical AI requests will use cached responses, reducing API costs and response latency. Ideal for high-traffic sites."
 
+#: options/options_page_llm.php:293
 msgid "快取有效期（TTL）："
 msgstr "Cache Expiry (TTL):"
 
+#: options/options_page_llm.php:295
 msgid "30 分鐘"
 msgstr "30 minutes"
 
+#: options/options_page_llm.php:296
 msgid "1 小時（推薦）"
 msgstr "1 hour (Recommended)"
 
+#: options/options_page_llm.php:297
 msgid "2 小時"
 msgstr "2 hours"
 
+#: options/options_page_llm.php:298
 msgid "6 小時"
 msgstr "6 hours"
 
+#: options/options_page_llm.php:299
 msgid "24 小時"
 msgstr "24 hours"
 
+#: options/options_page_llm.php:302
 msgid "快取過期後，下次相同請求將重新呼叫 API。"
 msgstr "After cache expires, the next identical request will call the API again."
 
+#: options/options_page_llm.php:305
 msgid "快取狀態："
 msgstr "Cache Status:"
 
+#: options/options_page_llm.php:308
 msgid "筆快取"
 msgstr "cached entries"
 
+#: options/options_page_llm.php:314
 msgid "清除所有快取"
 msgstr "Clear All Cache"
 
+#: options/options_page_llm.php:484
 msgid "確定要清除所有 API 快取嗎？"
 msgstr "Are you sure you want to clear all API cache?"
 
+#: options/options_page_llm.php:489
 msgid "清除中..."
 msgstr "Clearing..."
 
-msgid "已清除 %d 筆快取"
-msgstr "Cleared %d cache entries"
-
-msgid "權限不足"
-msgstr "Insufficient permissions"
-
-msgid "快取模組未載入"
-msgstr "Cache module not loaded"
-
-msgid "清除失敗"
-msgstr "Clear failed"
-
-# ========================================
-# Statistics Dashboard Page
-# ========================================
-
+#: options/options_page_stats.php:56
 msgid "📊 統計儀表板"
 msgstr "📊 Statistics Dashboard"
 
+#: options/options_page_stats.php:60
 msgid "7 天"
 msgstr "7 Days"
 
+#: options/options_page_stats.php:64
 msgid "30 天"
 msgstr "30 Days"
 
+#: options/options_page_stats.php:74
 msgid "今日 API 調用"
 msgstr "Today's API Calls"
 
+#: options/options_page_stats.php:75
+#, php-format
 msgid "錯誤: %d"
 msgstr "Errors: %d"
 
+#: options/options_page_stats.php:80
+#, php-format
 msgid "本週對話 (%d天)"
 msgstr "Weekly Conversations (%d days)"
 
+#: options/options_page_stats.php:81
+#, php-format
 msgid "今日: %d"
 msgstr "Today: %d"
 
+#: options/options_page_stats.php:86
 msgid "快取命中率"
 msgstr "Cache Hit Rate"
 
+#: options/options_page_stats.php:87
+#, php-format
 msgid "命中: %d"
 msgstr "Hits: %d"
 
+#: options/options_page_stats.php:92
 msgid "平均回應時間 (ms)"
 msgstr "Avg Response Time (ms)"
 
+#: options/options_page_stats.php:93
 msgid "今日平均"
 msgstr "Today's Average"
 
+#: options/options_page_stats.php:100
+#, php-format
 msgid "API 調用趨勢 (%d天)"
 msgstr "API Call Trend (%d days)"
 
+#: options/options_page_stats.php:110
 msgid "對話類型分佈"
 msgstr "Conversation Type Distribution"
 
+#: options/options_page_stats.php:116
 msgid "供應商使用分佈"
 msgstr "Provider Usage Distribution"
 
+#: options/options_page_stats.php:124
+#, php-format
 msgid "熱門話題 (Top 10 / %d天)"
 msgstr "Hot Topics (Top 10 / %d days)"
 
+#: options/options_page_stats.php:136
 msgid "尚無話題資料"
 msgstr "No topic data yet"
 
+#: options/options_page_stats.php:143
 msgid "統計設定"
 msgstr "Statistics Settings"
 
+#: options/options_page_stats.php:144
 msgid "統計資料會自動保留 30 天，超過的資料會自動清除。"
 msgstr "Statistics data is automatically retained for 30 days. Older data will be automatically cleared."
 
+#: options/options_page_stats.php:148
 msgid "確定要清除所有統計資料嗎？此操作無法復原。"
 msgstr "Are you sure you want to clear all statistics? This action cannot be undone."
 
+#: options/options_page_stats.php:149
 msgid "🗑️ 清除所有統計資料"
 msgstr "🗑️ Clear All Statistics"
 
+#: options/options_page_stats.php:153
+#, php-format
 msgid "資料更新時間: %s"
 msgstr "Data updated: %s"
 
+#: options/options_page_stats.php:192
 msgid "API 調用"
 msgstr "API Calls"
 
+#: options/options_page_stats.php:200
 msgid "快取命中"
 msgstr "Cache Hits"
 
+#: options/options_page_stats.php:208
 msgid "對話次數"
 msgstr "Conversations"
 
+#: options/options_page_stats.php:298
 msgid "無資料"
 msgstr "No Data"
 
+#: options/options_page_stats.php:42
 msgid "頁面感知"
 msgstr "Page Awareness"
 
+#: options/options_page_stats.php:43
 msgid "互動對話"
 msgstr "Interactive Chat"
 
+#: options/options_page_stats.php:44
 msgid "首次問候"
 msgstr "First Greeting"
 
+#: options/options_page_stats.php:45
 msgid "觸摸反應"
 msgstr "Touch Response"
 
+#: options/options_page_stats.php:46
 msgid "自言自語"
 msgstr "Self Talk"
 
+#: options/options_page_stats.php:47
 msgid "裝飾品反應"
 msgstr "Accessory Response"
 
-msgid "統計資料已清除"
-msgstr "Statistics cleared"
-
-msgid "統計"
-msgstr "Statistics"
-
+#: options/options.php:353
 msgid "控制台狀態"
 msgstr "Console Status"
 
+#: options/options_page_ai.php:50
 msgid "模組化檔案使用中"
 msgstr "Modular Files in Use"
 
+#: options/options_page_ai.php:51
 msgid "instructions.md + personality.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。"
 msgstr "The content of instructions.md + personality.md will be used as the System Prompt. The content in the textarea below will not be used."
 
-msgid "Cron 執行狀態"
-msgstr "Cron Execution Status"
-
+#: options/options.php:305
 msgid "在 WordPress 網站上顯示互動式偽春菜角色，支援多家 AI 供應商的 LLM 對話、頁面感知、自動日記等功能。"
 msgstr "Displays interactive Ukagaka characters on WordPress sites, supporting LLM dialogue from multiple AI providers, page awareness, automatic diary features, and more."
 
+#: options/options.php:354
 msgid "目前頁面："
 msgstr "Current Page:"
 
+#: options/options.php:355
 msgid "模式："
 msgstr "Mode:"
 
+#: options/options.php:355
 msgid "後台設定"
 msgstr "Backend Settings"
 
+#: options/options.php:356
 msgid "建議："
 msgstr "Suggestion:"
 
+#: options/options.php:356
 msgid "先完成 LLM 與 AI 設定，再調整會話與日記細節。"
 msgstr "Complete LLM and AI settings first, then adjust conversation and diary details."
 
+#: options/options_page_diary.php:96
 msgid "上次執行"
 msgstr "Last Run"
 
+#: options/options_page_diary.php:100
 msgid "狀態"
 msgstr "Status"
 
+#: options/options_page_diary.php:73
 msgid "成功"
 msgstr "Success"
 
+#: options/options_page_diary.php:82
 msgid "失敗"
 msgstr "Failure"
 
+#: options/options_page_diary.php:88
 msgid "跳過（本次機率未觸發）"
 msgstr "Skipped (probability not triggered this time)"
 
+#: options/options_page_diary.php:77
+#, php-format
 msgid "文章 #%d"
 msgstr "Post #%d"
 
+#. translators: %s = datetime
+#: options/options_page_diary.php:111
+#, php-format
 msgid "下次排程：%s"
 msgstr "Next scheduled: %s"
 
-# ========================================
-# Bot Protection Page (Tab 9)
-# ========================================
-
+#: options/options.php:32
+#: options/options.php:323
 msgid "🛡️ Bot 防護"
 msgstr "🛡️ Bot Protection"
 
-msgid "Bot 防護設定已儲存"
-msgstr "Bot protection settings saved"
-
+#: options/options_page_bot_blocker.php:23
 msgid "您沒有足夠的權限執行此操作。"
 msgstr "You don't have sufficient permissions to perform this action."
 
+#: options/options_page_bot_blocker.php:30
 msgid "IP 黑名單已清除。"
 msgstr "IP blocklist cleared."
 
+#: options/options_page_bot_blocker.php:33
 msgid "Log 已清除。"
 msgstr "Log cleared."
 
+#: options/options_page_bot_blocker.php:39
+#, php-format
 msgid "已移除 IP：%s"
 msgstr "Removed IP: %s"
 
+#: options/options_page_bot_blocker.php:53
 msgid "Bot 防護設定"
 msgstr "Bot Protection Settings"
 
+#: options/options_page_bot_blocker.php:54
 msgid "多層防禦機制封鎖惡意爬蟲：指紋黑名單、IP 黑名單、Cookie 陷阱、UA 異常偵測、JS Beacon。"
 msgstr "Multi-layer defense to block malicious bots: fingerprint blocklist, IP blocklist, cookie trap, UA anomaly detection, JS Beacon."
 
+#: options/options_page_bot_blocker.php:60
 msgid "啟用 Bot 防護"
 msgstr "Enable Bot Protection"
 
+#: options/options_page_bot_blocker.php:64
 msgid "啟用多層 Bot 封鎖防護"
 msgstr "Enable multi-layer bot blocking"
 
+#: options/options_page_bot_blocker.php:66
 msgid "啟用後立即生效。關閉後所有防護停止運作，但資料庫記錄與 IP 黑名單保留。"
 msgstr "Takes effect immediately when enabled. When disabled, all protection stops, but database records and IP blocklist are retained."
 
+#: options/options_page_bot_blocker.php:71
 msgid "指紋黑名單"
 msgstr "Fingerprint Blocklist"
 
+#: options/options_page_bot_blocker.php:76
 msgid "Slimstat fingerprint hash，每行一個（例：f70fd15177b6515b0abf82a68122b25f）。"
 msgstr "Slimstat fingerprint hash, one per line (e.g., f70fd15177b6515b0abf82a68122b25f)."
 
+#: options/options_page_bot_blocker.php:81
 msgid "可疑解析度黑名單"
 msgstr "Suspicious Resolution Blocklist"
 
+#: options/options_page_bot_blocker.php:86
 msgid "格式：寬x高（例：1280x1200），每行一個。出現即封鎖，不需搭配其他條件。"
 msgstr "Format: WIDTHxHEIGHT (e.g., 1280x1200), one per line. Any match is blocked immediately, no other conditions required."
 
+#: options/options_page_bot_blocker.php:91
 msgid "IP 自動封鎖"
 msgstr "Auto IP Ban"
 
+#: options/options_page_bot_blocker.php:95
 msgid "被指紋或解析度命中後，自動將該 IP 加入永久黑名單"
 msgstr "Automatically add the IP to the permanent blocklist when matched by fingerprint or resolution"
 
+#: options/options_page_bot_blocker.php:101
 msgid "封鎖狀態碼"
 msgstr "Block Status Code"
 
+#: options/options_page_bot_blocker.php:104
 msgid "HTTP 狀態碼（通常為 403 Forbidden）"
 msgstr "HTTP status code (usually 403 Forbidden)"
 
+#: options/options_page_bot_blocker.php:109
 msgid "Hot-Transient 存活時間（秒）"
 msgstr "Hot-Transient TTL (seconds)"
 
+#: options/options_page_bot_blocker.php:112
 msgid "命中後同 IP 在此秒數內直接封鎖（預設 600 秒 = 10 分鐘）"
 msgstr "After a hit, the same IP is blocked directly within this many seconds (default: 600 seconds = 10 minutes)"
 
+#: options/options_page_bot_blocker.php:117
 msgid "Rate Limit 閾值（次 / 5 分鐘）"
 msgstr "Rate Limit Threshold (requests / 5 minutes)"
 
+#: options/options_page_bot_blocker.php:120
 msgid "同 IP 在 5 分鐘內超過此請求次數即封鎖（0 = 停用 Rate Limit）"
 msgstr "Block the same IP when it exceeds this many requests within 5 minutes (0 = disable Rate Limit)"
 
+#: options/options_page_bot_blocker.php:125
 msgid "Log 最大列數"
 msgstr "Max Log Rows"
 
+#: options/options_page_bot_blocker.php:128
 msgid "超過時自動刪除最舊的紀錄（預設 1000）"
 msgstr "Oldest records are automatically deleted when the limit is exceeded (default: 1000)"
 
+#: options/options_page_bot_blocker.php:136
 msgid "儲存 Bot 防護設定"
 msgstr "Save Bot Protection Settings"
 
+#: options/options_page_bot_blocker.php:141
 msgid "攔截統計"
 msgstr "Interception Statistics"
 
+#: options/options_page_bot_blocker.php:145
 msgid "攔截總計"
 msgstr "Total Blocked"
 
+#: options/options_page_bot_blocker.php:150
 msgid "今日攔截"
 msgstr "Blocked Today"
 
+#: options/options_page_bot_blocker.php:155
+#: options/options_page_bot_blocker.php:240
 msgid "IP 黑名單"
 msgstr "IP Blocklist"
 
+#: options/options_page_bot_blocker.php:160
 msgid "監控指紋"
 msgstr "Monitored Fingerprints"
 
+#: options/options_page_bot_blocker.php:172
 msgid "攔截事件分佈"
 msgstr "Interception Event Distribution"
 
+#: options/options_page_bot_blocker.php:189
 msgid "偽造的 Chrome 版本"
 msgstr "Forged Chrome Versions"
 
+#: options/options_page_bot_blocker.php:208
 msgid "攔截紀錄"
 msgstr "Interception Log"
 
+#: options/options_page_bot_blocker.php:208
+#, php-format
 msgid "最新 %d 筆"
 msgstr "Latest %d entries"
 
+#: options/options_page_bot_blocker.php:211
 msgid "還沒有攔截紀錄，一切安好！"
 msgstr "No interception records yet — all is well!"
 
+#: options/options_page_bot_blocker.php:217
 msgid "時間"
 msgstr "Time"
 
+#: options/options_page_bot_blocker.php:218
 msgid "事件"
 msgstr "Event"
 
+#: options/options_page_bot_blocker.php:220
 msgid "Chrome"
 msgstr "Chrome"
 
+#: options/options_page_bot_blocker.php:221
 msgid "User-Agent"
 msgstr "User-Agent"
 
+#: options/options_page_bot_blocker.php:243
 msgid "目前沒有被封鎖的 IP。"
 msgstr "No blocked IPs currently."
 
+#: options/options_page_bot_blocker.php:253
 msgid "移除此 IP"
 msgstr "Remove this IP"
 
+#: options/options_page_bot_blocker.php:266
 msgid "確定要清除所有被封鎖的 IP？這不會影響指紋黑名單。"
 msgstr "Are you sure you want to clear all blocked IPs? This will not affect the fingerprint blocklist."
 
+#: options/options_page_bot_blocker.php:267
 msgid "清除 IP 黑名單"
 msgstr "Clear IP Blocklist"
 
+#: options/options_page_bot_blocker.php:274
 msgid "確定要清除所有 Log 紀錄？此操作無法復原。"
 msgstr "Are you sure you want to clear all log records? This action cannot be undone."
 
+#: options/options_page_bot_blocker.php:275
 msgid "清除 Log"
 msgstr "Clear Log"
 
-
+#: options/options_page_diary.php:224
+#: options/options_page_diary.php:251
+#: options/options_page_diary.php:278
+#: options/options_page_llm.php:87
+#: options/options_page_llm.php:119
+#: options/options_page_llm.php:151
 msgid "自訂模型…"
 msgstr "Custom model…"
 
+#: options/options_page_diary.php:229
+#: options/options_page_llm.php:92
 msgid "輸入完整模型 ID，例如：gemini-2.0-flash"
 msgstr "Enter full model ID, e.g. gemini-2.0-flash"
 
+#: options/options_page_diary.php:256
+#: options/options_page_llm.php:124
 msgid "輸入完整模型 ID，例如：gpt-4.1-2025-04-14"
 msgstr "Enter full model ID, e.g. gpt-4.1-2025-04-14"
 
+#: options/options_page_diary.php:283
+#: options/options_page_llm.php:156
 msgid "輸入完整模型 ID，例如：claude-opus-4-7"
 msgstr "Enter full model ID, e.g. claude-opus-4-7"
 
-# ========================================
-# General Settings Page - Admin Profile
-# ========================================
-
+#: options/options_general.php:58
 msgid "Admin full nickname:"
 msgstr "Admin full nickname:"
 
+#: options/options_general.php:60
 msgid "Used for {{admin_nickname}} in personality prompts."
 msgstr "Used for {{admin_nickname}} in personality prompts."
 
+#: options/options_general.php:63
 msgid "Admin short name:"
 msgstr "Admin short name:"
 
+#: options/options_general.php:65
 msgid "Used for {{admin_name}} in personality prompts."
 msgstr "Used for {{admin_name}} in personality prompts."
 
+#: options/options_general.php:68
 msgid "Admin birthday:"
 msgstr "Admin birthday:"
 
+#: options/options_general.php:70
 msgid "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."
 msgstr "MM-DD. This overrides the anniversary_admin_birthday entry from calendar.json."
 
-
-# ========================================
-# v2.15 - Security & Structural Refactor
-# ========================================
-
+#: options/options_create.php:27
 msgid "⚠️ 既存の Personality を上書きしようとしています。"
 msgstr "⚠️ You are about to overwrite an existing Personality."
 
+#: options/options_create.php:29
+#, php-format
 msgid "ID <code>%s</code> の Personality ディレクトリがすでに存在します。上書きすると、既存のファイルがすべて置き換えられます。"
 msgstr "A Personality directory with ID <code>%s</code> already exists. Overwriting will replace all existing files."
 
+#: options/options_create.php:36
 msgid "上書きを確認して続行"
 msgstr "Confirm overwrite and continue"
 
+#: options/options_create.php:37
 msgid "キャンセル"
 msgstr "Cancel"
 
+#: options/options_extend.php:16
 msgid "⚠️ 您的帳號不具備 <code>unfiltered_html</code> 權限，無法儲存自訂 JS。此欄位在多站點或受限角色環境下為唯讀。"
 msgstr "⚠️ Your account lacks the <code>unfiltered_html</code> capability and cannot save custom JS. This field is read-only on multisite or restricted-role environments."
 
+#: includes/admin-functions.php:425
 msgid "確認データが期限切れです。再度アップロードしてください。"
 msgstr "Confirmation data has expired. Please upload again."
 
+#: includes/admin-functions.php:437
 msgid "一時ディレクトリが見つかりません。再度アップロードしてください。"
 msgstr "Temporary directory not found. Please upload again."
 
+#: includes/admin-functions.php:449
 msgid "一時ディレクトリのパスが不正です。再度アップロードしてください。"
 msgstr "Temporary directory path is invalid. Please upload again."
 
+#: includes/admin-functions.php:461
 msgid "既存 Personality のバックアップに失敗しました。"
 msgstr "Failed to back up the existing Personality."
 
+#: includes/admin-functions.php:473
+#: includes/admin-functions.php:1086
 msgid "Personality ディレクトリの移動に失敗しました。"
 msgstr "Failed to move the Personality directory."
 
+#: includes/admin-functions.php:1043
+#, php-format
 msgid "\"%s\" は組み込み Personality のため上書きできません。"
 msgstr "\"%s\" is a built-in Personality and cannot be overwritten."
 
+#: includes/admin-functions.php:1068
 msgid "解凍後のファイルが許可された範囲外に存在します。"
 msgstr "Extracted files are outside the allowed range."
 
+#: includes/rest/class-mpu-rest-chat.php:1273
+#: includes/rest/class-mpu-rest-observation.php:61
 msgid "有効なセッショントークンが必要です。"
 msgstr "A valid session token is required."
 
+#: includes/rest/class-mpu-rest-chat.php:1291
 msgid "セッショントークンは利用できません。"
 msgstr "Session token is unavailable."
+
+#. Plugin Name of the plugin
+#: mp-ukagaka.php
+#: includes/mcp-tools/manager.php:45
+msgid "MP Ukagaka"
+msgstr ""
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: mp-ukagaka.php
+msgid "https://www.moelog.com/"
+msgstr ""
+
+#. Description of the plugin
+#: mp-ukagaka.php
+msgid "Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Gemini、OpenAI、Claude）。本機 LLM 支援（Ollama，測試階段）。API Key 加密存儲、安全文件操作、可配置打字速度。Claude 風格後台管理介面。JSON 人格系統。"
+msgstr ""
+
+#. Author of the plugin
+#: mp-ukagaka.php
+msgid "Ariagle (patched by Horlicks [https://www.moelog.com])"
+msgstr ""
+
+#: includes/admin-functions.php:109
+#: includes/admin-functions.php:595
+#: includes/admin-functions.php:600
+msgid "設定を保存しました"
+msgstr ""
+
+#: includes/admin-functions.php:138
+msgid "キャラクター設定を更新しました"
+msgstr ""
+
+#: includes/admin-functions.php:140
+#: includes/admin-functions.php:583
+msgid "。ダイアログファイルを生成しました"
+msgstr ""
+
+#: includes/admin-functions.php:169
+msgid "AI 設定を保存しました"
+msgstr ""
+
+#: includes/admin-functions.php:235
+msgid "LLM 設定を保存しました"
+msgstr ""
+
+#: includes/admin-functions.php:281
+msgid "日記設定を保存しました"
+msgstr ""
+
+#: includes/admin-functions.php:314
+msgid "Bot 防護設定を保存しました"
+msgstr ""
+
+#: includes/admin-functions.php:339
+#, php-format
+msgid "%d 件の統計データを削除しました"
+msgstr ""
+
+#: includes/admin-functions.php:350
+msgid "記憶を消去しました"
+msgstr ""
+
+#: includes/admin-functions.php:376
+msgid "セキュリティチェックに失敗しました。"
+msgstr ""
+
+#: includes/admin-functions.php:393
+msgid "ZIP アップロード処理関数が存在しません。"
+msgstr ""
+
+#: includes/admin-functions.php:513
+msgid "プレビューデータが一致しません。再度アップロードしてください。"
+msgstr ""
+
+#: includes/admin-functions.php:546
+#: includes/admin-functions.php:581
+msgid "キャラクターの作成に成功しました"
+msgstr ""
+
+#: includes/admin-functions.php:547
+msgid "「キャラクター一覧」ページでダイアログファイルなどの設定を行ってください。"
+msgstr ""
+
+#: includes/admin-functions.php:613
+msgid "設定をリセットしました"
+msgstr ""
+
+#: includes/admin-functions.php:615
+msgid "設定はリセットされませんでした"
+msgstr ""
+
+#: includes/admin-functions.php:732
+msgid "MP Ukagaka オプション"
+msgstr ""
+
+#: includes/admin-functions.php:760
+#: includes/admin-functions.php:803
+#: includes/admin-functions.php:906
+msgid "PHP ZipArchive クラスが利用できません。サーバー管理者にお問い合わせください。"
+msgstr ""
+
+#: includes/admin-functions.php:767
+#: includes/admin-functions.php:821
+#: includes/admin-functions.php:934
+msgid "ZIP ファイルを開けませんでした。"
+msgstr ""
+
+#: includes/admin-functions.php:783
+msgid "ZIP ファイル内に manifest.json が見つかりません。"
+msgstr ""
+
+#: includes/admin-functions.php:788
+msgid "manifest.json の形式が無効です："
+msgstr ""
+
+#: includes/admin-functions.php:814
+msgid "manifest.json に必須の id フィールドがありません。"
+msgstr ""
+
+#: includes/admin-functions.php:835
+msgid "ZIP ファイルに含まれるファイル数が多すぎます（1,000 個超）。ZIP の内容を確認してください。"
+msgstr ""
+
+#: includes/admin-functions.php:846
+msgid "ZIP ファイルに不正なパス (..) が含まれています。セキュリティ上の理由で拒否されました。"
+msgstr ""
+
+#: includes/admin-functions.php:851
+msgid "ZIP ファイルに絶対パスが含まれています。セキュリティ上の理由で拒否されました。"
+msgstr ""
+
+#: includes/admin-functions.php:856
+msgid "ZIP ファイルに不正な文字（ヌルバイト）が含まれています。セキュリティ上の理由で拒否されました。"
+msgstr ""
+
+#: includes/admin-functions.php:868
+#, php-format
+msgid "ZIP ファイルに許可されていないファイル形式 (.%s) が含まれています。画像・音声・TXT・JSON のみ許可されています。"
+msgstr ""
+
+#: includes/admin-functions.php:883
+msgid "ZIP ファイル内に shell/ フォルダが見つかりません。"
+msgstr ""
+
+#: includes/admin-functions.php:887
+msgid "shell/ フォルダに画像ファイル（.png, .jpg, .jpeg, .gif, .webp）が見つかりません。"
+msgstr ""
+
+#: includes/admin-functions.php:912
+msgid "対象ディレクトリを作成できませんでした："
+msgstr ""
+
+#: includes/admin-functions.php:922
+msgid "無効なディレクトリパスです。"
+msgstr ""
+
+#: includes/admin-functions.php:927
+msgid "対象ディレクトリが許可された範囲外です。"
+msgstr ""
+
+#: includes/admin-functions.php:942
+msgid "ファイルの解凍に失敗しました。"
+msgstr ""
+
+#: includes/admin-functions.php:947
+msgid "解凍後に manifest.json が見つかりません。"
+msgstr ""
+
+#: includes/admin-functions.php:952
+msgid "解凍後に shell/ ディレクトリが見つかりません。"
+msgstr ""
+
+#: includes/admin-functions.php:991
+msgid "アップロードされたファイルのサイズが大きすぎます。"
+msgstr ""
+
+#: includes/admin-functions.php:993
+msgid "ファイルのアップロードが不完全です。"
+msgstr ""
+
+#: includes/admin-functions.php:995
+msgid "アップロードする ZIP ファイルを選択してください。"
+msgstr ""
+
+#: includes/admin-functions.php:997
+msgid "ファイルのアップロードに失敗しました。"
+msgstr ""
+
+#: includes/admin-functions.php:1006
+msgid "ZIP 形式のファイルのみアップロードできます。"
+msgstr ""
+
+#: includes/admin-functions.php:1012
+msgid "ファイルサイズは 50MB 以下である必要があります。"
+msgstr ""
+
+#: includes/core/class-mpu-observation-buffer.php:317
+msgid "剛才"
+msgstr ""
+
+#: includes/core/class-mpu-observation-buffer.php:320
+#, php-format
+msgid "%d 分鐘前"
+msgstr ""
+
+#: includes/core/class-mpu-observation-buffer.php:323
+#, php-format
+msgid "%d 小時前"
+msgstr ""
+
+#: includes/core/file-functions.php:49
+msgid "指定されたファイルが見つかりません"
+msgstr ""
+
+#: includes/core/file-functions.php:55
+msgid "このパスへのアクセスは許可されていません"
+msgstr ""
+
+#: includes/core/file-functions.php:61
+msgid "ファイルが大きすぎて読み込めません"
+msgstr ""
+
+#: includes/core/file-functions.php:82
+msgid "ファイルを読み込めません"
+msgstr ""
+
+#: includes/core/file-functions.php:106
+msgid "ディレクトリを作成できません"
+msgstr ""
+
+#: includes/core/file-functions.php:116
+msgid "このパスへの書き込みは許可されていません"
+msgstr ""
+
+#: includes/core/file-functions.php:123
+msgid "不正なファイル名です"
+msgstr ""
+
+#: includes/core/file-functions.php:144
+msgid "ファイルに書き込めません"
+msgstr ""
+
+#: includes/core/frontend-functions.php:120
+#: includes/core/frontend-functions.php:977
+msgid "（えっと…何を話せばいいかな…）"
+msgstr ""
+
+#: includes/core/frontend-functions.php:123
+msgid "（思考中…）"
+msgstr ""
+
+#: includes/core/frontend-functions.php:253
+#: includes/core/frontend-functions.php:994
+msgid "メッセージを入力..."
+msgstr ""
+
+#: includes/core/frontend-functions.php:287
+msgid "トップへ戻る ▼"
+msgstr ""
+
+#: includes/core/frontend-functions.php:290
+#: includes/core/frontend-functions.php:1041
+msgid "キャラを隠す ▼"
+msgstr ""
+
+#: includes/core/frontend-functions.php:293
+msgid "チャット"
+msgstr ""
+
+#. translators: console log. Character drawing canvas DOM element is missing.
+#: includes/core/frontend-functions.php:545
+msgid "Canvas 要素が存在しません"
+msgstr ""
+
+#. translators: console log. CanvasRenderingContext2D could not be acquired.
+#: includes/core/frontend-functions.php:547
+msgid "Canvas コンテキストを取得できません"
+msgstr ""
+
+#. translators: console log. Frieren-specific manager is missing, so generic mode is used.
+#: includes/core/frontend-functions.php:549
+msgid "フリーレンマネージャーが読み込まれていないため、汎用モードを使用します"
+msgstr ""
+
+#. translators: console log. %s is the image URL that failed to load.
+#: includes/core/frontend-functions.php:551
+#, php-format
+msgid "画像の読み込みに失敗しました：%s"
+msgstr ""
+
+#. translators: console log. %s is the frame image URL that failed to load.
+#: includes/core/frontend-functions.php:553
+#, php-format
+msgid "フレーム画像の読み込みに失敗しました：%s"
+msgstr ""
+
+#. translators: console log. %s is the server-provided decoration config error, or an unknown-error fallback.
+#: includes/core/frontend-functions.php:555
+#, php-format
+msgid "装飾設定を読み込めませんでした：%s"
+msgstr ""
+
+#. translators: console log. Used when decoration config loading fails without a server-provided error message.
+#: includes/core/frontend-functions.php:557
+msgid "装飾設定を読み込めませんでした：不明なエラー"
+msgstr ""
+
+#. translators: console log. %s is the jQuery AJAX error value for loading decoration config.
+#: includes/core/frontend-functions.php:559
+#, php-format
+msgid "AJAX による装飾設定の読み込みに失敗しました：%s"
+msgstr ""
+
+#. translators: console log. Required front-end runtime dependencies for decoration config loading are unavailable.
+#: includes/core/frontend-functions.php:561
+msgid "jQuery または mpuurl が利用できないため、装飾設定を読み込めません"
+msgstr ""
+
+#. translators: console log. The decoration_config structure is not in the expected format.
+#: includes/core/frontend-functions.php:563
+msgid "装飾設定が無効です"
+msgstr ""
+
+#. translators: console log. shellInfo contains the character image URL and display settings.
+#: includes/core/frontend-functions.php:565
+msgid "フリーレンモード：shellInfo が無効です"
+msgstr ""
+
+#. translators: console log. Canvas manager is missing before Frieren images are loaded.
+#: includes/core/frontend-functions.php:567
+msgid "画像読み込み前に Canvas マネージャーが初期化されていません"
+msgstr ""
+
+#. translators: console log. %s is the Frieren image URL that failed to load.
+#: includes/core/frontend-functions.php:569
+#, php-format
+msgid "フリーレン画像の読み込みに失敗しました：%s"
+msgstr ""
+
+#. translators: console log. Canvas manager is missing before drawing Frieren.
+#: includes/core/frontend-functions.php:571
+msgid "描画前に Canvas マネージャーが初期化されていません"
+msgstr ""
+
+#. translators: console log. %s is the decoration type for which pixel-hit Canvas creation failed.
+#: includes/core/frontend-functions.php:573
+#, php-format
+msgid "ピクセル判定用 Canvas を作成できません：%s"
+msgstr ""
+
+#. translators: console log. %1$s is the decoration type, %2$s is the exception message.
+#: includes/core/frontend-functions.php:575
+#, php-format
+msgid "ピクセルデータを取得できません（クロスオリジンの可能性があります）：タイプ=%1$s、メッセージ=%2$s"
+msgstr ""
+
+#. translators: console log. The request error object is logged as an additional console argument.
+#: includes/core/frontend-functions.php:577
+msgid "タッチ領域の会話リクエストに失敗しました"
+msgstr ""
+
+#. translators: console log. The decoration dialog request error object is logged as an additional console argument.
+#: includes/core/frontend-functions.php:579
+msgid "装飾品会話リクエストに失敗しました"
+msgstr ""
+
+#. translators: console log. jQuery.cookie initialization failed, so cookie-dependent features may not work.
+#: includes/core/frontend-functions.php:581
+msgid "jQuery.cookie を初期化できません。一部の機能が正常に動作しない可能性があります"
+msgstr ""
+
+#. translators: debug console log. Auto-talk startup exits because auto-talk is disabled.
+#: includes/core/frontend-functions.php:583
+msgid "startAutoTalk: mpuAutoTalk が false のため終了します"
+msgstr ""
+
+#. translators: debug console log. Auto-talk is not started while chat mode is active.
+#: includes/core/frontend-functions.php:585
+msgid "startAutoTalk: 会話モード中のため自動会話を開始しません"
+msgstr ""
+
+#. translators: debug console log. Auto-talk is skipped during decoration or touch dialog.
+#: includes/core/frontend-functions.php:587
+msgid "startAutoTalk: 装飾品またはタッチ会話中のため自動会話を開始しません"
+msgstr ""
+
+#. translators: debug console log. Auto-talk is disabled while the character is asleep and not awakened.
+#: includes/core/frontend-functions.php:589
+msgid "🌙 睡眠モードでまだ目を覚ましていないため、自動会話を開始せず OK ボタンのみ受け付けます"
+msgstr ""
+
+#. translators: debug console log. %1$s is the adjusted interval in ms, %2$s is the original interval in ms.
+#: includes/core/frontend-functions.php:591
+#, php-format
+msgid "🌙 睡眠モードが有効です（00:00〜06:00）。間隔を %1$s ms に調整しました（元: %2$s ms）"
+msgstr ""
+
+#. translators: debug console log. %1$s is the timer interval in ms, %2$s is the auto-talk enabled flag.
+#: includes/core/frontend-functions.php:593
+#, php-format
+msgid "startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s"
+msgstr ""
+
+#. translators: debug console log. %1$s is the auto-talk flag, %2$s is the LLM replacement flag.
+#: includes/core/frontend-functions.php:595
+#, php-format
+msgid "自動会話タイマーが発火しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s"
+msgstr ""
+
+#. translators: debug console log. %s is the idle duration in seconds.
+#: includes/core/frontend-functions.php:597
+#, php-format
+msgid "ユーザーがアイドル状態です（%s 秒）。今回の自動会話をスキップします"
+msgstr ""
+
+#. translators: debug console log. %1$s is previous state, %2$s is new state, %3$s is the new interval in ms.
+#: includes/core/frontend-functions.php:599
+#, php-format
+msgid "睡眠モード状態が変化しました（%1$s → %2$s）。自動会話を再起動します（新しい間隔: %3$s ms）"
+msgstr ""
+
+#. translators: debug console log. A scheduled auto-talk tick is skipped while asleep and not awakened.
+#: includes/core/frontend-functions.php:601
+msgid "🌙 睡眠モードでまだ目を覚ましていないため、今回の自動会話をスキップし OK ボタンのみ受け付けます"
+msgstr ""
+
+#. translators: debug console log. %s is the detected bot name.
+#: includes/core/frontend-functions.php:603
+#, php-format
+msgid "🛡️ Bot Alert: Bot の侵入を検出しました。Bot 名: %s"
+msgstr ""
+
+#. translators: debug console log. %s is the Turnstile block count.
+#: includes/core/frontend-functions.php:605
+#, php-format
+msgid "🛡️ Turnstile 結界防御: 結界衝突イベントを検出しました。ブロック回数: %s"
+msgstr ""
+
+#. translators: debug console log. %s is the bot blocker block count.
+#: includes/core/frontend-functions.php:607
+#, php-format
+msgid "🛡️ Moelog Bot Blocker: 防御魔法のブロックイベントを検出しました。ブロック数: %s"
+msgstr ""
+
+#. translators: debug console log. %1$s is the crawler name, %2$s is the company name.
+#: includes/core/frontend-functions.php:609
+#, php-format
+msgid "🤖 AI Crawler: AI クローラーの訪問を検出しました。crawler=%1$s、company=%2$s"
+msgstr ""
+
+#. translators: debug console log. %s is the visitor pulse type.
+#: includes/core/frontend-functions.php:611
+#, php-format
+msgid "🌍 Visitor Pulse: 訪問者パルス信号を検出しました。pulse_type=%s"
+msgstr ""
+
+#. translators: debug console log. %s is the spam block count.
+#: includes/core/frontend-functions.php:613
+#, php-format
+msgid "🛡️ Akismet スパム連携: スパムコメントイベントを検出しました。ブロック数: %s"
+msgstr ""
+
+#. translators: debug console log. %s is the unclassified action name.
+#: includes/core/frontend-functions.php:615
+#, php-format
+msgid "🛡️ Auto-talk イベント（未分類 action）: %s"
+msgstr ""
+
+#. translators: debug console log. No security event was detected.
+#: includes/core/frontend-functions.php:617
+msgid "🛡️ Turnstile/Akismet/BotBlocker/Bot Check: イベントはありません"
+msgstr ""
+
+#. translators: debug console log. %s is the caught error value.
+#: includes/core/frontend-functions.php:619
+#, php-format
+msgid "Security Check: セキュリティチェックに失敗しました: %s"
+msgstr ""
+
+#. translators: debug console log. The Ollama request queue has no pending item.
+#: includes/core/frontend-functions.php:621
+msgid "mpu_processOllamaQueue: キューは空です"
+msgstr ""
+
+#. translators: debug console log. %1$s is the trigger, %2$s is the remaining queue length.
+#: includes/core/frontend-functions.php:623
+#, php-format
+msgid "mpu_processOllamaQueue: キュー内のリクエストを処理します。trigger=%1$s、残りキュー長=%2$s"
+msgstr ""
+
+#. translators: debug console log. Values describe the next-message trigger and mode flags.
+#: includes/core/frontend-functions.php:625
+#, php-format
+msgid "mpu_nextmsg が呼び出されました。trigger=%1$s、isAuto=%2$s、isStartup=%3$s、isManual=%4$s、mpuOllamaReplaceDialogue=%5$s"
+msgstr ""
+
+#. translators: debug console log. Next message is skipped because message blocking is active.
+#: includes/core/frontend-functions.php:627
+msgid "mpu_nextmsg: メッセージ表示がブロックされています（mpuMessageBlocking=true）。スキップします"
+msgstr ""
+
+#. translators: debug console log. Auto-talk next message is skipped during chat mode.
+#: includes/core/frontend-functions.php:629
+msgid "mpu_nextmsg: 会話モード中のため自動会話をスキップします"
+msgstr ""
+
+#. translators: debug console log. Auto-talk next message is skipped during decoration or touch dialog.
+#: includes/core/frontend-functions.php:631
+msgid "mpu_nextmsg: 装飾品またはタッチ会話中のため自動会話をスキップします"
+msgstr ""
+
+#. translators: debug console log. Next message exits because auto-talk is disabled.
+#: includes/core/frontend-functions.php:633
+msgid "mpu_nextmsg: 自動会話が無効のため終了します"
+msgstr ""
+
+#. translators: debug console log. %s is the trigger that was skipped.
+#: includes/core/frontend-functions.php:635
+#, php-format
+msgid "🌙 睡眠モードでまだ目を覚ましていないため、%s トリガーの会話をスキップし OK ボタンのみ受け付けます"
+msgstr ""
+
+#. translators: debug console log. Startup or auto next message is skipped while page-aware AI is active.
+#: includes/core/frontend-functions.php:637
+msgid "mpu_nextmsg: ページ感知 AI が進行中のため、自動/起動会話をスキップします"
+msgstr ""
+
+#. translators: debug console log. Startup is skipped because page-aware AI is scheduled.
+#: includes/core/frontend-functions.php:639
+msgid "mpu_nextmsg: ページ感知が予約済みのため、BOT 会話の上書きを避けるため startup をスキップします"
+msgstr ""
+
+#. translators: debug console log. Startup or auto next message is skipped while greeting is active.
+#: includes/core/frontend-functions.php:641
+msgid "mpu_nextmsg: 初回訪問者への挨拶中のため、自動/起動会話をスキップします"
+msgstr ""
+
+#. translators: debug console log. Auto-triggered request is skipped because Ollama is busy.
+#: includes/core/frontend-functions.php:643
+msgid "mpu_nextmsg: Ollama がリクエストを処理中のため、自動トリガーのリクエストをスキップします"
+msgstr ""
+
+#. translators: debug console log. Request is queued because Ollama is busy.
+#: includes/core/frontend-functions.php:645
+msgid "mpu_nextmsg: Ollama がリクエストを処理中のため、このリクエストをキューに追加します"
+msgstr ""
+
+#. translators: debug console log. Request is skipped because the queue is full.
+#: includes/core/frontend-functions.php:647
+msgid "mpu_nextmsg: キューが満杯のため、このリクエストをスキップします"
+msgstr ""
+
+#. translators: debug console log. Next message will be generated by the LLM.
+#: includes/core/frontend-functions.php:649
+msgid "mpu_nextmsg: LLM を使用して会話を生成します"
+msgstr ""
+
+#. translators: debug console log. %s is the REST endpoint URL.
+#: includes/core/frontend-functions.php:651
+#, php-format
+msgid "mpu_nextmsg: LLM POST リクエストを送信します: %s"
+msgstr ""
+
+#. translators: debug console log. %s is the raw LLM response object.
+#: includes/core/frontend-functions.php:653
+#, php-format
+msgid "mpu_nextmsg: LLM 応答 = %s"
+msgstr ""
+
+#. translators: debug console log. LLM response display is skipped while page-aware AI is active.
+#: includes/core/frontend-functions.php:655
+msgid "mpu_nextmsg: ページ感知 AI が進行中のため、LLM 応答の表示をスキップします"
+msgstr ""
+
+#. translators: debug console log. %s is the current chat history length.
+#: includes/core/frontend-functions.php:657
+#, php-format
+msgid "mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s"
+msgstr ""
+
+#. translators: debug console log. Chat history was saved.
+#: includes/core/frontend-functions.php:659
+msgid "mpu_nextmsg: 会話履歴を保存しました"
+msgstr ""
+
+#. translators: debug console log. Chat history cannot be saved because the save function is unavailable.
+#: includes/core/frontend-functions.php:661
+msgid "mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません"
+msgstr ""
+
+#. translators: debug console log. Chat history is unavailable or not an array.
+#: includes/core/frontend-functions.php:663
+msgid "mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません"
+msgstr ""
+
+#. translators: debug console log. Auto-talk timer waits for typewriter completion after LLM response.
+#: includes/core/frontend-functions.php:665
+msgid "mpu_nextmsg: LLM 応答が完了しました。タイピング完了後に自動会話タイマーを開始します"
+msgstr ""
+
+#. translators: debug console log. Typewriter completed and auto-talk timer starts.
+#: includes/core/frontend-functions.php:667
+msgid "mpu_nextmsg: タイピングが完了しました。自動会話タイマーを開始します"
+msgstr ""
+
+#. translators: debug console log. LLM response object has no msg field.
+#: includes/core/frontend-functions.php:669
+msgid "mpu_nextmsg: LLM 応答に msg がありません"
+msgstr ""
+
+#. translators: debug console log. Fallback dialog is used because LLM response has no msg.
+#: includes/core/frontend-functions.php:671
+msgid "mpu_nextmsg: LLM 応答に msg がないため、フォールバック会話を使用します"
+msgstr ""
+
+#. translators: debug console log. Timer waits for typewriter completion after fallback dialog.
+#: includes/core/frontend-functions.php:673
+msgid "mpu_nextmsg: フォールバックが完了しました。タイピング完了後にタイマーを開始します"
+msgstr ""
+
+#. translators: debug console log. Timer waits for typewriter completion after an error.
+#: includes/core/frontend-functions.php:675
+msgid "mpu_nextmsg: エラーが発生しました。タイピング完了後にタイマーを開始します"
+msgstr ""
+
+#. translators: debug console log. LLM error handling is skipped while page-aware AI is active.
+#: includes/core/frontend-functions.php:677
+msgid "mpu_nextmsg: ページ感知 AI が進行中のため、LLM エラー処理をスキップします"
+msgstr ""
+
+#. translators: debug console log. Next message waits for dialog data to load.
+#: includes/core/frontend-functions.php:679
+msgid "mpu_nextmsg: 会話がまだ読み込まれていません。読み込み完了を待機します..."
+msgstr ""
+
+#. translators: debug console log. Dialog loading timed out after three retries.
+#: includes/core/frontend-functions.php:681
+msgid "mpu_nextmsg: 会話読み込みがタイムアウトしました。3 回再試行済みです"
+msgstr ""
+
+#. translators: debug console log. %1$s describes the dialog store, %2$s describes the message array.
+#: includes/core/frontend-functions.php:683
+#, php-format
+msgid "mpu_nextmsg: 会話を表示できません - store=%1$s、msgArray=%2$s"
+msgstr ""
+
+#. translators: debug console log. Traditional dialog waits for typewriter completion before timer restart.
+#: includes/core/frontend-functions.php:685
+msgid "mpu_nextmsg: 通常会話です。タイピング完了後にタイマーを開始します"
+msgstr ""
+
+#. translators: debug console log. Fallback display is skipped while page-aware AI is active.
+#: includes/core/frontend-functions.php:687
+msgid "mpu_nextmsg_fallback: ページ感知 AI が進行中のため、表示をスキップします"
+msgstr ""
+
+#. translators: debug console log. Fallback waits for dialog data to load.
+#: includes/core/frontend-functions.php:689
+msgid "mpu_nextmsg_fallback: 会話がまだ読み込まれていません。読み込み完了を待機します..."
+msgstr ""
+
+#. translators: debug console log. Fallback dialog loading timed out after two retries.
+#: includes/core/frontend-functions.php:691
+msgid "mpu_nextmsg_fallback: 会話読み込みがタイムアウトしました。2 回再試行済みです"
+msgstr ""
+
+#. translators: debug console log. %1$s describes the dialog store, %2$s describes the message array.
+#: includes/core/frontend-functions.php:693
+#, php-format
+msgid "mpu_nextmsg_fallback: フォールバック会話を表示できません - store=%1$s、msgArray=%2$s"
+msgstr ""
+
+#. translators: debug console log. Canvas manager is unexpectedly missing after Ajax success.
+#: includes/core/frontend-functions.php:695
+msgid "mpuChange: Ajax 成功後に Canvas マネージャーが存在しないことが判明しました。これは想定外です"
+msgstr ""
+
+#. translators: debug console log. Anime initialization is skipped because Frieren mode is already active.
+#: includes/core/frontend-functions.php:697
+msgid "⏭️ すでにフリーレンモードのため、再初期化をスキップします"
+msgstr ""
+
+#. translators: debug console log. Typewriter animation was interrupted.
+#: includes/core/frontend-functions.php:699
+msgid "タイピング効果を中断しました"
+msgstr ""
+
+#. translators: debug console log. The typewriter completion callback is not a function.
+#: includes/core/frontend-functions.php:701
+msgid "mpu_waitForTypewriterComplete: callback が関数ではありません"
+msgstr ""
+
+#. translators: debug console log. Typewriter wait timed out and callback will be forced.
+#: includes/core/frontend-functions.php:703
+msgid "mpu_waitForTypewriterComplete: 待機がタイムアウトしたため、callback を強制実行します"
+msgstr ""
+
+#. translators: debug console log. jQuery is missing before jQuery.cookie initialization.
+#: includes/core/frontend-functions.php:705
+msgid "jQuery がまだ読み込まれていないため、jQuery.cookie を初期化できません"
+msgstr ""
+
+#. translators: debug console log. jQuery is missing before idle detection initialization.
+#: includes/core/frontend-functions.php:707
+msgid "jQuery がまだ読み込まれていないため、アイドル検出を初期化できません"
+msgstr ""
+
+#. translators: debug console log. %s is the idle threshold in seconds.
+#: includes/core/frontend-functions.php:709
+#, php-format
+msgid "アイドル検出を初期化しました。しきい値：%s 秒"
+msgstr ""
+
+#. translators: debug console log. Last visit timestamp was updated.
+#: includes/core/frontend-functions.php:711
+msgid "最終訪問時刻を更新しました"
+msgstr ""
+
+#. translators: debug console log. %s is the caught error value.
+#: includes/core/frontend-functions.php:713
+#, php-format
+msgid "最終訪問時刻を更新できませんでした：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the caught error value.
+#: includes/core/frontend-functions.php:715
+#, php-format
+msgid "最終訪問時刻を取得できませんでした：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the request ID. This text appears in two cancel paths.
+#: includes/core/frontend-functions.php:717
+#, php-format
+msgid "リクエストをキャンセルしました：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the request ID skipped by dedupe.
+#: includes/core/frontend-functions.php:719
+#, php-format
+msgid "リクエストを重複排除してスキップします：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the timed-out request ID.
+#: includes/core/frontend-functions.php:721
+#, php-format
+msgid "リクエストがタイムアウトしました：%s"
+msgstr ""
+
+#. translators: debug console log. %1$s is current attempt, %2$s is max retries, %3$s is request ID.
+#: includes/core/frontend-functions.php:723
+#, php-format
+msgid "リクエストを再試行します（%1$s/%2$s）：%3$s"
+msgstr ""
+
+#. translators: debug console log. REST nonce was refreshed from a response.
+#: includes/core/frontend-functions.php:725
+msgid "REST Nonce を自動更新しました"
+msgstr ""
+
+#. translators: debug console log. %s is the network error message.
+#: includes/core/frontend-functions.php:727
+#, php-format
+msgid "ネットワークエラーのため再試行します：%s"
+msgstr ""
+
+#. translators: debug console log. jQuery is missing before context-menu initialization.
+#: includes/core/frontend-functions.php:729
+msgid "jQuery がまだ読み込まれていないため、右クリックメニューを初期化できません"
+msgstr ""
+
+#. translators: debug console log. Context menu opens the character switch menu.
+#: includes/core/frontend-functions.php:731
+msgid "右クリックメニューが発火しました：キャラクター切り替えメニューを表示します"
+msgstr ""
+
+#. translators: debug console log. Character change function is unavailable.
+#: includes/core/frontend-functions.php:733
+msgid "mpuChange 関数が定義されていません"
+msgstr ""
+
+#. translators: debug console log. Context menu initialization completed.
+#: includes/core/frontend-functions.php:735
+msgid "右クリックメニューを初期化しました"
+msgstr ""
+
+#. translators: debug console log. Interactive chat mode was entered.
+#: includes/core/frontend-functions.php:737
+msgid "インタラクティブ会話モードに入りました"
+msgstr ""
+
+#. translators: debug console log. Interactive chat mode was exited.
+#: includes/core/frontend-functions.php:739
+msgid "インタラクティブ会話モードを終了しました"
+msgstr ""
+
+#. translators: debug console log. User attempted to send while a response is pending.
+#: includes/core/frontend-functions.php:741
+msgid "応答待ちです。しばらくお待ちください"
+msgstr ""
+
+#. translators: debug console log. Chat history was cleared.
+#: includes/core/frontend-functions.php:743
+msgid "会話履歴をクリアしました"
+msgstr ""
+
+#. translators: debug console log. %s is the user message text.
+#: includes/core/frontend-functions.php:745
+#, php-format
+msgid "ユーザーメッセージを送信します：%s"
+msgstr ""
+
+#. translators: debug console log. AI response is discarded because chat mode closed.
+#: includes/core/frontend-functions.php:747
+msgid "会話モードが閉じているため、今回の AI 応答を破棄します"
+msgstr ""
+
+#. translators: debug console log. Error message is discarded because chat mode closed.
+#: includes/core/frontend-functions.php:749
+msgid "会話モードが閉じているため、エラーメッセージを破棄します"
+msgstr ""
+
+#. translators: debug console log. %s is the current chat history length.
+#: includes/core/frontend-functions.php:751
+#, php-format
+msgid "ページ読み込み：会話履歴を読み込みました。現在の記録数：%s"
+msgstr ""
+
+#. translators: debug console log. Button click is ignored while a decoration dialog is active. This text appears in two button handlers.
+#: includes/core/frontend-functions.php:753
+msgid "装飾品会話中のため、ボタンクリックを無視します"
+msgstr ""
+
+#. translators: debug console log. Button click is ignored while message blocking is active. This text appears in two button handlers.
+#: includes/core/frontend-functions.php:755
+msgid "メッセージがブロックされているため、ボタンクリックを無視します"
+msgstr ""
+
+#. translators: debug console log. Chat mode exit was requested from a control.
+#: includes/core/frontend-functions.php:757
+msgid "会話モードを終了します"
+msgstr ""
+
+#. translators: debug console log. Interactive chat mode initialization completed.
+#: includes/core/frontend-functions.php:759
+msgid "インタラクティブ会話モードを初期化しました"
+msgstr ""
+
+#. translators: debug console log. Wake-up request is being prepared.
+#: includes/core/frontend-functions.php:761
+msgid "🌅 キャラクターを起こします。リクエスト送信を準備しています..."
+msgstr ""
+
+#. translators: debug console log. Wake request is cancelled because identity data is missing.
+#: includes/core/frontend-functions.php:763
+msgid "目覚めリクエストをキャンセルしました：personality_id/ukagaka_num が不足しているため、人格状態の混乱を避けます"
+msgstr ""
+
+#. translators: debug console log. %s is the wake request response object.
+#: includes/core/frontend-functions.php:765
+#, php-format
+msgid "目覚めに成功しました：%s"
+msgstr ""
+
+#. translators: debug console log. Wake-up was temporary during deep sleep.
+#: includes/core/frontend-functions.php:767
+msgid "これは深い睡眠中の一時的な目覚めです"
+msgstr ""
+
+#. translators: debug console log. %s is the failed wake response object.
+#: includes/core/frontend-functions.php:769
+#, php-format
+msgid "目覚めリクエストの応答が失敗しました：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the caught wake request error.
+#: includes/core/frontend-functions.php:771
+#, php-format
+msgid "目覚めリクエストに失敗しましたが、通常動作には影響しません：%s"
+msgstr ""
+
+#. translators: debug console log. Page trigger configuration is empty.
+#: includes/core/frontend-functions.php:773
+msgid "mpu_check_page_trigger: triggerPages が空のため false を返します"
+msgstr ""
+
+#. translators: debug console log. %s values are the trigger conditions and current path.
+#: includes/core/frontend-functions.php:775
+#, php-format
+msgid "mpu_check_page_trigger: チェック条件 = %s、path = %s"
+msgstr ""
+
+#. translators: debug console log. Additional object data describes the is_single exclusion check.
+#: includes/core/frontend-functions.php:777
+msgid "mpu_check_page_trigger: is_single チェック - ホームページ/アーカイブページを除外します"
+msgstr ""
+
+#. translators: debug console log. Additional object data describes the is_single trigger check.
+#: includes/core/frontend-functions.php:779
+msgid "mpu_check_page_trigger: is_single チェック"
+msgstr ""
+
+#. translators: debug console log. Additional object data describes the is_page trigger check.
+#: includes/core/frontend-functions.php:781
+msgid "mpu_check_page_trigger: is_page チェック"
+msgstr ""
+
+#. translators: debug console log. Additional object data describes the home/front-page trigger check.
+#: includes/core/frontend-functions.php:783
+msgid "mpu_check_page_trigger: is_home/is_front_page チェック"
+msgstr ""
+
+#. translators: debug console log. Additional object data describes the archive trigger check.
+#: includes/core/frontend-functions.php:785
+msgid "mpu_check_page_trigger: is_archive チェック"
+msgstr ""
+
+#. translators: debug console log. Additional object data describes the category trigger check.
+#: includes/core/frontend-functions.php:787
+msgid "mpu_check_page_trigger: is_category チェック"
+msgstr ""
+
+#. translators: debug console log. Additional object data describes the tag trigger check.
+#: includes/core/frontend-functions.php:789
+msgid "mpu_check_page_trigger: is_tag チェック"
+msgstr ""
+
+#. translators: debug console log. Page-aware AI is skipped while chat mode is active.
+#: includes/core/frontend-functions.php:791
+msgid "mpu_chat_context: 会話モード中のためページ感知 AI をスキップします"
+msgstr ""
+
+#. translators: debug console log. A new page-aware trigger is skipped while one is already running.
+#: includes/core/frontend-functions.php:793
+msgid "mpu_chat_context: ページ感知処理中のため新しいトリガーをスキップします"
+msgstr ""
+
+#. translators: debug console log. Page-aware AI is skipped during sleep mode.
+#: includes/core/frontend-functions.php:795
+msgid "🌙 睡眠モード（00:00-06:00）：ページ感知 AI をスキップし、キャラクターを休ませます"
+msgstr ""
+
+#. translators: debug console log. Additional object data describes the page context check.
+#: includes/core/frontend-functions.php:797
+msgid "mpu_chat_context: ページコンテキストチェック"
+msgstr ""
+
+#. translators: debug console log. Page-aware chat is skipped because both title and content are missing.
+#: includes/core/frontend-functions.php:799
+msgid "mpu_chat_context: タイトルと本文がないためスキップします"
+msgstr ""
+
+#. translators: debug console log. Page-aware chat is skipped during the first-visitor greeting.
+#: includes/core/frontend-functions.php:801
+msgid "mpu_chat_context: 初回訪問者への挨拶中のためスキップします"
+msgstr ""
+
+#. translators: debug console log. %s is the current content length.
+#: includes/core/frontend-functions.php:803
+#, php-format
+msgid "mpu_chat_context: 内容が 300 文字未満です（現在：%s）。スキップします"
+msgstr ""
+
+#. translators: debug console log. Page-aware chat was added to history and saved.
+#: includes/core/frontend-functions.php:805
+msgid "mpu_chat_context: 会話を履歴に追加して保存しました"
+msgstr ""
+
+#. translators: debug console warning. %s is the failed AI response object.
+#: includes/core/frontend-functions.php:807
+#, php-format
+msgid "AI 会話に失敗したため、既定の会話システムを使用します：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the visitor information object.
+#. translators: debug console log. %s is the visitor information object used for first-visitor greeting.
+#: includes/core/frontend-functions.php:809
+#: includes/core/frontend-functions.php:957
+#, php-format
+msgid "訪問者情報：%s"
+msgstr ""
+
+#. translators: debug console log. jQuery ready handler has run.
+#: includes/core/frontend-functions.php:811
+msgid "jQuery ready を実行しました"
+msgstr ""
+
+#. translators: debug console log. jQuery.cookie initialization succeeded.
+#: includes/core/frontend-functions.php:813
+msgid "jQuery.cookie を正常に初期化しました"
+msgstr ""
+
+#. translators: debug console log. Built-in dialogue remains loaded as a fallback when LLM replacement is enabled.
+#: includes/core/frontend-functions.php:815
+msgid "LLM 置換会話が有効ですが、フォールバックとして内蔵会話も読み込みます"
+msgstr ""
+
+#. translators: debug console log. Duplicate settings processing is skipped.
+#: includes/core/frontend-functions.php:817
+msgid "processSettings: 設定は処理済みのため、重複呼び出しをスキップします"
+msgstr ""
+
+#. translators: debug console warning. %s is the invalid settings response object.
+#: includes/core/frontend-functions.php:819
+#, php-format
+msgid "mpu_get_settings: 無効な応答です：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the serialized settings response.
+#: includes/core/frontend-functions.php:821
+#, php-format
+msgid "mpu_get_settings: 設定を受信しました = %s"
+msgstr ""
+
+#. translators: debug console log. %s is the auto-talk enabled flag.
+#: includes/core/frontend-functions.php:823
+#, php-format
+msgid "mpu_get_settings: mpuAutoTalk を設定しました = %s"
+msgstr ""
+
+#. translators: debug console log. %1$s is the adjusted interval in ms, %2$s is the original interval in ms.
+#: includes/core/frontend-functions.php:825
+#, php-format
+msgid "🌙 睡眠モードが有効です（00:00~06:00）。間隔を %1$s ms に調整しました（元：%2$s ms）"
+msgstr ""
+
+#. translators: debug console log. %s is the auto-talk interval in ms.
+#: includes/core/frontend-functions.php:827
+#, php-format
+msgid "mpu_get_settings: mpuAutoTalkInterval を設定しました = %s ms"
+msgstr ""
+
+#. translators: debug console log. %1$s and %2$s are enabled/disabled labels.
+#: includes/core/frontend-functions.php:829
+#, php-format
+msgid "LLM 置換会話設定：%1$s、インタラクティブ会話モード：%2$s"
+msgstr ""
+
+#. translators: debug console log. Initial LLM dialogue trigger is skipped during sleep mode.
+#: includes/core/frontend-functions.php:831
+msgid "🌙 睡眠モード：初回 LLM 会話トリガーをスキップし、睡眠メッセージの表示を維持します"
+msgstr ""
+
+#. translators: debug console log. %s is the approximate number of seconds until auto-talk triggers.
+#: includes/core/frontend-functions.php:833
+#, php-format
+msgid "🌙 睡眠メッセージは自動会話タイマーが発火するまで表示を維持します（約 %s 秒後）"
+msgstr ""
+
+#. translators: debug console log. LLM dialogue trigger waits for the initial message to finish.
+#: includes/core/frontend-functions.php:835
+msgid "LLM 置換会話が有効です。初期メッセージの完了後に LLM 会話をトリガーします"
+msgstr ""
+
+#. translators: debug console log. %1$s is the auto-talk flag, %2$s is whether auto-talk should be delayed.
+#: includes/core/frontend-functions.php:837
+#, php-format
+msgid "mpu_get_settings: startAutoTalk/stopAutoTalk の呼び出しを準備します。mpuAutoTalk=%1$s、shouldDelayAutoTalk=%2$s"
+msgstr ""
+
+#. translators: debug console log. %s is the configured page-aware trigger condition.
+#: includes/core/frontend-functions.php:839
+#, php-format
+msgid "ページ感知 AI が有効です。トリガーページ条件 = %s"
+msgstr ""
+
+#. translators: debug console log. %s is the page-aware trigger result.
+#: includes/core/frontend-functions.php:841
+#, php-format
+msgid "ページ感知チェック結果：shouldTrigger = %s"
+msgstr ""
+
+#. translators: debug console log. %1$s is probability percent, %2$s is the random roll, %3$s is the trigger result.
+#: includes/core/frontend-functions.php:843
+#, php-format
+msgid "ページ感知の確率チェック：設定確率=%1$s%%、ロール=%2$s、トリガー=%3$s"
+msgstr ""
+
+#. translators: debug console log. Page-aware AI trigger has been scheduled.
+#: includes/core/frontend-functions.php:845
+msgid "ページ感知 AI は 3 秒後にトリガーされます"
+msgstr ""
+
+#. translators: debug console log. Page-aware AI is skipped after failing probability check.
+#: includes/core/frontend-functions.php:847
+msgid "ページ感知 AI は確率チェックを通過しなかったため、トリガーしません"
+msgstr ""
+
+#. translators: debug console log. Page-aware AI is skipped after failing page type check.
+#: includes/core/frontend-functions.php:849
+msgid "ページ感知 AI はページタイプチェックを通過しなかったため、トリガーしません"
+msgstr ""
+
+#. translators: debug console log. %s is the ai_enabled flag.
+#: includes/core/frontend-functions.php:851
+#, php-format
+msgid "ページ感知 AI は有効ではありません（ai_enabled = %s）"
+msgstr ""
+
+#. translators: debug console log. Preloaded settings data is being used.
+#: includes/core/frontend-functions.php:853
+msgid "プリロード済み設定データを使用します"
+msgstr ""
+
+#. translators: debug console log. Settings are obtained from the mpuInitComplete event.
+#: includes/core/frontend-functions.php:855
+msgid "mpuInitComplete イベントから設定を取得します"
+msgstr ""
+
+#. translators: debug console log. Fallback settings request is sent separately.
+#: includes/core/frontend-functions.php:857
+msgid "Fallback: 独立した mpu_get_settings AJAX を送信します"
+msgstr ""
+
+#. translators: debug console log. Additional argument is the SPA navigation URL.
+#: includes/core/frontend-functions.php:859
+msgid "🔄 SPA ナビゲーション：ページ内容が変更されました"
+msgstr ""
+
+#. translators: debug console log. %1$s is probability, %2$s is the random roll, %3$s is the trigger result.
+#: includes/core/frontend-functions.php:861
+#, php-format
+msgid "🎲 SPA ページ感知チェック：確率=%1$s、ロール=%2$s、トリガー=%3$s"
+msgstr ""
+
+#. translators: debug console log. Feature script loading has completed.
+#: includes/core/frontend-functions.php:863
+msgid "スクリプトの読み込みが完了しました"
+msgstr ""
+
+#. translators: debug console warning. %s is the caught emoji config load error.
+#: includes/core/frontend-functions.php:865
+#, php-format
+msgid "mpuEmojiManager: 表情設定を読み込めませんでした：%s"
+msgstr ""
+
+#. translators: debug console log. Emoji base path is not configured.
+#: includes/core/frontend-functions.php:867
+#: includes/core/frontend-functions.php:945
+msgid "mpuEmojiManager: 表情のベースパスが設定されていません"
+msgstr ""
+
+#. translators: debug console log. The ukagaka image container is missing.
+#: includes/core/frontend-functions.php:869
+#: includes/core/frontend-functions.php:947
+msgid "mpuEmojiManager: #ukagaka_img コンテナが見つかりません"
+msgstr ""
+
+#. translators: debug console warning. %s is the failed emoji image URL.
+#: includes/core/frontend-functions.php:871
+#: includes/core/frontend-functions.php:949
+#, php-format
+msgid "mpuEmojiManager: 表情画像の読み込みに失敗しました：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the emoji name being shown.
+#: includes/core/frontend-functions.php:873
+#: includes/core/frontend-functions.php:951
+#, php-format
+msgid "mpuEmojiManager: 表情を表示します：%s"
+msgstr ""
+
+#. translators: debug console log. Emoji display is removed.
+#: includes/core/frontend-functions.php:875
+#: includes/core/frontend-functions.php:953
+msgid "mpuEmojiManager: 表情を削除します"
+msgstr ""
+
+#. translators: debug console log. Shows which Frieren base image was selected.
+#: includes/core/frontend-functions.php:877
+msgid "🌙 睡眠画像 frieren[s].png を表示します / ☀️ アイドル画像 frieren[0].png を表示します"
+msgstr ""
+
+#. translators: debug console log. Decoration loading is skipped because it already completed.
+#: includes/core/frontend-functions.php:879
+msgid "装飾品は読み込み済みのため、重複読み込みをスキップします"
+msgstr ""
+
+#. translators: debug console log. %s is the number of decorations loaded from JSON config.
+#: includes/core/frontend-functions.php:881
+#, php-format
+msgid "JSON 設定から %s 個の装飾品を読み込みました"
+msgstr ""
+
+#. translators: debug console log. %s is the decoration type whose transparent area was clicked.
+#: includes/core/frontend-functions.php:883
+#, php-format
+msgid "透明領域がクリックされたため無視します：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the decoration type hit by pixel detection.
+#: includes/core/frontend-functions.php:885
+#, php-format
+msgid "装飾品がクリックされました（ピクセルヒット）：%s"
+msgstr ""
+
+#. translators: debug console log. %1$s is the decoration type, %2$s is the canvas size.
+#: includes/core/frontend-functions.php:887
+#, php-format
+msgid "ピクセル検出 Canvas を作成しました：%1$s、%2$s"
+msgstr ""
+
+#. translators: debug console log. Values are decoration type, pixel coordinates, alpha, and hit threshold.
+#: includes/core/frontend-functions.php:889
+#, php-format
+msgid "ピクセル検出：%1$s、x=%2$s、y=%3$s、alpha=%4$s、threshold=%5$s"
+msgstr ""
+
+#. translators: debug console log. Frieren has awakened; forceWakeUp may be appended as a separate suffix.
+#: includes/core/frontend-functions.php:891
+msgid "☀️ フリーレンが目を覚ましました！"
+msgstr ""
+
+#. translators: debug console log. Wake animation frames are being played.
+#: includes/core/frontend-functions.php:893
+msgid "👀 目覚めアニメーション frieren[w1-w5].png を再生します"
+msgstr ""
+
+#. translators: debug console log. %s is whether the book-flip animation should be skipped.
+#: includes/core/frontend-functions.php:895
+#, php-format
+msgid "🌅 目覚めアニメーションを開始します。skipBookFlip = %s"
+msgstr ""
+
+#. translators: debug console log. Book-flip animation plays after wake.
+#: includes/core/frontend-functions.php:897
+msgid "📖 目覚め後にページめくりアニメーションを再生します"
+msgstr ""
+
+#. translators: debug console log. Book-flip animation is skipped after wake.
+#: includes/core/frontend-functions.php:899
+msgid "📖 目覚め後のページめくりアニメーションをスキップします"
+msgstr ""
+
+#. translators: debug console log. Book-flip animation is skipped during sleep mode.
+#: includes/core/frontend-functions.php:901
+msgid "🌙 睡眠モード：ページめくりアニメーションをスキップします"
+msgstr ""
+
+#. translators: debug console log. Book-flip animation is skipped for manual wake dialogue.
+#: includes/core/frontend-functions.php:903
+msgid "📖 手動の目覚め会話：ページめくりアニメーションをスキップします"
+msgstr ""
+
+#. translators: debug console log. %s is the decoration type passed to the click handler.
+#: includes/core/frontend-functions.php:905
+#, php-format
+msgid "handleDecorationClick が呼び出されました。装飾品タイプ：%s"
+msgstr ""
+
+#. translators: debug console log. Decoration click is ignored while a decoration dialog is active.
+#: includes/core/frontend-functions.php:907
+msgid "装飾品会話中のため、今回のクリックを無視します"
+msgstr ""
+
+#. translators: debug console log. Decoration dialog is skipped because AI is disabled.
+#: includes/core/frontend-functions.php:909
+msgid "AI 機能が有効ではないため、装飾品会話をスキップします"
+msgstr ""
+
+#. translators: debug console log. Additional argument is the cancelled decoration click request ID.
+#: includes/core/frontend-functions.php:911
+msgid "装飾品クリック：リクエストをキャンセルしました"
+msgstr ""
+
+#. translators: debug console log. Decoration dialog completed and state was restored.
+#: includes/core/frontend-functions.php:913
+msgid "装飾品会話が完了し、状態を復元しました"
+msgstr ""
+
+#. translators: debug console log. %1$s is the zone name, %2$s is the relative Y coordinate.
+#: includes/core/frontend-functions.php:915
+#, php-format
+msgid "タッチ領域検出：%1$s、relativeY=%2$s"
+msgstr ""
+
+#. translators: debug console log. %s is the handled touch zone name.
+#: includes/core/frontend-functions.php:917
+#, php-format
+msgid "handleTouchZone が呼び出されました。領域：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the touch zone currently in cooldown.
+#: includes/core/frontend-functions.php:919
+#, php-format
+msgid "領域がクールダウン中のため、クリックを無視します：%s"
+msgstr ""
+
+#. translators: debug console log. %s is the touch zone entering cooldown after reaching its click limit.
+#: includes/core/frontend-functions.php:921
+#, php-format
+msgid "領域のクリック上限に達したため、クールダウンに入ります：%s"
+msgstr ""
+
+#. translators: debug console log. Additional argument is the cancelled touch zone request ID.
+#: includes/core/frontend-functions.php:923
+msgid "タッチ領域クリック：リクエストをキャンセルしました"
+msgstr ""
+
+#. translators: debug console log. Character touch event handlers have been bound.
+#: includes/core/frontend-functions.php:925
+msgid "キャラクターのタッチイベントを設定しました"
+msgstr ""
+
+#. translators: debug console log. %1$s is the touch zone name, %2$s is the cooldown duration in seconds.
+#: includes/core/frontend-functions.php:927
+#, php-format
+msgid "領域がクールダウンに入りました：%1$s、クールダウン時間：%2$s 秒"
+msgstr ""
+
+#. translators: debug console log. Loading message display is skipped because the sleep message is active.
+#: includes/core/frontend-functions.php:929
+msgid "🌙 睡眠モード：睡眠メッセージを検出したため、読み込みメッセージの表示をスキップします"
+msgstr ""
+
+#. translators: debug console warning. External dialogue file has no usable content.
+#: includes/core/frontend-functions.php:931
+msgid "loadExternalDialog: 会話ファイルが空です"
+msgstr ""
+
+#. translators: debug console log. Dialogue file is empty while LLM replacement mode is active.
+#: includes/core/frontend-functions.php:933
+msgid "loadExternalDialog: LLM 置換会話モードのため会話ファイルが空です。LLM 生成に依存します"
+msgstr ""
+
+#. translators: debug console log. Fallback dialogue data loaded but first line display is suppressed.
+#: includes/core/frontend-functions.php:935
+msgid "loadExternalDialog: LLM 置換会話モードで後備会話データを読み込みましたが、最初の一文は表示しません"
+msgstr ""
+
+#. translators: debug console log. Duplicate display of the first dialogue line was blocked.
+#: includes/core/frontend-functions.php:937
+msgid "loadExternalDialog: 最初の会話文を重複表示しようとしたため阻止しました"
+msgstr ""
+
+#. translators: debug console log. First built-in dialogue is skipped while asleep and not awakened.
+#: includes/core/frontend-functions.php:939
+msgid "🌙 睡眠モードでまだ目を覚ましていないため、最初の内蔵会話をスキップし、睡眠メッセージを維持します"
+msgstr ""
+
+#. translators: debug console warning. %s is the backend error message.
+#: includes/core/frontend-functions.php:941
+#, php-format
+msgid "loadExternalDialog: バックエンドがエラーを返したため、空の mpuMsgList をフォールバックとして設定します - %s"
+msgstr ""
+
+#. translators: debug console warning. Dialogue loading failed and an empty message list is used as fallback.
+#: includes/core/frontend-functions.php:943
+msgid "loadExternalDialog: 読み込みに失敗したため、空の mpuMsgList をフォールバックとして設定します"
+msgstr ""
+
+#. translators: debug console log. First-visitor greeting is skipped during sleep mode.
+#: includes/core/frontend-functions.php:955
+msgid "🌙 睡眠モード：初回訪問者への挨拶をスキップし、キャラクターを休ませます"
+msgstr ""
+
+#. translators: debug console log. First-visitor greeting was added to history and saved.
+#: includes/core/frontend-functions.php:959
+msgid "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました"
+msgstr ""
+
+#. translators: debug console warning. Chat history cannot be saved because the save function is missing.
+#: includes/core/frontend-functions.php:961
+msgid "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません"
+msgstr ""
+
+#. translators: debug console warning. Greeting cannot be added because chat history is unavailable.
+#: includes/core/frontend-functions.php:963
+msgid "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません"
+msgstr ""
+
+#. translators: debug console warning. %s is the failed first-visitor greeting response object.
+#: includes/core/frontend-functions.php:965
+#, php-format
+msgid "初回訪問者への挨拶に失敗しました：%s"
+msgstr ""
+
+#. translators: debug console log. Browser reload cleared chat history and the chat session ID.
+#: includes/core/frontend-functions.php:967
+msgid "🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました"
+msgstr ""
+
+#: includes/core/frontend-functions.php:972
+msgid "（…ああ、記事か。どれどれ…）"
+msgstr ""
+
+#: includes/core/frontend-functions.php:973
+msgid "（…あ、これ私の…）"
+msgstr ""
+
+#: includes/core/frontend-functions.php:975
+msgid "（…あ、知らない人間だ…）"
+msgstr ""
+
+#: includes/core/frontend-functions.php:976
+msgid "…ちょっと待って。API魔力が足りない"
+msgstr ""
+
+#: includes/core/frontend-functions.php:979
+msgid "ダイアログファイルの読み込みに失敗しました。後でもう一度お試しください。"
+msgstr ""
+
+#: includes/core/frontend-functions.php:980
+msgid "ダイアログファイルが空です。内容を確認してください"
+msgstr ""
+
+#: includes/core/frontend-functions.php:981
+msgid "ダイアログがまだ読み込まれていません。お待ちください..."
+msgstr ""
+
+#: includes/core/frontend-functions.php:982
+msgid "LLM 接続に失敗しました"
+msgstr ""
+
+#: includes/core/frontend-functions.php:983
+msgid "ダイアログデータの処理中にエラーが発生しました。後でもう一度お試しください。"
+msgstr ""
+
+#: includes/core/frontend-functions.php:984
+msgid "読み込みに失敗しました。後でもう一度お試しください。"
+msgstr ""
+
+#: includes/core/frontend-functions.php:985
+msgid "エラーが発生しました。後でもう一度お試しください。"
+msgstr ""
+
+#: includes/core/frontend-functions.php:986
+msgid "重複したリクエストが存在します。後でもう一度お試しください。"
+msgstr ""
+
+#: includes/core/frontend-functions.php:987
+msgid "リクエストに失敗しました"
+msgstr ""
+
+#: includes/core/frontend-functions.php:988
+#: includes/rest/class-mpu-rest-dialog.php:364
+msgid "セキュリティ検証に失敗しました"
+msgstr ""
+
+#: includes/core/frontend-functions.php:989
+msgid "アニメーションモジュールの読み込みに失敗しました。ページを更新してください。"
+msgstr ""
+
+#: includes/core/frontend-functions.php:990
+msgid "（…通信状況が良くないみたいだ…）"
+msgstr ""
+
+#: includes/core/frontend-functions.php:992
+msgid "……"
+msgstr ""
+
+#: includes/core/frontend-functions.php:993
+msgid "何か話したいことはありますか？"
+msgstr ""
+
+#: includes/core/frontend-functions.php:995
+msgid "…うーん、そうだね…"
+msgstr ""
+
+#: includes/core/frontend-functions.php:996
+#, php-format
+msgid "（…%sを実行中…）"
+msgstr ""
+
+#: includes/core/frontend-functions.php:999
+msgid "考え中…"
+msgstr ""
+
+#: includes/core/frontend-functions.php:1000
+#: includes/core/frontend-functions.php:1002
+msgid "応答中…"
+msgstr ""
+
+#: includes/core/frontend-functions.php:1001
+msgid "調べてる…"
+msgstr ""
+
+#: includes/core/frontend-functions.php:1003
+msgid "エラー"
+msgstr ""
+
+#: includes/core/frontend-functions.php:1004
+msgid "タイムアウト"
+msgstr ""
+
+#: includes/core/frontend-functions.php:1005
+msgid "混雑中…"
+msgstr ""
+
+#: includes/core/frontend-functions.php:1040
+msgid "キャラを表示 ▲"
+msgstr ""
+
+#: includes/core/frontend-functions.php:1042
+msgid "会話を表示 ▲"
+msgstr ""
+
+#: includes/core/frontend-functions.php:1043
+msgid "会話を隠す ▼"
+msgstr ""
+
+#: includes/core/network-functions.php:312
+#, php-format
+msgid "リクエストが多すぎます。%d 秒後に再試行してください"
+msgstr ""
+
+#: includes/core/ukagaka-functions.php:178
+msgid "読み込み失敗：再帰制限"
+msgstr ""
+
+#: includes/core/ukagaka-functions.php:209
+#: includes/core/ukagaka-functions.php:438
+msgid "ダイアログファイルが見つかりません"
+msgstr ""
+
+#: includes/core/ukagaka-functions.php:235
+msgid "読み込みエラー"
+msgstr ""
+
+#: includes/core/ukagaka-functions.php:427
+msgid "不正なダイアログファイル名です"
+msgstr ""
+
+#: includes/core/ukagaka-functions.php:440
+msgid "ダイアログファイルが大きすぎます。読み込みに失敗しました"
+msgstr ""
+
+#: includes/core/ukagaka-functions.php:442
+msgid "ダイアログファイルを読み込めません"
+msgstr ""
+
+#: includes/core/ukagaka-functions.php:455
+msgid "JSONファイルの形式が正しくありません"
+msgstr ""
+
+#: includes/llm/chat-integrity.php:77
+msgid "對話歷史驗證失敗。請重新開啟對話後再試一次。"
+msgstr ""
+
+#: includes/llm/class-mpu-chat-lock.php:54
+msgid "前の返答がまだ処理中です。少し待ってからもう一度試してください。"
+msgstr ""
+
+#: includes/llm/diary-functions.php:473
+msgid "日記機能が正しく設定されていません"
+msgstr ""
+
+#: includes/llm/diary-functions.php:497
+msgid "AI 機能モジュールが読み込まれていません"
+msgstr ""
+
+#: includes/llm/diary-functions.php:776
+#: includes/rest/class-mpu-rest-base.php:72
+msgid "権限が不足しています"
+msgstr ""
+
+#: includes/llm/diary-functions.php:783
+msgid "日記機能が正しく設定されていません。先に AI プロバイダーを設定してください"
+msgstr ""
+
+#: includes/llm/diary-functions.php:791
+msgid "生成に失敗しました："
+msgstr ""
+
+#: includes/llm/diary-functions.php:799
+msgid "投稿に失敗しました："
+msgstr ""
+
+#: includes/llm/diary-functions.php:806
+#, php-format
+msgid "日記を投稿しました！<a href=\"%s\" target=\"_blank\">記事を見る</a>%s"
+msgstr ""
+
+#: includes/llm/llm-functions.php:118
+msgid "Ollama エンドポイントを空にすることはできません"
+msgstr ""
+
+#: includes/llm/llm-functions.php:126
+msgid "Ollama エンドポイントは有効な HTTP または HTTPS URL である必要があります"
+msgstr ""
+
+#: includes/llm/llm-functions.php:132
+msgid "Ollama エンドポイント URL を解析できません"
+msgstr ""
+
+#: includes/llm/llm-functions.php:137
+msgid "Ollama エンドポイントは HTTP または HTTPS プロトコルを使用する必要があります"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-base.php:71
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:377
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:430
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:534
+#, php-format
+msgid "HTTP %s エラー"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:107
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:240
+#, php-format
+msgid "Claude API リクエストに失敗しました：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:120
+msgid "Claude API レスポンス形式が正しくありません"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:172
+msgid "Claude API レスポンスの内容が空です"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:175
+msgid "Claude API のツール呼び出し回数が多すぎます"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:312
+msgid "Claude から有効なレスポンスが返されませんでした"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:315
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:553
+msgid "Claude のツール呼び出し回数が多すぎます"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:341
+msgid "Claude API キーが設定されていません"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:359
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:404
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:516
+#, php-format
+msgid "接続に失敗しました：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:369
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:422
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:526
+#, php-format
+msgid "接続成功。モデルが正常に応答しています（プレビュー：%s...）"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:371
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:424
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:528
+msgid "接続は成功しましたが、レスポンス形式が異常でモデル出力を解析できません"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-claude.php:380
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:433
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:537
+#, php-format
+msgid "API キーが無効か、権限が不足しています：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-factory.php:40
+#, php-format
+msgid "Unsupported AI provider: %s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:114
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:271
+#, php-format
+msgid "Gemini API リクエストに失敗しました：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:140
+msgid "Gemini API レスポンスが空です"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:197
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:359
+msgid "Gemini API レスポンス形式を識別できません"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:200
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:362
+msgid "Gemini API のツール呼び出し回数が多すぎます"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:297
+msgid "Gemini から有効なレスポンスが返されませんでした"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:388
+msgid "Gemini API キーが設定されていません"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-gemini.php:435
+#, php-format
+msgid "モデルが存在しません（%s）：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:212
+msgid "Ollama のツール呼び出し回数が多すぎます"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:261
+#, php-format
+msgid "Ollama エンドポイントの形式が正しくありません：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:345
+msgid "Ollama API レスポンス形式が正しくありません"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:386
+msgid "Ollama API レスポンスの内容が空です"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:389
+msgid "Ollama API のツール呼び出し回数が多すぎます"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:405
+#, php-format
+msgid "Ollama 接続タイムアウト（%s 秒待機済み）。リモート接続は時間がかかる場合があります。Cloudflare Tunnel やネットワーク状態を確認してください。"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:406
+#, php-format
+msgid "Ollama 接続タイムアウト（%s 秒待機済み）。Ollama サービスが正常に動作しているか確認してください。"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:412
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:716
+#, php-format
+msgid "リモート Ollama サービスに接続できません。Cloudflare Tunnel が動作しているか、エンドポイント URL が正しいか確認してください。エラー：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:413
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:717
+#, php-format
+msgid "Ollama サービスに接続できません。Ollama が動作しているか確認してください。エラー：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:417
+#, php-format
+msgid "Ollama API リクエストに失敗しました：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:649
+msgid "Ollama から有効なレスポンスが返されませんでした。モデルのレスポンス形式を確認するか、思考モードの有効化をお試しください。"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:673
+msgid "エンドポイントの形式が無効です。完全な http:// または https:// URL を入力してください"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:709
+#, php-format
+msgid "接続タイムアウト（%s 秒待機済み）。リモート接続は時間がかかる場合があります。Cloudflare Tunnel やネットワーク状態を確認してください。"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:710
+#, php-format
+msgid "接続タイムアウト（%s 秒待機済み）。Ollama サービスが正常に動作しているか確認してください。"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:721
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:761
+msgid "リモート"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:721
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:761
+msgid "ローカル"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:722
+#, php-format
+msgid "%s接続に失敗しました：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:763
+#, php-format
+msgid "接続成功（%s接続）。モデルが正常に応答しています（プレビュー：%s...）"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:770
+#, php-format
+msgid "接続成功。ただしモデルは思考過程のみを返しました（プレビュー：%s...）。実際の使用時にはコンテンツが生成されるはずです。"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:780
+#, php-format
+msgid "接続は成功しましたが、レスポンス形式が異常でモデル出力を解析できません。%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-ollama.php:786
+#, php-format
+msgid "HTTP %s：Ollama が動作しているかモデルがダウンロード済みか確認してください"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:224
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:473
+msgid "OpenAI のツール呼び出し回数が多すぎます"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:295
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:417
+#, php-format
+msgid "OpenAI API リクエストに失敗しました：%s"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:308
+msgid "OpenAI API レスポンス形式が正しくありません"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:346
+msgid "OpenAI API レスポンスの内容が空です"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:349
+msgid "OpenAI API のツール呼び出し回数が多すぎます"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:470
+msgid "OpenAI から有効なレスポンスが返されませんでした"
+msgstr ""
+
+#: includes/llm/providers/class-mpu-ai-provider-openai.php:499
+msgid "OpenAI API キーが設定されていません"
+msgstr ""
+
+#: includes/llm/tool-loop-guard.php:110
+#, php-format
+msgid "ツール呼び出しのループを検出しました：ツール \"%s\" が %d 回連続して繰り返し呼び出されています。無限ループを防ぐため中止します。"
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-ai-crawler-ability.php:28
+msgid "Get Recent AI Crawlers"
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-ai-crawler-ability.php:29
+msgid "Detect AI/LLM training crawlers (GPTBot, ClaudeBot, Bytespider, Google-Extended, etc.) seen recently by matching Slimstat user agents."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-ai-crawler-ability.php:36
+msgid "Time window in seconds (60–86400, default 600)."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-ai-crawler-ability.php:91
+#, php-format
+msgid "No AI crawlers detected in the past %d seconds."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-ai-crawler-ability.php:99
+#, php-format
+msgid "Past %1$d seconds: %2$d AI crawler hits across %3$d distinct crawlers (top: %4$s)."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-visitor-pulse-ability.php:26
+msgid "Get Visitor Pulse"
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-visitor-pulse-ability.php:27
+msgid "Retrieve recent visitor pulse: total requests, unique IPs, country list, and bot/human split. Source: Slimstat (read-only)."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-visitor-pulse-ability.php:34
+msgid "Time window in minutes (1–1440, default 60)."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-visitor-pulse-ability.php:77
+#, php-format
+msgid "Past %1$d minutes: %2$d unique visitors from %3$d countries (%4$d bots, %5$d humans)."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:27
+msgid "Get Bot Blocker Stats"
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:28
+msgid "Retrieve statistics from the Moelog Bot Blocker, including the number of banned IPs and intercept statistics by type."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:44
+msgid "Ban IP Address"
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:45
+msgid "Manually add an IP address to the Moelog Bot Blocker ban list."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:52
+msgid "The IPv4 or IPv6 address to ban."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:67
+msgid "Clear Bot Blocker Data"
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:68
+msgid "Clear the Moelog Bot Blocker intercept records or reset the IP ban list."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:77
+msgid "\"logs\" — deletes all intercept log records from the database. \"ips\" — clears the banned IP list only. \"both\" — clears both."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:140
+msgid "IP address is required."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:146
+msgid "The provided IP address is invalid."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:191
+msgid "Cleared the IP ban list."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:202
+msgid "Cleared the log table and reset event states."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:204
+msgid "Log clear function not available."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php:209
+#, php-format
+msgid "No valid target specified (received: %s)."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-postviews-ability.php:25
+msgid "Get a list of most viewed posts (requires WP-PostViews plugin)."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-postviews-ability.php:32
+msgid "Number of posts to retrieve (default: 5, max: 10)"
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-postviews-ability.php:37
+msgid "Number of days to look back for statistics (0 = all time, default: 30)"
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-postviews-ability.php:106
+#, php-format
+msgid "Showing posts published in the last %d days, ordered by total views."
+msgstr ""
+
+#: includes/mcp-tools/abilities/class-wp-postviews-ability.php:108
+msgid "Showing all-time most viewed posts."
+msgstr ""
+
+#: includes/mcp-tools/manager.php:46
+msgid "Abilities provided by MP Ukagaka plugin."
+msgstr ""
+
+#: includes/rest/class-mpu-rest-base.php:65
+msgid "先にログインしてください"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-chat.php:71
+#: includes/rest/class-mpu-rest-chat.php:74
+#: includes/rest/class-mpu-rest-chat.php:80
+#: includes/rest/class-mpu-rest-chat.php:154
+#: includes/rest/class-mpu-rest-chat.php:314
+#: includes/rest/class-mpu-rest-chat.php:477
+#: includes/rest/class-mpu-rest-chat.php:544
+#: includes/rest/class-mpu-rest-chat.php:712
+#: includes/rest/class-mpu-rest-chat.php:1078
+#: includes/rest/class-mpu-rest-dialog.php:244
+#: includes/rest/class-mpu-rest-dialog.php:251
+#: includes/rest/class-mpu-rest-dialog.php:258
+#: includes/rest/class-mpu-rest-dialog.php:261
+#: includes/rest/class-mpu-rest-dialog.php:267
+msgid "不明なエラーが発生しました。ログを確認してください"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-chat.php:1148
+msgid "現在のプロバイダーはストリーミングモードに対応していません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-dialog.php:133
+#: includes/rest/class-mpu-rest-dialog.php:158
+#: includes/rest/class-mpu-rest-dialog.php:166
+msgid "ダイアログ内容がありません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-dialog.php:137
+#: includes/rest/class-mpu-rest-dialog.php:192
+msgid "ローカルの Ollama が起動していません。Ollama サービスが起動しているか確認してください。"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-dialog.php:552
+msgid "キャラクター ID パラメーター（personality_id / ukagaka_num）が不足しています"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-dialog.php:588
+msgid "キャラクターが一時的に起こされました（深い眠り中。ページを更新すると再び眠ります）"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-dialog.php:598
+msgid "現在キャラクターを起こすことができません（二度寝時間外か、機能が無効の可能性があります）"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-dialog.php:617
+msgid "キャラクターが起こされました"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-ghost.php:230
+msgid "キャラクター一覧"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-ghost.php:232
+msgid "選択可能なキャラクターがありません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-ghost.php:286
+msgid "キャラクターを変更"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-memory.php:40
+msgid "しばらく待ってから再度お試しください"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-memory.php:46
+msgid "履歴が空です"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-memory.php:65
+#: includes/rest/class-mpu-rest-memory.php:135
+msgid "保存できる記憶はありませんでした"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-memory.php:105
+msgid "AIの返答を解析できませんでした"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-memory.php:146
+msgid "記憶を更新しました"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-observation.php:37
+msgid "この type は許可されていません。"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-observation.php:42
+msgid "不正な observation content です。"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-test.php:104
+#, php-format
+msgid "%d 件のキャッシュを削除しました"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-test.php:106
+msgid "キャッシュ削除機能は利用できません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-test.php:125
+msgid "緯度パラメーターが無効です（-90〜90 の範囲で指定してください）"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-test.php:128
+msgid "経度パラメーターが無効です（-180〜180 の範囲で指定してください）"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-test.php:136
+msgid "天気機能モジュールは利用できません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-test.php:141
+msgid "天気データを取得できません。ネットワーク接続および Open-Meteo API の状態を確認してください"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-test.php:167
+#, php-format
+msgid "接続成功！現在：%s %.0f°C%s / 明日：%s %.0f~%.0f°C%s"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:49
+#: includes/rest/class-mpu-rest-touch.php:142
+msgid "AI機能が有効になっていません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:61
+msgid "装飾の種類が指定されていません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:71
+msgid "不明な装飾の種類です"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:85
+#: includes/rest/class-mpu-rest-touch.php:204
+#, php-format
+msgid "%s API Key が設定されていません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:154
+msgid "タッチエリアが指定されていません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:174
+msgid "不明なタッチエリアです"
+msgstr ""
+
+#: options/options.php:361
+msgid "AI Provider"
+msgstr ""
+
+#: options/options.php:372
+msgid "Documentation"
+msgstr ""
+
+#: options/options.php:383
+msgid "Links"
+msgstr ""
+
+#: options/options_create.php:84
+msgid "角色名稱："
+msgstr ""
+
+#: options/options_create.php:89
+msgid "角色 ID："
+msgstr ""
+
+#: options/options_create.php:94
+msgid "Shell 路徑："
+msgstr ""
+
+#: options/options_create.php:107
+msgid "作者："
+msgstr ""
+
+#: options/options_create.php:114
+msgid "描述："
+msgstr ""
+
+#: options/options_create.php:127
+msgid "確定創建"
+msgstr ""
+
+#: options/options_create.php:128
+msgid "取消"
+msgstr ""
+
+#: options/options_dialog.php:19
+msgid "💬 通用會話"
+msgstr ""
+
+#: options/options_general.php:28
+msgid "角色人格："
+msgstr ""
+
+#: options/options_general.php:47
+msgid "AI 回應語言："
+msgstr ""
+
+#: options/options_general.php:54
+msgid "用於 {{language}} prompt 變數，也會同步更新 AI 設定頁的語言。"
+msgstr ""
+
+#: options/options_general.php:208
+msgid "當偽春菜無法顯示（主題尾部無 wp_footer() 函數）或 wp_footer() 位置導致樣式異常時，請勾選此項"
+msgstr ""
+
+#: options/options_general.php:212
+msgid "這是 WordPress 常用方式，但若主題尾部無 wp_footer() 函數，偽春菜將無法顯示"
+msgstr ""
+
+#: options/options_page_ai.php:11
+msgid "🧠 AI 設定 (Context Awareness)"
+msgstr ""
+
+#: options/options_page_ai.php:58
+msgid "Legacy 檔案使用中"
+msgstr ""
+
+#: options/options_page_ai.php:59
+msgid "system_prompt.md 的內容將作為 System Prompt。下方 textarea 的內容不會被使用。"
+msgstr ""
+
+#: options/options_page_ai.php:66
+msgid "manifest.json 使用中"
+msgstr ""
+
+#: options/options_page_ai.php:67
+msgid "manifest.json 的 system_prompt 欄位將作為 System Prompt。下方 textarea 的內容不會被使用。"
+msgstr ""
+
+#: options/options_page_ai.php:74
+msgid "Textarea 使用中"
+msgstr ""
+
+#: options/options_page_ai.php:75
+msgid "下方 textarea 的內容將作為 System Prompt。"
+msgstr ""
+
+#: options/options_page_ai.php:82
+msgid "未設定（內建預設值）"
+msgstr ""
+
+#: options/options_page_ai.php:83
+msgid "沒有找到任何設定，將使用內建的預設 System Prompt。"
+msgstr ""
+
+#: options/options_page_ai.php:109
+msgid "最大輸出 Token (Max Output Tokens)："
+msgstr ""
+
+#: options/options_page_ai.php:111
+msgid "設定 AI 回應的最大長度（Token 數）。預設 1000。增加此值可避免回應被截斷，但會增加 API 成本（如有）。"
+msgstr ""
+
+#: options/options_page_ai.php:149
+msgid "首次訪客打招呼提示詞（後備）："
+msgstr ""
+
+#: options/options_page_ai.php:152
+msgid "角色的 <code>dynamics.json</code> 中有 <code>greet_first_visit</code> 設定時，會優先使用該設定作為會話指示。此欄位僅在角色無 dynamics.json 設定時作為後備使用。<br>可使用 {{變數名}} 進行變數替換（如：{{ukagaka_display_name}}、{{time_context}}、{{language}} 等）。"
+msgstr ""
+
+#: options/options_page_ai.php:215
+msgid "🧠 管理人の記憶 (User Memory)"
+msgstr ""
+
+#: options/options_page_ai.php:219
+#, php-format
+msgid "最終更新: %s"
+msgstr ""
+
+#: options/options_page_ai.php:231
+msgid "記憶を消去"
+msgstr ""
+
+#: options/options_page_ai.php:232
+msgid "管理人の記憶を全て消去しますか？"
+msgstr ""
+
+#: options/options_page_ai.php:236
+msgid "保存された記憶はありません。"
+msgstr ""
+
+#: options/options_page_ai.php:240
+msgid "チャット画面で /remember と入力すると、フリーレンが会話から記憶を抽出します。"
+msgstr ""
+
+#: options/options_page_bot_blocker.php:219
+msgid "IP"
+msgstr ""
+
+#: options/options_page_diary.php:65
+msgid "📊 Cron 執行狀態"
+msgstr ""
+
+#: options/options_page_diary.php:67
+msgid "Cron 目前正在執行中…"
+msgstr ""
+
+#: options/options_page_diary.php:105
+msgid "尚無執行記錄。"
+msgstr ""
+
+#: options/options_page_diary.php:115
+msgid "⚠️ 排程事件未註冊，請停用後重新啟用插件。"
+msgstr ""
+
+#: options/options_page_diary.php:275
+#: options/options_page_llm.php:148
+msgid "Claude Sonnet 4.6 (推薦)"
+msgstr ""
+
+#: options/options_page_diary.php:277
+#: options/options_page_llm.php:150
+msgid "Claude Opus 4.7 (進階)"
+msgstr ""
+
+#: options/options_page_diary.php:378
+msgid "生成中..."
+msgstr ""
+
+#: options/options_page_diary.php:397
+msgid "測試失敗"
+msgstr ""
