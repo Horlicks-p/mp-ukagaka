@@ -58,7 +58,7 @@ const overrides = {
   },
   "js/ukagaka-core.js::🌙 睡眠模式且尚未被喚醒：不啟動自動對話，只接受 OK 鈕觸發": {
     key: "autoTalkSkippedUnawokenSleepMode",
-    jaSource: "🌙 睡眠モードでまだ起床していないため、自動会話を開始せず OK ボタンのみ受け付けます",
+    jaSource: "🌙 睡眠モードでまだ目を覚ましていないため、自動会話を開始せず OK ボタンのみ受け付けます",
     translatorComment: "debug console log. Auto-talk is disabled while the character is asleep and not awakened.",
   },
   "js/ukagaka-core.js::🌙 睡眠模式啟用（00:00~06:00），間隔調整為 / ms（原始:": {
@@ -88,7 +88,7 @@ const overrides = {
   },
   "js/ukagaka-core.js::🌙 睡眠模式且尚未被喚醒：跳過本次自動對話，只接受 OK 鈕觸發": {
     key: "autoTalkTickSkippedUnawokenSleepMode",
-    jaSource: "🌙 睡眠モードでまだ起床していないため、今回の自動会話をスキップし OK ボタンのみ受け付けます",
+    jaSource: "🌙 睡眠モードでまだ目を覚ましていないため、今回の自動会話をスキップし OK ボタンのみ受け付けます",
     translatorComment: "debug console log. A scheduled auto-talk tick is skipped while asleep and not awakened.",
   },
   "js/ukagaka-core.js::🛡️ Bot Alert：偵測到 Bot 入侵，Bot 名稱:": {
@@ -173,7 +173,7 @@ const overrides = {
   },
   "js/ukagaka-core.js::🌙 睡眠模式且尚未被喚醒：跳過 / 觸發的對話，只接受 OK 鈕觸發": {
     key: "nextMessageSkippedUnawokenSleepMode",
-    jaSource: "🌙 睡眠モードでまだ起床していないため、%s トリガーの会話をスキップし OK ボタンのみ受け付けます",
+    jaSource: "🌙 睡眠モードでまだ目を覚ましていないため、%s トリガーの会話をスキップし OK ボタンのみ受け付けます",
     translatorComment: "debug console log. %s is the trigger that was skipped.",
   },
   "js/ukagaka-core.js::mpu_nextmsg: 頁面感知 AI 正在進行中，跳過自動/啟動對話": {
@@ -493,27 +493,27 @@ const overrides = {
   },
   "js/ukagaka-chat.js::喚醒請求已取消：缺少 personality_id/ukagaka_num，避免人格狀態錯亂": {
     key: "wakeRequestCancelledMissingIdentity",
-    jaSource: "起床リクエストをキャンセルしました：personality_id/ukagaka_num が不足しているため、人格状態の混乱を避けます",
+    jaSource: "目覚めリクエストをキャンセルしました：personality_id/ukagaka_num が不足しているため、人格状態の混乱を避けます",
     translatorComment: "debug console log. Wake request is cancelled because identity data is missing.",
   },
   "js/ukagaka-chat.js::喚醒成功:": {
     key: "wakeRequestSucceeded",
-    jaSource: "起床に成功しました：%s",
+    jaSource: "目覚めに成功しました：%s",
     translatorComment: "debug console log. %s is the wake request response object.",
   },
   "js/ukagaka-chat.js::這是一次深度睡眠期間的暫時喚醒": {
     key: "wakeRequestTemporaryDuringDeepSleep",
-    jaSource: "これは深い睡眠中の一時的な起床です",
+    jaSource: "これは深い睡眠中の一時的な目覚めです",
     translatorComment: "debug console log. Wake-up was temporary during deep sleep.",
   },
   "js/ukagaka-chat.js::喚醒請求回應失敗:": {
     key: "wakeRequestResponseFailed",
-    jaSource: "起床リクエストの応答が失敗しました：%s",
+    jaSource: "目覚めリクエストの応答が失敗しました：%s",
     translatorComment: "debug console log. %s is the failed wake response object.",
   },
   "js/ukagaka-chat.js::喚醒請求失敗，但不影響正常操作:": {
     key: "wakeRequestFailedNonBlocking",
-    jaSource: "起床リクエストに失敗しましたが、通常動作には影響しません：%s",
+    jaSource: "目覚めリクエストに失敗しましたが、通常動作には影響しません：%s",
     translatorComment: "debug console log. %s is the caught wake request error.",
   },
 };
