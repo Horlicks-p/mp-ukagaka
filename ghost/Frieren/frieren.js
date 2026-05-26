@@ -245,11 +245,7 @@
 
           // [Fix] 加回 Debug Log，方便監測切換時機
           if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-            mpuLogger.log(
-              shouldShowSleep
-                ? "🌙 顯示睡眠圖片 frieren[s].png"
-                : "☀️ 顯示閒置圖片 frieren[0].png"
-            );
+            mpuLogger.logL("frierenSleepIdleImageSelected", "🌙 睡眠画像 frieren[s].png を表示します / ☀️ アイドル画像 frieren[0].png を表示します");
           }
       };
 
@@ -434,7 +430,7 @@
       // 防止重複載入（已載入過就跳過）
       if (this._decorationsLoaded) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("[MP Ukagaka] 裝飾物已載入，跳過重複載入");
+          mpuLogger.logL("frierenDecorationsAlreadyLoaded", "装飾品は読み込み済みのため、重複読み込みをスキップします");
         }
         return;
       }
@@ -544,9 +540,7 @@
       }
 
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-        mpuLogger.log(
-          "[MP Ukagaka] 已從 JSON 配置載入 " + sortedConfig.length + " 個裝飾物"
-        );
+        mpuLogger.logF("frierenDecorationConfigLoaded", "JSON 設定から %s 個の装飾品を読み込みました", sortedConfig.length);
       }
 
       this.setupDecorationClickThrough();
@@ -684,14 +678,14 @@
       decoration.addEventListener("click", (e) => {
         if (!this.isPixelHit(config.type, decoration, e)) {
           if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-            mpuLogger.log("點擊到透明區域，忽略:", config.type);
+            mpuLogger.logF("frierenDecorationTransparentClickIgnored", "透明領域がクリックされたため無視します：%s", config.type);
           }
           return;
         }
 
         e.stopPropagation();
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("裝飾物被點擊（像素命中）:", config.type);
+          mpuLogger.logF("frierenDecorationPixelHitClicked", "装飾品がクリックされました（ピクセルヒット）：%s", config.type);
         }
         this.handleDecorationClick(config.type);
       });
@@ -743,11 +737,7 @@
       });
 
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-        mpuLogger.log(
-          "像素檢測 Canvas 已創建:",
-          type,
-          hitCanvas.width + "x" + hitCanvas.height
-        );
+        mpuLogger.logF("frierenPixelDetectionCanvasCreated", "ピクセル検出 Canvas を作成しました：%1$s、%2$s", type, hitCanvas.width, hitCanvas.height);
       }
     },
 
@@ -788,14 +778,7 @@
         const alpha = imageData.data[3];
 
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log(
-            "像素檢測:",
-            type,
-            "x=" + pixelX,
-            "y=" + pixelY,
-            "alpha=" + alpha,
-            "threshold=" + this.pixelHitThreshold
-          );
+          mpuLogger.logF("frierenPixelDetectionSample", "ピクセル検出：%1$s、x=%2$s、y=%3$s、alpha=%4$s、threshold=%5$s", type, pixelX, pixelY, alpha, this.pixelHitThreshold);
         }
 
         return alpha > this.pixelHitThreshold;
@@ -876,7 +859,7 @@
       if ((this.isSleepMessage() || isForced) && !this.sleepModeAwoken) {
         this.sleepModeAwoken = true;
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("☀️ 芙莉蓮被喚醒了！" + (isForced ? " (forceWakeUp)" : ""));
+          mpuLogger.logL("frierenAwakened", "☀️ フリーレンが目を覚ましました！");
         }
         return true;
       }
@@ -898,7 +881,7 @@
       }
 
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-        mpuLogger.log("👀 播放醒來動畫 frieren[w1-w5].png");
+        mpuLogger.logL("frierenWakeAnimationPlaying", "👀 目覚めアニメーション frieren[w1-w5].png を再生します");
       }
 
       this.stopFrierenAnimation();
@@ -1007,17 +990,17 @@
         if (needWakeUpAnimation) {
           const self = this;
           if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-            mpuLogger.log("🌅 開始喚醒動畫, skipBookFlip =", skipBookFlip);
+            mpuLogger.logF("frierenWakeAnimationStarted", "🌅 目覚めアニメーションを開始します。skipBookFlip = %s", skipBookFlip);
           }
           this.playWakeUpAnimation(function () {
             if (!skipBookFlip) {
               if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-                mpuLogger.log("📖 喚醒後播放翻書動畫");
+                mpuLogger.logL("frierenPostWakeBookFlipPlaying", "📖 目覚め後にページめくりアニメーションを再生します");
               }
               self.playFrierenBookFlipAnimation();
             } else {
               if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-                mpuLogger.log("📖 喚醒後跳過翻書動畫");
+                mpuLogger.logL("frierenPostWakeBookFlipSkipped", "📖 目覚め後のページめくりアニメーションをスキップします");
               }
             }
             if (onWakeUpComplete) {
@@ -1030,14 +1013,14 @@
 
       if (this.isSleepMessage()) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("🌙 睡眠模式：跳過翻書動畫");
+          mpuLogger.logL("frierenSleepModeBookFlipSkipped", "🌙 睡眠モード：ページめくりアニメーションをスキップします");
         }
         return false;
       }
 
       if (skipBookFlip) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("📖 手動喚醒對話：跳過翻書動畫");
+          mpuLogger.logL("frierenManualWakeDialogueBookFlipSkipped", "📖 手動の目覚め会話：ページめくりアニメーションをスキップします");
         }
         if (onWakeUpComplete) {
           onWakeUpComplete();
@@ -1070,10 +1053,7 @@
      */
     handleDecorationClick: function (decorationType) {
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-        mpuLogger.log(
-          "handleDecorationClick 被調用，裝飾物類型:",
-          decorationType
-        );
+        mpuLogger.logF("frierenDecorationClickHandled", "handleDecorationClick が呼び出されました。装飾品タイプ：%s", decorationType);
         mpuLogger.log(
           "mpuAiEnabled:",
           typeof mpuAiEnabled !== "undefined" ? mpuAiEnabled : "undefined"
@@ -1082,14 +1062,14 @@
 
       if (this.decorationChatInProgress) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("裝飾物對話正在進行中，忽略本次點擊");
+          mpuLogger.logL("frierenDecorationClickIgnoredDialogActive", "装飾品会話中のため、今回のクリックを無視します");
         }
         return;
       }
 
       if (typeof mpuAiEnabled === "undefined" || !mpuAiEnabled) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("AI 功能未啟用，跳過裝飾物對話");
+          mpuLogger.logL("frierenDecorationDialogSkippedAiDisabled", "AI 機能が有効ではないため、装飾品会話をスキップします");
         }
         return;
       }
@@ -1113,7 +1093,7 @@
             controller.abort();
             mpuRequestManager.activeRequests.delete(requestId);
             if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-              mpuLogger.log("裝飾物點擊：已取消請求", requestId);
+              mpuLogger.logL("frierenDecorationClickRequestCancelled", "装飾品クリック：リクエストをキャンセルしました");
             }
           }
         });
@@ -1319,7 +1299,7 @@
       }
 
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-        mpuLogger.log("裝飾物對話完成，狀態已恢復");
+        mpuLogger.logL("frierenDecorationDialogCompletedStateRestored", "装飾品会話が完了し、状態を復元しました");
       }
     },
 
@@ -1366,12 +1346,7 @@
         if (zoneName.startsWith("_")) continue;
         if (relativeY >= zone.yStart && relativeY < zone.yEnd) {
           if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-            mpuLogger.log(
-              "觸摸區域檢測:",
-              zoneName,
-              "relativeY=",
-              relativeY.toFixed(2)
-            );
+            mpuLogger.logF("frierenTouchZoneDetected", "タッチ領域検出：%1$s、relativeY=%2$s", zoneName, relativeY.toFixed(2));
           }
           return zoneName;
         }
@@ -1386,7 +1361,7 @@
      */
     handleTouchZone: function (zoneName) {
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-        mpuLogger.log("handleTouchZone 被調用，區域:", zoneName);
+        mpuLogger.logF("frierenTouchZoneHandled", "handleTouchZone が呼び出されました。領域：%s", zoneName);
       }
 
       if (this.decorationChatInProgress) {
@@ -1395,14 +1370,14 @@
 
       if (this.isZoneInCooldown(zoneName)) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("區域冷卻中，忽略點擊:", zoneName);
+          mpuLogger.logF("frierenTouchZoneClickIgnoredCooldown", "領域がクールダウン中のため、クリックを無視します：%s", zoneName);
         }
         return;
       }
 
       if (this.recordZoneClick(zoneName)) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log("區域達到點擊上限，進入冷卻:", zoneName);
+          mpuLogger.logF("frierenTouchZoneClickLimitReached", "領域のクリック上限に達したため、クールダウンに入ります：%s", zoneName);
         }
         return;
       }
@@ -1430,7 +1405,7 @@
             controller.abort();
             mpuRequestManager.activeRequests.delete(requestId);
             if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-              mpuLogger.log("觸摸區域點擊：已取消請求", requestId);
+              mpuLogger.logL("frierenTouchZoneRequestCancelled", "タッチ領域クリック：リクエストをキャンセルしました");
             }
           }
         });
@@ -1622,7 +1597,7 @@
       );
 
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-        mpuLogger.log("角色觸摸事件已設置");
+        mpuLogger.logL("frierenTouchEventsBound", "キャラクターのタッチイベントを設定しました");
       }
     },
 
@@ -1689,13 +1664,7 @@
         this.touchZoneCooldown[zoneName] = now + limit.cooldownMs;
 
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-          mpuLogger.log(
-            "區域進入冷卻:",
-            zoneName,
-            "冷卻時間:",
-            limit.cooldownMs / 1000,
-            "秒"
-          );
+          mpuLogger.logF("frierenTouchZoneCooldownStarted", "領域がクールダウンに入りました：%1$s、クールダウン時間：%2$s 秒", zoneName, limit.cooldownMs / 1000);
         }
 
         return true;

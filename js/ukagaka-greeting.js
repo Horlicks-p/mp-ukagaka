@@ -9,7 +9,7 @@ function mpu_greet_first_visitor(settings) {
     // 🌙 睡眠模式檢查：讓芙莉蓮好好睡覺，不打擾訪客
     const isDeepSleep = mpu_isDeepSleepTime();
     if (isDeepSleep) {
-      mpuLogger.log("🌙 睡眠模式：跳過初次訪客打招呼，讓角色好好休息");
+      mpuLogger.logL("greetingSkippedSleepMode", "🌙 睡眠モード：初回訪問者への挨拶をスキップし、キャラクターを休ませます");
       resolve();
       return;
     }
@@ -29,7 +29,7 @@ function mpu_greet_first_visitor(settings) {
     })
       .then((visitorInfo) => {
         // 調試模式：記錄訪客資訊
-        mpuLogger.log("訪客資訊:", {
+        mpuLogger.logF("greetingVisitorInfo", "訪問者情報：%s", {
           referrer: visitorInfo.referrer || "無",
           referrer_host: visitorInfo.referrer_host || "無",
           search_engine: visitorInfo.search_engine || "無",
@@ -127,16 +127,12 @@ function mpu_greet_first_visitor(settings) {
 
             if (typeof mpu_saveChatHistory === "function") {
               mpu_saveChatHistory();
-              mpuLogger.log("mpu_greet_first_visitor: 問候已加入歷史並儲存");
+              mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
             } else {
-              mpuLogger.warn(
-                "mpu_greet_first_visitor: mpu_saveChatHistory 函數不存在，無法儲存對話歷史",
-              );
+              mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
             }
           } else {
-            mpuLogger.warn(
-              "mpu_greet_first_visitor: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史",
-            );
+            mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
           }
 
           // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
@@ -161,7 +157,7 @@ function mpu_greet_first_visitor(settings) {
             }, displayDurationMs));
           });
         } else {
-          mpuLogger.warn("首次訪客打招呼失敗:", res);
+          mpuLogger.warnF("greetingFirstVisitorFailed", "初回訪問者への挨拶に失敗しました：%s", res);
 
           // 檢查是否是速率限制錯誤（請求過於頻繁）
           const isRateLimit =

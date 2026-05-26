@@ -35,7 +35,7 @@
 
             if (!baseUrl) {
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                    mpuLogger.log('mpuEmojiManager: 表情基礎路徑未設定');
+                    mpuLogger.logL("emojiBasePathMissing", "mpuEmojiManager: 表情のベースパスが設定されていません");
                 }
                 return;
             }
@@ -47,7 +47,7 @@
             const imgContainer = document.getElementById('ukagaka_img');
             if (!imgContainer) {
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                    mpuLogger.log('mpuEmojiManager: 找不到 #ukagaka_img 容器');
+                    mpuLogger.logL("emojiContainerMissing", "mpuEmojiManager: #ukagaka_img コンテナが見つかりません");
                 }
                 return;
             }
@@ -81,7 +81,7 @@
             // 監聽錯誤
             emojiImg.onerror = () => {
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.warn) {
-                    mpuLogger.warn('mpuEmojiManager: 表情圖片載入失敗:', emojiUrl);
+                    mpuLogger.warnF("emojiImageLoadFailed", "mpuEmojiManager: 表情画像の読み込みに失敗しました：%s", emojiUrl);
                 }
                 this.hideEmoji(emojiImg);
             };
@@ -96,7 +96,7 @@
             }, this.displayDuration);
 
             if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                mpuLogger.log('mpuEmojiManager: 顯示表情:', emojiName);
+                mpuLogger.logF("emojiShown", "mpuEmojiManager: 表情を表示します：%s", emojiName);
             }
         },
 
@@ -213,7 +213,7 @@
                 }
 
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                    mpuLogger.log('mpuEmojiManager: 移除表情');
+                    mpuLogger.logL("emojiRemoved", "mpuEmojiManager: 表情を削除します");
                 }
             }
         },

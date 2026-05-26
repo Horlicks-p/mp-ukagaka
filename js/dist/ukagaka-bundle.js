@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-26T12:56:29.520Z
+ * Generated: 2026-05-26T13:19:50.351Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -2927,7 +2927,7 @@ jQuery(function () {
 
             if (!baseUrl) {
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                    mpuLogger.log('mpuEmojiManager: 表情基礎路徑未設定');
+                    mpuLogger.logL("emojiBasePathMissing", "mpuEmojiManager: 表情のベースパスが設定されていません");
                 }
                 return;
             }
@@ -2939,7 +2939,7 @@ jQuery(function () {
             const imgContainer = document.getElementById('ukagaka_img');
             if (!imgContainer) {
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                    mpuLogger.log('mpuEmojiManager: 找不到 #ukagaka_img 容器');
+                    mpuLogger.logL("emojiContainerMissing", "mpuEmojiManager: #ukagaka_img コンテナが見つかりません");
                 }
                 return;
             }
@@ -2973,7 +2973,7 @@ jQuery(function () {
             // 監聽錯誤
             emojiImg.onerror = () => {
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.warn) {
-                    mpuLogger.warn('mpuEmojiManager: 表情圖片載入失敗:', emojiUrl);
+                    mpuLogger.warnF("emojiImageLoadFailed", "mpuEmojiManager: 表情画像の読み込みに失敗しました：%s", emojiUrl);
                 }
                 this.hideEmoji(emojiImg);
             };
@@ -2988,7 +2988,7 @@ jQuery(function () {
             }, this.displayDuration);
 
             if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                mpuLogger.log('mpuEmojiManager: 顯示表情:', emojiName);
+                mpuLogger.logF("emojiShown", "mpuEmojiManager: 表情を表示します：%s", emojiName);
             }
         },
 
@@ -3105,7 +3105,7 @@ jQuery(function () {
                 }
 
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                    mpuLogger.log('mpuEmojiManager: 移除表情');
+                    mpuLogger.logL("emojiRemoved", "mpuEmojiManager: 表情を削除します");
                 }
             }
         },
@@ -3810,7 +3810,7 @@ function mpu_greet_first_visitor(settings) {
     // 🌙 睡眠模式檢查：讓芙莉蓮好好睡覺，不打擾訪客
     const isDeepSleep = mpu_isDeepSleepTime();
     if (isDeepSleep) {
-      mpuLogger.log("🌙 睡眠模式：跳過初次訪客打招呼，讓角色好好休息");
+      mpuLogger.logL("greetingSkippedSleepMode", "🌙 睡眠モード：初回訪問者への挨拶をスキップし、キャラクターを休ませます");
       resolve();
       return;
     }
@@ -3830,7 +3830,7 @@ function mpu_greet_first_visitor(settings) {
     })
       .then((visitorInfo) => {
         // 調試模式：記錄訪客資訊
-        mpuLogger.log("訪客資訊:", {
+        mpuLogger.logF("greetingVisitorInfo", "訪問者情報：%s", {
           referrer: visitorInfo.referrer || "無",
           referrer_host: visitorInfo.referrer_host || "無",
           search_engine: visitorInfo.search_engine || "無",
@@ -3928,16 +3928,12 @@ function mpu_greet_first_visitor(settings) {
 
             if (typeof mpu_saveChatHistory === "function") {
               mpu_saveChatHistory();
-              mpuLogger.log("mpu_greet_first_visitor: 問候已加入歷史並儲存");
+              mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
             } else {
-              mpuLogger.warn(
-                "mpu_greet_first_visitor: mpu_saveChatHistory 函數不存在，無法儲存對話歷史",
-              );
+              mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
             }
           } else {
-            mpuLogger.warn(
-              "mpu_greet_first_visitor: window.mpuChatHistory 未初始化或不是陣列，無法加入對話歷史",
-            );
+            mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
           }
 
           // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
@@ -3962,7 +3958,7 @@ function mpu_greet_first_visitor(settings) {
             }, displayDurationMs));
           });
         } else {
-          mpuLogger.warn("首次訪客打招呼失敗:", res);
+          mpuLogger.warnF("greetingFirstVisitorFailed", "初回訪問者への挨拶に失敗しました：%s", res);
 
           // 檢查是否是速率限制錯誤（請求過於頻繁）
           const isRateLimit =
@@ -4108,7 +4104,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   if (!hasShownInitialMsg) {
     // 睡眠模式下，如果初始訊息是睡眠相關的，不要覆蓋它
     if (isDeepSleep && isSleepMessage) {
-      mpuLogger.log("🌙 睡眠模式：檢測到睡眠訊息，跳過載入訊息顯示");
+      mpuLogger.logL("dialogLoadingMessageSkippedSleepMessage", "🌙 睡眠モード：睡眠メッセージを検出したため、読み込みメッセージの表示をスキップします");
       // 不顯示載入訊息，保持睡眠訊息
     } else {
       const loadingMessage =
@@ -4132,7 +4128,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
       if (resp && !resp.error && Array.isArray(resp.msg)) {
         if (resp.msg.length === 0) {
-          mpuLogger.warn("loadExternalDialog: 對話文件為空");
+          mpuLogger.warnL("dialogExternalFileEmpty", "loadExternalDialog: 会話ファイルが空です");
           mpuSetDialogStore({
             msg: [],
             auto_msg: resp.auto_msg || "",
@@ -4140,9 +4136,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             default_msg: resp.default_msg || 0,
           });
           if (skipFirstMessage) {
-            mpuLogger.log(
-              "loadExternalDialog: LLM 取代對話模式，對話文件為空，將依賴 LLM 生成",
-            );
+            mpuLogger.logL("dialogExternalFileEmptyLlmFallback", "loadExternalDialog: LLM 置換会話モードのため会話ファイルが空です。LLM 生成に依存します");
             jQuery("#ukagaka").stop(true, true).fadeIn(200);
             document.body.style.cursor = "auto";
             return;
@@ -4160,9 +4154,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
           mpuSetDialogDefaultMsg(resp.default_msg == 1 ? 1 : 0);
 
           if (skipFirstMessage) {
-            mpuLogger.log(
-              "loadExternalDialog: LLM 取代對話模式，已載入後備對話數據，但不顯示第一句",
-            );
+            mpuLogger.logL("dialogFallbackLoadedFirstLineSuppressed", "loadExternalDialog: LLM 置換会話モードで後備会話データを読み込みましたが、最初の一文は表示しません");
             let first = 0;
             if (mpuDefaultMsg === 0 && resp.msg.length) {
               first = Math.floor(Math.random() * resp.msg.length);
@@ -4183,9 +4175,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             }
 
             if (firstMessageShown) {
-              mpuLogger.log(
-                "loadExternalDialog: 嘗試重複顯示第一句對話，已阻止",
-              );
+              mpuLogger.logL("dialogFirstLineDuplicateBlocked", "loadExternalDialog: 最初の会話文を重複表示しようとしたため阻止しました");
               return;
             }
 
@@ -4194,9 +4184,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
               typeof mpu_isUnawokenSleepMode === "function" &&
               mpu_isUnawokenSleepMode()
             ) {
-              mpuLogger.log(
-                "🌙 睡眠模式且尚未被喚醒：跳過第一句內建對話，保持睡眠訊息",
-              );
+              mpuLogger.logL("dialogFirstLineSkippedUnawokenSleepMode", "🌙 睡眠モードでまだ目を覚ましていないため、最初の内蔵会話をスキップし、睡眠メッセージを維持します");
               firstMessageShown = true; // 標記為已處理，避免重複嘗試
               // 睡眠模式下不啟動自動對話
               return;
@@ -4248,10 +4236,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             next_msg: 0,
             default_msg: 0,
           });
-          mpuLogger.warn(
-            "loadExternalDialog: 後端返回錯誤，設置空的 mpuMsgList 作為後備 -",
-            errorMsg,
-          );
+          mpuLogger.warnF("dialogBackendErrorUseEmptyFallback", "loadExternalDialog: バックエンドがエラーを返したため、空の mpuMsgList をフォールバックとして設定します - %s", errorMsg);
         }
       }
       jQuery("#ukagaka").stop(true, true).fadeIn(200);
@@ -4273,9 +4258,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
           next_msg: 0,
           default_msg: 0,
         });
-        mpuLogger.warn(
-          "loadExternalDialog: 載入失敗，設置空的 mpuMsgList 作為後備",
-        );
+        mpuLogger.warnL("dialogLoadFailedUseEmptyFallback", "loadExternalDialog: 読み込みに失敗したため、空の mpuMsgList をフォールバックとして設定します");
       }
 
       jQuery("#ukagaka").stop(true, true).fadeIn(200);

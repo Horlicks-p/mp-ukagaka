@@ -861,6 +861,108 @@ function mpu_enqueue_frontend_assets()
         $log_i18n->debug('featuresSpaPageAwareProbabilityCheck', __('🎲 SPA ページ感知チェック：確率=%1$s、ロール=%2$s、トリガー=%3$s', 'mp-ukagaka'));
         /* translators: debug console log. Feature script loading has completed. */
         $log_i18n->debug('featuresScriptLoaded', __('スクリプトの読み込みが完了しました', 'mp-ukagaka'));
+        /* translators: debug console warning. %s is the caught emoji config load error. */
+        $log_i18n->debug('frierenEmojiConfigLoadFailed', __('mpuEmojiManager: 表情設定を読み込めませんでした：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Emoji base path is not configured. */
+        $log_i18n->debug('frierenEmojiBasePathMissing', __('mpuEmojiManager: 表情のベースパスが設定されていません', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. The ukagaka image container is missing. */
+        $log_i18n->debug('frierenEmojiContainerMissing', __('mpuEmojiManager: #ukagaka_img コンテナが見つかりません', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console warning. %s is the failed emoji image URL. */
+        $log_i18n->debug('frierenEmojiImageLoadFailed', __('mpuEmojiManager: 表情画像の読み込みに失敗しました：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %s is the emoji name being shown. */
+        $log_i18n->debug('frierenEmojiShown', __('mpuEmojiManager: 表情を表示します：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Emoji display is removed. */
+        $log_i18n->debug('frierenEmojiRemoved', __('mpuEmojiManager: 表情を削除します', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Shows which Frieren base image was selected. */
+        $log_i18n->debug('frierenSleepIdleImageSelected', __('🌙 睡眠画像 frieren[s].png を表示します / ☀️ アイドル画像 frieren[0].png を表示します', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Decoration loading is skipped because it already completed. */
+        $log_i18n->debug('frierenDecorationsAlreadyLoaded', __('装飾品は読み込み済みのため、重複読み込みをスキップします', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %s is the number of decorations loaded from JSON config. */
+        $log_i18n->debug('frierenDecorationConfigLoaded', __('JSON 設定から %s 個の装飾品を読み込みました', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %s is the decoration type whose transparent area was clicked. */
+        $log_i18n->debug('frierenDecorationTransparentClickIgnored', __('透明領域がクリックされたため無視します：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %s is the decoration type hit by pixel detection. */
+        $log_i18n->debug('frierenDecorationPixelHitClicked', __('装飾品がクリックされました（ピクセルヒット）：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %1$s is the decoration type, %2$s is the canvas size. */
+        $log_i18n->debug('frierenPixelDetectionCanvasCreated', __('ピクセル検出 Canvas を作成しました：%1$s、%2$s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Values are decoration type, pixel coordinates, alpha, and hit threshold. */
+        $log_i18n->debug('frierenPixelDetectionSample', __('ピクセル検出：%1$s、x=%2$s、y=%3$s、alpha=%4$s、threshold=%5$s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Frieren has awakened; forceWakeUp may be appended as a separate suffix. */
+        $log_i18n->debug('frierenAwakened', __('☀️ フリーレンが目を覚ましました！', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Wake animation frames are being played. */
+        $log_i18n->debug('frierenWakeAnimationPlaying', __('👀 目覚めアニメーション frieren[w1-w5].png を再生します', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %s is whether the book-flip animation should be skipped. */
+        $log_i18n->debug('frierenWakeAnimationStarted', __('🌅 目覚めアニメーションを開始します。skipBookFlip = %s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Book-flip animation plays after wake. */
+        $log_i18n->debug('frierenPostWakeBookFlipPlaying', __('📖 目覚め後にページめくりアニメーションを再生します', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Book-flip animation is skipped after wake. */
+        $log_i18n->debug('frierenPostWakeBookFlipSkipped', __('📖 目覚め後のページめくりアニメーションをスキップします', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Book-flip animation is skipped during sleep mode. */
+        $log_i18n->debug('frierenSleepModeBookFlipSkipped', __('🌙 睡眠モード：ページめくりアニメーションをスキップします', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Book-flip animation is skipped for manual wake dialogue. */
+        $log_i18n->debug('frierenManualWakeDialogueBookFlipSkipped', __('📖 手動の目覚め会話：ページめくりアニメーションをスキップします', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %s is the decoration type passed to the click handler. */
+        $log_i18n->debug('frierenDecorationClickHandled', __('handleDecorationClick が呼び出されました。装飾品タイプ：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Decoration click is ignored while a decoration dialog is active. */
+        $log_i18n->debug('frierenDecorationClickIgnoredDialogActive', __('装飾品会話中のため、今回のクリックを無視します', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Decoration dialog is skipped because AI is disabled. */
+        $log_i18n->debug('frierenDecorationDialogSkippedAiDisabled', __('AI 機能が有効ではないため、装飾品会話をスキップします', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Additional argument is the cancelled decoration click request ID. */
+        $log_i18n->debug('frierenDecorationClickRequestCancelled', __('装飾品クリック：リクエストをキャンセルしました', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Decoration dialog completed and state was restored. */
+        $log_i18n->debug('frierenDecorationDialogCompletedStateRestored', __('装飾品会話が完了し、状態を復元しました', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %1$s is the zone name, %2$s is the relative Y coordinate. */
+        $log_i18n->debug('frierenTouchZoneDetected', __('タッチ領域検出：%1$s、relativeY=%2$s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %s is the handled touch zone name. */
+        $log_i18n->debug('frierenTouchZoneHandled', __('handleTouchZone が呼び出されました。領域：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %s is the touch zone currently in cooldown. */
+        $log_i18n->debug('frierenTouchZoneClickIgnoredCooldown', __('領域がクールダウン中のため、クリックを無視します：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %s is the touch zone entering cooldown after reaching its click limit. */
+        $log_i18n->debug('frierenTouchZoneClickLimitReached', __('領域のクリック上限に達したため、クールダウンに入ります：%s', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Additional argument is the cancelled touch zone request ID. */
+        $log_i18n->debug('frierenTouchZoneRequestCancelled', __('タッチ領域クリック：リクエストをキャンセルしました', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Character touch event handlers have been bound. */
+        $log_i18n->debug('frierenTouchEventsBound', __('キャラクターのタッチイベントを設定しました', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. %1$s is the touch zone name, %2$s is the cooldown duration in seconds. */
+        $log_i18n->debug('frierenTouchZoneCooldownStarted', __('領域がクールダウンに入りました：%1$s、クールダウン時間：%2$s 秒', 'mp-ukagaka'), ['scope' => 'frieren']);
+        /* translators: debug console log. Loading message display is skipped because the sleep message is active. */
+        $log_i18n->debug('dialogLoadingMessageSkippedSleepMessage', __('🌙 睡眠モード：睡眠メッセージを検出したため、読み込みメッセージの表示をスキップします', 'mp-ukagaka'));
+        /* translators: debug console warning. External dialogue file has no usable content. */
+        $log_i18n->debug('dialogExternalFileEmpty', __('loadExternalDialog: 会話ファイルが空です', 'mp-ukagaka'));
+        /* translators: debug console log. Dialogue file is empty while LLM replacement mode is active. */
+        $log_i18n->debug('dialogExternalFileEmptyLlmFallback', __('loadExternalDialog: LLM 置換会話モードのため会話ファイルが空です。LLM 生成に依存します', 'mp-ukagaka'));
+        /* translators: debug console log. Fallback dialogue data loaded but first line display is suppressed. */
+        $log_i18n->debug('dialogFallbackLoadedFirstLineSuppressed', __('loadExternalDialog: LLM 置換会話モードで後備会話データを読み込みましたが、最初の一文は表示しません', 'mp-ukagaka'));
+        /* translators: debug console log. Duplicate display of the first dialogue line was blocked. */
+        $log_i18n->debug('dialogFirstLineDuplicateBlocked', __('loadExternalDialog: 最初の会話文を重複表示しようとしたため阻止しました', 'mp-ukagaka'));
+        /* translators: debug console log. First built-in dialogue is skipped while asleep and not awakened. */
+        $log_i18n->debug('dialogFirstLineSkippedUnawokenSleepMode', __('🌙 睡眠モードでまだ目を覚ましていないため、最初の内蔵会話をスキップし、睡眠メッセージを維持します', 'mp-ukagaka'));
+        /* translators: debug console warning. %s is the backend error message. */
+        $log_i18n->debug('dialogBackendErrorUseEmptyFallback', __('loadExternalDialog: バックエンドがエラーを返したため、空の mpuMsgList をフォールバックとして設定します - %s', 'mp-ukagaka'));
+        /* translators: debug console warning. Dialogue loading failed and an empty message list is used as fallback. */
+        $log_i18n->debug('dialogLoadFailedUseEmptyFallback', __('loadExternalDialog: 読み込みに失敗したため、空の mpuMsgList をフォールバックとして設定します', 'mp-ukagaka'));
+        /* translators: debug console log. Emoji base path is not configured. */
+        $log_i18n->debug('emojiBasePathMissing', __('mpuEmojiManager: 表情のベースパスが設定されていません', 'mp-ukagaka'));
+        /* translators: debug console log. The ukagaka image container is missing. */
+        $log_i18n->debug('emojiContainerMissing', __('mpuEmojiManager: #ukagaka_img コンテナが見つかりません', 'mp-ukagaka'));
+        /* translators: debug console warning. %s is the failed emoji image URL. */
+        $log_i18n->debug('emojiImageLoadFailed', __('mpuEmojiManager: 表情画像の読み込みに失敗しました：%s', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the emoji name being shown. */
+        $log_i18n->debug('emojiShown', __('mpuEmojiManager: 表情を表示します：%s', 'mp-ukagaka'));
+        /* translators: debug console log. Emoji display is removed. */
+        $log_i18n->debug('emojiRemoved', __('mpuEmojiManager: 表情を削除します', 'mp-ukagaka'));
+        /* translators: debug console log. First-visitor greeting is skipped during sleep mode. */
+        $log_i18n->debug('greetingSkippedSleepMode', __('🌙 睡眠モード：初回訪問者への挨拶をスキップし、キャラクターを休ませます', 'mp-ukagaka'));
+        /* translators: debug console log. %s is the visitor information object used for first-visitor greeting. */
+        $log_i18n->debug('greetingVisitorInfo', __('訪問者情報：%s', 'mp-ukagaka'));
+        /* translators: debug console log. First-visitor greeting was added to history and saved. */
+        $log_i18n->debug('greetingSavedToHistory', __('mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました', 'mp-ukagaka'));
+        /* translators: debug console warning. Chat history cannot be saved because the save function is missing. */
+        $log_i18n->debug('greetingSaveHistoryFunctionMissing', __('mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません', 'mp-ukagaka'));
+        /* translators: debug console warning. Greeting cannot be added because chat history is unavailable. */
+        $log_i18n->debug('greetingChatHistoryUnavailable', __('mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません', 'mp-ukagaka'));
+        /* translators: debug console warning. %s is the failed first-visitor greeting response object. */
+        $log_i18n->debug('greetingFirstVisitorFailed', __('初回訪問者への挨拶に失敗しました：%s', 'mp-ukagaka'));
         /* translators: debug console log. Browser reload cleared chat history and the chat session ID. */
         $log_i18n->debug('pageReloadClearedChatSession', __('🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました', 'mp-ukagaka'));
     }

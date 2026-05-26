@@ -10,8 +10,8 @@
 
 - Phase 1（infrastructure）已完成、Phase 1.5（inventory + 18 條 production-visible 翻譯）已完成、Phase 2 production-visible migration 已完成：anime 5 條、Frieren 11 條、core bundle 收尾 2 條。
 - 公司端 reviewer 已逐 commit 審查通過，無阻斷問題。
-- silent-drop 隱患已採 **方案 A** 落地：migrated overrides 刪除、generator 加 unused-override verify pass；目前對照表為 51 included rows + 0 backlog。
-- production-visible 已清零；Phase 3.0 debug 翻譯 staging 已由公司端御三家完成，Phase 3 migration 已完成 core 57 條、base/chat/anime 41 條、features/context 46 條，剩 51 條 debug-gated `mpuLogger.log/warn/info` 待遷移。
+- silent-drop 隱患已採 **方案 A** 落地：migrated overrides 刪除、generator 加 unused-override verify pass；目前對照表為 0 included rows + 0 backlog。
+- production-visible 已清零；Phase 3.0 debug 翻譯 staging 已由公司端御三家完成，Phase 3 migration 195/195 rows 已全部完成。
 
 ---
 
@@ -43,6 +43,7 @@
 | working tree | Migrate core debug console logs to i18n | Phase 3 migration PR 1（`js/ukagaka-core.js` 57 rows + rebuild dist；inventory 195 → 138） |
 | working tree | Migrate base/chat/anime debug console logs to i18n | Phase 3 migration PR 2（base/chat/anime 41 rows、38 unique keys + rebuild dist；inventory 138 → 97） |
 | working tree | Migrate features/context debug console logs to i18n | Phase 3 migration PR 3（features/context 46 rows + rebuild dist；inventory 97 → 51） |
+| working tree | Migrate remaining debug console logs to i18n | Phase 3 migration PR 4/5（Frieren 32 + dialog/greeting/emoji 19 rows；inventory 51 → 0） |
 
 ---
 
@@ -69,7 +70,7 @@
 ### Phase 1.5 — Translation table（c5989d8 + 45f0625 + 3a1f283）
 - Inventory generator：`tools/node/generate-console-log-inventory.js`（359 行，含括弧 / quote / template literal 巢狀解析，並有 unused-override verify pass）
 - 對照表：`plan/translation-tables/console-logs-zh-to-ja.md`
-- Inventory 統計：Phase 1.5 翻譯完成時為 **213 included rows + 1 backlog**；Phase 2.5 production-visible backlog 清理後，目前為 **195 included rows + 0 backlog**
+- Inventory 統計：Phase 1.5 翻譯完成時為 **213 included rows + 1 backlog**；Phase 2.5 production-visible backlog 清理後為 **195 included rows + 0 backlog**；Phase 3 migration 完成後目前為 **0 included rows + 0 backlog**
   - logs:console.error: 0（Phase 1.5 時為 11；anime 4 條、Frieren 7 條已 migrate）
   - logs:console.warn: 0（Phase 1.5 時為 5；anime 1 條、Frieren 4 條已 migrate）
   - logs:mpuLogger.error: 0（`jqueryCookieInitFailed` 已 migrate）
@@ -207,6 +208,20 @@
 - source 改動位於 core bundle，已執行 `node tools/node/build.js` 重建 `js/dist/ukagaka-bundle.js` / `.min.js`
 - JS fallback vs PHP `__()` drift、PHP 註冊缺漏、placeholder mismatch 均為 0；`node tools/node/generate-console-log-inventory.js` 已通過
 
+### Phase 3 migration PR 4 — `ghost/Frieren/frieren.js` + `ghost/Frieren/frieren-emoji.js` 32 rows（working tree）
+- `frieren.js` 26 rows、`frieren-emoji.js` 6 rows 已由 `mpuLogger.log/warn` 遷到 `logL/logF/warnL/warnF`
+- PHP 端同步補齊 32 條 `$log_i18n->debug(..., ['scope' => 'frieren'])` 註冊與 `/* translators */` 註解
+- 依方案 A 刪除 Frieren 32 條 overrides，translation table 重生為 19 included rows + 0 backlog
+- ghost-specific script 不在 core bundle 內，本批不需 rebuild dist
+- JS fallback vs PHP `__()` drift、PHP 註冊缺漏、placeholder mismatch、frieren scope 缺漏均為 0；`node tools/node/generate-console-log-inventory.js` 已通過
+
+### Phase 3 migration PR 5 — `js/ukagaka-dialog.js` + `js/ukagaka-greeting.js` + `js/ukagaka-emoji.js` 19 rows（working tree）
+- `ukagaka-dialog.js` 8 rows、`ukagaka-greeting.js` 6 rows、`ukagaka-emoji.js` 5 rows 已由 `mpuLogger.log/warn` 遷到 `logL/logF/warnL/warnF`
+- PHP 端同步補齊 19 條 `$log_i18n->debug()` 註冊與 `/* translators */` 註解，確保 `logsDebug` payload 與 `.pot` 抽取來源完整
+- 依方案 A 刪除最後 19 條 overrides，`overrides` table 歸零，translation table 重生為 0 included rows + 0 backlog
+- source 改動位於 core bundle，已執行 `node tools/node/build.js` 重建 `js/dist/ukagaka-bundle.js` / `.min.js`
+- JS fallback vs PHP `__()` drift、PHP 註冊缺漏、placeholder mismatch 均為 0；raw CJK `mpuLogger.log/warn/info` 已清零
+
 ---
 
 ## ✅ 已決策（2026-05-25 家裡）：silent-drop 隱患採方案 A
@@ -231,7 +246,7 @@
 
 - 已刪 migrate 完成的 `js/ukagaka-anime.js` 5 條 overrides
 - `generate-console-log-inventory.js` 已加 **unused-override verify pass**：override lookup key 若在本次 inventory 未被任何 row 命中 → **explicit error**（把 silent drop 升級成 build 失敗），同時防護未來 override 拼錯 / 行號漂移
-- `plan/translation-tables/console-logs-zh-to-ja.md` 已於方案 A 首次落地時重生為 **208 included rows + 1 backlog**；Frieren decoration config 第二批 migration 後為 **204 included rows + 1 backlog**；Frieren Canvas/Image/Pixel/Touch 第三批 migration 後為 **197 included rows + 1 backlog**；core bundle 收尾後為 **195 included rows + 1 backlog**；Phase 2.5 backlog 清理後，目前為 **195 included rows + 0 backlog**
+- `plan/translation-tables/console-logs-zh-to-ja.md` 已於方案 A 首次落地時重生為 **208 included rows + 1 backlog**；Frieren decoration config 第二批 migration 後為 **204 included rows + 1 backlog**；Frieren Canvas/Image/Pixel/Touch 第三批 migration 後為 **197 included rows + 1 backlog**；core bundle 收尾後為 **195 included rows + 1 backlog**；Phase 2.5 backlog 清理後為 **195 included rows + 0 backlog**；Phase 3 migration 完成後目前為 **0 included rows + 0 backlog**
 - migrated 字串 trace 權威 = PHP `$log_i18n->always(...)` + `.po`
 
 ### 補記：三案都沒解到的脆弱點
@@ -293,7 +308,7 @@ Phase 2 第一個 PR (b256574) 後 anime.js 5 條 call site 已遷移到糖衣�
 
 ## Phase 3 後續 PR 範圍
 
-production-visible console log 與既有日文 production backlog 已清零；Phase 3.0 已補完 195 條 debug 翻譯 staging，Phase 3 migration 已完成 `js/ukagaka-core.js` 57 條、base/chat/anime 41 條、features/context 46 條。後續剩 51 條 debug-gated `mpuLogger.log/warn/info`，全部屬 Phase 3 / `logsDebug` 大宗。
+production-visible console log 與既有日文 production backlog 已清零；Phase 3.0 已補完 195 條 debug 翻譯 staging，Phase 3 migration 已完成 195/195 rows。對照表目前為 0 included rows + 0 backlog。
 
 ---
 
@@ -307,7 +322,7 @@ production-visible console log 與既有日文 production backlog 已清零；Ph
 - **(f)** Generator 內嵌的對照表 status block 已過時（line 392-397 still 寫「This commit intentionally fills raw inventory only」）— **已完成**（方案 A 落地時同步更新為 migration staging table）
 
 debug 195 條翻譯（Phase 3-0）已完成 195/195 rows：`ukagaka-core.js` 57 rows，base/chat/anime 41 rows，features/context 46 rows，Frieren/Frieren emoji 32 rows，dialog/greeting/emoji 19 rows；scope 為 `mpuLogger.log` 159 條 + `mpuLogger.warn` 36 條，目前沒有帶 CJK 的 `mpuLogger.info`。
-Phase 3 migration 已完成 144/195 rows（`ukagaka-core.js` 57 rows + base/chat/anime 41 rows + features/context 46 rows）；後續剩 51 rows。每個 migration PR 都應跑 `node tools/node/generate-console-log-inventory.js`，其內建的 unused-override 與 semantic-key gate 必須通過。
+Phase 3 migration 已完成 195/195 rows（`ukagaka-core.js` 57 rows + base/chat/anime 41 rows + features/context 46 rows + Frieren/Frieren emoji 32 rows + dialog/greeting/emoji 19 rows）。每個 migration PR 都應跑 `node tools/node/generate-console-log-inventory.js`，其內建的 unused-override 與 semantic-key gate 必須通過。
 
 ---
 
@@ -356,4 +371,4 @@ git status --short
 
 ---
 
-_Last updated: 2026-05-26 — Phase 3-pre 已將 generator override lookup 改為 `relativePath::normalized zhOriginal` 並加上 semantic-key conflict gate；Phase 3-0 五批已補完 195/195 rows，且 no-TODO / no-draftKey 最終驗收通過。Phase 3 migration 已完成 144/195 rows，translation table 目前為 51 included rows + 0 backlog。下一更新點：Phase 3 migration 後續 PRs。_
+_Last updated: 2026-05-26 — Phase 3-pre 已將 generator override lookup 改為 `relativePath::normalized zhOriginal` 並加上 semantic-key conflict gate；Phase 3-0 五批已補完 195/195 rows，且 no-TODO / no-draftKey 最終驗收通過。Phase 3 migration 已完成 195/195 rows，translation table 目前為 0 included rows + 0 backlog。_
