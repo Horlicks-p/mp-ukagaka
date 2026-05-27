@@ -35,7 +35,7 @@ define('WP_DEBUG_LOG', true);
 ブラウザのコンソールで、現在のフロントエンドは通常、以下のような情報を出力します：
 
 ```
-[MP Ukagaka] 訪客資訊 (Visitor Info): {
+[MP Ukagaka] 訪問者情報： {
   referrer: "https://example.com",
   referrer_host: "example.com",
   search_engine: "google",
@@ -73,7 +73,7 @@ define('WP_DEBUG_LOG', true);
 - `includes/rest/class-mpu-rest-dialog.php`
 - `includes/rest/class-mpu-rest-chat.php`
 
-`window.mpuDebugMode = true` が有効になっている場合、Console で訪問者情報や後続のフローが正常に記録されているか確認できます。
+`window.mpuDebugMode = true` が有効になっている場合、Console で訪問者情報や後続のフローが正常に記録されているか確認できます。通常のページ出力では、バックエンドが `WP_DEBUG && current_user_can('manage_options')` に基づいて `window.mpuDebugMode` を注入します。Console で手動で `true` にすればフロントエンド debug 出力は有効化できますが、管理者でないページには `mpuL10n.logsDebug` が注入されないため、debug log は日本語 fallback を使用します。
 
 `WP_DEBUG` / `WP_DEBUG_LOG` を有効にしている場合は、`wp-content/debug.log` で PHP 側のエラーを確認できます。ただし、以前のドキュメントにあったような固定フォーマットでの完全な greet prompt の出力は、必ず存在するとは限りません。
 
@@ -134,7 +134,7 @@ POST /wp-json/mp-ukagaka/v1/chat/greet
    - 外部サイト：他のサイトのリンクからクリックしてアクセスします。
 
 4. **デバッグ情報の確認**：
-   - Console で `訪客資訊 (Visitor Info)` ログを確認します。
+   - Console で `訪問者情報` ログを確認します。
    - Network パネルで `/visitor-info` と `/chat/greet` を確認します。
    - AI の挨拶内容にアクセス元の情報が含まれているか確認します。
 

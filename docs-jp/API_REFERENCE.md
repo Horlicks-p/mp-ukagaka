@@ -1,6 +1,6 @@
 # MP Ukagaka API リファレンス
 
-> 📚 完全な関数、フック、REST エンドポイントのリファレンス（v2.13.7）
+> 📚 完全な関数、フック、REST エンドポイントのリファレンス（v2.24.0）
 
 ---
 
@@ -1039,6 +1039,24 @@ $messages = mpu_get_msg_from_file('frieren');
 function mpu_html($num = false)
 ```
 
+#### mpu_is_frontend_debug_mode()
+
+フロントエンド debug mode が有効かどうかを判定します。デフォルトでは `WP_DEBUG` が true で、現在のユーザーが `manage_options` 権限を持つ場合のみ有効です。結果は `mpu_frontend_debug_mode` フィルターで上書きできます。この関数は `window.mpuDebugMode` と `mpuL10n.logsDebug` の注入有無を同時に制御します。
+
+```php
+function mpu_is_frontend_debug_mode()
+```
+
+#### mpu_console_log_i18n_builder()
+
+リクエスト単位の console log i18n builder を作成します。`always()` は production-visible なログ文字列を `mpuL10n.logs` に登録し、`debug()` は debug-only の文字列を `mpuL10n.logsDebug` に登録します。
+
+```php
+$log_i18n = mpu_console_log_i18n_builder();
+$log_i18n->always('animeCanvasMissing', __('Canvas element not found.', 'mp-ukagaka'));
+$log_i18n->debug('idleDetectionInitialized', __('Idle detection initialized.', 'mp-ukagaka'));
+```
+
 ---
 
 ### 管理画面関数 (admin-functions.php)
@@ -1061,7 +1079,7 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
 
 ## WordPress フック
 
-> 📌 v2.9.2 の REST リファクタリング以降、プラグインレベルの `do_action()` フック（`mpu_loaded`, `mpu_before_html`, `mpu_after_html`, `mpu_settings_saved`）および `apply_filters()` フック（`mpu_options`, `mpu_messages`, `mpu_ai_response`, `mpu_ukagaka_html`）はすべて削除されました。現在は、LLMプロンプトの構築に関連する4つのフィルターのみが保持されています。
+> 📌 v2.9.2 の REST リファクタリング以降、旧プラグインレベルの `do_action()` フック（`mpu_loaded`, `mpu_before_html`, `mpu_after_html`, `mpu_settings_saved`）および旧 `apply_filters()` フック（`mpu_options`, `mpu_messages`, `mpu_ai_response`, `mpu_ukagaka_html`）は削除されました。現在保持されている公開フィルターは以下の通りです。
 
 ### フィルター
 
@@ -1119,6 +1137,36 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 }, 10, 4);
 ```
 
+#### mpu_frontend_debug_mode
+
+フロントエンド debug mode をフィルターします。デフォルト値は `defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')` です。`true` を返すと `window.mpuDebugMode = true` と `mpuL10n.logsDebug` が注入されるため、匿名訪問者向けに強制有効化すべきではありません。
+
+```php
+add_filter('mpu_frontend_debug_mode', function($enabled) {
+    return $enabled;
+});
+```
+
+#### mpu_observation_buffer_ttl
+
+observation buffer transient の TTL をフィルターします。返値は 5 分から 2 時間の範囲に clamp されます。デフォルトは 1 時間です。
+
+```php
+add_filter('mpu_observation_buffer_ttl', function($ttl) {
+    return 30 * MINUTE_IN_SECONDS;
+});
+```
+
+#### mpu_observation_post_visibility
+
+observation buffer が公開記事タイトルを LLM prompt context に書き込んでよいかを制御します。`false` を返すと、その記事は `[non-public]` として記録されます。
+
+```php
+add_filter('mpu_observation_post_visibility', function($visible, $post) {
+    return $visible;
+}, 10, 2);
+```
+
 ---
 
 ## REST エンドポイント
@@ -1131,6 +1179,7 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 - **権限**：ほとんどのエンドポイントは公開（`__return_true`）ですが、テストやキャッシュ管理エンドポイントは管理者限定です。
 - **レート制限**：エンドポイントごとに独立してカウントされ、超過した場合は HTTP 429 を返します。
 - **レスポンス形式**：`/chat/user-stream` (SSE) を除き、すべて JSON です。構造は `{ success, data, ... }` または `WP_Error` となります。
+- **Session Token**：匿名訪問者は先に `/session-token` を呼び出し、session に紐づくリクエストでは `X-MPU-Session-Token` ヘッダーまたは `session_token` パラメータを送信します。ログインユーザーが `/session-token` を呼ぶと空 token が返ります。「有効な session token」が必要と明記されたエンドポイントでは、引き続き有効な token が必要です。
 
 ### キャラクター / 設定系
 
@@ -1162,6 +1211,7 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 | `/chat/greet` | POST | 公開 | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `session_id`, `history` | 10/60秒 | 初回訪問者の挨拶。送信元の国や検索エンジンに基づいてカスタマイズ |
 | `/chat/user` | POST | 公開 | `message`（必須）、`history`, `page_title`, `page_content`, `session_id` | 30/60秒 | 複数ターンのインタラクティブ会話（非ストリーミング）。MCP Tool/Abilitiesの呼び出しをサポート；`{msg, emoji}` を返す |
 | `/chat/user-stream` | POST | 公開 | `/chat/user` と同じ | 30/60秒 | SSEストリーミングバージョン。プロバイダーがサポートしている場合、トークンごとに逐次出力 |
+| `/session-token` | GET | 公開 | — | 10/60秒 | 匿名訪問者向けに IP に紐づく session token を発行します。`{token}` を返し、no-store cache header を付与します |
 
 ### タッチインタラクション系
 
@@ -1170,12 +1220,21 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 | `/touch/decoration` | POST | 公開 | `decoration_type`（必須） | 20/60秒 | 装飾品をクリックした際のAIの反応；`{msg, emoji}` を返す |
 | `/touch/zone` | POST | 公開 | `touch_zone`（必須） | 20/60秒 | キャラクターの身体領域をクリックした際の撫でる反応；`{msg, emoji, zone}` を返す |
 
+### Observation 系
+
+| エンドポイント | メソッド | 権限 | パラメータ | レート制限 | 説明 |
+| --- | --- | --- | --- | --- | --- |
+| `/observation/push` | POST | 公開 + 有効な session token | `type`（`page_view` / `stay_duration`）、`content` | 20/60秒 | ページ閲覧または滞在時間を session-scoped observation buffer に追加します。`{ok}` を返します |
+
+`content` 形式：`page_view` は `post:{post_id}`、`stay_duration` は `post:{post_id}:{seconds}s` を使用します。Buffer は最大 5 件、content は最大 200 bytes まで保持し、次回の AI 会話で prompt context に drain されます。
+
 ### 管理画面テスト・管理系（管理者専用）
 
 | エンドポイント | メソッド | 権限 | パラメータ | レート制限 | 説明 |
 | --- | --- | --- | --- | --- | --- |
 | `/test-connection/{provider}` | POST | 管理者 | `provider`（パスパラメータ：gemini / openai / claude / ollama / weather）、`api_key`, `model`, `endpoint`；weatherの場合はさらに `latitude`, `longitude` | 10/60秒 | 統合されたプロバイダー接続テストエンドポイント |
 | `/clear-cache` | POST | 管理者 | — | 10/60秒 | LLM APIのレスポンスキャッシュをクリアする |
+| `/memory/extract` | POST | 管理者 | `history`（`role`, `content`, 任意で `type`） | 1/60秒/user | 直近の会話履歴から管理人メモリを抽出して usermeta に保存します。synthetic メッセージは除外されます |
 
 ---
 
@@ -1306,7 +1365,8 @@ mpuChange("default_2"); // 直接切り替える
 | --- | --- | --- |
 | `window.mpuRestUrl` | `wp_localize_script` | REST ベース URL（例：`/wp-json/mp-ukagaka/v1/`） |
 | `window.mpuRestNonce` | `wp_localize_script` | REST リクエスト用 `X-WP-Nonce` |
-| `window.mpuL10n` | `wp_localize_script` | フロントエンド表示用の翻訳文字列セット |
+| `window.mpuDebugMode` | inline script | フロントエンド debug mode フラグ。`mpu_is_frontend_debug_mode()` で決定されます |
+| `window.mpuL10n` | `wp_localize_script` | フロントエンド表示および console log i18n 用の翻訳文字列セット。`logs` は常に注入され、`logsDebug` は debug mode の場合のみ注入されます |
 | `window.mpuSettings` | `/init` 戻り値 | キャラクターの動作設定オブジェクト（下記参照） |
 | `window.mpuInitData` | `/init` 戻り値 | 完全な初期化応答の元オブジェクト |
 | `window.mpuPersonalityId` | `/init` 戻り値 | 現在の人格ID |

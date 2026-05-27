@@ -35,7 +35,7 @@ define('WP_DEBUG_LOG', true);
 在瀏覽器控制台中，現行前端通常會輸出類似以下資訊：
 
 ```
-[MP Ukagaka] 訪客資訊: {
+[MP Ukagaka] 訪問者情報： {
   referrer: "https://example.com",
   referrer_host: "example.com",
   search_engine: "google",
@@ -73,7 +73,7 @@ define('WP_DEBUG_LOG', true);
 - `includes/rest/class-mpu-rest-dialog.php`
 - `includes/rest/class-mpu-rest-chat.php`
 
-如果啟用 `window.mpuDebugMode = true`，可在 Console 中確認是否有成功記錄訪客資訊與後續流程。
+如果啟用 `window.mpuDebugMode = true`，可在 Console 中確認是否有成功記錄訪客資訊與後續流程。實際頁面會由後端依 `WP_DEBUG && current_user_can('manage_options')` 注入 `window.mpuDebugMode`；手動在 Console 設為 `true` 仍可開啟前端 debug 輸出，但非管理員頁面不會注入 `mpuL10n.logsDebug`，debug log 會使用日文 fallback。
 
 如果啟用了 `WP_DEBUG` / `WP_DEBUG_LOG`，則可在 `wp-content/debug.log` 觀察是否有 PHP 端錯誤；但文件早期版本那種固定格式的完整 greet prompt 輸出，不再保證一定存在。
 
@@ -134,7 +134,7 @@ POST /wp-json/mp-ukagaka/v1/chat/greet
    - 外部網站：從其他網站連結進入
 
 4. **查看調試資訊**：
-   - 檢查 Console 的 `訪客資訊` log
+   - 檢查 Console 的 `訪問者情報` log
    - 檢查 Network 面板中的 `/visitor-info` 與 `/chat/greet`
    - 檢查 AI 打招呼內容是否包含來源資訊
 

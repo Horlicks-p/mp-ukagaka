@@ -563,7 +563,7 @@ function mpu_test_visitor_info() {
     retries: 1,
   })
     .then((visitorInfo) => {
-      mpuLogger.logF("contextVisitorInfo", "訪問者情報：%s", {
+      mpuLogger.logL("contextVisitorInfo", "訪問者情報：", {
         referrer: visitorInfo.referrer || "無",
         referrer_host: visitorInfo.referrer_host || "無",
         search_engine: visitorInfo.search_engine || "無",

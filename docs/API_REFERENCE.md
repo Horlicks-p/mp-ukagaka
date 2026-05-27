@@ -1,6 +1,6 @@
 # MP Ukagaka API 參考
 
-> 📚 完整的函數、Hooks、REST 端點參考（v2.13.7）
+> 📚 完整的函數、Hooks、REST 端點參考（v2.24.0）
 
 ---
 
@@ -1039,6 +1039,24 @@ $messages = mpu_get_msg_from_file('frieren');
 function mpu_html($num = false)
 ```
 
+#### mpu_is_frontend_debug_mode()
+
+判斷前端是否啟用 debug mode。預設只在 `WP_DEBUG` 為 true 且目前使用者具有 `manage_options` 權限時啟用；結果可由 `mpu_frontend_debug_mode` filter 覆寫。此函數同時控制 `window.mpuDebugMode` 與 `mpuL10n.logsDebug` 是否注入。
+
+```php
+function mpu_is_frontend_debug_mode()
+```
+
+#### mpu_console_log_i18n_builder()
+
+建立單次 request 使用的 console log i18n builder。`always()` 註冊 production-visible log 字串到 `mpuL10n.logs`，`debug()` 註冊 debug-only 字串到 `mpuL10n.logsDebug`。
+
+```php
+$log_i18n = mpu_console_log_i18n_builder();
+$log_i18n->always('animeCanvasMissing', __('Canvas element not found.', 'mp-ukagaka'));
+$log_i18n->debug('idleDetectionInitialized', __('Idle detection initialized.', 'mp-ukagaka'));
+```
+
 ---
 
 ### 後台函數 (admin-functions.php)
@@ -1061,7 +1079,7 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
 
 ## WordPress Hooks
 
-> 📌 自 v2.9.2 REST 重構起，已移除所有外掛層級的 `do_action()` hook（`mpu_loaded`、`mpu_before_html`、`mpu_after_html`、`mpu_settings_saved`）以及 `apply_filters()` hook（`mpu_options`、`mpu_messages`、`mpu_ai_response`、`mpu_ukagaka_html`）。目前僅保留與 LLM 提示詞建構相關的 4 個 filter。
+> 📌 自 v2.9.2 REST 重構起，已移除舊版外掛層級的 `do_action()` hook（`mpu_loaded`、`mpu_before_html`、`mpu_after_html`、`mpu_settings_saved`）以及舊版 `apply_filters()` hook（`mpu_options`、`mpu_messages`、`mpu_ai_response`、`mpu_ukagaka_html`）。目前保留的公開 filter 如下。
 
 ### Filters
 
@@ -1119,6 +1137,36 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 }, 10, 4);
 ```
 
+#### mpu_frontend_debug_mode
+
+過濾前端 debug mode。預設值為 `defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')`。回傳 `true` 會讓前端注入 `window.mpuDebugMode = true` 與 `mpuL10n.logsDebug`，因此不應對匿名訪客強制開啟。
+
+```php
+add_filter('mpu_frontend_debug_mode', function($enabled) {
+    return $enabled;
+});
+```
+
+#### mpu_observation_buffer_ttl
+
+過濾 observation buffer transient 的 TTL。回傳值會被限制在 5 分鐘到 2 小時之間，預設為 1 小時。
+
+```php
+add_filter('mpu_observation_buffer_ttl', function($ttl) {
+    return 30 * MINUTE_IN_SECONDS;
+});
+```
+
+#### mpu_observation_post_visibility
+
+控制 observation buffer 是否允許把公開文章標題寫入 LLM prompt context。回傳 `false` 時，該文章會被記錄為 `[non-public]`。
+
+```php
+add_filter('mpu_observation_post_visibility', function($visible, $post) {
+    return $visible;
+}, 10, 2);
+```
+
 ---
 
 ## REST 端點
@@ -1131,6 +1179,7 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 - **權限**：多數端點公開（`__return_true`），僅測試/快取管理端點限管理員。
 - **速率限制**：每端點獨立計數，超限時回傳 HTTP 429。
 - **回應格式**：除 `/chat/user-stream`（SSE）外，一律為 JSON；結構為 `{ success, data, ... }` 或 `WP_Error`。
+- **Session Token**：匿名訪客需先呼叫 `/session-token`，並在需要 session 綁定的請求帶上 `X-MPU-Session-Token` header 或 `session_token` 參數。登入使用者呼叫 `/session-token` 會回傳空 token；明確標示「有效 session token」的端點仍需有效 token。
 
 ### 角色 / 設定類
 
@@ -1162,6 +1211,7 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 | `/chat/greet` | POST | 公開 | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `session_id`, `history` | 10/60s | 首訪訪客打招呼，根據來源國家／搜尋引擎客製 |
 | `/chat/user` | POST | 公開 | `message`（必填）、`history`, `page_title`, `page_content`, `session_id` | 30/60s | 多輪互動對話（非串流），支援 MCP Tool/Abilities 呼叫；回傳 `{msg, emoji}` |
 | `/chat/user-stream` | POST | 公開 | 同 `/chat/user` | 30/60s | SSE 串流版本，Provider 支援時逐字輸出 |
+| `/session-token` | GET | 公開 | — | 10/60s | 為匿名訪客發行 IP 綁定 session token；回傳 `{token}` 並帶 no-store cache header |
 
 ### 觸摸互動類
 
@@ -1170,12 +1220,21 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 | `/touch/decoration` | POST | 公開 | `decoration_type`（必填） | 20/60s | 點擊裝飾物時觸發的 AI 反應；回傳 `{msg, emoji}` |
 | `/touch/zone` | POST | 公開 | `touch_zone`（必填） | 20/60s | 點擊角色身體區塊的撫摸反應；回傳 `{msg, emoji, zone}` |
 
+### Observation 類
+
+| 端點 | 方法 | 權限 | 參數 | Rate Limit | 說明 |
+| --- | --- | --- | --- | --- | --- |
+| `/observation/push` | POST | 公開 + 有效 session token | `type`（`page_view` / `stay_duration`）、`content` | 20/60s | 將頁面瀏覽或停留時間寫入 session-scoped observation buffer；回傳 `{ok}` |
+
+`content` 格式：`page_view` 使用 `post:{post_id}`；`stay_duration` 使用 `post:{post_id}:{seconds}s`。Buffer 最多保留 5 筆、content 最多 200 bytes，並在下一次 AI 對話建構 prompt 時 drain。
+
 ### 後台測試與管理類（限管理員）
 
 | 端點 | 方法 | 權限 | 參數 | Rate Limit | 說明 |
 | --- | --- | --- | --- | --- | --- |
 | `/test-connection/{provider}` | POST | 管理員 | `provider`（路徑參數：gemini／openai／claude／ollama／weather）、`api_key`, `model`, `endpoint`；weather 另接 `latitude`, `longitude` | 10/60s | 統一的 Provider 連線測試端點 |
 | `/clear-cache` | POST | 管理員 | — | 10/60s | 清除 LLM API 回應快取 |
+| `/memory/extract` | POST | 管理員 | `history`（`role`, `content`, 可含 `type`） | 1/60s/user | 從最近對話萃取管理人記憶並寫入 usermeta；synthetic 訊息會被排除 |
 
 ---
 
@@ -1306,7 +1365,8 @@ mpuChange("default_2"); // 直接切換
 | --- | --- | --- |
 | `window.mpuRestUrl` | `wp_localize_script` | REST 基礎 URL（例：`/wp-json/mp-ukagaka/v1/`） |
 | `window.mpuRestNonce` | `wp_localize_script` | REST 請求用的 `X-WP-Nonce` |
-| `window.mpuL10n` | `wp_localize_script` | 前端顯示用的翻譯字串集 |
+| `window.mpuDebugMode` | inline script | 前端 debug mode 旗標；由 `mpu_is_frontend_debug_mode()` 決定 |
+| `window.mpuL10n` | `wp_localize_script` | 前端顯示與 console log i18n 字串集；`logs` 一律注入，`logsDebug` 僅在 debug mode 注入 |
 | `window.mpuSettings` | `/init` 回傳 | 角色行為設定物件（見下方） |
 | `window.mpuInitData` | `/init` 回傳 | 完整 init 回應原物件 |
 | `window.mpuPersonalityId` | `/init` 回傳 | 當前人格 ID |

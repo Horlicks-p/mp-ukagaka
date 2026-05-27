@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-27T01:15:56.165Z
+ * Generated: 2026-05-27T10:11:09.557Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -3785,7 +3785,7 @@ function mpu_test_visitor_info() {
     retries: 1,
   })
     .then((visitorInfo) => {
-      mpuLogger.logF("contextVisitorInfo", "訪問者情報：%s", {
+      mpuLogger.logL("contextVisitorInfo", "訪問者情報：", {
         referrer: visitorInfo.referrer || "無",
         referrer_host: visitorInfo.referrer_host || "無",
         search_engine: visitorInfo.search_engine || "無",
@@ -3830,7 +3830,7 @@ function mpu_greet_first_visitor(settings) {
     })
       .then((visitorInfo) => {
         // 調試模式：記錄訪客資訊
-        mpuLogger.logF("greetingVisitorInfo", "訪問者情報：%s", {
+        mpuLogger.logL("greetingVisitorInfo", "訪問者情報：", {
           referrer: visitorInfo.referrer || "無",
           referrer_host: visitorInfo.referrer_host || "無",
           search_engine: visitorInfo.search_engine || "無",

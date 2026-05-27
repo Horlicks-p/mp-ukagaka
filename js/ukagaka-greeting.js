@@ -29,7 +29,7 @@ function mpu_greet_first_visitor(settings) {
     })
       .then((visitorInfo) => {
         // 調試模式：記錄訪客資訊
-        mpuLogger.logF("greetingVisitorInfo", "訪問者情報：%s", {
+        mpuLogger.logL("greetingVisitorInfo", "訪問者情報：", {
           referrer: visitorInfo.referrer || "無",
           referrer_host: visitorInfo.referrer_host || "無",
           search_engine: visitorInfo.search_engine || "無",

@@ -2509,12 +2509,11 @@ msgid "AI 会話に失敗したため、既定の会話システムを使用し�
 msgstr "AI 對話失敗，使用預設對話系統:%s"
 
 #. translators: debug console log. %s is the visitor information object.
-#. translators: debug console log. %s is the visitor information object used for first-visitor greeting.
+#. translators: debug console log label. The visitor information object is passed as a separate console argument.
 #: includes/core/frontend-functions.php:809
 #: includes/core/frontend-functions.php:957
-#, php-format
-msgid "訪問者情報：%s"
-msgstr "訪客資訊: %s 無 / 無 / 無 / 無"
+msgid "訪問者情報："
+msgstr "訪客資訊："
 
 #. translators: debug console log. jQuery ready handler has run.
 #: includes/core/frontend-functions.php:811

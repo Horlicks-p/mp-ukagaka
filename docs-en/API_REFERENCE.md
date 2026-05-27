@@ -1,6 +1,6 @@
 # MP Ukagaka API Reference
 
-> 📚 Complete Function, Hooks, and REST Endpoints Reference (v2.13.7)
+> 📚 Complete Function, Hooks, and REST Endpoints Reference (v2.24.0)
 
 ---
 
@@ -1039,6 +1039,24 @@ Generates and outputs the Ukagaka HTML.
 function mpu_html($num = false)
 ```
 
+#### mpu_is_frontend_debug_mode()
+
+Determines whether frontend debug mode is enabled. By default it is enabled only when `WP_DEBUG` is true and the current user has `manage_options`; the result can be overridden by the `mpu_frontend_debug_mode` filter. This function controls both `window.mpuDebugMode` and whether `mpuL10n.logsDebug` is injected.
+
+```php
+function mpu_is_frontend_debug_mode()
+```
+
+#### mpu_console_log_i18n_builder()
+
+Creates a per-request console log i18n builder. `always()` registers production-visible log strings into `mpuL10n.logs`; `debug()` registers debug-only strings into `mpuL10n.logsDebug`.
+
+```php
+$log_i18n = mpu_console_log_i18n_builder();
+$log_i18n->always('animeCanvasMissing', __('Canvas element not found.', 'mp-ukagaka'));
+$log_i18n->debug('idleDetectionInitialized', __('Idle detection initialized.', 'mp-ukagaka'));
+```
+
 ---
 
 ### Admin Functions (admin-functions.php)
@@ -1061,7 +1079,7 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
 
 ## WordPress Hooks
 
-> 📌 Since v2.9.2 REST refactoring, all plugin-level `do_action()` hooks (`mpu_loaded`, `mpu_before_html`, `mpu_after_html`, `mpu_settings_saved`) and `apply_filters()` hooks (`mpu_options`, `mpu_messages`, `mpu_ai_response`, `mpu_ukagaka_html`) have been removed. Only 4 filters related to LLM prompt construction remain.
+> 📌 Since the v2.9.2 REST refactoring, legacy plugin-level `do_action()` hooks (`mpu_loaded`, `mpu_before_html`, `mpu_after_html`, `mpu_settings_saved`) and legacy `apply_filters()` hooks (`mpu_options`, `mpu_messages`, `mpu_ai_response`, `mpu_ukagaka_html`) have been removed. The public filters currently retained are listed below.
 
 ### Filters
 
@@ -1119,6 +1137,36 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 }, 10, 4);
 ```
 
+#### mpu_frontend_debug_mode
+
+Filters frontend debug mode. The default value is `defined('WP_DEBUG') && WP_DEBUG && current_user_can('manage_options')`. Returning `true` injects `window.mpuDebugMode = true` and `mpuL10n.logsDebug`, so it should not be forced on for anonymous visitors.
+
+```php
+add_filter('mpu_frontend_debug_mode', function($enabled) {
+    return $enabled;
+});
+```
+
+#### mpu_observation_buffer_ttl
+
+Filters the observation buffer transient TTL. The returned value is clamped between 5 minutes and 2 hours; the default is 1 hour.
+
+```php
+add_filter('mpu_observation_buffer_ttl', function($ttl) {
+    return 30 * MINUTE_IN_SECONDS;
+});
+```
+
+#### mpu_observation_post_visibility
+
+Controls whether the observation buffer may write a public post title into LLM prompt context. Returning `false` records the post as `[non-public]`.
+
+```php
+add_filter('mpu_observation_post_visibility', function($visible, $post) {
+    return $visible;
+}, 10, 2);
+```
+
 ---
 
 ## REST Endpoints
@@ -1131,6 +1179,7 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 - **Permissions**: Most endpoints are public (`__return_true`), only testing/cache management endpoints are admin-only.
 - **Rate Limit**: Counted independently per endpoint, returns HTTP 429 when exceeded.
 - **Response Format**: Except for `/chat/user-stream` (SSE), all are JSON; structured as `{ success, data, ... }` or `WP_Error`.
+- **Session Token**: Anonymous visitors should first call `/session-token`, then send the token as the `X-MPU-Session-Token` header or `session_token` parameter for session-bound requests. Logged-in users receive an empty token from `/session-token`; endpoints explicitly marked as requiring a valid session token still require one.
 
 ### Character / Settings
 
@@ -1162,6 +1211,7 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 | `/chat/greet` | POST | Public | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `session_id`, `history` | 10/60s | First-time visitor greeting, customized by source country/search engine |
 | `/chat/user` | POST | Public | `message` (required), `history`, `page_title`, `page_content`, `session_id` | 30/60s | Multi-turn interactive chat (non-streaming), supports MCP Tool/Abilities calls; returns `{msg, emoji}` |
 | `/chat/user-stream` | POST | Public | Same as `/chat/user` | 30/60s | SSE streaming version, outputs token-by-token if supported by Provider |
+| `/session-token` | GET | Public | — | 10/60s | Issues an IP-bound session token for anonymous visitors; returns `{token}` with no-store cache headers |
 
 ### Touch Interactions
 
@@ -1170,12 +1220,21 @@ add_filter('mpu_category_weights', function($weights, $time_context, $visitor_in
 | `/touch/decoration` | POST | Public | `decoration_type` (required) | 20/60s | AI reaction when clicking decorations; returns `{msg, emoji}` |
 | `/touch/zone` | POST | Public | `touch_zone` (required) | 20/60s | Petting reaction when clicking character body zones; returns `{msg, emoji, zone}` |
 
+### Observations
+
+| Endpoint | Method | Permission | Parameters | Rate Limit | Description |
+| --- | --- | --- | --- | --- | --- |
+| `/observation/push` | POST | Public + valid session token | `type` (`page_view` / `stay_duration`), `content` | 20/60s | Pushes page-view or dwell-time data into the session-scoped observation buffer; returns `{ok}` |
+
+`content` format: `page_view` uses `post:{post_id}`; `stay_duration` uses `post:{post_id}:{seconds}s`. The buffer keeps up to 5 entries, limits content to 200 bytes, and is drained into prompt context on the next AI chat.
+
 ### Admin Testing & Management (Admin Only)
 
 | Endpoint | Method | Permission | Parameters | Rate Limit | Description |
 | --- | --- | --- | --- | --- | --- |
 | `/test-connection/{provider}` | POST | Admin | `provider` (Path param: gemini/openai/claude/ollama/weather), `api_key`, `model`, `endpoint`; weather additionally takes `latitude`, `longitude` | 10/60s | Unified Provider connection test endpoint |
 | `/clear-cache` | POST | Admin | — | 10/60s | Clears LLM API response caches |
+| `/memory/extract` | POST | Admin | `history` (`role`, `content`, optional `type`) | 1/60s/user | Extracts owner memory from recent chat history and stores it in usermeta; synthetic messages are excluded |
 
 ---
 
@@ -1306,7 +1365,8 @@ Upon frontend loading, data passed via `wp_localize_script` and returned by the 
 | --- | --- | --- |
 | `window.mpuRestUrl` | `wp_localize_script` | REST base URL (e.g. `/wp-json/mp-ukagaka/v1/`) |
 | `window.mpuRestNonce` | `wp_localize_script` | `X-WP-Nonce` used for REST requests |
-| `window.mpuL10n` | `wp_localize_script` | Translated string set for frontend display |
+| `window.mpuDebugMode` | inline script | Frontend debug mode flag; determined by `mpu_is_frontend_debug_mode()` |
+| `window.mpuL10n` | `wp_localize_script` | Translated string set for frontend display and console log i18n; `logs` is always injected, `logsDebug` is injected only in debug mode |
 | `window.mpuSettings` | `/init` return | Character behavior settings object (see below) |
 | `window.mpuInitData` | `/init` return | Complete original init response object |
 | `window.mpuPersonalityId` | `/init` return | Current personality ID |

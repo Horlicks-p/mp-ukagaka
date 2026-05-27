@@ -35,7 +35,7 @@ This will write PHP-side errors to `wp-content/debug.log`; frontend details will
 In the browser console, the current frontend will typically output information similar to the following:
 
 ```
-[MP Ukagaka] Visitor Info: {
+[MP Ukagaka] 訪問者情報： {
   referrer: "https://example.com",
   referrer_host: "example.com",
   search_engine: "google",
@@ -73,7 +73,7 @@ Related code locations:
 - `includes/rest/class-mpu-rest-dialog.php`
 - `includes/rest/class-mpu-rest-chat.php`
 
-If `window.mpuDebugMode = true` is enabled, you can verify in the Console whether the visitor information and subsequent flows were successfully logged.
+If `window.mpuDebugMode = true` is enabled, you can verify in the Console whether the visitor information and subsequent flows were successfully logged. In normal page output, the backend injects `window.mpuDebugMode` from `WP_DEBUG && current_user_can('manage_options')`; manually setting it to `true` in the Console still enables frontend debug output, but non-admin pages do not receive the `mpuL10n.logsDebug` payload, so debug logs use the Japanese fallback.
 
 If `WP_DEBUG` / `WP_DEBUG_LOG` is enabled, you can observe `wp-content/debug.log` for PHP-side errors; however, the fixed-format full greet prompt output from earlier documentation versions is no longer guaranteed to be present.
 
@@ -134,7 +134,7 @@ POST /wp-json/mp-ukagaka/v1/chat/greet
    - External website: Click through from a link on another website.
 
 4. **View Debug Information**:
-   - Check the `Visitor Info` log in the Console.
+   - Check the `訪問者情報` log in the Console.
    - Inspect `/visitor-info` and `/chat/greet` in the Network panel.
    - Check if the AI greeting content contains source information.
 

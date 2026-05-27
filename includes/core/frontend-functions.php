@@ -805,8 +805,8 @@ function mpu_enqueue_frontend_assets()
         $log_i18n->debug('contextChatSavedToHistory', __('mpu_chat_context: 会話を履歴に追加して保存しました', 'mp-ukagaka'));
         /* translators: debug console warning. %s is the failed AI response object. */
         $log_i18n->debug('contextChatAiFailedUseDefault', __('AI 会話に失敗したため、既定の会話システムを使用します：%s', 'mp-ukagaka'));
-        /* translators: debug console log. %s is the visitor information object. */
-        $log_i18n->debug('contextVisitorInfo', __('訪問者情報：%s', 'mp-ukagaka'));
+        /* translators: debug console log label. The visitor information object is passed as a separate console argument. */
+        $log_i18n->debug('contextVisitorInfo', __('訪問者情報：', 'mp-ukagaka'));
         /* translators: debug console log. jQuery ready handler has run. */
         $log_i18n->debug('featuresJqueryReady', __('jQuery ready を実行しました', 'mp-ukagaka'));
         /* translators: debug console log. jQuery.cookie initialization succeeded. */
@@ -953,8 +953,8 @@ function mpu_enqueue_frontend_assets()
         $log_i18n->debug('emojiRemoved', __('mpuEmojiManager: 表情を削除します', 'mp-ukagaka'));
         /* translators: debug console log. First-visitor greeting is skipped during sleep mode. */
         $log_i18n->debug('greetingSkippedSleepMode', __('🌙 睡眠モード：初回訪問者への挨拶をスキップし、キャラクターを休ませます', 'mp-ukagaka'));
-        /* translators: debug console log. %s is the visitor information object used for first-visitor greeting. */
-        $log_i18n->debug('greetingVisitorInfo', __('訪問者情報：%s', 'mp-ukagaka'));
+        /* translators: debug console log label. The visitor information object is passed as a separate console argument for first-visitor greeting. */
+        $log_i18n->debug('greetingVisitorInfo', __('訪問者情報：', 'mp-ukagaka'));
         /* translators: debug console log. First-visitor greeting was added to history and saved. */
         $log_i18n->debug('greetingSavedToHistory', __('mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました', 'mp-ukagaka'));
         /* translators: debug console warning. Chat history cannot be saved because the save function is missing. */
