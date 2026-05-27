@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-26T14:36:39.909Z
+ * Generated: 2026-05-27T01:15:56.165Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -4154,7 +4154,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
           mpuSetDialogDefaultMsg(resp.default_msg == 1 ? 1 : 0);
 
           if (skipFirstMessage) {
-            mpuLogger.logL("dialogFallbackLoadedFirstLineSuppressed", "loadExternalDialog: LLM 置換会話モードで後備会話データを読み込みましたが、最初の一文は表示しません");
+            mpuLogger.logL("dialogFallbackLoadedFirstLineSuppressed", "loadExternalDialog: LLM 置換会話モードでフォールバック会話データを読み込みましたが、最初の一文は表示しません");
             let first = 0;
             if (mpuDefaultMsg === 0 && resp.msg.length) {
               first = Math.floor(Math.random() * resp.msg.length);

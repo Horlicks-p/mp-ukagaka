@@ -932,7 +932,7 @@ function mpu_enqueue_frontend_assets()
         /* translators: debug console log. Dialogue file is empty while LLM replacement mode is active. */
         $log_i18n->debug('dialogExternalFileEmptyLlmFallback', __('loadExternalDialog: LLM 置換会話モードのため会話ファイルが空です。LLM 生成に依存します', 'mp-ukagaka'));
         /* translators: debug console log. Fallback dialogue data loaded but first line display is suppressed. */
-        $log_i18n->debug('dialogFallbackLoadedFirstLineSuppressed', __('loadExternalDialog: LLM 置換会話モードで後備会話データを読み込みましたが、最初の一文は表示しません', 'mp-ukagaka'));
+        $log_i18n->debug('dialogFallbackLoadedFirstLineSuppressed', __('loadExternalDialog: LLM 置換会話モードでフォールバック会話データを読み込みましたが、最初の一文は表示しません', 'mp-ukagaka'));
         /* translators: debug console log. Duplicate display of the first dialogue line was blocked. */
         $log_i18n->debug('dialogFirstLineDuplicateBlocked', __('loadExternalDialog: 最初の会話文を重複表示しようとしたため阻止しました', 'mp-ukagaka'));
         /* translators: debug console log. First built-in dialogue is skipped while asleep and not awakened. */

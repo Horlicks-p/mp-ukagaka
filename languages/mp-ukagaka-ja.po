@@ -2788,8 +2788,8 @@ msgstr "loadExternalDialog: LLM 置換会話モードのため会話ファイル
 
 #. translators: debug console log. Fallback dialogue data loaded but first line display is suppressed.
 #: includes/core/frontend-functions.php:935
-msgid "loadExternalDialog: LLM 置換会話モードで後備会話データを読み込みましたが、最初の一文は表示しません"
-msgstr "loadExternalDialog: LLM 置換会話モードで後備会話データを読み込みましたが、最初の一文は表示しません"
+msgid "loadExternalDialog: LLM 置換会話モードでフォールバック会話データを読み込みましたが、最初の一文は表示しません"
+msgstr "loadExternalDialog: LLM 置換会話モードでフォールバック会話データを読み込みましたが、最初の一文は表示しません"
 
 #. translators: debug console log. Duplicate display of the first dialogue line was blocked.
 #: includes/core/frontend-functions.php:937
