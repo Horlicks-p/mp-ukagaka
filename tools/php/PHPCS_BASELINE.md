@@ -85,7 +85,13 @@ php tools/php/vendor/bin/phpcbf --standard=phpcs.xml.dist <path>   # auto-fix; l
   (WP wants tabs) and function-call paren spacing — mostly cosmetic and
   phpcbf-autofixable, not bugs.
 
-## Do NOT add to `npm run verify` yet
+## Wired into `npm run verify`
 
-`lint:phpcs` is intentionally **not** part of `npm run verify` until the baseline
-has been generated, committed, and reviewed.
+`lint:phpcs` runs as part of `npm run verify` (right after `lint:php`), so any
+commit that introduces new PHPCS findings beyond the baseline fails the standard
+verification flow — fail-fast on style regressions.
+
+This means **`npm run verify` now requires PHPCS to be installed.** On a fresh
+checkout, run `composer install` (or the `require` command above) in `tools/php`
+first; otherwise `lint:phpcs` exits with the install hint and aborts `verify`.
+`tools/php/vendor` is gitignored, so this install step is per-machine.

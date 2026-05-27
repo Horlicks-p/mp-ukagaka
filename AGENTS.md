@@ -35,8 +35,11 @@ php tools/php/phpcs-baseline.php check      # exit 1 on new findings beyond base
 php tools/php/phpcs-baseline.php summary
 ```
 
-`lint:phpcs` is **not** wired into `npm run verify` yet (until the baseline is
-reviewed).
+`lint:phpcs` is wired into `npm run verify` (right after `lint:php`), so new
+PHPCS findings beyond the baseline fail verification. This means `npm run verify`
+requires PHPCS installed — on a fresh checkout run `composer install` in
+`tools/php` first (`tools/php/vendor` is gitignored), or `lint:phpcs` aborts
+`verify` with an install hint.
 
 Operational rules:
 
