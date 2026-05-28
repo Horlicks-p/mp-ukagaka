@@ -1,5 +1,67 @@
 # PHPCS Baseline Line Ending Memo
 
+## Resolution Update — 2026-05-28
+
+This memo has been actioned on branch `chore/normalize-line-endings` and pushed for home-side verification.
+
+Fix summary:
+
+| Commit | Scope | Result |
+| --- | --- | --- |
+| `eba3440` `Normalize repository line endings` | Finalized `.gitattributes` only | Repository policy now forces text checkout/commit to LF, keeps Windows script files CRLF, and marks images / `.mo` as binary. |
+| Working-tree refresh, no commit | Refreshed the checkout after the policy landed | Because the existing git blobs were already LF, `git add --renormalize .` was effectively a blob-level no-op for the rest of the repo. The important step was forcing the Windows working tree to materialize under the new LF policy instead of `core.autocrlf=true` CRLF smudge output. |
+| `7509de1` `Refresh PHPCS baseline after EOL normalization` | `tools/php/phpcs-baseline.json` only | Regenerated the PHPCS baseline from the normalized LF working tree. |
+
+Policy now committed in `.gitattributes`:
+
+```gitattributes
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.mo   binary
+```
+
+Verification performed on the company machine:
+
+- `git status --short` was clean before review.
+- `git diff --name-only eba3440^ eba3440` showed only `.gitattributes`.
+- `git diff --name-only 7509de1^ 7509de1` showed only `tools/php/phpcs-baseline.json`.
+- `php tools/php/phpcs-baseline.php summary` reported `47936 findings across 3416 grouped entries`.
+- `rg -n "InvalidEOLChar|Internal\.LineEndings\.Mixed" tools/php/phpcs-baseline.json` returned no matches.
+- `php tools/php/phpcs-baseline.php check` exited `0` and reported `Current PHPCS findings within baseline: 47936 findings across 3416 grouped entries`.
+
+Interpretation:
+
+- The root cause was confirmed as working-tree EOL non-determinism, not PHP version, PHPCS version, WPCS, or Composer setup.
+- The committed blobs were already LF; the broken state came from generating the baseline while the Windows working tree contained CRLF / mixed-EOL materialized files.
+- The new `.gitattributes` makes LF checkout deterministic even when a developer machine has `core.autocrlf=true`.
+- The refreshed baseline is now generated from that deterministic LF working tree, so home/company clean checkouts should compare against the same PHPCS finding set.
+
+Home-side verification requested:
+
+```powershell
+git fetch origin
+git checkout chore/normalize-line-endings
+composer install --working-dir=tools/php --ignore-platform-req=php
+php tools/php/phpcs-baseline.php check
+```
+
+Expected result:
+
+```text
+Current PHPCS findings within baseline: 47936 findings across 3416 grouped entries
+```
+
+If PHP is 8.4 or newer, `--ignore-platform-req=php` should not be necessary. On PHP 8.2 / 8.3 it may still be needed because the lock file can include a PHPUnit transitive dependency requiring PHP `^8.4`; that is unrelated to PHPCS baseline reproducibility.
+
 ## TL;DR
 
 PHPCS baseline 在家裡紅 6 個，根因不是 PHP 版本，也不是 PHPCS / WPCS 工具鏈壞掉，而是 repo 沒有固定 line ending policy。公司產生 baseline 時的工作區換行狀態，和家裡 `core.autocrlf=true` checkout 後的 CRLF 狀態不同，導致 PHPCS 讀到的實體檔案內容不同，baseline 無法穩定抵消既有 finding。
