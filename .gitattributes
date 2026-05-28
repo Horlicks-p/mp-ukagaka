@@ -1,5 +1,6 @@
-# Line-ending normalization policy (proposal — pending company decision 2026-05-27)
+# Line-ending normalization policy.
 # Text files commit/checkout as LF so the PHPCS baseline is portable across machines.
+# .bat/.cmd/.ps1 stay CRLF; images and compiled .mo are binary.
 * text=auto eol=lf
 
 # Windows-only scripts keep CRLF
