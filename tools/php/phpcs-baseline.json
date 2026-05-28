@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "generatedAt": "2026-05-27T05:28:20+00:00",
+    "generatedAt": "2026-05-28T01:49:30+00:00",
     "description": "PHPCS baseline grouped by file + sniff source + message. Line numbers are metadata only.",
     "entries": [
         {
@@ -26,16 +26,6 @@
                 264,
                 265,
                 266
-            ]
-        },
-        {
-            "file": "includes/admin-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -1872,16 +1862,6 @@
         },
         {
             "file": "includes/ajax/chat-api-handlers.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/ajax/chat-api-handlers.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 4 spaces but found 1 space",
             "type": "WARNING",
@@ -2157,16 +2137,6 @@
             "count": 1,
             "firstLines": [
                 11
-            ]
-        },
-        {
-            "file": "includes/chat/class-mpu-chat-history-service.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -2524,16 +2494,6 @@
             "count": 1,
             "firstLines": [
                 97
-            ]
-        },
-        {
-            "file": "includes/core/class-mpu-input-role.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -3037,16 +2997,6 @@
                 8,
                 105,
                 109
-            ]
-        },
-        {
-            "file": "includes/core/class-mpu-observation-buffer.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -3584,16 +3534,6 @@
             "firstLines": [
                 16,
                 98
-            ]
-        },
-        {
-            "file": "includes/core/core-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -5274,16 +5214,6 @@
         },
         {
             "file": "includes/core/debug-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/core/debug-functions.php",
             "source": "Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine",
             "message": "Opening brace should be on the same line as the declaration",
             "type": "ERROR",
@@ -5502,16 +5432,6 @@
                 13,
                 30,
                 35
-            ]
-        },
-        {
-            "file": "includes/core/encryption-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -5809,16 +5729,6 @@
         },
         {
             "file": "includes/core/file-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/core/file-functions.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 6 spaces but found 1 space",
             "type": "WARNING",
@@ -6102,16 +6012,6 @@
         },
         {
             "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 13 spaces but found 1 space",
             "type": "WARNING",
@@ -6142,8 +6042,8 @@
             "count": 3,
             "firstLines": [
                 503,
-                1041,
-                1042
+                1042,
+                1043
             ]
         },
         {
@@ -6155,7 +6055,7 @@
             "firstLines": [
                 64,
                 531,
-                1071
+                1072
             ]
         },
         {
@@ -6201,7 +6101,7 @@
             "count": 2,
             "firstLines": [
                 93,
-                1075
+                1076
             ]
         },
         {
@@ -6229,7 +6129,7 @@
                 154,
                 168,
                 348,
-                1068
+                1069
             ]
         },
         {
@@ -6243,7 +6143,7 @@
                 154,
                 168,
                 348,
-                1068
+                1069
             ]
         },
         {
@@ -6251,23 +6151,13 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 940,
+            "count": 941,
             "firstLines": [
                 11,
                 24,
                 25,
                 26,
                 27
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Internal.LineEndings.Mixed",
-            "message": "File has mixed line endings; this may cause incorrect results",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -6399,7 +6289,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1031
+                1032
             ]
         },
         {
@@ -6489,7 +6379,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1088
+                1089
             ]
         },
         {
@@ -6499,7 +6389,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1085
+                1086
             ]
         },
         {
@@ -6509,7 +6399,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1087
+                1088
             ]
         },
         {
@@ -6519,7 +6409,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1086
+                1087
             ]
         },
         {
@@ -6616,7 +6506,7 @@
             "count": 2,
             "firstLines": [
                 224,
-                1098
+                1099
             ]
         },
         {
@@ -6628,7 +6518,7 @@
             "firstLines": [
                 224,
                 226,
-                1098
+                1099
             ]
         },
         {
@@ -6658,8 +6548,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                1178,
-                1179
+                1179,
+                1180
             ]
         },
         {
@@ -6720,8 +6610,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                1178,
-                1179
+                1179,
+                1180
             ]
         },
         {
@@ -6755,7 +6645,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1184
+                1185
             ]
         },
         {
@@ -6787,8 +6677,8 @@
             "firstLines": [
                 215,
                 217,
-                1099,
-                1100
+                1100,
+                1101
             ]
         },
         {
@@ -6859,7 +6749,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1166
+                1167
             ]
         },
         {
@@ -6869,7 +6759,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1155
+                1156
             ]
         },
         {
@@ -6890,7 +6780,7 @@
             "count": 2,
             "firstLines": [
                 219,
-                1101
+                1102
             ]
         },
         {
@@ -6900,7 +6790,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1091
+                1092
             ]
         },
         {
@@ -6910,7 +6800,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1107
+                1108
             ]
         },
         {
@@ -6960,7 +6850,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1184
+                1185
             ]
         },
         {
@@ -6970,7 +6860,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1039
+                1040
             ]
         },
         {
@@ -6981,7 +6871,7 @@
             "count": 2,
             "firstLines": [
                 290,
-                1040
+                1041
             ]
         },
         {
@@ -7021,7 +6911,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1041
+                1042
             ]
         },
         {
@@ -7031,7 +6921,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1042
+                1043
             ]
         },
         {
@@ -7113,7 +7003,7 @@
                 215,
                 217,
                 219,
-                1099
+                1100
             ]
         },
         {
@@ -7123,7 +7013,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                978
+                979
             ]
         },
         {
@@ -7133,7 +7023,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                973
+                974
             ]
         },
         {
@@ -7143,7 +7033,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                985
+                986
             ]
         },
         {
@@ -7153,7 +7043,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                993
+                994
             ]
         },
         {
@@ -7163,7 +7053,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                989
+                990
             ]
         },
         {
@@ -7173,7 +7063,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                980
+                981
             ]
         },
         {
@@ -7183,7 +7073,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                972
+                973
             ]
         },
         {
@@ -7193,7 +7083,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                982
+                983
             ]
         },
         {
@@ -7203,7 +7093,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                976
+                977
             ]
         },
         {
@@ -7213,7 +7103,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                971
+                972
             ]
         },
         {
@@ -7223,7 +7113,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                974
+                975
             ]
         },
         {
@@ -7233,7 +7123,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                984
+                985
             ]
         },
         {
@@ -7243,7 +7133,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                995
+                996
             ]
         },
         {
@@ -7253,7 +7143,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                983
+                984
             ]
         },
         {
@@ -7263,7 +7153,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                986
+                987
             ]
         },
         {
@@ -7273,7 +7163,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                994
+                995
             ]
         },
         {
@@ -7283,7 +7173,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                997
+                998
             ]
         },
         {
@@ -7293,7 +7183,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                992
+                993
             ]
         },
         {
@@ -7303,7 +7193,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                979
+                980
             ]
         },
         {
@@ -7313,7 +7203,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                991
+                992
             ]
         },
         {
@@ -7323,7 +7213,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                981
+                982
             ]
         },
         {
@@ -7333,7 +7223,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                1006
+                1007
             ]
         },
         {
@@ -7343,7 +7233,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                975
+                976
             ]
         },
         {
@@ -7353,7 +7243,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                988
+                989
             ]
         },
         {
@@ -7383,11 +7273,11 @@
         {
             "file": "includes/core/frontend-functions.php",
             "source": "WordPress.Security.EscapeOutput.OutputNotEscaped",
-            "message": "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found '\"var mpuInfo = {\\r\\n'.",
+            "message": "All output should be run through an escaping function (see the Security sections in the WordPress Developer Handbooks), found '\"var mpuInfo = {\\n'.",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1065
+                1066
             ]
         },
         {
@@ -7407,7 +7297,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1086
+                1087
             ]
         },
         {
@@ -7427,7 +7317,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1179
+                1180
             ]
         },
         {
@@ -7437,7 +7327,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1046
+                1047
             ]
         },
         {
@@ -7468,7 +7358,7 @@
             "count": 2,
             "firstLines": [
                 217,
-                1100
+                1101
             ]
         },
         {
@@ -7498,7 +7388,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                995
+                996
             ]
         },
         {
@@ -7565,16 +7455,6 @@
                 47,
                 50,
                 53
-            ]
-        },
-        {
-            "file": "includes/core/network-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -8057,16 +7937,6 @@
         },
         {
             "file": "includes/core/runtime-state-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/core/runtime-state-functions.php",
             "source": "Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine",
             "message": "Opening brace should be on the same line as the declaration",
             "type": "ERROR",
@@ -8300,16 +8170,6 @@
                 77,
                 105,
                 109
-            ]
-        },
-        {
-            "file": "includes/core/template-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -8673,16 +8533,6 @@
             "count": 1,
             "firstLines": [
                 40
-            ]
-        },
-        {
-            "file": "includes/core/ukagaka-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -9917,16 +9767,6 @@
         },
         {
             "file": "includes/core/utility-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/core/utility-functions.php",
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
@@ -10045,16 +9885,6 @@
                 21,
                 28,
                 31
-            ]
-        },
-        {
-            "file": "includes/core/wp-info-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -10795,16 +10625,6 @@
         },
         {
             "file": "includes/integrations/abilities-integration.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/integrations/abilities-integration.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 2 spaces but found 1 space",
             "type": "WARNING",
@@ -11240,16 +11060,6 @@
             "firstLines": [
                 73,
                 101
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -12015,17 +11825,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                454
-            ]
-        },
-        {
-            "file": "includes/integrations/bot-blocker-integration.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
+                470
             ]
         },
         {
@@ -12033,21 +11833,9 @@
             "source": "Generic.Formatting.DisallowMultipleStatements.SameLine",
             "message": "Each PHP statement must be on a line by itself",
             "type": "ERROR",
-            "count": 3,
-            "firstLines": [
-                125,
-                125,
-                431
-            ]
-        },
-        {
-            "file": "includes/integrations/bot-blocker-integration.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.IncorrectWarning",
-            "message": "Equals sign not aligned correctly; expected 1 space but found 5 spaces",
-            "type": "WARNING",
             "count": 1,
             "firstLines": [
-                174
+                447
             ]
         },
         {
@@ -12057,7 +11845,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                528
+                544
             ]
         },
         {
@@ -12098,11 +11886,11 @@
             "type": "ERROR",
             "count": 10,
             "firstLines": [
-                228,
-                258,
-                258,
-                279,
-                280
+                244,
+                274,
+                274,
+                295,
+                296
             ]
         },
         {
@@ -12112,11 +11900,11 @@
             "type": "ERROR",
             "count": 10,
             "firstLines": [
-                228,
-                258,
-                258,
-                279,
-                280
+                244,
+                274,
+                274,
+                295,
+                296
             ]
         },
         {
@@ -12124,23 +11912,13 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 444,
+            "count": 451,
             "firstLines": [
                 17,
                 28,
                 29,
                 30,
                 31
-            ]
-        },
-        {
-            "file": "includes/integrations/bot-blocker-integration.php",
-            "source": "Internal.LineEndings.Mixed",
-            "message": "File has mixed line endings; this may cause incorrect results",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -12152,9 +11930,9 @@
             "firstLines": [
                 31,
                 32,
-                181,
-                261,
-                316
+                197,
+                277,
+                332
             ]
         },
         {
@@ -12166,9 +11944,9 @@
             "firstLines": [
                 31,
                 32,
-                181,
-                261,
-                316
+                197,
+                277,
+                332
             ]
         },
         {
@@ -12178,11 +11956,11 @@
             "type": "ERROR",
             "count": 6,
             "firstLines": [
-                196,
-                260,
-                315,
-                371,
-                443
+                212,
+                276,
+                331,
+                387,
+                459
             ]
         },
         {
@@ -12192,11 +11970,11 @@
             "type": "ERROR",
             "count": 6,
             "firstLines": [
-                193,
-                255,
-                310,
-                369,
-                439
+                209,
+                271,
+                326,
+                385,
+                455
             ]
         },
         {
@@ -12206,11 +11984,11 @@
             "type": "ERROR",
             "count": 7,
             "firstLines": [
-                193,
-                255,
-                310,
-                369,
-                439
+                209,
+                271,
+                326,
+                385,
+                455
             ]
         },
         {
@@ -12258,7 +12036,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                483
+                499
             ]
         },
         {
@@ -12268,7 +12046,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                642
+                658
             ]
         },
         {
@@ -12278,7 +12056,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                524
+                540
             ]
         },
         {
@@ -12288,7 +12066,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                494
+                510
             ]
         },
         {
@@ -12298,7 +12076,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                125
+                128
             ]
         },
         {
@@ -12308,7 +12086,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                414
+                430
             ]
         },
         {
@@ -12318,7 +12096,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                535
+                551
             ]
         },
         {
@@ -12338,7 +12116,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                477
+                493
             ]
         },
         {
@@ -12348,7 +12126,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                465
+                481
             ]
         },
         {
@@ -12361,8 +12139,8 @@
                 47,
                 82,
                 118,
-                128,
-                207
+                140,
+                223
             ]
         },
         {
@@ -12373,22 +12151,10 @@
             "count": 12,
             "firstLines": [
                 83,
-                129,
-                134,
-                136,
-                142
-            ]
-        },
-        {
-            "file": "includes/integrations/bot-blocker-integration.php",
-            "source": "Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace",
-            "message": "Newline required after opening brace",
-            "type": "ERROR",
-            "count": 3,
-            "firstLines": [
-                125,
-                135,
-                174
+                141,
+                146,
+                151,
+                157
             ]
         },
         {
@@ -12399,10 +12165,10 @@
             "count": 7,
             "firstLines": [
                 118,
-                207,
-                431,
-                454,
-                477
+                223,
+                447,
+                470,
+                493
             ]
         },
         {
@@ -12413,10 +12179,10 @@
             "count": 7,
             "firstLines": [
                 118,
-                207,
-                431,
-                454,
-                477
+                223,
+                447,
+                470,
+                493
             ]
         },
         {
@@ -12424,10 +12190,9 @@
             "source": "Squiz.Functions.MultiLineFunctionDeclaration.ContentAfterBrace",
             "message": "Opening brace must be the last content on the line",
             "type": "ERROR",
-            "count": 2,
+            "count": 1,
             "firstLines": [
-                125,
-                431
+                447
             ]
         },
         {
@@ -12437,7 +12202,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                431
+                447
             ]
         },
         {
@@ -12447,7 +12212,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                462
+                478
             ]
         },
         {
@@ -12461,7 +12226,7 @@
                 31,
                 32,
                 39,
-                158
+                173
             ]
         },
         {
@@ -12471,7 +12236,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                578
+                594
             ]
         },
         {
@@ -12481,8 +12246,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                601,
-                639
+                617,
+                655
             ]
         },
         {
@@ -12492,11 +12257,11 @@
             "type": "ERROR",
             "count": 5,
             "firstLines": [
-                125,
-                529,
-                612,
-                617,
-                624
+                133,
+                545,
+                628,
+                633,
+                640
             ]
         },
         {
@@ -12506,11 +12271,11 @@
             "type": "WARNING",
             "count": 11,
             "firstLines": [
-                548,
-                563,
-                565,
-                569,
-                600
+                564,
+                579,
+                581,
+                585,
+                616
             ]
         },
         {
@@ -12520,11 +12285,11 @@
             "type": "WARNING",
             "count": 10,
             "firstLines": [
-                563,
-                565,
-                569,
-                600,
-                604
+                579,
+                581,
+                585,
+                616,
+                620
             ]
         },
         {
@@ -12534,7 +12299,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                569
+                585
             ]
         },
         {
@@ -12544,7 +12309,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                627
+                643
             ]
         },
         {
@@ -12554,7 +12319,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                607
+                623
             ]
         },
         {
@@ -12564,8 +12329,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                563,
-                604
+                579,
+                620
             ]
         },
         {
@@ -12575,7 +12340,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                621
+                637
             ]
         },
         {
@@ -12585,7 +12350,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                610
+                626
             ]
         },
         {
@@ -12595,7 +12360,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                566
+                582
             ]
         },
         {
@@ -12605,7 +12370,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                615
+                631
             ]
         },
         {
@@ -12615,7 +12380,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                600
+                616
             ]
         },
         {
@@ -12625,7 +12390,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                645
+                661
             ]
         },
         {
@@ -12635,9 +12400,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                149,
-                363,
-                575
+                164,
+                379,
+                591
             ]
         },
         {
@@ -12647,7 +12412,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                406
+                422
             ]
         },
         {
@@ -12657,7 +12422,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                316
+                332
             ]
         },
         {
@@ -12667,7 +12432,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                395
+                411
             ]
         },
         {
@@ -12677,11 +12442,11 @@
             "type": "ERROR",
             "count": 14,
             "firstLines": [
-                279,
-                279,
-                280,
-                280,
-                281
+                295,
+                295,
+                296,
+                296,
+                297
             ]
         },
         {
@@ -12691,11 +12456,11 @@
             "type": "WARNING",
             "count": 6,
             "firstLines": [
-                279,
-                279,
-                280,
-                280,
-                281
+                295,
+                295,
+                296,
+                296,
+                297
             ]
         },
         {
@@ -12705,11 +12470,11 @@
             "type": "ERROR",
             "count": 8,
             "firstLines": [
-                143,
-                188,
-                212,
-                272,
-                325
+                158,
+                204,
+                228,
+                288,
+                341
             ]
         },
         {
@@ -12719,7 +12484,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                511
+                527
             ]
         },
         {
@@ -12729,11 +12494,11 @@
             "type": "ERROR",
             "count": 9,
             "firstLines": [
-                143,
-                188,
-                212,
-                272,
-                325
+                158,
+                204,
+                228,
+                288,
+                341
             ]
         },
         {
@@ -12743,7 +12508,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                513
+                529
             ]
         },
         {
@@ -12753,7 +12518,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                495
+                511
             ]
         },
         {
@@ -12763,8 +12528,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                258,
-                313
+                274,
+                329
             ]
         },
         {
@@ -12778,7 +12543,7 @@
                 73,
                 88,
                 119,
-                125
+                129
             ]
         },
         {
@@ -12792,7 +12557,7 @@
                 73,
                 88,
                 119,
-                125
+                129
             ]
         },
         {
@@ -12803,10 +12568,10 @@
             "count": 19,
             "firstLines": [
                 16,
-                125,
-                174,
-                220,
-                235
+                133,
+                189,
+                236,
+                251
             ]
         },
         {
@@ -12817,10 +12582,10 @@
             "count": 11,
             "firstLines": [
                 16,
-                220,
-                235,
-                240,
-                290
+                236,
+                251,
+                256,
+                306
             ]
         },
         {
@@ -12842,16 +12607,6 @@
             "firstLines": [
                 7,
                 90
-            ]
-        },
-        {
-            "file": "includes/integrations/turnstile-integration.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -13221,16 +12976,6 @@
                 15,
                 134,
                 192
-            ]
-        },
-        {
-            "file": "includes/llm/ai-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -13763,16 +13508,6 @@
         },
         {
             "file": "includes/llm/api-cache.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/api-cache.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 5 spaces but found 1 space",
             "type": "WARNING",
@@ -14040,16 +13775,6 @@
                 349,
                 352,
                 355
-            ]
-        },
-        {
-            "file": "includes/llm/chat-integrity.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -14880,16 +14605,6 @@
         },
         {
             "file": "includes/llm/class-mpu-chat-lock.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/class-mpu-chat-lock.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 3 spaces but found 1 space",
             "type": "WARNING",
@@ -15229,16 +14944,6 @@
         },
         {
             "file": "includes/llm/class-mpu-session-event.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/class-mpu-session-event.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 1 space but found 2 spaces",
             "type": "WARNING",
@@ -15414,16 +15119,6 @@
             "count": 1,
             "firstLines": [
                 9
-            ]
-        },
-        {
-            "file": "includes/llm/diary-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -16180,16 +15875,6 @@
                 519,
                 559,
                 622
-            ]
-        },
-        {
-            "file": "includes/llm/llm-context-builder.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -17538,16 +17223,6 @@
         },
         {
             "file": "includes/llm/llm-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/llm-functions.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 1 space but found 7 spaces",
             "type": "WARNING",
@@ -18307,16 +17982,6 @@
                 136,
                 189,
                 209
-            ]
-        },
-        {
-            "file": "includes/llm/llm-slimstat.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -19172,7 +18837,7 @@
         {
             "file": "includes/llm/llm-slimstat.php",
             "source": "WordPress.DB.PreparedSQL.InterpolatedNotPrepared",
-            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$slimstat_table} at \"SELECT browser FROM {$slimstat_table} \\r\\n",
+            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$slimstat_table} at \"SELECT browser FROM {$slimstat_table} \\n",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
@@ -19182,7 +18847,7 @@
         {
             "file": "includes/llm/llm-slimstat.php",
             "source": "WordPress.DB.PreparedSQL.InterpolatedNotPrepared",
-            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$table} at \"SELECT COUNT(DISTINCT ip) FROM {$table}\\r\\n",
+            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$table} at \"SELECT COUNT(DISTINCT ip) FROM {$table}\\n",
             "type": "ERROR",
             "count": 3,
             "firstLines": [
@@ -19194,7 +18859,7 @@
         {
             "file": "includes/llm/llm-slimstat.php",
             "source": "WordPress.DB.PreparedSQL.InterpolatedNotPrepared",
-            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$table} at \"SELECT DISTINCT country FROM {$table}\\r\\n",
+            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$table} at \"SELECT DISTINCT country FROM {$table}\\n",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
@@ -19204,7 +18869,7 @@
         {
             "file": "includes/llm/llm-slimstat.php",
             "source": "WordPress.DB.PreparedSQL.InterpolatedNotPrepared",
-            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$table} at \"SELECT browser, user_agent FROM {$table}\\r\\n",
+            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$table} at \"SELECT browser, user_agent FROM {$table}\\n",
             "type": "ERROR",
             "count": 2,
             "firstLines": [
@@ -19215,7 +18880,7 @@
         {
             "file": "includes/llm/llm-slimstat.php",
             "source": "WordPress.DB.PreparedSQL.InterpolatedNotPrepared",
-            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$table} at FROM {$table}\\r\\n",
+            "message": "Use placeholders and $wpdb->prepare(); found interpolated variable {$table} at FROM {$table}\\n",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
@@ -19308,16 +18973,6 @@
             "count": 1,
             "firstLines": [
                 304
-            ]
-        },
-        {
-            "file": "includes/llm/prompt-categories.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -19933,16 +19588,6 @@
         },
         {
             "file": "includes/llm/provider-helpers.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/provider-helpers.php",
             "source": "Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine",
             "message": "Opening brace should be on the same line as the declaration",
             "type": "ERROR",
@@ -20256,16 +19901,6 @@
             "count": 1,
             "firstLines": [
                 178
-            ]
-        },
-        {
-            "file": "includes/llm/provider-stream-http.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -20772,16 +20407,6 @@
         },
         {
             "file": "includes/llm/providers/bootstrap.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/providers/bootstrap.php",
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
@@ -20877,16 +20502,6 @@
             "count": 1,
             "firstLines": [
                 11
-            ]
-        },
-        {
-            "file": "includes/llm/providers/class-mpu-ai-provider-base.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -21156,16 +20771,6 @@
             "count": 1,
             "firstLines": [
                 453
-            ]
-        },
-        {
-            "file": "includes/llm/providers/class-mpu-ai-provider-claude.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -21972,16 +21577,6 @@
         },
         {
             "file": "includes/llm/providers/class-mpu-ai-provider-factory.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/providers/class-mpu-ai-provider-factory.php",
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
@@ -22112,16 +21707,6 @@
             "count": 1,
             "firstLines": [
                 500
-            ]
-        },
-        {
-            "file": "includes/llm/providers/class-mpu-ai-provider-gemini.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -22967,16 +22552,6 @@
                 131,
                 134,
                 148
-            ]
-        },
-        {
-            "file": "includes/llm/providers/class-mpu-ai-provider-ollama.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -23893,16 +23468,6 @@
         },
         {
             "file": "includes/llm/providers/class-mpu-ai-provider-openai.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/providers/class-mpu-ai-provider-openai.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 10 spaces but found 1 space",
             "type": "WARNING",
@@ -24753,16 +24318,6 @@
         },
         {
             "file": "includes/llm/providers/interface-mpu-ai-provider.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/providers/interface-mpu-ai-provider.php",
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
@@ -24928,16 +24483,6 @@
             "count": 1,
             "firstLines": [
                 11
-            ]
-        },
-        {
-            "file": "includes/llm/request-state.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -25154,16 +24699,6 @@
         },
         {
             "file": "includes/llm/streaming-helpers.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/llm/streaming-helpers.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 4 spaces but found 1 space",
             "type": "WARNING",
@@ -25303,7 +24838,7 @@
         {
             "file": "includes/llm/streaming-helpers.php",
             "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"\\r\\n\" does not require double quotes; use single quotes instead",
+            "message": "String \"\\n\" does not require double quotes; use single quotes instead",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
@@ -25313,7 +24848,7 @@
         {
             "file": "includes/llm/streaming-helpers.php",
             "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"\\r\\n\\r\\n\" does not require double quotes; use single quotes instead",
+            "message": "String \"\\n\\n\" does not require double quotes; use single quotes instead",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
@@ -25446,16 +24981,6 @@
             "count": 1,
             "firstLines": [
                 9
-            ]
-        },
-        {
-            "file": "includes/llm/tool-loop-guard.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -25787,16 +25312,6 @@
                 11,
                 38,
                 96
-            ]
-        },
-        {
-            "file": "includes/llm/weather-functions.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -26290,16 +25805,6 @@
         },
         {
             "file": "includes/mcp-tools/abilities/class-ai-crawler-ability.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/mcp-tools/abilities/class-ai-crawler-ability.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 3 spaces but found 1 space",
             "type": "WARNING",
@@ -26641,16 +26146,6 @@
             "count": 1,
             "firstLines": [
                 16
-            ]
-        },
-        {
-            "file": "includes/mcp-tools/abilities/class-visitor-pulse-ability.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -27058,16 +26553,6 @@
         },
         {
             "file": "includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 11 spaces but found 1 space",
             "type": "WARNING",
@@ -27416,7 +26901,7 @@
         {
             "file": "includes/mcp-tools/abilities/class-wp-bot-blocker-ability.php",
             "source": "WordPress.WP.I18n.NonSingularStringLiteralText",
-            "message": "The $text parameter must be a single text string literal. Found: '\"logs\" — deletes all intercept log records from the database. ' .\\r\\n '\"ips\" — clears the banned IP list only. ' .\\r\\n '\"both\" — clears both.'",
+            "message": "The $text parameter must be a single text string literal. Found: '\"logs\" — deletes all intercept log records from the database. ' .\\n '\"ips\" — clears the banned IP list only. ' .\\n '\"both\" — clears both.'",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
@@ -27503,16 +26988,6 @@
             "count": 1,
             "firstLines": [
                 117
-            ]
-        },
-        {
-            "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -28113,16 +27588,6 @@
         },
         {
             "file": "includes/mcp-tools/manager.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/mcp-tools/manager.php",
             "source": "Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine",
             "message": "Opening brace should be on the same line as the declaration",
             "type": "ERROR",
@@ -28301,16 +27766,6 @@
             "count": 1,
             "firstLines": [
                 57
-            ]
-        },
-        {
-            "file": "includes/personality/emoji-mapper.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -28979,16 +28434,6 @@
         },
         {
             "file": "includes/personality/personality-decorations.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/personality/personality-decorations.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 8 spaces but found 1 space",
             "type": "WARNING",
@@ -29193,16 +28638,6 @@
             "count": 1,
             "firstLines": [
                 14
-            ]
-        },
-        {
-            "file": "includes/personality/personality-emoji.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -29495,16 +28930,6 @@
                 83,
                 93,
                 149
-            ]
-        },
-        {
-            "file": "includes/personality/personality-loader.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -29986,16 +29411,6 @@
                 107,
                 118,
                 125
-            ]
-        },
-        {
-            "file": "includes/personality/personality-prompts.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -30490,16 +29905,6 @@
         },
         {
             "file": "includes/rest/bootstrap.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/rest/bootstrap.php",
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
@@ -30730,16 +30135,6 @@
             "count": 1,
             "firstLines": [
                 61
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-base.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -31048,16 +30443,6 @@
                 158,
                 363,
                 365
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-chat.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -32419,16 +31804,6 @@
         },
         {
             "file": "includes/rest/class-mpu-rest-dialog.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-dialog.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.IncorrectWarning",
             "message": "Equals sign not aligned correctly; expected 1 space but found 7 spaces",
             "type": "WARNING",
@@ -33014,16 +32389,6 @@
                 212,
                 284,
                 295
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-ghost.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -33844,16 +33209,6 @@
         },
         {
             "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 4 spaces but found 1 space",
             "type": "WARNING",
@@ -33864,23 +33219,12 @@
         },
         {
             "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma",
-            "message": "Expected 1 space after comma in argument list; 13 found",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                58,
-                58
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
             "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceAfterOpen",
             "message": "Expected 1 space after open parenthesis; 0 found",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                60
+                67
             ]
         },
         {
@@ -33890,7 +33234,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                60
+                67
             ]
         },
         {
@@ -33898,23 +33242,13 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 39,
+            "count": 45,
             "firstLines": [
                 11,
                 16,
                 17,
                 18,
                 19
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "Internal.LineEndings.Mixed",
-            "message": "File has mixed line endings; this may cause incorrect results",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -33988,16 +33322,6 @@
         },
         {
             "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
-            "message": "Expected 1 spaces after opening parenthesis; 13 found",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                58
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
@@ -34008,16 +33332,6 @@
                 30,
                 35,
                 35
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
-            "message": "Expected 1 spaces before closing parenthesis; 9 found",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                58
             ]
         },
         {
@@ -34067,7 +33381,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                59
+                66
             ]
         },
         {
@@ -34089,7 +33403,7 @@
             "firstLines": [
                 24,
                 53,
-                59
+                66
             ]
         },
         {
@@ -34101,17 +33415,7 @@
             "firstLines": [
                 24,
                 53,
-                59
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "Squiz.Functions.MultiLineFunctionDeclaration.ContentAfterBrace",
-            "message": "Opening brace must be the last content on the line",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                53
+                66
             ]
         },
         {
@@ -34134,7 +33438,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                60
+                67
             ]
         },
         {
@@ -34146,7 +33450,7 @@
             "firstLines": [
                 26,
                 31,
-                54
+                55
             ]
         },
         {
@@ -34157,7 +33461,7 @@
             "count": 2,
             "firstLines": [
                 35,
-                60
+                67
             ]
         },
         {
@@ -34233,16 +33537,6 @@
                 55,
                 100,
                 116
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-test.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -34563,16 +33857,6 @@
         },
         {
             "file": "includes/rest/class-mpu-rest-touch.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-touch.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 7 spaces but found 1 space",
             "type": "WARNING",
@@ -34845,16 +34129,6 @@
                 17,
                 173,
                 186
-            ]
-        },
-        {
-            "file": "includes/stats/stats-analyzer.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -35507,16 +34781,6 @@
         },
         {
             "file": "includes/stats/stats-collector.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/stats/stats-collector.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 3 spaces but found 1 space",
             "type": "WARNING",
@@ -36038,16 +35302,6 @@
         },
         {
             "file": "includes/updater/github-updater.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "includes/updater/github-updater.php",
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
@@ -36068,16 +35322,6 @@
             "count": 1,
             "firstLines": [
                 32
-            ]
-        },
-        {
-            "file": "mp-ukagaka.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -36373,16 +35617,6 @@
         },
         {
             "file": "options/options.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "options/options.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 6 spaces but found 1 space",
             "type": "WARNING",
@@ -36426,7 +35660,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 301,
+            "count": 311,
             "firstLines": [
                 12,
                 13,
@@ -36437,22 +35671,12 @@
         },
         {
             "file": "options/options.php",
-            "source": "Internal.LineEndings.Mixed",
-            "message": "File has mixed line endings; this may cause incorrect results",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "options/options.php",
             "source": "PEAR.Files.IncludingFile.BracketsNotRequired",
             "message": "\"require_once\" is a statement not a function; no parentheses are required",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                334
+                345
             ]
         },
         {
@@ -36514,10 +35738,10 @@
             "count": 11,
             "firstLines": [
                 18,
-                314,
-                314,
-                314,
-                314
+                315,
+                316,
+                317,
+                318
             ]
         },
         {
@@ -36529,8 +35753,8 @@
             "firstLines": [
                 34,
                 34,
-                333,
-                334
+                344,
+                345
             ]
         },
         {
@@ -36542,9 +35766,9 @@
             "firstLines": [
                 11,
                 18,
-                314,
-                314,
-                314
+                315,
+                316,
+                317
             ]
         },
         {
@@ -36568,9 +35792,9 @@
             "firstLines": [
                 304,
                 305,
-                314,
-                314,
-                314
+                315,
+                316,
+                317
             ]
         },
         {
@@ -36632,7 +35856,7 @@
             "firstLines": [
                 11,
                 18,
-                333
+                344
             ]
         },
         {
@@ -36644,7 +35868,7 @@
             "firstLines": [
                 11,
                 18,
-                333
+                344
             ]
         },
         {
@@ -36667,16 +35891,6 @@
             "firstLines": [
                 18,
                 309
-            ]
-        },
-        {
-            "file": "options/options_create.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -37015,16 +36229,6 @@
         },
         {
             "file": "options/options_dialog.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "options/options_dialog.php",
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
@@ -37107,16 +36311,6 @@
                 10,
                 12,
                 14
-            ]
-        },
-        {
-            "file": "options/options_extend.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -37274,16 +36468,6 @@
             "count": 1,
             "firstLines": [
                 14
-            ]
-        },
-        {
-            "file": "options/options_general.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -37649,16 +36833,6 @@
             "firstLines": [
                 26,
                 150
-            ]
-        },
-        {
-            "file": "options/options_page_ai.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -38144,16 +37318,6 @@
         },
         {
             "file": "options/options_page_bot_blocker.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "options/options_page_bot_blocker.php",
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
@@ -38477,16 +37641,6 @@
                 63,
                 94,
                 167
-            ]
-        },
-        {
-            "file": "options/options_page_diary.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -39054,16 +38208,6 @@
         },
         {
             "file": "options/options_page_llm.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
-            ]
-        },
-        {
-            "file": "options/options_page_llm.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 2 spaces but found 1 space",
             "type": "WARNING",
@@ -39533,16 +38677,6 @@
                 116,
                 117,
                 118
-            ]
-        },
-        {
-            "file": "options/options_page_stats.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
@@ -40033,16 +39167,6 @@
             "firstLines": [
                 13,
                 125
-            ]
-        },
-        {
-            "file": "options/options_ukagakas.php",
-            "source": "Generic.Files.LineEndings.InvalidEOLChar",
-            "message": "End of line character is invalid; expected \"\\n\" but found \"\\r\\n\"",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1
             ]
         },
         {
