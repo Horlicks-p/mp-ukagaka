@@ -32,9 +32,20 @@ mp-ukagaka/
 │   ├── core/                   # 核心功能模組
 │   │   ├── debug-functions.php     # 日誌系統（必須最先載入）
 │   │   ├── core-functions.php      # 核心功能（設定管理）
-│   │   ├── utility-functions.php   # 工具函數
+│   │   ├── utility-functions.php   # 工具函數 / 常數定義
+│   │   ├── template-functions.php  # 模板載入與字串處理
+│   │   ├── file-functions.php      # 安全檔案操作與目錄輔助
+│   │   ├── encryption-functions.php# API Key 加密與解密輔助
+│   │   ├── wp-info-functions.php   # WordPress 資訊提取器
+│   │   ├── network-functions.php   # 網路請求輔助函數
+│   │   ├── runtime-state-functions.php # 執行期狀態輔助函數
+│   │   ├── class-mpu-input-role.php # LLM / 工具輸入角色解析器
+│   │   ├── class-mpu-observation-buffer.php # 頁面與訪客活動觀測快取（Session-scoped）
+│   │   ├── class-mpu-log-i18n-builder.php # 前端控制台日誌國際化建構器
 │   │   ├── ukagaka-functions.php   # 偽春菜管理
 │   │   └── frontend-functions.php  # 前端功能
+│   ├── chat/                   # 對話流程服務
+│   │   └── class-mpu-chat-history-service.php # 對話歷史服務（驗證/儲存/切片）
 │   ├── rest/                   # REST API 處理模組（OO 架構）
 │   │   ├── bootstrap.php           # REST Controller 註冊入口
 │   │   ├── class-mpu-rest-base.php # 基礎類別
@@ -42,7 +53,9 @@ mp-ukagaka/
 │   │   ├── class-mpu-rest-ghost.php# 核心/人格端點
 │   │   ├── class-mpu-rest-dialog.php# 對話管理端點
 │   │   ├── class-mpu-rest-touch.php# 觸摸互動端點
-│   │   └── class-mpu-rest-test.php # API 測試端點
+│   │   ├── class-mpu-rest-test.php # API 測試端點
+│   │   ├── class-mpu-rest-observation.php # 觀測數據推送端點
+│   │   └── class-mpu-rest-memory.php # 使用者記憶端點
 │   ├── ajax/                   # AJAX 處理器模組
 │   │   └── chat-api-handlers.php   # 對話模式 API 處理器（多輪對話封裝）
 │   ├── personality/            # 人格系統模組
@@ -59,7 +72,9 @@ mp-ukagaka/
 │   │   ├── llm-slimstat.php        # LLM Slimstat 整合
 │   │   ├── prompt-categories.php   # Prompt 類別指令管理
 │   │   ├── chat-integrity.php      # 對話歷史校驗碼驗證
+│   │   ├── class-mpu-chat-lock.php # 對話生命週期鎖（防並行 LLM 請求）
 │   │   ├── request-state.php       # 請求級別狀態管理
+│   │   ├── class-mpu-session-event.php # 與傳輸層無關的對話事件封裝
 │   │   ├── provider-helpers.php    # AI 提供商輔助函數
 │   │   ├── streaming-helpers.php   # SSE 串流輔助函數
 │   │   ├── provider-stream-http.php# cURL 串流 HTTP 客戶端
@@ -82,12 +97,16 @@ mp-ukagaka/
 │   │   ├── manager.php             # 能力管理器
 │   │   └── abilities/
 │   │       ├── class-wp-bot-blocker-ability.php # 機器人攔截能力
-│   │       └── class-wp-postviews-ability.php   # 文章瀏覽數能力
+│   │       ├── class-wp-postviews-ability.php   # 文章瀏覽數能力
+│   │       ├── class-ai-crawler-ability.php     # AI 爬蟲訊號能力
+│   │       └── class-visitor-pulse-ability.php  # 訪客活躍度統計能力
 │   ├── integrations/           # 整合功能模組
 │   │   ├── abilities-integration.php   # Abilities API 整合
 │   │   ├── akismet-integration.php     # Akismet 垃圾留言攔截整合
 │   │   ├── bot-blocker-integration.php # 機器人攔截整合
 │   │   └── turnstile-integration.php   # Turnstile 驗證整合
+│   ├── updater/                # 自動更新模組
+│   │   └── github-updater.php      # GitHub 自動更新（Plugin Update Checker）
 │   └── admin-functions.php     # 後台功能
 ├── ghost/                  # 角色人格配置
 │   ├── Frieren/
@@ -121,7 +140,7 @@ mp-ukagaka/
 │   ├── options_ukagakas.php    # 偽春菜管理頁面
 │   ├── options_create.php      # 創建新偽春菜頁面
 │   ├── options_extend.php      # 擴展設定頁面
-│   ├── options_dialog.php      # 會話設定頁面
+│   ├── options_dialog.php      # 對話設定頁面
 │   ├── options_page_ai.php     # AI 功能設定頁面
 │   ├── options_page_llm.php    # LLM 功能設定頁面
 │   ├── options_page_diary.php  # 日記功能設定頁面
@@ -156,36 +175,47 @@ mp-ukagaka/
 $core_modules = [
     'core/debug-functions.php',     // 0. 日誌系統（必須最先載入）
     'core/core-functions.php',      // 1. 核心功能（設定管理）
-    'core/utility-functions.php',   // 2. 工具函數
-    'personality/personality-loader.php',  // 3. 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
-    'personality/personality-prompts.php', // 4. 人格提示詞模組（動態提示詞、變數替換）
-    'personality/personality-decorations.php', // 5. 裝飾物系統
-    'personality/personality-emoji.php',   // 6. 表情系統
-    'stats/stats-collector.php',   // 7. 統計收集器（需在 ai-functions.php 之前載入）
-    'stats/stats-analyzer.php',    // 8. 統計分析器
-    'llm/api-cache.php',           // 9. API 快取系統
-    'llm/provider-helpers.php',    // 10. Provider 共用 Helper
-    'llm/chat-integrity.php',      // 11. 對話歷史完整性校驗
-    'llm/request-state.php',       // 12. 請求級別狀態管理
-    'llm/tool-loop-guard.php',     // 13. 工具呼叫迴圈防護機制
-    'llm/streaming-helpers.php',   // 14. SSE 串流輔助函數
-    'llm/provider-stream-http.php', // 15. Provider 串流 HTTP 客戶端
-    'llm/providers/bootstrap.php', // 16. AI Providers 工廠模式與類別
-    'llm/ai-functions.php',        // 17. AI 功能（雲端 API：Gemini, OpenAI, Claude）
-    'llm/prompt-categories.php',   // 18. Prompt 類別指令管理
-    'llm/llm-slimstat.php',        // 19. LLM Slimstat 整合
-    'llm/llm-context-builder.php', // 20. LLM 上下文建構
-    'llm/weather-functions.php',   // 21. 天氣功能（Open-Meteo API）
-    'llm/diary-functions.php',     // 22. AI 日記功能
-    'llm/llm-functions.php',       // 23. LLM 功能（本機 / 遠端 LLM）
-    'personality/emoji-mapper.php', // 24. 表情映射與情緒分析
-    'core/ukagaka-functions.php',   // 25. 偽春菜管理
-    'rest/bootstrap.php',           // 26. REST OO Controller 註冊入口
-    'ajax/chat-api-handlers.php',   // 27. 對話模式封裝 / 相容層
-    'integrations/akismet-integration.php', // 28. Akismet 垃圾留言連動
-    'integrations/turnstile-integration.php', // 29. Turnstile 驗證整合
-    'integrations/abilities-integration.php', // 30. Abilities API 整合
-    'integrations/bot-blocker-integration.php', // 31. Bot Blocker 整合
+    'core/utility-functions.php',   // 2. 工具函數 / 常數定義
+    'core/template-functions.php',  // 3. 模板載入與字串處理
+    'core/file-functions.php',      // 4. 安全檔案操作與目錄輔助
+    'core/encryption-functions.php',// 5. API Key 加密與解密輔助
+    'core/wp-info-functions.php',   // 6. WordPress 資訊提取器
+    'core/network-functions.php',   // 7. 網路請求輔助函數
+    'core/runtime-state-functions.php', // 8. 執行期狀態輔助函數
+    'core/class-mpu-input-role.php', // 9. LLM / 工具輸入角色解析器
+    'core/class-mpu-observation-buffer.php', // 10. 頁面與訪客活動觀測快取
+    'core/class-mpu-log-i18n-builder.php', // 11. 前端控制台日誌國際化建構器
+    'personality/personality-loader.php',  // 12. 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
+    'personality/personality-prompts.php', // 13. 人格提示詞模組（動態提示詞、變數替換）
+    'personality/personality-decorations.php', // 14. 裝飾物系統
+    'personality/personality-emoji.php',   // 15. 表情系統
+    'stats/stats-collector.php',   // 16. 統計收集器（需在 ai-functions.php 之前載入）
+    'stats/stats-analyzer.php',    // 17. 統計分析器
+    'llm/api-cache.php',           // 18. API 快取系統
+    'llm/provider-helpers.php',    // 19. Provider 共用 Helper（JSON 編碼 / 工具結果格式化）
+    'llm/chat-integrity.php',      // 20. 對話歷史完整性 checksum（防前端篡改）
+    'llm/class-mpu-chat-lock.php', // 21. 對話生命週期鎖（防並行 LLM 請求）
+    'llm/request-state.php',       // 22. 請求級別狀態管理
+    'llm/class-mpu-session-event.php', // 23. 與傳輸層無關的對話事件封裝
+    'llm/tool-loop-guard.php',     // 24. 工具呼叫迴圈防護機制
+    'llm/streaming-helpers.php',   // 25. SSE 串流輔助函數
+    'llm/provider-stream-http.php', // 26. cURL 串流 HTTP 客戶端
+    'llm/providers/bootstrap.php', // 27. AI Providers 工廠與類別
+    'llm/ai-functions.php',        // 28. AI 功能（雲端 API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 29. Prompt 類別指令管理
+    'llm/llm-slimstat.php',        // 30. LLM Slimstat 整合
+    'llm/llm-context-builder.php', // 31. LLM 上下文建構
+    'llm/weather-functions.php',   // 32. 天氣功能（Open-Meteo API）
+    'llm/diary-functions.php',     // 33. AI 日記功能（フリーレン手記）
+    'llm/llm-functions.php',       // 34. LLM 功能（本機 LLM：Ollama）
+    'personality/emoji-mapper.php', // 35. 表情映射與情緒分析
+    'core/ukagaka-functions.php',   // 36. 偽春菜管理
+    'rest/bootstrap.php',           // 37. REST OO Controller 註冊入口
+    'ajax/chat-api-handlers.php',   // 38. 對話模式 AJAX 處理器（多輪對話）
+    'integrations/akismet-integration.php', // 39. Akismet 垃圾留言連動
+    'integrations/turnstile-integration.php', // 40. Turnstile 驗證整合
+    'integrations/abilities-integration.php', // 41. Abilities API 整合
+    'integrations/bot-blocker-integration.php', // 42. Bot Blocker 整合
 ];
 
 // 前端專用模組（僅在非後台環境載入）
@@ -195,7 +225,8 @@ $frontend_modules = [
 
 // 後台專用模組（僅在後台環境載入）
 $admin_modules = [
-    'admin-functions.php',     // 後台功能
+    'admin-functions.php',          // 後台功能
+    'updater/github-updater.php',   // GitHub 自動更新（Plugin Update Checker）
 ];
 ```
 
@@ -209,7 +240,7 @@ $admin_modules = [
 
 | 常數            | 說明       | 值         |
 | --------------- | ---------- | ---------- |
-| `MPU_VERSION`   | 外掛版本   | `"2.13.7-20260425"`  |
+| `MPU_VERSION`   | 外掛版本   | `"2.24.0"`  |
 | `MPU_MAIN_FILE` | 主檔案路徑 | `__FILE__` |
 
 ---

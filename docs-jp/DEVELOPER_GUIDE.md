@@ -32,9 +32,20 @@ mp-ukagaka/
 │   ├── core/                   # コア機能モジュール
 │   │   ├── debug-functions.php     # ログシステム（最初に読み込む必要があります）
 │   │   ├── core-functions.php      # コア機能（設定管理）
-│   │   ├── utility-functions.php   # ユーティリティ関数
+│   │   ├── utility-functions.php   # ユーティリティ関数 / 定数定義
+│   │   ├── template-functions.php  # テンプレート読み込みと文字列処理
+│   │   ├── file-functions.php      # セキュアなファイル操作とディレクトリヘルパー
+│   │   ├── encryption-functions.php# API キー暗号化 / 復号ヘルパー
+│   │   ├── wp-info-functions.php   # WordPress 情報抽出
+│   │   ├── network-functions.php   # ネットワークリクエストヘルパー
+│   │   ├── runtime-state-functions.php # ランタイムスコープの状態ヘルパー
+│   │   ├── class-mpu-input-role.php # LLM / ツール入力ロール解決
+│   │   ├── class-mpu-observation-buffer.php # セッションスコープの訪問者活動バッファ
+│   │   ├── class-mpu-log-i18n-builder.php # フロントエンドコンソールログ i18n ペイロードビルダー
 │   │   ├── ukagaka-functions.php   # 伺か管理
 │   │   └── frontend-functions.php  # フロントエンド機能
+│   ├── chat/                   # 会話フローサービス
+│   │   └── class-mpu-chat-history-service.php # 会話履歴サービス（verify/store/slice）
 │   ├── rest/                   # REST API 処理モジュール（オブジェクト指向アーキテクチャ）
 │   │   ├── bootstrap.php           # REST Controller 登録エントリ
 │   │   ├── class-mpu-rest-base.php # 基底クラス
@@ -42,7 +53,9 @@ mp-ukagaka/
 │   │   ├── class-mpu-rest-ghost.php# コア / 人格エンドポイント
 │   │   ├── class-mpu-rest-dialog.php# 会話管理エンドポイント
 │   │   ├── class-mpu-rest-touch.php# タッチインタラクションエンドポイント
-│   │   └── class-mpu-rest-test.php # API テストエンドポイント
+│   │   ├── class-mpu-rest-test.php # API テストエンドポイント
+│   │   ├── class-mpu-rest-observation.php # 観測データ送信エンドポイント
+│   │   └── class-mpu-rest-memory.php # ユーザーメモリエンドポイント
 │   ├── ajax/                   # AJAX ハンドラモジュール
 │   │   └── chat-api-handlers.php   # 会話モード API ハンドラ（複数ターン会話のカプセル化）
 │   ├── personality/            # 人格（Personality）システムモジュール
@@ -59,7 +72,9 @@ mp-ukagaka/
 │   │   ├── llm-slimstat.php        # LLM Slimstat 統合
 │   │   ├── prompt-categories.php   # プロンプトカテゴリ指示管理
 │   │   ├── chat-integrity.php      # 会話履歴チェックサム検証
+│   │   ├── class-mpu-chat-lock.php # 会話ライフサイクルロック（並列 LLM リクエスト防護）
 │   │   ├── request-state.php       # リクエストレベルのステータス管理
+│   │   ├── class-mpu-session-event.php # トランスポート非依存の会話イベント
 │   │   ├── provider-helpers.php    # AI プロバイダー補助関数
 │   │   ├── streaming-helpers.php   # SSE ストリーミング補助関数
 │   │   ├── provider-stream-http.php# cURL ストリーミング HTTP クライアント
@@ -82,12 +97,16 @@ mp-ukagaka/
 │   │   ├── manager.php             # アビリティ マネージャー
 │   │   └── abilities/
 │   │       ├── class-wp-bot-blocker-ability.php # Bot ブロッカーアビリティ
-│   │       └── class-wp-postviews-ability.php   # 記事閲覧数アビリティ
+│   │       ├── class-wp-postviews-ability.php   # 記事閲覧数アビリティ
+│   │       ├── class-ai-crawler-ability.php     # AI クローラーシグナルアビリティ
+│   │       └── class-visitor-pulse-ability.php  # 訪問者活動統計アビリティ
 │   ├── integrations/           # 統合機能モジュール
 │   │   ├── abilities-integration.php   # アビリティ API 統合
 │   │   ├── akismet-integration.php     # Akismet スパム対策統合
 │   │   ├── bot-blocker-integration.php # Bot ブロッカー統合
 │   │   └── turnstile-integration.php   # Turnstile 検証統合
+│   ├── updater/                # 自動更新モジュール
+│   │   └── github-updater.php      # GitHub ベースのプラグイン更新チェッカー
 │   └── admin-functions.php     # 管理画面機能
 ├── ghost/                  # キャラクター人格設定
 │   ├── Frieren/
@@ -156,36 +175,47 @@ mp-ukagaka/
 $core_modules = [
     'core/debug-functions.php',     // 0. ログシステム（最初に読み込む必要があります）
     'core/core-functions.php',      // 1. コア機能（設定管理）
-    'core/utility-functions.php',   // 2. ユーティリティ関数
-    'personality/personality-loader.php',  // 3. 人格システム（JSON ローダー、他の personality モジュールより先に読み込む）
-    'personality/personality-prompts.php', // 4. 人格プロンプトモジュール（動的プロンプト、変数の置換）
-    'personality/personality-decorations.php', // 5. 装飾品システム
-    'personality/personality-emoji.php',   // 6. 絵文字システム
-    'stats/stats-collector.php',   // 7. 統計収集器（ai-functions.php より先に読み込む）
-    'stats/stats-analyzer.php',    // 8. 統計分析器
-    'llm/api-cache.php',           // 9. API キャッシュシステム
-    'llm/provider-helpers.php',    // 10. Provider 共有ヘルパー
-    'llm/chat-integrity.php',      // 11. 会話履歴の整合性チェックサム
-    'llm/request-state.php',       // 12. リクエストレベルのステータス管理
-    'llm/tool-loop-guard.php',     // 13. ツール呼び出しループ防止メカニズム
-    'llm/streaming-helpers.php',   // 14. SSE ストリーミング補助関数
-    'llm/provider-stream-http.php', // 15. Provider ストリーミング HTTP クライアント
-    'llm/providers/bootstrap.php', // 16. AI Providers ファクトリパターンとクラス
-    'llm/ai-functions.php',        // 17. AI 機能（クラウド API：Gemini, OpenAI, Claude）
-    'llm/prompt-categories.php',   // 18. プロンプトカテゴリ指示管理
-    'llm/llm-slimstat.php',        // 19. LLM Slimstat 統合
-    'llm/llm-context-builder.php', // 20. LLM コンテキストビルダー
-    'llm/weather-functions.php',   // 21. 天気機能（Open-Meteo API）
-    'llm/diary-functions.php',     // 22. AI 日記機能
-    'llm/llm-functions.php',       // 23. LLM 機能（ローカル / リモート LLM）
-    'personality/emoji-mapper.php', // 24. 絵文字マッピングと感情分析
-    'core/ukagaka-functions.php',   // 25. 伺か管理
-    'rest/bootstrap.php',           // 26. REST OO Controller 登録エントリ
-    'ajax/chat-api-handlers.php',   // 27. 会話モードカプセル化 / 互換性レイヤー
-    'integrations/akismet-integration.php', // 28. Akismet スパム対策統合
-    'integrations/turnstile-integration.php', // 29. Turnstile 検証統合
-    'integrations/abilities-integration.php', // 30. アビリティ API 統合
-    'integrations/bot-blocker-integration.php', // 31. Bot Blocker 統合
+    'core/utility-functions.php',   // 2. ユーティリティ関数 / 定数定義
+    'core/template-functions.php',  // 3. テンプレート読み込みと文字列処理
+    'core/file-functions.php',      // 4. セキュアなファイル操作とディレクトリヘルパー
+    'core/encryption-functions.php',// 5. API キー暗号化 / 復号ヘルパー
+    'core/wp-info-functions.php',   // 6. WordPress 情報抽出
+    'core/network-functions.php',   // 7. ネットワークリクエストヘルパー
+    'core/runtime-state-functions.php', // 8. ランタイムスコープの状態ヘルパー
+    'core/class-mpu-input-role.php', // 9. LLM / ツール入力ロール解決
+    'core/class-mpu-observation-buffer.php', // 10. セッションスコープの訪問者活動バッファ
+    'core/class-mpu-log-i18n-builder.php', // 11. フロントエンドコンソールログ i18n ペイロードビルダー
+    'personality/personality-loader.php',  // 12. 人格システム（JSON ローダー、他の personality モジュールより先に読み込む）
+    'personality/personality-prompts.php', // 13. 人格プロンプトモジュール（動的プロンプト、変数の置換）
+    'personality/personality-decorations.php', // 14. 装飾品システム
+    'personality/personality-emoji.php',   // 15. 絵文字システム
+    'stats/stats-collector.php',   // 16. 統計収集器（ai-functions.php より先に読み込む）
+    'stats/stats-analyzer.php',    // 17. 統計分析器
+    'llm/api-cache.php',           // 18. API キャッシュシステム
+    'llm/provider-helpers.php',    // 19. Provider 共有ヘルパー（JSON エンコード / ツール結果フォーマット）
+    'llm/chat-integrity.php',      // 20. 会話履歴の整合性チェックサム（フロントエンド改竄防止）
+    'llm/class-mpu-chat-lock.php', // 21. 会話ライフサイクルロック（並列 LLM リクエスト防護）
+    'llm/request-state.php',       // 22. リクエストレベルのステータス管理
+    'llm/class-mpu-session-event.php', // 23. トランスポート非依存の会話イベント
+    'llm/tool-loop-guard.php',     // 24. ツール呼び出しループ防止メカニズム
+    'llm/streaming-helpers.php',   // 25. SSE ストリーミング補助関数
+    'llm/provider-stream-http.php', // 26. cURL ストリーミング HTTP クライアント
+    'llm/providers/bootstrap.php', // 27. AI Providers ファクトリとクラス
+    'llm/ai-functions.php',        // 28. AI 機能（クラウド API：Gemini, OpenAI, Claude）
+    'llm/prompt-categories.php',   // 29. プロンプトカテゴリ指示管理
+    'llm/llm-slimstat.php',        // 30. LLM Slimstat 統合
+    'llm/llm-context-builder.php', // 31. LLM コンテキストビルダー
+    'llm/weather-functions.php',   // 32. 天気機能（Open-Meteo API）
+    'llm/diary-functions.php',     // 33. AI 日記機能（フリーレン手記）
+    'llm/llm-functions.php',       // 34. LLM 機能（ローカル LLM：Ollama）
+    'personality/emoji-mapper.php', // 35. 絵文字マッピングと感情分析
+    'core/ukagaka-functions.php',   // 36. 伺か管理
+    'rest/bootstrap.php',           // 37. REST OO Controller 登録エントリ
+    'ajax/chat-api-handlers.php',   // 38. 会話モード AJAX ハンドラ（複数ターン）
+    'integrations/akismet-integration.php', // 39. Akismet スパム対策統合
+    'integrations/turnstile-integration.php', // 40. Turnstile 検証統合
+    'integrations/abilities-integration.php', // 41. アビリティ API 統合
+    'integrations/bot-blocker-integration.php', // 42. Bot Blocker 統合
 ];
 
 // フロントエンド専用モジュール（管理画面以外の環境でのみ読み込む）
@@ -195,7 +225,8 @@ $frontend_modules = [
 
 // 管理画面専用モジュール（管理画面環境でのみ読み込む）
 $admin_modules = [
-    'admin-functions.php',     // 管理画面機能
+    'admin-functions.php',          // 管理画面機能
+    'updater/github-updater.php',   // GitHub 自動更新（Plugin Update Checker）
 ];
 ```
 
@@ -209,7 +240,7 @@ $admin_modules = [
 
 | 定数            | 説明            | 値                  |
 | --------------- | --------------- | ------------------- |
-| `MPU_VERSION`   | プラグインバージョン | `"2.13.7-20260425"` |
+| `MPU_VERSION`   | プラグインバージョン | `"2.24.0"` |
 | `MPU_MAIN_FILE` | メインファイルパス | `__FILE__`          |
 
 ---

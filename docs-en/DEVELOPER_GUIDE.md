@@ -32,9 +32,20 @@ mp-ukagaka/
 │   ├── core/                   # Core modules
 │   │   ├── debug-functions.php     # Logging system (must be loaded first)
 │   │   ├── core-functions.php      # Core functions (settings management)
-│   │   ├── utility-functions.php   # Utility functions
+│   │   ├── utility-functions.php   # Utility functions / constants
+│   │   ├── template-functions.php  # Template loading and string processing
+│   │   ├── file-functions.php      # Secure file operations and directory helpers
+│   │   ├── encryption-functions.php# API key encryption / decryption helpers
+│   │   ├── wp-info-functions.php   # WordPress info extractor
+│   │   ├── network-functions.php   # Network request helpers
+│   │   ├── runtime-state-functions.php # Runtime-scoped state helpers
+│   │   ├── class-mpu-input-role.php # LLM / tool input role resolver
+│   │   ├── class-mpu-observation-buffer.php # Session-scoped visitor activity buffer
+│   │   ├── class-mpu-log-i18n-builder.php # Frontend console log i18n payload builder
 │   │   ├── ukagaka-functions.php   # Ukagaka management
 │   │   └── frontend-functions.php  # Frontend functions
+│   ├── chat/                   # Chat flow services
+│   │   └── class-mpu-chat-history-service.php # Chat history service (verify/store/slice)
 │   ├── rest/                   # REST API handling modules (OO Architecture)
 │   │   ├── bootstrap.php           # REST Controller registration entry
 │   │   ├── class-mpu-rest-base.php # Base class
@@ -42,7 +53,9 @@ mp-ukagaka/
 │   │   ├── class-mpu-rest-ghost.php# Core/Personality endpoints
 │   │   ├── class-mpu-rest-dialog.php# Dialog management endpoints
 │   │   ├── class-mpu-rest-touch.php# Touch interaction endpoints
-│   │   └── class-mpu-rest-test.php # API test endpoints
+│   │   ├── class-mpu-rest-test.php # API test endpoints
+│   │   ├── class-mpu-rest-observation.php # Observation push endpoint
+│   │   └── class-mpu-rest-memory.php # User memory endpoints
 │   ├── ajax/                   # AJAX handler modules
 │   │   └── chat-api-handlers.php   # Chat API handlers (Multi-turn encapsulation)
 │   ├── personality/            # Personality system modules
@@ -59,7 +72,9 @@ mp-ukagaka/
 │   │   ├── llm-slimstat.php        # LLM Slimstat integration
 │   │   ├── prompt-categories.php   # Prompt category instruction management
 │   │   ├── chat-integrity.php      # Chat history checksum validation
+│   │   ├── class-mpu-chat-lock.php # Chat lifecycle lock (concurrent LLM request guard)
 │   │   ├── request-state.php       # Request-level state management
+│   │   ├── class-mpu-session-event.php # Transport-neutral session event envelope
 │   │   ├── provider-helpers.php    # AI provider helper functions
 │   │   ├── streaming-helpers.php   # SSE streaming helper functions
 │   │   ├── provider-stream-http.php# cURL streaming HTTP client
@@ -82,12 +97,16 @@ mp-ukagaka/
 │   │   ├── manager.php             # Abilities manager
 │   │   └── abilities/
 │   │       ├── class-wp-bot-blocker-ability.php # Bot blocker ability
-│   │       └── class-wp-postviews-ability.php   # Post views ability
+│   │       ├── class-wp-postviews-ability.php   # Post views ability
+│   │       ├── class-ai-crawler-ability.php     # AI crawler signal ability
+│   │       └── class-visitor-pulse-ability.php  # Visitor pulse statistics ability
 │   ├── integrations/           # Integration modules
 │   │   ├── abilities-integration.php   # Abilities API integration
 │   │   ├── akismet-integration.php     # Akismet anti-spam integration
 │   │   ├── bot-blocker-integration.php # Bot blocker integration
 │   │   └── turnstile-integration.php   # Turnstile verification integration
+│   ├── updater/                # Auto-update module
+│   │   └── github-updater.php      # GitHub-based plugin update checker
 │   └── admin-functions.php     # Admin functions
 ├── ghost/                  # Character personality configurations
 │   ├── Frieren/
@@ -156,36 +175,47 @@ The plugin uses a conditional loading mechanism, loading modules based on the ex
 $core_modules = [
     'core/debug-functions.php',     // 0. Logging system (must be loaded first)
     'core/core-functions.php',      // 1. Core functions (settings management)
-    'core/utility-functions.php',   // 2. Utility functions
-    'personality/personality-loader.php',  // 3. Personality system (JSON loader, must be before other personality modules)
-    'personality/personality-prompts.php', // 4. Personality prompts module (Dynamic prompts, variable replacement)
-    'personality/personality-decorations.php', // 5. Decoration system
-    'personality/personality-emoji.php',   // 6. Emoji system
-    'stats/stats-collector.php',   // 7. Stats collector (must be before ai-functions.php)
-    'stats/stats-analyzer.php',    // 8. Stats analyzer
-    'llm/api-cache.php',           // 9. API cache system
-    'llm/provider-helpers.php',    // 10. Provider common helpers
-    'llm/chat-integrity.php',      // 11. Chat history integrity checksum
-    'llm/request-state.php',       // 12. Request-level state management
-    'llm/tool-loop-guard.php',     // 13. Tool call loop protection mechanism
-    'llm/streaming-helpers.php',   // 14. SSE streaming helper functions
-    'llm/provider-stream-http.php', // 15. Provider streaming HTTP client
-    'llm/providers/bootstrap.php', // 16. AI Providers factory pattern and classes
-    'llm/ai-functions.php',        // 17. AI functions (Cloud APIs: Gemini, OpenAI, Claude)
-    'llm/prompt-categories.php',   // 18. Prompt category instruction management
-    'llm/llm-slimstat.php',        // 19. LLM Slimstat integration
-    'llm/llm-context-builder.php', // 20. LLM context builder
-    'llm/weather-functions.php',   // 21. Weather functions (Open-Meteo API)
-    'llm/diary-functions.php',     // 22. AI diary functions
-    'llm/llm-functions.php',       // 23. LLM functions (Local / Remote LLM)
-    'personality/emoji-mapper.php', // 24. Emoji mapping and emotion analysis
-    'core/ukagaka-functions.php',   // 25. Ukagaka management
-    'rest/bootstrap.php',           // 26. REST OO Controller registration entry
-    'ajax/chat-api-handlers.php',   // 27. Chat mode encapsulation / compatibility layer
-    'integrations/akismet-integration.php', // 28. Akismet anti-spam integration
-    'integrations/turnstile-integration.php', // 29. Turnstile verification integration
-    'integrations/abilities-integration.php', // 30. Abilities API integration
-    'integrations/bot-blocker-integration.php', // 31. Bot Blocker integration
+    'core/utility-functions.php',   // 2. Utility functions / constants
+    'core/template-functions.php',  // 3. Template loading and string processing
+    'core/file-functions.php',      // 4. Secure file operations and directory helpers
+    'core/encryption-functions.php',// 5. API key encryption / decryption helpers
+    'core/wp-info-functions.php',   // 6. WordPress info extractor
+    'core/network-functions.php',   // 7. Network request helpers
+    'core/runtime-state-functions.php', // 8. Runtime-scoped state helpers
+    'core/class-mpu-input-role.php', // 9. LLM / tool input role resolver
+    'core/class-mpu-observation-buffer.php', // 10. Session-scoped visitor activity buffer
+    'core/class-mpu-log-i18n-builder.php', // 11. Frontend console log i18n payload builder
+    'personality/personality-loader.php',  // 12. Personality system (JSON loader, must be before other personality modules)
+    'personality/personality-prompts.php', // 13. Personality prompts module (Dynamic prompts, variable replacement)
+    'personality/personality-decorations.php', // 14. Decoration system
+    'personality/personality-emoji.php',   // 15. Emoji system
+    'stats/stats-collector.php',   // 16. Stats collector (must be before ai-functions.php)
+    'stats/stats-analyzer.php',    // 17. Stats analyzer
+    'llm/api-cache.php',           // 18. API cache system
+    'llm/provider-helpers.php',    // 19. Provider common helpers (JSON encoding / tool result formatting)
+    'llm/chat-integrity.php',      // 20. Chat history integrity checksum (prevents frontend tampering)
+    'llm/class-mpu-chat-lock.php', // 21. Chat lifecycle lock (concurrent LLM request guard)
+    'llm/request-state.php',       // 22. Request-level state management
+    'llm/class-mpu-session-event.php', // 23. Transport-neutral session event envelope
+    'llm/tool-loop-guard.php',     // 24. Tool call loop protection mechanism
+    'llm/streaming-helpers.php',   // 25. SSE streaming helper functions
+    'llm/provider-stream-http.php', // 26. cURL streaming HTTP client
+    'llm/providers/bootstrap.php', // 27. AI provider factory + classes
+    'llm/ai-functions.php',        // 28. AI functions (Cloud APIs: Gemini, OpenAI, Claude)
+    'llm/prompt-categories.php',   // 29. Prompt category instruction management
+    'llm/llm-slimstat.php',        // 30. LLM Slimstat integration
+    'llm/llm-context-builder.php', // 31. LLM context builder
+    'llm/weather-functions.php',   // 32. Weather functions (Open-Meteo API)
+    'llm/diary-functions.php',     // 33. AI diary functions (Frieren's journal)
+    'llm/llm-functions.php',       // 34. LLM functions (Local LLM: Ollama)
+    'personality/emoji-mapper.php', // 35. Emoji mapping and emotion analysis
+    'core/ukagaka-functions.php',   // 36. Ukagaka management
+    'rest/bootstrap.php',           // 37. REST OO Controller registration entry
+    'ajax/chat-api-handlers.php',   // 38. Chat mode AJAX handlers (Multi-turn)
+    'integrations/akismet-integration.php', // 39. Akismet anti-spam integration
+    'integrations/turnstile-integration.php', // 40. Turnstile verification integration
+    'integrations/abilities-integration.php', // 41. Abilities API integration
+    'integrations/bot-blocker-integration.php', // 42. Bot Blocker integration
 ];
 
 // Frontend-only modules (loaded only in non-admin environments)
@@ -195,7 +225,8 @@ $frontend_modules = [
 
 // Admin-only modules (loaded only in admin environments)
 $admin_modules = [
-    'admin-functions.php',     // Admin functions
+    'admin-functions.php',          // Admin functions
+    'updater/github-updater.php',   // GitHub auto-update (Plugin Update Checker)
 ];
 ```
 
@@ -209,7 +240,7 @@ $admin_modules = [
 
 | Constant        | Description     | Value                |
 | --------------- | --------------- | -------------------- |
-| `MPU_VERSION`   | Plugin version  | `"2.13.7-20260425"`  |
+| `MPU_VERSION`   | Plugin version  | `"2.24.0"`  |
 | `MPU_MAIN_FILE` | Main file path  | `__FILE__`           |
 
 ---
