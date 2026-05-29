@@ -6,6 +6,14 @@
 
 ## [2.24.1] - 2026-05-29
 
+### 🐛 Bug Fixes
+
+#### Decoration name resolution in observation context
+
+- When a visitor touched a decoration and later asked what they did, the character only said "touched a decoration" instead of naming the actual item (e.g. the staff, the suitcase). The observation buffer stored only the decoration `type` slug, and the prompt builder echoed the raw slug.
+- Added a `name` field to each entry in `ghost/Frieren/decorations.json` (e.g. 魔法杖, 魔導書, スーツケース).
+- `MPU_Observation_Buffer` now resolves the decoration type → display name at drain time via `mpu_load_personality_decorations()` (name-first lookup). Resolution happens at drain because the push-side normalize regex only allows `[a-z0-9_]+`, so localized names cannot be stored in the buffer. Fallback is ghost-agnostic (`str_replace _ → space`); no per-character type map is baked into the generic class.
+
 ### 🛠️ Code quality tooling
 
 - Added PHPCS baseline (`tools/php/phpcs-baseline.json`) snapshotting all WordPress Coding Standards violations at branch-out time, so new code is held to current standards while legacy violations remain queryable.

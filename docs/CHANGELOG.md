@@ -6,6 +6,14 @@
 
 ## [2.24.1] - 2026-05-29
 
+### 🐛 錯誤修正
+
+#### Observation 上下文中的飾品名稱解析
+
+- 訪客點擊飾品後再詢問「剛剛做了什麼？」時，角色只會回答「碰了飾品」而不會說出具體物品名稱（例如：杖、行李箱）。Observation buffer 只儲存飾品的 `type` slug，prompt builder 也直接吐 raw slug。
+- 在 `ghost/Frieren/decorations.json` 每個項目加上 `name` 欄位（例：魔法杖、魔導書、スーツケース）。
+- `MPU_Observation_Buffer` 在 drain 時透過 `mpu_load_personality_decorations()` 解析飾品 type → 顯示名稱（name-first 查找）。在 drain 時解析的原因是 push 端的 normalize 正規表達式只允許 `[a-z0-9_]+`，因此本地化名稱無法存進 buffer。fallback 為 ghost-agnostic（`str_replace _ → space`），不會把角色專屬 type 表硬編碼進泛用 class。
+
 ### 🛠️ 程式碼品質工具整備
 
 - 新增 PHPCS baseline（`tools/php/phpcs-baseline.json`），快照分岔當下所有 WordPress Coding Standards 違規。新增程式碼受現行標準把關，既有違規仍可查詢但不阻塞。

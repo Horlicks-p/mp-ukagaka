@@ -6,6 +6,14 @@
 
 ## [2.24.1] - 2026-05-29
 
+### 🐛 バグ修正
+
+#### Observation コンテキストでの装飾品名の解決
+
+- 訪問者が装飾品に触れた後「何をしましたか？」と尋ねると、キャラクターは具体的な品名（例：杖、スーツケース）ではなく「装飾品に触れた」としか答えませんでした。Observation buffer には装飾品の `type` slug しか保存されておらず、prompt builder もそのまま raw slug を出力していました。
+- `ghost/Frieren/decorations.json` の各エントリに `name` フィールドを追加しました（例：魔法杖、魔導書、スーツケース）。
+- `MPU_Observation_Buffer` は drain 時に `mpu_load_personality_decorations()` 経由で装飾品 type → 表示名を解決するようになりました（name-first lookup）。drain 時に解決する理由は、push 側の normalize 正規表現が `[a-z0-9_]+` しか許容しないため、ローカライズされた名前を buffer に保存できないからです。fallback は ghost に依存しません（`str_replace _ → space`）。汎用クラスにキャラクター別の type マップを焼き込むことはしません。
+
 ### 🛠️ コード品質ツール整備
 
 - PHPCS baseline（`tools/php/phpcs-baseline.json`）を追加し、分岐時点で検出されたすべての WordPress Coding Standards 違反をスナップショット化しました。新規コードは現行基準で検査され、既存の違反は照会可能な形で保持されます。
