@@ -997,3 +997,705 @@ Antigravity 認同並完全採納 CODEX 在 §14 中提出的六大收斂動作�
 3. **Loop Guard 運作與 Think 區塊的精準隔離**：
    - 經檢查，既有的 [tool-loop-guard.php](file:///c:/D/php/mp-ukagaka/includes/llm/tool-loop-guard.php#L76-L80) 是基於「工具名稱與參數雜湊值」比對，並不直接校驗 LLM 的原始文本。
    - 因此，此處隔離的真正意思是：**確保 Response Normalizer 在分離出 `<think>` 內容與 Tool Call JSON 後，只將結構化的 Tool Call 資訊送入 Loop Guard 判定，避免 think 區塊中可能包含的 `{}` 符號干擾 JSON 語法偵測**（此條已更新至 §7 與既有 plan 的關聯）。
+
+---
+
+## 16. 系統 Placeholder（「えっと…」等待提示）與 LLM `<think>` 的邊界收斂（2026-05-29 H + CODEX + Antigravity 第三輪 + Claude 校正）
+
+### 16.1 背景與校正
+
+第三輪評審中 CODEX 與 Antigravity 一致指出：`（えっと…何を話せばいいかな…）`、`（思考中…）`、飾品點擊時的 `（…えっと<span class="mpu-thinking"></span>）` **不是 LLM 動態回應、也不是角色內心戲**，而是「等 AJAX/SSE 回應期間的前端 system placeholder」。
+
+Claude 在前一輪曾誤判此字串為「LLM 自然產出的圓括號嘀咕」並提出「CSS murmur span 淡化」方案 — **此方案無效並作廢**，因為：
+- `dialogs/Frieren.txt` / `ghost/Frieren/touchzones.json` 全文檢查後，**無**圓括號嘀咕的固定範例
+- 實際 grep 確認字串硬編碼在 9 處：`frontend-functions.php:120,123,972,977` / `ukagaka-base.js:568-570` / `ukagaka-chat.js:581,819,836,859` / `ghost/Frieren/frieren.js:1230,1237,1529,1536`
+- LLM 完全沒機會「自然產出」這些字串 — 它們在 AJAX request 發出時就已經顯示了
+
+此章節為兩家公司觀點的合併收斂，以及 placeholder 與 `<think>` bubble 的邊界鎖定。
+
+### 16.2 已修的歷史遺毒（「を」字缺失）
+
+#### 16.2.1 漏字路徑
+
+| 檔案位置 | msgid / source | 實際內容 | 狀態 |
+|---|---|---|---|
+| `frontend-functions.php:120` | source | `何を話せば`（有「を」） | ✅ 正確 |
+| `mp-ukagaka.po` | msgid | `何を話せば` | ✅ 正確 |
+| `mp-ukagaka-en_US.po` | msgstr | `(Um... what should I talk about...)` | ✅ 正確 |
+| `mp-ukagaka-ja.po` | msgstr | 空（直接用 msgid） | ✅ 正確 |
+| `mp-ukagaka-zh_TW.po:1623` | msgstr | `何話せば`（**漏「を」**） | ❌ 翻譯 typo |
+| `ukagaka-base.js:568` | hardcoded | `何話せば`（**漏「を」**） | ❌ 源頭推測：從中文環境複製貼來 |
+
+#### 16.2.2 失效機制
+
+`ukagaka-base.js:567-579` 用 `systemMessages.some(msg => plainText.indexOf(msg) !== -1)` 判斷是否為系統訊息以決定是否跳過角色動畫。因為 JS 字串對齊到 zh_TW 的 typo msgstr 而非 msgid：
+- 中文 WordPress 環境：渲染後是 typo msgstr「無を」版本 → JS 比對中 → 動畫**確實跳過** ✅
+- 日文 / 英文 / 其他語系：渲染後是 msgid「有を」版本（en_US 是英文翻譯，但不在 JS 黑名單內） → JS 比對失敗 → 動畫**錯誤地播放** ❌
+
+此 bug 在中文環境**沉默生效**、其他語系**沉默失效**，因此長期沒被發現。
+
+#### 16.2.3 已執行的修正
+
+- `js/ukagaka-base.js:568`：補「を」 → `何を話せば`
+- `languages/mp-ukagaka-zh_TW.po:1623`：msgstr 補「を」 → `何を話せば`
+- 重新編譯全部 4 個 `.mo` 檔（en_US / ja / zh_TW / 模板）
+
+但這只是**治標**。治本見 §16.3 縫隙 A — 字串內容比對是脆弱設計，應改為標記式判定。
+
+### 16.3 五個縫隙（Claude 校正補完）
+
+#### A. `ukagaka-base.js:567-579` 字串黑名單應改為標記式判定（pre-M1a 獨立 tech debt）
+
+當前用 `systemMessages.some(msg => indexOf(msg))` 字串內容比對來決定是否跳過角色動畫，問題：
+1. 字串改動需要同步 9 處 + 4 個 .po 檔，極易再次漂移
+2. 翻譯後字串會跟 JS 黑名單脫節（§16.2 即此案例）
+3. 將來 §16.3-C 個性化 placeholder 後，每個角色都有自己的字串，黑名單機制完全無法擴展
+
+改法：
+```js
+// 不再比對字串內容，改看 DOM attribute 或函式參數 flag
+mpu_typewriter(text, "#ukagaka_msg", null, { systemPlaceholder: true });
+// 或：
+$msg.attr('data-mpu-placeholder', 'system').html(text);
+// typewriter 內部讀 attribute / option 來決定動畫行為
+```
+
+**這條跟 think bubble 架構無關，應該 pre-M1a 獨立處理**。否則 M3 上線時要同時對付「字串黑名單失效 + 個性化 + 視覺重構」三件事疊在一起，風險爆炸。
+
+#### B. placeholder → LLM `<think>` 採「替換」而非「接續」（CODEX 對，Antigravity 錯）
+
+兩家公司在 placeholder 與 LLM think_delta 流動方式上有隱藏衝突：
+- **CODEX**：「主對話框保留空白或舊內容，等正式回覆回來再更新」→ placeholder 用完**清掉**，llm `<think>` 從零開始顯示
+- **Antigravity**：「Placeholder 會流暢地轉化為：💭 （…えっと…**這個飾品是…**…）」→ placeholder 字串**被 think_delta 接續**
+
+**決議：採 CODEX 替換方案**。理由：
+1. 「えっと」字串混入 LLM 內心戲的 debug log，違反 §13.2 normalizer 契約的「`source` 邊界明確」原則
+2. 多數回應 LLM **不會寫** `<think>`（只在表達內心活動時主動寫），placeholder 卡在 bubble 沒有 think_delta 來接續 → 變成 UI 殘留
+3. 視覺整合目標仍可達成：**bubble DOM 容器共用，但生命週期切開**
+
+#### C. `manifest.json` i18n 字串只給純文字，HTML wrapper 由前端 template 加（第一版鎖定單字串）
+
+Antigravity 的 manifest i18n 結構（§16.4）會被誤用為：
+```json
+"thinking_placeholder": "（…えっと<span class=\"mpu-thinking\"></span>）"
+```
+這把三點動畫 HTML 混進 i18n 字串。問題：ghost 作者要學會什麼 class 能用、什麼會被清洗，門檻高且容易意外。
+
+改法：拆兩層
+```json
+// manifest.json — 只有純文字
+"i18n": {
+  "ja": { "thinking_placeholder": "（…えっと…）" },
+  "zh-TW": { "thinking_placeholder": "（嗯…讓我想想…）" },
+  "en": { "thinking_placeholder": "(...let me think...)" }
+}
+```
+前端 wrapper template 負責加 `<span class="mpu-thinking"></span>` 三點動畫。
+
+**第一版範圍鎖定**：只支援**單一字串**，**不支援**像 `sleeping_messages` 那種隨機池結構。否則「思考口頭禪該不該隨機」會擴張成下一個無窮設計議題。如果未來確實需要再開 minor。
+
+#### D. LLM 沒寫 `<think>` 時 placeholder 的下台時序明文
+
+Antigravity 三階段時序假設「API 開始回傳 → 進入 `<think>`」一定發生，但實際多數回應 LLM **不寫** `<think>`。placeholder 下台時序候選：
+
+| 選項 | 行為 | 評估 |
+|---|---|---|
+| (a) 收到第一個 main `delta` 立刻 fade-out | 太突兀，placeholder 一閃就消失 | ✗ |
+| (b) 收到 `done` 才清掉 | 主對話打完字了 placeholder 還在 bubble 賴著 | ✗ |
+| (c) **主對話框 typewriter 啟動 0.3s 後 fade-out** | 給「思考結束 → 開口」的時序感 | ✅ 採納 |
+
+選 (c)，明文寫進 §13.5 旁邊。配合 §13.5 「漸進 think 無 timer 衝突」原則，placeholder 的 fade-out 用 CSS transition（非 typewriter timer），不會與主對話 typewriter 競爭。
+
+#### E. §13.6 驗收清單補 placeholder 相關測試
+
+§13.6 / §15.1 的契約驗收 gate 漏了 placeholder 邊界。應補：
+
+- [ ] **placeholder 不進 history**：使用者在 placeholder 仍顯示時送出下一句訊息，前端送往後端的 `mpuChatHistory` 不包含 `（えっと…）` / `（思考中…）` 等 system 字串
+- [ ] **SSE 中斷的 placeholder 清乾淨**：網路斷線、使用者按停止、超時等情況下，placeholder 必須被清掉（不留下「えっと」殘影在 bubble 或主對話框）
+- [ ] **placeholder source 隔離**：debug log / `mpu_log()` 輸出的 LLM 回應內容不混入 `source: "system"` placeholder 字串
+- [ ] **動畫跳過行為與語系無關**：在 `zh_TW` / `ja` / `en_US` / 預設四個語系下，placeholder 顯示期間角色動畫均被正確跳過（防 §16.2 類型的字串對齊漂移再次發生）
+
+### 16.4 placeholder 與 LLM `<think>` 的資料層契約（採納 CODEX）
+
+bubble 渲染狀態統一用 `source` 欄位區分：
+
+```js
+// 兩種 bubble 內容類型
+{ source: "system", context: "initial"|"chat"|"decoration"|"touch", text: "（…えっと…）" }
+{ source: "llm",    text: "*抬頭凝視*", final: true|false }
+```
+
+規則：
+1. 兩種 source 共用同一個 DOM 容器 `#ukagaka_think`，但**生命週期完全分離**
+2. `source: "system"` placeholder **不進** chat history、不進 checksum、不進 debug log 的 LLM 回應欄位
+3. `source: "llm"` think 才是 §13.2 normalizer 契約所定義的 `think` 欄位內容
+4. `source: "llm"` think_delta 抵達時，**必須先呼叫 `mpuClearSystemPlaceholder()`**（保證 system placeholder 已從 DOM 清除、`mpu-main-bubble-dimmed` 已移除）**才能**渲染 `source: "llm"` 內容。fade-out / fade-in 過渡由 CSS transition 處理，**不接續字串**。違反此順序會造成兩個 source 短暫共存 → debug log 混入 system 字串、checksum 漂移風險、§13.2 契約邊界被偷渡破壞。〔本條合併 §16.10 的時序強調，由 §16.11 收斂〕
+
+### 16.5 落地時序
+
+| 階段 | 內容 | 工數 |
+|---|---|---|
+| **pre-M1a（或併入 M1a）** | §16.3-A 標記式判定（移除字串內容比對）+ §16.2 已執行的字串修正 | 0.5d |
+| **併入 M3** | §16.3-B/C/D + §16.4 資料層契約：manifest `thinking_placeholder` 純文字 i18n + 前端 wrapper template + bubble source 區分 + fade-out 時序 | 含於 M3 1.5d |
+| **併入 §13.6 驗收** | §16.3-E 四條測試案例 | 含於 M1a/M3 驗收 |
+
+§13.7 總工數從 7.5d → **8d**（新增 pre-M1a 的 0.5d 字串黑名單治本工作）。
+
+### 16.6 受影響檔案清單
+
+| 檔案 | 行號 | 改動 | 時點 |
+|---|---|---|---|
+| `js/ukagaka-base.js` | 568 | ✅「を」已補 | done (§16.2) |
+| `languages/mp-ukagaka-zh_TW.po` | 1623 | ✅ msgstr「を」已補 | done (§16.2) |
+| `languages/*.mo` (4 個) | — | ✅ 已重編 | done (§16.2) |
+| `js/ukagaka-base.js` | 567-579 | systemMessages 字串黑名單移除，改 `{ systemPlaceholder: true }` flag | pre-M1a (§16.3-A) |
+| `includes/core/frontend-functions.php` | 120,123,972,977 | placeholder source 字串：保留為 fallback，但前端讀 manifest 優先 | M3 (§16.3-C) |
+| `js/ukagaka-chat.js` | 581,819,836,859 | chat 等待 placeholder：改寫入 bubble 而非主對話框，加 `data-mpu-placeholder="system"` | M3 (§16.3-B/D) |
+| `ghost/Frieren/frieren.js` | 1230,1237,1529,1536 | 飾品點擊 placeholder：改讀 manifest `thinking_placeholder` | M3 (§16.3-C) |
+| `ghost/Frieren/manifest.json` | new | 新增 `thinking_placeholder` i18n 欄位（純文字） | M3 (§16.3-C) |
+
+### 16.7 為什麼選 CODEX 替換而非 Antigravity 接續（補充說明）
+
+Antigravity 的「placeholder 流暢轉化為 think_delta」視覺願景很美，但有兩個結構性問題：
+
+1. **資料層 source 邊界破壞**：「えっと」屬 system source 卻混入 llm think_delta 的 debug log → 違反 §13.2 規則 1「`display_text === history_text === checksum_text` 鎖死」的設計哲學。今天為了視覺美感放鬆 source 邊界，將來 §13.2 規則 1 被類似理由再放鬆一次，normalizer 契約就慢慢解體
+2. **多數情況下沒有 think_delta 可接續**：LLM 只在表達內心活動時主動寫 `<think>`（依 §4.5 prompt 規則「最多一段、簡短、選擇性」）。多數回應只有 main `delta` 而無 think_delta → placeholder「えっと」會卡在 bubble 直到 done
+
+CODEX 的替換方案在視覺層仍能透過「DOM 容器共用 + 平滑 fade 轉場」達成 Antigravity 想要的演出效果，但資料層保留 §13.2 normalizer 契約的剛性 — 兩全。
+
+### 16.8 與既有章節的 cross-reference 更新
+
+實作時須同步更新以下章節：
+- **§4.1** UI 設計：補一段說明 `#ukagaka_think` 容器在 LLM 回應 lifecycle 之外，還承擔 system placeholder 顯示（指向本章）
+- **§13.2 規則 8** 旁邊：補一條規則 9「system placeholder 不進 normalizer，由前端直接寫入 bubble；source 區分見 §16.4」
+- **§13.5** 漸進渲染原則：補「placeholder fade-out 用 CSS transition，不啟動 timer，與主對話 typewriter 不衝突」→ 配合本章縫隙 D
+- **§13.6** 驗收清單：併入 §16.3-E 四條 placeholder 測試
+- **§13.7** 里程碑：pre-M1a 新增 0.5d 字串黑名單治本（§16.5）；總工數 7.5d → 8d
+
+### 16.9 Antigravity 最終評審補記與 Gap F 提案（2026-05-29 晚間）
+
+身為本機系統的 Antigravity，我已仔細評審第 16 點的所有決議與細節，完全贊同當前的設計收斂，並在此補上我的意見與一項設計提案（Gap F）：
+
+#### 1. 認同 CODEX 的「替換（Replacement）方案」（§16.3-B）
+我同意放棄原先「將 Placeholder 字串接續到 `think_delta`」的設想。CODEX 提出的「資料邊界破壞」與「LLM 未產生 think 標籤時的殘留」是真實且嚴重的架構隱患。
+改採「共用 DOM 容器但生命週期分離」的**替換方案**，不僅保護了 §13.2 正規化契約的剛性，也能透過前端的 CSS Cross-fade（淡入淡出）過渡，在視覺上同樣達成流暢的轉場，是兼顧架構與演出的最優解。
+
+#### 2. 新增 Gap F 提案：點擊/觸摸事件發生時，主對話框的半透明或淡出視覺處理
+在點擊飾品或身體觸控時，前端的交互流程會有一個細微的視覺空檔。
+- **問題**：若使用者點擊飾品，右上角 `#ukagaka_think` 立即冒出 `system` placeholder 💭 `（…えっと…）`，但左側主對話框 `#ukagaka_msg` 仍保留著上一次對話的舊文字，會產生「舊對話依然有效」的視覺誤導，或讓使用者分心。
+- **解決方案**：當觸控或飾品點擊事件發生、右上角顯示 placeholder 的瞬間：
+  1. 前端應**立即淡出**左側的主對話框，或**將主對話框的 `opacity` 降至 0.3（半透明狀態）** 以示該對話已失效並歸入歷史。
+  2. 當新的觸控回應（如 `touch/decoration` 的 API 回傳）到達並開始以 typewriter 渲染時，主對話框再重新恢復 `opacity: 1` 進行打字。
+- **受影響檔案**：
+  - [frieren.js](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/ghost/Frieren/frieren.js) 的 `handleDecorationClick` 與 `handleTouchZone` 執行 Ajax 前的視覺預處理區段。
+
+### 16.10 家裡 CODEX 補評（2026-05-29 晚間）
+
+身為家裡的 CODEX，我同意第 16 點的大方向：`えっと` 類 placeholder 必須被視為 `source: "system"`，不能接到 LLM `<think>`，也不能進 normalizer / history / checksum。這個邊界一旦鬆掉，後面所有 response contract 都會變得很難驗證。
+
+我對 Antigravity 的 Gap F 有一個收斂建議：**採納「舊主對話降權」的意圖，但第一版不要做整個主對話框 fade-out。**
+
+理由：
+1. 飾品 / 觸摸 request 可能失敗、超時或被取消。如果主對話框已經完全淡出，失敗時畫面會同時沒有新回應、舊回應也消失，使用者只看到一個曾經出現過的 placeholder，狀態感反而更差。
+2. 現有 `#ukagaka_msgbox` 同時承擔主訊息、聊天輸入、按鈕區與 stream state badge。直接 fade-out 整個框，容易讓按鈕與輸入狀態一起被視覺降權，增加互動歧義。
+3. 「舊文字已歸入歷史」是視覺語意，不需要真的把主框移除。用 class 標示 waiting state，讓文字淡化即可。
+
+#### Gap F 收斂決議：使用 dimmed state，不使用 full fade-out
+
+第一版建議做成：
+
+```js
+// placeholder 顯示時
+jQuery("#ukagaka_msgbox").addClass("mpu-main-bubble-dimmed");
+
+// 新主回應開始 typewriter / error fallback / request abort 時
+jQuery("#ukagaka_msgbox").removeClass("mpu-main-bubble-dimmed");
+```
+
+CSS 只淡化主文字區，不淡化整個互動框：
+
+```css
+#ukagaka_msgbox.mpu-main-bubble-dimmed #ukagaka_msg {
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
+}
+```
+
+若後續實測覺得舊文字仍太搶眼，再把 opacity 調低或加 blur，但不要在第一版同時引入「主框消失」與「think bubble 新增」兩種大的視覺變化。
+
+#### Helper 邊界
+
+建議在 M3 實作時同時抽出兩個前端 helper，避免 `frieren.js`、`ukagaka-chat.js`、未來 touch handler 各自管理 class：
+
+```js
+mpuShowSystemPlaceholder({ context: "chat"|"decoration"|"touch"|"initial", text });
+mpuClearSystemPlaceholder({ restoreMainBubble: true });
+```
+
+規則：
+- `mpuShowSystemPlaceholder()` 負責寫入 `source: "system"`、顯示 `#ukagaka_think`、加上 `mpu-main-bubble-dimmed`
+- `mpuClearSystemPlaceholder()` 負責清除 system placeholder、移除 dimmed state
+- LLM `think` 抵達時必須先 clear system placeholder，再渲染 `source: "llm"`
+- error / timeout / abort / fallback JSON path 都必須呼叫 clear，避免殘留
+
+#### 追加驗收
+
+§13.6 / §16.3-E 應再補兩條：
+
+- [ ] **主對話 dimmed 可恢復**：飾品 / touch request 成功、失敗、超時、取消四種路徑都會移除 `mpu-main-bubble-dimmed`
+- [ ] **dimmed 不影響控制區**：`#mpu_ok_btn`、`#mpu_cancel_btn`、chat input、stream state badge 不因主文字淡化而變成不可讀或不可點
+
+結論：第 16 點可以進入實作。唯一需要收斂的是 Gap F 的視覺處理，第一版採「文字淡化」比「主框淡出」更穩，失敗回復路徑也更容易測。
+
+### 16.11 Helper 邊界補完：Gap G / H / I（Claude 補評，2026-05-29 晚間）
+
+採納 §16.10 CODEX 的 Gap F 收斂方案（dimmed state + helper 抽出）。在 helper 邊界落地時補三個縫隙，並合併 §16.10 與 §16.4 規則 4 的時序強調。
+
+#### Gap G：helper 的 `text` 參數應改為 optional，內部從 manifest 讀
+
+CODEX §16.10 提案的 helper：
+```js
+mpuShowSystemPlaceholder({ context: "chat"|"decoration"|"touch"|"initial", text });
+```
+若 `text` 由 caller 傳入，每個 caller（4 處 `frieren.js` + 4 處 `ukagaka-chat.js` + `frontend-functions.php` 注入點）仍需各自管理字串 — §16.3-C 的 manifest i18n 沒真的收斂到 helper 內，§16.2 那種「9 處字串漂移」的歷史遺毒會以新形式復活。
+
+改法：
+```js
+mpuShowSystemPlaceholder({ context });
+// helper 內部字串解析順序：
+// 1. window.mpu.personality.i18n[currentLocale].thinking_placeholder（manifest，§16.3-C 主來源）
+// 2. window.mpu_l10n.thinking_placeholder（PHP wp_localize_script 注入的 fallback）
+// 3. 寫死最終 fallback '（…）'（避免空字串顯示）
+// `text` 參數降級為 optional override，僅供 debug / 測試用
+```
+
+收斂目標：**除 helper 本身外，runtime source 不存在任何硬編碼 placeholder 字串**。§16.3-A 字串黑名單治本 + §16.3-C manifest 個性化最終都集中在這個 helper 落地。
+
+**驗收 grep 範圍限定**（避免測試假陽性失敗）：
+- ✅ **必須掃描**：`js/**/*.js`、`ghost/*/**/*.js`、`includes/core/frontend-functions.php`、`includes/rest/`、`includes/ajax/`
+- ❌ **排除**：`languages/*.po` / `*.pot` / `*.mo`（翻譯來源合理保留 msgid）、`plan/`、`docs*/`、`tests/fixtures/`、`example/`、`*.md`、`.git/`
+
+字串保留在翻譯檔與文件是必要的（翻譯人員需要 msgid 上下文、文件需要範例）；只有 runtime PHP / JS source 不准再出現第二處硬編碼。
+
+#### Gap H：`context: "initial"` 不能套 dimmed state
+
+§16.10 流程在 `context: "initial"`（頁面剛載入）下會對空的 `#ukagaka_msg` 加 `mpu-main-bubble-dimmed` — 是無意義操作（沒有「舊對話」可淡化），但會讓 helper 邏輯失去純粹性，未來除錯時也容易誤判 dimmed state 來源。
+
+改法：明文判定條件
+```js
+function mpuShowSystemPlaceholder({ context }) {
+  const placeholderText = resolvePlaceholderText();  // Gap G 解析鏈
+  showThinkBubble({ source: "system", text: placeholderText });
+
+  const $msgEl = jQuery("#ukagaka_msg");
+  const hasOldContent = $msgEl.text().trim().length > 0;
+  if (context !== "initial" && hasOldContent) {
+    jQuery("#ukagaka_msgbox").addClass("mpu-main-bubble-dimmed");
+  }
+}
+```
+
+兩個條件**都**要成立才 dim — `context !== "initial"` 與 `hasOldContent`。後者處理「使用者剛重整頁面立刻送 chat」這種邊角情況：context 是 "chat" 但 `#ukagaka_msg` 還沒填過任何內容，此時也不該 dim 一個空容器。
+
+#### Gap I：多重 placeholder 觸發採「後到者覆蓋 + abort 前者」
+
+場景：使用者點完飾品（decoration request 飛出去）→ 立刻在 chat input 打字送 chat → 兩個 request 同時 in-flight。bubble 行為候選：
+
+| 方案 | 行為 | 評估 |
+|---|---|---|
+| (a) **後到者覆蓋 + abort 前者** | chat placeholder 蓋掉 decoration placeholder，前一個 XHR `abort()` | ✅ 採納 |
+| (b) Queue | 第二個 request 等第一個結束 | ✗ 使用者要等兩倍時間 |
+| (c) 阻擋第二個 request | 強制使用者等完 | ✗ 違反互動直覺 |
+
+採 (a) 的理由：
+1. 跟 §16.10 「error/timeout/abort/fallback 都呼叫 clear」對齊 — clear 邏輯能自然處理 abort
+2. 使用者點飾品後立刻打字送 chat 的意圖明顯是「不要那個飾品回應、要這個 chat」，後到者覆蓋符合直覺
+3. Queue 會出現「角色正在想第二件事但要先回完第一件」的奇怪狀態語意
+
+實作：helper 內部維護 `_currentRequest` + token，並用 adapter 統一不同物件的 abort API：
+```js
+let _currentRequest = null;
+let _currentToken = 0;
+
+// 不同物件的 abort/close API 不統一，用 adapter 收斂：
+//   - jQuery XHR / fetch AbortController → .abort()
+//   - EventSource (SSE)                  → .close()
+function _abortRequest(controller) {
+  if (!controller) return;
+  if (typeof controller.abort === "function") {
+    controller.abort();
+  } else if (typeof controller.close === "function") {
+    controller.close();
+  }
+  // 其他類型靜默忽略（caller 已知道自己傳了什麼）
+}
+
+function mpuShowSystemPlaceholder({ context, requestController } = {}) {
+  if (_currentRequest) {
+    _abortRequest(_currentRequest);
+  }
+  _currentRequest = requestController || null;
+  _currentToken += 1;
+  // ...顯示新 placeholder（Gap G/H 邏輯）...
+  return _currentToken;  // caller 拿去配對 clear
+}
+
+function mpuClearSystemPlaceholder({ token, restoreMainBubble = true } = {}) {
+  // 防 stale callback：前一個 request 的 .finally() / error handler
+  // 可能晚一個 tick 才執行並呼叫 clear，此時 _currentToken 已變動，
+  // 不對應就直接忽略，避免清掉「新的」placeholder
+  if (token !== undefined && token !== _currentToken) {
+    return;  // stale callback，跳過
+  }
+  _currentRequest = null;
+  // ...清除 placeholder、移除 dimmed...
+}
+```
+
+設計重點：
+1. **adapter**：`_abortRequest()` 把 jQuery XHR / `AbortController` 的 `.abort()` 與 `EventSource` 的 `.close()` 統一收斂。caller 不需要先判斷物件類型，也避免「上線後才發現 EventSource 沒被 close」的洩漏
+2. **token 防 stale callback**：必要的 race condition 防禦。場景：
+   - 點飾品 → request A 飛出、`_currentToken = 1`，bubble 顯示 decoration placeholder
+   - 立刻送 chat → A.abort()、`_currentToken = 2`，bubble 顯示 chat placeholder
+   - A 的 `.fail()` / `.always()` 已排在 event queue 裡，**晚一個 tick** 才執行
+   - A 的 error handler 呼叫 `mpuClearSystemPlaceholder({ token: 1 })` → token 不符 → 跳過，不會誤清 chat 的 placeholder
+3. **caller pattern**：
+   ```js
+   const token = mpuShowSystemPlaceholder({ context: "chat", requestController: xhr });
+   xhr.always(() => mpuClearSystemPlaceholder({ token }));
+   // 即使 xhr 晚到，token 不符就 no-op，安全
+   ```
+4. **`context: "initial"`** 沒實際 request 時 caller 不傳 `requestController`，helper 跳過 abort 步驟；但仍回 token 供配對 clear。
+
+#### §16.4 規則 4 已合併 §16.10 時序強調
+
+§16.10「LLM `think` 抵達時必須**先 clear** system placeholder，再渲染 `source: "llm"`」已併入 §16.4 規則 4，明文要求**先呼叫 `mpuClearSystemPlaceholder()` 才能渲染 `source: "llm"`**，並把「違反此順序的後果」（debug log 污染、checksum 漂移、§13.2 契約邊界破壞）寫進規則本體。
+
+#### §16.5 落地時序更新
+
+Gap G/H/I 全部併入 M3 既有 1.5d，不另計工時 — 三個都是「helper 內部邏輯細節」或「caller 改傳 AbortController」，是設計層面的明文化，不增加新檔案或新模組。
+
+例外：Gap I 的 abort 機制需要每個 request site（`decoration` / `touch` / `chat` / `initial` 至少 4 處 caller）都改為傳入 `requestController`。若實測時這 4 處改動展開比預期大，M3 可增加 0.3d。
+
+#### §13.6 / §16.3-E 驗收清單追加
+
+對應 Gap G/H/I 補：
+
+- [ ] **Gap G 收斂（限定 runtime source）**：除 `mpuShowSystemPlaceholder()` helper 本身外，於 `js/**/*.js`、`ghost/*/**/*.js`、`includes/core/frontend-functions.php`、`includes/rest/`、`includes/ajax/` 範圍內 grep 找不到第二處硬編碼「えっと」/「思考中」/「`…ああ、記事か`」字串。**排除** `languages/` / `plan/` / `docs*/` / `tests/fixtures/` / `example/` / `*.md`（翻譯與文件合理保留）
+- [ ] **Gap H 純淨**：`context: "initial"` 顯示 placeholder 時，`#ukagaka_msgbox` 不出現 `mpu-main-bubble-dimmed` class
+- [ ] **Gap H 邊角**：頁面剛重整立刻送 chat（`#ukagaka_msg` 仍為空），`#ukagaka_msgbox` 也不出現 dimmed class
+- [ ] **Gap I 覆蓋（jQuery XHR / AbortController 路徑）**：連續觸發 decoration（jQuery XHR）→ chat（AbortController）兩個 request，前一個 request 必須 abort（XHR `readyState === 4` 且 `status === 0`，或 `AbortController.signal.aborted === true`），且 bubble 顯示第二個 context 的 placeholder
+- [ ] **Gap I 覆蓋（EventSource / SSE 路徑）**：使用 SSE 串流時連續觸發 chat（EventSource A）→ decoration（EventSource B），A 必須被關閉（`A.readyState === EventSource.CLOSED`，值為 2）。此條驗證 adapter 對 `.close()` API 的正確調用
+- [ ] **Gap I 清乾淨**：abort 後既不殘留 placeholder、也不殘留 dimmed state、`_currentRequest` 回到 null
+- [ ] **Gap I token 防 stale callback**：模擬「request A abort → A 的 `.fail()` / `.always()` 晚一個 tick 才執行並呼叫 `mpuClearSystemPlaceholder({ token: stale_token })`」場景，驗證新的 request B 的 placeholder **不被誤清**（token 不符直接 no-op）。可用 `setTimeout(() => clear({ token: 1 }), 0)` 模擬
+
+### 16.12 §16 章節最終狀態
+
+至此 §16 收斂完成，章節結構：
+
+| 子節 | 來源 | 內容 |
+|---|---|---|
+| §16.1 | Claude | 背景與前一輪「LLM 自然產出」誤判校正 |
+| §16.2 | Claude | 「を」字漂移已執行的治標修正 |
+| §16.3 A-E | Claude | 五個縫隙：字串黑名單治本 / 替換 vs 接續 / manifest 純文字 / 下台時序 / 驗收補測 |
+| §16.4 | CODEX → Claude 合併 | placeholder 與 LLM `<think>` 的 source 契約（規則 4 已合併 §16.10 時序強調） |
+| §16.5 / §16.6 | Claude | 落地時序與檔案清單 |
+| §16.7 | Claude | 為何選 CODEX 替換而非 Antigravity 接續 |
+| §16.8 | Claude | 與既有章節 cross-reference 更新清單 |
+| §16.9 | Antigravity | Gap F 主對話框視覺處理 |
+| §16.10 | CODEX | Gap F 收斂為 dimmed state + helper 邊界 |
+| §16.11 | Claude | Gap G/H/I helper 邊界補完 + §16.4 規則 4 合併 |
+| §16.12 | Claude | 本節最終狀態索引 |
+
+實作從 §16.5 的 pre-M1a「字串黑名單治本」開始（0.5d），依時序進入 M3 的 manifest i18n + helper 抽出（含於既有 1.5d，視 Gap I 改動規模可能 +0.3d）。§13.7 總工數結算：7.5d → **8d**（pre-M1a 新增）→ 可能 **8.3d**（Gap I 展開）。
+
+---
+
+## 17. Context-Aware Inner Monologue（per-context `<think>` 開關，2026-05-29 H + Claude）
+
+### 17.1 動機與決議
+
+§13.2 規則 8 的 `enable_inner_monologue` 原本設計為**全域一刀切**：true 表示所有 LLM 互動都注入 §4.5 inner monologue prompt、所有 SSE 路徑都 emit `think` event。但不同互動 context 的內心戲需求差異很大：
+
+| Context | 互動性質 | 是否需要 `<think>` |
+|---|---|---|
+| `chat` / 串流 chat | 推理型對話互動，使用者期待角色「想一下」再回 | ✅ 需要 |
+| `touch` | 身體觸控反應，有時是情緒反應、有時是固定動作 | ⚠️ 可配置 |
+| `decoration` | 飾品點擊 — 已知物件介紹、固定角色化回應 | ❌ 不需要 |
+| `initial` / static dialog | 載入時靜態訊息、無 LLM 推理 | ❌ 不需要 |
+| `diary` | 角色主動寫長段文章（auto-diary），本身已是大段獨白 | ❌ 不需要 |
+| `page-aware` / context-build | 讀網頁內容生成感想，模型在「讀 → 出感想」 | ✅ 需要 |
+
+**決議**：`enable_inner_monologue` 拆成「全域 master switch」+「per-context fine-tune」兩層。`decoration` / `initial` / `diary` 預設關閉，避免 §16 全章的 placeholder / dimmed / bubble 流程在這些 context 下被不必要地觸發 — 這正好**簡化**了 §16 Gap H/I 的 helper 邏輯複雜度。
+
+此章節與 §16 正交：
+- **§16** 處理「placeholder 與 LLM `<think>` 的資料層邊界」
+- **§17** 處理「`<think>` 在不同互動 context 的策略層開關」
+
+### 17.2 兩層優先級規則（短路求值）
+
+明文鎖死求值順序，避免實作者困惑「全域 false 但 manifest 寫 `decoration: true` 算誰的」：
+
+```
+1. enable_inner_monologue（全域 option）為 false
+   → 不管 per-context map → 永遠不注入、normalizer 不填 think、SSE 不 emit
+   → 短路，不繼續往下看
+
+2. enable_inner_monologue 為 true
+   → 看 per-context map[$context]
+   → true  → 注入 §4.5 prompt、normalizer 填 think、SSE emit think_delta / think
+   → false → 不注入 prompt；normalizer 仍剝離 <think> 但 think 欄位回傳空字串；SSE 不 emit think_delta / think
+```
+
+**全域為 master switch、per-context 為 fine-tune**。全域關掉時 per-context 完全失效，不允許「全域 false 但某 context 個別開」這種組合（語意混亂、debug 困難）。
+
+### 17.3 預設清單與 manifest 覆寫格式
+
+#### 17.3.1 PHP 端預設常數（硬編碼於 `utility-functions.php`）
+
+```php
+// 不強制 ghost 作者在 manifest 列全部 context — 沒寫的就用這套
+define('MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS', [
+    'chat'        => true,   // 互動推理
+    'touch'       => true,   // 身體觸控（情緒反應，有彈性）
+    'page_aware'  => true,   // 讀網頁出感想
+    'decoration'  => false,  // 飾品點擊（固定角色化回應）
+    'initial'     => false,  // 載入時靜態訊息
+    'diary'       => false,  // 自動日記（本身已是大段獨白）
+]);
+```
+
+#### 17.3.2 Manifest 覆寫格式（部分覆寫 merge，不是 replace）
+
+```json
+{
+  "features": {
+    "inner_monologue": true,
+    "inner_monologue_contexts": {
+      "touch": false,
+      "decoration": true
+    }
+  }
+}
+```
+
+行為：
+- ghost 作者沒寫 `features.inner_monologue_contexts` → 全部使用 17.3.1 預設清單
+- 寫了某個 context → 該條覆寫，其他 context 維持預設
+- 例：上方範例 = `chat:true, touch:false, page_aware:true, decoration:true, initial:false, diary:false`
+
+實作上用 `array_merge($defaults, $manifest_overrides)` 即可。
+
+#### 17.3.3 解析優先級
+
+最終值決策鏈：
+1. **全域** `enable_inner_monologue === false` → 全部 false（短路，跳過 2、3）
+2. **manifest** `features.inner_monologue_contexts[$context]` 有定義 → 使用此值
+3. **fallback** `MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS[$context]` → 使用預設
+4. 都找不到（不在 6 個已知 context 內）→ 預設 **false**（保守，避免新增 context 時意外打開）
+
+### 17.4 整合點清單
+
+#### 17.4.1 Normalizer 契約擴充（§13.2）
+
+`mpu_normalize_ai_response()` 的 `$options` 新增 `'context'`：
+
+```php
+function mpu_normalize_ai_response(
+    string $raw_text,
+    ?string $personality_id = null,
+    array $options = []   // 新增 'context' => 'chat'|'touch'|'decoration'|'initial'|'diary'|'page_aware'
+): array;
+```
+
+normalizer 內部新邏輯：
+```php
+$context = $options['context'] ?? 'chat';  // 預設 chat 向下相容
+$inner_monologue_enabled = mpu_is_inner_monologue_enabled_for_context($context, $personality_id);
+
+// 既有的 <think> 剝離邏輯不變
+$think_content = extract_think_block($raw_text);
+
+if (!$inner_monologue_enabled) {
+    // §17 規則：context 關閉時剝離但不回傳
+    if ($think_content !== '') {
+        mpu_log("Inner monologue suppressed for context '$context' — LLM emitted <think> but discarded", 'warning');
+    }
+    $think_content = '';   // §13.2 規則 8 一致行為：強制空字串
+}
+```
+
+#### 17.4.2 Prompt builder 路由（§4.5）
+
+`mpu_resolve_system_prompt()` 新增 `$context` 參數：
+
+```php
+function mpu_resolve_system_prompt(
+    string $personality_id,
+    string $context = 'chat'   // 新增，預設 'chat' 向下相容
+): string;
+```
+
+內部於拼接 §4.5 inner monologue prompt block 前先檢查：
+```php
+if (mpu_is_inner_monologue_enabled_for_context($context, $personality_id)) {
+    $prompt .= MPU_INNER_MONOLOGUE_PROMPT_BLOCK;  // §4.5 內容
+}
+```
+
+**Caller 更新清單**（已用 `Grep mpu_resolve_system_prompt` 校準至實際 repo 狀態）：
+| Caller | 檔案：行 | 傳入 context | 備註 |
+|---|---|---|---|
+| Chat（非串流） | `class-mpu-rest-chat.php:125` | `'chat'` | — |
+| Chat（串流） | `class-mpu-rest-chat.php:756` | `'chat'` | — |
+| **Decoration（飾品點擊）** | **`class-mpu-rest-touch.php:80`** | `'decoration'` | ⚠️ 不在 `class-mpu-rest-dialog.php`！touch / decoration 兩個 endpoint **共用** `class-mpu-rest-touch.php` |
+| **Touch（身體觸控）** | **`class-mpu-rest-touch.php:199`** | `'touch'` | 同上 |
+| Page-aware context | `llm-context-builder.php:1044` | `'page_aware'` | — |
+| Memory | `class-mpu-rest-memory.php` | 視內容性質決定 | 實作時看 caller 用途，若是分析使用者輸入則傳 `'chat'` |
+| **Diary** | `diary-functions.php`（**不經 `mpu_resolve_system_prompt`**） | — | ⚠️ Diary 走 `mpu_load_personality_system_prompt()` 自行拼接 system prompt。§17 規則必須在 diary 端**獨立實作 context check**，不能依賴 `mpu_resolve_system_prompt()` 自動套用 |
+| **Greeting** | 實作前先 grep（不在 `greet-handler.php`，該檔案不存在於 repo） | `'initial'` | ⚠️ MEMORY.md 提的 `greet-handler.php` 是過時筆記，實際 greet 邏輯位置待 grep 確認（可能在 `class-mpu-rest-ghost.php` 或 `class-mpu-rest-chat.php` 內部分支） |
+
+既有 caller 不傳 `$context` → 預設 `'chat'` → 維持向下相容。
+
+**實作前必做的 grep 校準步驟**（避免照 plan 改錯位置）：
+```
+1. rg "mpu_resolve_system_prompt\(" includes/
+   → 列出所有 caller，逐一對照 §17.4.2 表
+2. rg "mpu_load_personality_system_prompt\(" includes/llm/diary-functions.php
+   → 確認 diary 的 system prompt 拼接位置，在那裡獨立加 context check
+3. rg -i "greet" includes/rest/ includes/llm/
+   → 找 greeting 實際處理位置
+```
+
+#### 17.4.3 SSE Stream Parser（§13.3）
+
+`MPU_Stream_Output_Parser` 需要在 constructor 接受 context：
+
+```php
+$parser = new MPU_Stream_Output_Parser($personality_id, $context);
+```
+
+context 對 parser 的影響：
+- `think` 區塊**仍正確剝離**（Defense A 機制保留，§13.3）— 不能因為 context 不渲染就忽略 `<think>` parse，否則 `<think>` 裡的內容會洩漏到 main delta
+- 但 `inner_monologue_enabled === false` 時，parser **不 emit** `thinking_start` / `think_delta` / `think` / `thinking_end` 給前端
+- 違規剝離的內容透過 `mpu_log(..., 'warning')` 記錄
+
+#### 17.4.4 前端 helper（§16.11）
+
+`mpuShowSystemPlaceholder({ context })` 不需要變動 — placeholder 本身是 system source，與 inner monologue 無關。但前端 SSE event handler 收到 `thinking_start` / `think_delta` / `think` 時需要：
+- 如果該 context 全程不會發這些 event（後端已過濾），前端不需要特別處理
+- **不要**在前端加 context 判斷層 — 信任後端 §17.4.3 已過濾
+
+避免「後端開啟但前端關閉」「後端關閉但前端開啟」這類雙向不一致的狀態 bug。
+
+#### 17.4.5 違規 log 等級
+
+LLM 在 disabled context 違規輸出 `<think>` 時：
+
+```php
+mpu_log(
+    "Inner monologue suppressed for context '$context' — LLM emitted <think> but discarded. "
+    . "Consider refining {$personality_id}/prompts.json or decorations.json prompts to discourage <think> in this context.",
+    'warning'
+);
+```
+
+**用 `warning` 不是 `info`**。理由：這代表該角色的 prompt 沒收斂好（例如 decoration prompt 過度鼓勵「呟く」），warning 才會觸發 ghost 作者注意調整負面 prompt（「不要使用 `<think>` 標籤」）。
+
+如果 `mpu_log()` 沒有級別參數機制，先用既有 `mpu_log()` 並在訊息前加 `[WARNING]` 前綴，後續可補級別支援。
+
+### 17.5 §13.6 驗收清單追加
+
+對應 §17 補：
+
+- [ ] **全域短路求值**：`enable_inner_monologue: false` + manifest `features.inner_monologue_contexts.chat: true` 時，chat context **不**注入 §4.5 prompt、normalizer 的 `think` 欄位仍為空（驗證全域 false 短路）
+- [ ] **per-context 部分覆寫**：manifest 只寫 `touch: false` 時，其他 5 個 context 維持 17.3.1 預設值（驗證 array_merge 部分覆寫而非整體 replace）
+- [ ] **未知 context fallback**：傳入 `context: 'unknown_xxx'` 時行為等同 `false`（保守 fallback，§17.3.3 規則 4）
+- [ ] **decoration context 違規剝離**：LLM 在 decoration request 違規輸出 `<think>嗯…</think>這是宝箱`，normalizer 的 `think` 欄位為空字串、`display_text === 'これは宝箱'`、`mpu_log()` 寫入 warning 級訊息
+- [ ] **decoration context 不觸發 think bubble**：SSE 串流中 parser **不** emit `thinking_start` / `think_delta` / `think` 給前端。注意：此條僅消除「placeholder ↔ llm think 視覺切換 race」；**request-level stale callback race 仍存在**並由 §16.11 token 防護處理（decoration request abort 後其晚到的 `.fail()` callback 仍可能誤清新的 chat placeholder）
+- [ ] **diary context disabled**：自動日記功能跑一輪後，日記內容不出現 `<think>` 區塊洩漏到 display
+- [ ] **Caller 全部更新**：grep `mpu_resolve_system_prompt(` 與 `mpu_normalize_ai_response(` 確認所有 caller 都明確傳入 context，未傳的視為 'chat' 已有測試覆蓋
+- [ ] **前端不加 context 判斷層**：grep `js/` 範圍找不到 `context === 'decoration'` 之類的條件分支（信任後端過濾，§17.4.4）
+
+### 17.6 與 §16 的交互
+
+`context: "decoration"` 在 §16 全章流程的退化路徑：
+
+| §16 機制 | chat context | decoration context |
+|---|---|---|
+| §16.4 system placeholder（`（…えっと…）`） | ✅ 顯示於 think bubble | ✅ **仍顯示**於 think bubble（system source 不受 §17 影響） |
+| §16.10 main bubble dimmed state | ✅ 套用 | ✅ 套用 |
+| §16.11 Gap I AbortController / EventSource adapter | ✅ 啟用 | ✅ 啟用（request 仍需 abort） |
+| §16.11 token 防 stale callback | ✅ 啟用 | ✅ 啟用 |
+| §13.5 SSE `thinking_start` / `think_delta` / `think` event | ✅ emit 並渲染 | ❌ **不 emit**（§17.4.3） |
+| §16.4 think bubble fade 切換為 `source: "llm"` | ✅ 發生 | ❌ **不發生**（沒有 llm think event 抵達） |
+| 主對話框收到 main delta 後 placeholder fade-out | ✅ 0.3s 延遲淡出（§16.3-D） | ✅ 0.3s 延遲淡出 |
+
+**Key insight（精準版）**：decoration context 下 think bubble 完全只顯示 system placeholder，**從不**切換到 llm source。這把 §16.11 Gap I 兩個 race 中的**前者**消除：
+
+| §16.11 Gap I 涵蓋的 race | decoration / initial / diary 路徑狀態 |
+|---|---|
+| **LLM think 切換 race**（placeholder ↔ llm think 視覺切換期間 token 變動） | ✅ **完全消除** — 因為根本不會有 llm think_delta 抵達，bubble 不切換 source |
+| **Request-level stale callback race**（前一個 request abort 後其晚到的 `.fail()` / `.always()` 誤清新 placeholder） | ⚠️ **仍存在** — decoration request 本身仍會 abort，其晚到 callback 仍可能誤清新 chat placeholder。§16.11 token 防護**仍必須存在**並在 disabled context 下啟用 |
+
+這條 insight 也適用於 `initial` / `diary` context — 三個 disabled context 共享「LLM think race 消除、但 request stale callback race 保留」的部分簡化路徑。
+
+**對 M3 測試覆蓋的影響**：disabled context 不需要測試 LLM think 切換 race（場景不存在），但**仍需要測試** request stale callback race（場景仍存在）。§17.5 的 disabled context 驗收項只移除 think bubble 相關項，token 防 stale 驗收項仍適用於所有 context。
+
+### 17.7 落地時序
+
+| 階段 | 工作 | 工數 |
+|---|---|---|
+| **M1a** | normalizer 契約 `$options['context']` 欄位（§17.4.1）+ `mpu_is_inner_monologue_enabled_for_context()` helper + 預設常數定義（§17.3.1） | 0.2d（含於 M1a 1d 之內） |
+| **M1b** | 既有 REST chat/dialog caller 改為傳 context 參數（§17.4.2 表格） | 含於 M1b 1d 之內 |
+| **M2** | `MPU_Stream_Output_Parser` constructor 接 context，依 context 決定是否 emit think event（§17.4.3） | 含於 M2 1.5d 之內 |
+| **M3** | manifest `features.inner_monologue_contexts` 欄位解析、merge 邏輯、Frieren manifest 更新範例 | 含於 M3 1.5d 之內 |
+| **驗收** | §17.5 八條驗收測試 | 含於既有驗收 |
+
+§17 整體 **不額外增加工數**。反而因 §17.6 的「decoration / initial / diary 路徑退化」**簡化** §16.11 Gap I 的測試覆蓋面（不需要在 disabled context 下測試 token race condition）。
+
+§13.7 總工數結算維持 **8d**（pre-M1a）→ 可能 **8.3d**（Gap I 展開）。
+
+### 17.8 為什麼 `touch` 預設 true、`decoration` 預設 false
+
+兩者表面相似（都是點擊角色互動），但語意不同：
+
+- **touch**：身體觸碰 — 反應**因人而異、因情境而異**（同樣摸頭，剛起床和睡飽是不同反應；剛吵架和心情好是不同反應）。LLM 推理「現在這個情境下角色會怎麼想」有價值，內心戲合理
+- **decoration**：飾品點擊 — 答案**已知且固定**（這是芙莉蓮的宝箱、這是裝魔導書的包包、這是ヒンメル送的指環）。LLM 不是在推理，是在「依照 decorations.json 提示做角色化朗讀」，加 `<think>` 反而拖、也讓 §16 流程複雜化
+
+如果某角色的飾品設計真的需要內心戲（例如某飾品是創傷物件、每次點擊角色都會有不同情緒反應），用 manifest 覆寫 `decoration: true` 即可。預設保守、特例放權給 ghost 作者。
+
+### 17.9 章節索引
+
+| 子節 | 內容 |
+|---|---|
+| §17.1 | 動機與決議（§17 vs §16 的正交分層） |
+| §17.2 | 兩層優先級規則（短路求值） |
+| §17.3 | 預設清單（PHP 常數）+ manifest 覆寫格式 + 解析優先級 |
+| §17.4 | 整合點：normalizer / prompt builder / SSE parser / 前端 helper / 違規 log |
+| §17.5 | 驗收清單追加（8 條） |
+| §17.6 | 與 §16 的交互（decoration / initial / diary 退化路徑表） |
+| §17.7 | 落地時序（不增工數） |
+| §17.8 | touch 與 decoration 預設值差異的設計理由 |
+| §17.9 | 本節索引 |
+
+---
+
+## 計畫整體狀態（截至 2026-05-29 晚間）
+
+§1-§10：原始計畫（§3.4 / §5 / §6 部分歷史段落已被 §13 / §15 取代）
+§11-§12：Antigravity + CODEX 第一輪評審
+§13-§15：第一輪收斂決議
+§16：placeholder 邊界補完（含 §16.2 已執行的「を」字治標修正）
+§17：context-aware inner monologue（per-context `<think>` 開關）
+
+下刀順序（依 §13.7 / §16.5 / §17.7）：
+1. **pre-M1a**（0.5d）：§16.2 已完成 + §16.3-A 字串黑名單治本
+2. **M1a**（1d）：§13.2 normalizer 契約 + §17.4.1 context 欄位 + §17.3.1 預設常數
+3. **M1b**（1d）：非串流 REST 整合 + §17.4.2 caller 改傳 context
+4. **Prompt 切換**（0.5d）：§3.1 emotion tag prompt + Frieren `emoji-keywords.json`
+5. **M2**（1.5d）：§13.3 SSE parser + §17.4.3 context 路由
+6. **M3**（1.5d）：§16 think bubble UI + §16.11 helper + §17.3.2 manifest 解析 + §17.4.4 前端整合
+7. **M4**（2d）：§13.5 think_delta 漸進模式 + 點擊隱藏 + per-personality 開關 UI
+
+**總計 8d（可能 8.3d 含 §16.11 Gap I 展開）**。
