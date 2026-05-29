@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.24.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.24.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,9 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.24.0
+## 🎉 What's New in v2.24.1
 
-**Console log internationalization** (v2.24.0): All frontend console log strings are now localizable — migrated to Japanese source strings delivered through WordPress locale, with Japanese and Traditional Chinese translations complete (English falls back to the Japanese source for now). Logs go through `mpuLogger` helpers and a two-bucket `mpuL10n` payload; output timing is unchanged and debug logs still appear only for administrators with `WP_DEBUG` enabled.
+**Observation decoration names** (v2.24.1): Recent visitor activity now resolves touched decoration slugs into readable names before injecting observation context, so characters can mention the actual item rather than only saying "a decoration".
+
+**Code quality and repository hygiene** (v2.24.1): Added the PHPCS baseline workflow, wired `lint:phpcs` into verification, aligned PHPCS to the PHP 7.4 support floor, adopted the repository line-ending policy, refreshed the baseline after EOL normalization, and restored/updated developer documentation.
+
+**Translation refinements** (v2.24.1): Added English translations for previously Japanese-fallback console/UI strings, refined Japanese log wording, aligned Frieren decoration fallback dialogue, fixed the missing 「を」 particle in the `（…えっと…何を話せばいいかな…）` placeholder path, and recompiled all `.mo` catalogs.
+
+**Console log internationalization** (v2.24.0): All frontend console log strings are now localizable — migrated to Japanese source strings delivered through WordPress locale, with Japanese and Traditional Chinese translations complete. Logs go through `mpuLogger` helpers and a two-bucket `mpuL10n` payload; output timing is unchanged and debug logs still appear only for administrators with `WP_DEBUG` enabled.
 
 **Bug Fixes** (v2.23.2): Observation Buffer now also begins tracking after SPA (client-side) navigation into an article, not only on initial page load, with DOM-based post-ID detection and listing/archive/home-page guards. Page-awareness self-talk no longer leaves auto-talk permanently stalled in production.
 
