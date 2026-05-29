@@ -4,6 +4,37 @@
 
 ---
 
+## [2.24.1] - 2026-05-29
+
+### 🛠️ Code quality tooling
+
+- Added PHPCS baseline (`tools/php/phpcs-baseline.json`) snapshotting all WordPress Coding Standards violations at branch-out time, so new code is held to current standards while legacy violations remain queryable.
+- Wired `lint:phpcs` into `npm run verify` for pre-commit checks.
+- Aligned PHPCS `testVersion` with the declared PHP 7.4 minimum to avoid spurious diagnostics on language features unrelated to the actual support floor.
+
+### 📐 Repository hygiene
+
+- Adopted `.gitattributes` line-ending policy: LF for all source files, with BOM preserved for tracked `.po` / `.pot` catalogs.
+- Normalized repository-wide line endings.
+- Refreshed PHPCS baseline after EOL normalization (1336 → 230 violation entries; the remainder is genuine technical debt rather than EOL-induced false positives).
+
+### 🌐 Translation refinements
+
+- Added English (en_US) translations for console logs and UI strings that were previously falling back to Japanese source.
+- Refined Japanese console log wording around idle / timer / ghost lifecycle states.
+- Fixed Japanese wording typo in the v2.22.1 changelog entry.
+- Aligned Frieren decoration dialogue fallback wording with the PHP canonical source.
+- **Fixed missing 「を」 particle** in `（…えっと…何を話せばいいかな…）` placeholder: `zh_TW.po` msgstr was a typo of `（…えっと…何話せばいいかな…）`, and the JavaScript `systemMessages` blacklist in `js/ukagaka-base.js` had been copied from the typo'd Chinese-locale rendering. The mismatch silently broke the character-animation-skip logic on every non-zh_TW locale (animation kept playing during placeholder display, where it should have been suppressed).
+- Recompiled all `.mo` files.
+
+### 📚 Documentation
+
+- Refreshed `DEVELOPER_GUIDE` directory tree and module load order across en / jp / zh-TW.
+- Restored expandable visitor-info debug log section in `API_REFERENCE` and `DEBUG_SLIMSTAT` docs.
+- Added reality-checked plan status snapshot (2026-05-27).
+
+---
+
 ## [2.24.0] - 2026-05-26
 
 ### 🌐 Frontend console log i18n — complete

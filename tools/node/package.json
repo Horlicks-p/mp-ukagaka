@@ -17,6 +17,7 @@
     "lint:phpcs:summary": "cd ../.. && php tools/php/phpcs-baseline.php summary",
     "test:php": "cd ../../tests && php ../tools/php/vendor/bin/phpunit --colors=always",
     "verify": "npm run lint:php && npm run lint:phpcs && npm run test:logger && npm run build && npm run test:php",
+    "translate:en": "cd ../.. && node tools/node/translate-po.js",
     "test": "npm run test:php"
   },
   "repository": {

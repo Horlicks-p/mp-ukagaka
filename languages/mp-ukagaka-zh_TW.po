@@ -1620,7 +1620,7 @@ msgstr "（…通訊狀況好像不太好…）"
 #: includes/core/frontend-functions.php:120
 #: includes/core/frontend-functions.php:977
 msgid "（えっと…何を話せばいいかな…）"
-msgstr "（えっと…何話せばいいかな…）"
+msgstr "（えっと…何を話せばいいかな…）"
 
 #: includes/core/file-functions.php:55
 msgid "このパスへのアクセスは許可されていません"

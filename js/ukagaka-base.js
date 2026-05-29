@@ -565,7 +565,7 @@ function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
     let animationTriggered = false;
 
     const systemMessages = [
-        '（えっと…何話せばいいかな…）',
+        '（えっと…何を話せばいいかな…）',
         '…ああ、記事か。どれどれ…',
         '（思考中…）'
     ];

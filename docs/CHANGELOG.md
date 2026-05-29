@@ -4,6 +4,37 @@
 
 ---
 
+## [2.24.1] - 2026-05-29
+
+### 🛠️ 程式碼品質工具整備
+
+- 新增 PHPCS baseline（`tools/php/phpcs-baseline.json`），快照分岔當下所有 WordPress Coding Standards 違規。新增程式碼受現行標準把關，既有違規仍可查詢但不阻塞。
+- 將 `lint:phpcs` 串進 `npm run verify`，納入 pre-commit 檢查。
+- 把 PHPCS 的 `testVersion` 對齊宣告的 PHP 7.4 最低需求，避免不在支援範圍內的語言特性產生誤判診斷。
+
+### 📐 倉庫整備
+
+- 採用 `.gitattributes` 換行符政策：所有 source 檔案使用 LF，已追蹤的 `.po` / `.pot` 目錄保留 BOM。
+- 統一全倉庫換行符。
+- EOL 正規化後重新產生 PHPCS baseline（1336 → 230 條違規。剩餘者為真實技術債，並非 EOL 引起的 false positive）。
+
+### 🌐 翻譯調整
+
+- 為原本 fallback 顯示日文 source 的 console log 與 UI 字串，補上英文（en_US）翻譯。
+- 調整 idle / timer / ghost 生命週期相關的日文 console log 用詞。
+- 修正 v2.22.1 changelog 條目中的日文用詞 typo。
+- 將 Frieren 飾品 fallback 對白與 PHP 端 canonical source 對齊。
+- **修正 `（…えっと…何を話せばいいかな…）` placeholder 缺少「を」助詞的問題**：`zh_TW.po` 的 msgstr 是 `（…えっと…何話せばいいかな…）` 的 typo，而 `js/ukagaka-base.js` 的 `systemMessages` 黑名單字串是從這份 typo 後的中文 locale 渲染結果複製過來的。這個錯位讓**所有非 zh_TW locale** 的角色動畫跳過邏輯沉默失效（placeholder 顯示期間動畫照常播放，本該被抑制）。
+- 重新編譯所有 `.mo` 檔。
+
+### 📚 文件
+
+- 重新整理 en / jp / zh-TW 三份 `DEVELOPER_GUIDE` 的目錄樹與模組載入順序。
+- 復原 `API_REFERENCE` 與 `DEBUG_SLIMSTAT` 文件中可展開的 visitor-info debug log 段落。
+- 新增 reality-checked plan status snapshot（2026-05-27）。
+
+---
+
 ## [2.24.0] - 2026-05-26
 
 ### 🌐 前端 console log i18n —— 完成

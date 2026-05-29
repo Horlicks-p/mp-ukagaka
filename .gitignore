@@ -79,6 +79,7 @@ Sakura_Laurel/
 /package-lock.json
 /build.js
 js/dist/ukagaka-bundle.js
+tools/node/translate-po.js
 
 #environment
 .agent/

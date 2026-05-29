@@ -4,6 +4,37 @@
 
 ---
 
+## [2.24.1] - 2026-05-29
+
+### 🛠️ コード品質ツール整備
+
+- PHPCS baseline（`tools/php/phpcs-baseline.json`）を追加し、分岐時点で検出されたすべての WordPress Coding Standards 違反をスナップショット化しました。新規コードは現行基準で検査され、既存の違反は照会可能な形で保持されます。
+- `lint:phpcs` を `npm run verify` に組み込み、pre-commit チェックに含めました。
+- PHPCS の `testVersion` を、宣言済みの PHP 7.4 最低要件に揃え、サポート対象外の言語機能由来の誤検出を防ぎました。
+
+### 📐 リポジトリ整備
+
+- `.gitattributes` の line-ending ポリシーを採用：すべてのソースファイルは LF、追跡対象の `.po` / `.pot` カタログは BOM を維持します。
+- リポジトリ全体の line ending を正規化しました。
+- EOL 正規化後に PHPCS baseline を再生成しました（1336 → 230 件。残りは EOL に起因する false positive ではなく、真の技術負債です）。
+
+### 🌐 翻訳の調整
+
+- 従来日本語 source に fallback していた console log と UI 文字列に、英語（en_US）翻訳を追加しました。
+- アイドル / タイマー / ghost ライフサイクル周辺の日本語 console log の文言を調整しました。
+- v2.22.1 changelog エントリーの日本語表記の typo を修正しました。
+- Frieren の装飾品フォールバック台詞を、PHP 側の canonical source と整合させました。
+- **`（…えっと…何を話せばいいかな…）` placeholder の「を」助詞の欠落を修正しました**：`zh_TW.po` の msgstr が `（…えっと…何話せばいいかな…）` という typo になっており、`js/ukagaka-base.js` の `systemMessages` ブラックリストが、その typo の繁体字中国語 locale でのレンダリング結果からコピーされていました。この不一致により、zh_TW 以外の locale ではキャラクターアニメーションのスキップロジックが沈黙的に壊れていました（placeholder 表示中もアニメーションが再生され続けていた）。
+- すべての `.mo` ファイルを再コンパイルしました。
+
+### 📚 ドキュメント
+
+- en / jp / zh-TW の `DEVELOPER_GUIDE` ディレクトリツリーとモジュール読み込み順序を最新化しました。
+- `API_REFERENCE` と `DEBUG_SLIMSTAT` ドキュメントの、展開可能な visitor-info debug log セクションを復元しました。
+- reality-checked plan status snapshot（2026-05-27）を追加しました。
+
+---
+
 ## [2.24.0] - 2026-05-26
 
 ### 🌐 フロントエンド console log i18n —— 完了
