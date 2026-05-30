@@ -519,7 +519,10 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             return '';
         }
 
-        if (function_exists('mpu_filter_thinking_content')) {
+        if (function_exists('mpu_normalize_ai_response')) {
+            $normalized = mpu_normalize_ai_response($result, $personality_id, array( 'context' => 'chat' ));
+            $result     = $normalized['display_text'];
+        } elseif (function_exists('mpu_filter_thinking_content')) {
             $result = mpu_filter_thinking_content($result);
         }
 
