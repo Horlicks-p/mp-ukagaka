@@ -91,6 +91,7 @@ function mpu_load_modules()
         'llm/provider-stream-http.php', // 低階 cURL 串流 HTTP Client
         'llm/providers/bootstrap.php', // AI Providers 工廠模式與類別（需在 ai-functions.php 之前載入）
         'llm/ai-functions.php',        // AI 功能（雲端 API：Gemini, OpenAI, Claude）
+        'llm/response-normalizer.php', // 回應正規化單一契約（emotion tag / think 抽取，§13.2）.
         'llm/prompt-categories.php',   // Prompt 類別指令管理（需在 llm-functions.php 之前載入）
         'llm/llm-slimstat.php',       // LLM Slimstat 整合（需在 llm-context-builder.php 之前載入）
         'llm/llm-context-builder.php', // LLM 上下文建構（需在 llm-functions.php 之前載入）
