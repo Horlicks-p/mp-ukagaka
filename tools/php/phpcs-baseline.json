@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "generatedAt": "2026-05-28T01:49:30+00:00",
+    "generatedAt": "2026-05-30T04:58:55+00:00",
     "description": "PHPCS baseline grouped by file + sniff source + message. Line numbers are metadata only.",
     "entries": [
         {
@@ -3016,9 +3016,10 @@
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 4 spaces but found 1 space",
             "type": "WARNING",
-            "count": 1,
+            "count": 2,
             "firstLines": [
-                256
+                256,
+                308
             ]
         },
         {
@@ -3060,7 +3061,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                336
+                362
             ]
         },
         {
@@ -3068,10 +3069,11 @@
             "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceAfterOpen",
             "message": "Expected 1 space after open parenthesis; 0 found",
             "type": "ERROR",
-            "count": 2,
+            "count": 3,
             "firstLines": [
-                304,
-                341
+                311,
+                330,
+                367
             ]
         },
         {
@@ -3079,10 +3081,11 @@
             "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceBeforeClose",
             "message": "Expected 1 space before close parenthesis; 0 found",
             "type": "ERROR",
-            "count": 2,
+            "count": 3,
             "firstLines": [
-                304,
-                341
+                311,
+                330,
+                367
             ]
         },
         {
@@ -3090,13 +3093,33 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 273,
+            "count": 297,
             "firstLines": [
                 14,
                 18,
                 19,
                 20,
                 21
+            ]
+        },
+        {
+            "file": "includes/core/class-mpu-observation-buffer.php",
+            "source": "NormalizedArrays.Arrays.ArrayBraceSpacing.SpaceAfterArrayOpenerSingleLine",
+            "message": "Expected 1 space after the array opener in a single line array. Found: no spaces",
+            "type": "ERROR",
+            "count": 1,
+            "firstLines": [
+                314
+            ]
+        },
+        {
+            "file": "includes/core/class-mpu-observation-buffer.php",
+            "source": "NormalizedArrays.Arrays.ArrayBraceSpacing.SpaceBeforeArrayCloserSingleLine",
+            "message": "Expected 1 space before the array closer in a single line array. Found: no spaces",
+            "type": "ERROR",
+            "count": 1,
+            "firstLines": [
+                314
             ]
         },
         {
@@ -3136,7 +3159,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 104,
+            "count": 115,
             "firstLines": [
                 13,
                 29,
@@ -3150,7 +3173,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 104,
+            "count": 115,
             "firstLines": [
                 13,
                 29,
@@ -3186,7 +3209,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                303
+                329
             ]
         },
         {
@@ -3242,6 +3265,16 @@
         {
             "file": "includes/core/class-mpu-observation-buffer.php",
             "source": "Squiz.Commenting.FunctionComment.Missing",
+            "message": "Missing doc comment for function get_decoration_display_name()",
+            "type": "ERROR",
+            "count": 1,
+            "firstLines": [
+                303
+            ]
+        },
+        {
+            "file": "includes/core/class-mpu-observation-buffer.php",
+            "source": "Squiz.Commenting.FunctionComment.Missing",
             "message": "Missing doc comment for function get_scope_key()",
             "type": "ERROR",
             "count": 1,
@@ -3266,7 +3299,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                314
+                340
             ]
         },
         {
@@ -3276,7 +3309,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                326
+                352
             ]
         },
         {
@@ -3321,10 +3354,20 @@
         },
         {
             "file": "includes/core/class-mpu-observation-buffer.php",
+            "source": "Squiz.Commenting.InlineComment.InvalidEndChar",
+            "message": "Inline comments must end in full-stops, exclamation marks, or question marks",
+            "type": "ERROR",
+            "count": 1,
+            "firstLines": [
+                325
+            ]
+        },
+        {
+            "file": "includes/core/class-mpu-observation-buffer.php",
             "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingAfterOpen",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 15,
+            "count": 16,
             "firstLines": [
                 28,
                 70,
@@ -3338,7 +3381,7 @@
             "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingBeforeClose",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 15,
+            "count": 16,
             "firstLines": [
                 28,
                 70,
@@ -3352,7 +3395,7 @@
             "source": "Universal.Arrays.DisallowShortArraySyntax.Found",
             "message": "Short array syntax is not allowed",
             "type": "ERROR",
-            "count": 9,
+            "count": 10,
             "firstLines": [
                 20,
                 54,
@@ -3364,11 +3407,11 @@
         {
             "file": "includes/core/class-mpu-observation-buffer.php",
             "source": "Universal.Files.SeparateFunctionsFromOO.Mixed",
-            "message": "A file should either contain function declarations or OO structure declarations, but not both. Found 2 function declaration(s) and 1 OO structure declaration(s). The first function declaration was found on line 314; the first OO declaration was found on line 17",
+            "message": "A file should either contain function declarations or OO structure declarations, but not both. Found 2 function declaration(s) and 1 OO structure declaration(s). The first function declaration was found on line 340; the first OO declaration was found on line 17",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                314
+                340
             ]
         },
         {
@@ -3378,7 +3421,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                336
+                362
             ]
         },
         {
@@ -3386,9 +3429,12 @@
             "source": "WordPress.Arrays.ArrayKeySpacingRestrictions.NoSpacesAroundArrayKeys",
             "message": "Array keys must be surrounded by spaces unless they contain a string or an integer.",
             "type": "ERROR",
-            "count": 1,
+            "count": 4,
             "firstLines": [
-                279
+                279,
+                315,
+                315,
+                316
             ]
         },
         {
@@ -3452,8 +3498,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                320,
-                323
+                346,
+                349
             ]
         },
         {
@@ -3474,7 +3520,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
             "message": "No space after opening parenthesis is prohibited",
             "type": "ERROR",
-            "count": 46,
+            "count": 52,
             "firstLines": [
                 13,
                 30,
@@ -3488,7 +3534,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
             "message": "No space before closing parenthesis is prohibited",
             "type": "ERROR",
-            "count": 46,
+            "count": 52,
             "firstLines": [
                 13,
                 30,
@@ -3502,7 +3548,7 @@
             "source": "WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter",
             "message": "Expected 1 space after \"!\"; 0 found",
             "type": "ERROR",
-            "count": 17,
+            "count": 20,
             "firstLines": [
                 13,
                 35,
@@ -3516,7 +3562,7 @@
             "source": "WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore",
             "message": "Expected 1 space before \"!\"; 0 found",
             "type": "ERROR",
-            "count": 13,
+            "count": 16,
             "firstLines": [
                 13,
                 35,
@@ -6017,7 +6063,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                238
+                251
             ]
         },
         {
@@ -6027,11 +6073,11 @@
             "type": "WARNING",
             "count": 11,
             "firstLines": [
-                100,
-                232,
-                348,
-                368,
-                369
+                111,
+                245,
+                361,
+                381,
+                382
             ]
         },
         {
@@ -6041,9 +6087,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                503,
-                1042,
-                1043
+                516,
+                1055,
+                1056
             ]
         },
         {
@@ -6053,9 +6099,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                64,
-                531,
-                1072
+                75,
+                544,
+                1085
             ]
         },
         {
@@ -6065,11 +6111,11 @@
             "type": "WARNING",
             "count": 6,
             "firstLines": [
-                94,
-                225,
-                233,
-                482,
-                504
+                105,
+                238,
+                246,
+                495,
+                517
             ]
         },
         {
@@ -6079,7 +6125,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                82
+                93
             ]
         },
         {
@@ -6089,8 +6135,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                240,
-                459
+                253,
+                472
             ]
         },
         {
@@ -6100,8 +6146,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                93,
-                1076
+                104,
+                1089
             ]
         },
         {
@@ -6111,11 +6157,11 @@
             "type": "ERROR",
             "count": 9,
             "firstLines": [
-                23,
-                147,
-                195,
-                202,
-                212
+                32,
+                160,
+                208,
+                215,
+                225
             ]
         },
         {
@@ -6125,11 +6171,11 @@
             "type": "ERROR",
             "count": 10,
             "firstLines": [
-                99,
-                154,
-                168,
-                348,
-                1069
+                110,
+                167,
+                181,
+                361,
+                1082
             ]
         },
         {
@@ -6139,11 +6185,11 @@
             "type": "ERROR",
             "count": 10,
             "firstLines": [
-                99,
-                154,
-                168,
-                348,
-                1069
+                110,
+                167,
+                181,
+                361,
+                1082
             ]
         },
         {
@@ -6151,13 +6197,13 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 941,
+            "count": 945,
             "firstLines": [
                 11,
-                24,
-                25,
-                26,
-                27
+                33,
+                34,
+                35,
+                36
             ]
         },
         {
@@ -6167,9 +6213,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                232,
-                325,
-                344
+                245,
+                338,
+                357
             ]
         },
         {
@@ -6179,11 +6225,11 @@
             "type": "ERROR",
             "count": 60,
             "firstLines": [
-                162,
-                361,
-                379,
-                387,
-                395
+                175,
+                374,
+                392,
+                400,
+                408
             ]
         },
         {
@@ -6193,11 +6239,11 @@
             "type": "ERROR",
             "count": 60,
             "firstLines": [
-                162,
-                361,
-                379,
-                387,
-                395
+                175,
+                374,
+                392,
+                400,
+                408
             ]
         },
         {
@@ -6207,8 +6253,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                141,
-                338
+                154,
+                351
             ]
         },
         {
@@ -6218,8 +6264,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                129,
-                335
+                142,
+                348
             ]
         },
         {
@@ -6229,9 +6275,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                129,
-                335,
-                338
+                142,
+                348,
+                351
             ]
         },
         {
@@ -6242,10 +6288,10 @@
             "count": 625,
             "firstLines": [
                 10,
-                27,
-                28,
-                30,
-                36
+                38,
+                39,
+                41,
+                47
             ]
         },
         {
@@ -6256,10 +6302,10 @@
             "count": 625,
             "firstLines": [
                 10,
-                27,
-                28,
-                30,
-                36
+                38,
+                39,
+                41,
+                47
             ]
         },
         {
@@ -6279,7 +6325,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                306
+                319
             ]
         },
         {
@@ -6289,7 +6335,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1032
+                1045
             ]
         },
         {
@@ -6299,7 +6345,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                194
+                207
             ]
         },
         {
@@ -6309,7 +6355,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                201
+                214
             ]
         },
         {
@@ -6319,17 +6365,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                208
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Commenting.FunctionComment.ParamCommentFullStop",
-            "message": "Parameter comment must end with a full stop",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                19
+                221
             ]
         },
         {
@@ -6339,11 +6375,11 @@
             "type": "ERROR",
             "count": 47,
             "firstLines": [
-                25,
-                38,
-                42,
-                46,
-                63
+                36,
+                49,
+                53,
+                57,
+                74
             ]
         },
         {
@@ -6353,10 +6389,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                22,
-                194,
-                211,
-                335
+                31,
+                207,
+                224,
+                348
             ]
         },
         {
@@ -6366,10 +6402,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                22,
-                194,
-                211,
-                335
+                31,
+                207,
+                224,
+                348
             ]
         },
         {
@@ -6379,7 +6415,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1089
+                1102
             ]
         },
         {
@@ -6389,7 +6425,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1086
+                1099
             ]
         },
         {
@@ -6399,7 +6435,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1088
+                1101
             ]
         },
         {
@@ -6409,7 +6445,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1087
+                1100
             ]
         },
         {
@@ -6419,11 +6455,11 @@
             "type": "ERROR",
             "count": 7,
             "firstLines": [
-                161,
-                168,
-                172,
-                178,
-                183
+                174,
+                181,
+                185,
+                191,
+                196
             ]
         },
         {
@@ -6433,7 +6469,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                181
+                194
             ]
         },
         {
@@ -6443,7 +6479,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                240
+                253
             ]
         },
         {
@@ -6453,7 +6489,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                198
+                211
             ]
         },
         {
@@ -6463,7 +6499,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                169
+                182
             ]
         },
         {
@@ -6473,7 +6509,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                154
+                167
             ]
         },
         {
@@ -6483,8 +6519,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                166,
-                170
+                179,
+                183
             ]
         },
         {
@@ -6494,8 +6530,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                166,
-                171
+                179,
+                184
             ]
         },
         {
@@ -6505,8 +6541,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                224,
-                1099
+                237,
+                1112
             ]
         },
         {
@@ -6516,9 +6552,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                224,
-                226,
-                1099
+                237,
+                239,
+                1112
             ]
         },
         {
@@ -6528,7 +6564,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                239
+                252
             ]
         },
         {
@@ -6538,7 +6574,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                240
+                253
             ]
         },
         {
@@ -6548,8 +6584,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                1179,
-                1180
+                1192,
+                1193
             ]
         },
         {
@@ -6559,7 +6595,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                238
+                251
             ]
         },
         {
@@ -6569,7 +6605,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                167
+                180
             ]
         },
         {
@@ -6579,7 +6615,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                234
+                247
             ]
         },
         {
@@ -6589,7 +6625,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                233
+                246
             ]
         },
         {
@@ -6599,8 +6635,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                133,
-                133
+                146,
+                146
             ]
         },
         {
@@ -6610,8 +6646,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                1179,
-                1180
+                1192,
+                1193
             ]
         },
         {
@@ -6621,11 +6657,11 @@
             "type": "ERROR",
             "count": 10,
             "firstLines": [
-                120,
-                123,
-                253,
-                287,
-                290
+                133,
+                136,
+                266,
+                300,
+                303
             ]
         },
         {
@@ -6635,7 +6671,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                134
+                147
             ]
         },
         {
@@ -6645,7 +6681,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1185
+                1198
             ]
         },
         {
@@ -6655,7 +6691,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                137
+                150
             ]
         },
         {
@@ -6665,7 +6701,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                138
+                151
             ]
         },
         {
@@ -6675,10 +6711,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                215,
-                217,
-                1100,
-                1101
+                228,
+                230,
+                1113,
+                1114
             ]
         },
         {
@@ -6688,8 +6724,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                273,
-                275
+                286,
+                288
             ]
         },
         {
@@ -6699,7 +6735,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                178
+                191
             ]
         },
         {
@@ -6709,7 +6745,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                323
+                336
             ]
         },
         {
@@ -6719,7 +6755,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                203
+                216
             ]
         },
         {
@@ -6729,7 +6765,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                161
+                174
             ]
         },
         {
@@ -6739,7 +6775,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                168
+                181
             ]
         },
         {
@@ -6749,7 +6785,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1167
+                1180
             ]
         },
         {
@@ -6759,7 +6795,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1156
+                1169
             ]
         },
         {
@@ -6769,7 +6805,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                238
+                251
             ]
         },
         {
@@ -6779,8 +6815,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                219,
-                1102
+                232,
+                1115
             ]
         },
         {
@@ -6790,7 +6826,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1092
+                1105
             ]
         },
         {
@@ -6800,7 +6836,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1108
+                1121
             ]
         },
         {
@@ -6810,7 +6846,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                129
+                142
             ]
         },
         {
@@ -6820,7 +6856,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                162
+                175
             ]
         },
         {
@@ -6830,7 +6866,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                162
+                175
             ]
         },
         {
@@ -6840,7 +6876,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                134
+                147
             ]
         },
         {
@@ -6850,7 +6886,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1185
+                1198
             ]
         },
         {
@@ -6860,7 +6896,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1040
+                1053
             ]
         },
         {
@@ -6870,8 +6906,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                290,
-                1041
+                303,
+                1054
             ]
         },
         {
@@ -6881,7 +6917,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                293
+                306
             ]
         },
         {
@@ -6891,7 +6927,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                287
+                300
             ]
         },
         {
@@ -6901,7 +6937,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                253
+                266
             ]
         },
         {
@@ -6911,7 +6947,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1042
+                1055
             ]
         },
         {
@@ -6921,7 +6957,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1043
+                1056
             ]
         },
         {
@@ -6931,7 +6967,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                120
+                133
             ]
         },
         {
@@ -6941,7 +6977,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                123
+                136
             ]
         },
         {
@@ -6954,8 +6990,8 @@
                 5,
                 16,
                 18,
-                82,
-                83
+                93,
+                94
             ]
         },
         {
@@ -6965,11 +7001,11 @@
             "type": "ERROR",
             "count": 56,
             "firstLines": [
-                44,
-                64,
-                96,
-                162,
-                465
+                55,
+                75,
+                107,
+                175,
+                478
             ]
         },
         {
@@ -6979,7 +7015,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                332
+                345
             ]
         },
         {
@@ -6989,7 +7025,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                491
+                504
             ]
         },
         {
@@ -6999,11 +7035,11 @@
             "type": "ERROR",
             "count": 7,
             "firstLines": [
-                111,
-                215,
-                217,
-                219,
-                1100
+                122,
+                228,
+                230,
+                232,
+                1113
             ]
         },
         {
@@ -7013,7 +7049,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                979
+                992
             ]
         },
         {
@@ -7023,7 +7059,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                974
+                987
             ]
         },
         {
@@ -7033,7 +7069,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                986
+                999
             ]
         },
         {
@@ -7043,7 +7079,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                994
+                1007
             ]
         },
         {
@@ -7053,7 +7089,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                990
+                1003
             ]
         },
         {
@@ -7063,7 +7099,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                981
+                994
             ]
         },
         {
@@ -7073,7 +7109,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                973
+                986
             ]
         },
         {
@@ -7083,7 +7119,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                983
+                996
             ]
         },
         {
@@ -7093,7 +7129,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                977
+                990
             ]
         },
         {
@@ -7103,7 +7139,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                972
+                985
             ]
         },
         {
@@ -7113,7 +7149,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                975
+                988
             ]
         },
         {
@@ -7123,7 +7159,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                985
+                998
             ]
         },
         {
@@ -7133,7 +7169,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                996
+                1009
             ]
         },
         {
@@ -7143,7 +7179,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                984
+                997
             ]
         },
         {
@@ -7153,7 +7189,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                987
+                1000
             ]
         },
         {
@@ -7163,7 +7199,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                995
+                1008
             ]
         },
         {
@@ -7173,7 +7209,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                998
+                1011
             ]
         },
         {
@@ -7183,7 +7219,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                993
+                1006
             ]
         },
         {
@@ -7193,7 +7229,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                980
+                993
             ]
         },
         {
@@ -7203,7 +7239,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                992
+                1005
             ]
         },
         {
@@ -7213,7 +7249,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                982
+                995
             ]
         },
         {
@@ -7223,7 +7259,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                1007
+                1020
             ]
         },
         {
@@ -7233,7 +7269,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                976
+                989
             ]
         },
         {
@@ -7243,7 +7279,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                989
+                1002
             ]
         },
         {
@@ -7253,7 +7289,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                204
+                217
             ]
         },
         {
@@ -7263,11 +7299,11 @@
             "type": "ERROR",
             "count": 9,
             "firstLines": [
-                27,
-                39,
-                65,
-                70,
-                86
+                38,
+                50,
+                76,
+                81,
+                97
             ]
         },
         {
@@ -7277,7 +7313,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1066
+                1079
             ]
         },
         {
@@ -7287,7 +7323,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                337
+                350
             ]
         },
         {
@@ -7297,7 +7333,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1087
+                1100
             ]
         },
         {
@@ -7307,7 +7343,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                308
+                321
             ]
         },
         {
@@ -7317,7 +7353,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1180
+                1193
             ]
         },
         {
@@ -7327,7 +7363,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1047
+                1060
             ]
         },
         {
@@ -7337,7 +7373,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                170
+                183
             ]
         },
         {
@@ -7347,7 +7383,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                171
+                184
             ]
         },
         {
@@ -7357,8 +7393,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                217,
-                1101
+                230,
+                1114
             ]
         },
         {
@@ -7368,7 +7404,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                170
+                183
             ]
         },
         {
@@ -7378,7 +7414,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                171
+                184
             ]
         },
         {
@@ -7388,7 +7424,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                996
+                1009
             ]
         },
         {
@@ -7398,7 +7434,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                775
+                788
             ]
         },
         {
@@ -7409,10 +7445,10 @@
             "count": 54,
             "firstLines": [
                 10,
-                27,
-                36,
-                39,
-                43
+                38,
+                47,
+                50,
+                54
             ]
         },
         {
@@ -7423,10 +7459,10 @@
             "count": 54,
             "firstLines": [
                 10,
-                27,
-                36,
-                39,
-                43
+                38,
+                47,
+                50,
+                54
             ]
         },
         {
@@ -7437,10 +7473,10 @@
             "count": 24,
             "firstLines": [
                 10,
-                43,
-                47,
-                50,
-                53
+                54,
+                58,
+                61,
+                64
             ]
         },
         {
@@ -7451,10 +7487,10 @@
             "count": 21,
             "firstLines": [
                 10,
-                43,
-                47,
-                50,
-                53
+                54,
+                58,
+                61,
+                64
             ]
         },
         {
@@ -19968,17 +20004,6 @@
         },
         {
             "file": "includes/llm/provider-stream-http.php",
-            "source": "Generic.PHP.DeprecatedFunctions.Deprecated",
-            "message": "Function curl_close() has been deprecated",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                73,
-                84
-            ]
-        },
-        {
-            "file": "includes/llm/provider-stream-http.php",
             "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceAfterOpen",
             "message": "Expected 1 space after open parenthesis; 0 found",
             "type": "ERROR",
@@ -30493,8 +30518,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                1020,
-                1141
+                1027,
+                1148
             ]
         },
         {
@@ -30505,7 +30530,7 @@
             "count": 2,
             "firstLines": [
                 422,
-                1019
+                1026
             ]
         },
         {
@@ -30515,7 +30540,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                1018
+                1025
             ]
         },
         {
@@ -30584,8 +30609,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                924,
-                928
+                931,
+                935
             ]
         },
         {
@@ -30628,7 +30653,7 @@
             "count": 2,
             "firstLines": [
                 892,
-                1026
+                1033
             ]
         },
         {
@@ -30715,7 +30740,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 1101,
+            "count": 1108,
             "firstLines": [
                 21,
                 26,
@@ -30787,7 +30812,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.CloseBracketLine",
             "message": "Closing parenthesis of a multi-line function call must be on a line by itself",
             "type": "ERROR",
-            "count": 11,
+            "count": 12,
             "firstLines": [
                 35,
                 41,
@@ -30801,7 +30826,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket",
             "message": "Opening parenthesis of a multi-line function call must be the last content on the line",
             "type": "ERROR",
-            "count": 11,
+            "count": 12,
             "firstLines": [
                 31,
                 37,
@@ -30829,7 +30854,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 418,
+            "count": 420,
             "firstLines": [
                 20,
                 70,
@@ -30843,7 +30868,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 418,
+            "count": 420,
             "firstLines": [
                 20,
                 70,
@@ -30879,7 +30904,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1006
+                1013
             ]
         },
         {
@@ -30899,7 +30924,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                998
+                1005
             ]
         },
         {
@@ -30909,7 +30934,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                977
+                984
             ]
         },
         {
@@ -30919,7 +30944,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                988
+                995
             ]
         },
         {
@@ -30929,7 +30954,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                969
+                976
             ]
         },
         {
@@ -30939,7 +30964,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                965
+                972
             ]
         },
         {
@@ -30949,7 +30974,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1040
+                1047
             ]
         },
         {
@@ -30959,7 +30984,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1050
+                1057
             ]
         },
         {
@@ -30969,7 +30994,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1122
+                1129
             ]
         },
         {
@@ -30989,8 +31014,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                1259,
-                1278
+                1266,
+                1285
             ]
         },
         {
@@ -31029,7 +31054,7 @@
                 129,
                 361,
                 521,
-                965
+                972
             ]
         },
         {
@@ -31043,7 +31068,7 @@
                 129,
                 361,
                 521,
-                965
+                972
             ]
         },
         {
@@ -31053,7 +31078,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1181
+                1188
             ]
         },
         {
@@ -31063,7 +31088,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1176
+                1183
             ]
         },
         {
@@ -31074,8 +31099,8 @@
             "count": 3,
             "firstLines": [
                 517,
-                1180,
-                1190
+                1187,
+                1197
             ]
         },
         {
@@ -31100,7 +31125,7 @@
             "count": 2,
             "firstLines": [
                 348,
-                1268
+                1275
             ]
         },
         {
@@ -31147,8 +31172,8 @@
                 352,
                 506,
                 633,
-                910,
-                1115
+                917,
+                1122
             ]
         },
         {
@@ -31182,7 +31207,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                958
+                965
             ]
         },
         {
@@ -31192,7 +31217,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                952
+                959
             ]
         },
         {
@@ -31202,7 +31227,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                959
+                966
             ]
         },
         {
@@ -31212,7 +31237,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                956
+                963
             ]
         },
         {
@@ -31222,7 +31247,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                947
+                954
             ]
         },
         {
@@ -31232,7 +31257,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                955
+                962
             ]
         },
         {
@@ -31242,7 +31267,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                946
+                953
             ]
         },
         {
@@ -31252,7 +31277,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                950
+                957
             ]
         },
         {
@@ -31262,7 +31287,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                949
+                956
             ]
         },
         {
@@ -31272,7 +31297,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                943
+                950
             ]
         },
         {
@@ -31282,7 +31307,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                944
+                951
             ]
         },
         {
@@ -31302,7 +31327,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                951
+                958
             ]
         },
         {
@@ -31312,7 +31337,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                945
+                952
             ]
         },
         {
@@ -31352,7 +31377,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                960
+                967
             ]
         },
         {
@@ -31582,7 +31607,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                954
+                961
             ]
         },
         {
@@ -31592,7 +31617,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                953
+                960
             ]
         },
         {
@@ -31612,7 +31637,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                957
+                964
             ]
         },
         {
@@ -31622,7 +31647,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                948
+                955
             ]
         },
         {
@@ -31640,7 +31665,7 @@
             "source": "WordPress.PHP.YodaConditions.NotYoda",
             "message": "Use Yoda Condition checks, you must.",
             "type": "ERROR",
-            "count": 27,
+            "count": 28,
             "firstLines": [
                 79,
                 91,
@@ -31654,7 +31679,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
             "message": "No space after opening parenthesis is prohibited",
             "type": "ERROR",
-            "count": 142,
+            "count": 143,
             "firstLines": [
                 20,
                 70,
@@ -31668,7 +31693,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
             "message": "No space before closing parenthesis is prohibited",
             "type": "ERROR",
-            "count": 142,
+            "count": 143,
             "firstLines": [
                 20,
                 70,
@@ -35349,7 +35374,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 110,
+            "count": 111,
             "firstLines": [
                 12,
                 23,
@@ -35367,7 +35392,7 @@
             "firstLines": [
                 45,
                 52,
-                168
+                169
             ]
         },
         {
@@ -35379,7 +35404,7 @@
             "firstLines": [
                 36,
                 50,
-                163
+                164
             ]
         },
         {
@@ -35391,8 +35416,8 @@
             "firstLines": [
                 36,
                 50,
-                163,
-                168
+                164,
+                169
             ]
         },
         {
@@ -35460,7 +35485,7 @@
         {
             "file": "mp-ukagaka.php",
             "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"2.24.0\" does not require double quotes; use single quotes instead",
+            "message": "String \"2.24.1\" does not require double quotes; use single quotes instead",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
@@ -35535,8 +35560,8 @@
             "count": 3,
             "firstLines": [
                 64,
-                111,
-                116
+                112,
+                117
             ]
         },
         {
@@ -35546,9 +35571,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                127,
-                138,
-                150
+                128,
+                139,
+                151
             ]
         },
         {
@@ -35561,8 +35586,8 @@
                 11,
                 38,
                 42,
-                122,
-                124
+                123,
+                125
             ]
         },
         {
@@ -35575,8 +35600,8 @@
                 11,
                 38,
                 42,
-                122,
-                124
+                123,
+                125
             ]
         },
         {
@@ -35589,7 +35614,7 @@
                 11,
                 38,
                 42,
-                132
+                133
             ]
         },
         {
@@ -35602,7 +35627,7 @@
                 11,
                 38,
                 42,
-                132
+                133
             ]
         },
         {
