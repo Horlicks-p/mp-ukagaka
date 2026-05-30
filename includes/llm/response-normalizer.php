@@ -21,6 +21,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit();
 }
 
+if ( ! defined( 'MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS' ) ) {
+	define(
+		'MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS',
+		array(
+			'chat'       => true,
+			'touch'      => true,
+			'page_aware' => true,
+			'decoration' => false,
+			'initial'    => false,
+			'diary'      => false,
+		)
+	);
+}
+
 /**
  * 將 AI 原始回應轉換為各通路所需的乾淨版本與 metadata。
  *
@@ -37,6 +51,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function mpu_normalize_ai_response( $raw_text, $personality_id = null, array $options = array() ) {
 	$defaults = array(
+		'context'            => 'chat',
 		'progressive_think'  => false,
 		'strip_unknown_tags' => false,
 	);
@@ -50,7 +65,15 @@ function mpu_normalize_ai_response( $raw_text, $personality_id = null, array $op
 	$think = mpu_normalize_extract_leading_think( $raw_text );
 
 	// 規則 8：全域開關關閉時，normalizer 仍剝離 think，但 think 欄位固定為空.
-	if ( ! mpu_is_inner_monologue_enabled() ) {
+	if ( ! mpu_is_inner_monologue_enabled_for_context( $options['context'], $personality_id ) ) {
+		if ( '' !== $think ) {
+			mpu_normalize_warn(
+				sprintf(
+					'inner monologue suppressed for context "%s"; LLM emitted think but it was discarded',
+					(string) $options['context']
+				)
+			);
+		}
 		$think = '';
 	}
 
@@ -83,6 +106,71 @@ function mpu_normalize_ai_response( $raw_text, $personality_id = null, array $op
 		'emotion_files'        => $emotion['files'],
 		'primary_emotion_tag'  => $emotion['tags'][0] ?? null,
 		'primary_emotion_file' => $emotion['files'][0] ?? null,
+	);
+}
+
+/**
+ * REST caller helper：normalizer 優先，沒有合法 tag 時才退回既有 keyword scorer。
+ *
+ * @param string      $raw_text       AI 原始輸出.
+ * @param string|null $personality_id Personality ID.
+ * @param array       $options        Normalizer options.
+ * @return array{
+ *   display_text:string, tts_text:string, history_text:string, checksum_text:string,
+ *   think:string, emotion_tags:string[], emotion_files:string[],
+ *   primary_emotion_tag:?string, primary_emotion_file:?string, emoji:?string
+ * }
+ */
+function mpu_normalize_ai_response_for_rest( $raw_text, $personality_id = null, array $options = array() ) {
+	$normalized = mpu_normalize_ai_response( $raw_text, $personality_id, $options );
+	$emoji      = $normalized['primary_emotion_file'];
+
+	if ( null === $emoji && function_exists( 'mpu_analyze_emoji_from_text' ) && '' !== $normalized['display_text'] ) {
+		$emoji = mpu_analyze_emoji_from_text( $normalized['display_text'], $personality_id );
+	}
+
+	$normalized['emoji'] = $emoji;
+	return $normalized;
+}
+
+/**
+ * Apply the existing REST display limit after stripping think/emotion tags.
+ *
+ * @param array $normalized Normalized response payload.
+ * @param int   $max_length Maximum display length.
+ * @return array
+ */
+function mpu_normalize_ai_response_apply_display_limit( array $normalized, $max_length ) {
+	$max_length = intval( $max_length );
+	if ( $max_length <= 0 || mb_strlen( $normalized['display_text'], 'UTF-8' ) <= $max_length ) {
+		return $normalized;
+	}
+
+	$display = mb_substr( $normalized['display_text'], 0, $max_length, 'UTF-8' ) . '...';
+
+	$normalized['display_text']  = $display;
+	$normalized['tts_text']      = $display;
+	$normalized['history_text']  = $display;
+	$normalized['checksum_text'] = $display;
+
+	return $normalized;
+}
+
+/**
+ * Build non-streaming REST response fields from normalized data.
+ *
+ * @param array $normalized Normalized response payload.
+ * @return array
+ */
+function mpu_normalize_ai_response_rest_fields( array $normalized ) {
+	return array(
+		'msg'                  => $normalized['display_text'],
+		'emoji'                => $normalized['emoji'] ?? null,
+		'emotion_tags'         => $normalized['emotion_tags'],
+		'emotion_files'        => $normalized['emotion_files'],
+		'primary_emotion_tag'  => $normalized['primary_emotion_tag'],
+		'primary_emotion_file' => $normalized['primary_emotion_file'],
+		'think'                => $normalized['think'],
 	);
 }
 
@@ -303,6 +391,40 @@ function mpu_is_inner_monologue_enabled() {
 		}
 	}
 	return true;
+}
+
+/**
+ * Check the inner-monologue policy for a request context.
+ *
+ * @param string|null $context        Request context.
+ * @param string|null $personality_id Personality ID.
+ * @return bool
+ */
+function mpu_is_inner_monologue_enabled_for_context( $context = 'chat', $personality_id = null ) {
+	if ( ! mpu_is_inner_monologue_enabled() ) {
+		return false;
+	}
+
+	$context  = is_string( $context ) && '' !== $context ? $context : 'chat';
+	$defaults = MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS;
+
+	if ( function_exists( 'mpu_load_personality_manifest' ) ) {
+		$manifest = mpu_load_personality_manifest( $personality_id );
+		if (
+			is_array( $manifest )
+			&& isset( $manifest['features']['inner_monologue_contexts'] )
+			&& is_array( $manifest['features']['inner_monologue_contexts'] )
+			&& array_key_exists( $context, $manifest['features']['inner_monologue_contexts'] )
+		) {
+			return (bool) $manifest['features']['inner_monologue_contexts'][ $context ];
+		}
+	}
+
+	if ( array_key_exists( $context, $defaults ) ) {
+		return (bool) $defaults[ $context ];
+	}
+
+	return false;
 }
 
 /**

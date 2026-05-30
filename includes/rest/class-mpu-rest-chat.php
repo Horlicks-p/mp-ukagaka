@@ -314,18 +314,13 @@ class MPU_REST_Chat extends MPU_REST_Base {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
+        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'page_aware' ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
             $max_length = mpu_get_personality_max_response_length(null, $ukagaka_name);
         }
-        if (mb_strlen($result, 'UTF-8') > $max_length) {
-            $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
-        }
-
-        $emoji = null;
-        if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-            $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
-        }
+        $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
+        $result     = $normalized['display_text'];
 
         if (function_exists('mpu_record_conversation')) {
             mpu_record_conversation('context');
@@ -349,7 +344,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             MPU_Observation_Buffer::push('lifecycle_event', 'context_triggered', $token);
         }
 
-        return $this->ok(['msg' => $result, 'emoji' => $emoji]);
+        return $this->ok(mpu_normalize_ai_response_rest_fields($normalized));
     }
 
 
@@ -477,18 +472,13 @@ class MPU_REST_Chat extends MPU_REST_Base {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
+        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'initial' ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
             $max_length = mpu_get_personality_max_response_length(null, $ukagaka_name);
         }
-        if (mb_strlen($result, 'UTF-8') > $max_length) {
-            $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
-        }
-
-        $emoji = null;
-        if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-            $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
-        }
+        $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
+        $result     = $normalized['display_text'];
 
         if (function_exists('mpu_record_conversation')) {
             mpu_record_conversation('greeting');
@@ -503,7 +493,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'greet'
         );
 
-        return $this->ok(['msg' => $result, 'emoji' => $emoji]);
+        return $this->ok(mpu_normalize_ai_response_rest_fields($normalized));
     }
 
 
@@ -1086,25 +1076,19 @@ class MPU_REST_Chat extends MPU_REST_Base {
             }
 
             // [Fix] 針對 Ollama 進行 Thinking 內容過濾，確保 Checksum 一致
-            if ($args['provider'] === 'ollama' && function_exists('mpu_filter_thinking_content')) {
-                $result = mpu_filter_thinking_content($result);
-            }
-
             // MCP Tool 執行時跳過長度截斷（global 由 Abilities 整合層設定）
             if (!function_exists('mpu_did_request_execute_mcp_tool') || !mpu_did_request_execute_mcp_tool()) {
                 $max_length = 500;
                 if (function_exists('mpu_get_personality_max_response_length')) {
                     $max_length = mpu_get_personality_max_response_length(null, $args['ukagaka_name']);
                 }
-                if (mb_strlen($result, 'UTF-8') > $max_length) {
-                    $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
-                }
+            } else {
+                $max_length = 0;
             }
 
-            $emoji = null;
-            if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-                $emoji = mpu_analyze_emoji_from_text($result, $args['personality_id']);
-            }
+            $normalized = mpu_normalize_ai_response_for_rest($result, $args['personality_id'], array( 'context' => 'chat' ));
+            $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
+            $result     = $normalized['display_text'];
 
             if (function_exists('mpu_record_conversation')) {
                 mpu_record_conversation('interactive');
@@ -1119,7 +1103,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             );
 
             $this->set_runtime_state_for_args($args, 'speaking');
-            return $this->ok(['msg' => $result, 'emoji' => $emoji]);
+            return $this->ok(mpu_normalize_ai_response_rest_fields($normalized));
         } finally {
             $this->set_runtime_state_for_args($args, 'idle');
             $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);

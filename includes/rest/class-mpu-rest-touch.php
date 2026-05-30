@@ -104,18 +104,13 @@ class MPU_REST_Touch extends MPU_REST_Base {
             return $this->fail('rest_error', $result->get_error_message(), 400);
         }
 
+        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'decoration' ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
             $max_length = mpu_get_personality_max_response_length($personality_id);
         }
-        if (mb_strlen($result, 'UTF-8') > $max_length) {
-            $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
-        }
-
-        $emoji = null;
-        if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-            $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
-        }
+        $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
+        $result     = $normalized['display_text'];
 
         if (function_exists('mpu_record_conversation')) {
             mpu_record_conversation('decoration');
@@ -125,10 +120,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
             mpu_observation_push_touch($request, 'decoration_' . sanitize_key($decoration_type));
         }
 
-        return $this->ok([
-            'msg'   => $result,
-            'emoji' => $emoji,
-        ]);
+        return $this->ok(mpu_normalize_ai_response_rest_fields($normalized));
     }
 
     /**
@@ -223,18 +215,13 @@ class MPU_REST_Touch extends MPU_REST_Base {
             return $this->fail('rest_error', $result->get_error_message(), 400);
         }
 
+        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'touch' ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
             $max_length = mpu_get_personality_max_response_length($personality_id);
         }
-        if (mb_strlen($result, 'UTF-8') > $max_length) {
-            $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
-        }
-
-        $emoji = null;
-        if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-            $emoji = mpu_analyze_emoji_from_text($result, $personality_id);
-        }
+        $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
+        $result     = $normalized['display_text'];
 
         if (function_exists('mpu_record_conversation')) {
             mpu_record_conversation('touch');
@@ -244,10 +231,9 @@ class MPU_REST_Touch extends MPU_REST_Base {
             mpu_observation_push_touch($request, sanitize_key($touch_zone));
         }
 
-        return $this->ok([
-            'msg'   => $result,
-            'emoji' => $emoji,
-            'zone'  => $touch_zone,
-        ]);
+        $response         = mpu_normalize_ai_response_rest_fields($normalized);
+        $response['zone'] = $touch_zone;
+
+        return $this->ok($response);
     }
 }

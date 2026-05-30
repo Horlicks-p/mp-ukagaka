@@ -169,22 +169,17 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             }
         }
 
+        $personality_id = null;
+        if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
+            $personality_id = mpu_get_personality_id_from_ukagaka_name($cur_num);
+        }
+        $normalized = mpu_normalize_ai_response_for_rest($msg, $personality_id, array( 'context' => 'chat' ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
             $max_length = mpu_get_personality_max_response_length(null, $cur_num);
         }
-        if (mb_strlen($msg, 'UTF-8') > $max_length) {
-            $msg = mb_substr($msg, 0, $max_length, 'UTF-8') . '...';
-        }
-
-        $emoji         = null;
-        $personality_id = null;
-        if (function_exists('mpu_analyze_emoji_from_text') && !empty($msg)) {
-            if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-                $personality_id = mpu_get_personality_id_from_ukagaka_name($cur_num);
-            }
-            $emoji = mpu_analyze_emoji_from_text($msg, $personality_id);
-        }
+        $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
+        $msg        = $normalized['display_text'];
 
         // [Fix] LLM 自發對話也會 push 到前端 mpuChatHistory，但後端未寫 checksum，
         // 導致下一輪 chat/user verify 400。僅在 LLM 成功回應時寫入。
@@ -220,11 +215,13 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             }
         }
 
+        $response           = mpu_normalize_ai_response_rest_fields($normalized);
+        $response['msgnum'] = $msgnum;
+
         return $this->ok([
             'msg'    => $msg,
             'msgnum' => $msgnum,
-            'emoji'  => $emoji,
-        ]);
+        ] + $response);
     }
 
 

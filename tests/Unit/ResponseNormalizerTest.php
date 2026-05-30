@@ -44,6 +44,18 @@ if (!function_exists('mpu_get_option')) {
     }
 }
 
+if (!function_exists('mpu_load_personality_manifest')) {
+    function mpu_load_personality_manifest($personality_id = null) {
+        return $GLOBALS['_mpu_test_manifest'] ?? [];
+    }
+}
+
+if (!function_exists('mpu_analyze_emoji_from_text')) {
+    function mpu_analyze_emoji_from_text($text, $personality_id = null) {
+        return strpos($text, 'angry keyword') !== false ? 'angry.png' : null;
+    }
+}
+
 if (!function_exists('mpu_debug_log')) {
     function mpu_debug_log($message) {
         $GLOBALS['_mpu_test_normalizer_warns'][] = $message;
@@ -56,11 +68,13 @@ final class ResponseNormalizerTest extends TestCase {
     protected function setUp(): void {
         $GLOBALS['_mpu_test_emoji_supported'] = ['laugh', 'angry', 'happy', 'sad', 'surprised'];
         $GLOBALS['_mpu_test_mpu_opt'] = [];
+        $GLOBALS['_mpu_test_manifest'] = [];
         $GLOBALS['_mpu_test_normalizer_warns'] = [];
     }
 
     protected function tearDown(): void {
         $GLOBALS['_mpu_test_mpu_opt'] = [];
+        $GLOBALS['_mpu_test_manifest'] = [];
         $GLOBALS['_mpu_test_normalizer_warns'] = [];
     }
 
@@ -218,5 +232,48 @@ final class ResponseNormalizerTest extends TestCase {
         $r = mpu_normalize_ai_response('これは [evil] だ', null, ['strip_unknown_tags' => true]);
         $this->assertStringNotContainsString('[evil]', $r['display_text']);
         $this->assertSame([], $r['emotion_tags']);
+    }
+
+    public function test_rest_helper_uses_primary_emotion_before_keyword_scorer(): void {
+        $r = mpu_normalize_ai_response_for_rest('[laugh] angry keyword', null, ['context' => 'chat']);
+        $this->assertSame('laugh.png', $r['emoji']);
+        $this->assertSame('laugh.png', $r['primary_emotion_file']);
+        $this->assertSame('angry keyword', $r['display_text']);
+    }
+
+    public function test_rest_helper_falls_back_to_keyword_without_tag(): void {
+        $r = mpu_normalize_ai_response_for_rest('angry keyword', null, ['context' => 'chat']);
+        $this->assertSame('angry.png', $r['emoji']);
+        $this->assertNull($r['primary_emotion_file']);
+    }
+
+    public function test_context_disabled_suppresses_think_but_keeps_display_clean(): void {
+        $r = mpu_normalize_ai_response('<think>inner</think>visible', null, ['context' => 'decoration']);
+        $this->assertSame('', $r['think']);
+        $this->assertSame('visible', $r['display_text']);
+        $this->assertWarnContains('inner monologue suppressed');
+    }
+
+    public function test_manifest_context_override_is_partial(): void {
+        $GLOBALS['_mpu_test_manifest'] = [
+            'features' => [
+                'inner_monologue_contexts' => [
+                    'touch' => false,
+                ],
+            ],
+        ];
+
+        $this->assertFalse(mpu_is_inner_monologue_enabled_for_context('touch'));
+        $this->assertTrue(mpu_is_inner_monologue_enabled_for_context('chat'));
+        $this->assertFalse(mpu_is_inner_monologue_enabled_for_context('unknown_context'));
+    }
+
+    public function test_rest_display_limit_preserves_locked_text_fields(): void {
+        $r = mpu_normalize_ai_response_for_rest('<think>long thought</think>1234567890[laugh]', null, ['context' => 'chat']);
+        $r = mpu_normalize_ai_response_apply_display_limit($r, 5);
+        $this->assertSame('12345...', $r['display_text']);
+        $this->assertSame($r['display_text'], $r['history_text']);
+        $this->assertSame($r['history_text'], $r['checksum_text']);
+        $this->assertSame('laugh.png', $r['emoji']);
     }
 }
