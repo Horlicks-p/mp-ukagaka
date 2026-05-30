@@ -24,7 +24,7 @@
     frierenIsSpeaking: false, // 是否正在說話
     frierenIdleImgElement: null, // 用於顯示 APNG 的 <img> 元素
     frierenDecorations: [], // 裝飾元素陣列
-    frierenIdleOpacity: 0.95, // 芙莉蓮閒置狀態透明度（0.0 - 1.0）
+    frierenIdleOpacity: 1.0, // 芙莉蓮閒置狀態透明度（0.0 - 1.0）；黑底下 0.95 會壓暗 5%，故設 1.0
     decorationChatInProgress: false, // 裝飾物對話是否正在進行中
     decorationHitCanvases: new Map(), // 裝飾物像素檢測用的隱藏 Canvas
     pixelHitThreshold: 10, // 像素透明度閾值（0-255），大於此值才視為可點擊

@@ -47,7 +47,7 @@
 }
 
 #ukagaka_img canvas {
-  opacity: 0.95;
+  opacity: 1;
   position: relative;
   z-index: 99; /* Canvas 層級調整為 99，讓前方裝飾物（如行李箱 z-100）能蓋過它 */
 }
