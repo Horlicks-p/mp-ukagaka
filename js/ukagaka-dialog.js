@@ -49,8 +49,9 @@ function loadExternalDialog(file, skipFirstMessage = false) {
       const loadingMessage =
         typeof mpuL10n !== "undefined" && mpuL10n.thinkingMessage
           ? mpuL10n.thinkingMessage
-          : "（えっと…何話せばいいかな…）";
-      mpu_typewriter(loadingMessage, "#ukagaka_msg");
+          : "（えっと…何を話せばいいかな…）";
+      // §16.3-A：thinking placeholder，跳過角色動畫
+      mpu_typewriter(loadingMessage, "#ukagaka_msg", null, { systemPlaceholder: true });
     }
   }
 

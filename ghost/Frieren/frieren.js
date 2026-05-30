@@ -1229,6 +1229,7 @@
             jQuery("#ukagaka_msg").html(
               '（…えっと<span class="mpu-thinking"></span>）'
             );
+            mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
             $msgbox.fadeIn(400);
             executeAjaxReq();
           });
@@ -1236,6 +1237,7 @@
           jQuery("#ukagaka_msg").html(
             '（…えっと<span class="mpu-thinking"></span>）'
           );
+          mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
           if (typeof mpu_showmsg !== "undefined") {
             mpu_showmsg(400);
           }
@@ -1528,6 +1530,7 @@
             jQuery("#ukagaka_msg").html(
               '（…えっと<span class="mpu-thinking"></span>）'
             );
+            mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
             $msgbox.fadeIn(400);
             executeAjaxReq();
           });
@@ -1535,6 +1538,7 @@
           jQuery("#ukagaka_msg").html(
             '（…えっと<span class="mpu-thinking"></span>）'
           );
+          mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
           if (typeof mpu_showmsg !== "undefined") {
             mpu_showmsg(400);
           }

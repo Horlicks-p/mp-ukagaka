@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-27T10:11:09.557Z
+ * Generated: 2026-05-30T04:21:59.197Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -499,13 +499,47 @@ function mpu_handle_error(error, context, options = {}) {
 }
 
 /**
+ * §16.3-A DOM 標記層 helper：標記 / 清除 system placeholder 屬性。
+ *
+ * 供「不經 mpu_typewriter、直接 .html() 寫入 placeholder」的路徑使用
+ * （streaming chat 初始、SSE status/tool、飾品/touch「思考中」）。
+ * 經 mpu_typewriter() 的路徑已自動處理 data-mpu-placeholder，毋需再呼叫。
+ *
+ * M3 §16.11 Gap I 的 lifecycle 版（含 request token / AbortController / bubble
+ * restore）將以此為底層原語擴充；屆時 clear 端若需 token 語義，比照
+ * mpu_typewriter 第 4 參數做 polymorphic 收斂，避免改名。
+ *
+ * @param {string|Element|jQuery} [target="#ukagaka_msg"] 目標容器
+ */
+function mpuMarkSystemPlaceholder(target) {
+    jQuery(target || '#ukagaka_msg').attr('data-mpu-placeholder', 'system');
+}
+
+function mpuClearSystemPlaceholder(target) {
+    jQuery(target || '#ukagaka_msg').removeAttr('data-mpu-placeholder');
+}
+
+/**
  * 打字效果函數（性能優化版）
  * @param {string} text - 要顯示的文字（可包含 HTML）
  * @param {string|jQuery} target - 目標元素選擇器或 jQuery 對象
  * @param {number} speed - 打字速度（毫秒/字元），預設使用 mpuTypewriterSpeed
- * @param {boolean} skipCharacterAnimation - 是否跳過角色動畫，預設 false
+ * @param {boolean|Object} options - 第 4 參數。向下相容：傳 boolean 等同舊的
+ *     skipCharacterAnimation。亦可傳 options 物件：
+ *       - {boolean} skipCharacterAnimation: 是否跳過角色動畫
+ *       - {boolean} systemPlaceholder: 標記此為 system placeholder（如「（思考中…）」/
+ *         「（えっと…何を話せばいいかな…）」）。一律跳過角色動畫，並在目標容器標記
+ *         data-mpu-placeholder="system"。§16.3-A 標記式判定，取代舊的 systemMessages
+ *         字串黑名單（字串內容比對會隨翻譯漂移而失效，見 §16.2）。
  */
-function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
+function mpu_typewriter(text, target, speed, options) {
+    // 第 4 參數正規化：boolean（舊 skipCharacterAnimation）或 options 物件
+    const _opts = (options && typeof options === 'object')
+        ? options
+        : { skipCharacterAnimation: !!options };
+    const isSystemPlaceholder = !!_opts.systemPlaceholder;
+    // system placeholder 一律跳過角色動畫（取代舊字串黑名單）
+    const skipCharacterAnimation = !!_opts.skipCharacterAnimation || isSystemPlaceholder;
     // 清除之前的打字效果
     if (mpuTypewriterTimer !== null) {
         clearTimeout(mpuTypewriterTimer);
@@ -514,6 +548,8 @@ function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
 
     if (!text) {
         const $target = typeof target === 'string' ? jQuery(target) : target;
+        // 清空時一併移除 placeholder 標記，避免 stale attribute 殘留誤判 source
+        jQuery($target).removeAttr('data-mpu-placeholder');
         $target.html('');
         return;
     }
@@ -572,19 +608,18 @@ function mpu_typewriter(text, target, speed, skipCharacterAnimation) {
     let rafId = null;
     let animationTriggered = false;
 
-    const systemMessages = [
-        '（えっと…何話せばいいかな…）',
-        '…ああ、記事か。どれどれ…',
-        '（思考中…）'
-    ];
-    
-    let plainText = text.replace(/<[^>]*>/g, '').trim();
-    const isSystemMessage = systemMessages.some(function(msg) {
-        return plainText.indexOf(msg) !== -1;
-    });
+    // §16.3-A：以 systemPlaceholder 標記（而非字串內容比對）決定動畫行為，並在目標容器
+    // 標記 data-mpu-placeholder，供 M3 bubble routing 與 §16.3-E 驗收測試使用。
+    if (targetElement && typeof targetElement.setAttribute === 'function') {
+        if (isSystemPlaceholder) {
+            targetElement.setAttribute('data-mpu-placeholder', 'system');
+        } else {
+            targetElement.removeAttribute('data-mpu-placeholder');
+        }
+    }
 
-    // 只有在非系統訊息且未要求跳過動畫時才播放動畫
-    if (typeof window.mpuCanvasManager !== 'undefined' && !animationTriggered && !isSystemMessage && !skipCharacterAnimation) {
+    // 只有在未要求跳過動畫時才播放動畫（system placeholder 已併入 skipCharacterAnimation）
+    if (typeof window.mpuCanvasManager !== 'undefined' && !animationTriggered && !skipCharacterAnimation) {
         animationTriggered = true;
         window.mpuCanvasManager.playAnimation();
     }
@@ -3584,6 +3619,8 @@ function mpu_chat_context() {
   mpu_typewriter(
     `<span style="color: ${mpuAiTextColor};">${loadingMessage}</span>`,
     "#ukagaka_msg",
+    null,
+    { systemPlaceholder: true }, // §16.3-A：頁面感知 loading placeholder，跳過角色動畫
   );
 
   const formData = new FormData();
@@ -4110,8 +4147,9 @@ function loadExternalDialog(file, skipFirstMessage = false) {
       const loadingMessage =
         typeof mpuL10n !== "undefined" && mpuL10n.thinkingMessage
           ? mpuL10n.thinkingMessage
-          : "（えっと…何話せばいいかな…）";
-      mpu_typewriter(loadingMessage, "#ukagaka_msg");
+          : "（えっと…何を話せばいいかな…）";
+      // §16.3-A：thinking placeholder，跳過角色動畫
+      mpu_typewriter(loadingMessage, "#ukagaka_msg", null, { systemPlaceholder: true });
     }
   }
 
@@ -4848,6 +4886,7 @@ function mpu_sendUserMessage() {
     let fullResponse = "";
     const $msg = jQuery("#ukagaka_msg");
     $msg.html('（…えっと<span class="mpu-thinking"></span>）');
+    mpuMarkSystemPlaceholder($msg); // §16.3-A：直接 .html() 的 placeholder 需手動標記
 
     // Streaming typewriter queue — 區域 timer，絕不碰全域 mpuTypewriterTimer
     let streamTypewriterTimer = null;
@@ -4946,6 +4985,8 @@ function mpu_sendUserMessage() {
       if (streamFinalized) return;
       streamFinalized = true;
       clearStreamWatchdog();
+      // §16.3-A：失敗 / 中斷 / 逾時 / abort 一律清除 placeholder 標記，避免殘影
+      mpuClearSystemPlaceholder($msg);
 
       const isBusy =
         !timedOut &&
@@ -5007,6 +5048,8 @@ function mpu_sendUserMessage() {
       streamFinalized = true;
       clearStreamWatchdog();
       clearStreamState();
+      // §16.3-A：正式回應落定，清除 placeholder 標記（涵蓋無 delta 的 JSON fallback）
+      mpuClearSystemPlaceholder($msg);
       mpuChatAbortController = null;
       const finalMsg = data.msg || fullResponse;
       // [Fix] SSE 端點偶爾會回 JSON（例如 /debug_mcp redirect、非 streaming
@@ -5063,7 +5106,11 @@ function mpu_sendUserMessage() {
           setStreamState("streaming");
           if (data.text) {
             fullResponse += data.text;
-            if (streamDisplayedText === "" && streamPendingText === "") $msg.empty();
+            if (streamDisplayedText === "" && streamPendingText === "") {
+              // §16.3-A：首個正式 delta 抵達，placeholder 退場，清除標記
+              mpuClearSystemPlaceholder($msg);
+              $msg.empty();
+            }
             streamPendingText += data.text;
             streamStartDrain();
           }
@@ -5086,6 +5133,7 @@ function mpu_sendUserMessage() {
           if (statusMsg) {
             setStreamState(data.type === "executing_tool" ? "tool" : "status");
             $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+            mpuMarkSystemPlaceholder($msg); // §16.3-A：status placeholder
           }
         },
         onToolRequest: (data) => {
@@ -5103,6 +5151,7 @@ function mpu_sendUserMessage() {
           if (statusMsg) {
             setStreamState("tool");
             $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+            mpuMarkSystemPlaceholder($msg); // §16.3-A：tool placeholder
           }
         },
         onDone: (data) => {
@@ -5127,6 +5176,7 @@ function mpu_sendUserMessage() {
     jQuery("#ukagaka_msg").html(
       '（…えっと<span class="mpu-thinking"></span>）',
     );
+    mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：同步 chat placeholder（真實回應經 typewriter 自動清除）
 
     mpuFetch(mpuRestUrl + "chat/user", {
       method: "POST",
@@ -5510,7 +5560,12 @@ jQuery(document).ready(function () {
     if (initialMsg) {
       // 清空內容，然後用打字效果顯示
       msgElement.html("");
-      mpu_typewriter(initialMsg, "#ukagaka_msg");
+      // §16.3-A：是否為 system placeholder 由 PHP 端標記決定（睡眠台詞 → 播動畫；
+      // 思考中／placeholder → 跳動畫），不再依賴 JS 字串黑名單
+      const isSystemMsg = msgElement.attr("data-initial-msg-system") === "1";
+      mpu_typewriter(initialMsg, "#ukagaka_msg", null, {
+        systemPlaceholder: isSystemMsg,
+      });
     }
   }
 

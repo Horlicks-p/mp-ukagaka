@@ -19,8 +19,19 @@ if (!defined('ABSPATH')) {
  * @param string|null $ukagaka_name 偽春菜名稱，用於確定當前人格
  * @return string 初始對話訊息
  */
-function mpu_get_initial_message($ukagaka_name = null)
+/**
+ * 取得初始訊息字串。
+ *
+ * @param string|null $ukagaka_name 角色名稱。
+ * @param bool        $is_system    [out] by-ref：回傳訊息是否為 system placeholder
+ *     （思考中／何を話せばいいかな 等）。睡眠對話為 false（應播放角色動畫），
+ *     placeholder 為 true（應跳過動畫）。供前端 §16.3-A 標記式判定使用。
+ * @return string
+ */
+function mpu_get_initial_message($ukagaka_name = null, &$is_system = null)
 {
+    // 預設視為 system placeholder（正常時段兩個 return 分支皆為 placeholder）
+    $is_system = true;
     // 睡眠時間帶：嘗試從 personality 系統載入睡眠對話
     // 獲取當前人格 ID（提前解析，供後續使用）
     $personality_id = null;
@@ -109,6 +120,8 @@ function mpu_get_initial_message($ukagaka_name = null)
                 // 如果有睡眠消息，隨機選擇一條
                 if (!empty($sleeping_messages)) {
                     $selected_message = $sleeping_messages[array_rand($sleeping_messages)];
+                    // 睡眠對話是角色台詞而非 placeholder：應播放角色動畫
+                    $is_system = false;
                     return $selected_message . '<!-- mpu-sleep -->';
                 }
             }
@@ -247,8 +260,8 @@ function mpu_html($num = false)
             <div id="ukagaka_msgbox">
                 <div class="ukagaka-msgbox-top"></div>
                 <div id="ukagaka_msg" data-initial-msg="' .
-        esc_attr(mpu_get_initial_message($ukagaka_num)) .
-        '"></div>
+        esc_attr(mpu_get_initial_message($ukagaka_num, $initial_msg_is_system)) .
+        '"' . ($initial_msg_is_system ? ' data-initial-msg-system="1"' : '') . '></div>
                 <div id="ukagaka_chat_input" style="display:none;">
                     <input type="text" id="mpu_user_input" placeholder="' . esc_attr__("メッセージを入力...", "mp-ukagaka") . '" maxlength="500" />
                 </div>

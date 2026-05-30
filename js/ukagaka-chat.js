@@ -579,6 +579,7 @@ function mpu_sendUserMessage() {
     let fullResponse = "";
     const $msg = jQuery("#ukagaka_msg");
     $msg.html('（…えっと<span class="mpu-thinking"></span>）');
+    mpuMarkSystemPlaceholder($msg); // §16.3-A：直接 .html() 的 placeholder 需手動標記
 
     // Streaming typewriter queue — 區域 timer，絕不碰全域 mpuTypewriterTimer
     let streamTypewriterTimer = null;
@@ -677,6 +678,8 @@ function mpu_sendUserMessage() {
       if (streamFinalized) return;
       streamFinalized = true;
       clearStreamWatchdog();
+      // §16.3-A：失敗 / 中斷 / 逾時 / abort 一律清除 placeholder 標記，避免殘影
+      mpuClearSystemPlaceholder($msg);
 
       const isBusy =
         !timedOut &&
@@ -738,6 +741,8 @@ function mpu_sendUserMessage() {
       streamFinalized = true;
       clearStreamWatchdog();
       clearStreamState();
+      // §16.3-A：正式回應落定，清除 placeholder 標記（涵蓋無 delta 的 JSON fallback）
+      mpuClearSystemPlaceholder($msg);
       mpuChatAbortController = null;
       const finalMsg = data.msg || fullResponse;
       // [Fix] SSE 端點偶爾會回 JSON（例如 /debug_mcp redirect、非 streaming
@@ -794,7 +799,11 @@ function mpu_sendUserMessage() {
           setStreamState("streaming");
           if (data.text) {
             fullResponse += data.text;
-            if (streamDisplayedText === "" && streamPendingText === "") $msg.empty();
+            if (streamDisplayedText === "" && streamPendingText === "") {
+              // §16.3-A：首個正式 delta 抵達，placeholder 退場，清除標記
+              mpuClearSystemPlaceholder($msg);
+              $msg.empty();
+            }
             streamPendingText += data.text;
             streamStartDrain();
           }
@@ -817,6 +826,7 @@ function mpu_sendUserMessage() {
           if (statusMsg) {
             setStreamState(data.type === "executing_tool" ? "tool" : "status");
             $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+            mpuMarkSystemPlaceholder($msg); // §16.3-A：status placeholder
           }
         },
         onToolRequest: (data) => {
@@ -834,6 +844,7 @@ function mpu_sendUserMessage() {
           if (statusMsg) {
             setStreamState("tool");
             $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+            mpuMarkSystemPlaceholder($msg); // §16.3-A：tool placeholder
           }
         },
         onDone: (data) => {
@@ -858,6 +869,7 @@ function mpu_sendUserMessage() {
     jQuery("#ukagaka_msg").html(
       '（…えっと<span class="mpu-thinking"></span>）',
     );
+    mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：同步 chat placeholder（真實回應經 typewriter 自動清除）
 
     mpuFetch(mpuRestUrl + "chat/user", {
       method: "POST",

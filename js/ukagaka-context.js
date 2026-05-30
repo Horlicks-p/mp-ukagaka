@@ -362,6 +362,8 @@ function mpu_chat_context() {
   mpu_typewriter(
     `<span style="color: ${mpuAiTextColor};">${loadingMessage}</span>`,
     "#ukagaka_msg",
+    null,
+    { systemPlaceholder: true }, // §16.3-A：頁面感知 loading placeholder，跳過角色動畫
   );
 
   const formData = new FormData();

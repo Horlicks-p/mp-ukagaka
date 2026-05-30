@@ -16,7 +16,12 @@ jQuery(document).ready(function () {
     if (initialMsg) {
       // 清空內容，然後用打字效果顯示
       msgElement.html("");
-      mpu_typewriter(initialMsg, "#ukagaka_msg");
+      // §16.3-A：是否為 system placeholder 由 PHP 端標記決定（睡眠台詞 → 播動畫；
+      // 思考中／placeholder → 跳動畫），不再依賴 JS 字串黑名單
+      const isSystemMsg = msgElement.attr("data-initial-msg-system") === "1";
+      mpu_typewriter(initialMsg, "#ukagaka_msg", null, {
+        systemPlaceholder: isSystemMsg,
+      });
     }
   }
 
