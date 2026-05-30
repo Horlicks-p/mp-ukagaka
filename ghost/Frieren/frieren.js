@@ -63,7 +63,7 @@
       }
 
       this.frierenBookFlipImages = [];
-      for (let i = 1; i <= 12; i++) {
+      for (let i = 1; i <= 11; i++) {
         this.frierenBookFlipImages.push(baseUrl + "frieren[" + i + "].png");
       }
 
@@ -276,7 +276,7 @@
       if (
         !this.isFrierenMode ||
         !this.frierenImages ||
-        this.frierenImages.length < 13
+        this.frierenImages.length < 12
       ) {
         return;
       }
@@ -362,7 +362,10 @@
 
       this.frierenAnimationTimer = setInterval(
         function () {
-          if (frameIndex > 12) {
+          // [Fix] 由於 frieren[12].png 與 frieren[0].png 為同一張 APNG。
+          // 在 Canvas 上以 drawImage 繪製半透明圖時，在暗色背景下會因為 Canvas 雙重混合（Double Blending）產生偏暗/黑邊的視覺瑕疵。
+          // 為了避免此問題，當播放到第 12 影格時，直接結束動畫並顯示以 <img> 原生渲染的閒置圖片 frieren[0].png。
+          if (frameIndex >= 12) {
             this.stopFrierenAnimation();
             this.showFrierenIdle();
             return;
@@ -1032,7 +1035,7 @@
         !window.mpuCanvasManager ||
         !window.mpuCanvasManager.imagesLoaded ||
         !this.frierenImages ||
-        this.frierenImages.length < 13
+        this.frierenImages.length < 12
       ) {
         setTimeout(
           function () {

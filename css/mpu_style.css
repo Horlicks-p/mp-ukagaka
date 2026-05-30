@@ -25,6 +25,12 @@
   visibility: hidden; /* 初始隱藏，等 JavaScript 完成定位後再顯示，避免載入時的位移閃爍 */
 }
 
+/* 確保春菜角色、裝飾物與 Canvas 在任何主題的關燈模式下，皆不被亮度濾鏡（如 brightness(0.9)）影響，避免切換時閃爍 */
+#ukagaka_img img,
+#ukagaka_img canvas {
+  filter: none !important;
+}
+
 #ukagaka_img .frieren-decoration {
   position: absolute;
   pointer-events: auto; /* 改為 auto，允許點擊 */
