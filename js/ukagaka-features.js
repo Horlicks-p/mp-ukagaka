@@ -1,4 +1,53 @@
 // ====== 事件處理 ======
+function mpuNormalizeInitialSystemPlaceholder(text) {
+  let value = String(text || "").trim();
+  value = value.replace(/^<!--.*?-->/g, "").trim();
+  value = value.replace(/^[（(]+/, "").replace(/[）)]+$/, "").trim();
+  value = value.replace(/^[….\s]*えっと[….\s]*/u, "").trim();
+  return value || "えっと";
+}
+
+function mpuIsCharacterVisible() {
+  const img = document.getElementById("ukagaka_img");
+  const canvas = document.getElementById("cur_ukagaka");
+  if (!img || !canvas) {
+    return false;
+  }
+  const style = window.getComputedStyle ? window.getComputedStyle(img) : img.style;
+  return (
+    style.visibility !== "hidden" &&
+    style.display !== "none" &&
+    canvas.width > 0 &&
+    canvas.height > 0
+  );
+}
+
+function mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg) {
+  const startedAt = Date.now();
+  const timeout = 2500;
+
+  function show() {
+    const manifestText = typeof mpuGetThinkingPlaceholder === "function"
+      ? mpuGetThinkingPlaceholder("initial")
+      : "";
+    mpuShowSystemPlaceholder({
+      context: "initial",
+      text: manifestText || mpuNormalizeInitialSystemPlaceholder(initialMsg),
+    });
+    mpuMarkSystemPlaceholder(msgElement);
+  }
+
+  function wait() {
+    if (mpuIsCharacterVisible() || Date.now() - startedAt > timeout) {
+      show();
+      return;
+    }
+    window.requestAnimationFrame(wait);
+  }
+
+  wait();
+}
+
 jQuery(document).ready(function () {
   mpuLogger.logL("featuresJqueryReady", "jQuery ready を実行しました");
 
@@ -20,11 +69,7 @@ jQuery(document).ready(function () {
       // 思考中／placeholder → 跳動畫），不再依賴 JS 字串黑名單
       const isSystemMsg = msgElement.attr("data-initial-msg-system") === "1";
       if (isSystemMsg) {
-        mpuShowSystemPlaceholder({
-          context: "initial",
-          text: initialMsg,
-        });
-        mpuMarkSystemPlaceholder(msgElement);
+        mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg);
       } else {
         mpu_typewriter(initialMsg, "#ukagaka_msg", null, {
           systemPlaceholder: false,

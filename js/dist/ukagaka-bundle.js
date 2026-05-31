@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T10:38:37.343Z
+ * Generated: 2026-05-31T10:47:54.660Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -4205,6 +4205,8 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   const msgElement = jQuery("#ukagaka_msg");
   const currentMsg = msgElement.text().trim();
   const initialMsg = msgElement.attr("data-initial-msg");
+  const isInitialSystemMessage =
+    msgElement.attr("data-initial-msg-system") === "1";
   const hasShownInitialMsg =
     initialMsg && currentMsg.indexOf(initialMsg) !== -1;
 
@@ -4225,7 +4227,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   const isSleepMessage =
     initialMsg && initialMsg.includes("<!-- mpu-sleep -->");
 
-  if (!hasShownInitialMsg) {
+  if (!hasShownInitialMsg && !isInitialSystemMessage) {
     // 睡眠模式下，如果初始訊息是睡眠相關的，不要覆蓋它
     if (isDeepSleep && isSleepMessage) {
       mpuLogger.logL("dialogLoadingMessageSkippedSleepMessage", "🌙 睡眠モード：睡眠メッセージを検出したため、読み込みメッセージの表示をスキップします");
@@ -5683,6 +5685,55 @@ function mpu_send_wake_up_request() {
 
 // ========== ukagaka-features.js ==========
 // ====== 事件處理 ======
+function mpuNormalizeInitialSystemPlaceholder(text) {
+  let value = String(text || "").trim();
+  value = value.replace(/^<!--.*?-->/g, "").trim();
+  value = value.replace(/^[（(]+/, "").replace(/[）)]+$/, "").trim();
+  value = value.replace(/^[….\s]*えっと[….\s]*/u, "").trim();
+  return value || "えっと";
+}
+
+function mpuIsCharacterVisible() {
+  const img = document.getElementById("ukagaka_img");
+  const canvas = document.getElementById("cur_ukagaka");
+  if (!img || !canvas) {
+    return false;
+  }
+  const style = window.getComputedStyle ? window.getComputedStyle(img) : img.style;
+  return (
+    style.visibility !== "hidden" &&
+    style.display !== "none" &&
+    canvas.width > 0 &&
+    canvas.height > 0
+  );
+}
+
+function mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg) {
+  const startedAt = Date.now();
+  const timeout = 2500;
+
+  function show() {
+    const manifestText = typeof mpuGetThinkingPlaceholder === "function"
+      ? mpuGetThinkingPlaceholder("initial")
+      : "";
+    mpuShowSystemPlaceholder({
+      context: "initial",
+      text: manifestText || mpuNormalizeInitialSystemPlaceholder(initialMsg),
+    });
+    mpuMarkSystemPlaceholder(msgElement);
+  }
+
+  function wait() {
+    if (mpuIsCharacterVisible() || Date.now() - startedAt > timeout) {
+      show();
+      return;
+    }
+    window.requestAnimationFrame(wait);
+  }
+
+  wait();
+}
+
 jQuery(document).ready(function () {
   mpuLogger.logL("featuresJqueryReady", "jQuery ready を実行しました");
 
@@ -5704,11 +5755,7 @@ jQuery(document).ready(function () {
       // 思考中／placeholder → 跳動畫），不再依賴 JS 字串黑名單
       const isSystemMsg = msgElement.attr("data-initial-msg-system") === "1";
       if (isSystemMsg) {
-        mpuShowSystemPlaceholder({
-          context: "initial",
-          text: initialMsg,
-        });
-        mpuMarkSystemPlaceholder(msgElement);
+        mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg);
       } else {
         mpu_typewriter(initialMsg, "#ukagaka_msg", null, {
           systemPlaceholder: false,

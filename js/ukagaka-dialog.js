@@ -20,6 +20,8 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   const msgElement = jQuery("#ukagaka_msg");
   const currentMsg = msgElement.text().trim();
   const initialMsg = msgElement.attr("data-initial-msg");
+  const isInitialSystemMessage =
+    msgElement.attr("data-initial-msg-system") === "1";
   const hasShownInitialMsg =
     initialMsg && currentMsg.indexOf(initialMsg) !== -1;
 
@@ -40,7 +42,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   const isSleepMessage =
     initialMsg && initialMsg.includes("<!-- mpu-sleep -->");
 
-  if (!hasShownInitialMsg) {
+  if (!hasShownInitialMsg && !isInitialSystemMessage) {
     // 睡眠模式下，如果初始訊息是睡眠相關的，不要覆蓋它
     if (isDeepSleep && isSleepMessage) {
       mpuLogger.logL("dialogLoadingMessageSkippedSleepMessage", "🌙 睡眠モード：睡眠メッセージを検出したため、読み込みメッセージの表示をスキップします");
