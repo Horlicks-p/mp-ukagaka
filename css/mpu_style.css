@@ -95,9 +95,9 @@
   min-width: 56px;
   box-sizing: border-box;
   padding: 8px 12px;
-  border: 1px solid rgba(30, 58, 138, 0.22);
+  border: 1px dashed rgba(30, 58, 138, 0.22);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.69);
   color: #1e3a8a;
   font-family: "Noto Sans TC", "Noto Sans JP", serif;
   font-size: 12px;
@@ -106,6 +106,7 @@
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
   overflow-wrap: anywhere;
   z-index: 10002;
+  /* 保留原白底材質，僅透明度比照主對話框（0.69） */
   opacity: 0;
   transform: translateY(4px);
   transition: opacity 0.18s ease, transform 0.18s ease;
@@ -133,7 +134,7 @@
   right: 43px;
   bottom: -9px;
   border-width: 10px 12px 0 0;
-  border-color: rgba(255, 255, 255, 0.94) transparent transparent transparent;
+  border-color: rgba(255, 255, 255, 0.69) transparent transparent transparent;
 }
 
 .mpu-think-bubble.is-visible {
