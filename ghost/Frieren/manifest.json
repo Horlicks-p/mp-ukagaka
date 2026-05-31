@@ -62,6 +62,23 @@
       "whats_up"
     ]
   },
+  "features": {
+    "inner_monologue_contexts": {
+      "chat": true,
+      "touch": true,
+      "page_aware": true,
+      "decoration": false,
+      "initial": false,
+      "diary": false
+    }
+  },
+  "thinking_placeholder": {
+    "default": "えっと",
+    "chat": "えっと",
+    "touch": "えっと",
+    "decoration": "えっと",
+    "initial": "何を話せばいいかな"
+  },
   "sleep_settings": {
     "deep_sleep_start": [22, 23],
     "deep_sleep_end": 7,

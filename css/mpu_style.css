@@ -86,6 +86,53 @@
   padding-right: 65px;
 }
 
+.mpu-think-bubble {
+  position: absolute;
+  right: 28px;
+  top: -28px;
+  max-width: 220px;
+  min-width: 72px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid rgba(30, 58, 138, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1e3a8a;
+  font-family: "Noto Sans TC", "Noto Sans JP", serif;
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
+  overflow-wrap: anywhere;
+  z-index: 10002;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: auto;
+}
+
+.mpu-think-bubble::after {
+  content: "";
+  position: absolute;
+  right: 28px;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  border-right: 1px solid rgba(30, 58, 138, 0.22);
+  border-bottom: 1px solid rgba(30, 58, 138, 0.22);
+  background: rgba(255, 255, 255, 0.94);
+  transform: rotate(45deg);
+}
+
+.mpu-think-bubble.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#ukagaka_msgbox.mpu-main-bubble-dimmed {
+  opacity: 0.72;
+  transition: opacity 0.18s ease;
+}
+
 .ukagaka-msgbox-top {
   height: 51px;
   background: transparent url(../images/msgbox_top.png) no-repeat scroll right 0;

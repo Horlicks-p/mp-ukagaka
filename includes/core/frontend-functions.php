@@ -257,6 +257,7 @@ function mpu_html($num = false)
 <div id="mp_ukagaka">
     <div id="ukagaka_shell">
         <div id="ukagaka">
+            <div id="ukagaka_think" class="mpu-think-bubble" hidden></div>
             <div id="ukagaka_msgbox">
                 <div class="ukagaka-msgbox-top"></div>
                 <div id="ukagaka_msg" data-initial-msg="' .

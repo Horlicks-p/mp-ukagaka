@@ -1229,17 +1229,13 @@
         // 一般模式：顯示思考中
         if ($msgbox.is(":visible")) {
           $msgbox.fadeOut(400, () => {
-            jQuery("#ukagaka_msg").html(
-              '（…えっと<span class="mpu-thinking"></span>）'
-            );
+            mpuShowSystemPlaceholder({ context: "decoration" });
             mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
             $msgbox.fadeIn(400);
             executeAjaxReq();
           });
         } else {
-          jQuery("#ukagaka_msg").html(
-            '（…えっと<span class="mpu-thinking"></span>）'
-          );
+          mpuShowSystemPlaceholder({ context: "decoration" });
           mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
           if (typeof mpu_showmsg !== "undefined") {
             mpu_showmsg(400);
@@ -1288,6 +1284,9 @@
      */
     restoreAfterDecorationChat: function () {
       this.decorationChatInProgress = false;
+      if (typeof mpuClearSystemPlaceholder === "function") {
+        mpuClearSystemPlaceholder("#ukagaka_msg");
+      }
 
       if (typeof window !== "undefined") {
         window.mpuMessageBlocking = false;
@@ -1530,17 +1529,13 @@
         // 一般模式：顯示思考中
         if ($msgbox.is(":visible")) {
           $msgbox.fadeOut(400, () => {
-            jQuery("#ukagaka_msg").html(
-              '（…えっと<span class="mpu-thinking"></span>）'
-            );
+            mpuShowSystemPlaceholder({ context: "touch" });
             mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
             $msgbox.fadeIn(400);
             executeAjaxReq();
           });
         } else {
-          jQuery("#ukagaka_msg").html(
-            '（…えっと<span class="mpu-thinking"></span>）'
-          );
+          mpuShowSystemPlaceholder({ context: "touch" });
           mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
           if (typeof mpu_showmsg !== "undefined") {
             mpu_showmsg(400);

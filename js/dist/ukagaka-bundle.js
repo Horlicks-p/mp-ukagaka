@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T04:18:39.468Z
+ * Generated: 2026-05-31T04:26:11.839Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -515,8 +515,89 @@ function mpuMarkSystemPlaceholder(target) {
     jQuery(target || '#ukagaka_msg').attr('data-mpu-placeholder', 'system');
 }
 
-function mpuClearSystemPlaceholder(target) {
+function mpuGetThinkingPlaceholder(context) {
+    const placeholders = (window.mpuInitData && window.mpuInitData.thinking_placeholder) || {};
+    const language = (window.mpuInitData && window.mpuInitData.language)
+        || (window.mpuSettings && window.mpuSettings.language)
+        || 'ja';
+    if (typeof placeholders === 'string' && placeholders) {
+        return placeholders;
+    }
+    if (placeholders && typeof placeholders === 'object') {
+        return placeholders[context] || placeholders[language] || placeholders.default || placeholders.ja || placeholders.en || '';
+    }
+    return '';
+}
+
+function mpuGetDefaultThinkingPlaceholder(context) {
+    return mpuGetThinkingPlaceholder(context || 'chat') || 'えっと';
+}
+
+function mpuRenderThinkBubble($bubble, text, showSpinner) {
+    $bubble.empty().text(text || '');
+    if (showSpinner) {
+        $bubble.append('<span class="mpu-thinking"></span>');
+    }
+}
+
+function mpuShowThinkBubble(text, options) {
+    const opts = (options && typeof options === 'object') ? options : {};
+    const source = opts.source || 'llm';
+    const context = opts.context || 'chat';
+    const $bubble = jQuery('#ukagaka_think');
+    if (!$bubble.length || !text) {
+        return;
+    }
+    mpuRenderThinkBubble($bubble, text, !!opts.showSpinner);
+    $bubble
+        .attr('data-mpu-think-source', source)
+        .attr('data-mpu-think-context', context)
+        .prop('hidden', false)
+        .addClass('is-visible');
+    if (source === 'system' && context !== 'initial') {
+        jQuery('#ukagaka_msgbox').addClass('mpu-main-bubble-dimmed');
+    }
+}
+
+function mpuHideThinkBubble(options) {
+    const opts = (options && typeof options === 'object') ? options : {};
+    const $bubble = jQuery('#ukagaka_think');
+    if (!$bubble.length) {
+        return;
+    }
+    if (opts.source && $bubble.attr('data-mpu-think-source') !== opts.source) {
+        return;
+    }
+    $bubble
+        .removeClass('is-visible')
+        .removeAttr('data-mpu-think-source data-mpu-think-context')
+        .prop('hidden', true)
+        .empty();
+    jQuery('#ukagaka_msgbox').removeClass('mpu-main-bubble-dimmed');
+}
+
+function mpuShowSystemPlaceholder(options) {
+    const opts = (options && typeof options === 'object') ? options : {};
+    const context = opts.context || 'chat';
+    const text = opts.text || mpuGetDefaultThinkingPlaceholder(context);
+    mpuShowThinkBubble(text, {
+        source: 'system',
+        context: context,
+        showSpinner: opts.showSpinner !== false
+    });
+}
+
+function mpuClearSystemPlaceholder(targetOrOptions) {
+    const isOptions = targetOrOptions
+        && typeof targetOrOptions === 'object'
+        && !targetOrOptions.jquery
+        && !targetOrOptions.nodeType
+        && (Object.prototype.hasOwnProperty.call(targetOrOptions, 'target')
+            || Object.prototype.hasOwnProperty.call(targetOrOptions, 'context')
+            || Object.prototype.hasOwnProperty.call(targetOrOptions, 'source'));
+    const target = isOptions ? targetOrOptions.target : targetOrOptions;
     jQuery(target || '#ukagaka_msg').removeAttr('data-mpu-placeholder');
+    mpuHideThinkBubble({ source: 'system' });
 }
 
 /**
@@ -549,7 +630,7 @@ function mpu_typewriter(text, target, speed, options) {
     if (!text) {
         const $target = typeof target === 'string' ? jQuery(target) : target;
         // 清空時一併移除 placeholder 標記，避免 stale attribute 殘留誤判 source
-        jQuery($target).removeAttr('data-mpu-placeholder');
+        mpuClearSystemPlaceholder($target);
         $target.html('');
         return;
     }
@@ -614,7 +695,7 @@ function mpu_typewriter(text, target, speed, options) {
         if (isSystemPlaceholder) {
             targetElement.setAttribute('data-mpu-placeholder', 'system');
         } else {
-            targetElement.removeAttribute('data-mpu-placeholder');
+            mpuClearSystemPlaceholder($target);
         }
     }
 
@@ -4894,7 +4975,7 @@ function mpu_sendUserMessage() {
   if (useStreaming) {
     let fullResponse = "";
     const $msg = jQuery("#ukagaka_msg");
-    $msg.html('（…えっと<span class="mpu-thinking"></span>）');
+    mpuShowSystemPlaceholder({ context: "chat" });
     mpuMarkSystemPlaceholder($msg); // §16.3-A：直接 .html() 的 placeholder 需手動標記
 
     // Streaming typewriter queue — 區域 timer，絕不碰全域 mpuTypewriterTimer
@@ -5063,6 +5144,9 @@ function mpu_sendUserMessage() {
       mpuClearSystemPlaceholder($msg);
       mpuChatAbortController = null;
       const finalMsg = data.msg || fullResponse;
+      if (data.think) {
+        mpuShowThinkBubble(data.think, { source: "llm", context: "chat" });
+      }
       // [Fix] SSE 端點偶爾會回 JSON（例如 /debug_mcp redirect、非 streaming
       // provider 的同步 fallback）。這條路徑沒有 delta，streamTickDrain
       // 從沒跑過，$msg 還停在「（…えっと…）」placeholder。在這裡補渲染。
@@ -5152,7 +5236,7 @@ function mpu_sendUserMessage() {
 
           if (statusMsg) {
             setStreamState(data.type === "executing_tool" ? "tool" : "status");
-            $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+            mpuShowSystemPlaceholder({ context: "chat", text: statusMsg });
             mpuMarkSystemPlaceholder($msg); // §16.3-A：status placeholder
           }
         },
@@ -5170,7 +5254,7 @@ function mpu_sendUserMessage() {
 
           if (statusMsg) {
             setStreamState("tool");
-            $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+            mpuShowSystemPlaceholder({ context: "chat", text: statusMsg });
             mpuMarkSystemPlaceholder($msg); // §16.3-A：tool placeholder
           }
         },
@@ -5190,12 +5274,16 @@ function mpu_sendUserMessage() {
         onThink: (data) => {
           if (data && data.text) {
             streamThinkText = data.text;
+            mpuClearSystemPlaceholder($msg);
+            mpuShowThinkBubble(streamThinkText, { source: "llm", context: "chat" });
             mpuLogger.log("SSE think:", streamThinkText);
           }
         },
         onThinkDelta: (data) => {
           if (data && data.text) {
             streamThinkText += data.text;
+            mpuClearSystemPlaceholder($msg);
+            mpuShowThinkBubble(streamThinkText, { source: "llm", context: "chat" });
             mpuLogger.log("SSE think delta:", data.text);
           }
         },
@@ -5218,9 +5306,7 @@ function mpu_sendUserMessage() {
   } else {
     // 傳統同步模式
     $input.val("").prop("disabled", true);
-    jQuery("#ukagaka_msg").html(
-      '（…えっと<span class="mpu-thinking"></span>）',
-    );
+    mpuShowSystemPlaceholder({ context: "chat" });
     mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：同步 chat placeholder（真實回應經 typewriter 自動清除）
 
     mpuFetch(mpuRestUrl + "chat/user", {
@@ -5239,6 +5325,9 @@ function mpu_sendUserMessage() {
 
         if (res && res.msg && !res.error) {
           const aiResponse = res.msg;
+          if (res.think) {
+            mpuShowThinkBubble(res.think, { source: "llm", context: "chat" });
+          }
           window.mpuChatHistory.push({
             role: "assistant",
             content: aiResponse,

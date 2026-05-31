@@ -507,8 +507,89 @@ function mpuMarkSystemPlaceholder(target) {
     jQuery(target || '#ukagaka_msg').attr('data-mpu-placeholder', 'system');
 }
 
-function mpuClearSystemPlaceholder(target) {
+function mpuGetThinkingPlaceholder(context) {
+    const placeholders = (window.mpuInitData && window.mpuInitData.thinking_placeholder) || {};
+    const language = (window.mpuInitData && window.mpuInitData.language)
+        || (window.mpuSettings && window.mpuSettings.language)
+        || 'ja';
+    if (typeof placeholders === 'string' && placeholders) {
+        return placeholders;
+    }
+    if (placeholders && typeof placeholders === 'object') {
+        return placeholders[context] || placeholders[language] || placeholders.default || placeholders.ja || placeholders.en || '';
+    }
+    return '';
+}
+
+function mpuGetDefaultThinkingPlaceholder(context) {
+    return mpuGetThinkingPlaceholder(context || 'chat') || 'えっと';
+}
+
+function mpuRenderThinkBubble($bubble, text, showSpinner) {
+    $bubble.empty().text(text || '');
+    if (showSpinner) {
+        $bubble.append('<span class="mpu-thinking"></span>');
+    }
+}
+
+function mpuShowThinkBubble(text, options) {
+    const opts = (options && typeof options === 'object') ? options : {};
+    const source = opts.source || 'llm';
+    const context = opts.context || 'chat';
+    const $bubble = jQuery('#ukagaka_think');
+    if (!$bubble.length || !text) {
+        return;
+    }
+    mpuRenderThinkBubble($bubble, text, !!opts.showSpinner);
+    $bubble
+        .attr('data-mpu-think-source', source)
+        .attr('data-mpu-think-context', context)
+        .prop('hidden', false)
+        .addClass('is-visible');
+    if (source === 'system' && context !== 'initial') {
+        jQuery('#ukagaka_msgbox').addClass('mpu-main-bubble-dimmed');
+    }
+}
+
+function mpuHideThinkBubble(options) {
+    const opts = (options && typeof options === 'object') ? options : {};
+    const $bubble = jQuery('#ukagaka_think');
+    if (!$bubble.length) {
+        return;
+    }
+    if (opts.source && $bubble.attr('data-mpu-think-source') !== opts.source) {
+        return;
+    }
+    $bubble
+        .removeClass('is-visible')
+        .removeAttr('data-mpu-think-source data-mpu-think-context')
+        .prop('hidden', true)
+        .empty();
+    jQuery('#ukagaka_msgbox').removeClass('mpu-main-bubble-dimmed');
+}
+
+function mpuShowSystemPlaceholder(options) {
+    const opts = (options && typeof options === 'object') ? options : {};
+    const context = opts.context || 'chat';
+    const text = opts.text || mpuGetDefaultThinkingPlaceholder(context);
+    mpuShowThinkBubble(text, {
+        source: 'system',
+        context: context,
+        showSpinner: opts.showSpinner !== false
+    });
+}
+
+function mpuClearSystemPlaceholder(targetOrOptions) {
+    const isOptions = targetOrOptions
+        && typeof targetOrOptions === 'object'
+        && !targetOrOptions.jquery
+        && !targetOrOptions.nodeType
+        && (Object.prototype.hasOwnProperty.call(targetOrOptions, 'target')
+            || Object.prototype.hasOwnProperty.call(targetOrOptions, 'context')
+            || Object.prototype.hasOwnProperty.call(targetOrOptions, 'source'));
+    const target = isOptions ? targetOrOptions.target : targetOrOptions;
     jQuery(target || '#ukagaka_msg').removeAttr('data-mpu-placeholder');
+    mpuHideThinkBubble({ source: 'system' });
 }
 
 /**
@@ -541,7 +622,7 @@ function mpu_typewriter(text, target, speed, options) {
     if (!text) {
         const $target = typeof target === 'string' ? jQuery(target) : target;
         // 清空時一併移除 placeholder 標記，避免 stale attribute 殘留誤判 source
-        jQuery($target).removeAttr('data-mpu-placeholder');
+        mpuClearSystemPlaceholder($target);
         $target.html('');
         return;
     }
@@ -606,7 +687,7 @@ function mpu_typewriter(text, target, speed, options) {
         if (isSystemPlaceholder) {
             targetElement.setAttribute('data-mpu-placeholder', 'system');
         } else {
-            targetElement.removeAttribute('data-mpu-placeholder');
+            mpuClearSystemPlaceholder($target);
         }
     }
 

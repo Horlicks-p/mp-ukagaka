@@ -587,7 +587,7 @@ function mpu_sendUserMessage() {
   if (useStreaming) {
     let fullResponse = "";
     const $msg = jQuery("#ukagaka_msg");
-    $msg.html('（…えっと<span class="mpu-thinking"></span>）');
+    mpuShowSystemPlaceholder({ context: "chat" });
     mpuMarkSystemPlaceholder($msg); // §16.3-A：直接 .html() 的 placeholder 需手動標記
 
     // Streaming typewriter queue — 區域 timer，絕不碰全域 mpuTypewriterTimer
@@ -756,6 +756,9 @@ function mpu_sendUserMessage() {
       mpuClearSystemPlaceholder($msg);
       mpuChatAbortController = null;
       const finalMsg = data.msg || fullResponse;
+      if (data.think) {
+        mpuShowThinkBubble(data.think, { source: "llm", context: "chat" });
+      }
       // [Fix] SSE 端點偶爾會回 JSON（例如 /debug_mcp redirect、非 streaming
       // provider 的同步 fallback）。這條路徑沒有 delta，streamTickDrain
       // 從沒跑過，$msg 還停在「（…えっと…）」placeholder。在這裡補渲染。
@@ -845,7 +848,7 @@ function mpu_sendUserMessage() {
 
           if (statusMsg) {
             setStreamState(data.type === "executing_tool" ? "tool" : "status");
-            $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+            mpuShowSystemPlaceholder({ context: "chat", text: statusMsg });
             mpuMarkSystemPlaceholder($msg); // §16.3-A：status placeholder
           }
         },
@@ -863,7 +866,7 @@ function mpu_sendUserMessage() {
 
           if (statusMsg) {
             setStreamState("tool");
-            $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
+            mpuShowSystemPlaceholder({ context: "chat", text: statusMsg });
             mpuMarkSystemPlaceholder($msg); // §16.3-A：tool placeholder
           }
         },
@@ -883,12 +886,16 @@ function mpu_sendUserMessage() {
         onThink: (data) => {
           if (data && data.text) {
             streamThinkText = data.text;
+            mpuClearSystemPlaceholder($msg);
+            mpuShowThinkBubble(streamThinkText, { source: "llm", context: "chat" });
             mpuLogger.log("SSE think:", streamThinkText);
           }
         },
         onThinkDelta: (data) => {
           if (data && data.text) {
             streamThinkText += data.text;
+            mpuClearSystemPlaceholder($msg);
+            mpuShowThinkBubble(streamThinkText, { source: "llm", context: "chat" });
             mpuLogger.log("SSE think delta:", data.text);
           }
         },
@@ -911,9 +918,7 @@ function mpu_sendUserMessage() {
   } else {
     // 傳統同步模式
     $input.val("").prop("disabled", true);
-    jQuery("#ukagaka_msg").html(
-      '（…えっと<span class="mpu-thinking"></span>）',
-    );
+    mpuShowSystemPlaceholder({ context: "chat" });
     mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：同步 chat placeholder（真實回應經 typewriter 自動清除）
 
     mpuFetch(mpuRestUrl + "chat/user", {
@@ -932,6 +937,9 @@ function mpu_sendUserMessage() {
 
         if (res && res.msg && !res.error) {
           const aiResponse = res.msg;
+          if (res.think) {
+            mpuShowThinkBubble(res.think, { source: "llm", context: "chat" });
+          }
           window.mpuChatHistory.push({
             role: "assistant",
             content: aiResponse,
