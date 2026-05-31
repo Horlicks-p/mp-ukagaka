@@ -90,6 +90,7 @@
   position: absolute;
   right: 38px;
   top: -28px;
+  width: max-content;
   max-width: 150px;
   min-width: 56px;
   box-sizing: border-box;
@@ -101,6 +102,7 @@
   font-family: "Noto Sans TC", "Noto Sans JP", serif;
   font-size: 12px;
   line-height: 1.45;
+  text-align: right;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
   overflow-wrap: anywhere;
   z-index: 10002;
@@ -121,16 +123,16 @@
 }
 
 .mpu-think-bubble::before {
-  left: 22px;
+  right: 22px;
   bottom: -11px;
-  border-width: 11px 13px 0 0;
+  border-width: 11px 0 0 13px;
   border-color: rgba(30, 58, 138, 0.22) transparent transparent transparent;
 }
 
 .mpu-think-bubble::after {
-  left: 23px;
+  right: 23px;
   bottom: -9px;
-  border-width: 10px 12px 0 0;
+  border-width: 10px 0 0 12px;
   border-color: rgba(255, 255, 255, 0.94) transparent transparent transparent;
 }
 

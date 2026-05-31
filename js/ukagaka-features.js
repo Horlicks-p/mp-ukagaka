@@ -69,6 +69,7 @@ jQuery(document).ready(function () {
       // 思考中／placeholder → 跳動畫），不再依賴 JS 字串黑名單
       const isSystemMsg = msgElement.attr("data-initial-msg-system") === "1";
       if (isSystemMsg) {
+        mpu_hidemsg(0);
         mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg);
       } else {
         mpu_typewriter(initialMsg, "#ukagaka_msg", null, {

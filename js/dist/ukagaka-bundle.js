@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T10:47:54.660Z
+ * Generated: 2026-05-31T10:58:16.145Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -5755,6 +5755,7 @@ jQuery(document).ready(function () {
       // 思考中／placeholder → 跳動畫），不再依賴 JS 字串黑名單
       const isSystemMsg = msgElement.attr("data-initial-msg-system") === "1";
       if (isSystemMsg) {
+        mpu_hidemsg(0);
         mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg);
       } else {
         mpu_typewriter(initialMsg, "#ukagaka_msg", null, {
