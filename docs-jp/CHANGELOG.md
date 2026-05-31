@@ -4,6 +4,28 @@
 
 ---
 
+## [2.25.0] - 2026-05-31
+
+### Emotion tag 応答パイプライン
+
+- AI 応答の Response Normalizer 契約を追加しました。表示テキスト、履歴テキスト、checksum テキスト、TTS テキストは同じクリーン済み出力を共有し、先頭の `<think>` / `<thinking>` と emotion tag は構造化フィールドとして解析されます。
+- inline `[tag]` 形式の表情指示を追加しました。Frieren は `manifest.json` で対応 emoji tag を宣言し、従来の末尾 `[表情:xxx]` 指示から移行します。互換解析は維持しています。
+- 非ストリーミング REST と SSE ストリーミング出力を normalized emotion パイプラインへ接続しました。ストリーム中に明示された emotion tag は優先され、done 時のキーワード推測で上書きされません。
+- stream parser のテストを追加し、split tag、split think、Markdown link の誤検出、context-disabled 経路、malformed / 未閉じ think block をカバーしました。
+
+### Think bubble と system placeholder
+
+- system placeholder と将来の LLM think 出力で共有する `#ukagaka_think` bubble を追加しました。`えっと` や初期表示の `何を話せばいいかな` は、メイン吹き出しではなくキャラクター付近の think bubble に表示されます。
+- Frieren の touch / decoration / initial loading の挙動を調整し、placeholder bubble が chat history に入らず、stale placeholder attribute を残さず、最初の本物の台詞が出る前に空のメイン吹き出しを表示しないようにしました。
+- think bubble の見た目と位置を調整しました。右側を基準に伸びる配置、矢印の向きと位置、破線 border、メイン吹き出しに合わせた透明度を反映しています。
+
+### 注意事項
+
+- Ollama `message.thinking` の接続は一度実装後に revert しました。Ollama は reasoning と final content が `num_predict` 予算を共有するため、空 / 途中で切れた返答、history の user 連続、checksum 不一致が発生しました。Think bubble UI は残していますが、provider reasoning の予算分離ができるまで休眠状態です。
+- `plan/Emotion_Tag_And_Think_Block_Plan.md` に as-built まとめを追加し、commit 対応、計画との差分、検証基準、今後の確認事項を記録しました。
+
+---
+
 ## [2.24.1] - 2026-05-29
 
 ### 🐛 バグ修正

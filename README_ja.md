@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.24.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,29 +98,23 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.24.1 の新機能
+## 🎉 v2.25.0 の新機能
 
-**Observation の装飾品名解決**（v2.24.1）：直近の訪問者行動に記録された装飾品 type slug を、プロンプト注入前に読みやすい表示名へ解決するようにしました。これにより、キャラクターは単に「装飾品」と言うのではなく、実際に触れられた品物名を自然に参照できます。
+**Emotion tag パイプライン**：AI 応答で inline `[tag]` 表情マーカーを使えるようになりました。新しい response normalizer により、display/history/checksum/TTS は同じクリーン済みテキストを共有し、emotion tag は REST / SSE で利用できる構造化データとして抽出されます。
 
-**コード品質とリポジトリ整備**（v2.24.1）：PHPCS baseline workflow を追加し、`lint:phpcs` を検証フローへ組み込みました。PHPCS の対象 PHP バージョンを 7.4 に揃え、line-ending policy を導入し、EOL 正規化後に baseline を再生成しました。開発者向けドキュメントも更新しています。
+**Frieren 表情プロンプトの切り替え**：Frieren は `manifest.json` で対応 emoji tag を宣言し、従来の末尾 `[表情:xxx]` 指示ではなく、新しい inline tag 形式を使います。旧形式の互換解析は維持しています。
 
-**翻訳の調整**（v2.24.1）：従来日本語に fallback していた console/UI 文字列に英語翻訳を追加し、日本語 log 表現を調整しました。Frieren の装飾品 fallback 台詞を canonical source に合わせ、`（…えっと…何を話せばいいかな…）` placeholder の「を」欠落も修正し、すべての `.mo` カタログを再コンパイルしました。
+**ストリーミング対応**：SSE 出力は、chunk をまたいで分割された emotion tag や think block を解析できるようになりました。Markdown link の誤検出を避け、ストリーム中に明示された表情を完了時のキーワード推測で上書きしません。
 
-**Console log の国際化**（v2.24.0）：フロントエンドのすべての console log 文字列を多言語化対応にしました。日本語 source 文字列へ移行し WordPress locale を通じて翻訳表示、日本語・繁体字中国語の翻訳は完了済みです。log は `mpuLogger` ヘルパーと 2 バケットの `mpuL10n` ペイロードを経由します。出力タイミングは変更なし、debug log は `WP_DEBUG` 有効時の管理者にのみ表示されます。
+**Think bubble placeholder**：`えっと` や初期表示の `何を話せばいいかな` などの system placeholder は、メイン吹き出しではなくキャラクター側の think bubble に表示されます。Touch、decoration、初期読み込みの流れも調整し、stale placeholder 状態や空のメイン吹き出しのちらつきを避けます。
 
-**バグ修正**（v2.23.2）：Observation Buffer が初回読み込み時だけでなく、SPA（クライアントサイド）ナビゲーションで記事に遷移した後も計測を開始するようになりました（DOM ベースの投稿 ID 検出、一覧/アーカイブ/トップページの誤発火ガード付き）。また、ページ感知の自動発話後に自動会話が本番環境で停止したままになる不具合を修正しました。
+**注意**：Ollama reasoning (`message.thinking`) 連携は実装後に検証し、revert しました。Ollama は reasoning と final content が `num_predict` 予算を共有するためです。Think bubble UI は残していますが、provider reasoning の予算分離が安全に扱えるまで休眠状態です。
 
-**言語設定の統一**（v2.23.1）：言語設定の競合を修正し、バックエンド設定を優先させるとともに、ゴーストのmanifestに制御を戻す「デフォルト」オプションを追加しました。
+### 前バージョンの主な変更
 
-**Observation Buffer (観察バッファ)**（v2.23.0）：セッションスコープの短期観察バッファを追加し、ページビュー、滞在時間、タッチ、起床などの最近のイベントを記録し、次回のチャット時にコンテキスト情報として注入できるようにしました。
+**Observation の装飾品名解決**（v2.24.1）：直近の訪問者行動に記録された装飾品 type slug を、プロンプト注入前に読みやすい表示名へ解決します。
 
-**キャラクター起床時の愚痴・文句生成メカニズム**（v2.22.1）：キャラクターが「深眠（deep_sleep）」または「二度寝（oversleep）」状態のときに、訪問者が起こす（`/wake-ghost`）ボタンをクリックすると、バックエンドが LLM を介してキャラクター専用の日本語の寝起き悪口・愚痴セリフを生成し、フロントエンドでタイプライター効果を伴って表示します。
-
-**Ghost Runtime State Helper**（v2.22.0 #7 milestone）：フロントエンドセッションにおけるキャラクターの現在の runtime 状態（`idle` / `thinking` / `speaking` / `sleeping` など）を記録する Transient ベースのヘルパーを追加。これは、将来の runtime UI や観測機能のバックエンド基盤となります。
-
-**JS グローバル状態のカプセル化**（v2.21.0 #8 milestone）：フロントエンドの runtime state はこれまで 19 個の file-level `let` と 9 個 of `window.*` グローバルに分散していましたが、構造化された `window.MPU_STATE` namespace に集約し、31 個の setter/getter helper function 経由でアクセスするように再編しました。
-
-**utility-functions.php のドメイン分割**（v2.20.0 #6 milestone）：約 1,143 行の catch-all ファイルを 5 つのドメインファイルに分割。`utility-functions.php` には定数のみ残存。冗長なガードと v2.19.2 の正時 sleep ヘルパーの dead code も整理。
+**コード品質フロー**（v2.24.1）：PHPCS baseline workflow を追加し、`lint:phpcs` を検証フローへ組み込みました。
 
 [完全な変更履歴を表示](docs-jp/CHANGELOG.md)
 

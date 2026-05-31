@@ -4,6 +4,28 @@
 
 ---
 
+## [2.25.0] - 2026-05-31
+
+### Emotion tag response pipeline
+
+- Added the Response Normalizer contract for AI responses. Display text, history text, checksum text, and TTS text now share the same cleaned output, while leading `<think>` / `<thinking>` blocks and emotion tags are parsed into structured fields.
+- Added inline `[tag]` emotion prompt instructions for supported character expressions. Frieren now declares the supported emoji tag list in `manifest.json`, replacing the older trailing `[表情:xxx]` prompt style while keeping backward-compatible parsing.
+- Connected non-streaming REST routes and SSE streaming output to the normalized emotion pipeline. Explicit streamed emotion tags now take priority and are no longer overwritten by keyword-based emoji guessing at stream finalization.
+- Added stream parser coverage for split tags, split think blocks, Markdown link false positives, context-disabled paths, and malformed / unclosed think blocks.
+
+### Think bubble and system placeholders
+
+- Added the shared `#ukagaka_think` bubble used by both system placeholders and future LLM think output. The legacy loading placeholders such as `えっと` and the initial `何を話せばいいかな` now render outside the main dialogue box.
+- Refined Frieren touch / decoration / initial loading behavior so placeholder bubbles do not enter chat history, do not leave stale placeholder attributes, and do not flash an empty main dialogue box before the first real line.
+- Tuned the think bubble appearance and placement: right-anchored growth, adjusted tail direction / position, dashed border, and opacity aligned with the main dialogue visual style.
+
+### Notes
+
+- Ollama `message.thinking` integration was implemented and then reverted after testing. Ollama shares the `num_predict` budget between reasoning and final content, which caused empty or truncated replies and chat history/checksum issues. The think bubble UI remains in place but is currently dormant until provider reasoning can be budgeted safely.
+- Added as-built implementation notes to `plan/Emotion_Tag_And_Think_Block_Plan.md` for the final commit mapping, deviations, verification baseline, and open follow-up decisions.
+
+---
+
 ## [2.24.1] - 2026-05-29
 
 ### 🐛 Bug Fixes

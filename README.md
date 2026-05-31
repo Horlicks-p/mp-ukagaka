@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.24.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,29 +98,23 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.24.1
+## 🎉 What's New in v2.25.0
 
-**Observation decoration names** (v2.24.1): Recent visitor activity now resolves touched decoration slugs into readable names before injecting observation context, so characters can mention the actual item rather than only saying "a decoration".
+**Emotion tags**: AI responses can now use inline `[tag]` expression markers. The new response normalizer keeps display/history/checksum/TTS text aligned while extracting emotion tags into structured data for REST and SSE responses.
 
-**Code quality and repository hygiene** (v2.24.1): Added the PHPCS baseline workflow, wired `lint:phpcs` into verification, aligned PHPCS to the PHP 7.4 support floor, adopted the repository line-ending policy, refreshed the baseline after EOL normalization, and restored/updated developer documentation.
+**Frieren expression prompt**: Frieren now declares supported emoji tags in `manifest.json`, and the prompt uses the new inline tag style instead of the older trailing `[表情:xxx]` instruction. Backward-compatible parsing remains available.
 
-**Translation refinements** (v2.24.1): Added English translations for previously Japanese-fallback console/UI strings, refined Japanese log wording, aligned Frieren decoration fallback dialogue, fixed the missing 「を」 particle in the `（…えっと…何を話せばいいかな…）` placeholder path, and recompiled all `.mo` catalogs.
+**Streaming support**: SSE output now parses split emotion tags and think blocks across chunks, avoids Markdown link false positives, and preserves explicit streamed emotion choices instead of overwriting them with keyword guessing at completion.
 
-**Console log internationalization** (v2.24.0): All frontend console log strings are now localizable — migrated to Japanese source strings delivered through WordPress locale, with Japanese and Traditional Chinese translations complete. Logs go through `mpuLogger` helpers and a two-bucket `mpuL10n` payload; output timing is unchanged and debug logs still appear only for administrators with `WP_DEBUG` enabled.
+**Think bubble placeholders**: System placeholders such as `えっと` and the initial `何を話せばいいかな` now render in the character-side think bubble instead of the main dialogue box. Touch, decoration, and initial loading flows were adjusted to avoid stale placeholder state and empty dialogue-box flashes.
 
-**Bug Fixes** (v2.23.2): Observation Buffer now also begins tracking after SPA (client-side) navigation into an article, not only on initial page load, with DOM-based post-ID detection and listing/archive/home-page guards. Page-awareness self-talk no longer leaves auto-talk permanently stalled in production.
+**Note**: Ollama reasoning (`message.thinking`) integration was tested and reverted because Ollama shares `num_predict` between reasoning and final content. The think bubble UI remains in place but is dormant until provider reasoning can be budgeted safely.
 
-**Language Setting Unification** (v2.23.1): Fixed language setting conflicts, prioritizing backend settings, and added a "Default" option to return control to the ghost's manifest.
+### Previous Highlights
 
-**Observation Buffer** (v2.23.0): Added a session-scoped transient buffer for recent visitor activity, including page views, dwell time, touches, and wake events. The next user chat receives these observations as one-shot situational context.
+**Observation decoration names** (v2.24.1): Recent visitor activity resolves touched decoration slugs into readable names before prompt injection.
 
-**Character Wake-Up Complaint Mechanism** (v2.22.1): When a visitor clicks the wake-up button (`/wake-ghost`) while the character is in a "deep sleep" (`deep_sleep`) or "oversleep" (`oversleep`) state, the backend uses LLM to generate a character-specific Japanese wake-up complaint, displayed with a typewriter effect instead of the default greeting.
-
-**Ghost Runtime State Helper** (v2.22.0 #7 milestone): Added a transient-based helper to record the current runtime state of characters (such as `idle`, `thinking`, `speaking`, `sleeping`, etc.) in frontend sessions, serving as a backend foundation for future runtime UI/observation integrations. Fully respects the safety limits of not injecting prompts or writing user memory.
-
-**JS Global State Encapsulation** (v2.21.0 #8 milestone): Frontend runtime state, previously scattered across 19 file-level `let` variables and 9 `window.*` globals, is now centralized into a structured `window.MPU_STATE` namespace accessed via 31 setter/getter helper functions.
-
-**utility-functions.php Domain Split** (v2.20.0 #6 milestone): Split the catch-all file into five domain files (template / file / encryption / wp-info / network), leaving constants only in `utility-functions.php`. Also cleaned up redundant guards and dead code.
+**Code quality workflow** (v2.24.1): Added the PHPCS baseline workflow and wired `lint:phpcs` into verification.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
