@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T10:58:16.145Z
+ * Generated: 2026-05-31T11:16:05.035Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -4200,7 +4200,6 @@ function loadExternalDialog(file, skipFirstMessage = false) {
   const url = `${mpuRestUrl}dialog?${params.toString()}`;
 
   document.body.style.cursor = "wait";
-  if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
 
   const msgElement = jQuery("#ukagaka_msg");
   const currentMsg = msgElement.text().trim();
@@ -4209,6 +4208,12 @@ function loadExternalDialog(file, skipFirstMessage = false) {
     msgElement.attr("data-initial-msg-system") === "1";
   const hasShownInitialMsg =
     initialMsg && currentMsg.indexOf(initialMsg) !== -1;
+
+  // 初始訊息為 system placeholder（思考氣泡）時，主對話框維持隱藏，避免在自發
+  // 對話載入前先閃出一個空白對話框；待 showFirstMessage 顯示真正的台詞時再淡入。
+  if (jQuery("#ukagaka_msgbox").is(":hidden") && !isInitialSystemMessage) {
+    mpu_showmsg(200);
+  }
 
   // 檢查是否為睡眠模式且初始訊息為睡眠相關（優先使用伺服器端時間）
   let isDeepSleep = false;
@@ -4322,6 +4327,14 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             let first = 0;
             if (mpuDefaultMsg === 0 && resp.msg.length) {
               first = Math.floor(Math.random() * resp.msg.length);
+            }
+            // 從初始思考氣泡 placeholder 切換到真正的自發對話：清除氣泡並淡入主對話框。
+            if (isInitialSystemMessage) {
+              if (typeof mpuClearSystemPlaceholder === "function") {
+                mpuClearSystemPlaceholder({ context: "initial" });
+              }
+              msgElement.removeAttr("data-initial-msg-system");
+              if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
             }
             mpu_typewriter(
               mpu_unescapeHTML(resp.msg[first] + (resp.auto_msg || "")),

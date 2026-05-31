@@ -123,14 +123,14 @@
 }
 
 .mpu-think-bubble::before {
-  right: 22px;
+  right: 42px;
   bottom: -11px;
   border-width: 11px 13px 0 0;
   border-color: rgba(30, 58, 138, 0.22) transparent transparent transparent;
 }
 
 .mpu-think-bubble::after {
-  right: 23px;
+  right: 43px;
   bottom: -9px;
   border-width: 10px 12px 0 0;
   border-color: rgba(255, 255, 255, 0.94) transparent transparent transparent;
