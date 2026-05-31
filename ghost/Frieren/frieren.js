@@ -362,11 +362,22 @@
 
       this.frierenAnimationTimer = setInterval(
         function () {
-          // [Fix] 由於 frieren[12].png 與 frieren[0].png 為同一張 APNG。
-          // 在 Canvas 上以 drawImage 繪製半透明圖時，在暗色背景下會因為 Canvas 雙重混合（Double Blending）產生偏暗/黑邊的視覺瑕疵。
-          // 為了避免此問題，當播放到第 12 影格時，直接結束動畫並顯示以 <img> 原生渲染的閒置圖片 frieren[0].png。
+          // [Fix] frieren[1..11] 是翻書幀，最後要交棒給原生 <img> 渲染的 idle（frieren[0].png，APNG）。
+          // 直接從翻書末幀 frieren[11]（翻書中段姿勢）跳到 idle <img> 會「閃一下」：
+          //   ① 姿勢落差：11 是翻書中段、0 是 idle 定格；
+          //   ② 亮度落差：半透明 APNG 在 canvas 上以 source-over 繪製會雙重混合偏暗，<img> 原生渲染較亮。
+          // 收尾時先用 'copy' 合成把 idle 姿勢（frieren[0]）畫到 canvas（copy 直接覆蓋像素、不疊 alpha，
+          // 避免偏暗），使最後一張 canvas 幀＝idle 定格且亮度與 <img> 一致，再由 showFrierenIdle 無縫換成 <img>。
           if (frameIndex >= 12) {
             this.stopFrierenAnimation();
+            const idleImg = this.frierenImages[0];
+            if (idleImg && idleImg.complete && idleImg.naturalWidth > 0 && ctx) {
+              const prevOp = ctx.globalCompositeOperation;
+              ctx.globalCompositeOperation = "copy";
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(idleImg, 0, 0);
+              ctx.globalCompositeOperation = prevOp;
+            }
             this.showFrierenIdle();
             return;
           }
