@@ -44,7 +44,7 @@ function mpu_greet_first_visitor(settings) {
         const loadingMessage =
           typeof mpuL10n !== "undefined" && mpuL10n.unknownVisitor
             ? mpuL10n.unknownVisitor
-            : "（…あ、知らない人間だ…）";
+            : "…あ、知らない人間だ…";
         if (typeof mpuShowSystemPlaceholder === "function") {
           mpuShowSystemPlaceholder({
             context: "greet",

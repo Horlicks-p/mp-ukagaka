@@ -607,7 +607,7 @@ function mpuClearSystemPlaceholder(targetOrOptions) {
  *     skipCharacterAnimation。亦可傳 options 物件：
  *       - {boolean} skipCharacterAnimation: 是否跳過角色動畫
  *       - {boolean} systemPlaceholder: 標記此為 system placeholder（如「（思考中…）」/
- *         「（えっと…何を話せばいいかな…）」）。一律跳過角色動畫，並在目標容器標記
+ *         「えっと…何を話せばいいかな…」）。一律跳過角色動畫，並在目標容器標記
  *         data-mpu-placeholder="system"。§16.3-A 標記式判定，取代舊的 systemMessages
  *         字串黑名單（字串內容比對會隨翻譯漂移而失效，見 §16.2）。
  */

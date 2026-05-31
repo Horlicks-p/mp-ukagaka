@@ -1658,8 +1658,8 @@ msgstr "Cannot write to file"
 
 #: includes/core/frontend-functions.php:120
 #: includes/core/frontend-functions.php:977
-msgid "（えっと…何を話せばいいかな…）"
-msgstr "(Um... what should I talk about...)"
+msgid "えっと…何を話せばいいかな…"
+msgstr "Um... what should I talk about..."
 
 #: includes/core/frontend-functions.php:123
 msgid "（思考中…）"
@@ -2795,16 +2795,16 @@ msgid "🔄 ページの再読み込みを検出したため、会話履歴と�
 msgstr "🔄 Page reload detected. Cleared chat history and session ID"
 
 #: includes/core/frontend-functions.php:972
-msgid "（…ああ、記事か。どれどれ…）"
-msgstr "(...Ah, an article. Let's see...)"
+msgid "…ああ、記事か。どれどれ…"
+msgstr "...Ah, an article. Let's see..."
 
 #: includes/core/frontend-functions.php:973
-msgid "（…あ、これ私の…）"
-msgstr "(...Ah, this is mine...)"
+msgid "…あ、これ私の…"
+msgstr "...Ah, this is mine..."
 
 #: includes/core/frontend-functions.php:975
-msgid "（…あ、知らない人間だ…）"
-msgstr "(...Ah, a stranger...)"
+msgid "…あ、知らない人間だ…"
+msgstr "...Ah, a stranger..."
 
 #: includes/core/frontend-functions.php:976
 msgid "…ちょっと待って。API魔力が足りない"

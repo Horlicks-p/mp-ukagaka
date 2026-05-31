@@ -130,7 +130,7 @@ function mpu_get_initial_message($ukagaka_name = null, &$is_system = null)
 
     // 正常時段：根據 LLM 模式顯示不同訊息
     if (function_exists('mpu_is_llm_replace_dialogue_enabled') && mpu_is_llm_replace_dialogue_enabled()) {
-        return __("（えっと…何を話せばいいかな…）", "mp-ukagaka");
+        return __( 'えっと…何を話せばいいかな…', 'mp-ukagaka' );
     }
 
     return __("（思考中…）", "mp-ukagaka");
@@ -984,12 +984,12 @@ function mpu_enqueue_frontend_assets()
 
     $l10n = [
         // AI 相關訊息
-        'loadingArticle' => __('（…ああ、記事か。どれどれ…）', 'mp-ukagaka'),
-        'loadingOwnDiary' => __('（…あ、これ私の…）', 'mp-ukagaka'),
+        'loadingArticle' => __('…ああ、記事か。どれどれ…', 'mp-ukagaka'),
+        'loadingOwnDiary' => __('…あ、これ私の…', 'mp-ukagaka'),
         'diaryTitlePrefix' => $diary_title_prefix,
-        'unknownVisitor' => __('（…あ、知らない人間だ…）', 'mp-ukagaka'),
+        'unknownVisitor' => __('…あ、知らない人間だ…', 'mp-ukagaka'),
         'apiMagicInsufficient' => __('…ちょっと待って。API魔力が足りない', 'mp-ukagaka'),
-        'thinkingMessage' => __('（えっと…何を話せばいいかな…）', 'mp-ukagaka'),
+        'thinkingMessage' => __('えっと…何を話せばいいかな…', 'mp-ukagaka'),
         // 錯誤訊息
         'dialogLoadFailed' => __('ダイアログファイルの読み込みに失敗しました。後でもう一度お試しください。', 'mp-ukagaka'),
         'dialogEmpty' => __('ダイアログファイルが空です。内容を確認してください', 'mp-ukagaka'),

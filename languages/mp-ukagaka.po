@@ -305,7 +305,7 @@ msgstr ""
 
 #: includes/core/frontend-functions.php:120
 #: includes/core/frontend-functions.php:977
-msgid "（えっと…何を話せばいいかな…）"
+msgid "えっと…何を話せばいいかな…"
 msgstr ""
 
 #: includes/core/frontend-functions.php:123
@@ -1442,15 +1442,15 @@ msgid "🔄 ページの再読み込みを検出したため、会話履歴と�
 msgstr ""
 
 #: includes/core/frontend-functions.php:972
-msgid "（…ああ、記事か。どれどれ…）"
+msgid "…ああ、記事か。どれどれ…"
 msgstr ""
 
 #: includes/core/frontend-functions.php:973
-msgid "（…あ、これ私の…）"
+msgid "…あ、これ私の…"
 msgstr ""
 
 #: includes/core/frontend-functions.php:975
-msgid "（…あ、知らない人間だ…）"
+msgid "…あ、知らない人間だ…"
 msgstr ""
 
 #: includes/core/frontend-functions.php:976

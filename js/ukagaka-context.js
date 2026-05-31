@@ -358,7 +358,7 @@ function mpu_chat_context() {
     loadingMessage =
       typeof mpuL10n !== "undefined" && mpuL10n.loadingArticle
         ? mpuL10n.loadingArticle
-        : "（…ああ、記事か。どれどれ…）";
+        : "…ああ、記事か。どれどれ…";
   }
 
   if (typeof mpuShowSystemPlaceholder === "function") {

@@ -1602,16 +1602,16 @@ msgid "（…%sを実行中…）"
 msgstr "（…正在執行 %s…）"
 
 #: includes/core/frontend-functions.php:973
-msgid "（…あ、これ私の…）"
-msgstr "（…啊，這是我的…）"
+msgid "…あ、これ私の…"
+msgstr "…啊，這是我的…"
 
 #: includes/core/frontend-functions.php:975
-msgid "（…あ、知らない人間だ…）"
-msgstr "（…啊，不認識的人類…）"
+msgid "…あ、知らない人間だ…"
+msgstr "…啊，不認識的人類…"
 
 #: includes/core/frontend-functions.php:972
-msgid "（…ああ、記事か。どれどれ…）"
-msgstr "（…啊，是文章呢，讓我看看…）"
+msgid "…ああ、記事か。どれどれ…"
+msgstr "…啊，是文章呢，讓我看看…"
 
 #: includes/core/frontend-functions.php:990
 msgid "（…通信状況が良くないみたいだ…）"
@@ -1619,8 +1619,8 @@ msgstr "（…通訊狀況好像不太好…）"
 
 #: includes/core/frontend-functions.php:120
 #: includes/core/frontend-functions.php:977
-msgid "（えっと…何を話せばいいかな…）"
-msgstr "（えっと…何を話せばいいかな…）"
+msgid "えっと…何を話せばいいかな…"
+msgstr "えっと…何を話せばいいかな…"
 
 #: includes/core/file-functions.php:55
 msgid "このパスへのアクセスは許可されていません"

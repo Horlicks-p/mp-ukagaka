@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T13:27:06.806Z
+ * Generated: 2026-05-31T13:36:04.573Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -615,7 +615,7 @@ function mpuClearSystemPlaceholder(targetOrOptions) {
  *     skipCharacterAnimation。亦可傳 options 物件：
  *       - {boolean} skipCharacterAnimation: 是否跳過角色動畫
  *       - {boolean} systemPlaceholder: 標記此為 system placeholder（如「（思考中…）」/
- *         「（えっと…何を話せばいいかな…）」）。一律跳過角色動畫，並在目標容器標記
+ *         「えっと…何を話せばいいかな…」）。一律跳過角色動畫，並在目標容器標記
  *         data-mpu-placeholder="system"。§16.3-A 標記式判定，取代舊的 systemMessages
  *         字串黑名單（字串內容比對會隨翻譯漂移而失效，見 §16.2）。
  */
@@ -3702,7 +3702,7 @@ function mpu_chat_context() {
     loadingMessage =
       typeof mpuL10n !== "undefined" && mpuL10n.loadingArticle
         ? mpuL10n.loadingArticle
-        : "（…ああ、記事か。どれどれ…）";
+        : "…ああ、記事か。どれどれ…";
   }
 
   if (typeof mpuShowSystemPlaceholder === "function") {
@@ -3988,7 +3988,7 @@ function mpu_greet_first_visitor(settings) {
         const loadingMessage =
           typeof mpuL10n !== "undefined" && mpuL10n.unknownVisitor
             ? mpuL10n.unknownVisitor
-            : "（…あ、知らない人間だ…）";
+            : "…あ、知らない人間だ…";
         if (typeof mpuShowSystemPlaceholder === "function") {
           mpuShowSystemPlaceholder({
             context: "greet",
@@ -4282,7 +4282,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
       const loadingMessage =
         typeof mpuL10n !== "undefined" && mpuL10n.thinkingMessage
           ? mpuL10n.thinkingMessage
-          : "（えっと…何を話せばいいかな…）";
+          : "えっと…何を話せばいいかな…";
       // §16.3-A：thinking placeholder，跳過角色動畫
       mpu_typewriter(loadingMessage, "#ukagaka_msg", null, { systemPlaceholder: true });
     }
