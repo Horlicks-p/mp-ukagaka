@@ -111,17 +111,27 @@
   cursor: pointer;
 }
 
+.mpu-think-bubble::before,
 .mpu-think-bubble::after {
   content: "";
   position: absolute;
-  right: 28px;
-  bottom: -7px;
-  width: 12px;
-  height: 12px;
-  border-right: 1px solid rgba(30, 58, 138, 0.22);
-  border-bottom: 1px solid rgba(30, 58, 138, 0.22);
-  background: rgba(255, 255, 255, 0.94);
-  transform: rotate(45deg);
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.mpu-think-bubble::before {
+  left: 22px;
+  bottom: -11px;
+  border-width: 11px 13px 0 0;
+  border-color: rgba(30, 58, 138, 0.22) transparent transparent transparent;
+}
+
+.mpu-think-bubble::after {
+  left: 23px;
+  bottom: -9px;
+  border-width: 10px 12px 0 0;
+  border-color: rgba(255, 255, 255, 0.94) transparent transparent transparent;
 }
 
 .mpu-think-bubble.is-visible {
