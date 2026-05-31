@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T04:29:18.817Z
+ * Generated: 2026-05-31T04:42:00.090Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -5169,7 +5169,7 @@ function mpu_sendUserMessage() {
       mpuChatRequesting = false;
       $input.prop("disabled", false);
       if (window.mpuChatModeActive) $input.focus();
-      if (data.emoji && typeof window.mpuEmojiManager !== "undefined") {
+      if (data.emoji && !streamEmotionApplied && typeof window.mpuEmojiManager !== "undefined") {
         window.mpuEmojiManager.showEmoji(data.emoji);
       }
       if (

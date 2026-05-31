@@ -775,7 +775,7 @@ function mpu_sendUserMessage() {
       mpuChatRequesting = false;
       $input.prop("disabled", false);
       if (window.mpuChatModeActive) $input.focus();
-      if (data.emoji && typeof window.mpuEmojiManager !== "undefined") {
+      if (data.emoji && !streamEmotionApplied && typeof window.mpuEmojiManager !== "undefined") {
         window.mpuEmojiManager.showEmoji(data.emoji);
       }
       if (

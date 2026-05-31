@@ -130,6 +130,9 @@ class MPU_REST_Ghost extends MPU_REST_Base {
         $emoji_mappings = function_exists('mpu_load_personality_emoji_keywords')
             ? mpu_load_personality_emoji_keywords($personality_id)
             : [];
+		$manifest       = function_exists( 'mpu_load_personality_manifest' )
+			? mpu_load_personality_manifest( $personality_id )
+			: array();
 
         // Settings
         $sleep_mode = function_exists('mpu_get_sleep_mode_settings')
@@ -164,6 +167,8 @@ class MPU_REST_Ghost extends MPU_REST_Base {
             'emoji_base_url'       => $emoji_base_url,
             'supported_emojis'     => $emoji_config['supported'] ?? [],
             'emoji_mappings'       => $emoji_mappings,
+			'thinking_placeholder' => isset( $manifest['thinking_placeholder'] ) && is_array( $manifest['thinking_placeholder'] ) ? $manifest['thinking_placeholder'] : array(),
+			'language'             => isset( $manifest['language'] ) ? $manifest['language'] : '',
             'settings'             => $settings,
         ]);
     }
