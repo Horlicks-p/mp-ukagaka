@@ -120,12 +120,10 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
             $full_response_content = "";
             $chunk_buffer = "";
 
-			$thinking_open = false;
-
             $result = mpu_stream_api_request(
                 $api_url,
                 mpu_build_http_args(mpu_get_provider_headers('ollama'), $request_body, $timeout),
-				function( $chunk ) use ( &$chunk_buffer, &$current_tool_calls, &$full_response_content, &$thinking_open, $emit ) {
+                function($chunk) use (&$chunk_buffer, &$current_tool_calls, &$full_response_content, $emit) {
                     $chunk_buffer .= $chunk;
                     while (($pos = strpos($chunk_buffer, "\n")) !== false) {
                         $line = trim(substr($chunk_buffer, 0, $pos));
@@ -135,20 +133,8 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
                         $data = json_decode($line, true);
                         if (!$data) continue;
 
-						if ( isset( $data['message']['thinking'] ) && is_string( $data['message']['thinking'] ) && '' !== $data['message']['thinking'] ) {
-							if ( ! $thinking_open ) {
-								$thinking_open = true;
-								call_user_func( $emit, 'delta', array( 'text' => '<think>' ) );
-							}
-							call_user_func( $emit, 'delta', array( 'text' => $data['message']['thinking'] ) );
-						}
-
                         if (isset($data['message']['content'])) {
                             $text = $data['message']['content'];
-							if ( $thinking_open && '' !== $text ) {
-								$thinking_open = false;
-								call_user_func( $emit, 'delta', array( 'text' => '</think>' ) );
-							}
                             $full_response_content .= $text;
                             call_user_func($emit, 'delta', ['text' => $text]);
                         }
@@ -167,11 +153,6 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
             if (is_wp_error($result)) {
                 return $result;
             }
-
-			if ( $thinking_open ) {
-				$thinking_open = false;
-				call_user_func( $emit, 'delta', array( 'text' => '</think>' ) );
-			}
 
             // [Fix] 串流結束後，對累積的完整內容進行過濾，確保與同步模式一致
             if (!empty($full_response_content)) {
@@ -399,10 +380,7 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
             }
 
             if (isset($message['content'])) {
-				$content = is_string( $message['content'] ) ? $message['content'] : '';
-
-				$thinking = isset( $message['thinking'] ) && is_string( $message['thinking'] ) ? $message['thinking'] : '';
-				return $this->compose_thinking_response( $thinking, $content, $enable_thinking );
+                 return mpu_filter_thinking_content($message['content']);
             }
 
             return $this->error("empty_content", __('Ollama API レスポンスの内容が空です', 'mp-ukagaka'));
@@ -653,7 +631,7 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
             }
 
             if ($final_response !== null && $final_response !== '') {
-				return $this->compose_thinking_response( $thinking, $final_response, $enable_thinking );
+                return $final_response;
             }
             
             if ($final_response === null && $thinking !== null && $enable_thinking) {
@@ -671,23 +649,6 @@ class MPU_AI_Provider_Ollama extends MPU_AI_Provider_Base {
             sprintf(__('Ollama から有効なレスポンスが返されませんでした。モデルのレスポンス形式を確認するか、思考モードの有効化をお試しください。', 'mp-ukagaka'))
         );
     }
-
-	/**
-	 * Compose structured Ollama thinking with visible content for the normalizer/parser.
-	 *
-	 * @param string|null $thinking        Ollama message.thinking.
-	 * @param string      $content         Visible assistant content.
-	 * @param bool        $enable_thinking Whether Ollama thinking is enabled for this request.
-	 * @return string
-	 */
-	private function compose_thinking_response( $thinking, $content, $enable_thinking ) {
-		$content = is_string( $content ) ? $content : '';
-		if ( ! $enable_thinking || ! is_string( $thinking ) || '' === trim( $thinking ) ) {
-			return mpu_filter_thinking_content( $content );
-		}
-
-		return '<think>' . trim( $thinking ) . '</think>' . mpu_filter_thinking_content( $content );
-	}
 
     /**
      * Backend connection test.
