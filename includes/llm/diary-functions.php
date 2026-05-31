@@ -421,6 +421,11 @@ function mpu_get_diary_prompt($personality_id = null)
  */
 function mpu_parse_diary_json($response)
 {
+	// Ollama thinking 模型會在回應前綴注入 think 區塊，先剝除以免打壞下方 json_decode 主路徑.
+	if ( is_string( $response ) && function_exists( 'mpu_filter_thinking_content' ) ) {
+		$response = mpu_filter_thinking_content( $response );
+	}
+
     // 清理可能的包裹符號（```json ... ```）
     $cleaned = preg_replace('/```json\s*|\s*```/u', '', $response);
     $cleaned = trim($cleaned);

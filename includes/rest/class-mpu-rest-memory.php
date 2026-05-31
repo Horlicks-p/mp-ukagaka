@@ -95,6 +95,10 @@ class MPU_REST_Memory extends MPU_REST_Base {
             return $this->fail('rest_error', $result->get_error_message(), 500);
         }
 
+		// Ollama thinking 模型會在回應前綴注入 think 區塊；此處無 fallback，先剝除以免 json_decode 失敗.
+		if ( function_exists( 'mpu_filter_thinking_content' ) && is_string( $result ) ) {
+			$result = mpu_filter_thinking_content( $result );
+		}
         // 清理 LLM 回應：去除可能的 code fence
         $raw = trim((string) $result);
         $raw = preg_replace('/^```(?:json)?\s*/i', '', $raw);
