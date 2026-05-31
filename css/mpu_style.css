@@ -89,24 +89,25 @@
 .mpu-think-bubble {
   position: absolute;
   right: 38px;
-  top: -28px;
+  top: -53px;
   width: max-content;
   max-width: min(220px, calc(100vw - 24px));
   min-width: 56px;
   box-sizing: border-box;
-  padding: 8px 12px;
-  border: 1px dashed rgba(30, 58, 138, 0.22);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.69);
+  padding: 4px 6px;
+  border-style: solid;
+  border-width: 5px 14px 7px 13px; /* think-bubble.png 9-slice 邊框：上右下左 */
+  border-image-source: url(../images/think-bubble.png);
+  border-image-slice: 5 14 7 13 fill; /* fill 保留中心當底；數字＝圖片像素 */
+  border-image-repeat: stretch; /* 邊若有紋理/虛線改 round */
   color: #1e3a8a;
   font-family: "Noto Sans TC", "Noto Sans JP", serif;
   font-size: 12px;
   line-height: 1.45;
   text-align: right;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
   overflow-wrap: anywhere;
   z-index: 10002;
-  /* 保留原白底材質，僅透明度比照主對話框（0.69） */
+  /* 底色與陰影都烤進 think-bubble.png；元素 opacity 留給淡入動畫 */
   opacity: 0;
   transform: translateY(4px);
   transition: opacity 0.18s ease, transform 0.18s ease;
@@ -122,27 +123,16 @@
   overflow-wrap: normal;
 }
 
-.mpu-think-bubble::before,
+/* 尾巴箭頭：固定尺寸的 think-tail.png，釘在靠角色那側（右），不隨氣泡長度變動。
+   right / bottom 是對位用、可微調。 */
 .mpu-think-bubble::after {
   content: "";
   position: absolute;
-  width: 0;
-  height: 0;
-  border-style: solid;
-}
-
-.mpu-think-bubble::before {
-  right: 42px;
-  bottom: -11px;
-  border-width: 11px 13px 0 0;
-  border-color: rgba(30, 58, 138, 0.22) transparent transparent transparent;
-}
-
-.mpu-think-bubble::after {
-  right: 43px;
-  bottom: -9px;
-  border-width: 10px 12px 0 0;
-  border-color: rgba(255, 255, 255, 0.69) transparent transparent transparent;
+  right: 40px;
+  bottom: -25px;
+  width: 19px;
+  height: 17px;
+  background: url(../images/think-tail.png) no-repeat center / contain;
 }
 
 .mpu-think-bubble.is-visible {
