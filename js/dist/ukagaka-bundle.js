@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T04:42:00.090Z
+ * Generated: 2026-05-31T10:38:37.343Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -5703,9 +5703,17 @@ jQuery(document).ready(function () {
       // §16.3-A：是否為 system placeholder 由 PHP 端標記決定（睡眠台詞 → 播動畫；
       // 思考中／placeholder → 跳動畫），不再依賴 JS 字串黑名單
       const isSystemMsg = msgElement.attr("data-initial-msg-system") === "1";
-      mpu_typewriter(initialMsg, "#ukagaka_msg", null, {
-        systemPlaceholder: isSystemMsg,
-      });
+      if (isSystemMsg) {
+        mpuShowSystemPlaceholder({
+          context: "initial",
+          text: initialMsg,
+        });
+        mpuMarkSystemPlaceholder(msgElement);
+      } else {
+        mpu_typewriter(initialMsg, "#ukagaka_msg", null, {
+          systemPlaceholder: false,
+        });
+      }
     }
   }
 
