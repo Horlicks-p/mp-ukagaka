@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T13:36:04.573Z
+ * Generated: 2026-05-31T13:47:20.925Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -579,18 +579,34 @@ function mpuHideThinkBubble(options) {
         .removeAttr('data-mpu-think-source data-mpu-think-context')
         .prop('hidden', true)
         .empty();
-    jQuery('#ukagaka_msgbox').removeClass('mpu-main-bubble-dimmed');
+    jQuery('#ukagaka_msgbox')
+        .removeClass('mpu-main-bubble-dimmed')
+        .removeAttr('data-mpu-hidden-by-system-placeholder')
+        .stop(true, true);
 }
 
 function mpuShowSystemPlaceholder(options) {
     const opts = (options && typeof options === 'object') ? options : {};
     const context = opts.context || 'chat';
     const text = opts.text || mpuGetDefaultThinkingPlaceholder(context);
+    const shouldHideMain = opts.hideMainDialog === true
+        || context === 'context'
+        || context === 'greet';
     mpuShowThinkBubble(text, {
         source: 'system',
         context: context,
         showSpinner: opts.showSpinner !== false
     });
+    if (shouldHideMain && !jQuery('#ukagaka_msgbox').is(':hidden')) {
+        jQuery('#ukagaka_msgbox')
+            .attr('data-mpu-hidden-by-system-placeholder', '1')
+            .stop(true, true);
+        if (typeof mpu_hidemsg === 'function') {
+            mpu_hidemsg(120);
+        } else {
+            jQuery('#ukagaka_msgbox').hide();
+        }
+    }
 }
 
 function mpuClearSystemPlaceholder(targetOrOptions) {
