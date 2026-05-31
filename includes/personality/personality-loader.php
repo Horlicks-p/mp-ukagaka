@@ -373,6 +373,45 @@ function mpu_load_personality_full_prompt($personality_id = null)
 }
 
 /**
+ * Build the expression-tag prompt block injected into personality prompts.
+ *
+ * @param array $supported Supported expression tag names.
+ * @return string Prompt block, or an empty string when no tags are available.
+ */
+function mpu_build_emotion_tag_instruction( $supported ) {
+	if ( empty( $supported ) || ! is_array( $supported ) ) {
+		return '';
+	}
+
+	$tags = array_values( array_filter( array_map( 'strval', $supported ) ) );
+	if ( empty( $tags ) ) {
+		return '';
+	}
+
+	$tag_list = '[' . implode( '], [', $tags ) . ']';
+	$example_1 = $tags[0];
+	$example_2 = $tags[1] ?? $example_1;
+	$example_3 = $tags[2] ?? $example_1;
+
+	$instruction  = "\n\n## 表情標籤（Expression Tags）\n";
+	$instruction .= "你可以在回覆中嵌入一個表情標籤，用方括號包住，例如 [{$example_1}]。\n";
+	$instruction .= "標籤會被系統解析來切換你的表情圖案，並從顯示文字中移除（讀者看不到方括號）。\n\n";
+	$instruction .= "當前可用標籤：{$tag_list}\n\n";
+	$instruction .= "### 範例\n";
+	$instruction .= "- 「找到了！[{$example_1}] 這個魔法我研究很久了。」\n";
+	$instruction .= "- 「[{$example_2}] 嗯…等等，這個圖案我見過。」\n";
+	$instruction .= "- 「[{$example_3}] 又是這種無聊的請求…」\n\n";
+	$instruction .= "### 規則\n";
+	$instruction .= "- 每次回覆只使用一個表情標籤，放在最能代表整段話情緒的位置。\n";
+	$instruction .= "- 表情圖是動畫（APNG），連續切換會打斷動畫週期，因此單一鮮明的情緒比多個切換更有表現力。\n";
+	$instruction .= "- 只能使用上方列出的標籤，其他標籤會被忽略。\n";
+	$instruction .= "- 標籤不會被朗讀，僅控制表情。\n";
+	$instruction .= '- 仍可使用 [表情: xxx] 中文格式（向下相容）。';
+
+	return $instruction;
+}
+
+/**
  * Resolve system prompt with unified fallback chain
  *
  * Priority:
@@ -460,12 +499,7 @@ function mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name, $va
     if (function_exists('mpu_load_personality_emoji_config')) {
         $emoji_config = mpu_load_personality_emoji_config($personality_id);
         if (!empty($emoji_config['supported'])) {
-            $emotions_list = implode('、', $emoji_config['supported']);
-            $emotion_instruction = "\n\n【表情代碼指定】\n";
-            $emotion_instruction .= "你可以在回覆末尾添加 [表情: 表情名] 來顯式指定你的表情。這比自動識別更準確。\n";
-            $emotion_instruction .= "當前可用的表情名有：{$emotions_list}。";
-
-            $system_prompt .= $emotion_instruction;
+            $system_prompt .= mpu_build_emotion_tag_instruction($emoji_config['supported']);
         }
     }
 

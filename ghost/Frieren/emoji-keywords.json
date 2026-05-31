@@ -1,7 +1,13 @@
 {
   "_meta": {
     "description": "Frieren 專屬表情關鍵字映射",
-    "version": "2.5.1"
+    "version": "2.5.2",
+    "expression_tag_examples": [
+      "見つけた。[laugh] この魔法は前から調べていたんだ。",
+      "[thinking] ん…待って。この紋様、どこかで見たことがある。",
+      "[sigh] また宝箱の罠か。仕方ないね。"
+    ],
+    "expression_tag_policy": "Use at most one supported [tag] per reply; the tag controls APNG expression and is removed from visible text."
   },
   "mappings": {
     "notice": {
