@@ -1688,6 +1688,7 @@ mpu_log(
 §13-§15：第一輪收斂決議
 §16：placeholder 邊界補完（含 §16.2 已執行的「を」字治標修正）
 §17：context-aware inner monologue（per-context `<think>` 開關）
+§18：**最終施作統整（As-Built，2026-05-31）— 給御三家確認**（計畫→commit 對照、偏差、驗證基線、待確認事項）
 
 下刀順序（依 §13.7 / §16.5 / §17.7）：
 1. **pre-M1a**（0.5d）：§16.2 已完成 + §16.3-A 字串黑名單治本
@@ -1699,3 +1700,61 @@ mpu_log(
 7. **M4**（2d）：§13.5 think_delta 漸進模式 + 點擊隱藏 + per-personality 開關 UI
 
 **總計 8d（可能 8.3d 含 §16.11 Gap I 展開）**。
+
+---
+
+## 18. 最終施作統整（As-Built，2026-05-31 — 給御三家確認）
+
+> 本章是**實裝對照表**：把 §13.7 的計畫順序對到實際落地的 commit，記錄與計畫的偏差，供 Antigravity / CODEX / Claude 三方確認。分支 `feature/emotion-tag-system`（自 `main`），尚未合併、尚未 bump 版號。**emotion `[tag]` 主線全部落地並可運作；think bubble UI 已完成但目前休眠（見 §18.3 偏差 D1）**。
+
+### 18.1 計畫 → commit 對照（依落地順序）
+
+| # | 計畫項（§ref） | commit | 落地內容摘要 |
+|---|---|---|---|
+| 1 | pre-M1a（§16.3-A） | `acb1de0` | 字串黑名單治本：`mpu_typewriter` 第 4 參收 `{ systemPlaceholder }`；新增 `mpuMark/mpuClearSystemPlaceholder` DOM 標記層；PHP 端 `data-initial-msg-system` 標記。 |
+| 2 | M1a（§13.2 / §13.6） | `ca75176` + `267a6f8` | 新增 `includes/llm/response-normalizer.php`（`mpu_normalize_ai_response()` 單一契約）；display/history/checksum/tts 鎖死相等；只抽開頭 `<think>`；雙格式 `[tag]`＋`[表情:xxx]`。測試移入 PHPUnit。 |
+| — | baseline refresh | `d2a0b6d` | 吸收 release drift，重產 PHPCS baseline。 |
+| 3 | M1b（§13.7 / §17.4.2） | `dfc7528` | 非串流 REST 接 normalizer（chat/dialog/touch）；新增 `mpu_is_inner_monologue_enabled_for_context()`（§17 per-context 開關，manifest `features.inner_monologue_contexts` 可覆寫）。 |
+| 4 | Prompt 切換（§3.1） | `1ae7239` | `personality-loader.php` 末尾 `[表情:xxx]` 指示 → `mpu_build_emotion_tag_instruction()` 內嵌 `[tag]`；Frieren `manifest.json` 補 `emoji.supported`（31 tag）**＝ 內嵌 tag 對 Frieren 真正生效的分水嶺**。 |
+| — | wake-ghost 補洞 | `0f61f86` | `generate_wake_reaction` 也接 normalizer，剝離 emotion tag。 |
+| 5 | M2 SSE parser（§13.3 / §17.4.3） | `1cb1837` | 新增 `class-mpu-stream-output-parser.php`：串流狀態機把 delta 轉 normalized SSE event（`emotion`/`think`/`status`），跨 chunk 邊界保尾；接線 `class-mpu-rest-chat.php` `user_chat_stream`。 |
+| 6 | M3 think bubble UI（§16 / §16.11） | `fa574ff` | `#ukagaka_think` DOM ＋ `.mpu-think-bubble` CSS ＋ `mpuShowThinkBubble/HideThinkBubble/ShowSystemPlaceholder` helper；chat/touch/decoration placeholder 全改走 bubble；manifest 補 `thinking_placeholder`。 |
+| 7 | M4 漸進模式（§13.5） | `8473787` | `think_delta` 漸進 emit ＋ bubble 點擊隱藏（限 `source==='llm'`）。 |
+| — | review 修正 | `ff9230d` | ① `done` 的 `data.emoji` 不再覆蓋串流已套用 emotion；② `thinking_placeholder`/`language` 補進 `/init` response。 |
+| — | 尾巴角度微調 | `b8a1772` | think bubble 尾巴朝向角色。 |
+
+### 18.2 計畫外但已落地（過程中追加）
+
+| 主題 | commit | 內容 |
+|---|---|---|
+| Touch mode 思考時隱藏主框 | `4948ec2` | touch 思考狀態先隱藏主對話框、結束再還原。 |
+| **初始 placeholder 進場修正**（4 連 commit + 收尾） | `af7d427` → `7774dd8` → `7857402` → `0b1f31e` → `811bd3a` | 進入網頁/F5 的「（えっと…）」從主對話框搬進思考氣泡；修掉 `loadExternalDialog` 在 placeholder 期間先 fadeIn **空白主對話框**的 race（根因見 §18.3 D2）。最終：進場只剩思考氣泡，待 `showFirstMessage` 顯示真正自發台詞時才 `mpuClearSystemPlaceholder()` → 淡入主框 → 打字。 |
+| think bubble 視覺微調 | `68ba4f3` | 邊框 `solid`→`dashed`（內心話泡泡感）；透明度 `0.94`→`0.69` 比照主對話框（保留白底材質）。 |
+| Frieren 圖資（非本計畫） | `3c06803` / `0d05b41` / `689edf3` | 角色透明度 1.0、翻書動畫暗場修正、idle APNG 更新——順道搭車，與情緒標籤無關。 |
+
+### 18.3 與計畫的偏差（⚠️ 重點，請御三家確認）
+
+- **D1 — Ollama think 通道：打通後 revert（`a0e257f` → `c64b7ff` → `8236fcf`）。**
+  曾讓 Ollama `message.thinking` 包成 `<think>…</think>` 餵進 think pipeline（唯一真正餵 think bubble 的 provider 路徑；雲端 reasoning 走獨立欄位不經本 pipeline）。**2026-05-31 實測後關閉。根因**：`ollama.php` `num_predict`（預設 1000）是「思考＋回覆」**共用**輸出上限 → qwen3 reasoning 吃光 → content 空/截斷 → 掉訊 → 歷史連續 user/缺 assistant → checksum 視窗對不齊（`logs/checksum-mismatch.log` 當天 11 筆皆在 `a0e257f` 後）。加上 reasoning 又長又機械、非預期吐槽風、UI 爆版。
+  **保留**：`c64b7ff` 的 diary/memory `<think>` 剝除（無 think 時 no-op，無害防護）。
+  **現況**：**think bubble UI（M3/M4）完整但休眠——目前無任何 provider 餵 think**；emotion `[tag]` 不受影響、正常運作。
+  **重啟前提**：先解決「思考與回覆**分開計算 token 預算**」，並補 think bubble 的 max-height/overflow（長推理會爆版，本次 overflow 修正已隨通道一起丟棄）。
+
+- **D2 — §16 未涵蓋的進場 race。** §16 設計了 placeholder → think bubble 的資料契約，但沒處理 `loadExternalDialog` 在 jQuery ready 時無條件 `mpu_showmsg()` 會把剛被 `mpu_hidemsg(0)` 藏起的主對話框再淡入成空殼。已於 `811bd3a` 補守衛（`!isInitialSystemMessage` 時不提前顯示，改由 `showFirstMessage` 交棒）。
+
+- **D3 — initial placeholder 文案決議。** 一度改成 `（何を話せばいいかな…）`（全形括號標記內心話），實測發現 ① `…` 與 spinner 點點重複；② 12 全形字 ＋ `）` 撐破 150px 段行。**決議回到 `何を話せばいいかな`（不加括號）**——理由：思考氣泡的造型本身已表意內心話，括號重複且 `）` 卡在文字與 spinner 之間最尷尬。manifest `thinking_placeholder.initial` 為此值。
+
+- **D4 — legacy `[表情:xxx]` 串流仍不剝（刻意）。** 串流 parser regex 只吃 ASCII `[tag]`；中文 `[表情:xxx]` 串流時不剝（非串流 normalizer 會剝）。需明確 mapping 策略才動，否則變另一個猜測來源。
+
+### 18.4 最終驗證基線
+
+- **PHPUnit**：79 tests / 252 assertions 綠（`tests/Unit/` 含 `ResponseNormalizerTest`、`EmotionTagPromptTest`、`StreamOutputParserTest`）。
+- **PHPCS**：within baseline（47925 findings，gate 綠；M1b 後實際 < baseline，未 regenerate 保留 slack）。
+- **JS bundle**：`tools/node/build.js` 重建 `js/dist/ukagaka-bundle.js`＋`.min.js`。
+
+### 18.5 待御三家確認 / 未做事項
+
+1. **think bubble 休眠處置**：M3/M4 完整但無 provider 觸發（雲端 reasoning 走獨立欄位、Ollama 通道已關）。保留休眠待重啟，或在文件標記「實驗性／預設停用」？
+2. **per-personality inner_monologue 後台 UI**（§17 提及）未實作；目前僅靠 manifest `features.inner_monologue_contexts` 落地。
+3. **合 main 時機與版號**：分支累積中，合併時才 bump（計畫目標 v2.25.0~）。請確認是否含 D1 休眠狀態一起合，或先抽掉 think bubble UI。
+4. **emotion `[tag]` 上線可獨立**：主線（normalizer＋prompt＋串流 parser）與 think 解耦，可單獨先發。

@@ -251,7 +251,7 @@ function mpu_html($num = false)
     $ext = $mpu_opt["external_file_format"] ?? "txt";
     $dialog_filename = $ukagaka["dialog_filename"] ?? $ukagaka_num;
     $data_file = "dialogs/" . $dialog_filename . "." . $ext;
-    $initial_message = mpu_get_initial_message($ukagaka_num, $initial_msg_is_system);
+	$initial_message = mpu_get_initial_message($ukagaka_num, $initial_msg_is_system);
 
     $html .=
         '
