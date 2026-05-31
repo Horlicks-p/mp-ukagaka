@@ -251,6 +251,7 @@ function mpu_html($num = false)
     $ext = $mpu_opt["external_file_format"] ?? "txt";
     $dialog_filename = $ukagaka["dialog_filename"] ?? $ukagaka_num;
     $data_file = "dialogs/" . $dialog_filename . "." . $ext;
+    $initial_message = mpu_get_initial_message($ukagaka_num, $initial_msg_is_system);
 
     $html .=
         '
@@ -258,10 +259,10 @@ function mpu_html($num = false)
     <div id="ukagaka_shell">
         <div id="ukagaka">
             <div id="ukagaka_think" class="mpu-think-bubble" hidden></div>
-            <div id="ukagaka_msgbox">
+            <div id="ukagaka_msgbox"' . ( $initial_msg_is_system ? ' style="display:none;"' : '' ) . '>
                 <div class="ukagaka-msgbox-top"></div>
                 <div id="ukagaka_msg" data-initial-msg="' .
-        esc_attr(mpu_get_initial_message($ukagaka_num, $initial_msg_is_system)) .
+        esc_attr($initial_message) .
         '"' . ( $initial_msg_is_system ? ' data-initial-msg-system="1"' : '' ) . '></div>
                 <div id="ukagaka_chat_input" style="display:none;">
                     <input type="text" id="mpu_user_input" placeholder="' . esc_attr__("メッセージを入力...", "mp-ukagaka") . '" maxlength="500" />
