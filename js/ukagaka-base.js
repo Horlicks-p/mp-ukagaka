@@ -589,9 +589,13 @@ function mpuShowSystemPlaceholder(options) {
         showSpinner: opts.showSpinner !== false
     });
     if (shouldHideMain && !jQuery('#ukagaka_msgbox').is(':hidden')) {
+        // 立即隱藏（非 fadeOut）：context/greet 的主框要「直接消失」交給思考氣泡。
+        // 若用 fadeOut，當頁面感知 API 在動畫期間（<120ms）快速返回時，showMainDialog()
+        // 會因主框尚未 :hidden 而不 fadeIn，隨後 mpuClearSystemPlaceholder() 的
+        // .stop(true,true) 又把淡出跳到終點，導致正式回應被寫進隱藏的主框（race）。
         jQuery('#ukagaka_msgbox').stop(true, true);
         if (typeof mpu_hidemsg === 'function') {
-            mpu_hidemsg(120);
+            mpu_hidemsg(0);
         } else {
             jQuery('#ukagaka_msgbox').hide();
         }
