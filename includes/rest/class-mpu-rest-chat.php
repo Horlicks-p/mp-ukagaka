@@ -1165,24 +1165,35 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $this->exit_if_stream_aborted($args);
 
         $full_response_content = "";
+        $stream_parser         = new MPU_Stream_Output_Parser($args['personality_id'], 'chat');
+        $stream_emit           = function ( $event, $data ) use ( &$full_response_content, $args ) {
+            if ($event === 'status' && isset($data['type']) && $data['type'] === 'executing_tool') {
+                $this->set_runtime_state_for_args($args, 'tool_running');
+            } elseif ($event === 'delta') {
+                $this->set_runtime_state_for_args($args, 'speaking');
+            }
+            mpu_sse_send_event($event, $data);
+            $this->exit_if_stream_aborted($args);
+
+            if ($event === 'delta' && isset($data['text'])) {
+                $full_response_content .= $data['text'];
+            }
+        };
 
         // 呼叫 Provider 串流
         $stream_result = $provider_instance->generate_chat_stream(
             $args, 
-            function($event, $data) use (&$full_response_content, $args) {
+            function ( $event, $data ) use ( $stream_parser, $stream_emit ) {
                 // 轉發到 SSE
-                if ($event === 'status' && isset($data['type']) && $data['type'] === 'executing_tool') {
-                    $this->set_runtime_state_for_args($args, 'tool_running');
-                } elseif ($event === 'delta') {
-                    $this->set_runtime_state_for_args($args, 'speaking');
-                }
-                mpu_sse_send_event($event, $data);
-                $this->exit_if_stream_aborted($args);
-                
                 // 累積文字用於 Checksum
                 if ($event === 'delta' && isset($data['text'])) {
-                    $full_response_content .= $data['text'];
+                    foreach ($stream_parser->feed( (string) $data['text'] ) as $parsed_event) {
+                        $stream_emit($parsed_event['event'], $parsed_event['data']);
+                    }
+                    return;
                 }
+
+                $stream_emit($event, $data);
             }
         );
 
@@ -1196,8 +1207,8 @@ class MPU_REST_Chat extends MPU_REST_Base {
         }
 
         // [Fix] 針對 Ollama 進行 Thinking 內容過濾，確保 Checksum 一致
-        if ($args['provider'] === 'ollama' && function_exists('mpu_filter_thinking_content')) {
-            $full_response_content = mpu_filter_thinking_content($full_response_content);
+        foreach ($stream_parser->flush() as $parsed_event) {
+            $stream_emit($parsed_event['event'], $parsed_event['data']);
         }
 
         // 收尾處理 (與同步路徑一致)
@@ -1209,15 +1220,13 @@ class MPU_REST_Chat extends MPU_REST_Base {
             if (function_exists('mpu_get_personality_max_response_length')) {
                 $max_length = mpu_get_personality_max_response_length(null, $args['ukagaka_name']);
             }
-            if (mb_strlen($result, 'UTF-8') > $max_length) {
-                $result = mb_substr($result, 0, $max_length, 'UTF-8') . '...';
-            }
+        } else {
+            $max_length = 0;
         }
 
-        $emoji = null;
-        if (function_exists('mpu_analyze_emoji_from_text') && !empty($result)) {
-            $emoji = mpu_analyze_emoji_from_text($result, $args['personality_id']);
-        }
+        $normalized = mpu_normalize_ai_response_for_rest($result, $args['personality_id'], array( 'context' => 'chat' ));
+        $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
+        $result     = $normalized['display_text'];
 
         if (function_exists('mpu_record_conversation')) {
             mpu_record_conversation('interactive');
@@ -1233,10 +1242,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         // 發送完成事件
         $this->set_runtime_state_for_args($args, 'speaking');
-        mpu_sse_send_event('done', [
-            'msg'   => $result,
-            'emoji' => $emoji,
-        ]);
+        mpu_sse_send_event('done', mpu_normalize_ai_response_rest_fields($normalized));
 
         $this->set_runtime_state_for_args($args, 'idle');
         $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);

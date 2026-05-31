@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-30T04:21:59.197Z
+ * Generated: 2026-05-31T04:18:39.468Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -4709,6 +4709,15 @@ async function mpuFetchSSE(url, options, handlers) {
           case "delta":
             if (handlers.onDelta) handlers.onDelta(data);
             break;
+          case "emotion":
+            if (handlers.onEmotion) handlers.onEmotion(data);
+            break;
+          case "think":
+            if (handlers.onThink) handlers.onThink(data);
+            break;
+          case "think_delta":
+            if (handlers.onThinkDelta) handlers.onThinkDelta(data);
+            break;
           case "status":
             if (handlers.onStatus) handlers.onStatus(data);
             break;
@@ -4895,6 +4904,8 @@ function mpu_sendUserMessage() {
     let streamDone = false;
     let streamDoneData = null;
     let streamFinalized = false;
+    let streamEmotionApplied = false;
+    let streamThinkText = "";
     const streamWatchdogMs = 45000;
     let streamWatchdogTimer = null;
     let streamTimedOut = false;
@@ -5118,6 +5129,15 @@ function mpu_sendUserMessage() {
         onStatus: (data) => {
           let statusMsg = "";
 
+          if (data.type === "thinking_start") {
+            setStreamState("thinking");
+            return;
+          }
+          if (data.type === "thinking_end") {
+            setStreamState(streamPendingText || streamDisplayedText ? "streaming" : "thinking");
+            return;
+          }
+
           if (data.type === "executing_tool" && data.tool) {
             // [Fix] 使用 mpuL10n 本地化模板
             const template =
@@ -5152,6 +5172,31 @@ function mpu_sendUserMessage() {
             setStreamState("tool");
             $msg.html(`（…${statusMsg}<span class="mpu-thinking"></span>）`);
             mpuMarkSystemPlaceholder($msg); // §16.3-A：tool placeholder
+          }
+        },
+        onEmotion: (data) => {
+          if (!data || streamEmotionApplied) {
+            if (window.console && console.debug) {
+              console.debug("MPU stream ignored extra emotion event", data);
+            }
+            return;
+          }
+          const emoji = data.file || (data.tag ? `${data.tag}.png` : "");
+          if (emoji && typeof window.mpuEmojiManager !== "undefined") {
+            window.mpuEmojiManager.showEmoji(emoji);
+            streamEmotionApplied = true;
+          }
+        },
+        onThink: (data) => {
+          if (data && data.text) {
+            streamThinkText = data.text;
+            mpuLogger.log("SSE think:", streamThinkText);
+          }
+        },
+        onThinkDelta: (data) => {
+          if (data && data.text) {
+            streamThinkText += data.text;
+            mpuLogger.log("SSE think delta:", data.text);
           }
         },
         onDone: (data) => {
