@@ -20,6 +20,10 @@ function mpu_greet_first_visitor(settings) {
       stopAutoTalk();
     }
 
+    const showMainDialog = function () {
+      if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
+    };
+
     // 先獲取訪客資訊
     const visitorUrl = `${mpuRestUrl}visitor-info`;
 
@@ -37,15 +41,28 @@ function mpu_greet_first_visitor(settings) {
         });
 
         // 顯示載入訊息
-        if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
         const loadingMessage =
           typeof mpuL10n !== "undefined" && mpuL10n.unknownVisitor
             ? mpuL10n.unknownVisitor
             : "（…あ、知らない人間だ…）";
-        mpu_typewriter(
-          `<span style="color: ${mpuAiTextColor};">${loadingMessage}</span>`,
-          "#ukagaka_msg",
-        );
+        if (typeof mpuShowSystemPlaceholder === "function") {
+          mpuShowSystemPlaceholder({
+            context: "greet",
+            text: loadingMessage,
+            showSpinner: false,
+          });
+          if (typeof mpuMarkSystemPlaceholder === "function") {
+            mpuMarkSystemPlaceholder("#ukagaka_msg");
+          }
+        } else {
+          showMainDialog();
+          mpu_typewriter(
+            `<span style="color: ${mpuAiTextColor};">${loadingMessage}</span>`,
+            "#ukagaka_msg",
+            null,
+            { systemPlaceholder: true },
+          );
+        }
 
         const formData = new FormData();
         formData.append("referrer", visitorInfo.referrer || "");
@@ -88,6 +105,7 @@ function mpu_greet_first_visitor(settings) {
           let greetingMessage = mpu_unescapeHTML(res.msg);
           greetingMessage = mpu_linkifyUrls(greetingMessage);
 
+          showMainDialog();
           mpu_typewriter(
             `<span style="color: ${mpuAiTextColor};">${greetingMessage}</span>`,
             "#ukagaka_msg",
@@ -169,6 +187,7 @@ function mpu_greet_first_visitor(settings) {
               typeof mpuL10n !== "undefined" && mpuL10n.apiMagicInsufficient
                 ? mpuL10n.apiMagicInsufficient
                 : "…ちょっと待って。API魔力が足りない";
+            showMainDialog();
             mpu_typewriter(
               `<span style="color: ${mpuAiTextColor};">${rateLimitMessage}</span>`,
               "#ukagaka_msg",
@@ -189,6 +208,7 @@ function mpu_greet_first_visitor(settings) {
                 const msgArr = dialogStore.msg;
                 const auto = dialogStore.auto_msg || "";
                 const randomIdx = Math.floor(Math.random() * msgArr.length);
+                showMainDialog();
                 mpu_typewriter(
                   mpu_unescapeHTML(msgArr[randomIdx] + auto),
                   "#ukagaka_msg",
@@ -213,6 +233,7 @@ function mpu_greet_first_visitor(settings) {
               const msgArr = dialogStore.msg;
               const auto = dialogStore.auto_msg || "";
               const randomIdx = Math.floor(Math.random() * msgArr.length);
+              showMainDialog();
               mpu_typewriter(
                 mpu_unescapeHTML(msgArr[randomIdx] + auto),
                 "#ukagaka_msg",
@@ -243,6 +264,7 @@ function mpu_greet_first_visitor(settings) {
           const msgArr = dialogStore.msg;
           const auto = dialogStore.auto_msg || "";
           const randomIdx = Math.floor(Math.random() * msgArr.length);
+          showMainDialog();
           mpu_typewriter(
             mpu_unescapeHTML(msgArr[randomIdx] + auto),
             "#ukagaka_msg",

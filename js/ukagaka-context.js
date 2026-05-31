@@ -339,7 +339,9 @@ function mpu_chat_context() {
   // 設置阻擋標誌，完全阻止自發對話
   mpuSetMessageBlocking(true);
 
-  if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
+  const showMainDialog = function () {
+    if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
+  };
 
   // 檢測是否為自己的日記（根據標題前綴）
   let loadingMessage;
@@ -359,12 +361,24 @@ function mpu_chat_context() {
         : "（…ああ、記事か。どれどれ…）";
   }
 
-  mpu_typewriter(
-    `<span style="color: ${mpuAiTextColor};">${loadingMessage}</span>`,
-    "#ukagaka_msg",
-    null,
+  if (typeof mpuShowSystemPlaceholder === "function") {
+    mpuShowSystemPlaceholder({
+      context: "context",
+      text: loadingMessage,
+      showSpinner: false,
+    });
+    if (typeof mpuMarkSystemPlaceholder === "function") {
+      mpuMarkSystemPlaceholder("#ukagaka_msg");
+    }
+  } else {
+    showMainDialog();
+    mpu_typewriter(
+      `<span style="color: ${mpuAiTextColor};">${loadingMessage}</span>`,
+      "#ukagaka_msg",
+      null,
     { systemPlaceholder: true }, // §16.3-A：頁面感知 loading placeholder，跳過角色動畫
-  );
+    );
+  }
 
   const formData = new FormData();
   formData.append("page_title", context.title);
@@ -393,6 +407,7 @@ function mpu_chat_context() {
       if (res && res.msg && !res.error) {
         let aiResponse = mpu_unescapeHTML(res.msg);
         aiResponse = mpu_linkifyUrls(aiResponse);
+        showMainDialog();
         mpu_typewriter(
           `<span style="color: ${mpuAiTextColor};">${aiResponse}</span>`,
           "#ukagaka_msg",
@@ -474,6 +489,7 @@ function mpu_chat_context() {
             typeof mpuL10n !== "undefined" && mpuL10n.apiMagicInsufficient
               ? mpuL10n.apiMagicInsufficient
               : "…ちょっと待って。API魔力が足りない";
+          showMainDialog();
           mpu_typewriter(
             `<span style="color: ${mpuAiTextColor};">${rateLimitMessage}</span>`,
             "#ukagaka_msg",
@@ -494,6 +510,7 @@ function mpu_chat_context() {
               const msgArr = dialogStore.msg;
               const auto = dialogStore.auto_msg || "";
               const randomIdx = Math.floor(Math.random() * msgArr.length);
+              showMainDialog();
               mpu_typewriter(
                 mpu_unescapeHTML(msgArr[randomIdx] + auto),
                 "#ukagaka_msg",
@@ -514,6 +531,7 @@ function mpu_chat_context() {
             const msgArr = dialogStore.msg;
             const auto = dialogStore.auto_msg || "";
             const randomIdx = Math.floor(Math.random() * msgArr.length);
+            showMainDialog();
             mpu_typewriter(
               mpu_unescapeHTML(msgArr[randomIdx] + auto),
               "#ukagaka_msg",
@@ -541,6 +559,7 @@ function mpu_chat_context() {
         const msgArr = dialogStore.msg;
         const auto = dialogStore.auto_msg || "";
         const randomIdx = Math.floor(Math.random() * msgArr.length);
+        showMainDialog();
         mpu_typewriter(
           mpu_unescapeHTML(msgArr[randomIdx] + auto),
           "#ukagaka_msg",
