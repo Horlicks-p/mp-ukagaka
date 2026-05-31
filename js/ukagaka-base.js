@@ -573,7 +573,6 @@ function mpuHideThinkBubble(options) {
         .empty();
     jQuery('#ukagaka_msgbox')
         .removeClass('mpu-main-bubble-dimmed')
-        .removeAttr('data-mpu-hidden-by-system-placeholder')
         .stop(true, true);
 }
 
@@ -590,9 +589,7 @@ function mpuShowSystemPlaceholder(options) {
         showSpinner: opts.showSpinner !== false
     });
     if (shouldHideMain && !jQuery('#ukagaka_msgbox').is(':hidden')) {
-        jQuery('#ukagaka_msgbox')
-            .attr('data-mpu-hidden-by-system-placeholder', '1')
-            .stop(true, true);
+        jQuery('#ukagaka_msgbox').stop(true, true);
         if (typeof mpu_hidemsg === 'function') {
             mpu_hidemsg(120);
         } else {

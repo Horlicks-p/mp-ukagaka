@@ -114,7 +114,9 @@
   cursor: pointer;
 }
 
-.mpu-think-bubble[data-mpu-think-source="system"] {
+/* 短語 system placeholder（initial/greet/context/touch/decoration）強制單行，避免段行；
+   chat 的 SSE 狀態字串可能較長，排除在外讓它照基準規則換行。 */
+.mpu-think-bubble[data-mpu-think-source="system"]:not([data-mpu-think-context="chat"]) {
   max-width: min(240px, calc(100vw - 24px));
   white-space: nowrap;
   overflow-wrap: normal;

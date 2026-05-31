@@ -238,6 +238,9 @@ function mpu_greet_first_visitor(settings) {
                 mpu_unescapeHTML(msgArr[randomIdx] + auto),
                 "#ukagaka_msg",
               );
+            } else if (typeof mpuClearSystemPlaceholder === "function") {
+              // 無內建對話可 fallback：清掉思考氣泡，避免 placeholder 懸空（角色保持沉默）
+              mpuClearSystemPlaceholder("#ukagaka_msg");
             }
             if (
               wasAutoTalkRunning &&
@@ -269,6 +272,9 @@ function mpu_greet_first_visitor(settings) {
             mpu_unescapeHTML(msgArr[randomIdx] + auto),
             "#ukagaka_msg",
           );
+        } else if (typeof mpuClearSystemPlaceholder === "function") {
+          // 無內建對話可 fallback：清掉思考氣泡，避免 placeholder 懸空（角色保持沉默）
+          mpuClearSystemPlaceholder("#ukagaka_msg");
         }
 
         if (wasAutoTalkRunning && settings.auto_talk === true && mpuAutoTalk) {

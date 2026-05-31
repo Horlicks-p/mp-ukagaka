@@ -295,6 +295,22 @@ function mpu_chat_context() {
     return;
   }
 
+  // 60 秒冷卻：芙莉蓮對某篇文章發表過感想後，60 秒內不再觸發頁面感知（跨 SPA 換頁與
+  // 整頁重載皆有效，用 sessionStorage 存時間戳）。避免高機率設定（如本機 40%）下每換
+  // 一頁就重新發表感想。顯示時長 mpuAiDisplayDuration 不受影響，此處僅作再觸發冷卻窗。
+  const MPU_CONTEXT_COOLDOWN_MS = 60000;
+  let mpuContextLastShown = 0;
+  try {
+    mpuContextLastShown = parseInt(sessionStorage.getItem("mpu_context_last_shown") || "0", 10) || 0;
+  } catch (e) {
+    mpuContextLastShown = 0;
+  }
+  if (mpuContextLastShown && Date.now() - mpuContextLastShown < MPU_CONTEXT_COOLDOWN_MS) {
+    const remainSec = Math.ceil((MPU_CONTEXT_COOLDOWN_MS - (Date.now() - mpuContextLastShown)) / 1000);
+    mpuLogger.log("mpu_chat_context: クールダウン中（残り" + remainSec + "秒）のためスキップします");
+    return;
+  }
+
   // 睡眠模式檢查：優先使用伺服器端時間（避免客戶端/伺服器時區差異）
   const isDeepSleep = mpu_isDeepSleepTime();
   if (isDeepSleep) {
@@ -408,6 +424,10 @@ function mpu_chat_context() {
         let aiResponse = mpu_unescapeHTML(res.msg);
         aiResponse = mpu_linkifyUrls(aiResponse);
         showMainDialog();
+        // 記錄感想顯示時間，啟動 60 秒再觸發冷卻（見 mpu_chat_context 開頭的 cooldown 守衛）。
+        try {
+          sessionStorage.setItem("mpu_context_last_shown", String(Date.now()));
+        } catch (e) {}
         mpu_typewriter(
           `<span style="color: ${mpuAiTextColor};">${aiResponse}</span>`,
           "#ukagaka_msg",
@@ -536,6 +556,9 @@ function mpu_chat_context() {
               mpu_unescapeHTML(msgArr[randomIdx] + auto),
               "#ukagaka_msg",
             );
+          } else if (typeof mpuClearSystemPlaceholder === "function") {
+            // 無內建對話可 fallback：清掉思考氣泡，避免 placeholder 懸空（角色保持沉默）
+            mpuClearSystemPlaceholder("#ukagaka_msg");
           }
           mpuSetAiContextInProgress(false);
           if (wasAutoTalkRunning && mpuAutoTalk) {
@@ -564,6 +587,9 @@ function mpu_chat_context() {
           mpu_unescapeHTML(msgArr[randomIdx] + auto),
           "#ukagaka_msg",
         );
+      } else if (typeof mpuClearSystemPlaceholder === "function") {
+        // 無內建對話可 fallback：清掉思考氣泡，避免 placeholder 懸空（角色保持沉默）
+        mpuClearSystemPlaceholder("#ukagaka_msg");
       }
       mpuSetAiContextInProgress(false);
       if (wasAutoTalkRunning && mpuAutoTalk) {
