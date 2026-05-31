@@ -546,6 +546,11 @@ function mpuShowThinkBubble(text, options) {
         .attr('data-mpu-think-context', context)
         .prop('hidden', false)
         .addClass('is-visible');
+    $bubble.off('click.mpuThinkBubble').on('click.mpuThinkBubble', function () {
+        if (jQuery(this).attr('data-mpu-think-source') === 'llm') {
+            mpuHideThinkBubble({ source: 'llm' });
+        }
+    });
     if (source === 'system' && context !== 'initial') {
         jQuery('#ukagaka_msgbox').addClass('mpu-main-bubble-dimmed');
     }
@@ -562,6 +567,7 @@ function mpuHideThinkBubble(options) {
     }
     $bubble
         .removeClass('is-visible')
+        .off('click.mpuThinkBubble')
         .removeAttr('data-mpu-think-source data-mpu-think-context')
         .prop('hidden', true)
         .empty();

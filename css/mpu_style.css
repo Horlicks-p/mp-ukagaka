@@ -108,6 +108,7 @@
   transform: translateY(4px);
   transition: opacity 0.18s ease, transform 0.18s ease;
   pointer-events: auto;
+  cursor: pointer;
 }
 
 .mpu-think-bubble::after {

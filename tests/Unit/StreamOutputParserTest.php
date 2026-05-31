@@ -72,11 +72,12 @@ final class StreamOutputParserTest extends TestCase {
         $events = $this->collect(['<thi', 'nk>inner</thi', 'nk>visible']);
         $event_names = array_column($events, 'event');
 
-        $this->assertSame(['status', 'think', 'status', 'delta'], $event_names);
+        $this->assertSame(['status', 'think_delta', 'think', 'status', 'delta'], $event_names);
         $this->assertSame('thinking_start', $events[0]['data']['type']);
         $this->assertSame('inner', $events[1]['data']['text']);
-        $this->assertSame('thinking_end', $events[2]['data']['type']);
-        $this->assertSame('visible', $events[3]['data']['text']);
+        $this->assertSame('inner', $events[2]['data']['text']);
+        $this->assertSame('thinking_end', $events[3]['data']['type']);
+        $this->assertSame('visible', $events[4]['data']['text']);
     }
 
     public function test_markdown_link_is_not_buffered_as_emotion_tag(): void {
@@ -92,8 +93,9 @@ final class StreamOutputParserTest extends TestCase {
     public function test_unclosed_think_flushes_final_think(): void {
         $events = $this->collect(['<think>unfinished']);
 
-        $this->assertSame(['status', 'think', 'status'], array_column($events, 'event'));
+        $this->assertSame(['status', 'think_delta', 'think', 'status'], array_column($events, 'event'));
         $this->assertSame('unfinished', $events[1]['data']['text']);
+        $this->assertSame('unfinished', $events[2]['data']['text']);
     }
 
     public function test_mid_response_think_is_stripped_and_warned(): void {

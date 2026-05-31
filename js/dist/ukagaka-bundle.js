@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T04:26:11.839Z
+ * Generated: 2026-05-31T04:29:18.817Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -554,6 +554,11 @@ function mpuShowThinkBubble(text, options) {
         .attr('data-mpu-think-context', context)
         .prop('hidden', false)
         .addClass('is-visible');
+    $bubble.off('click.mpuThinkBubble').on('click.mpuThinkBubble', function () {
+        if (jQuery(this).attr('data-mpu-think-source') === 'llm') {
+            mpuHideThinkBubble({ source: 'llm' });
+        }
+    });
     if (source === 'system' && context !== 'initial') {
         jQuery('#ukagaka_msgbox').addClass('mpu-main-bubble-dimmed');
     }
@@ -570,6 +575,7 @@ function mpuHideThinkBubble(options) {
     }
     $bubble
         .removeClass('is-visible')
+        .off('click.mpuThinkBubble')
         .removeAttr('data-mpu-think-source data-mpu-think-context')
         .prop('hidden', true)
         .empty();

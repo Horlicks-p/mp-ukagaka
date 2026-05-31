@@ -291,8 +291,8 @@ class MPU_Stream_Output_Parser {
 		}
 
 		if ( false !== $close_pos ) {
-			$this->think_buffer .= substr( $this->buffer, 0, $close_pos );
-			$this->buffer        = substr( $this->buffer, $close_pos + $close_len );
+			$this->append_think_text( $events, substr( $this->buffer, 0, $close_pos ) );
+			$this->buffer = substr( $this->buffer, $close_pos + $close_len );
 			$this->close_think( $events );
 			return true;
 		}
@@ -300,8 +300,8 @@ class MPU_Stream_Output_Parser {
 		$keep     = $is_final ? 0 : $this->closing_prefix_suffix_len( $lower );
 		$emit_len = strlen( $this->buffer ) - $keep;
 		if ( $emit_len > 0 ) {
-			$this->think_buffer .= substr( $this->buffer, 0, $emit_len );
-			$this->buffer        = substr( $this->buffer, $emit_len );
+			$this->append_think_text( $events, substr( $this->buffer, 0, $emit_len ) );
+			$this->buffer = substr( $this->buffer, $emit_len );
 			return true;
 		}
 
@@ -355,6 +355,26 @@ class MPU_Stream_Output_Parser {
 		$this->inside_think       = false;
 		$this->think_emit_enabled = false;
 		$this->think_buffer       = '';
+	}
+
+	/**
+	 * Append think text and emit progressive think_delta when enabled.
+	 *
+	 * @param array<int, array{event:string,data:array}> $events Event accumulator.
+	 * @param string                                     $text   Think text chunk.
+	 */
+	private function append_think_text( array &$events, $text ) {
+		if ( '' === $text ) {
+			return;
+		}
+
+		$this->think_buffer .= $text;
+		if ( $this->think_emit_enabled ) {
+			$events[] = array(
+				'event' => 'think_delta',
+				'data'  => array( 'text' => $text ),
+			);
+		}
 	}
 
 	/**
