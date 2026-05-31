@@ -1229,11 +1229,11 @@
 
         if ($msgbox.is(":visible")) {
           $msgbox.fadeOut(1000, () => {
-            this.triggerFrierenSpeaking(true, null);
+            this.triggerFrierenSpeaking(true, null, true);
             wakeThenContinue();
           });
         } else {
-          this.triggerFrierenSpeaking(true, null);
+          this.triggerFrierenSpeaking(true, null, true);
           wakeThenContinue();
         }
       } else {
@@ -1523,11 +1523,11 @@
 
         if ($msgbox.is(":visible")) {
           $msgbox.fadeOut(1000, () => {
-            self.triggerFrierenSpeaking(true, null);
+            self.triggerFrierenSpeaking(true, null, true);
             wakeThenContinue();
           });
         } else {
-          self.triggerFrierenSpeaking(true, null);
+          self.triggerFrierenSpeaking(true, null, true);
           wakeThenContinue();
         }
       } else {

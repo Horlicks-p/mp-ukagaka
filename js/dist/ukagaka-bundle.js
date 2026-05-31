@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-05-31T15:51:51.135Z
+ * Generated: 2026-05-31T16:09:26.190Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -5656,6 +5656,12 @@ function mpu_display_wake_reaction(res) {
           "……あと少しだけ寝るつもりだったのに。",
           "……二度寝の途中だったんだけど。",
           "……もう朝？ まだ眠い。",
+          "……あと五分。人間の五分でいいから。",
+          "……夢の続き、ちょうどいいところだったのに。",
+          "……布団がまだ私を放してくれない。",
+          "……起きる。起きるけど、今じゃなくてもいい。",
+          "……まだ少し、夢の中にいたかった。",
+          "……もう少し静かに起こしてほしかった。",
         ]
       : res && res.sleep_phase === "deep_sleep"
         ? [
@@ -5664,6 +5670,13 @@ function mpu_display_wake_reaction(res) {
             "……なに。急ぎの用？",
             "……眠い。あとでいい？",
             "……せっかく寝てたのに。",
+            "……まだ頭が起きてないんだけど。",
+            "……もう少しだけ寝かせて。",
+            "……まだ朝じゃないでしょ。",
+            "……夢を見てたところ。",
+            "……今の用件、明日でもよくない？",
+            "……起きた。たぶん。まだ半分だけ。",
+            "……急ぎじゃないなら、あとにして。",
           ]
         : [];
   const fallbackReaction =
