@@ -1470,6 +1470,50 @@ A universal character manager system can be implemented in the future, supportin
 - Backward compatibility must be maintained to ensure existing Frieren features work normally.
 - You can refer to `mpuFrierenManager` in `ghost/Frieren/frieren.js` as an implementation example.
 
+### Inner Monologue (`<think>`) Channel — Abandoned by Default, Opt-In for Developers
+
+> **Status:** The LLM `<think>` inner-monologue channel (rendering character "inner thoughts" into the think bubble) is **abandoned and unmaintained by the project** as of v2.25.0. The original maintainer could not get a usable result on a local Ollama setup, but *the entire pipeline ships intact* and is inert only because nothing currently feeds it. If your provider/model can produce good short inner monologue, you can opt in by feeding `<think>` text into the existing pipeline. This is documented as a developer extension, not a supported feature.
+
+**What already works (no changes needed):**
+
+1. `mpu_normalize_ai_response()` (`includes/llm/response-normalizer.php`) extracts the **leading** `<think>...</think>` block from any AI response into a `think` field, and keeps it out of `display_text` / `history_text` / `checksum_text` / `tts_text`. (Mid-message `<think>` is stripped to a warning log, never rendered.)
+2. The SSE state machine `MPU_Stream_Output_Parser` (`includes/llm/class-mpu-stream-output-parser.php`) detects `<think>` across chunk boundaries and emits normalized events: `status {type:"thinking_start"|"thinking_end"}`, `think_delta {text}` (progressive), and `think {text}` (final).
+3. The frontend (`js/ukagaka-chat.js`) already consumes all of those events — and the non-streaming `res.think` field — and renders them via `mpuShowThinkBubble(text, { source: "llm", context })` into `#ukagaka_think`. Streaming, progressive, and non-streaming paths are all wired.
+
+**The one missing link:** a provider must actually emit `<think>...</think>` *in its text output*. Cloud reasoning models (Claude/OpenAI/Gemini) put reasoning in **separate API fields that never enter this pipeline**, so emitting `<think>` has to be requested explicitly. Two ways:
+
+**Option A — Prompt instruction (cross-provider, lowest code).** Add an instruction to the active character prompt (`instructions.md`, backend System Prompt, or `manifest.json` prompt source) that asks the model to wrap a short optional inner monologue in `<think>`. For example:
+
+```markdown
+## Inner Monologue
+Optionally begin your reply with one short <think>...</think> block
+(a private thought or stage direction, max ~30 chars). It is shown in a
+separate bubble, never spoken, and must appear before any other text.
+Open and close the tag as a pair, or omit it entirely.
+```
+
+That is enough for the normalizer, SSE parser, and bubble to do the rest on contexts where the gate is enabled. Be aware that this is a prompt-level opt-in, not a runtime per-context hook; if the same prompt is reused by disabled contexts, they may still spend tokens producing `<think>` that gets stripped.
+
+Do **not** use `mpu_llm_system_prompt` as the modern REST wiring point. In current core it only applies to the legacy `mpu_generate_llm_dialogue()` path, not the REST chat / touch / page-aware paths that call `mpu_resolve_system_prompt()`. Its 4th argument is also an information array (`wp_info`, `user_info`, `visitor_info`, `time_context`, `language`), not a request context string. If you need runtime context-aware injection, add a dedicated filter around the `mpu_resolve_system_prompt()` call path or perform the mapping inside your provider integration.
+
+**Option B — Map a provider's native reasoning field into `<think>`.** For Ollama / reasoning models that expose a separate `thinking` field, wrap it as `<think>{thinking}</think>` and prepend it to the content inside the provider class (this is what the reverted commit `a0e257f` did — see the pitfalls before reusing it).
+
+**Gates that must allow it (already present):**
+
+| Gate | Location | Default |
+|---|---|---|
+| `enable_inner_monologue` option | read by `mpu_is_inner_monologue_enabled()` | `true` (global on) |
+| Per-context policy | `mpu_is_inner_monologue_enabled_for_context($context, $personality_id)` | `chat` / `touch` / `page_aware` = on; `decoration` / `initial` / `diary` = off; unknown = off |
+| Per-personality override | `manifest.json` → `features.inner_monologue_contexts[$context]` | overrides the per-context default |
+
+If the gate is off for a context, the SSE parser strips `<think>` and does **not** emit think events, and the normalizer returns an empty `think` — so injecting the prompt alone is not enough; the context must be enabled too.
+
+**Known pitfalls (why it was abandoned — fix these before relying on it):**
+
+- **Shared token budget.** Ollama's `num_predict` (and any single-output-budget model) is shared between reasoning and the final reply. A long `<think>` can eat the budget, truncating or emptying the actual answer, which then desyncs chat history and trips checksum mismatches (`logs/checksum-mismatch.log`). Budget reasoning and reply **separately** before enabling on such models.
+- **No overflow guard on the bubble.** `.mpu-think-bubble` has no `max-height` / `overflow`; a long reasoning dump overflows the UI. Add `max-height` + `overflow: auto` (an earlier overflow fix was discarded with the reverted channel).
+- **Quality.** Reasoning-model "thinking" tends to be long, mechanical, and off-character. Keep the instruction tight (length cap, single block) and test per model.
+
 ---
 
 ## Security Considerations

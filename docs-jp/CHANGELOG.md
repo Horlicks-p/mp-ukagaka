@@ -21,7 +21,7 @@
 
 ### 注意事項
 
-- Ollama `message.thinking` の接続は一度実装後に revert しました。Ollama は reasoning と final content が `num_predict` 予算を共有するため、空 / 途中で切れた返答、history の user 連続、checksum 不一致が発生しました。Think bubble UI は残していますが、provider reasoning の予算分離ができるまで休眠状態です。
+- Ollama `message.thinking` の接続は一度実装後に revert しました。Ollama は reasoning と final content が `num_predict` 予算を共有するため、空 / 途中で切れた返答、history の user 連続、checksum 不一致が発生しました。Think bubble 本体は読み込み / placeholder UI（初期の `何を話せばいいかな`、touch / decoration の思考状態）として正式に稼働しています。一方「LLM `<think>` 内心独白を吹き出しへ流す」経路は検証の結果お蔵入りとなりました——コードはツリーに残していますが、供給する provider も要求する prompt もなく、ユーザーに見える挙動はありません。本プロジェクトでは今後メンテナンスしませんが、パイプライン全体（normalizer・SSE parser・吹き出し）はそのまま同梱しています。`DEVELOPER_GUIDE.md` の「Inner Monologue (`<think>`) Channel」節に、開発者向け opt-in の接続点と落とし穴を記載しています。
 - `plan/Emotion_Tag_And_Think_Block_Plan.md` に as-built まとめを追加し、commit 対応、計画との差分、検証基準、今後の確認事項を記録しました。
 
 ---

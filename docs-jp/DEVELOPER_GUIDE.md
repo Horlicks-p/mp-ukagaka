@@ -1202,6 +1202,50 @@ class MPU_REST_Custom extends MPU_REST_Base {
 - 既存のフリーレンの機能が正常に動作するように、下位互換性を維持する必要がある。
 - 実装例として `ghost/Frieren/frieren.js` 内の `mpuFrierenManager` を参考にすることができる。
 
+### 内心独白（`<think>`）チャンネル — 既定では廃案、開発者向け opt-in
+
+> **状態：** キャラクターの「内心の思考」を吹き出しに描画する LLM `<think>` 内心独白チャンネルは、v2.25.0 時点で**プロジェクトとして廃案・非メンテナンス**です。元のメンテナはローカル Ollama 環境で実用的な結果を得られませんでしたが、*パイプライン全体はそのまま同梱*されており、何も供給していないために惰性状態であるだけです。お使いの provider／モデルが良質で短い内心独白を生成できるなら、`<think>` テキストを既存パイプラインへ供給する形で opt-in できます。これはサポート対象の正式機能ではなく、開発者向け拡張として記載しています。
+
+**すでに動作する部分（変更不要）：**
+
+1. `mpu_normalize_ai_response()`（`includes/llm/response-normalizer.php`）は AI 応答から**先頭**の `<think>...</think>` ブロックを `think` フィールドに抽出し、`display_text` / `history_text` / `checksum_text` / `tts_text` には含めません。（中間の `<think>` は warning log に剥がすだけで、描画されません。）
+2. SSE ステートマシン `MPU_Stream_Output_Parser`（`includes/llm/class-mpu-stream-output-parser.php`）は chunk 境界をまたいで `<think>` を検出し、正規化イベントを emit します：`status {type:"thinking_start"|"thinking_end"}`、`think_delta {text}`（漸進）、`think {text}`（最終）。
+3. フロントエンド（`js/ukagaka-chat.js`）は上記すべてのイベント — および非ストリーミングの `res.think` フィールド — をすでに消費し、`mpuShowThinkBubble(text, { source: "llm", context })` で `#ukagaka_think` に描画します。ストリーミング・漸進・非ストリーミングの 3 経路すべて接続済みです。
+
+**唯一不足している接続：** provider が実際に*テキスト出力の中で* `<think>...</think>` を吐く必要があります。クラウド推論モデル（Claude/OpenAI/Gemini）は reasoning を**本パイプラインを通らない別の API フィールド**に入れるため、`<think>` の出力を明示的に要求する必要があります。2 通り：
+
+**方法 A — Prompt 指示（クロス provider、最小コード）。** 有効なキャラクター prompt（`instructions.md`、管理画面の System Prompt、または `manifest.json` の prompt source）に、短い内心独白を任意で `<think>` に包むよう指示を追加します。例：
+
+```markdown
+## Inner Monologue
+Optionally begin your reply with one short <think>...</think> block
+(a private thought or stage direction, max ~30 chars). It is shown in a
+separate bubble, never spoken, and must appear before any other text.
+Open and close the tag as a pair, or omit it entirely.
+```
+
+ゲートが ON の context では、これだけで normalizer、SSE parser、吹き出しが残りを処理します。ただしこれは prompt レベルの opt-in であり、runtime の per-context hook ではありません。同じ prompt が無効 context でも再利用される場合、モデルが `<think>` を生成して token を消費し、その後 strip される可能性があります。
+
+`mpu_llm_system_prompt` を現在の REST 主経路の接続点として使わないでください。現行 core では legacy `mpu_generate_llm_dialogue()` 経路にのみ適用され、`mpu_resolve_system_prompt()` を呼ぶ REST chat / touch / page-aware 経路には適用されません。また第 4 引数は request context 文字列ではなく、情報 array（`wp_info`、`user_info`、`visitor_info`、`time_context`、`language`）です。runtime の context-aware 注入が必要な場合は、`mpu_resolve_system_prompt()` 呼び出し経路に専用 filter を追加するか、provider integration 内で mapping してください。
+
+**方法 B — provider のネイティブ reasoning フィールドを `<think>` にマッピング。** 独立した `thinking` フィールドを持つ Ollama／推論モデルでは、provider class 内でそれを `<think>{thinking}</think>` で包み content の前に付加します（これは revert された `a0e257f` が行ったことです — 再利用前に落とし穴を確認してください）。
+
+**通過させる必要があるゲート（すべて存在済み）：**
+
+| ゲート | 場所 | 既定 |
+|---|---|---|
+| `enable_inner_monologue` option | `mpu_is_inner_monologue_enabled()` が読み取る | `true`（グローバル ON） |
+| Per-context ポリシー | `mpu_is_inner_monologue_enabled_for_context($context, $personality_id)` | `chat` / `touch` / `page_aware` = ON；`decoration` / `initial` / `diary` = OFF；未知 = OFF |
+| Per-personality 上書き | `manifest.json` → `features.inner_monologue_contexts[$context]` | その context の既定を上書き |
+
+ある context のゲートが OFF の場合、SSE parser は `<think>` を剥がし think イベントを emit **せず**、normalizer も空の `think` を返します — したがって prompt 注入だけでは不十分で、その context も有効である必要があります。
+
+**落とし穴（廃案の理由 — 依存する前に解決すること）：**
+
+- **共有トークン予算。** Ollama の `num_predict`（および単一出力予算のモデル）は reasoning と最終応答で**共有**されます。長い `<think>` が予算を食い、実際の回答を切り詰めたり空にしたりし、chat history を非同期化させ checksum mismatch（`logs/checksum-mismatch.log`）を引き起こします。こうしたモデルで有効化する前に、reasoning と応答の予算を**別々に**確保してください。
+- **吹き出しに overflow ガードがない。** `.mpu-think-bubble` には `max-height` / `overflow` がなく、長い reasoning が UI を溢れさせます。`max-height` + `overflow: auto` を追加してください（以前の overflow 修正は revert されたチャンネルと共に破棄されました）。
+- **品質。** 推論モデルの「思考」は長く、機械的で、キャラクターから外れがちです。指示を厳しく（長さ上限・単一ブロック）保ち、モデルごとに実測してください。
+
 ---
 
 ## セキュリティの考慮事項

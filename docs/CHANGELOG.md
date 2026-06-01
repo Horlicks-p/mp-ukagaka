@@ -21,7 +21,7 @@
 
 ### 注意事項
 
-- Ollama `message.thinking` 曾經接通後又 revert。實測確認 Ollama 會讓 reasoning 與 final content 共用 `num_predict` 預算，導致空回覆 / 截斷、history 連續 user、checksum 對不齊等問題。Think bubble UI 仍保留，但目前休眠，待 provider reasoning 能安全分開預算後再啟用。
+- Ollama `message.thinking` 曾經接通後又 revert。實測確認 Ollama 會讓 reasoning 與 final content 共用 `num_predict` 預算，導致空回覆 / 截斷、history 連續 user、checksum 對不齊等問題。Think bubble 本身已正式啟用，負責載入 / placeholder UI（進場的 `何を話せばいいかな`、touch / decoration 思考狀態）。另一條「LLM `<think>` 內心獨白餵入氣泡」的通道實測後已廢案——代碼保留於樹中，但無任何 provider 餵入、亦無 prompt 要求，對使用者無任何可見行為。本專案不再維護它，但整條管線（normalizer、SSE parser、氣泡）完整保留：`DEVELOPER_GUIDE.md` 的「Inner Monologue (`<think>`) Channel」一節說明開發者 opt-in 接線點與踩雷，供能產出良好簡短內心獨白的 provider 實驗。
 - `plan/Emotion_Tag_And_Think_Block_Plan.md` 已補上 as-built 統整，記錄 commit 對照、計畫偏差、驗證基線與後續確認事項。
 
 ---

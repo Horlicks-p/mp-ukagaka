@@ -1706,6 +1706,8 @@ mpu_log(
 ## 18. 最終施作統整（As-Built，2026-05-31 — 給御三家確認）
 
 > 本章是**實裝對照表**：把 §13.7 的計畫順序對到實際落地的 commit，記錄與計畫的偏差，供 Antigravity / CODEX / Claude 三方確認。分支 `feature/emotion-tag-system`（自 `main`），尚未合併、尚未 bump 版號。**emotion `[tag]` 主線全部落地並可運作；think bubble UI 已完成但目前休眠（見 §18.3 偏差 D1）**。
+>
+> ⚠️ **2026-06-01 更新**：本章為 2026-05-31 的歷史快照，其中「think bubble 休眠待重啟」之表述**已被 §19.1.1 取代**——LLM `<think>` 通道**定為廢案（abandoned），代碼保留但無重啟規劃**；`system placeholder` 氣泡為正式啟用 UI。閱讀 §18 各「休眠／重啟前提」字樣時請以 §19 為準。
 
 ### 18.1 計畫 → commit 對照（依落地順序）
 
@@ -1767,17 +1769,18 @@ mpu_log(
 
 ### 19.1 §18.5 待確認事項之決議定案
 
-1. **think bubble 休眠處置（定案：保留，但精準分層）**
-   - **決策**：**保留完整代碼，不抽離**。但文件與 `CHANGELOG.md` 必須精準表述：`system placeholder` 氣泡已正式啟用；休眠的是 `source='llm'` 的內心獨白顯示來源。
-   - **考量**：M3/M4 階段的狀態機與 UI 實作非常完整且已通過驗收測試。休眠的主因是 Ollama 等模型在串流時有 Token 預算限制，導致內心戲過長時會截斷並造成 Checksum 漂移。未來若接入「reasoning 與 final content 分開計費 / 分開輸出」的 provider，可安全重啟 LLM think source。保留代碼是延續開發價值最有效率的做法。
+1. **think bubble 的 LLM `<think>` 通道處置（定案：廢案，但代碼保留）**
+   - **決策**：`source='llm'` 的內心獨白通道**定為廢案（abandoned），不在 roadmap 上**；但**代碼完整保留、不抽離**。文件與 `CHANGELOG.md` 一律以「廢案／已擱置」表述，**不可**再用「休眠待重啟」這類暗示有後續排程的措辭。`system placeholder` 氣泡（進場 `何を話せばいいかな`、touch / decoration 思考狀態）則為**正式啟用**的 UI，與本廢案無關。
+   - **廢案理由**：① 實作成本相對效益太高；② 2026-05-31 唯一真正打通的 Ollama 通道實測效果極差（reasoning 又長又機械、非預期吐槽風、UI 爆版），加上 `num_predict` 思考／回覆共用預算導致截斷與 checksum 漂移（§18.3 D1）。雲端 reasoning 走 provider 獨立欄位、不經本管線，故本通道實際無可用 provider。
+   - **為何代碼仍保留（而非抽離）**：① 目前為**完全惰性**——無任何 prompt 注入 `<think>` 指示、無 provider 餵入，render 路徑永不觸發，**零 runtime／token 成本**；normalizer 仍會剝除偶發 `<think>`（無 think 時 no-op，純防護）。② think 相關的共用基礎設施（`#ukagaka_think` DOM/CSS、`class-mpu-stream-output-parser.php` 狀態機、normalizer 的 think strip）**同時被 system placeholder 與 emotion `[tag]` 依賴**；單獨抽離 LLM-think 路徑要動到這些共用點，徒增工時與回歸風險，對一個已惰性的死路徑不划算。抽離的成本本身就違背「成本太高才廢案」的初衷。
 
 2. **per-personality inner_monologue 後台 UI（定案：暫不實作）**
    - **決策**：**暫不實作後台 UI**。完全依賴 `manifest.json` 的 `features.inner_monologue_contexts` 機制進行配置。
    - **考量**：全域開關（`enable_inner_monologue`）對一般站長已足夠。細粒度的 Context 級別開關主要面向角色包創作者（Ghost Author），直接寫在角色 manifest 中進行版本控制與宣告最為乾淨，後台無需為此新增複雜的 UI。
 
-3. **合 main 時機與版號（定案：含休眠代碼一同併入，版號定為 v2.25.0）**
-   - **決策**：**不拆分分支，含 LLM think source 休眠代碼一同合併至 `main`，版號定為 v2.25.0**。
-   - **考量**：分支已領先 `main` 35 個 commit。由於 LLM think source 目前不接 provider reasoning，對一般使用者無新增輸出風險；system placeholder 氣泡則已經作為 UI 改善正式啟用。一同合併可立刻解決 Branch Drift，避免後續 release / main 同步成本繼續上升。
+3. **合 main 時機與版號（定案：含廢案代碼一同併入，版號定為 v2.25.0）**
+   - **決策**：**不拆分分支，含 LLM think source 廢案代碼（保留、惰性）一同合併至 `main`，版號定為 v2.25.0**。
+   - **考量**：分支已領先 `main` 35 個 commit，且 `main` 為本分支直系祖先（零分歧），同步為乾淨 fast-forward。由於 LLM think source 完全惰性（無 provider、無 prompt），對一般使用者零新增輸出風險；system placeholder 氣泡則已作為 UI 改善正式啟用。一同合併可立刻解決 Branch Drift，避免後續 release / main 同步成本繼續上升。
 
 4. **emotion `[tag]` 上線可獨立（定案：同上，不拆分分支）**
    - **決策**：不單獨拆分，與上述合併決議一致，全數併入 v2.25.0 發布。但發布日誌與功能宣傳將重點著重在「表情標籤 `[tag]` 系統」的正式上線與語意治本最佳化。
@@ -1802,10 +1805,10 @@ mpu_log(
    - 氣泡改為 PNG 9-slice (`think-bubble.png`) + 獨立尾巴 (`think-tail.png`)。
    - 頁面感知 / 初訪客 placeholder 期間主對話框立即隱藏，正式回應才交棒回主框。
 
-4. **LLM think source 狀態**
-   - `stream-output-parser.php` 與前端 progressive think bubble 已保留。
-   - Ollama thinking feed 曾打通但因 `num_predict` 共用預算問題 revert。
-   - 對外說明：LLM 內心獨白顯示來源目前休眠；system placeholder 氣泡為正式 UI。
+4. **LLM think source 狀態（廢案）**
+   - `stream-output-parser.php` 與前端 progressive think bubble 代碼保留（惰性，零成本）。
+   - Ollama thinking feed 曾打通但因 `num_predict` 共用預算問題 revert（§18.3 D1）。
+   - 對外說明：LLM 內心獨白通道**已廢案、無重啟規劃**（無 provider 餵入、無 prompt 注入，故無可見行為）；`system placeholder` 氣泡為正式 UI。措辭不得用「休眠待重啟」。
 
 5. **Frieren 專屬修正**
    - 睡眠中點 OK / 對話 / 飾品 / touch 統一為「睜眼 → 抱怨」，不翻書。

@@ -1469,6 +1469,50 @@ class MPU_REST_Custom extends MPU_REST_Base {
 - 需要保持向後兼容，確保現有的芙莉蓮功能正常運作
 - 可以參考 `ghost/Frieren/frieren.js` 中的 `mpuFrierenManager` 作為實現範例
 
+### 內心獨白（`<think>`）通道——預設廢案，供開發者 opt-in
+
+> **狀態：** 把角色「內心想法」渲染進思考氣泡的 LLM `<think>` 內心獨白通道，自 v2.25.0 起**由專案廢案、不再維護**。原維護者在本機 Ollama 環境上無法調出可用效果，但*整條管線完整保留*，目前惰性只是因為沒有任何來源餵它。若你的 provider／模型能產出良好的簡短內心獨白，可自行把 `<think>` 文字餵進既有管線。此處以開發者擴充功能記錄，並非受支援的正式功能。
+
+**已經能運作的部分（不需修改）：**
+
+1. `mpu_normalize_ai_response()`（`includes/llm/response-normalizer.php`）會從 AI 回應中抽出**開頭**的 `<think>...</think>` 區塊放進 `think` 欄位，並使其不進入 `display_text` / `history_text` / `checksum_text` / `tts_text`。（中段 `<think>` 只會被剝除並寫 warning log，永不渲染。）
+2. SSE 狀態機 `MPU_Stream_Output_Parser`（`includes/llm/class-mpu-stream-output-parser.php`）跨 chunk 邊界偵測 `<think>`，emit 正規化事件：`status {type:"thinking_start"|"thinking_end"}`、`think_delta {text}`（漸進）、`think {text}`（最終）。
+3. 前端（`js/ukagaka-chat.js`）已消費上述全部事件——以及非串流的 `res.think` 欄位——並透過 `mpuShowThinkBubble(text, { source: "llm", context })` 渲染進 `#ukagaka_think`。串流、漸進、非串流三條路徑皆已接好。
+
+**唯一缺的一步：** 必須有 provider 真的在*文字輸出中*吐出 `<think>...</think>`。雲端推理模型（Claude/OpenAI/Gemini）把 reasoning 放在**不經本管線的獨立 API 欄位**，所以要明確要求它輸出 `<think>`。兩條路：
+
+**方案 A — Prompt 指示（跨 provider、最低程式成本）。** 在目前啟用的角色 prompt（`instructions.md`、後台 System Prompt，或 `manifest.json` prompt 來源）加入指示，要求模型可選地把簡短內心獨白包進 `<think>`。例如：
+
+```markdown
+## Inner Monologue
+Optionally begin your reply with one short <think>...</think> block
+(a private thought or stage direction, max ~30 chars). It is shown in a
+separate bubble, never spoken, and must appear before any other text.
+Open and close the tag as a pair, or omit it entirely.
+```
+
+在閘門開啟的 context 上，接線到這裡就足夠；normalizer、SSE parser、氣泡會處理其餘部分。注意這是 prompt 層 opt-in，不是 runtime per-context hook；若同一份 prompt 被關閉的 context 重用，模型仍可能花 token 產生隨後被剝除的 `<think>`。
+
+不要把 `mpu_llm_system_prompt` 當成目前 REST 主線的接點。現行 core 中它只套在 legacy `mpu_generate_llm_dialogue()` 路徑，不會套到呼叫 `mpu_resolve_system_prompt()` 的 REST chat / touch / page-aware 路徑；而且它的第 4 參數是資訊 array（`wp_info`、`user_info`、`visitor_info`、`time_context`、`language`），不是 request context 字串。若需要 runtime context-aware 注入，應在 `mpu_resolve_system_prompt()` 呼叫路徑新增專用 filter，或在 provider integration 內做映射。
+
+**方案 B — 把 provider 原生 reasoning 欄位映射成 `<think>`。** 對於有獨立 `thinking` 欄位的 Ollama／推理模型，在 provider class 內把它包成 `<think>{thinking}</think>` 並前置到 content（這正是被 revert 的 `a0e257f` 所做——重用前請先看踩雷表）。
+
+**必須放行的閘門（皆已存在）：**
+
+| 閘門 | 位置 | 預設 |
+|---|---|---|
+| `enable_inner_monologue` option | 由 `mpu_is_inner_monologue_enabled()` 讀取 | `true`（全域開） |
+| Per-context 政策 | `mpu_is_inner_monologue_enabled_for_context($context, $personality_id)` | `chat` / `touch` / `page_aware` = 開；`decoration` / `initial` / `diary` = 關；未知 = 關 |
+| Per-personality 覆寫 | `manifest.json` → `features.inner_monologue_contexts[$context]` | 覆寫該 context 預設 |
+
+若某 context 的閘門關閉，SSE parser 會剝除 `<think>` 且**不** emit think 事件，normalizer 也回傳空 `think`——所以光注入 prompt 不夠,該 context 也必須是開啟的。
+
+**踩雷表（廢案的原因——倚賴它前先解決）：**
+
+- **共用 token 預算。** Ollama 的 `num_predict`（及任何單一輸出預算的模型）由思考與最終回覆**共用**。過長的 `<think>` 會吃光預算,截斷或清空真正的回答,進而讓對話歷史失步、觸發 checksum mismatch（`logs/checksum-mismatch.log`）。在這類模型上啟用前,請把思考與回覆**分開計算預算**。
+- **氣泡無溢位防護。** `.mpu-think-bubble` 沒有 `max-height` / `overflow`;長推理會撐破 UI。請補 `max-height` + `overflow: auto`（先前的 overflow 修正已隨被 revert 的通道一起丟棄）。
+- **品質。** 推理模型的「思考」常常又長、又機械、又出戲。把指示寫緊（長度上限、單一區塊）並逐模型實測。
+
 ---
 
 ## 安全性考量
