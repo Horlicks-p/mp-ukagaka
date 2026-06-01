@@ -1758,3 +1758,79 @@ mpu_log(
 2. **per-personality inner_monologue 後台 UI**（§17 提及）未實作；目前僅靠 manifest `features.inner_monologue_contexts` 落地。
 3. **合 main 時機與版號**：分支累積中，合併時才 bump（計畫目標 v2.25.0~）。請確認是否含 D1 休眠狀態一起合，或先抽掉 think bubble UI。
 4. **emotion `[tag]` 上線可獨立**：主線（normalizer＋prompt＋串流 parser）與 think 解耦，可單獨先發。
+
+---
+
+## 19. 後續對應與定案決議（2026-06-01 家裡討論定案）
+
+經過本次討論，針對 §18.5 的待確認事項進行以下決議定案，並制定後續與 `main` 同步的對應計畫：
+
+### 19.1 §18.5 待確認事項之決議定案
+
+1. **think bubble 休眠處置（定案：保留，但精準分層）**
+   - **決策**：**保留完整代碼，不抽離**。但文件與 `CHANGELOG.md` 必須精準表述：`system placeholder` 氣泡已正式啟用；休眠的是 `source='llm'` 的內心獨白顯示來源。
+   - **考量**：M3/M4 階段的狀態機與 UI 實作非常完整且已通過驗收測試。休眠的主因是 Ollama 等模型在串流時有 Token 預算限制，導致內心戲過長時會截斷並造成 Checksum 漂移。未來若接入「reasoning 與 final content 分開計費 / 分開輸出」的 provider，可安全重啟 LLM think source。保留代碼是延續開發價值最有效率的做法。
+
+2. **per-personality inner_monologue 後台 UI（定案：暫不實作）**
+   - **決策**：**暫不實作後台 UI**。完全依賴 `manifest.json` 的 `features.inner_monologue_contexts` 機制進行配置。
+   - **考量**：全域開關（`enable_inner_monologue`）對一般站長已足夠。細粒度的 Context 級別開關主要面向角色包創作者（Ghost Author），直接寫在角色 manifest 中進行版本控制與宣告最為乾淨，後台無需為此新增複雜的 UI。
+
+3. **合 main 時機與版號（定案：含休眠代碼一同併入，版號定為 v2.25.0）**
+   - **決策**：**不拆分分支，含 LLM think source 休眠代碼一同合併至 `main`，版號定為 v2.25.0**。
+   - **考量**：分支已領先 `main` 35 個 commit。由於 LLM think source 目前不接 provider reasoning，對一般使用者無新增輸出風險；system placeholder 氣泡則已經作為 UI 改善正式啟用。一同合併可立刻解決 Branch Drift，避免後續 release / main 同步成本繼續上升。
+
+4. **emotion `[tag]` 上線可獨立（定案：同上，不拆分分支）**
+   - **決策**：不單獨拆分，與上述合併決議一致，全數併入 v2.25.0 發布。但發布日誌與功能宣傳將重點著重在「表情標籤 `[tag]` 系統」的正式上線與語意治本最佳化。
+
+### 19.2 `CHANGELOG` / README 待補項目
+
+既有 v2.25.0 release note 已有初稿，但後續 UI / Frieren / bubble 圖資又追加多個 commit。正式同步前至少補以下 delta：
+
+1. **正式實裝：情緒標籤系統**
+   - 支援句中內嵌 `[tag]` 與傳統 `[表情:xxx]`。
+   - 非串流 REST 與 SSE 串流皆走 normalizer / stream parser，明確 tag 優先於 keyword scorer。
+   - Frieren `manifest.json` 宣告 `emoji.supported`，prompt 改為 inline tag 指示。
+
+2. **底層重構：Response Normalizer**
+   - `mpu_normalize_ai_response()` 統一 think / emotion / display text。
+   - 鎖定 display / history / checksum / TTS 使用同一份乾淨文本。
+   - PHPUnit 已納入 normalizer / stream parser 契約測試。
+
+3. **system placeholder 與 think bubble UI**
+   - 移除依賴字串比對的 system placeholder 黑名單，改為 DOM attribute 標記。
+   - 初始、chat 等待、頁面感知、初訪客、touch / decoration placeholder 改走 `#ukagaka_think`。
+   - 氣泡改為 PNG 9-slice (`think-bubble.png`) + 獨立尾巴 (`think-tail.png`)。
+   - 頁面感知 / 初訪客 placeholder 期間主對話框立即隱藏，正式回應才交棒回主框。
+
+4. **LLM think source 狀態**
+   - `stream-output-parser.php` 與前端 progressive think bubble 已保留。
+   - Ollama thinking feed 曾打通但因 `num_predict` 共用預算問題 revert。
+   - 對外說明：LLM 內心獨白顯示來源目前休眠；system placeholder 氣泡為正式 UI。
+
+5. **Frieren 專屬修正**
+   - 睡眠中點 OK / 對話 / 飾品 / touch 統一為「睜眼 → 抱怨」，不翻書。
+   - 擴充 `sleep_mode.json` 的 `deep_sleep` / `oversleep` wake prompt；共通 `ukagaka-chat.js` fallback 保持角色中性。
+   - 修正翻書動畫到 idle APNG 的亮度 / 姿勢接縫。
+   - 更新 Frieren idle APNG 圖資。
+
+### 19.3 分支同步與合併順序
+
+1. **先補文件**
+   - 更新 `docs/CHANGELOG.md`、`docs-en/CHANGELOG.md`、`docs-jp/CHANGELOG.md`。
+   - 同步更新 `README.md`、`README_zh-TW.md`、`README_ja.md`、`readme.txt` 的 v2.25.0 摘要。
+   - 確認 `mp-ukagaka.php` 版本仍為 `2.25.0`。
+
+2. **本機 merge rehearsal**
+   - `git fetch origin main --tags`。
+   - 在臨時分支或本分支上測試 `origin/main` 合併，檢查 `git diff origin/main...HEAD` 是否只含 v2.25.0 預期差異。
+   - 跑 `npm run verify`，必要時另外跑前端 bundle build / PHP lint。
+
+3. **合併 main**
+   - 若 main 無新衝突：直接 merge feature branch into `main`。
+   - 若 main 有 release metadata 或 changelog 差異：只手動解 changelog / readme / version 衝突，不回退功能 commit。
+   - 合併後再跑一次 `npm run verify`。
+
+4. **發版**
+   - 確認 working tree clean。
+   - 打 `v2.25.0` tag。
+   - 推 `main`、推 tag、建立 GitHub Release。
