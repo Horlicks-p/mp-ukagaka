@@ -108,7 +108,7 @@ For detailed information, please refer to:
 
 **Think bubble placeholders**: System placeholders such as `えっと` and the initial `何を話せばいいかな` now render in the character-side think bubble instead of the main dialogue box. Touch, decoration, and initial loading flows were adjusted to avoid stale placeholder state and empty dialogue-box flashes.
 
-**Note**: Ollama `message.thinking` integration was implemented and then reverted after testing. Ollama shares the `num_predict` budget between reasoning and final content, which caused empty or truncated replies and chat history/checksum issues. The think bubble UI remains in place but is currently dormant until provider reasoning can be budgeted safely.
+**Note**: Ollama `message.thinking` integration was implemented and then reverted after testing. Ollama shares the `num_predict` budget between reasoning and final content, which caused empty or truncated replies and chat history/checksum issues. The think bubble itself ships and is actively used for the loading / placeholder UI (the initial `何を話せばいいかな`, touch / decoration thinking states). The separate LLM `<think>` inner-monologue channel that would feed character thoughts into that bubble has been shelved after testing — its code remains in the tree but no provider feeds it and no prompt asks for it, so it has no visible effect. We no longer maintain it, but the full pipeline (normalizer, SSE parser, bubble) ships intact: `DEVELOPER_GUIDE.md` → "Inner Monologue (`<think>`) Channel" documents the opt-in wiring points and pitfalls for developers experimenting with providers that can produce good short monologue.
 
 ### Previous Highlights
 
