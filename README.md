@@ -108,7 +108,7 @@ For detailed information, please refer to:
 
 **Think bubble placeholders**: System placeholders such as `えっと` and the initial `何を話せばいいかな` now render in the character-side think bubble instead of the main dialogue box. Touch, decoration, and initial loading flows were adjusted to avoid stale placeholder state and empty dialogue-box flashes.
 
-**Note**: Ollama reasoning (`message.thinking`) integration was tested and reverted because Ollama shares `num_predict` between reasoning and final content. The think bubble UI remains in place but is dormant until provider reasoning can be budgeted safely.
+**Note**: Ollama `message.thinking` integration was implemented and then reverted after testing. Ollama shares the `num_predict` budget between reasoning and final content, which caused empty or truncated replies and chat history/checksum issues. The think bubble UI remains in place but is currently dormant until provider reasoning can be budgeted safely.
 
 ### Previous Highlights
 

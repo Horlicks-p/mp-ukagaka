@@ -108,7 +108,7 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 
 **Think bubble placeholder**：`えっと` 與初始 `何を話せばいいかな` 等 system placeholder 現在顯示於角色旁的 think bubble，而不是主對話框。Touch、decoration 與初始載入流程也已修正，避免 stale placeholder 狀態與空白主對話框閃現。
 
-**注意**：Ollama reasoning (`message.thinking`) 曾實測接通後 revert，因為 Ollama 會讓 reasoning 與 final content 共用 `num_predict` 預算。Think bubble UI 仍保留，但 provider reasoning 能安全分開預算前維持休眠。
+**注意**：Ollama `message.thinking` 曾經接通後又 revert。實測確認 Ollama 會讓 reasoning 與 final content 共用 `num_predict` 預算，導致空回覆 / 截斷、history 連續 user、checksum 對不齊等問題。Think bubble UI 仍保留，但目前休眠，待 provider reasoning 能安全分開預算後再啟用。
 
 ### 前版重點
 

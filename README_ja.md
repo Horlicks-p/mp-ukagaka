@@ -108,7 +108,7 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 
 **Think bubble placeholder**：`えっと` や初期表示の `何を話せばいいかな` などの system placeholder は、メイン吹き出しではなくキャラクター側の think bubble に表示されます。Touch、decoration、初期読み込みの流れも調整し、stale placeholder 状態や空のメイン吹き出しのちらつきを避けます。
 
-**注意**：Ollama reasoning (`message.thinking`) 連携は実装後に検証し、revert しました。Ollama は reasoning と final content が `num_predict` 予算を共有するためです。Think bubble UI は残していますが、provider reasoning の予算分離が安全に扱えるまで休眠状態です。
+**注意**：Ollama `message.thinking` の接続は一度実装後に revert しました。Ollama は reasoning と final content が `num_predict` 予算を共有するため、空 / 途中で切れた返答、history の user 連続、checksum 不一致が発生しました。Think bubble UI は残していますが、provider reasoning の予算分離が安全に扱えるまで休眠状態です。
 
 ### 前バージョンの主な変更
 
