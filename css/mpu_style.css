@@ -192,6 +192,7 @@
   box-shadow: none !important;
   text-decoration: none !important;
   -moz-outline-style: none !important;
+  outline-style: none !important;
 }
 
 #mp_ukagaka .ukagaka-msgbox-border a img {
