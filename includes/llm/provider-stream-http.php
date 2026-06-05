@@ -70,7 +70,6 @@ function mpu_stream_api_request($url, $args, $on_chunk) {
     if (curl_errno($ch)) {
         $error_msg = curl_error($ch);
         $error_code = curl_errno($ch);
-        curl_close($ch);
 
         // 如果是因為我們主動返回 0 導致的斷開，不視為錯誤
         if ($error_code === CURLE_WRITE_ERROR && connection_aborted()) {
@@ -81,7 +80,6 @@ function mpu_stream_api_request($url, $args, $on_chunk) {
     }
 
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
 
     if ($http_code >= 400) {
         // 嘗試解析 provider 回傳的 JSON 錯誤訊息
