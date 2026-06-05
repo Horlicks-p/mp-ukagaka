@@ -3,6 +3,10 @@
 /**
  * Transient-backed ghost runtime state helpers.
  *
+ * Reserved backend foundation for future runtime UI/observation readers. The
+ * current production path writes short-lived state during REST chat/dialog
+ * flows, but does not expose a front-end read endpoint yet.
+ *
  * @package MP_Ukagaka
  * @subpackage Runtime_State
  */
