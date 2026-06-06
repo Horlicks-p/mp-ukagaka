@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.25.0
+Stable tag: 2.25.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,11 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-06 =
+* v2.25.1
+* [FIX] Emotion tag display leak: supported `[tag]` markers (e.g. `[thinking]`, `[laugh]`, `[sigh]`) are now stripped from visible text at the `mpu_typewriter()` boundary, so page-awareness, first-visit greeting, bot/event responses, and fallback dialogue no longer show raw tags. APNG expression selection is unaffected (it is driven by the separate emoji field, not the display text).
+* [FIX] Frieren prompt nudge: removed literal tag examples from `ghost/Frieren/emoji-keywords.json` metadata so the model is no longer encouraged to copy `[thinking]` / `[laugh]` / `[sigh]` strings into replies; the tag syntax guidance stays in `expression_tag_policy`.
 
 = 2026-05-31 =
 * v2.25.0

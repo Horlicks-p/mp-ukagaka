@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.25.0
+## 🎉 What's New in v2.25.1
+
+**Emotion tag display fix**: Supported `[tag]` markers (e.g. `[thinking]`, `[laugh]`, `[sigh]`) are now stripped from visible text at the `mpu_typewriter()` boundary, so page-awareness, first-visit greeting, bot/event responses, and fallback dialogue no longer leak raw tags into the dialogue box. APNG expression selection is unaffected (it is driven by a separate emoji field). Frieren's `emoji-keywords.json` metadata no longer ships literal tag examples, so the model is not nudged into copying them.
+
+### v2.25.0 Highlights
 
 **Emotion tags**: AI responses can now use inline `[tag]` expression markers. The new response normalizer keeps display/history/checksum/TTS text aligned while extracting emotion tags into structured data for REST and SSE responses.
 

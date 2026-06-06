@@ -48,7 +48,9 @@ final class EmotionTagPromptTest extends TestCase {
         $this->assertIsArray($data);
         $this->assertSame(JSON_ERROR_NONE, json_last_error());
         $this->assertNotEmpty($data['_meta']['expression_tag_examples']);
-        $this->assertStringContainsString('[laugh]', implode("\n", $data['_meta']['expression_tag_examples']));
+        $this->assertStringNotContainsString('[laugh]', implode("\n", $data['_meta']['expression_tag_examples']));
+        $this->assertStringNotContainsString('[thinking]', implode("\n", $data['_meta']['expression_tag_examples']));
+        $this->assertStringNotContainsString('[sigh]', implode("\n", $data['_meta']['expression_tag_examples']));
         $this->assertStringContainsString('at most one supported [tag]', $data['_meta']['expression_tag_policy']);
     }
 }

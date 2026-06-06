@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.25.0 の新機能
+## 🎉 v2.25.1 の新機能
+
+**Emotion tag 表示の修正**：サポート済みの `[tag]` マーカー（例：`[thinking]`、`[laugh]`、`[sigh]`）は `mpu_typewriter()` の入口で一括除去されるようになり、ページ感知・初訪問の挨拶・BOT／イベント応答・fallback 対話で生のタグが対話ボックスに漏れなくなりました。APNG の表情選択は独立した emoji フィールドで決まるため影響を受けません。Frieren の `emoji-keywords.json` metadata からも例示用タグ文字列を削除し、モデルが模倣しないようにしました。
+
+### v2.25.0 のハイライト
 
 **Emotion tag パイプライン**：AI 応答で inline `[tag]` 表情マーカーを使えるようになりました。新しい response normalizer により、display/history/checksum/TTS は同じクリーン済みテキストを共有し、emotion tag は REST / SSE で利用できる構造化データとして抽出されます。
 

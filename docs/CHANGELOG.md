@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.1] - 2026-06-06
+
+### Emotion tag 顯示強化（前端）
+
+- 前端現在於 `mpu_typewriter()` 入口統一移除支援的 `[tag]` 表情標記。頁面感知、初次訪問問候、BOT／事件回應與 fallback 對話不再把 `[thinking]` 之類的原始標記洩漏到對話框。APNG 表情選擇不受影響——它由獨立的 `res.emoji` 欄位驅動，而非解析顯示文字。移除邏輯會把正準 tag 清單與 `window.mpuSupportedEmojis` / `mpuEmojiConfig.mappings` 合併，只移除已知 tag，並以 `(?!\()` lookahead 避免吃掉 Markdown 連結。
+- 移除 `ghost/Frieren/emoji-keywords.json` metadata 中的範例標記字串，避免誘導模型照抄 `[thinking]` / `[laugh]` / `[sigh]`；tag 語法說明仍保留在 `expression_tag_policy`。
+- 更新 `EmotionTagPromptTest`，改為斷言 metadata examples 不含可見 tag，同時 policy 仍記錄語法。
+
+---
+
 ## [2.25.0] - 2026-05-31
 
 ### Emotion tag 回應管線

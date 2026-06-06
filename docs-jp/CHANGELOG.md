@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.1] - 2026-06-06
+
+### Emotion tag 表示の堅牢化（フロントエンド）
+
+- フロントエンドは `mpu_typewriter()` の入口でサポート済みの `[tag]` 表情マーカーを一括除去するようになりました。ページ感知・初訪問の挨拶・BOT／イベント応答・fallback 対話で `[thinking]` のような生のマーカーが対話ボックスに漏れなくなります。APNG の表情選択は表示テキストの解析ではなく独立した `res.emoji` フィールドで決まるため影響を受けません。除去ロジックは正準 tag リストと `window.mpuSupportedEmojis` / `mpuEmojiConfig.mappings` をマージし、既知の tag のみを除去し、`(?!\()` の先読みで Markdown リンクを誤食いしません。
+- `ghost/Frieren/emoji-keywords.json` の metadata から例示用の tag 文字列を削除し、モデルが `[thinking]` / `[laugh]` / `[sigh]` をそのまま模倣しないようにしました。tag 構文の説明は `expression_tag_policy` に残しています。
+- `EmotionTagPromptTest` を更新し、metadata examples に可視 tag が含まれないこと（構文説明は policy 側に残ること）を検証します。
+
+---
+
 ## [2.25.0] - 2026-05-31
 
 ### Emotion tag 応答パイプライン

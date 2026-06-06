@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.25.0 新功能
+## 🎉 v2.25.1 新功能
+
+**Emotion tag 顯示修正**：支援的 `[tag]` 標記（例如 `[thinking]`、`[laugh]`、`[sigh]`）現在於 `mpu_typewriter()` 入口統一移除，頁面感知、初次訪問問候、BOT／事件回應與 fallback 對話不再把原始標記洩漏到對話框。APNG 表情選擇不受影響（由獨立的 emoji 欄位驅動）。Frieren 的 `emoji-keywords.json` metadata 也不再附帶範例標記字串，避免誘導模型照抄。
+
+### v2.25.0 重點
 
 **Emotion tag 表情管線**：AI 回覆現在可以使用 inline `[tag]` 表情標記。新的 response normalizer 會讓 display/history/checksum/TTS 共用同一份乾淨文字，同時把 emotion tag 解析成 REST 與 SSE 都能使用的結構化資料。
 

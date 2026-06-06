@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.1] - 2026-06-06
+
+### Emotion tag display hardening (frontend)
+
+- Frontend now strips supported `[tag]` emotion markers from visible text at the `mpu_typewriter()` boundary. Page-awareness, first-visit greeting, bot / event responses, and fallback dialogue no longer leak raw markers such as `[thinking]` into the dialogue box. APNG expression selection is unaffected because it is driven by the separate `res.emoji` field, not by parsing the display text. The strip merges the canonical tag list with `window.mpuSupportedEmojis` / `mpuEmojiConfig.mappings`, only removes recognized tags, and uses a `(?!\()` lookahead to avoid eating Markdown links.
+- Removed literal tag examples from `ghost/Frieren/emoji-keywords.json` metadata so the model is no longer nudged to copy `[thinking]` / `[laugh]` / `[sigh]` strings verbatim into replies. The tag syntax guidance remains in `expression_tag_policy`.
+- Updated `EmotionTagPromptTest` to assert the metadata examples contain no visible tags while the policy still documents the syntax.
+
+---
+
 ## [2.25.0] - 2026-05-31
 
 ### Emotion tag response pipeline
