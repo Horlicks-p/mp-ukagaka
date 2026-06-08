@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.2] - 2026-06-08
+
+### Emotion tag display hardening moved to the backend normalizer
+
+- Moved the 2.25.1 emotion-tag stripping from the frontend `mpu_typewriter()` boundary back into the backend response normalizer and reverted the frontend strip, so `display_text` / `history_text` / `checksum_text` stay aligned per §13.2 (frontend-only stripping touched display but not history, causing the three to drift).
+- The backend normalizer now also handles common spelling variants: inner whitespace, trailing punctuation, and full-width brackets `【tag】` / `［tag］` (e.g. `[ thinking ]`, `【thinking】`, `［sigh。］`, `[thinking…]`). It remains gated by the supported list, unknown tags are preserved by default, and Markdown links stay protected by the existing `(?!\()` guard.
+- Added `ResponseNormalizerTest` cases covering full-width / whitespace / trailing-punctuation stripping and Markdown-link protection (including links with inner whitespace).
+
+---
+
 ## [2.25.1] - 2026-06-06
 
 ### Emotion tag display hardening (frontend)

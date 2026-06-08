@@ -98,9 +98,9 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.25.1
+## 🎉 What's New in v2.25.2
 
-**Emotion tag display fix**: Supported `[tag]` markers (e.g. `[thinking]`, `[laugh]`, `[sigh]`) are now stripped from visible text at the `mpu_typewriter()` boundary, so page-awareness, first-visit greeting, bot/event responses, and fallback dialogue no longer leak raw tags into the dialogue box. APNG expression selection is unaffected (it is driven by a separate emoji field). Frieren's `emoji-keywords.json` metadata no longer ships literal tag examples, so the model is not nudged into copying them.
+**Emotion tag display fix**: The backend response normalizer now strips supported `[tag]` markers and common variants (e.g. `[ thinking ]`, `【thinking】`, `[thinking…]`) before REST responses reach the frontend, so page-awareness, first-visit greeting, bot/event responses, and chat keep display/history/checksum text aligned. Unknown tags are still preserved by default, and Markdown links are protected. Frieren's `emoji-keywords.json` metadata no longer ships literal tag examples, so the model is not nudged into copying them.
 
 ### v2.25.0 Highlights
 

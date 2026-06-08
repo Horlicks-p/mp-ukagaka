@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.2] - 2026-06-08
+
+### Emotion tag 表示の堅牢化をバックエンド normalizer へ移動
+
+- 2.25.1 の emotion tag 除去をフロントエンド `mpu_typewriter()` からバックエンドの response normalizer へ戻し、フロントエンドの strip を撤回しました。これにより `display_text` / `history_text` / `checksum_text` が §13.2 の単一ソースとして揃います（フロントエンドのみの除去は表示だけを変え履歴を変えないため、三者がずれていました）。
+- バックエンド normalizer が一般的な表記揺れにも対応：括弧内の空白・末尾の句読点、および全角括弧 `【tag】` / `［tag］`（例：`[ thinking ]`、`【thinking】`、`［sigh。］`、`[thinking…]`）。引き続き supported リストを gate とし、未知 tag は既定で保持、Markdown リンクは既存の `(?!\()` guard で保護します。
+- `ResponseNormalizerTest` に全角／空白／末尾句読点の除去と Markdown リンク（括弧内空白を含む）保護のケースを追加しました。
+
+---
+
 ## [2.25.1] - 2026-06-06
 
 ### Emotion tag 表示の堅牢化（フロントエンド）

@@ -250,21 +250,29 @@ function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown
 	$hits = array();
 
 	// 新內嵌標籤.
-	if ( preg_match_all( '/\[([a-z][a-z0-9_-]{0,31})\](?!\()/i', $text, $mm, PREG_OFFSET_CAPTURE ) ) {
-		foreach ( $mm[0] as $i => $whole ) {
-			$canon = mpu_normalize_resolve_emotion_tag( $mm[1][ $i ][0], $supported );
-			if ( null !== $canon ) {
-				$hits[] = array(
-					'offset' => $whole[1],
-					'len'    => strlen( $whole[0] ),
-					'tag'    => $canon,
-				);
-			} elseif ( $strip_unknown ) {
-				$hits[] = array(
-					'offset' => $whole[1],
-					'len'    => strlen( $whole[0] ),
-					'tag'    => null,
-				);
+	$inline_patterns = array(
+		'/\[([ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?)\](?!\()/iu',
+		'/【([ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?)】/iu',
+		'/［([ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?)］/iu',
+	);
+	foreach ( $inline_patterns as $pattern ) {
+		if ( preg_match_all( $pattern, $text, $mm, PREG_OFFSET_CAPTURE ) ) {
+			foreach ( $mm[0] as $i => $whole ) {
+				$tag_name = mpu_normalize_clean_inline_emotion_tag( $mm[1][ $i ][0] );
+				$canon    = mpu_normalize_resolve_emotion_tag( $tag_name, $supported );
+				if ( null !== $canon ) {
+					$hits[] = array(
+						'offset' => $whole[1],
+						'len'    => strlen( $whole[0] ),
+						'tag'    => $canon,
+					);
+				} elseif ( $strip_unknown ) {
+					$hits[] = array(
+						'offset' => $whole[1],
+						'len'    => strlen( $whole[0] ),
+						'tag'    => null,
+					);
+				}
 			}
 		}
 	}
@@ -331,6 +339,18 @@ function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown
 		'tags'  => $tags,
 		'files' => $files,
 	);
+}
+
+/**
+ * Normalize loose inline [tag] spelling before supported-tag lookup.
+ *
+ * @param string $name Raw inline tag body.
+ * @return string
+ */
+function mpu_normalize_clean_inline_emotion_tag( $name ) {
+	$name = trim( (string) $name );
+	$name = preg_replace( '/[.!?。．、，,;；:：…]+\s*$/u', '', $name );
+	return is_string( $name ) ? trim( $name ) : '';
 }
 
 /**

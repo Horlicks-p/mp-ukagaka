@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-06T02:12:05.537Z
+ * Generated: 2026-06-08T03:05:44.721Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -623,39 +623,6 @@ function mpuClearSystemPlaceholder(targetOrOptions) {
     mpuHideThinkBubble({ source: 'system' });
 }
 
-function mpuGetSupportedEmotionTags() {
-    const tags = new Set([
-        'notice', 'thinking', 'upset', 'laugh', 'shy', 'angry', 'talking',
-        'amazed', 'sigh', 'stun', 'dizzy', 'scared', 'sleepy', 'drooling',
-        'what', 'sad', 'love', 'kiss', 'want', 'good', 'thank', 'sorry',
-        'speechless', 'embarrass', 'brainwave', 'smirk', 'smug_nod',
-        'money', 'exhausted', 'vomit', 'whats_up'
-    ]);
-
-    if (Array.isArray(window.mpuSupportedEmojis)) {
-        window.mpuSupportedEmojis.forEach((tag) => {
-            if (typeof tag === 'string' && tag) tags.add(tag.toLowerCase());
-        });
-    }
-    if (window.mpuEmojiConfig && window.mpuEmojiConfig.mappings) {
-        Object.keys(window.mpuEmojiConfig.mappings).forEach((tag) => {
-            if (tag) tags.add(tag.toLowerCase());
-        });
-    }
-    return tags;
-}
-
-function mpuStripDisplayEmotionTags(text) {
-    if (typeof text !== 'string' || text.indexOf('[') === -1) {
-        return text;
-    }
-
-    const supported = mpuGetSupportedEmotionTags();
-    return text.replace(/\[([a-z][a-z0-9_-]{0,31})\](?!\()/gi, function (match, tag) {
-        return supported.has(String(tag).toLowerCase()) ? '' : match;
-    });
-}
-
 /**
  * 打字效果函數（性能優化版）
  * @param {string} text - 要顯示的文字（可包含 HTML）
@@ -682,8 +649,6 @@ function mpu_typewriter(text, target, speed, options) {
         clearTimeout(mpuTypewriterTimer);
         mpuSetTypewriterTimer(null);
     }
-
-    text = mpuStripDisplayEmotionTags(text);
 
     if (!text) {
         const $target = typeof target === 'string' ? jQuery(target) : target;

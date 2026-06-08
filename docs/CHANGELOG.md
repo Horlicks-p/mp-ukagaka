@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.2] - 2026-06-08
+
+### Emotion tag 顯示強化改放後端 normalizer
+
+- 將 2.25.1 的 emotion tag 剝離邏輯從前端 `mpu_typewriter()` 移回後端 response normalizer，並還原前端 strip，使 `display_text` / `history_text` / `checksum_text` 維持 §13.2 單一來源對齊（前端剝離只動顯示、不動歷史，會造成三者漂移）。
+- 後端 normalizer 新增常見表記變體支援：方括號內含空白、尾隨標點，以及全形括號 `【tag】` / `［tag］`（例：`[ thinking ]`、`【thinking】`、`［sigh。］`、`[thinking…]`）。仍以 supported 清單為閘門，未知 tag 預設保留，Markdown 連結由既有 `(?!\()` guard 保護。
+- `ResponseNormalizerTest` 新增變體案例，涵蓋全形/空白/尾隨標點剝離與 Markdown 連結（含括號內空白）保護。
+
+---
+
 ## [2.25.1] - 2026-06-06
 
 ### Emotion tag 顯示強化（前端）

@@ -125,6 +125,23 @@ final class ResponseNormalizerTest extends TestCase {
         $this->assertLocked($r);
     }
 
+    public function test_supported_tag_variants_are_normalized_at_backend_boundary(): void {
+        $GLOBALS['_mpu_test_emoji_supported'] = ['laugh', 'thinking', 'sigh'];
+
+        $r = mpu_normalize_ai_response('[ thinking ] ん、待って。 【laugh】 それは面白いね。 ［sigh。］ 仕方ない。 [thinking…]');
+
+        $this->assertSame(['thinking', 'laugh', 'sigh', 'thinking'], $r['emotion_tags']);
+        $this->assertSame(['thinking.png', 'laugh.png', 'sigh.png', 'thinking.png'], $r['emotion_files']);
+        $this->assertStringNotContainsString('[ thinking ]', $r['display_text']);
+        $this->assertStringNotContainsString('【laugh】', $r['display_text']);
+        $this->assertStringNotContainsString('［sigh。］', $r['display_text']);
+        $this->assertStringNotContainsString('[thinking…]', $r['display_text']);
+        $this->assertStringContainsString('ん、待って。', $r['display_text']);
+        $this->assertStringContainsString('それは面白いね。', $r['display_text']);
+        $this->assertStringContainsString('仕方ない。', $r['display_text']);
+        $this->assertLocked($r);
+    }
+
     public function test_multiple_tags_primary_is_first(): void {
         $r = mpu_normalize_ai_response('[laugh] あはは [angry] むっ');
         $this->assertSame(['laugh', 'angry'], $r['emotion_tags']);
@@ -159,6 +176,7 @@ final class ResponseNormalizerTest extends TestCase {
             'WordPress' => ['[WordPress]'],
             'TODO'      => ['[TODO]'],
             'single'    => ['[A]'],
+            'fullwidth' => ['【smile】'],
         ];
     }
 
@@ -186,6 +204,10 @@ final class ResponseNormalizerTest extends TestCase {
         $r2 = mpu_normalize_ai_response('[laugh](https://x.com)');
         $this->assertStringContainsString('[laugh](https://x.com)', $r2['display_text']);
         $this->assertSame([], $r2['emotion_tags']);
+
+        $r3 = mpu_normalize_ai_response('[ laugh ](https://x.com)');
+        $this->assertStringContainsString('[ laugh ](https://x.com)', $r3['display_text']);
+        $this->assertSame([], $r3['emotion_tags']);
     }
 
     public function test_unclosed_think_captured(): void {

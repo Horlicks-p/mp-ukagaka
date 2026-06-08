@@ -184,6 +184,10 @@ This plugin uses a modular architecture for better maintainability:
 
 == Changelog ==
 
+= 2026-06-08 =
+* v2.25.2
+* [FIX] Emotion tag display leak (proper fix): moved the 2.25.1 stripping from the frontend `mpu_typewriter()` boundary back into the backend response normalizer and reverted the frontend strip, so display/history/checksum text stays aligned. The normalizer now also handles common variants — inner whitespace, trailing punctuation, and full-width brackets `【tag】` / `［tag］` (e.g. `[ thinking ]`, `【thinking】`, `[thinking…]`). Still gated by the supported list; unknown tags are preserved and Markdown links are protected.
+
 = 2026-06-06 =
 * v2.25.1
 * [FIX] Emotion tag display leak: supported `[tag]` markers (e.g. `[thinking]`, `[laugh]`, `[sigh]`) are now stripped from visible text at the `mpu_typewriter()` boundary, so page-awareness, first-visit greeting, bot/event responses, and fallback dialogue no longer show raw tags. APNG expression selection is unaffected (it is driven by the separate emoji field, not the display text).
