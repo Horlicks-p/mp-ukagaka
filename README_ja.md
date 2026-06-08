@@ -98,9 +98,9 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.25.2 の新機能
+## 🎉 v2.25.3 の新機能
 
-**Emotion tag 表示の修正**：バックエンドの response normalizer が、サポート済みの `[tag]` マーカーと一般的な表記揺れ（例：`[ thinking ]`、`【thinking】`、`[thinking…]`）を REST 応答前に除去するようになりました。ページ感知・初訪問の挨拶・BOT／イベント応答・会話で、表示・履歴・checksum のテキストが揃います。未知 tag は従来どおり既定で保持し、Markdown リンクも保護します。Frieren の `emoji-keywords.json` metadata からも例示用タグ文字列を削除し、モデルが模倣しないようにしました。
+**Emotion tag 表示の修正（イベント応答）**：`check-spam-event` エンドポイント（Turnstile・Akismet スパム・bot blocker・bot アラート・AI クローラー・訪問者パルスの反応）がバックエンドの response normalizer を通るようになり、サポート済み `[tag]`（例：`[smirk]`）が会話ボックスに漏れなくなり、保存される checksum もクリーン済みテキストと一致します。これらのイベント応答も他の REST パスと同様に構造化された `emoji` / `emotion_tags` を返します。（v2.25.2 はページ感知／挨拶／会話パスを修正、本リリースで残るイベントパスを塞ぎました。）
 
 ### v2.25.0 のハイライト
 

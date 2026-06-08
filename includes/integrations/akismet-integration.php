@@ -94,6 +94,55 @@ function mpu_store_spam_event_checksum( WP_REST_Request $request, $message )
     mpu_chat_integrity_store_history($cs_sid, mpu_chat_integrity_slice_for_store($prior, 10));
 }
 
+/**
+ * Normalize a generated security-event response, store the matching checksum, and
+ * build the REST payload.
+ *
+ * @param WP_REST_Request $request REST request.
+ * @param string          $message Raw generated event message.
+ * @param array           $extra   Additional response fields.
+ * @return array
+ */
+function mpu_finalize_spam_event_response( WP_REST_Request $request, $message, array $extra = array() )
+{
+    $mpu_opt = function_exists('mpu_get_option') ? mpu_get_option() : [];
+    $cur_num = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+    $personality_id = null;
+
+    if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
+        $personality_id = mpu_get_personality_id_from_ukagaka_name($cur_num);
+    }
+
+    if (function_exists('mpu_normalize_ai_response_for_rest')) {
+        $normalized = mpu_normalize_ai_response_for_rest(
+            (string) $message,
+            $personality_id,
+            array( 'context' => 'event' )
+        );
+        $fields = mpu_normalize_ai_response_rest_fields($normalized);
+        $checksum_text = $normalized['checksum_text'];
+    } else {
+        $checksum_text = (string) $message;
+        $fields = array(
+            'msg'                  => (string) $message,
+            'emoji'                => null,
+            'emotion_tags'         => array(),
+            'emotion_files'        => array(),
+            'primary_emotion_tag'  => null,
+            'primary_emotion_file' => null,
+            'think'                => '',
+        );
+    }
+
+    mpu_store_spam_event_checksum($request, $checksum_text);
+
+    return array_merge(
+        array( 'has_event' => true ),
+        $fields,
+        $extra
+    );
+}
+
 function mpu_rest_check_spam_event( WP_REST_Request $request )
 {
     // 速率限制 - 20次/分鐘（跟隨 auto_talk 頻率）
@@ -128,13 +177,10 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Turnstile Integration: 結界防禦反應觸發，撞擊數量: ' . $count . '（冷卻 30 分鐘）');
             }
-            mpu_store_spam_event_checksum($request, $message);
-            return new WP_REST_Response([
-                'has_event' => true,
-                'msg' => $message,
+            return new WP_REST_Response(mpu_finalize_spam_event_response($request, $message, [
                 'action' => 'turnstile_block',
                 'block_count' => $count,
-            ], 200);
+            ]), 200);
         }
         // LLM 生成失敗 → 不阻擋，繼續往下檢查
         if (function_exists('mpu_debug_log')) {
@@ -159,13 +205,10 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Akismet Integration: 垃圾留言反應觸發，攔截數量: ' . $count . '（冷卻 30 分鐘）');
             }
-            mpu_store_spam_event_checksum($request, $message);
-            return new WP_REST_Response([
-                'has_event' => true,
-                'msg' => $message,
+            return new WP_REST_Response(mpu_finalize_spam_event_response($request, $message, [
                 'action' => 'spam_alert',
                 'spam_count' => $count,
-            ], 200);
+            ]), 200);
         }
         // LLM 生成失敗 → 不阻擋，繼續往下檢查 Bot
         if (function_exists('mpu_debug_log')) {
@@ -193,13 +236,10 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Moelog Bot Blocker: 防禦魔法反應觸發，攔截數量: ' . $count . '（冷卻 30 分鐘）');
             }
-            mpu_store_spam_event_checksum($request, $message);
-            return new WP_REST_Response([
-                'has_event' => true,
-                'msg' => $message,
+            return new WP_REST_Response(mpu_finalize_spam_event_response($request, $message, [
                 'action' => 'bot_blocker_alert',
                 'block_count' => $count,
-            ], 200);
+            ]), 200);
         }
         if (function_exists('mpu_debug_log')) {
             mpu_debug_log('Moelog Bot Blocker: LLM 生成失敗，跳過反應');
@@ -221,13 +261,10 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Bot Alert: 偵測到 Bot (' . $bot_name . ')，觸發警報反應');
             }
-            mpu_store_spam_event_checksum($request, $message);
-            return new WP_REST_Response([
-                'has_event' => true,
-                'msg' => $message,
+            return new WP_REST_Response(mpu_finalize_spam_event_response($request, $message, [
                 'action' => 'bot_alert',
                 'bot_name' => $bot_name,
-            ], 200);
+            ]), 200);
         }
     }
 
@@ -248,14 +285,11 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('AI Crawler: 偵測到 ' . $ai_crawler['name'] . ' (' . $ai_crawler['company'] . ')，觸發反應（冷卻 30 分鐘）');
             }
-            mpu_store_spam_event_checksum($request, $message);
-            return new WP_REST_Response([
-                'has_event' => true,
-                'msg' => $message,
+            return new WP_REST_Response(mpu_finalize_spam_event_response($request, $message, [
                 'action' => 'ai_crawler_alert',
                 'crawler' => $ai_crawler['name'],
                 'company' => $ai_crawler['company'],
-            ], 200);
+            ]), 200);
         }
         if (function_exists('mpu_debug_log')) {
             mpu_debug_log('AI Crawler: LLM 生成失敗，跳過反應');
@@ -290,13 +324,10 @@ function mpu_rest_check_spam_event( WP_REST_Request $request )
                 if (function_exists('mpu_debug_log')) {
                     mpu_debug_log('Visitor Pulse: 觸發訊號 ' . $pulse_event['type'] . '（冷卻 60 分鐘）');
                 }
-                mpu_store_spam_event_checksum($request, $message);
-                return new WP_REST_Response([
-                    'has_event' => true,
-                    'msg' => $message,
+                return new WP_REST_Response(mpu_finalize_spam_event_response($request, $message, [
                     'action' => 'visitor_pulse_alert',
                     'pulse_type' => $pulse_event['type'],
-                ], 200);
+                ]), 200);
             }
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('Visitor Pulse: LLM 生成失敗，跳過反應');

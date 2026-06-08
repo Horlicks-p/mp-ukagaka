@@ -98,9 +98,9 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.25.2
+## 🎉 What's New in v2.25.3
 
-**Emotion tag display fix**: The backend response normalizer now strips supported `[tag]` markers and common variants (e.g. `[ thinking ]`, `【thinking】`, `[thinking…]`) before REST responses reach the frontend, so page-awareness, first-visit greeting, bot/event responses, and chat keep display/history/checksum text aligned. Unknown tags are still preserved by default, and Markdown links are protected. Frieren's `emoji-keywords.json` metadata no longer ships literal tag examples, so the model is not nudged into copying them.
+**Emotion tag display fix (event responses)**: The `check-spam-event` endpoint — Turnstile, Akismet spam, bot blocker, bot alert, AI crawler, and visitor-pulse reactions — now routes through the backend response normalizer, so supported `[tag]` markers (e.g. `[smirk]`) no longer leak into the dialogue box and the stored checksum matches the cleaned text. These event replies also now return structured `emoji` / `emotion_tags` data like the other REST paths. (v2.25.2 fixed the page-aware / greet / chat paths; this round closes the remaining event path.)
 
 ### v2.25.0 Highlights
 

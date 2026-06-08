@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.3] - 2026-06-08
+
+### `check-spam-event` responses now pass through the backend normalizer
+
+- The `check-spam-event` REST endpoint (Turnstile, Akismet spam, Moelog Bot Blocker, bot alert, AI crawler, visitor pulse) returned raw LLM messages without normalization, so supported `[tag]` markers (e.g. `[smirk]`) leaked into the dialogue box once 2.25.2 removed the frontend strip. This event path was outside the four REST paths covered by 2.25.2.
+- Added `mpu_finalize_spam_event_response()`; all six event branches now route through it. It normalizes the message (stripping/extracting emotion tags), stores the checksum from the **normalized** text (previously stored the raw text, which would diverge from the cleaned frontend history), and returns structured `emoji` / `emotion_tags` / `primary_emotion_*` like the other REST paths — keeping `display_text` / `history_text` / `checksum_text` aligned per §13.2.
+- Added `SpamEventResponseTest` covering the AI-crawler event path (`[smirk]` stripped, `smirk.png` emoji, checksum computed from cleaned text).
+
+---
+
 ## [2.25.2] - 2026-06-08
 
 ### Emotion tag display hardening moved to the backend normalizer

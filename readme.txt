@@ -185,6 +185,10 @@ This plugin uses a modular architecture for better maintainability:
 == Changelog ==
 
 = 2026-06-08 =
+* v2.25.3
+* [FIX] Emotion tag leak on security-event responses: the `check-spam-event` endpoint (Turnstile, Akismet spam, Moelog Bot Blocker, bot alert, AI crawler, visitor pulse) returned raw LLM text without normalization, so supported `[tag]` markers (e.g. `[smirk]`) leaked into the dialogue box after 2.25.2 removed frontend stripping. All six event branches now route through `mpu_finalize_spam_event_response()`, which normalizes the message, stores the checksum from the cleaned text, and returns `emoji` / `emotion_tags` / `primary_emotion_*` — keeping display/history/checksum aligned (§13.2). Added `SpamEventResponseTest` for the AI-crawler path.
+
+= 2026-06-08 =
 * v2.25.2
 * [FIX] Emotion tag display leak (proper fix): moved the 2.25.1 stripping from the frontend `mpu_typewriter()` boundary back into the backend response normalizer and reverted the frontend strip, so display/history/checksum text stays aligned. The normalizer now also handles common variants — inner whitespace, trailing punctuation, and full-width brackets `【tag】` / `［tag］` (e.g. `[ thinking ]`, `【thinking】`, `[thinking…]`). Still gated by the supported list; unknown tags are preserved and Markdown links are protected.
 

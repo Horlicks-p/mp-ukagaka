@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.3] - 2026-06-08
+
+### `check-spam-event` 応答もバックエンド normalizer を通すよう修正
+
+- `check-spam-event` REST エンドポイント（Turnstile・Akismet スパム・Moelog Bot Blocker・bot アラート・AI クローラー・訪問者パルス）が LLM メッセージを正規化せず raw のまま返していたため、2.25.2 でフロントエンドの strip を撤去した後、サポート済み `[tag]`（例：`[smirk]`）が会話ボックスに漏れていました。このイベントパスは 2.25.2 が対象とした 4 つの REST パスの外でした。
+- `mpu_finalize_spam_event_response()` を追加し、6 つのイベント分岐すべてをこれ経由にしました。メッセージを正規化（emotion tag の除去／抽出）し、**正規化後**のテキストで checksum を保存（従来は raw を保存しており、クリーン済みのフロント履歴とずれていました）、他の REST パスと同様に `emoji` / `emotion_tags` / `primary_emotion_*` を返すことで、§13.2 の `display_text` / `history_text` / `checksum_text` を揃えます。
+- AI クローラーのイベントパスを対象とした `SpamEventResponseTest` を追加（`[smirk]` の除去、`smirk.png` の emoji、クリーン済みテキストから計算した checksum を検証）。
+
+---
+
 ## [2.25.2] - 2026-06-08
 
 ### Emotion tag 表示の堅牢化をバックエンド normalizer へ移動

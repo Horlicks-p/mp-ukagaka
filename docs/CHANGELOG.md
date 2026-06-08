@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.3] - 2026-06-08
+
+### `check-spam-event` 回應改走後端 normalizer
+
+- `check-spam-event` REST 端點（Turnstile、Akismet 垃圾留言、Moelog Bot Blocker、bot 警報、AI 爬蟲、訪客脈動）原本直接回傳未正規化的 LLM 訊息，因此 2.25.2 移除前端 strip 後，支援的 `[tag]`（例如 `[smirk]`）會漏進對話框。此事件路徑不在 2.25.2 涵蓋的四條 REST 路徑內。
+- 新增 `mpu_finalize_spam_event_response()`，六個事件分支現在統一經由它：正規化訊息（剝離／抽取 emotion tag）、以**正規化後**文字寫入 checksum（先前存的是 raw，會與前端的乾淨歷史漂移），並比照其他 REST 路徑回傳結構化的 `emoji` / `emotion_tags` / `primary_emotion_*`，維持 §13.2 的 `display_text` / `history_text` / `checksum_text` 對齊。
+- 新增 `SpamEventResponseTest` 覆蓋 AI 爬蟲事件路徑（驗證 `[smirk]` 被剝離、`smirk.png` emoji、以乾淨文字計算的 checksum）。
+
+---
+
 ## [2.25.2] - 2026-06-08
 
 ### Emotion tag 顯示強化改放後端 normalizer
