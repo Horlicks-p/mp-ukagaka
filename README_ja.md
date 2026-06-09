@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.4-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,9 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.25.3 の新機能
+## 🎉 v2.25.4 の新機能
 
-**Emotion tag 表示の修正（イベント応答）**：`check-spam-event` エンドポイント（Turnstile・Akismet スパム・bot blocker・bot アラート・AI クローラー・訪問者パルスの反応）がバックエンドの response normalizer を通るようになり、サポート済み `[tag]`（例：`[smirk]`）が会話ボックスに漏れなくなり、保存される checksum もクリーン済みテキストと一致します。これらのイベント応答も他の REST パスと同様に構造化された `emoji` / `emotion_tags` を返します。（v2.25.2 はページ感知／挨拶／会話パスを修正、本リリースで残るイベントパスを塞ぎました。）
+**雨量に基づく天気ラベル補正**：Open-Meteo の `precipitation_sum` を使い、24時間累積雨量が多い日の予報を「霧雨」と過小表現しないよう補正しました。現在天気はリアルタイムの WMO code を維持し、当日の累積雨量をコンテキストへ添えることで、今まさに大雨と誤認させずに雨勢を伝えます。
+
+**フリーレンの反応文調整**：bot detection のテンプレート1件を、矛盾した比喩が出ない自然な表現へ書き換えました。
 
 ### v2.25.0 のハイライト
 

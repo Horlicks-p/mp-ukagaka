@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.4-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,9 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.25.3
+## 🎉 What's New in v2.25.4
 
-**Emotion tag display fix (event responses)**: The `check-spam-event` endpoint — Turnstile, Akismet spam, bot blocker, bot alert, AI crawler, and visitor-pulse reactions — now routes through the backend response normalizer, so supported `[tag]` markers (e.g. `[smirk]`) no longer leak into the dialogue box and the stored checksum matches the cleaned text. These event replies also now return structured `emoji` / `emotion_tags` data like the other REST paths. (v2.25.2 fixed the page-aware / greet / chat paths; this round closes the remaining event path.)
+**Weather rain-label refinement**: Daily forecast rain labels now use Open-Meteo `precipitation_sum` to avoid understating heavy 24-hour rainfall as drizzle. Current weather still keeps the live WMO code, while the context adds the day’s accumulated rainfall so the character can talk about real rain intensity without overstating what is happening right now.
+
+**Frieren reaction wording**: One bot-detection prompt was rewritten to remove a contradictory metaphor, making security-event dialogue more natural.
 
 ### v2.25.0 Highlights
 

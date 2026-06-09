@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.25.1
+Stable tag: 2.25.4
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,13 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-09 =
+* v2.25.4
+* [IMPROVE] Weather rain labels now account for Open-Meteo `precipitation_sum`: daily forecast labels are upgraded when 24-hour rainfall indicates stronger continuous rain, avoiding heavy accumulation being described as drizzle.
+* [FIX] Current weather keeps the live WMO code instead of being upgraded by the daily total; the context still includes the day’s accumulated rainfall so the character understands real rain intensity without overstating the current moment.
+* [IMPROVE] Adjusted extreme-rain wording and rewrote one Frieren bot-detection template to remove a contradictory metaphor.
+* [DOCS] Updated the Gift/Feeding implementation plan with code-verified follow-up notes.
 
 = 2026-06-08 =
 * v2.25.3

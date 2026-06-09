@@ -4,6 +4,17 @@
 
 ---
 
+## [2.25.4] - 2026-06-09
+
+### 依 24 小時雨量校正天氣標籤
+
+- Open-Meteo 每日預報現在會使用 `precipitation_sum` 校正雨勢標籤。當連續雨系 WMO code 低估實際 24 小時累積雨量時，預報標籤會依雨量提高，避免把明顯不小的雨說成「霧雨」。
+- 目前天氣不再被每日累積雨量覆寫，仍保留即時 WMO code。天氣上下文會附上本日累積雨量，讓角色掌握真實雨勢，同時避免誤稱當下正在下大雨。
+- 將極端雨量階層調整成更自然的日文標籤，並重寫一條 Frieren bot detection 模板，移除矛盾的比喻。
+- Gift/Feeding 實作計畫補入經實碼確認的注意事項：normalizer context 所在檔案、首次 interaction 的 history 處理，以及 observation dedupe wording。
+
+---
+
 ## [2.25.3] - 2026-06-08
 
 ### `check-spam-event` 回應改走後端 normalizer

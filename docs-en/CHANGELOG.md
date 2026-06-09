@@ -4,6 +4,17 @@
 
 ---
 
+## [2.25.4] - 2026-06-09
+
+### Weather rain labels now account for 24-hour precipitation totals
+
+- Added rain-label refinement for Open-Meteo daily forecasts: `precipitation_sum` now upgrades continuous-rain WMO labels when 24-hour rainfall is materially higher than the base code suggests, so heavy daily accumulation is no longer described as drizzle.
+- Current weather keeps the live WMO code instead of being upgraded by the daily total. The context still appends the day’s accumulated rainfall, giving the character enough signal about true rain intensity without falsely saying the current moment is a downpour.
+- Adjusted extreme-rain labels to more natural Japanese wording and rewrote one Frieren bot-detection template to remove a contradictory metaphor.
+- Updated the Gift/Feeding implementation plan with code-verified follow-up notes for the normalizer context file, first-interaction history handling, and observation dedupe wording.
+
+---
+
 ## [2.25.3] - 2026-06-08
 
 ### `check-spam-event` responses now pass through the backend normalizer

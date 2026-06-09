@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.4-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,9 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.25.3 新功能
+## 🎉 v2.25.4 新功能
 
-**Emotion tag 顯示修正（事件回應）**：`check-spam-event` 端點（Turnstile、Akismet 垃圾留言、bot blocker、bot 警報、AI 爬蟲、訪客脈動反應）現在會經過後端 response normalizer，支援的 `[tag]`（例如 `[smirk]`）不再漏進對話框，存入的 checksum 也與乾淨文字一致。這些事件回應也比照其他 REST 路徑回傳結構化的 `emoji` / `emotion_tags` 資料。（v2.25.2 修正了頁面感知／問候／對話路徑，本次補上剩下的事件路徑。）
+**依雨量校正天氣標籤**：每日預報現在會參考 Open-Meteo `precipitation_sum`，避免 24 小時累積雨量不小時仍被說成「霧雨」。目前天氣仍保留即時 WMO code，並在上下文附上本日累積雨量，讓角色掌握真實雨勢但不會誤稱當下正在下大雨。
+
+**芙莉蓮反應文調整**：重寫一條 bot detection 模板，移除矛盾的比喻，讓安全事件回應更自然。
 
 ### v2.25.0 重點
 
