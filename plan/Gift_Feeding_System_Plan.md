@@ -61,6 +61,15 @@
 > #### 会社 CLAUDE 確認補足（2026-06-09・A-A の重大度校正）
 > CODEX の D-1 / D-2 / D-3、Antigravity の A-A / A-1 / A-2 はコードに照らして全て妥当・採用。ただし A-A の表現を 1 点だけ校正する：
 > **A-A の「次回 `/chat/user` で 409 mismatch エラーが発生する」は現状では不正確**。checksum 既定は `audit` モード（`chat-integrity.php:28`）で、mismatch は**ログ記録のみ・チャットは中断しない**（409 にもならない）。`session_id`/`history` 未送信時の**現状の実害は「checksum 未保存＝§13.2 漂移＋ mismatch ログ noise」**であり、ハードな WP_Error は `block` モードに切り替えた場合に限る。したがって A-A の対処（前端が `session_id`＋`history` を body 送信）は**必須**だが、根拠は「409 防止」ではなく「§13.2 整合と block モード移行時の前方互換」と理解すること。
+>
+> #### 会社 CLAUDE 裁決（2026-06-09・Gemini 提案への判定）
+> Gemini から4点。G-2 を採用し D-2 の方向を改訂、G-3 採用、G-1 は Phase 2 へ降格、G-4 は A-1 への同調のみ：
+> **(G-2 採用・D-2 を改訂) synthetic anchor は「backend 単一所有」にする（最重要）**：D-2 は前端と backend が各々 anchor を組む案だったが、checksum は type 含め全列照合のため両者が**言語まで含め逐字一致**しないと mismatch する（前端 hardcode 日本語＋backend が利用者言語生成＝必ず破綻）。よって anchor 文字列は **backend が解決済み言語で生成 → checksum に使用 → REST レスポンスにも同梱して返す**。前端はそれを**そのまま**表示・履歴 push する（前端で組まない）。これで i18n と前後端 checksum 対称を同時に満たす。§3⑤／§4／D-2 の「前端で動的組立」記述はこの方針で上書き。
+> **(G-3 採用) 前端ロック解除は `finally` 必須**：`giveItemInProgress` は `try...finally`（または `.finally()`）で解除する。現行 decoration の `decorationChatInProgress` は成功路で setTimeout 解除のみ（`frieren.js:1281-1291`）で error/timeout 時にロック残留の懸念があるため、give では踏襲せず finally 化する（decoration 側の同様修正も backlog）。
+> **(G-1 → Phase 2 降格) 異種アイテム flooding は MVP では非対応**：dedupe は同一アイテムの連投を防ぐが、異種5件で 5 枠が item で埋まる懸念は妥当。ただし (a) touch/page_view も同じ輪転特性を持ち item 固有ではない、(b) 送禮は意図的操作で「直近＝送禮5件」は正しい近況とも言える。彼の「彙総レコードへ merge」は MVP には過剰。対応するなら push() に **per-type 上限（item 全体 2–3 件）** が筋だが、好感度/飽食度が入る Phase 2 に回す。
+> **(G-4) /touch/give**：A-1 への同調のみ。確定済み、追加対応なし。
+
+---
 
 ## 1. 背景・核心洞察
 
@@ -255,19 +264,20 @@ mpu_get_personality_item_ids($personality_id = null): array
     ```
   - 反応表示・`mpuEmojiManager.showEmoji()`・`window.mpuChatHistory.push()`（synthetic user anchor + assistant）
     は decoration 経路の既存コードを再利用
-  - **synthetic user anchor は動的組立（R2-2）**：decoration は固定文字列 `（装飾品に触れた）` を push しているが、
-    give では **localize の `name` で動的に**組み立てる：
+  - **synthetic user anchor は backend 所有（R2-2 を G-2 で改訂）**：anchor 文字列は backend が REST レスポンスで返す
+    （例 `res.user_anchor`）。前端は**前端で組まず**それを**そのまま** push する（前端 hardcode と backend 生成の
+    言語差で checksum が割れるのを防ぐ）：
     ```js
     window.mpuChatHistory.push({
       role: "user",
-      content: `（${item.name}を差し出した）`, // 例：（麻婆豆腐を差し出した）
+      content: res.user_anchor, // backend が解決済み言語で生成（checksum と同一文字列）
       type: "synthetic",
       timestamp: Date.now(),
     });
     ```
-    これで後続チャットの「さっきの、美味しかった？」に対し LLM が**何を渡したか**の語意文脈を保持できる。
-    固定文字列だと「何を渡したか」が履歴から消え、記憶連結が切れる。
-  - 多重実行ガードは decoration の `decorationChatInProgress` と同型（`giveItemInProgress`）
+    これで「さっきの、美味しかった？」に対し LLM が**何を渡したか**の語意文脈を保持しつつ、前後端 checksum も逐字一致する。
+  - 多重実行ガードは decoration の `decorationChatInProgress` と同型（`giveItemInProgress`）。
+    **解除は `try...finally` / `.finally()` で必須（G-3）**：error/timeout 時の UI ロック残留を防ぐ。
 
 ### ⑥ 演出
 
@@ -289,7 +299,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 | observation content | `food:<id>` / `gift:<id>` | kind プレフィクス付き、MAX_CONTENT_BYTES=200 以内 |
 | normalizer context | `give` | inner monologue default = false（`MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` に明示追加・C-1） |
 | chat history type（give assistant） | `give` | **`class-mpu-rest-chat.php:606-607` の `$allowed_types` と `MPU_Chat_History_Service::ALLOWED_MSG_TYPES` の両方に追加必須**（C-A / D-1）。checksum＋LLM context 両方の濾過対象 |
-| synthetic user anchor | `（{item.name}を差し出した）` | 前端表示／保存だけでなく、backend checksum 用 history にも catalog 由来 name で append（D-2） |
+| synthetic user anchor | backend 生成（`res.user_anchor`） | backend が解決済み言語で生成し checksum に使用＋レスポンスで返す。前端はそのまま表示・push（G-2 で D-2 の「前端で組立」を改訂） |
 | backend checksum | `store_after_auto(..., 'give')` | 前端 history と揃える（§13.2・C-B）。`chat_context`/`chat_greet` と同型。事前に synthetic anchor を含める |
 | conversation stats type | `give` | `stats-collector.php` の `$valid_types` と初期 stats 構造に追加（D-3）。追加しない場合は記録されない |
 
@@ -375,6 +385,9 @@ mpu_get_personality_item_ids($personality_id = null): array
 - **Phase 2（状態あり）**：session-token スコープの transient で「好感度／飽食度」を蓄積
   （observation buffer と同じ仕組み）。好感度で反応が変化、満腹時は「もう食べられない」等。
   匿名訪客が主なのでサーバ永続化は session 単位が現実的。状態管理・上限・リセット・チート対策の設計が増える。
+- **Phase 2（observation 整理・G-1）**：異種アイテム flooding 対策。同一アイテムの連投は dedupe で防げるが、
+  異なる道具を5件以上差し出すと 5 枠が item で埋まり page_view 等が押し出される。`push()` に item の per-type 上限
+  （全体 2–3 件）を入れる、もしくは閾値超で「色々な物を貰った」集約レコードへ merge する。MVP では非対応。
 - **Phase 3（演出強化）**：ドラッグ&ドロップで口元に運ぶ、食べるアニメ、ギフト箱を開ける演出。
 
 ---
