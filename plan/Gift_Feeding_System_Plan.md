@@ -2,6 +2,7 @@
 
 > 📅 初稿：2026-06-06
 > 📅 改訂：2026-06-06（家 CODEX レビュー 6 点を本文に反映）
+> 📅 改訂：2026-06-09（御三家＋Gemini レビュー反映後、家 CLAUDE/CODEX が実コード突合せ → 文書 3 点修正 F-1〜F-3）
 > 📋 訪客がキャラクターに「物を差し出す（ギフト／食事）」インタラクションの設計
 > 🎯 想定読者：実装担当
 > 🔖 対象バージョン基点：v2.25.1
@@ -68,6 +69,16 @@
 > **(G-3 採用) 前端ロック解除は `finally` 必須**：`giveItemInProgress` は `try...finally`（または `.finally()`）で解除する。現行 decoration の `decorationChatInProgress` は成功路で setTimeout 解除のみ（`frieren.js:1281-1291`）で error/timeout 時にロック残留の懸念があるため、give では踏襲せず finally 化する（decoration 側の同様修正も backlog）。
 > **(G-1 → Phase 2 降格) 異種アイテム flooding は MVP では非対応**：dedupe は同一アイテムの連投を防ぐが、異種5件で 5 枠が item で埋まる懸念は妥当。ただし (a) touch/page_view も同じ輪転特性を持ち item 固有ではない、(b) 送禮は意図的操作で「直近＝送禮5件」は正しい近況とも言える。彼の「彙総レコードへ merge」は MVP には過剰。対応するなら push() に **per-type 上限（item 全体 2–3 件）** が筋だが、好感度/飽食度が入る Phase 2 に回す。
 > **(G-4) /touch/give**：A-1 への同調のみ。確定済み、追加対応なし。
+>
+> #### 家 CLAUDE / CODEX 文書整合（2026-06-09・実コード突合せ後の文書修正3点）
+> 御三家＋Gemini のレビュー内容を全 file:line で現行コードと突合せ、全て正確と確認（特に G-2 採用は checksum 全列照合の性質上正しい）。
+> その上で実装者が照表施工で踏みやすい文書上の穴を 3 点補修：
+> **(F-1) §6 に `includes/llm/response-normalizer.php` を追加**：C-1 の `'give' => false` を入れる `MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` は
+> この実ファイル（冒頭 define、`'decoration' => false` の隣）に在る。§6 に無いと編集漏れする。所在注記も併記（姉妹 Emotion plan の `utility-functions.php` 記述は旧構成）。
+> **(F-2) §3③ 手順2 の `history` 空判定を精緻化**：`session_id` 空は 400 で良いが、`history` は「送信され array に解析できる」ことのみ要求し、
+> **解析後が空配列 `[]` でも 400 にしない**（初回インタラクションが送禮＝`history=[]` は正当。backend は anchor→reply を append すれば checksum を書ける）。
+> **(F-3) dedupe wording 修正（§3④／§9）**：hard cap は `push()` 末尾の `array_slice($buf, -MAX_ENTRIES)`。dedupe は「同一道具の連投で 5 枠を食い潰すのを防ぐ」機構と表現を正す。
+> 併せて D-3 に「機能必須は `$valid_types` 追加のみ、初期 stats 構造への追加は表示・一貫性整理」と注記（`:139-140` が未知キーを自動初期化するため）。
 
 ---
 
@@ -173,7 +184,9 @@ mpu_get_personality_item_ids($personality_id = null): array
     touch zone（`'touch_zone_chat'`）と共用しない。給食が上限に達しても通常の触摸・装飾クリックを 429 で巻き込まない。
 - メソッド：`give_item(WP_REST_Request $request)`
   1. `ai_enabled` チェック → `rate_limit('give_item', 20, 60)`
-  2. `item_id`、`session_id`、および `history` 受領・sanitize。`item_id` は `mpu_get_personality_item()` で解決（不明なら 400）。`session_id` と `history` は後続の checksum 保存に利用するため、`MPU_Chat_History_Service::get_session_id($request)` および `MPU_Chat_History_Service::parse_history_from_request($request)` にて解決（空なら 400）。
+  2. `item_id`、`session_id`、および `history` 受領・sanitize。`item_id` は `mpu_get_personality_item()` で解決（不明なら 400）。`session_id` と `history` は後続の checksum 保存に利用するため、`MPU_Chat_History_Service::get_session_id($request)` および `MPU_Chat_History_Service::parse_history_from_request($request)` にて解決。
+     - **`session_id` が空なら 400**（checksum 保存に必須）。
+     - **`history` は「送られていて array として解析できる」ことだけを要求し、解析後が空配列 `[]` でも 400 にしない**。初回インタラクションが送禮というケースは正当で、その時 `history = []` は合法。backend は空配列に対し synthetic user anchor → assistant reply を append すれば checksum を書ける（§3③ 手順 6.5）。`history` パラメータ自体が未送信／array に解析できない場合のみ 400。
   3. `kind` 別に反応ルールを組み立て：
      - `food`：「食べる／味の感想を述べる」
      - `gift`：「受け取る／お礼を述べる」
@@ -186,8 +199,10 @@ mpu_get_personality_item_ids($personality_id = null): array
      **`run_reaction()` は失敗時 `WP_Error` を返す契約（R2-3）**。caller は直後に
      `if (is_wp_error($normalized)) { return $normalized; }` だけ。WP REST 框架が自動でエラー応答に包む。
   5. `mpu_record_conversation('give')`
-     - **会社 CODEX D-3**：`includes/stats/stats-collector.php` の `$valid_types` と初期 stats 構造にも `'give'` を追加する。
-       追加しないとこの呼び出しは無効扱いになる。MVP で `touch` に寄せる案もあるが、送禮／給食は touch と語意が違うため `give` 独立を推奨。
+     - **会社 CODEX D-3**：`includes/stats/stats-collector.php` の `$valid_types`（`:132`）に `'give'` を追加する。
+       **機能上の必要条件はこの `$valid_types` 追加のみ**——未追加だと早期 return で計上されない。初期 stats 構造（`conversations` 配列・`:46-52`）への
+       `'give' => 0` 追加は、`:139-140` が未知キーを自動で `0` 初期化するため**機能必須ではなく、表示・一覧の一貫性整理**として併せて行うのが望ましい。
+       MVP で `touch` に寄せる案もあるが、送禮／給食は touch と語意が違うため `give` 独立を推奨。
   6. `mpu_observation_push_item($request, $kind, $id)`
   6.5. **backend checksum 書き込み（会社 CLAUDE C-B / 会社 CODEX D-2）**：`chat_context`/`chat_greet` と同様に
      `MPU_Chat_History_Service::store_after_auto($session_id, $history_with_anchor, $normalized['checksum_text'], 'give')` を呼び、
@@ -217,9 +232,9 @@ mpu_get_personality_item_ids($personality_id = null): array
   - `food:<id>` → 「〇〇を貰って食べた」
   - `gift:<id>` → 「〇〇を貰った」
   - item 名は items.json から **name-first lookup**（decoration の `get_decoration_display_name()` と同じ作法で `get_item_display_name()` を追加）
-- **`dedupe_key('item', …)` を必ず追加（R2-1・最重要）**：buffer の唯一の溢れ防止機構は dedupe。
-  同一 session で同じ道具を連続で差し出すと、dedupe が無いと `MAX_ENTRIES = 5` を埋め尽くし、
-  page_view / touch 等の重要イベントが押し出される。同一道具は最新 1 件だけ残すよう keying する：
+- **`dedupe_key('item', …)` を必ず追加（R2-1・最重要）**：hard cap は `push()` 末尾の `array_slice($buf, -MAX_ENTRIES)`（5 件）。
+  dedupe はその 5 枠を同一道具の連投で食い潰さないための機構。同一 session で同じ道具を連続で差し出すと、
+  dedupe が無いと 5 枠を埋め尽くし、page_view / touch 等の重要イベントが押し出される。同一道具は最新 1 件だけ残すよう keying する：
   ```php
   // MPU_Observation_Buffer::dedupe_key() に追加
   if ($type === 'item' && preg_match('/\A(food|gift):([a-z_][a-z0-9_]*)\z/u', $content, $matches)) {
@@ -347,6 +362,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 | 拡張 | `includes/rest/class-mpu-rest-chat.php`（history `$allowed_types` に `give`） |
 | 拡張 | `includes/chat/class-mpu-chat-history-service.php`（`ALLOWED_MSG_TYPES` に `give`） |
 | 拡張 | `includes/stats/stats-collector.php`（conversation stats type に `give`） |
+| 拡張 | `includes/llm/response-normalizer.php`（`MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` に `'give' => false`・C-1） |
 | 拡張 | `includes/core/class-mpu-observation-buffer.php`（`item` type） |
 | 拡張 | `ghost/Frieren/frieren.js`（ギフトメニュー・text-only） |
 | 拡張 | catalog の `wp_localize_script` 供給（enqueue 箇所。`frontend-functions.php` 付近） |
@@ -354,7 +370,10 @@ mpu_get_personality_item_ids($personality_id = null): array
 | 再ビルド | `js/dist/ukagaka-bundle.js` / `.min.js`（core 変更時） |
 | 後回し | `ghost/Frieren/items/*.png`（Phase 3 で画像 UI 化する時） |
 
-> 差分規模感：新規 2 ファイル＋既存 3 ファイル拡張＋ load order 1 行。Step 0 のおかげで REST 追加は薄い。
+> 差分規模感：新規 2 ファイル＋既存 6 ファイル拡張＋ load order 1 行。Step 0 のおかげで REST 追加は薄い。
+>
+> ⚠️ **`MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` の所在は `includes/llm/response-normalizer.php`（define は同ファイル冒頭）**。
+> 姉妹プラン `Emotion_Tag_And_Think_Block_Plan.md` は旧構成のまま `utility-functions.php` と記すが、現行では response-normalizer.php に移動済み。C-1 の `'give' => false` 追加はこちらを編集する。
 
 ---
 
@@ -403,8 +422,9 @@ mpu_get_personality_item_ids($personality_id = null): array
   反応文に tag を入れても可視テキストには漏れない（表情選択は別フィールド経由）。ただし当該 ghost の `supported` 外 tag は
   display に残る（`strip_unknown=false`）ため、item prompt の tag は supported 内に限る（C-2 のテストで担保）。
 - **dist 再ビルド忘れ**：frieren.js はバンドル対象外だが、core を触ったらビルドが要る。
-- **observation バッファ溢れ（R2-1）**：`MAX_ENTRIES = 5` の唯一の溢れ防止は `dedupe_key`。`item` の dedupe を
-  入れ忘れると、同一道具の連投で page_view / touch 等が押し出され「最近の活動」記憶が壊れる。Step 4 の必須項目。
+- **observation バッファ溢れ（R2-1）**：hard cap 自体は `push()` 末尾の `array_slice($buf, -MAX_ENTRIES)`（=5 件）。
+  `dedupe_key` は**同一道具の連投で 5 枠を食い潰すのを防ぐ機構**。`item` の dedupe を入れ忘れると、同一道具の連投で
+  page_view / touch 等が押し出され「最近の活動」記憶が壊れる。Step 4 の必須項目。
 - **synthetic anchor の文脈欠落（R2-2 / G-2）**：固定文字列で push すると追問時に「何を渡したか」が履歴から消える。
   anchor は backend が生成した localized `res.user_anchor` をそのまま push する（前端で組まない＝言語差で checksum が割れない）。
 - **history type allowlist 漏れ（会社 CLAUDE C-A・最重要）**：give assistant の `type` を `class-mpu-rest-chat.php:606-607`
