@@ -34,7 +34,7 @@
 > #### レビュー反映（2026-06-06・第2巡）
 > 実装直前の細部 5 件を反映（R2）：
 > (R2-1) observation `dedupe_key()` に `item` 判定を追加し、同一道具の連投で 5 枠バッファを溢れさせない（**最重要**）、
-> (R2-2) 前端 synthetic history anchor を `（{name}を差し出した）` と**動的組立**し追問時の文脈を保持、
+> (R2-2) synthetic history anchor で追問時の文脈を保持（**G-2 で改訂**：前端動的組立ではなく backend が localized anchor を生成・返却し、前端は `res.user_anchor` をそのまま push）、
 > (R2-3) `run_reaction()` は失敗時 `WP_Error` を返し caller は `is_wp_error()` で即 return、
 > (R2-4) rate limit key を `give_item` に**独立**（touch/decoration と共用しない）、
 > (R2-5) MVP UI 入口は `#ukagaka_msgbox` 入力欄付近の小ボタン（Canvas 描画域に干渉しない）。
@@ -108,7 +108,7 @@ frieren.js（クリック描画）
 | REST エンドポイント | `MPU_REST_Touch::decoration_chat()` | 同コントローラに `give_item()` メソッド＋route 追加 |
 | AI 呼び出し定型 | `decoration_chat()` / `touch_zone_chat()` に**重複**している呼び出し〜normalize〜display limit | **先に private helper へ抽出**してから 3 か所で共有（Step 0） |
 | emotion tag → APNG | `mpu_normalize_ai_response_for_rest()` | そのまま通すだけ。prompt 側で `[laugh]`/`[love]`/`[sigh]` を誘導すれば表情が自動で出る（**追加実装ゼロ**） |
-| セッション記憶 | `MPU_Observation_Buffer` + `mpu_observation_push_touch()` | `gift` type を追加し `mpu_observation_push_gift()` を新設 |
+| セッション記憶 | `MPU_Observation_Buffer` + `mpu_observation_push_touch()` | 総称 `item` type を追加し `mpu_observation_push_item()` を新設（§3④・家 CODEX #1） |
 | フロント描画・反応表示 | `ghost/Frieren/frieren.js` の decoration クリック処理 | ギフトメニュー UI として流用（反応表示・emoji・chat history push は既存コードが使える） |
 
 ---
@@ -192,9 +192,10 @@ mpu_get_personality_item_ids($personality_id = null): array
   6.5. **backend checksum 書き込み（会社 CLAUDE C-B / 会社 CODEX D-2）**：`chat_context`/`chat_greet` と同様に
      `MPU_Chat_History_Service::store_after_auto($session_id, $history_with_anchor, $normalized['checksum_text'], 'give')` を呼び、
      前端 history と後端 checksum を揃える（§13.2）。省くと decoration と同じ audit 漂移を継承する。
-     ここで渡す `$history_with_anchor` は、既存 request history に **backend 側で** synthetic user anchor
-     `（{item.name}を差し出した）` を append したものにする。item name は catalog 由来の信頼済み値を使い、
-     前端が同じ文言を送ってくる前提に依存しない。
+     ここで渡す `$history_with_anchor` は、既存 request history に **backend 側で** synthetic user anchor を
+     append したものにする（G-2）。anchor 文字列は **backend が解決済み言語で生成**（item name は catalog 由来の
+     信頼済み値）し、**同一文字列を REST レスポンス `user_anchor` でも返す**。前端はその `res.user_anchor` を
+     そのまま push するため、前後端 checksum が逐字一致し、前端が同じ文言を送ってくる前提にも依存しない。
   7. `return $this->ok( mpu_normalize_ai_response_rest_fields($normalized) + ['item_id'=>$id, 'kind'=>$kind] )`
 
   > **会社 CLAUDE C-A（history type / 最重要）**：give assistant の前端 history `type` を `'give'` に統一し、
@@ -294,7 +295,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 | items.json `kind` | `food` \| `gift` | ホワイトリスト、不一致は読み飛ばし（将来 medicine/book/tool 拡張可） |
 | catalog → 前端 | `wp_localize_script`（`id`/`kind`/`name`/`favorite`） | 画像は MVP 渡さない |
 | REST 入力 | `item_id`（POST body） | sanitize_text_field、空 or 未知は 400 |
-| REST 出力 | `{msg, emoji, display_text…, item_id, kind}` | 既存 normalize fields ＋ 2 フィールド |
+| REST 出力 | `{msg, emoji, display_text…, item_id, kind, user_anchor}` | 既存 normalize fields ＋ item_id/kind ＋ backend 生成 localized anchor（G-2） |
 | observation type | `item` | `gift` ではなく総称 |
 | observation content | `food:<id>` / `gift:<id>` | kind プレフィクス付き、MAX_CONTENT_BYTES=200 以内 |
 | normalizer context | `give` | inner monologue default = false（`MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` に明示追加・C-1） |
@@ -372,9 +373,10 @@ mpu_get_personality_item_ids($personality_id = null): array
   押し出されないこと（5 枠を道具で埋めない）を確認。
 - **history allowlist ユニット（D-1）**：`give` type が `class-mpu-rest-chat.php` 側の history sanitize と
   `MPU_Chat_History_Service::parse_history_from_request()` の両方で保持されることを確認。片方だけ追加してもテストが落ちる形にする。
-- **checksum 整合ユニット（D-2）**：`give_item()` 成功時、backend が catalog name から
-  `（{item.name}を差し出した）` synthetic user anchor を含む history を構築し、その後ろに cleaned assistant reply（`checksum_text`）を
-  `type=give` で追加して checksum 保存することを確認。
+- **checksum 整合ユニット（D-2 / G-2）**：`give_item()` 成功時、backend が catalog name から生成した localized
+  synthetic user anchor（= レスポンス `user_anchor` と同一文字列）を含む history を構築し、その後ろに cleaned assistant
+  reply（`checksum_text`）を `type=give` で追加して checksum 保存することを確認。レスポンス `user_anchor` と checksum
+  に使った anchor が一致することも assert。
 - **conversation stats ユニット（D-3）**：`mpu_record_conversation('give')` が有効な type として計上されることを確認。
 - 手動：前台で給食 → 反応・APNG 表情 → その後チャットで「さっきの〇〇」に言及できるか（記憶連結の確認）
 
@@ -397,13 +399,14 @@ mpu_get_personality_item_ids($personality_id = null): array
 - **ghost-agnostic 厳守**：item 種別・名前をコアにハードコードしない（observation buffer の既存コメントが明示）。
 - **rate limit / nonce**：既存 touch と同じ 20/60s と `MPU_REST_Base` の作法を踏襲。
 - **abilities ではない**：ギフトは訪客起点の UI 操作なので REST 層。LLM ツール（abilities）には載せない。
-- **emotion tag 表示**：v2.25.1 で typewriter 表示前に tag を strip する処理が入っているため、
-  反応文に tag を入れても可視テキストには漏れない（表情選択は別フィールド経由）。
+- **emotion tag 表示**：tag stripping は**後端 normalizer**で行う（v2.25.2 で前端 typewriter の strip は撤去・§13.2）。
+  反応文に tag を入れても可視テキストには漏れない（表情選択は別フィールド経由）。ただし当該 ghost の `supported` 外 tag は
+  display に残る（`strip_unknown=false`）ため、item prompt の tag は supported 内に限る（C-2 のテストで担保）。
 - **dist 再ビルド忘れ**：frieren.js はバンドル対象外だが、core を触ったらビルドが要る。
 - **observation バッファ溢れ（R2-1）**：`MAX_ENTRIES = 5` の唯一の溢れ防止は `dedupe_key`。`item` の dedupe を
   入れ忘れると、同一道具の連投で page_view / touch 等が押し出され「最近の活動」記憶が壊れる。Step 4 の必須項目。
-- **synthetic anchor の文脈欠落（R2-2）**：固定文字列で push すると追問時に「何を渡したか」が履歴から消える。
-  必ず `name` で動的組立する。
+- **synthetic anchor の文脈欠落（R2-2 / G-2）**：固定文字列で push すると追問時に「何を渡したか」が履歴から消える。
+  anchor は backend が生成した localized `res.user_anchor` をそのまま push する（前端で組まない＝言語差で checksum が割れない）。
 - **history type allowlist 漏れ（会社 CLAUDE C-A・最重要）**：give assistant の `type` を `class-mpu-rest-chat.php:606-607`
   の `$allowed_types` に追加し忘れると、give 履歴が checksum と LLM context の両方から濾過脱落し、§7 の記憶連結が壊れる。
 - **history type allowlist が片方だけ（会社 CODEX D-1）**：`class-mpu-rest-chat.php` だけに `give` を追加しても、
@@ -411,9 +414,9 @@ mpu_get_personality_item_ids($personality_id = null): array
   にも追加する。
 - **backend checksum 未書き込み（会社 CLAUDE C-B）**：decoration/touch を踏襲すると give も前端 history と後端 checksum が
   ズレる（現状は checksum が observational のため 400 にならないだけ）。§13.2 を保つため `store_after_auto(..., 'give')` を呼ぶ。
-- **backend checksum に synthetic anchor が無い（会社 CODEX D-2）**：assistant reply だけを保存すると、前端 history の
-  `（{item.name}を差し出した）` と backend checksum が一致しない。anchor は前端任せにせず、backend が catalog name から同じ文言を
-  history に追加してから checksum を保存する。
+- **backend checksum に synthetic anchor が無い（会社 CODEX D-2 / G-2）**：assistant reply だけを保存すると、前端 history の
+  anchor と backend checksum が一致しない。anchor は前端任せにせず、backend が catalog name から localized 文字列を生成して
+  history に追加してから checksum を保存し、同一文字列を `res.user_anchor` で返して前端に使わせる。
 - **conversation stats が無効 type（会社 CODEX D-3）**：`mpu_record_conversation('give')` を呼んでも `stats-collector.php`
   の valid types に無ければ記録されない。送禮／給食を分析したいなら stats type も同時に追加する。
 
@@ -427,12 +430,11 @@ mpu_get_personality_item_ids($personality_id = null): array
 - **normalizer context** → `give`、inner monologue default = false（#5）。
 - **エラー契約** → `run_reaction()` は `WP_Error` を返し caller は `is_wp_error()` 即 return（R2-3）。
 - **rate limit key** → `give_item` で独立（R2-4）。
-- **synthetic anchor** → `（{name}を差し出した）` で動的組立（R2-2）。
+- **synthetic anchor** → backend 生成の localized anchor（`res.user_anchor`）。checksum・REST 返却・前端 push は同一文字列（G-2 が R2-2/D-2 の前端組立を改訂）。
+- **エンドポイント名** → `/touch/give`（A-1・G-4）。`MPU_REST_Touch` 名前空間に同居。
 - **UI 入口** → `#ukagaka_msgbox` 入力欄付近の小ボタン → テキスト一覧。Canvas 域に干渉しない（R2-5）。
 
 ### ⏳ 実装時に確定（残）
 
-1. **エンドポイント名**：`/touch/give` か `/interact/give` か。touch 名前空間に同居させる方が既存と一貫。
-   （observation type は総称 `item` だが、endpoint は MVP の体験名「give」で据える想定。）
-2. **localize ハンドル**：catalog をどの enqueue 済みスクリプトにぶら下げるか（既存 frontend の localize 箇所に相乗り）。
-3. **メニュー展開の見た目**：小ボタン押下後のドロップ表示スタイル（位置・最大件数・スクロール）。Phase 3 の D&D／画像化と整合する形が望ましい。
+1. **localize ハンドル**：catalog をどの enqueue 済みスクリプトにぶら下げるか（既存 frontend の localize 箇所に相乗り）。
+2. **メニュー展開の見た目**：小ボタン押下後のドロップ表示スタイル（位置・最大件数・スクロール）。Phase 3 の D&D／画像化と整合する形が望ましい。
