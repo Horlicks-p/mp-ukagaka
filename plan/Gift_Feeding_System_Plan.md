@@ -38,8 +38,29 @@
 > (R2-3) `run_reaction()` は失敗時 `WP_Error` を返し caller は `is_wp_error()` で即 return、
 > (R2-4) rate limit key を `give_item` に**独立**（touch/decoration と共用しない）、
 > (R2-5) MVP UI 入口は `#ukagaka_msgbox` 入力欄付近の小ボタン（Canvas 描画域に干渉しない）。
-
----
+>
+> #### 会社 CLAUDE レビュー（2026-06-09・必修2件＋要確認2件）
+> 方向性（統合 items+kind / MVP 無状態 / `MPU_REST_Touch`・`MPU_Observation_Buffer` 拡張）は承認。家 CODEX が縦の3層（REST / observation / frontend）を固めた一方、**3層を横断する「chat history 整合性」**が抜けている。これは spam-event 第5経路・chat_context の checksum 補填と**同じクラス**の漏れ。着手前に C-A / C-B を本文へ反映必須：
+> **(C-A) give 反応の history `type` が未定義＆ checksum allowlist 未追加（最重要）**：前端は反応を `mpuChatHistory` に push するが、後端 `class-mpu-rest-chat.php:606-607` の `$allowed_types` がこの history を **checksum と LLM context の両方**で濾過する（同 :619）。give の assistant `type` を `'give'` と定め allowlist に追加しないと、**本プランの成功基準「さっきの〇〇」記憶連結（§7）が壊れる**（LLM が送禮の会話を見られない）。
+> **(C-B) give_item に backend checksum 書き込みが無い（§13.2）**：§3③ 手順1–7 は checksum を書かない。現状 `decoration_chat()`/`touch_zone_chat()` も書いておらず（`store_after_auto` は `chat_context:335`/`chat_greet:489` のみ）、checksum が observational だから 400 にならないだけ。§13.2 を掲げる以上、give は `chat_context` 同様 `store_after_auto` を呼んで初日から揃える（推奨）／または decoration 現状踏襲を明示しリスク章に記載する。decoration/touch 側の checksum 補填も backlog 化を提案。
+> **(C-1) inner monologue default**：`'give'` を `MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` に **明示**で `=> false` 追加（fallback 依存にしない。`decoration` は明示済み）。
+> **(C-2) tag ⊆ supported テスト**：2.25.2 以降、supported 外 tag は display に残る（`strip_unknown=false`）。items.json prompt が誘導する `[tag]` は全て当該 ghost の `emoji.supported` 内であることを assert（§7 #6 の補強）。
+>
+> #### 会社 CODEX レビュー（2026-06-09・実装前の補強3件）
+> CLAUDE の C-A / C-B は正しいが、現行コードに照らすと実装時にさらに 3 点を明文化する必要がある：
+> **(D-1) `give` history type allowlist は2箇所に追加**：`class-mpu-rest-chat.php` のローカル `$allowed_types` だけでなく、`includes/chat/class-mpu-chat-history-service.php` の `MPU_Chat_History_Service::ALLOWED_MSG_TYPES` にも `'give'` を追加する。後者を忘れると `parse_history_from_request()` 経由の自動 checksum 書き込みで `give` が `chat` に降格し、type 契約が揺れる。
+> **(D-2) backend checksum には synthetic user anchor も含める**：前端が `（{name}を差し出した）` を表示・保存するだけでは、`store_after_auto()` に渡す history に同じ user anchor が入る保証がない。信頼境界上は backend が items catalog の `name` から同一 anchor を組み立て、`store_after_auto()` 前に append してから assistant reply を追加するのが望ましい。
+> **(D-3) `mpu_record_conversation('give')` を有効化**：`includes/stats/stats-collector.php` の `$valid_types` と初期 stats 構造に `'give'` を追加する。追加しないなら MVP は `touch` として記録するが、送禮／給食は touch と語意が異なるため `give` として独立記録する方針を推奨。
+>
+> #### 会社 Antigravity レビュー（2026-06-09・要調整1件＋確認事項2件）
+> 方向性（CLAUDE の C-A / C-B および CODEX の D-1 / D-2 / D-3 を含む）について全面的に賛同・承認。その上で、backend の checksum 書き込み（`store_after_auto`）を正しく動作させ、かつ 409 checksum mismatch を防ぐために、実装に不可欠な設計のギャップをさらに 1 件補強（A-A）し、運用・テスト上の留意点を 2 件（A-1 / A-2）提案する：
+> **(A-A) フロントエンドから `/touch/give` 送信時、`session_id` と `history` を明示的に渡す必要性（最重要）**：§3⑤（前端）の設計案では `body: {item_id}` のみを送信しているが、バックエンドで `store_after_auto` を正常に実行するには、`session_id` と現在の履歴 `history` が必須である。`mpuFetch` は `X-MPU-Session-Token` をヘッダーに自動注入するのみで、`session_id` や `history` は自動付与しない。そのため、フロントエンドは `mpu_getOrCreateChatSessionId()` から `session_id` を取得し、`window.mpuChatHistory.slice(-20)` と共に body パラメータとして POST 送信しなければならない。これを怠ると、バックエンドで `$session_id` が空となり checksum が保存されず、次回の `/chat/user` リクエスト時に 409 mismatch エラーが発生する。
+> **(A-1) エンドポイント名および名前空間の確定**：⏳残1 の論点に対し、`/touch/give` の採用を確定とする。コントローラが `MPU_REST_Touch` であるため、`/touch/` 名前空間に配置することがルート登録の局所化および一貫性の観点から最も自然である。
+> **(A-2) ObservationBufferTest へのテスト追加規定**：§7 のテスト方針を補強するため、`tests/Unit/ObservationBufferTest.php` に `item` タイプの `dedupe_key` 検証テスト（同一アイテムの連投で最新1件のみ残るか、別アイテムの混在で正しく共存できるか）を追加することを明文化する。
+>
+> #### 会社 CLAUDE 確認補足（2026-06-09・A-A の重大度校正）
+> CODEX の D-1 / D-2 / D-3、Antigravity の A-A / A-1 / A-2 はコードに照らして全て妥当・採用。ただし A-A の表現を 1 点だけ校正する：
+> **A-A の「次回 `/chat/user` で 409 mismatch エラーが発生する」は現状では不正確**。checksum 既定は `audit` モード（`chat-integrity.php:28`）で、mismatch は**ログ記録のみ・チャットは中断しない**（409 にもならない）。`session_id`/`history` 未送信時の**現状の実害は「checksum 未保存＝§13.2 漂移＋ mismatch ログ noise」**であり、ハードな WP_Error は `block` モードに切り替えた場合に限る。したがって A-A の対処（前端が `session_id`＋`history` を body 送信）は**必須**だが、根拠は「409 防止」ではなく「§13.2 整合と block モード移行時の前方互換」と理解すること。
 
 ## 1. 背景・核心洞察
 
@@ -143,7 +164,7 @@ mpu_get_personality_item_ids($personality_id = null): array
     touch zone（`'touch_zone_chat'`）と共用しない。給食が上限に達しても通常の触摸・装飾クリックを 429 で巻き込まない。
 - メソッド：`give_item(WP_REST_Request $request)`
   1. `ai_enabled` チェック → `rate_limit('give_item', 20, 60)`
-  2. `item_id` 受領・sanitize → `mpu_get_personality_item()` で解決（不明なら 400）
+  2. `item_id`、`session_id`、および `history` 受領・sanitize。`item_id` は `mpu_get_personality_item()` で解決（不明なら 400）。`session_id` と `history` は後続の checksum 保存に利用するため、`MPU_Chat_History_Service::get_session_id($request)` および `MPU_Chat_History_Service::parse_history_from_request($request)` にて解決（空なら 400）。
   3. `kind` 別に反応ルールを組み立て：
      - `food`：「食べる／味の感想を述べる」
      - `gift`：「受け取る／お礼を述べる」
@@ -156,8 +177,24 @@ mpu_get_personality_item_ids($personality_id = null): array
      **`run_reaction()` は失敗時 `WP_Error` を返す契約（R2-3）**。caller は直後に
      `if (is_wp_error($normalized)) { return $normalized; }` だけ。WP REST 框架が自動でエラー応答に包む。
   5. `mpu_record_conversation('give')`
+     - **会社 CODEX D-3**：`includes/stats/stats-collector.php` の `$valid_types` と初期 stats 構造にも `'give'` を追加する。
+       追加しないとこの呼び出しは無効扱いになる。MVP で `touch` に寄せる案もあるが、送禮／給食は touch と語意が違うため `give` 独立を推奨。
   6. `mpu_observation_push_item($request, $kind, $id)`
+  6.5. **backend checksum 書き込み（会社 CLAUDE C-B / 会社 CODEX D-2）**：`chat_context`/`chat_greet` と同様に
+     `MPU_Chat_History_Service::store_after_auto($session_id, $history_with_anchor, $normalized['checksum_text'], 'give')` を呼び、
+     前端 history と後端 checksum を揃える（§13.2）。省くと decoration と同じ audit 漂移を継承する。
+     ここで渡す `$history_with_anchor` は、既存 request history に **backend 側で** synthetic user anchor
+     `（{item.name}を差し出した）` を append したものにする。item name は catalog 由来の信頼済み値を使い、
+     前端が同じ文言を送ってくる前提に依存しない。
   7. `return $this->ok( mpu_normalize_ai_response_rest_fields($normalized) + ['item_id'=>$id, 'kind'=>$kind] )`
+
+  > **会社 CLAUDE C-A（history type / 最重要）**：give assistant の前端 history `type` を `'give'` に統一し、
+  > **`class-mpu-rest-chat.php:606-607` の `$allowed_types` に `'give'` を追加**する。これを忘れると give 履歴が
+  > checksum と LLM context の両方から脱落し、§7 の「記憶連結（さっきの〇〇）」が壊れる。normalize の `context` も
+  > `'give'`（C-1：`MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` に `'give' => false` を明示追加）。
+  > **会社 CODEX D-1**：同時に **`includes/chat/class-mpu-chat-history-service.php` の
+  > `MPU_Chat_History_Service::ALLOWED_MSG_TYPES` にも `'give'` を追加**する。`store_after_auto()` 用の
+  > `parse_history_from_request()` はこの allowlist を見るため、片方だけの追加では type 契約が不完全になる。
 
 ### ④ Observation buffer（小さな拡張）
 
@@ -202,7 +239,20 @@ mpu_get_personality_item_ids($personality_id = null): array
   Frieren の **Canvas 描画域に干渉しない**。
 - `ghost/Frieren/frieren.js`：decoration 描画ロジックを流用して「ギフトメニュー」UI を追加
   - ボタン → item リスト表示（localize 済み catalog を描画、**MVP は text ラベルのみ・画像なし**）→ クリックで
-    `mpuFetch(mpuRestUrl + "touch/give", { body: {item_id} })`
+    `session_id` と `history` を含めて POST リクエスト（FormData 形式）：
+    ```javascript
+    const formData = new FormData();
+    formData.append("item_id", item.id);
+    const chatSessionId = typeof mpu_getOrCreateChatSessionId === "function" ? mpu_getOrCreateChatSessionId() : "";
+    if (chatSessionId) {
+        formData.append("session_id", chatSessionId);
+    }
+    formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-20)));
+    mpuFetch(mpuRestUrl + "touch/give", {
+        method: "POST",
+        body: formData
+    })
+    ```
   - 反応表示・`mpuEmojiManager.showEmoji()`・`window.mpuChatHistory.push()`（synthetic user anchor + assistant）
     は decoration 経路の既存コードを再利用
   - **synthetic user anchor は動的組立（R2-2）**：decoration は固定文字列 `（装飾品に触れた）` を push しているが、
@@ -237,7 +287,11 @@ mpu_get_personality_item_ids($personality_id = null): array
 | REST 出力 | `{msg, emoji, display_text…, item_id, kind}` | 既存 normalize fields ＋ 2 フィールド |
 | observation type | `item` | `gift` ではなく総称 |
 | observation content | `food:<id>` / `gift:<id>` | kind プレフィクス付き、MAX_CONTENT_BYTES=200 以内 |
-| normalizer context | `give` | inner monologue default = false |
+| normalizer context | `give` | inner monologue default = false（`MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` に明示追加・C-1） |
+| chat history type（give assistant） | `give` | **`class-mpu-rest-chat.php:606-607` の `$allowed_types` と `MPU_Chat_History_Service::ALLOWED_MSG_TYPES` の両方に追加必須**（C-A / D-1）。checksum＋LLM context 両方の濾過対象 |
+| synthetic user anchor | `（{item.name}を差し出した）` | 前端表示／保存だけでなく、backend checksum 用 history にも catalog 由来 name で append（D-2） |
+| backend checksum | `store_after_auto(..., 'give')` | 前端 history と揃える（§13.2・C-B）。`chat_context`/`chat_greet` と同型。事前に synthetic anchor を含める |
+| conversation stats type | `give` | `stats-collector.php` の `$valid_types` と初期 stats 構造に追加（D-3）。追加しない場合は記録されない |
 
 ---
 
@@ -259,6 +313,10 @@ mpu_get_personality_item_ids($personality_id = null): array
   甘い物 food、花 gift、本 gift など）。
 - **Step 2 — Loader**：`personality-items.php` 新設＋ load order 追加。
 - **Step 3 — REST**：`give_item()` ＋ route `/touch/give`。
+  ＋ **backend 側で synthetic anchor を含めた history を組み立てて `store_after_auto(..., 'give')` で checksum 書き込み（C-B / D-2）**
+  ＋ **`class-mpu-rest-chat.php:606-607` の `$allowed_types` と `MPU_Chat_History_Service::ALLOWED_MSG_TYPES` の両方に `'give'` 追加（C-A / D-1）**
+  ＋ `MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` に `'give' => false`（C-1）
+  ＋ `stats-collector.php` の conversation stats に `'give'` 追加（D-3）。
 - **Step 4 — Observation**：`item` type ＋ normalize ＋ format（kind 分岐）＋ **`dedupe_key` の `item` 判定（R2-1・必須）**
   ＋ `mpu_observation_push_item()` ＋ `get_item_display_name()`。
 - **Step 5 — Frontend**：catalog を `wp_localize_script` で供給 ＋ frieren.js にギフトメニュー UI（text-only）＋
@@ -275,6 +333,9 @@ mpu_get_personality_item_ids($personality_id = null): array
 | 新規 | `ghost/Frieren/items.json` |
 | 新規 | `includes/personality/personality-items.php` |
 | 拡張 | `includes/rest/class-mpu-rest-touch.php`（Step 0 リファクタ＋ `give_item`） |
+| 拡張 | `includes/rest/class-mpu-rest-chat.php`（history `$allowed_types` に `give`） |
+| 拡張 | `includes/chat/class-mpu-chat-history-service.php`（`ALLOWED_MSG_TYPES` に `give`） |
+| 拡張 | `includes/stats/stats-collector.php`（conversation stats type に `give`） |
 | 拡張 | `includes/core/class-mpu-observation-buffer.php`（`item` type） |
 | 拡張 | `ghost/Frieren/frieren.js`（ギフトメニュー・text-only） |
 | 拡張 | catalog の `wp_localize_script` 供給（enqueue 箇所。`frontend-functions.php` 付近） |
@@ -292,11 +353,19 @@ mpu_get_personality_item_ids($personality_id = null): array
   - `kind ∈ {food, gift}`、`prompt` 非空、`id` が正規表現に合致、metadata に可視 emotion tag が混ざっていない
   - **可視 tag 防線（家 CODEX #6）**：各 item の `prompt` と `name`（および example 類）に `[thinking]`/`[laugh]`/`[sigh]`
     のような**可視 emotion tag が含まれていない**ことを assert。v2.25.1 で直したばかりの回帰をここで防ぐ。
+  - **tag ⊆ supported（会社 CLAUDE C-2）**：item `prompt` が誘導する `[tag]` は全て当該 ghost の `emoji.supported` 内である
+    ことを assert。2.25.2 以降 supported 外 tag は `strip_unknown=false` で display に残るため、未サポート tag を誘導すると漏れる。
 - observation の `item` normalize / format をユニットで（`food:mapo_tofu` → 「麻婆豆腐を貰って食べた」、
   `gift:flower` → 「花を貰った」。kind 分岐の両方を確認）
-- **dedup ユニット（R2-1）**：同じ `food:mapo_tofu` を 3 回 push → buffer に 1 件のみ（最新）。
+- **dedup ユニット（R2-1）**：`tests/Unit/ObservationBufferTest.php` にテストを追加。同じ `food:mapo_tofu` を 3 回 push → buffer に 1 件のみ（最新）。
   `food:mapo_tofu` ＋ `gift:flower` → 2 件。さらに touch / page_view と混在させ、連投で他イベントが
   押し出されないこと（5 枠を道具で埋めない）を確認。
+- **history allowlist ユニット（D-1）**：`give` type が `class-mpu-rest-chat.php` 側の history sanitize と
+  `MPU_Chat_History_Service::parse_history_from_request()` の両方で保持されることを確認。片方だけ追加してもテストが落ちる形にする。
+- **checksum 整合ユニット（D-2）**：`give_item()` 成功時、backend が catalog name から
+  `（{item.name}を差し出した）` synthetic user anchor を含む history を構築し、その後ろに cleaned assistant reply（`checksum_text`）を
+  `type=give` で追加して checksum 保存することを確認。
+- **conversation stats ユニット（D-3）**：`mpu_record_conversation('give')` が有効な type として計上されることを確認。
 - 手動：前台で給食 → 反応・APNG 表情 → その後チャットで「さっきの〇〇」に言及できるか（記憶連結の確認）
 
 ---
@@ -322,6 +391,18 @@ mpu_get_personality_item_ids($personality_id = null): array
   入れ忘れると、同一道具の連投で page_view / touch 等が押し出され「最近の活動」記憶が壊れる。Step 4 の必須項目。
 - **synthetic anchor の文脈欠落（R2-2）**：固定文字列で push すると追問時に「何を渡したか」が履歴から消える。
   必ず `name` で動的組立する。
+- **history type allowlist 漏れ（会社 CLAUDE C-A・最重要）**：give assistant の `type` を `class-mpu-rest-chat.php:606-607`
+  の `$allowed_types` に追加し忘れると、give 履歴が checksum と LLM context の両方から濾過脱落し、§7 の記憶連結が壊れる。
+- **history type allowlist が片方だけ（会社 CODEX D-1）**：`class-mpu-rest-chat.php` だけに `give` を追加しても、
+  `MPU_Chat_History_Service::parse_history_from_request()` 側で `give` が降格する。必ず `MPU_Chat_History_Service::ALLOWED_MSG_TYPES`
+  にも追加する。
+- **backend checksum 未書き込み（会社 CLAUDE C-B）**：decoration/touch を踏襲すると give も前端 history と後端 checksum が
+  ズレる（現状は checksum が observational のため 400 にならないだけ）。§13.2 を保つため `store_after_auto(..., 'give')` を呼ぶ。
+- **backend checksum に synthetic anchor が無い（会社 CODEX D-2）**：assistant reply だけを保存すると、前端 history の
+  `（{item.name}を差し出した）` と backend checksum が一致しない。anchor は前端任せにせず、backend が catalog name から同じ文言を
+  history に追加してから checksum を保存する。
+- **conversation stats が無効 type（会社 CODEX D-3）**：`mpu_record_conversation('give')` を呼んでも `stats-collector.php`
+  の valid types に無ければ記録されない。送禮／給食を分析したいなら stats type も同時に追加する。
 
 ---
 
