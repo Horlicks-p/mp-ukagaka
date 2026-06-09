@@ -59,6 +59,70 @@ function mpu_weather_code_to_text($code)
 }
 
 /**
+ * 依實際降水量(mm)校正液態降水的天氣標籤.
+ *
+ * Open-Meteo 的 WMO code 對雨勢分級偏保守，常把不小的雨歸成 drizzle(53/55)，
+ * 導致角色把實際不小的雨說成「霧雨」。已取得當期累積降水量 precipitation_sum
+ * (24h 累積 mm)，用它把標籤升級到與實際雨量相符的強度.
+ *
+ * 分級依台灣 CWA 24h 累積雨量：大雨>=80mm、豪雨>=200mm、大豪雨>=350mm、超大豪雨>=500mm；
+ * 80mm 以下則 10mm 起算為「雨」，10mm 以下保留原標籤（維持霧雨/小雨語感）.
+ * 只取較強的一方，永不降級。僅作用於毛雨／連續雨系 (51,53,55,61,63,65)；
+ * 陣雨(80-82)、雷雨、雪、凍雨維持原樣.
+ *
+ * @param int        $code      WMO 天氣代碼.
+ * @param string     $base_text 以 code 翻出的原始標籤.
+ * @param float|null $precip_mm 當期累積降水量 mm（今日或明日）.
+ * @return string 校正後標籤.
+ */
+function mpu_weather_refine_rain_text( $code, $base_text, $precip_mm ) {
+	// 僅校正液態連續降水系；陣雨/雷雨/雪/凍雨維持原樣.
+	$rain_codes = array( 51, 53, 55, 61, 63, 65 );
+	if ( ! in_array( $code, $rain_codes, true ) || null === $precip_mm ) {
+		return $base_text;
+	}
+
+	// code 既有強度 rank：65=大雨、63=雨、其餘(霧雨/小雨)=1.
+	if ( 65 === (int) $code ) {
+		$code_rank = 3;
+	} elseif ( 63 === (int) $code ) {
+		$code_rank = 2;
+	} else {
+		$code_rank = 1;
+	}
+
+	// 依 24h 累積雨量(mm)推得強度 rank（CWA 門檻）.
+	$mm = (float) $precip_mm;
+	if ( $mm < 10.0 ) {
+		$mm_rank = 1;
+	} elseif ( $mm < 80.0 ) {
+		$mm_rank = 2;
+	} elseif ( $mm < 200.0 ) {
+		$mm_rank = 3;
+	} elseif ( $mm < 350.0 ) {
+		$mm_rank = 4;
+	} elseif ( $mm < 500.0 ) {
+		$mm_rank = 5;
+	} else {
+		$mm_rank = 6;
+	}
+
+	// 取較強一方；雨量沒有把強度推得更高時保留原標籤（含霧雨語感）.
+	if ( $mm_rank <= $code_rank ) {
+		return $base_text;
+	}
+
+	$rank_labels = array(
+		2 => '雨',
+		3 => '大雨',
+		4 => '豪雨',
+		5 => '大豪雨',
+		6 => '超大豪雨',
+	);
+	return $rank_labels[ $mm_rank ] ?? $base_text;
+}
+
+/**
  * 獲取天氣預報（今天+明天）
  * 
  * 使用 Open-Meteo API（免費、無需 API Key）
@@ -135,6 +199,22 @@ function mpu_get_weather_forecast($latitude = 25.0330, $longitude = 121.5654)
         'fetched_at' => current_time('mysql'),
     ];
 
+	// 依實際降水量校正預報雨勢標籤，避免 drizzle code 低估實際雨量導致角色誤說「霧雨」.
+	// precipitation_sum 是 24h 累積量，只用於 today/tomorrow 預報；current 維持即時 code.
+	$today_precip_sum = $weather['today']['precipitation_sum'];
+
+	$weather['today']['weather_text'] = mpu_weather_refine_rain_text(
+		$weather['today']['weather_code'],
+		$weather['today']['weather_text'],
+		$today_precip_sum
+	);
+
+	$weather['tomorrow']['weather_text'] = mpu_weather_refine_rain_text(
+		$weather['tomorrow']['weather_code'],
+		$weather['tomorrow']['weather_text'],
+		$weather['tomorrow']['precipitation_sum']
+	);
+
     return $weather;
 }
 
@@ -174,6 +254,12 @@ function mpu_get_weather_context()
     $tomorrow_temp_max = $weather['tomorrow']['temp_max'] ?? null;
     $tomorrow_temp_min = $weather['tomorrow']['temp_min'] ?? null;
     $tomorrow_precip_prob = $weather['tomorrow']['precipitation_probability'] ?? null;
+
+	// 在天氣標籤後附上當日實際累積雨量(mm)，讓角色掌握真實雨勢、不會低估.
+	$today_precip_sum = $weather['today']['precipitation_sum'] ?? null;
+	if ( null !== $today_precip_sum && $today_precip_sum >= 1 ) {
+		$current_weather .= sprintf( '（本日%dmm）', round( $today_precip_sum ) );
+	}
 
     // 處理 null 值，確保格式化不會失敗
     $current_temp_display = $current_temp !== null ? round($current_temp) : '-';
