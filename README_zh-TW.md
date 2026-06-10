@@ -2,7 +2,7 @@
 
 一個用於在 WordPress 網站上創建互動式偽春菜（伺か）角色的外掛，具備 AI 頁面感知功能。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.4-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.25.4 新功能
+## 🎉 v2.25.5 新功能
+
+**安全與穩定性強化**：修正了 Touch API 的 Session Token 防護、API 快取鍵值完整性，以及選項合併時的深層拷貝問題。
+
+### v2.25.4 Highlights
 
 **依雨量校正天氣標籤**：明日預報現在會參考 Open-Meteo `precipitation_sum` 校正雨勢標籤，避免 24 小時累積雨量不小時仍被說成「霧雨」。目前天氣仍保留即時 WMO code，並在上下文附上本日累積雨量，讓角色掌握真實雨勢但不會誤稱當下正在下大雨。
 
