@@ -184,6 +184,7 @@ mpu_get_personality_item_ids($personality_id = null): array
   - rate limit 20 / 60s。**key は独立して `'give_item'`**（R2-4）。decoration（`'decoration_chat'`）/
     touch zone（`'touch_zone_chat'`）と共用しない。給食が上限に達しても通常の触摸・装飾クリックを 429 で巻き込まない。
 - メソッド：`give_item(WP_REST_Request $request)`
+  - **事前 guard**：`check_session_token($request)` で front-end session token を検証（Codebase Review 2026-06-10 S-1）。これは公開 AI endpoint の防濫用ガードで、checksum 用の `session_id` とは別物。正常な前端呼び出しは `mpuFetch()` が `X-MPU-Session-Token` を自動注入する。
   1. `ai_enabled` チェック → `rate_limit('give_item', 20, 60)`
   2. `item_id`、`session_id`、および `history` 受領・sanitize。`item_id` は `mpu_get_personality_item()` で解決（不明なら 400）。`session_id` と `history` は後続の checksum 保存に利用するため、`MPU_Chat_History_Service::get_session_id($request)` および `MPU_Chat_History_Service::parse_history_from_request($request)` にて解決。
      - **`session_id` が空なら 400**（checksum 保存に必須）。
@@ -331,6 +332,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 | items.json `kind` | `food` \| `gift` | ホワイトリスト、不一致は読み飛ばし（将来 medicine/book/tool 拡張可） |
 | catalog → 前端 | `wp_localize_script`（`id`/`kind`/`name`/`favorite`） | 画像は MVP 渡さない |
 | REST 入力 | `item_id`, `session_id`, `history`（POST body） | `item_id` は sanitize_text_field、空 or 未知は 400。`session_id` 空は 400。`history` は raw param が存在し JSON decode 後 array であること（空配列 `[]` は合法） |
+| REST session token | `X-MPU-Session-Token` header | `MPU_REST_Base::check_session_token()` で検証。公開 AI endpoint 防濫用用で、checksum 用 `session_id` とは別物 |
 | REST 出力 | `{msg, emoji, display_text…, item_id, kind, user_anchor}` | 既存 normalize fields ＋ item_id/kind ＋ backend 生成 localized anchor（G-2） |
 | observation type | `item` | `gift` ではなく総称 |
 | observation content | `food:<id>` / `gift:<id>` | kind プレフィクス付き、MAX_CONTENT_BYTES=200 以内 |

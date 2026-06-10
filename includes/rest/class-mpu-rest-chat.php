@@ -1249,29 +1249,6 @@ class MPU_REST_Chat extends MPU_REST_Base {
         exit;
     }
 
-    // =========================================================================
-    // Session Token 驗證（訪客請求防濫用）
-    // =========================================================================
-
-    /**
-     * 驗證前台 session token。
-     * 登入使用者直接通過；匿名訪客需帶有效 token，否則直接回傳 403。
-     * 無效與缺少 token 回傳相同錯誤訊息，避免資訊洩漏。
-     */
-    protected function check_session_token(WP_REST_Request $request): ?WP_REST_Response {
-        if (is_user_logged_in()) {
-            return null;
-        }
-        $token = $request->get_header('X-MPU-Session-Token') ?: (string) $request->get_param('session_token');
-        if (!empty($token) && function_exists('mpu_validate_session_token') && mpu_validate_session_token($token)) {
-            return null;
-        }
-        return new WP_REST_Response(
-            ['code' => 'missing_session_token', 'message' => __('有効なセッショントークンが必要です。', 'mp-ukagaka')],
-            403
-        );
-    }
-
     /**
      * GET /session-token
      * 為匿名訪客動態生成 IP 綁定的 session token，帶 no-store 快取標頭。
