@@ -39,16 +39,31 @@ function mpu_get_api_cache_ttl()
 /**
  * 生成快取鍵
  * 
- * @param string $provider 提供商
- * @param string $system_prompt 系統提示詞
- * @param string $user_prompt 用戶提示詞
+ * @param string   $provider      提供商.
+ * @param string   $model         模型名稱.
+ * @param string   $language      語言代碼.
+ * @param int|null $max_tokens    最大 token 數.
+ * @param string   $system_prompt 系統提示詞.
+ * @param string   $user_prompt   用戶提示詞.
+ * @param string   $endpoint      供本機 provider 使用的 endpoint.
  * @return string
  */
-function mpu_generate_cache_key($provider, $system_prompt, $user_prompt)
+function mpu_generate_cache_key($provider, $model, $language, $max_tokens, $system_prompt, $user_prompt, $endpoint = '')
 {
-    // 只使用 prompt 內容生成 hash，不包含 API key
-    $content = $provider . '|' . $system_prompt . '|' . $user_prompt;
-    return 'mpu_api_' . md5($content);
+	// 使用生成結果會受影響的參數生成 hash，不包含 API key。
+	$content = implode(
+		'|',
+		array(
+			(string) $provider,
+			(string) $model,
+			(string) $language,
+			null !== $max_tokens ? (string) intval( $max_tokens ) : '',
+			(string) $endpoint,
+			(string) $system_prompt,
+			(string) $user_prompt,
+		)
+	);
+	return 'mpu_api_' . md5( $content );
 }
 
 /**
