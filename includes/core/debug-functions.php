@@ -53,6 +53,20 @@ function mpu_debug_log($message, $level = 'debug')
 }
 
 /**
+ * Whether verbose LLM prompt/history logging is explicitly enabled.
+ *
+ * This is intentionally separate from WP_DEBUG because prompts can contain
+ * conversation content and administrator profile data.
+ *
+ * @return bool
+ */
+function mpu_is_llm_prompt_debug_enabled(): bool {
+	$enabled = defined( 'MPU_DEBUG_LLM' ) && MPU_DEBUG_LLM;
+
+	return (bool) apply_filters( 'mpu_debug_llm_prompts', $enabled );
+}
+
+/**
  * 記錄警告級別日誌
  * 
  * @param mixed $message 日誌訊息
@@ -73,5 +87,3 @@ function mpu_log_error($message)
 {
     mpu_debug_log($message, 'error');
 }
-
-

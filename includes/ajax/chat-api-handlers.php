@@ -32,41 +32,26 @@ function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $mes
         $language = 'zh-TW';
     }
 
-    // 記錄發送給 AI 的提示詞
-    // 檢查 WP_DEBUG 或 WP_DEBUG_LOG，如果都未啟用則強制記錄（用於調試）
-    $wp_debug_enabled = defined('WP_DEBUG') && WP_DEBUG;
-    $wp_debug_log_enabled = defined('WP_DEBUG_LOG') && WP_DEBUG_LOG;
-
-    // 如果 WP_DEBUG 或 WP_DEBUG_LOG 啟用，則記錄調用資訊
-    if ($wp_debug_enabled || $wp_debug_log_enabled) {
-        if (function_exists('mpu_debug_log')) {
-            mpu_debug_log('=== MP Ukagaka - AI API 調用（多輪對話） ===');
-            mpu_debug_log('提供商: ' . $provider);
-            mpu_debug_log('語言: ' . $language);
-            mpu_debug_log('--- System Prompt ---');
-            mpu_debug_log($system_prompt);
-            mpu_debug_log('--- Messages (' . count($messages) . ' 條) ---');
-            foreach ($messages as $index => $msg) {
-                $role = isset($msg['role']) ? $msg['role'] : 'unknown';
-                $content = isset($msg['content']) ? $msg['content'] : '';
-                mpu_debug_log("  [{$index}] {$role}: " . mb_substr($content, 0, 200, 'UTF-8') . (mb_strlen($content, 'UTF-8') > 200 ? '...' : ''));
-            }
-            mpu_debug_log('=== End AI API 調用（多輪對話） ===');
-        } else {
-            // 後備方案：使用標準 error_log
-            error_log('=== MP Ukagaka - AI API 調用（多輪對話） ===');
-            error_log('提供商: ' . $provider);
-            error_log('語言: ' . $language);
-            error_log('--- System Prompt ---');
-            error_log($system_prompt);
-            error_log('--- Messages (' . count($messages) . ' 條) ---');
-            foreach ($messages as $index => $msg) {
-                $role = isset($msg['role']) ? $msg['role'] : 'unknown';
-                $content = isset($msg['content']) ? $msg['content'] : '';
-                error_log("  [{$index}] {$role}: " . mb_substr($content, 0, 200, 'UTF-8') . (mb_strlen($content, 'UTF-8') > 200 ? '...' : ''));
-            }
-            error_log('=== End AI API 調用（多輪對話） ===');
+    // Full prompt dumps require explicit opt-in because they may contain PII.
+    if (function_exists('mpu_is_llm_prompt_debug_enabled') && mpu_is_llm_prompt_debug_enabled() && function_exists('mpu_debug_log')) {
+        $message_log_limit = (int) apply_filters('mpu_debug_llm_prompt_message_limit', 12);
+        if ($message_log_limit < 1) {
+            $message_log_limit = 12;
         }
+        $logged_messages = array_slice($messages, -$message_log_limit, null, true);
+
+        mpu_debug_log('=== MP Ukagaka - AI API 調用（多輪對話） ===');
+        mpu_debug_log('提供商: ' . $provider);
+        mpu_debug_log('語言: ' . $language);
+        mpu_debug_log('--- System Prompt ---');
+        mpu_debug_log($system_prompt);
+        mpu_debug_log('--- Messages (' . count($messages) . ' 條、latest ' . count($logged_messages) . ' logged) ---');
+        foreach ($logged_messages as $index => $msg) {
+            $role = isset($msg['role']) ? $msg['role'] : 'unknown';
+            $content = isset($msg['content']) ? $msg['content'] : '';
+            mpu_debug_log("  [{$index}] {$role}: " . mb_substr($content, 0, 200, 'UTF-8') . (mb_strlen($content, 'UTF-8') > 200 ? '...' : ''));
+        }
+        mpu_debug_log('=== End AI API 調用（多輪對話） ===');
     }
 
     // 初始化 MCP 工具執行標記
@@ -113,4 +98,3 @@ function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $mes
 
     return $ai_provider->generate_chat($args);
 }
-
