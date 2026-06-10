@@ -1033,6 +1033,14 @@ function mpu_enqueue_frontend_assets() {
 
 	// bootstrap 邏輯：掛在 canvas manager（ukagaka-anime.js / bundle）之後（自 mpu_head() 移入）.
 	wp_add_inline_script( $anime_handle, mpu_frontend_bootstrap_inline_js( $mpu_opt ), 'after' );
+
+	// 使用者自訂 JS（extend.js_area）：掛在 bootstrap inline 之後（自 mpu_head() 移入）。
+	// 同一 handle 的多個 'after' inline 依註冊順序輸出，因此自訂 JS 的 ready callback
+	// 仍在 bootstrap callback 之後註冊（保持搬移前的相對順序），且此時 boot 純資料
+	// 變數已定義，自訂 JS 可同步讀取.
+	if ( ! empty( $mpu_opt['extend']['js_area'] ) ) {
+		wp_add_inline_script( $anime_handle, stripslashes( $mpu_opt['extend']['js_area'] ), 'after' );
+	}
 }
 add_action( 'wp_enqueue_scripts', 'mpu_enqueue_frontend_assets' );
 
@@ -1221,11 +1229,9 @@ function mpu_head() {
 		return;
 	}
 
-	$mpu_opt = mpu_get_option();
-
-	// 純資料變數已移至 mpu_frontend_boot_inline_js()、bootstrap 邏輯已移至
-	// mpu_frontend_bootstrap_inline_js()，皆由 enqueue 流程掛在對應 handle 輸出。
-	// 此處只保留 per-request 值與使用者自訂 js_area.
+	// 純資料變數已移至 mpu_frontend_boot_inline_js()、bootstrap 邏輯與使用者自訂
+	// js_area 已移至 enqueue 流程（掛在對應 handle 輸出）。
+	// 此處只保留 per-request 值（不可靜態化，避免 full-page cache 汙染）.
 	echo "<script type=\"text/javascript\">\n";
 	echo "var mpuRestUrl = '" . esc_url_raw( rest_url( 'mp-ukagaka/v1/' ) ) . "';\n";
 	echo "var mpuRestNonce = '" . wp_create_nonce( 'wp_rest' ) . "';\n";
@@ -1233,11 +1239,6 @@ function mpu_head() {
 	// Token 不再嵌入 HTML（避免 full-page cache 把第一訪客 token 送給他人）
 	// JS 會在首次 API 呼叫前透過 /session-token 端點懶取得
 	echo "var mpuSessionToken = null;\n";
-
-	if ( ! empty( $mpu_opt['extend']['js_area'] ) ) {
-		echo stripslashes( $mpu_opt['extend']['js_area'] ) . "\n";
-	}
-
 	echo "</script>\n";
 }
 add_action( 'wp_head', 'mpu_head' );
