@@ -200,20 +200,16 @@ function mpu_get_weather_forecast($latitude = 25.0330, $longitude = 121.5654)
         'fetched_at' => current_time('mysql'),
     ];
 
-	// 依實際降水量校正預報雨勢標籤，避免 drizzle code 低估實際雨量導致角色誤說「霧雨」.
-	// precipitation_sum 是 24h 累積量，只用於 today/tomorrow 預報；current 維持即時 code.
-	$today_precip_sum = $weather['today']['precipitation_sum'];
-
-	$weather['today']['weather_text'] = mpu_weather_refine_rain_text(
-		$weather['today']['weather_code'],
-		$weather['today']['weather_text'],
-		$today_precip_sum
-	);
+	// 依實際降水量校正「明日」預報雨勢標籤，避免 drizzle code 低估實際雨量導致角色誤說「霧雨」.
+	// precipitation_sum 是 24h 累積量，僅用於明日 forecast label。
+	// 今日刻意不在此校正：current.weather_text 維持即時 weather code 表示「現在」，今日累積
+	// 雨量改由 mpu_get_weather_context() 以「（本日Nmm）」文字補充，避免把全日預報量誤讀成當下雨勢.
+	$tomorrow_precip_sum = $weather['tomorrow']['precipitation_sum'] ?? null;
 
 	$weather['tomorrow']['weather_text'] = mpu_weather_refine_rain_text(
 		$weather['tomorrow']['weather_code'],
 		$weather['tomorrow']['weather_text'],
-		$weather['tomorrow']['precipitation_sum']
+		$tomorrow_precip_sum
 	);
 
     return $weather;

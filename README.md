@@ -100,7 +100,7 @@ For detailed information, please refer to:
 
 ## 🎉 What's New in v2.25.4
 
-**Weather rain-label refinement**: Daily forecast rain labels now use Open-Meteo `precipitation_sum` to avoid understating heavy 24-hour rainfall as drizzle. Current weather still keeps the live WMO code, while the context adds the day’s accumulated rainfall so the character can talk about real rain intensity without overstating what is happening right now.
+**Weather rain-label refinement**: Tomorrow's forecast rain label now uses Open-Meteo `precipitation_sum` to avoid understating heavy 24-hour rainfall as drizzle. Current weather still keeps the live WMO code, while the context adds the day’s accumulated rainfall so the character can talk about real rain intensity without overstating what is happening right now.
 
 **Frieren reaction wording**: One bot-detection prompt was rewritten to remove a contradictory metaphor, making security-event dialogue more natural.
 
