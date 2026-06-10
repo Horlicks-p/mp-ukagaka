@@ -442,12 +442,16 @@ function mpu_get_api_cache_ttl()
 
 ```php
 /**
- * @param string $provider プロバイダー
- * @param string $system_prompt システムプロンプト
- * @param string $user_prompt ユーザープロンプト
+ * @param string   $provider      プロバイダー
+ * @param string   $model         モデル名
+ * @param string   $language      言語コード
+ * @param int|null $max_tokens    最大トークン数
+ * @param string   $system_prompt システムプロンプト
+ * @param string   $user_prompt   ユーザープロンプト
+ * @param string   $endpoint      ローカル provider 用エンドポイント（任意）
  * @return string キャッシュキー
  */
-function mpu_generate_cache_key($provider, $system_prompt, $user_prompt)
+function mpu_generate_cache_key($provider, $model, $language, $max_tokens, $system_prompt, $user_prompt, $endpoint = '')
 ```
 
 ---

@@ -27,6 +27,8 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
         mpu_ensure_request_state('llm_single_turn');
     }
 
+	$mpu_opt = is_array($mpu_opt) ? $mpu_opt : array();
+
     if (function_exists('mpu_resolve_language_code')) {
         $personality_id = function_exists('mpu_get_current_personality_id') ? mpu_get_current_personality_id() : null;
         $language = mpu_resolve_language_code($personality_id, $language);
@@ -34,13 +36,49 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
         $language = 'zh-TW';
     }
 
+	$provider_slug = strtolower(trim((string) $provider));
+
+	// Cache key must use the same model metadata sent to providers.
+	$args = array(
+		'api_key'       => $api_key,
+		'system_prompt' => $system_prompt,
+		'user_prompt'   => $user_prompt,
+		'language'      => $language,
+		'max_tokens'    => $max_tokens,
+	);
+
+	// 提供商特定參數提取
+	switch ($provider_slug) {
+		case "gemini":
+			$args['model'] = $mpu_opt["llm_gemini_model"] ?? $mpu_opt["gemini_model"] ?? "gemini-2.5-flash";
+			break;
+		case "openai":
+			$args['model'] = $mpu_opt["llm_openai_model"] ?? $mpu_opt["openai_model"] ?? "gpt-4.1-mini-2025-04-14";
+			break;
+		case "claude":
+			$args['model'] = $mpu_opt["llm_claude_model"] ?? $mpu_opt["claude_model"] ?? "claude-sonnet-4-6";
+			break;
+		case "ollama":
+			$args['endpoint'] = $mpu_opt["ollama_endpoint"] ?? "http://localhost:11434";
+			$args['model'] = $mpu_opt["ollama_model"] ?? "qwen3:8b";
+			break;
+	}
+
     // ===== 統計：記錄開始時間 =====
     $start_time = microtime(true);
 
     // ===== API 快取檢查 =====
     $cache_key = null;
     if (function_exists('mpu_is_api_cache_enabled') && mpu_is_api_cache_enabled()) {
-        $cache_key = mpu_generate_cache_key($provider, $system_prompt, $user_prompt);
+		$cache_key = mpu_generate_cache_key(
+			$provider_slug,
+			$args['model'] ?? '',
+			$language,
+			$max_tokens,
+			$system_prompt,
+			$user_prompt,
+			$args['endpoint'] ?? ''
+		);
         $cached_response = mpu_get_cached_api_response($cache_key);
         if ($cached_response !== false) {
             // ===== 統計：記錄快取命中 =====
@@ -68,8 +106,6 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
         mpu_debug_log('=== End AI API 調用 ===');
     }
 
-    $provider_slug = strtolower(trim((string) $provider));
-
     $factory_result = MPU_AI_Provider_Factory::get_provider($provider_slug);
     if (is_wp_error($factory_result)) {
         return $factory_result;
@@ -77,32 +113,6 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
 
     /** @var MPU_AI_Provider_Interface $ai_provider */
     $ai_provider = $factory_result;
-
-    // 準備參數
-    $args = [
-        'api_key'       => $api_key,
-        'system_prompt' => $system_prompt,
-        'user_prompt'   => $user_prompt,
-        'language'      => $language,
-        'max_tokens'    => $max_tokens,
-    ];
-
-    // 提供商特定參數提取
-    switch ($provider_slug) {
-        case "gemini":
-            $args['model'] = $mpu_opt["llm_gemini_model"] ?? $mpu_opt["gemini_model"] ?? "gemini-2.5-flash";
-            break;
-        case "openai":
-            $args['model'] = $mpu_opt["llm_openai_model"] ?? $mpu_opt["openai_model"] ?? "gpt-4.1-mini-2025-04-14";
-            break;
-        case "claude":
-            $args['model'] = $mpu_opt["llm_claude_model"] ?? $mpu_opt["claude_model"] ?? "claude-sonnet-4-6";
-            break;
-        case "ollama":
-            $args['endpoint'] = $mpu_opt["ollama_endpoint"] ?? "http://localhost:11434";
-            $args['model'] = $mpu_opt["ollama_model"] ?? "qwen3:8b";
-            break;
-    }
 
     $result = $ai_provider->generate_text($args);
 

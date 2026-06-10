@@ -442,12 +442,16 @@ Generates a cache key.
 
 ```php
 /**
- * @param string $provider Provider
- * @param string $system_prompt System prompt
- * @param string $user_prompt User prompt
+ * @param string   $provider      Provider
+ * @param string   $model         Model name
+ * @param string   $language      Language code
+ * @param int|null $max_tokens    Max tokens
+ * @param string   $system_prompt System prompt
+ * @param string   $user_prompt   User prompt
+ * @param string   $endpoint      Endpoint for local providers (optional)
  * @return string Cache key
  */
-function mpu_generate_cache_key($provider, $system_prompt, $user_prompt)
+function mpu_generate_cache_key($provider, $model, $language, $max_tokens, $system_prompt, $user_prompt, $endpoint = '')
 ```
 
 ---
