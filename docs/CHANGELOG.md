@@ -4,6 +4,15 @@
 
 ---
 
+## [2.25.6] - 2026-06-10
+
+### 🛡️ 安全強化 (A-級修復)
+
+- **API Key 加密升級為 AES-256-GCM**：新存入的 API Key 改用具認證性的 AES-256-GCM（`mpu_enc2:` 前綴）。移除可逆混淆 fallback 與「AUTH_KEY 缺失時改用 site URL 派生金鑰」的不安全路徑；當 AUTH_KEY 或 OpenSSL/GCM 不可用時改為 fail-closed（拒絕儲存）。舊有 `mpu_enc:` / `mpu_obf:` / 明文仍可解密，並於下次儲存設定時自動重加密為 GCM。
+- **LLM Prompt 除錯日誌防護**：完整的 system/user prompt 與對話內容不再因 `WP_DEBUG` 開啟就被輸出。現在需透過 `MPU_DEBUG_LLM` 常數或 `mpu_debug_llm_prompts` filter 明確開啟，避免提示詞資產與對話 PII 洩漏到除錯日誌。
+
+---
+
 ## [2.25.5] - 2026-06-10
 
 ### 🛡️ 安全與穩定性強化 (S-級修復)

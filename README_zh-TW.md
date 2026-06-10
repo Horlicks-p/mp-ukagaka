@@ -98,7 +98,11 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 - **[API 參考](docs/API_REFERENCE.md)** - 函數與 Hook 參考
 - **[更新日誌](docs/CHANGELOG.md)** - 版本歷史
 
-## 🎉 v2.25.5 新功能
+## 🎉 v2.25.6 新功能
+
+**安全強化**：API Key 加密升級為具認證性的 AES-256-GCM（移除弱 fallback），並將完整的 LLM 提示詞／對話除錯日誌改為明確 opt-in，避免 PII 洩漏。
+
+### v2.25.5 Highlights
 
 **安全與穩定性強化**：修正了 Touch API 的 Session Token 防護、API 快取鍵值完整性，以及選項合併時的深層拷貝問題。
 

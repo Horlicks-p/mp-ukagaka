@@ -98,7 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.25.5
+## 🎉 What's New in v2.25.6
+
+**Security Hardening**: Upgraded API key encryption to authenticated AES-256-GCM (removing weak fallbacks), and gated full LLM prompt/conversation debug logging behind an explicit opt-in to prevent PII leaks.
+
+### v2.25.5 Highlights
 
 **Security & Stability Enhancements**: Fixed Touch API session token guard, API cache key integrity, and option deep merge issues.
 

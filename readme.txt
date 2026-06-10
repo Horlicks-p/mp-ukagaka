@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.25.5
+Stable tag: 2.25.6
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,11 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-10 =
+* v2.25.6
+* [SECURITY] API Key Encryption (AES-256-GCM): New API keys are now stored with authenticated AES-256-GCM (`mpu_enc2:` prefix). Removed the weak obfuscation fallback and the insecure site-URL-derived key path; encryption now fails closed (refuses to store) when AUTH_KEY or OpenSSL/GCM is unavailable. Legacy `mpu_enc:` / `mpu_obf:` / plaintext values still decrypt and re-encrypt to GCM on the next settings save.
+* [SECURITY] LLM Prompt Debug Logging: Full system/user prompt and conversation dumps are no longer emitted by `WP_DEBUG` alone. They now require an explicit opt-in via the `MPU_DEBUG_LLM` constant or the `mpu_debug_llm_prompts` filter, preventing prompt assets and conversation PII from leaking into debug logs.
 
 = 2026-06-10 =
 * v2.25.5
