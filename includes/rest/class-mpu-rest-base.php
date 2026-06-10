@@ -111,19 +111,71 @@ abstract class MPU_REST_Base {
         return new WP_Error($code, $message, $error_data);
     }
 
-    /**
-     * Resolve a valid front-end session token from a REST request.
-     */
-    protected function runtime_session_token(WP_REST_Request $request): string {
-        $token = $request->get_header('X-MPU-Session-Token') ?: (string) $request->get_param('session_token');
-        $token = trim((string) $token);
+	/**
+	 * Read the front-end session token from a REST request.
+	 *
+	 * @param WP_REST_Request $request REST request.
+	 * @return string Session token, or empty string.
+	 */
+	protected function request_session_token( WP_REST_Request $request ): string {
+		return trim( (string) ( $request->get_header( 'X-MPU-Session-Token' ) ?: $request->get_param( 'session_token' ) ) );
+	}
 
-        if ($token !== '' && function_exists('mpu_validate_session_token') && mpu_validate_session_token($token)) {
-            return $token;
-        }
+	/**
+	 * Resolve a valid front-end session token from a REST request.
+	 *
+	 * @param WP_REST_Request $request REST request.
+	 * @return string Valid session token, or empty string.
+	 */
+	protected function runtime_session_token( WP_REST_Request $request ): string {
+		$token = $this->request_session_token( $request );
 
-        return '';
-    }
+		if ( '' !== $token && function_exists( 'mpu_validate_session_token' ) && mpu_validate_session_token( $token ) ) {
+			return $token;
+		}
+
+		return '';
+	}
+
+	/**
+	 * Require a valid front-end session token for public REST endpoints.
+	 *
+	 * Logged-in users may bypass the token on chat/touch endpoints, matching the
+	 * existing chat behavior. Observation writes can disable that bypass because
+	 * the token is also the buffer key.
+	 *
+	 * @param WP_REST_Request $request REST request.
+	 * @param bool            $allow_logged_in Whether logged-in users can bypass the token.
+	 * @return WP_REST_Response|null Error response when token is missing or invalid.
+	 */
+	protected function require_session_token( WP_REST_Request $request, bool $allow_logged_in = true ): ?WP_REST_Response {
+		if ( $allow_logged_in && is_user_logged_in() ) {
+			return null;
+		}
+
+		$token = $this->request_session_token( $request );
+		if ( '' !== $token && function_exists( 'mpu_validate_session_token' ) && mpu_validate_session_token( $token ) ) {
+			return null;
+		}
+
+		return new WP_REST_Response(
+			array(
+				'code'    => 'missing_session_token',
+				'message' => __( '有効なセッショントークンが必要です。', 'mp-ukagaka' ),
+			),
+			403
+		);
+	}
+
+	/**
+	 * Backward-compatible name used by chat endpoints.
+	 *
+	 * @param WP_REST_Request $request REST request.
+	 * @return WP_REST_Response|null Error response when token is missing or invalid.
+	 */
+	protected function check_session_token( WP_REST_Request $request ): ?WP_REST_Response {
+		return $this->require_session_token( $request );
+	}
 
     /**
      * Write ghost runtime state when the helper module is loaded.

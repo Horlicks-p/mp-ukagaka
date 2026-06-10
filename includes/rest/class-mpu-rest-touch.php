@@ -43,6 +43,11 @@ class MPU_REST_Touch extends MPU_REST_Base {
      * Rate limit: 20 次 / 60 秒（與舊實作相同）
      */
     public function decoration_chat(WP_REST_Request $request) {
+        $st = $this->check_session_token($request);
+        if (null !== $st) {
+            return $st;
+        }
+
         $mpu_opt = mpu_get_option();
 
         if (empty($mpu_opt['ai_enabled'])) {
@@ -128,6 +133,11 @@ class MPU_REST_Touch extends MPU_REST_Base {
      * Rate limit: 20 次 / 60 秒（與舊實作相同）
      */
     public function touch_zone_chat(WP_REST_Request $request) {
+        $st = $this->check_session_token($request);
+        if (null !== $st) {
+            return $st;
+        }
+
         $mpu_opt = mpu_get_option();
 
         if (empty($mpu_opt['ai_enabled'])) {

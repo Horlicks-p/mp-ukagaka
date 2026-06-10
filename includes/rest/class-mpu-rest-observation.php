@@ -22,7 +22,7 @@ class MPU_REST_Observation extends MPU_REST_Base {
     }
 
     public function push(WP_REST_Request $request) {
-        $auth = $this->require_valid_session_token($request);
+        $auth = $this->require_session_token($request, false);
         if ($auth !== null) {
             return $auth;
         }
@@ -48,22 +48,5 @@ class MPU_REST_Observation extends MPU_REST_Base {
             : false;
 
         return $this->ok(['ok' => $ok]);
-    }
-
-    private function require_valid_session_token(WP_REST_Request $request) {
-        $token = $this->request_session_token($request);
-        if ($token !== '' && function_exists('mpu_validate_session_token') && mpu_validate_session_token($token)) {
-            return null;
-        }
-
-        return $this->fail(
-            'missing_session_token',
-            __('有効なセッショントークンが必要です。', 'mp-ukagaka'),
-            403
-        );
-    }
-
-    private function request_session_token(WP_REST_Request $request): string {
-        return trim((string) ($request->get_header('X-MPU-Session-Token') ?: $request->get_param('session_token')));
     }
 }
