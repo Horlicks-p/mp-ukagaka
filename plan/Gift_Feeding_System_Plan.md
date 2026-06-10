@@ -187,6 +187,8 @@ mpu_get_personality_item_ids($personality_id = null): array
   2. `item_id`、`session_id`、および `history` 受領・sanitize。`item_id` は `mpu_get_personality_item()` で解決（不明なら 400）。`session_id` と `history` は後続の checksum 保存に利用するため、`MPU_Chat_History_Service::get_session_id($request)` および `MPU_Chat_History_Service::parse_history_from_request($request)` にて解決。
      - **`session_id` が空なら 400**（checksum 保存に必須）。
      - **`history` は「送られていて array として解析できる」ことだけを要求し、解析後が空配列 `[]` でも 400 にしない**。初回インタラクションが送禮というケースは正当で、その時 `history = []` は合法。backend は空配列に対し synthetic user anchor → assistant reply を append すれば checksum を書ける（§3③ 手順 6.5）。`history` パラメータ自体が未送信／array に解析できない場合のみ 400。
+     - ⚠️ **実装注意**：`MPU_Chat_History_Service::parse_history_from_request()` は未送信・空文字・JSON 不正・解析後空配列をすべて `[]` に畳むため、この判定には使えない。`$request->get_param('history')` の raw 値を先に検査し、「param が存在する」「JSON decode 後が array」の 2 点を確認してから、正規化済み history として `parse_history_from_request()` の戻り値を使う。
+       - 「param が存在する」の判定は **`$request->has_param('history')`** を使う（`null !== $request->get_param('history')` ではない）。route args で `history` に default を設定すると未送信時も default 値が入り `get_param()` の null 判定では「真の未送信」と区別できなくなるため、`has_param()` で判定し、かつ **route 登録時に `history` へ default を与えない**こと。
   3. `kind` 別に反応ルールを組み立て：
      - `food`：「食べる／味の感想を述べる」
      - `gift`：「受け取る／お礼を述べる」
@@ -196,8 +198,10 @@ mpu_get_personality_item_ids($personality_id = null): array
      **prompt 組立（手順 3）は caller 側に残し、helper には渡さない**（家 CODEX #4）。
      normalize 時の `context` は **`'give'`**（`'decoration'` を流用しない／家 CODEX #5）。
      inner monologue context default は **false**（decoration と同様）。gift/food 反応で LLM think bubble を出さない。
-     **`run_reaction()` は失敗時 `WP_Error` を返す契約（R2-3）**。caller は直後に
-     `if (is_wp_error($normalized)) { return $normalized; }` だけ。WP REST 框架が自動でエラー応答に包む。
+     **`run_reaction()` は失敗時 `WP_Error` を返す契約（R2-3）**。ただし既存 `decoration_chat()` / `touch_zone_chat()` の
+     REST status と error code を変えないため、helper が返す `WP_Error` には status 400 を持たせる（または caller 側で
+     既存どおり `$this->fail('rest_error', $error->get_error_message(), 400)` に包む）。caller は `is_wp_error()` 分岐だけにして、
+     3 メソッドのエラーハンドリングを統一・最小化する。
   5. `mpu_record_conversation('give')`
      - **会社 CODEX D-3**：`includes/stats/stats-collector.php` の `$valid_types`（`:132`）に `'give'` を追加する。
        **機能上の必要条件はこの `$valid_types` 追加のみ**——未追加だと早期 return で計上されない。初期 stats 構造（`conversations` 配列・`:46-52`）への
@@ -248,6 +252,10 @@ mpu_get_personality_item_ids($personality_id = null): array
 - `mpu_observation_push_item(WP_REST_Request $request, string $kind, string $id): void`
   （session token 取得 → `item` type で `"{$kind}:{$id}"` を push。push 側は `MPU_Observation_Buffer::push()` が
   内部で `dedupe_entries()` を呼ぶので、上記 `dedupe_key` さえ足せば自動で効く。）
+  ⚠️ **`push_touch` を copy して作らない**：既存 `mpu_observation_push_touch()`（`class-mpu-observation-buffer.php:352`）は
+  content を `part:N` の **回数カウント累加モード**で組み（描写も「N回触れた」）、`push_item` の狙う
+  「同一道具は最新1件のみ」語意とは別物。`push_item` は count 累加を**持ち込まず**、`"{$kind}:{$id}"`（カウント無し）を
+  素直に push し、収斂は `dedupe_key('item', …)` に任せる。loader（§2）と違い observation push は「コピー＆改名」してはいけない。
 
 > ⚠️ `touch` type を `gift_` プレフィクスで流用する案もあるが、描写が「N回触れた」になり
 > 意味がズレるため**専用 `item` type を採用**する。`gift` ではなく `item` にするのは、food が gift ではなく、
@@ -290,10 +298,20 @@ mpu_get_personality_item_ids($personality_id = null): array
       type: "synthetic",
       timestamp: Date.now(),
     });
+    window.mpuChatHistory.push({
+      role: "assistant",
+      content: res.msg,
+      type: "give",
+      timestamp: Date.now(),
+    });
     ```
     これで「さっきの、美味しかった？」に対し LLM が**何を渡したか**の語意文脈を保持しつつ、前後端 checksum も逐字一致する。
+    `res.msg` は現行 normalizer 契約上 `display_text` / `history_text` / `checksum_text` と同一なので、frontend history へ保存してよい。
   - 多重実行ガードは decoration の `decorationChatInProgress` と同型（`giveItemInProgress`）。
     **解除は `try...finally` / `.finally()` で必須（G-3）**：error/timeout 時の UI ロック残留を防ぐ。
+  - ⚠️ **script dependency**：`frieren.js` は現行 enqueue で `$anime_handle` のみに依存しており、`mpu_getOrCreateChatSessionId()` を定義する
+    `ukagaka-chat.js` / bundle への依存が明示されていない。give UI が `mpu_getOrCreateChatSessionId()` と `window.mpuChatHistory` を必須にするため、
+    personality script の依存配列に `$chat_handle`（bundle 時は `mpu-bundle`）を含める、または give UI 初期化を chat runtime 準備後に遅延する。
 
 ### ⑥ 演出
 
@@ -309,7 +327,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 | items.json `id` | `[a-z_][a-z0-9_]*` | observation normalize と一致 |
 | items.json `kind` | `food` \| `gift` | ホワイトリスト、不一致は読み飛ばし（将来 medicine/book/tool 拡張可） |
 | catalog → 前端 | `wp_localize_script`（`id`/`kind`/`name`/`favorite`） | 画像は MVP 渡さない |
-| REST 入力 | `item_id`（POST body） | sanitize_text_field、空 or 未知は 400 |
+| REST 入力 | `item_id`, `session_id`, `history`（POST body） | `item_id` は sanitize_text_field、空 or 未知は 400。`session_id` 空は 400。`history` は raw param が存在し JSON decode 後 array であること（空配列 `[]` は合法） |
 | REST 出力 | `{msg, emoji, display_text…, item_id, kind, user_anchor}` | 既存 normalize fields ＋ item_id/kind ＋ backend 生成 localized anchor（G-2） |
 | observation type | `item` | `gift` ではなく総称 |
 | observation content | `food:<id>` / `gift:<id>` | kind プレフィクス付き、MAX_CONTENT_BYTES=200 以内 |
@@ -333,7 +351,8 @@ mpu_get_personality_item_ids($personality_id = null): array
   ⚠️ **prompt 組立（カテゴリ抽選・反応ルール文）は helper に入れず各 caller に残す**。
   入れると decoration/touch/give の分岐が helper に集まり巨大化する（家 CODEX #4）。
   ⚠️ **エラー契約（R2-3）**：API Key 未設定・timeout・provider が `WP_Error` を返した等の失敗時、
-  `run_reaction()` は `WP_Error` をそのまま返す。caller は `is_wp_error()` で 1 行 return するだけにして、
+  `run_reaction()` は `WP_Error` を返す。既存 REST 挙動を維持するため、`WP_Error` に status 400 を入れるか、caller が
+  `$this->fail('rest_error', $error->get_error_message(), 400)` に包む。caller 側の分岐は `is_wp_error()` のみに揃え、
   3 メソッドのエラーハンドリングを統一・最小化する。
 - **Step 1 — Config**：`ghost/Frieren/items.json` 新設＋ Frieren 初期カタログ（麻婆豆腐 food/favorite、
   甘い物 food、花 gift、本 gift など）。
@@ -366,6 +385,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 | 拡張 | `includes/core/class-mpu-observation-buffer.php`（`item` type） |
 | 拡張 | `ghost/Frieren/frieren.js`（ギフトメニュー・text-only） |
 | 拡張 | catalog の `wp_localize_script` 供給（enqueue 箇所。`frontend-functions.php` 付近） |
+| 拡張 | `includes/core/frontend-functions.php`（personality script dependency に chat runtime を含める） |
 | 1 行 | `mp-ukagaka.php`（personality-items の load order） |
 | 再ビルド | `js/dist/ukagaka-bundle.js` / `.min.js`（core 変更時） |
 | 後回し | `ghost/Frieren/items/*.png`（Phase 3 で画像 UI 化する時） |
