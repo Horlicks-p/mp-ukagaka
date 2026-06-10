@@ -1030,8 +1030,101 @@ function mpu_enqueue_frontend_assets() {
 
 	// 純資料 boot 變數：掛在最早的 script handle 之前（自 mpu_head() 移入）.
 	wp_add_inline_script( $base_handle, mpu_frontend_boot_inline_js( $mpu_opt ), 'before' );
+
+	// bootstrap 邏輯：掛在 canvas manager（ukagaka-anime.js / bundle）之後（自 mpu_head() 移入）.
+	wp_add_inline_script( $anime_handle, mpu_frontend_bootstrap_inline_js( $mpu_opt ), 'after' );
 }
 add_action( 'wp_enqueue_scripts', 'mpu_enqueue_frontend_assets' );
+
+/**
+ * 組裝前端 bootstrap inline JS（自 mpu_head() 移入 enqueue 流程）。
+ *
+ * 內容為 document.ready callback：呼叫 REST /init 初始化 canvas，
+ * 並依 cookie 還原角色／對話框的顯示狀態。掛在 canvas manager
+ * （ukagaka-anime.js / bundle）handle 的 'after' 位置，保證執行時
+ * mpuCanvasManager 已定義。引用的 mpuRestUrl / mpuRestNonce 由
+ * mpu_head() 於 <head> 輸出；mpuInfo / mpuInitParams 由
+ * mpu_frontend_boot_inline_js() 於更早的 handle 輸出。
+ *
+ * @param array $mpu_opt Plugin options array.
+ * @return string Inline JS wrapped in a jQuery ready callback.
+ */
+function mpu_frontend_bootstrap_inline_js( $mpu_opt ) {
+	$js = '
+    jQuery(document).ready(function($) {
+        if (typeof window.mpuCanvasManager !== "undefined" && $("#cur_ukagaka").length > 0) {
+            $.ajax({
+                url: mpuRestUrl + "init",
+                type: "GET",
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader("X-WP-Nonce", mpuRestNonce);
+                },
+                data: {
+                    ukagaka_num: mpuInitParams.ukagaka_num
+                },
+                dataType: "json",
+                success: function(response) {
+                    if (response.success) {
+                        if (response.shell_info) {
+                            window.mpuCanvasManager.init(
+                                response.shell_info,
+                                response.ukagaka_name,
+                                response.ukagaka_num
+                            );
+                        }
+                        window.mpuInitData = response;
+                        window.mpuPersonalityId = response.personality_id || null;
+                        window.mpuDecorationsBaseUrl = response.decorations_base_url;
+                        window.mpuDecorationConfig = response.decoration_config;
+                        window.mpuTouchZones = response.touchzones;
+                        window.mpuShowDecorations = response.show_decorations;
+                        window.mpuEmojiBaseUrl = response.emoji_base_url;
+                        window.mpuSupportedEmojis = response.supported_emojis;
+                        window.mpuEmojiMappings = response.emoji_mappings;
+                        window.mpuSettings = response.settings;
+                        $(document).trigger("mpuInitComplete", [response]);
+                    } else {
+                        console.error("[MP Ukagaka] Init failed:", response.error || "Unknown error");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("[MP Ukagaka] AJAX init failed:", error);
+                }
+            });
+        }
+
+        var showRobot = mpu_getCookie("mpuRobot");
+        var showMsg   = mpu_getCookie("mpuMsg");
+        if (showRobot==null) {';
+
+	if ( empty( $mpu_opt['show_ukagaka'] ) ) {
+		$js .= '
+            $("#show_ukagaka").html(mpuInfo.robot[0]);
+            $("#ukagaka").fadeOut(400);';
+	}
+
+	$js .= '
+        } else if (showRobot=="hidden") {
+            $("#show_ukagaka").html(mpuInfo.robot[0]);
+            $("#ukagaka").fadeOut(400);
+        }
+        if (showMsg==null) {';
+
+	if ( empty( $mpu_opt['show_msg'] ) ) {
+		$js .= '
+            $("#show_msg").html(mpuInfo.msg[0]);
+            $("#ukagaka_msgbox").fadeOut(400);';
+	}
+
+	$js .= '
+        } else if (showMsg=="hidden") {
+            $("#show_msg").html(mpuInfo.msg[0]);
+            $("#ukagaka_msgbox").fadeOut(400);
+        }
+    });';
+
+	return $js;
+}
 
 /**
  * 組裝前端 boot「純資料」變數的 inline JS（自 mpu_head() 移入 enqueue 流程）。
@@ -1130,10 +1223,9 @@ function mpu_head() {
 
 	$mpu_opt = mpu_get_option();
 
-	// 純資料變數（mpuPageContext / mpuInfo / mpuPreSettings / mpuAiEnabled /
-	// mpuDecorationConfigPending / mpuInitParams）已移至 mpu_frontend_boot_inline_js()，
-	// 由 enqueue 流程掛在最早的 script handle 之前輸出。
-	// 此處只保留 per-request 值與 bootstrap 邏輯.
+	// 純資料變數已移至 mpu_frontend_boot_inline_js()、bootstrap 邏輯已移至
+	// mpu_frontend_bootstrap_inline_js()，皆由 enqueue 流程掛在對應 handle 輸出。
+	// 此處只保留 per-request 值與使用者自訂 js_area.
 	echo "<script type=\"text/javascript\">\n";
 	echo "var mpuRestUrl = '" . esc_url_raw( rest_url( 'mp-ukagaka/v1/' ) ) . "';\n";
 	echo "var mpuRestNonce = '" . wp_create_nonce( 'wp_rest' ) . "';\n";
@@ -1141,75 +1233,6 @@ function mpu_head() {
 	// Token 不再嵌入 HTML（避免 full-page cache 把第一訪客 token 送給他人）
 	// JS 會在首次 API 呼叫前透過 /session-token 端點懶取得
 	echo "var mpuSessionToken = null;\n";
-
-	echo '
-    jQuery(document).ready(function($) {
-        if (typeof window.mpuCanvasManager !== "undefined" && $("#cur_ukagaka").length > 0) {
-            $.ajax({
-                url: mpuRestUrl + "init",
-                type: "GET",
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader("X-WP-Nonce", mpuRestNonce);
-                },
-                data: {
-                    ukagaka_num: mpuInitParams.ukagaka_num
-                },
-                dataType: "json",
-                success: function(response) {
-                    if (response.success) {
-                        if (response.shell_info) {
-                            window.mpuCanvasManager.init(
-                                response.shell_info,
-                                response.ukagaka_name,
-                                response.ukagaka_num
-                            );
-                        }
-                        window.mpuInitData = response;
-                        window.mpuPersonalityId = response.personality_id || null;
-                        window.mpuDecorationsBaseUrl = response.decorations_base_url;
-                        window.mpuDecorationConfig = response.decoration_config;
-                        window.mpuTouchZones = response.touchzones;
-                        window.mpuShowDecorations = response.show_decorations;
-                        window.mpuEmojiBaseUrl = response.emoji_base_url;
-                        window.mpuSupportedEmojis = response.supported_emojis;
-                        window.mpuEmojiMappings = response.emoji_mappings;
-                        window.mpuSettings = response.settings;
-                        $(document).trigger("mpuInitComplete", [response]);
-                    } else {
-                        console.error("[MP Ukagaka] Init failed:", response.error || "Unknown error");
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("[MP Ukagaka] AJAX init failed:", error);
-                }
-            });
-        }
-        
-        var showRobot = mpu_getCookie("mpuRobot");
-        var showMsg   = mpu_getCookie("mpuMsg");
-        if (showRobot==null) {';
-	if ( empty( $mpu_opt['show_ukagaka'] ) ) {
-		echo '
-            $("#show_ukagaka").html(mpuInfo.robot[0]); 
-            $("#ukagaka").fadeOut(400);';
-	}
-	echo '
-        } else if (showRobot=="hidden") {
-            $("#show_ukagaka").html(mpuInfo.robot[0]); 
-            $("#ukagaka").fadeOut(400);
-        }
-        if (showMsg==null) {';
-	if ( empty( $mpu_opt['show_msg'] ) ) {
-		echo '
-            $("#show_msg").html(mpuInfo.msg[0]); 
-            $("#ukagaka_msgbox").fadeOut(400);';
-	}
-	echo '
-        } else if (showMsg=="hidden") {
-            $("#show_msg").html(mpuInfo.msg[0]); 
-            $("#ukagaka_msgbox").fadeOut(400);
-        }
-    });';
 
 	if ( ! empty( $mpu_opt['extend']['js_area'] ) ) {
 		echo stripslashes( $mpu_opt['extend']['js_area'] ) . "\n";
