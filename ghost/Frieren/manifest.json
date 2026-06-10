@@ -10,7 +10,7 @@
   "language": "ja",
   "shell_folder": "Frieren",
   "decorations_folder": "decorations",
-  "scripts": ["frieren.js", "frieren-emoji.js"],
+  "scripts": ["frieren.js", "frieren-decorations.js", "frieren-emoji.js"],
   "character_traits": {
     "age": "1000+",
     "race": "エルフ",

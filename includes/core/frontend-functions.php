@@ -469,7 +469,8 @@ function mpu_enqueue_frontend_assets() {
 
 	// 動態載入人格專屬腳本（從 manifest.json 讀取）
 	// 支援 "script" (字串) 或 "scripts" (陣列) 兩種格式
-	$personality_script_handle = 'mpu-personality';
+	$personality_script_handle      = 'mpu-personality';
+	$last_personality_script_handle = $personality_script_handle;
 	if ( function_exists( 'mpu_load_personality_manifest' ) ) {
 		$manifest       = mpu_load_personality_manifest();
 		$personality_id = function_exists( 'mpu_get_current_personality_id' )
@@ -494,15 +495,19 @@ function mpu_enqueue_frontend_assets() {
 				continue;
 			}
 
-			$handle     = $script_index === 0 ? $personality_script_handle : "mpu-personality-{$script_index}";
-			$script_url = plugins_url( 'ghost/' . $personality_id . '/' . $script_file, $main_file );
+			$handle      = 0 === $script_index ? $personality_script_handle : "mpu-personality-{$script_index}";
+			$script_url  = plugins_url( 'ghost/' . $personality_id . '/' . $script_file, $main_file );
+			$script_deps = 0 === $script_index
+				? array( $anime_handle )
+				: array( $last_personality_script_handle );
 			wp_enqueue_script(
 				$handle,
 				$script_url,
-				array( $anime_handle ),
+				$script_deps,
 				MPU_VERSION,
 				true
 			);
+			$last_personality_script_handle = $handle;
 			++$script_index;
 		}
 	}
@@ -520,8 +525,8 @@ function mpu_enqueue_frontend_assets() {
 
 		if ( $emoji_script_url && $emoji_base_url ) {
 			$emoji_deps = $use_bundle
-				? array( 'mpu-bundle', $personality_script_handle )
-				: array( 'mpu-core', 'mpu-anime', 'mpu-emoji-config', $personality_script_handle );
+				? array( 'mpu-bundle', $last_personality_script_handle )
+				: array( 'mpu-core', 'mpu-anime', 'mpu-emoji-config', $last_personality_script_handle );
 
 			wp_enqueue_script(
 				'mpu-emoji',
