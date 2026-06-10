@@ -280,7 +280,7 @@ The LLM (Large Language Model) feature allows Ukagaka to generate dialogue using
    - **Claude**: Claude Sonnet 4.6 (Recommended), Claude Haiku 4.5 (Fast), Claude Opus 4.7 (Advanced)
 4. Click "Test Connection" to confirm the API Key is valid
 
-> 💡 **Security**: API Keys are stored using WordPress encryption and never saved as plaintext in the database.
+> 💡 **Security**: API Keys are encrypted with WordPress `AUTH_KEY` and OpenSSL, and are never saved as plaintext in the database. If the site has no `AUTH_KEY` or OpenSSL is unavailable, the API Key will not be saved.
 
 > 🌍 **Multi-Language Support**: Model dropdown descriptions automatically display in your WordPress language (Traditional Chinese, English, Japanese).
 

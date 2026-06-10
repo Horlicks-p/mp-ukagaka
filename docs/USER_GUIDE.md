@@ -280,7 +280,7 @@ LLM（Large Language Model）功能讓偽春菜使用 AI 生成對話，支援�
    - **Claude**：Claude Sonnet 4.6（推薦）、Claude Haiku 4.5（快速）、Claude Opus 4.7（進階）
 4. 點擊「連接測試」確認 API Key 有效
 
-> 💡 **安全提示**：API Key 使用 WordPress 加密功能儲存，不會以明文形式儲存在資料庫中。
+> 💡 **安全提示**：API Key 使用 WordPress `AUTH_KEY` 與 OpenSSL 加密儲存，不會以明文形式儲存在資料庫中。若站台缺少 `AUTH_KEY` 或 OpenSSL 不可用，API Key 將不會被保存。
 
 > 🌍 **多語言支援**：模型選單的說明文字會根據 WordPress 語言設定自動顯示繁體中文、英文或日文。
 

@@ -280,7 +280,7 @@ LLM（Large Language Model）機能により、AI を使用してダイアログ
    - **Claude**：Claude Sonnet 4.6（推奨）、Claude Haiku 4.5（高速）、Claude Opus 4.7（進階）
 4. 「接続テスト」ボタンをクリックして API Key が有効か確認
 
-> 💡 **セキュリティ**：API Key は WordPress の暗号化機能で保存され、平文でデータベースに保存されることはありません。
+> 💡 **セキュリティ**：API Key は WordPress の `AUTH_KEY` と OpenSSL で暗号化され、平文でデータベースに保存されることはありません。サイトに `AUTH_KEY` がない場合、または OpenSSL を利用できない場合、API Key は保存されません。
 
 > 🌍 **多言語サポート**：モデル選択ドロップダウンの説明文は、WordPress の言語設定に応じて繁体字中国語・英語・日本語で自動表示されます。
 
