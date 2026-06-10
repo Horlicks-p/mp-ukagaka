@@ -89,13 +89,8 @@ function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $lan
         }
     }
 
-    // 記錄發送給 AI 的提示詞
-    // 檢查 WP_DEBUG 或 WP_DEBUG_LOG，如果都未啟用則強制記錄（用於調試）
-    $wp_debug_enabled = defined('WP_DEBUG') && WP_DEBUG;
-    $wp_debug_log_enabled = defined('WP_DEBUG_LOG') && WP_DEBUG_LOG;
-
-    // 如果 WP_DEBUG 或 WP_DEBUG_LOG 啟用，則記錄調用資訊
-    if ($wp_debug_enabled || $wp_debug_log_enabled) {
+    // Full prompt dumps require explicit opt-in because they may contain PII.
+    if (function_exists('mpu_is_llm_prompt_debug_enabled') && mpu_is_llm_prompt_debug_enabled()) {
         mpu_debug_log('=== MP Ukagaka - AI API 調用 ===');
         mpu_debug_log('提供商: ' . $provider);
         mpu_debug_log('語言: ' . $language);
