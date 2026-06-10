@@ -1027,8 +1027,88 @@ function mpu_enqueue_frontend_assets() {
 	}
 
 	wp_localize_script( $l10n_handle, 'mpuL10n', $l10n );
+
+	// 純資料 boot 變數：掛在最早的 script handle 之前（自 mpu_head() 移入）.
+	wp_add_inline_script( $base_handle, mpu_frontend_boot_inline_js( $mpu_opt ), 'before' );
 }
 add_action( 'wp_enqueue_scripts', 'mpu_enqueue_frontend_assets' );
+
+/**
+ * 組裝前端 boot「純資料」變數的 inline JS（自 mpu_head() 移入 enqueue 流程）。
+ *
+ * 輸出掛在最早的 script handle（mpu-bundle / mpu-base）的 'before' 位置，
+ * 確保所有模組腳本在 parse 階段即可讀取這些全域變數。
+ * ukagaka-base.js / ukagaka-chat.js 以 `=== true` 嚴格比較讀取 mpuPreSettings，
+ * 必須以 wp_json_encode 保持原生布林／數值型別，不可改用 wp_localize_script
+ * （top-level 純量會被轉成字串）。per-request 的 mpuRestUrl / mpuRestNonce /
+ * mpuSessionToken / mpuDebugMode 不在此處，仍由 mpu_head() 輸出。
+ *
+ * @param array $mpu_opt Plugin options array.
+ * @return string Inline JS defining the mpu* boot globals.
+ */
+function mpu_frontend_boot_inline_js( $mpu_opt ) {
+	$page_context = array(
+		'postId' => is_singular() ? (int) get_queried_object_id() : 0,
+	);
+
+	// ★ 先獲取當前 personality_id，再用於睡眠判定
+	// 獲取伺服器端的深夜睡眠時間判定（統一時間來源，避免客戶端/伺服器時區差異）.
+	$current_personality = function_exists( 'mpu_get_current_personality_id' )
+		? mpu_get_current_personality_id()
+		: 'Frieren';
+
+	$is_deep_sleep_time = function_exists( 'mpu_is_deep_sleep_time' ) ? mpu_is_deep_sleep_time( $current_personality ) : false;
+
+	$info = array(
+		'robot'           => array( __( 'キャラを表示 ▲', 'mp-ukagaka' ), __( 'キャラを隠す ▼', 'mp-ukagaka' ) ),
+		'msg'             => array( __( '会話を表示 ▲', 'mp-ukagaka' ), __( '会話を隠す ▼', 'mp-ukagaka' ) ),
+		'isDeepSleepTime' => (bool) $is_deep_sleep_time,
+	);
+
+	$ollama_replace    = function_exists( 'mpu_is_llm_replace_dialogue_enabled' )
+		? mpu_is_llm_replace_dialogue_enabled()
+		: false;
+	$typewriter_speed  = isset( $mpu_opt['typewriter_speed'] ) ? intval( $mpu_opt['typewriter_speed'] ) : 40;
+	$ai_enabled        = isset( $mpu_opt['ai_enabled'] ) && $mpu_opt['ai_enabled'];
+	$streaming_enabled = false;
+	if ( class_exists( 'MPU_AI_Provider_Factory' ) && function_exists( 'mpu_get_current_provider' ) ) {
+		$current_provider  = mpu_get_current_provider( $mpu_opt );
+		$provider_instance = MPU_AI_Provider_Factory::get_provider( $current_provider );
+		if ( ! is_wp_error( $provider_instance ) && is_object( $provider_instance ) && method_exists( $provider_instance, 'supports' ) ) {
+			$streaming_enabled = $provider_instance->supports( MPU_AI_Provider_Base::FEATURE_STREAMING );
+		}
+	}
+
+	$is_admin_user = current_user_can( 'manage_options' );
+	$pre_settings  = array(
+		'ollama_replace'    => (bool) $ollama_replace,
+		'typewriter_speed'  => $typewriter_speed,
+		'streaming_enabled' => (bool) $streaming_enabled,
+		'is_admin'          => $is_admin_user,
+		'rest_nonce'        => $is_admin_user ? wp_create_nonce( 'wp_rest' ) : '',
+	);
+
+	// 從 cookie 讀取 ukagaka_num（與 mpu_html() 保持一致）.
+	$ukagaka_num = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+	if ( isset( $_COOKIE[ 'mpu_ukagaka_' . COOKIEHASH ] ) ) {
+		$cookie_num = sanitize_text_field( $_COOKIE[ 'mpu_ukagaka_' . COOKIEHASH ] );
+		if ( ! empty( $mpu_opt['ukagakas'][ $cookie_num ] ) ) {
+			$ukagaka_num = $cookie_num;
+		}
+	}
+
+	$js  = 'var mpuPageContext = ' . wp_json_encode( $page_context ) . ";\n";
+	$js .= 'var mpuInfo = ' . wp_json_encode( $info ) . ";\n";
+	$js .= 'var mpuPreSettings = ' . wp_json_encode( $pre_settings ) . ";\n";
+	$js .= 'var mpuAiEnabled = ' . wp_json_encode( (bool) $ai_enabled ) . ";\n";
+	// 裝飾配置改為 AJAX 延遲載入（避免在網頁原始碼中暴露圖片路徑）
+	// 前端會透過 mpu_get_decoration_config AJAX 動態獲取裝飾配置.
+	$js .= "var mpuDecorationConfigPending = true;\n";
+	// 輸出 ukagaka_num 供前端 AJAX 載入使用（不直接輸出 shellInfo，改用 AJAX 延遲載入）.
+	$js .= 'var mpuInitParams = ' . wp_json_encode( array( 'ukagaka_num' => $ukagaka_num ) ) . ';';
+
+	return $js;
+}
 
 /**
  * Determine whether front-end debug behavior should be enabled.
@@ -1050,11 +1130,10 @@ function mpu_head() {
 
 	$mpu_opt = mpu_get_option();
 
-	$robot_show = mpu_js_filter( __( 'キャラを表示 ▲', 'mp-ukagaka' ) );
-	$robot_hide = mpu_js_filter( __( 'キャラを隠す ▼', 'mp-ukagaka' ) );
-	$msg_show   = mpu_js_filter( __( '会話を表示 ▲', 'mp-ukagaka' ) );
-	$msg_hide   = mpu_js_filter( __( '会話を隠す ▼', 'mp-ukagaka' ) );
-
+	// 純資料變數（mpuPageContext / mpuInfo / mpuPreSettings / mpuAiEnabled /
+	// mpuDecorationConfigPending / mpuInitParams）已移至 mpu_frontend_boot_inline_js()，
+	// 由 enqueue 流程掛在最早的 script handle 之前輸出。
+	// 此處只保留 per-request 值與 bootstrap 邏輯.
 	echo "<script type=\"text/javascript\">\n";
 	echo "var mpuRestUrl = '" . esc_url_raw( rest_url( 'mp-ukagaka/v1/' ) ) . "';\n";
 	echo "var mpuRestNonce = '" . wp_create_nonce( 'wp_rest' ) . "';\n";
@@ -1062,63 +1141,6 @@ function mpu_head() {
 	// Token 不再嵌入 HTML（避免 full-page cache 把第一訪客 token 送給他人）
 	// JS 會在首次 API 呼叫前透過 /session-token 端點懶取得
 	echo "var mpuSessionToken = null;\n";
-	$mpu_page_context = array(
-		'postId' => is_singular() ? (int) get_queried_object_id() : 0,
-	);
-	echo 'var mpuPageContext = ' . wp_json_encode( $mpu_page_context ) . ";\n";
-
-	// ★ 先獲取當前 personality_id，再用於睡眠判定
-	$current_personality = function_exists( 'mpu_get_current_personality_id' )
-		? mpu_get_current_personality_id()
-		: 'Frieren';
-
-	// 獲取伺服器端的深夜睡眠時間判定（統一時間來源，避免客戶端/伺服器時區差異）
-	// ★ 傳入當前 personality_id 以正確判斷該角色的睡眠狀態
-	$is_deep_sleep_time = function_exists( 'mpu_is_deep_sleep_time' ) ? mpu_is_deep_sleep_time( $current_personality ) : false;
-
-	echo "var mpuInfo = {
-        robot: ['{$robot_show}', '{$robot_hide}'],
-        msg: ['{$msg_show}', '{$msg_hide}'],
-        isDeepSleepTime: " . ( $is_deep_sleep_time ? 'true' : 'false' ) . "
-    };\n";
-
-	$ollama_replace    = function_exists( 'mpu_is_llm_replace_dialogue_enabled' )
-		? mpu_is_llm_replace_dialogue_enabled()
-		: false;
-	$typewriter_speed  = isset( $mpu_opt['typewriter_speed'] ) ? intval( $mpu_opt['typewriter_speed'] ) : 40;
-	$ai_enabled        = isset( $mpu_opt['ai_enabled'] ) && $mpu_opt['ai_enabled'];
-	$streaming_enabled = false;
-	if ( class_exists( 'MPU_AI_Provider_Factory' ) && function_exists( 'mpu_get_current_provider' ) ) {
-		$current_provider  = mpu_get_current_provider( $mpu_opt );
-		$provider_instance = MPU_AI_Provider_Factory::get_provider( $current_provider );
-		if ( ! is_wp_error( $provider_instance ) && is_object( $provider_instance ) && method_exists( $provider_instance, 'supports' ) ) {
-			$streaming_enabled = $provider_instance->supports( MPU_AI_Provider_Base::FEATURE_STREAMING );
-		}
-	}
-	echo "var mpuPreSettings = {\n";
-	echo '    ollama_replace: ' . ( $ollama_replace ? 'true' : 'false' ) . ",\n";
-	echo '    typewriter_speed: ' . $typewriter_speed . ",\n";
-	echo '    streaming_enabled: ' . ( $streaming_enabled ? 'true' : 'false' ) . ",\n";
-	echo '    is_admin: ' . ( current_user_can( 'manage_options' ) ? 'true' : 'false' ) . ",\n";
-	echo "    rest_nonce: '" . ( current_user_can( 'manage_options' ) ? esc_js( wp_create_nonce( 'wp_rest' ) ) : '' ) . "'\n";
-	echo "};\n";
-	echo 'var mpuAiEnabled = ' . ( $ai_enabled ? 'true' : 'false' ) . ";\n";
-
-	// 裝飾配置改為 AJAX 延遲載入（避免在網頁原始碼中暴露圖片路徑）
-	// 前端會透過 mpu_get_decoration_config AJAX 動態獲取裝飾配置
-	echo "var mpuDecorationConfigPending = true;\n";
-
-	// 從 cookie 讀取 ukagaka_num（與 mpu_html() 保持一致）
-	$ukagaka_num = $mpu_opt['cur_ukagaka'] ?? 'default_1';
-	if ( isset( $_COOKIE[ 'mpu_ukagaka_' . COOKIEHASH ] ) ) {
-		$cookie_num = sanitize_text_field( $_COOKIE[ 'mpu_ukagaka_' . COOKIEHASH ] );
-		if ( ! empty( $mpu_opt['ukagakas'][ $cookie_num ] ) ) {
-			$ukagaka_num = $cookie_num;
-		}
-	}
-
-	// 輸出 ukagaka_num 供前端 AJAX 載入使用（不直接輸出 shellInfo，改用 AJAX 延遲載入）
-	echo 'var mpuInitParams = { ukagaka_num: ' . wp_json_encode( $ukagaka_num ) . " };\n";
 
 	echo '
     jQuery(document).ready(function($) {
