@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.4-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,11 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.25.4
+## 🎉 What's New in v2.25.5
+
+**Security & Stability Enhancements**: Fixed Touch API session token guard, API cache key integrity, and option deep merge issues.
+
+### v2.25.4 Highlights
 
 **Weather rain-label refinement**: Tomorrow's forecast rain label now uses Open-Meteo `precipitation_sum` to avoid understating heavy 24-hour rainfall as drizzle. Current weather still keeps the live WMO code, while the context adds the day’s accumulated rainfall so the character can talk about real rain intensity without overstating what is happening right now.
 

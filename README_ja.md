@@ -2,7 +2,7 @@
 
 WordPress サイトにインタラクティブな伺か（デスクトップマスコット）キャラクターを作成するプラグイン。AI コンテキスト認識機能搭載。
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.4-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,11 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 - **[API リファレンス](docs-jp/API_REFERENCE.md)** - 関数とフック参照
 - **[変更履歴](docs-jp/CHANGELOG.md)** - バージョン履歴
 
-## 🎉 v2.25.4 の新機能
+## 🎉 v2.25.5 の新機能
+
+**セキュリティと安定性の強化**：Touch API セッショントークン保護、API キャッシュキーの完全性、およびオプションのディープマージ問題を修正しました。
+
+### v2.25.4 Highlights
 
 **雨量に基づく天気ラベル補正**：Open-Meteo の `precipitation_sum` を使い、24時間累積雨量が多い日の予報を「霧雨」と過小表現しないよう補正しました。現在天気はリアルタイムの WMO code を維持し、当日の累積雨量をコンテキストへ添えることで、今まさに大雨と誤認させずに雨勢を伝えます。
 

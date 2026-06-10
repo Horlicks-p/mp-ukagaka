@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.5] - 2026-06-10
+
+### 🛡️ Security & Stability Enhancements (S-tier fixes)
+
+- **Touch API Session Token Guard**: The `/touch/decoration` and `/touch/zone` endpoints now enforce the same session token validation as the Chat system, preventing unauthorized API calls.
+- **API Cache Key Integrity**: Fixed `mpu_generate_cache_key()` to include `model`, `language`, and `max_tokens` in the hash computation, ensuring that configuration changes do not falsely hit stale cache entries.
+- **Deep Merge for Options**: Fixed the shallow merge issue in `mpu_get_option()` for nested settings like `bot_blocker` and `extend`. New default values for nested arrays are now correctly preserved during updates.
+
+---
+
 ## [2.25.4] - 2026-06-09
 
 ### Weather rain labels now account for 24-hour precipitation totals

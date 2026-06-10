@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.25.4
+Stable tag: 2.25.5
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,12 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-10 =
+* v2.25.5
+* [FIX] Touch API Session Token Guard: The `/touch/decoration` and `/touch/zone` endpoints now enforce the same session token validation as the Chat system, preventing unauthorized API calls.
+* [FIX] API Cache Key Integrity: Fixed `mpu_generate_cache_key()` to include `model`, `language`, and `max_tokens` in the hash computation, ensuring that configuration changes do not falsely hit stale cache entries.
+* [FIX] Deep Merge for Options: Fixed the shallow merge issue in `mpu_get_option()` for nested settings like `bot_blocker` and `extend`. New default values for nested arrays are now correctly preserved during updates.
 
 = 2026-06-09 =
 * v2.25.4

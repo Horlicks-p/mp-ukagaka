@@ -4,6 +4,16 @@
 
 ---
 
+## [2.25.5] - 2026-06-10
+
+### 🛡️ 安全與穩定性強化 (S-級修復)
+
+- **Touch API Session Token 防護**：`/touch/decoration` 與 `/touch/zone` 端點現在已加入與 Chat 系統相同的 Session Token 驗證機制，防止未授權的 API 調用。
+- **API 快取鍵值完整性**：修正了 `mpu_generate_cache_key()`，將 `model`、`language`、`max_tokens` 等設定一併納入 Hash 計算，避免設定變更後仍命中舊快取的問題。
+- **選項合併修復**：修正了 `mpu_get_option()` 在合併 `bot_blocker` 和 `extend` 等嵌套設定時的深層拷貝問題，現在會正確保留新版本的預設值。
+
+---
+
 ## [2.25.4] - 2026-06-09
 
 ### 依 24 小時雨量校正天氣標籤
