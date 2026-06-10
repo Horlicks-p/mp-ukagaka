@@ -212,12 +212,12 @@ function mpu_secure_file_write($file_path, $content)
 
 #### mpu_encrypt_api_key()
 
-使用 AES-256-CBC 加密 API Key。
+使用 AES-256-GCM（`mpu_enc2:`）加密 API Key，並保留舊版 `mpu_enc:` / `mpu_obf:` 的讀取相容性。
 
 ```php
 /**
  * @param string $api_key 原始 API Key
- * @return string 加密後的字串
+ * @return string 加密後的字串，無法取得 AUTH_KEY 或 OpenSSL 不可用時回傳空字串
  */
 function mpu_encrypt_api_key($api_key)
 ```

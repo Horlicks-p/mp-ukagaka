@@ -350,7 +350,7 @@ function mpu_ensure_dialogs_dir()
 function mpu_get_encryption_key()
 
 /**
- * Encrypts API Key (AES-256-CBC)
+ * Encrypts API Key (AES-256-GCM / mpu_enc2)
  * @param string $api_key Raw API Key
  * @return string Encrypted string
  */
@@ -1520,8 +1520,9 @@ If the gate is off for a context, the SSE parser strips `<think>` and does **not
 
 ### API Key Security
 
-- All API Keys are stored encrypted using AES-256-CBC
-- Uses WordPress `AUTH_KEY` as the encryption key
+- All API Keys are stored encrypted using AES-256-GCM (`mpu_enc2:`).
+- WordPress `AUTH_KEY` is required as the encryption key; encryption is refused instead of falling back to a public site-derived key.
+- Legacy `mpu_enc:` (AES-256-CBC) and `mpu_obf:` values remain readable for existing settings.
 - Hidden using `type="password"` in the admin display
 
 ### Input Validation

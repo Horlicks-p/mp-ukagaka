@@ -19,13 +19,19 @@ if (!defined('ABSPATH')) {
  * 獲取加密密鑰
  * 使用 WordPress 的 AUTH_KEY 作為基礎，確保每個站點都有唯一的密鑰
  * 
- * @return string 加密密鑰
+ * @return string 加密密鑰，AUTH_KEY 不可用時回傳空字串
  */
 function mpu_get_encryption_key()
 {
+	if ( ! defined( 'AUTH_KEY' ) || '' === AUTH_KEY ) {
+		if ( function_exists( 'mpu_log_error' ) ) {
+			mpu_log_error( 'API Key 加密失敗：AUTH_KEY 未定義' );
+		}
+		return '';
+	}
+
     // 使用 WordPress 的 AUTH_KEY 和一個固定的鹽值
-    $base_key = defined('AUTH_KEY') ? AUTH_KEY : 'mpu-default-key-' . get_site_url();
-    return hash('sha256', $base_key . 'mpu_api_key_encryption', true);
+	return hash( 'sha256', AUTH_KEY . 'mpu_api_key_encryption', true );
 }
 
 /**
@@ -40,30 +46,37 @@ function mpu_encrypt_api_key($api_key)
         return '';
     }
 
-    // 如果已經加密過（以 mpu_enc: 開頭），直接返回
-    if (strpos($api_key, 'mpu_enc:') === 0) {
-        return $api_key;
-    }
+    // 如果已經加密過，直接返回
+	if ( mpu_is_api_key_encrypted( $api_key ) ) {
+		return $api_key;
+	}
 
-    $key = mpu_get_encryption_key();
+	$key = mpu_get_encryption_key();
+	if ( '' === $key ) {
+		return '';
+	}
 
-    // 檢查 OpenSSL 是否可用
-    if (function_exists('openssl_encrypt')) {
-        $method = 'AES-256-CBC';
-        $iv_length = openssl_cipher_iv_length($method);
-        $iv = openssl_random_pseudo_bytes($iv_length);
+	if ( ! function_exists( 'openssl_encrypt' ) ) {
+		if ( function_exists( 'mpu_log_error' ) ) {
+			mpu_log_error( 'API Key 加密失敗：OpenSSL 不可用' );
+		}
+		return '';
+	}
 
-        $encrypted = openssl_encrypt($api_key, $method, $key, OPENSSL_RAW_DATA, $iv);
+	$method    = 'aes-256-gcm';
+	$iv_length = openssl_cipher_iv_length( $method );
+	$iv        = random_bytes( $iv_length );
+	$tag       = '';
 
-        if ($encrypted !== false) {
-            // 將 IV 和加密數據一起編碼
-            return 'mpu_enc:' . base64_encode($iv . $encrypted);
-        }
-    }
+	$encrypted = openssl_encrypt( $api_key, $method, $key, OPENSSL_RAW_DATA, $iv, $tag );
+	if ( false !== $encrypted && '' !== $tag ) {
+		return 'mpu_enc2:' . base64_encode( $iv . $tag . $encrypted );
+	}
 
-    // OpenSSL 不可用時，使用簡單的混淆（不是真正的加密，但比明文好）
-    $obfuscated = base64_encode(strrev($api_key) . '|' . substr(md5($api_key), 0, 8));
-    return 'mpu_obf:' . $obfuscated;
+	if ( function_exists( 'mpu_log_error' ) ) {
+		mpu_log_error( 'API Key 加密失敗：OpenSSL GCM 加密失敗' );
+	}
+	return '';
 }
 
 /**
@@ -78,9 +91,45 @@ function mpu_decrypt_api_key($encrypted_key)
         return '';
     }
 
-    // 如果是 OpenSSL 加密的
+    // 如果是 OpenSSL AEAD 加密的
+	if ( 0 === strpos( $encrypted_key, 'mpu_enc2:' ) ) {
+		$key = mpu_get_encryption_key();
+		if ( '' === $key || ! function_exists( 'openssl_decrypt' ) ) {
+			return '';
+		}
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decoding plugin-owned encrypted API key payload.
+		$data = base64_decode( substr( $encrypted_key, 9 ) );
+		if ( false !== $data ) {
+			$method     = 'aes-256-gcm';
+			$iv_length  = openssl_cipher_iv_length( $method );
+			$tag_length = 16;
+			$min_length = $iv_length + $tag_length + 1;
+
+			if ( strlen( $data ) >= $min_length ) {
+				$iv        = substr( $data, 0, $iv_length );
+				$tag       = substr( $data, $iv_length, $tag_length );
+				$encrypted = substr( $data, $iv_length + $tag_length );
+
+				$decrypted = openssl_decrypt( $encrypted, $method, $key, OPENSSL_RAW_DATA, $iv, $tag );
+				if ( false !== $decrypted ) {
+					return $decrypted;
+				}
+			}
+		}
+
+		if ( function_exists( 'mpu_log_error' ) ) {
+			mpu_log_error( 'API Key 解密失敗' );
+		}
+		return '';
+	}
+
+    // 如果是舊版 OpenSSL CBC 加密的
     if (strpos($encrypted_key, 'mpu_enc:') === 0) {
         $key = mpu_get_encryption_key();
+		if ( '' === $key ) {
+			return '';
+		}
         $data = base64_decode(substr($encrypted_key, 8));
 
         if ($data !== false && function_exists('openssl_decrypt')) {
@@ -125,7 +174,7 @@ function mpu_decrypt_api_key($encrypted_key)
  */
 function mpu_is_api_key_encrypted($api_key)
 {
-    return strpos($api_key, 'mpu_enc:') === 0 || strpos($api_key, 'mpu_obf:') === 0;
+    return strpos($api_key, 'mpu_enc2:') === 0 || strpos($api_key, 'mpu_enc:') === 0 || strpos($api_key, 'mpu_obf:') === 0;
 }
 
 /**
