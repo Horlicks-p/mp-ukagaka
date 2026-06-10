@@ -153,7 +153,7 @@ For detailed information, please refer to:
 
 ## 🔒 Security Features
 
-- **API Key Encryption**: AES-256-CBC encryption for all API keys
+- **API Key Encryption**: AES-256-GCM encryption for all API keys
 - **CSRF Protection**: WordPress nonce verification for all forms
 - **XSS Prevention**: Input/output sanitization using WordPress core functions
 - **Secure File Operations**: Path validation and WordPress Filesystem API

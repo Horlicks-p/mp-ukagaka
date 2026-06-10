@@ -153,7 +153,7 @@ _芙莉蓮角色根據文章內容顯示 AI 生成的對話_
 
 ## 🔒 安全功能
 
-- **API Key 加密**：所有 API Key 使用 AES-256-CBC 加密
+- **API Key 加密**：所有 API Key 使用 AES-256-GCM 加密
 - **CSRF 保護**：所有表單使用 WordPress nonce 驗證
 - **XSS 防護**：使用 WordPress 核心函數進行輸入/輸出清理
 - **安全檔案操作**：路徑驗證和 WordPress Filesystem API

@@ -153,7 +153,7 @@ _フリーレンが記事内容に基づいて AI 生成のダイアログを表
 
 ## 🔒 セキュリティ機能
 
-- **API Key 暗号化**：すべての API Key を AES-256-CBC で暗号化
+- **API Key 暗号化**：すべての API Key を AES-256-GCM で暗号化
 - **CSRF 保護**：すべてのフォームで WordPress nonce 検証
 - **XSS 防止**：WordPress コア関数を使用した入力/出力サニタイズ
 - **安全なファイル操作**：パス検証と WordPress Filesystem API
