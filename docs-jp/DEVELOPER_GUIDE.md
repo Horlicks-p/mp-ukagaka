@@ -350,7 +350,7 @@ function mpu_ensure_dialogs_dir()
 function mpu_get_encryption_key()
 
 /**
- * API Key を暗号化します（AES-256-CBC）
+ * API Key を暗号化します（AES-256-GCM / mpu_enc2）
  * @param string $api_key 元の API Key
  * @return string 暗号化された文字列
  */
@@ -1252,8 +1252,9 @@ Open and close the tag as a pair, or omit it entirely.
 
 ### API Key のセキュリティ
 
-- すべての API Key は AES-256-CBC を使用して暗号化され、保存されます。
-- WordPress の `AUTH_KEY` を暗号化キーとして使用します。
+- すべての API Key は AES-256-GCM（`mpu_enc2:`）で暗号化して保存されます。
+- WordPress の `AUTH_KEY` を暗号化キーとして必須にします。利用できない場合は、公開情報由来の key へ fallback せず暗号化を拒否します。
+- 既存設定との互換性のため、旧 `mpu_enc:`（AES-256-CBC）と `mpu_obf:` 値は引き続き読み取れます。
 - 管理画面での表示時は `type="password"` を使用して非表示にします。
 
 ### 入力の検証

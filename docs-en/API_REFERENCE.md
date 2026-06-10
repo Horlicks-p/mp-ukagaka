@@ -212,12 +212,12 @@ function mpu_secure_file_write($file_path, $content)
 
 #### mpu_encrypt_api_key()
 
-Encrypts the API Key using AES-256-CBC.
+Encrypts the API Key with AES-256-GCM (`mpu_enc2:`), while keeping read compatibility for legacy `mpu_enc:` / `mpu_obf:` values.
 
 ```php
 /**
  * @param string $api_key Raw API Key
- * @return string Encrypted string
+ * @return string Encrypted string, or an empty string when AUTH_KEY or OpenSSL is unavailable
  */
 function mpu_encrypt_api_key($api_key)
 ```

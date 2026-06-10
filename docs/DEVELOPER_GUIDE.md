@@ -349,7 +349,7 @@ function mpu_ensure_dialogs_dir()
 function mpu_get_encryption_key()
 
 /**
- * 加密 API Key（AES-256-CBC）
+ * 加密 API Key（AES-256-GCM / mpu_enc2）
  * @param string $api_key 原始 API Key
  * @return string 加密後的字串
  */
@@ -1519,8 +1519,9 @@ Open and close the tag as a pair, or omit it entirely.
 
 ### API Key 安全
 
-- 所有 API Key 使用 AES-256-CBC 加密存儲
-- 使用 WordPress `AUTH_KEY` 作為加密金鑰
+- 所有 API Key 使用 AES-256-GCM（`mpu_enc2:`）加密存儲。
+- 使用 WordPress `AUTH_KEY` 作為加密金鑰；若 `AUTH_KEY` 不可用，會拒絕加密而不是退回公開資訊衍生的 key。
+- 舊版 `mpu_enc:`（AES-256-CBC）與 `mpu_obf:` 值仍可讀取，以保留既有設定相容性。
 - 後台顯示時使用 `type="password"` 隱藏
 
 ### 輸入驗證
