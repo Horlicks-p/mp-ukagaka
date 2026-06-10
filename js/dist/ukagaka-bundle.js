@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-08T03:05:44.721Z
+ * Generated: 2026-06-10T03:12:40.703Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
  */
@@ -5826,7 +5826,9 @@ function mpuIsCharacterVisible() {
 
 function mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg) {
   const startedAt = Date.now();
-  const timeout = 2500;
+  // First-time visitors may need several seconds for shell/APNG/decoration assets.
+  // Do not show the initial system bubble before the character itself is visible.
+  const timeout = 6000;
 
   function show() {
     const manifestText = typeof mpuGetThinkingPlaceholder === "function"
