@@ -93,6 +93,43 @@ function mpu_default_opt()
 }
 
 /**
+ * Merge defaults for known nested option groups without deep-merging arbitrary data.
+ *
+ * @param array $options Saved option data.
+ * @param array $default_opt Default option data.
+ * @return array Merged option data.
+ */
+function mpu_merge_option_defaults( array $options, array $default_opt ): array {
+	$merged = array_merge( $default_opt, $options );
+
+	foreach (array( 'extend', 'bot_blocker' ) as $key) {
+		if ( ! isset( $default_opt[ $key ] ) || ! is_array( $default_opt[ $key ] ) ) {
+			continue;
+		}
+
+		$saved_group = isset( $options[ $key ] ) && is_array( $options[ $key ] )
+			? $options[ $key ]
+			: array();
+
+		$merged[ $key ] = array_merge( $default_opt[ $key ], $saved_group );
+	}
+
+	if ( isset( $default_opt['ukagakas']['default_1'] ) && is_array( $default_opt['ukagakas']['default_1'] ) ) {
+		if ( ! isset( $merged['ukagakas'] ) || ! is_array( $merged['ukagakas'] ) ) {
+			$merged['ukagakas'] = array();
+		}
+
+		$saved_default = isset( $merged['ukagakas']['default_1'] ) && is_array( $merged['ukagakas']['default_1'] )
+			? $merged['ukagakas']['default_1']
+			: array();
+
+		$merged['ukagakas']['default_1'] = array_merge( $default_opt['ukagakas']['default_1'], $saved_default );
+	}
+
+	return $merged;
+}
+
+/**
  * 取得選項（統一快取）
  * 使用靜態變數快取，避免重複讀取資料庫
  * @return {array} 選項陣列
@@ -109,12 +146,7 @@ function mpu_get_option()
             $mpu_opt = $default_opt;
             update_option("mp_ukagaka", $mpu_opt);
         } else {
-            $mpu_opt = array_merge($default_opt, $options);
-
-            // 確保 default_1 的預設值被應用
-            if (isset($default_opt['ukagakas']['default_1']) && !isset($mpu_opt['ukagakas']['default_1'])) {
-                $mpu_opt['ukagakas']['default_1'] = $default_opt['ukagakas']['default_1'];
-            }
+            $mpu_opt = mpu_merge_option_defaults($options, $default_opt);
         }
     }
 
