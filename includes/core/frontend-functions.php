@@ -460,6 +460,14 @@ function mpu_enqueue_frontend_assets() {
 			true
 		);
 
+		wp_enqueue_script(
+			'mpu-chat-wake',
+			plugins_url( 'js/ukagaka-chat-wake.js', $main_file ),
+			array( 'mpu-chat' ),
+			MPU_VERSION,
+			true
+		);
+
 		// 載入表情配置載入器
 		wp_enqueue_script(
 			'mpu-emoji-config',
