@@ -1181,7 +1181,8 @@ function mpu_frontend_boot_inline_js( $mpu_opt ) {
 		$current_provider  = mpu_get_current_provider( $mpu_opt );
 		$provider_instance = MPU_AI_Provider_Factory::get_provider( $current_provider );
 		if ( ! is_wp_error( $provider_instance ) && is_object( $provider_instance ) && method_exists( $provider_instance, 'supports' ) ) {
-			$streaming_enabled = $provider_instance->supports( MPU_AI_Provider_Base::FEATURE_STREAMING );
+			// Graceful degradation: SSE stream requires php-curl
+			$streaming_enabled = function_exists( 'curl_init' ) && $provider_instance->supports( MPU_AI_Provider_Base::FEATURE_STREAMING );
 		}
 	}
 
