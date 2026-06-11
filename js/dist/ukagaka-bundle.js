@@ -1,8 +1,8 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-11T12:07:06.610Z
+ * Generated: 2026-06-11T12:31:07.613Z
  * 
- * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
+ * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat.js, ukagaka-features.js
  */
 
 // ========== ukagaka-base.js ==========
@@ -4496,7 +4496,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
     });
 }
 
-// ========== ukagaka-chat.js ==========
+// ========== ukagaka-chat-history.js ==========
 // ====== 互動對話模式 ======
 // 對話模式狀態
 window.mpuChatModeActive = false;
@@ -4571,6 +4571,7 @@ function mpu_clearChatHistory() {
   mpu_getOrCreateChatSessionId(true);
 }
 
+// ========== ukagaka-chat.js ==========
 /**
  * 切換對話模式
  * @param {boolean} enable - 是否啟用對話模式
