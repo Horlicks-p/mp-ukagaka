@@ -5,7 +5,7 @@
 > - ✅ ① `js_area` timing caveat recorded in the Unreleased changelog entries.
 > - ✅ ② Frieren decorations/interactions precondition silent returns now emit `warnAlways` logs where actionable.
 > - ✅ ③ Removed dead `mpuDecorationConfigPending`.
-> - 🟡 ④ **2026-06-11 公司CLAUDE が Playwright で E2E smoke 実施（WordPress Playground for VS Code・localhost:8881）**。
+> - ✅ ④ **2026-06-11 公司CLAUDE が Playwright で E2E smoke 実施（WordPress Playground for VS Code・localhost:8881）**。
 >   - ✅ canvas 初期化：boot globals 全員到位・死変数消滅・bootstrap 完走（personalityId=Frieren）・manager に 31 methods 掛載・角色表示・**装飾 6 件描画**
 >   - ✅ decoration クリック → `/touch/decoration` 200 → 角色回覆（行李箱の中身）→ `touch_decoration` で history 記録 → 鎖釋放 → auto-talk 復帰
 >   - ✅ touch zone（head）→ `/touch/zone` 200 → 切題回覆 → `touch_zone` history → 鎖釋放
@@ -13,7 +13,8 @@
 >   - ✅ SSE 管線（前端側）：送出 → SSE error event 受信（624ms）→ error 表示 → rollback → 解鎖。watchdog 45s timeout 路徑も誤爆テストで確認済み
 >   - ⚠️ **真の streaming 出力は本環境で検証不能**：Playground の php-wasm に **php-curl 拡張が無く**、`provider-stream-http.php` が即 `stream.error: "cURL is not available on this server."` を返す。**A-2 とは無関係の環境制約**。家の実環境で streaming 1 本だけ流せば ④ 完了。
 >   - 💡 **副産物 finding（B 級提案）**：php-curl 不在でも `mpuPreSettings.streaming_enabled` が true のままなので、訪客はエラーを見る（同期 `/chat/user` は WP HTTP API で正常動作するのに）。`streaming_enabled` の判定（frontend-functions.php の `supports(FEATURE_STREAMING)` 箇所）に `function_exists('curl_init')` を AND して、curl 不在環境で同期 chat へ自動 fallback させると graceful degradation になる。
->   - 📝 備考：本テスト站の provider は **openai / gpt-4o-mini** と解析された（start event payload）。Gemini 想定なら設定確認を。
+>   - 📝 備考：本テスト站の provider は **openai / gpt-4o-mini** と解析された（start event payload）→ 検証途中に管理者が Gemini から手動切替したもの（API 応答遅延のため）。設定ミスではない。
+>   - ✅ **2026-06-11 家実環境（XAMPP・php-curl 有）で真の streaming smoke 完了、④ クローズ**：`/chat/user-stream` 200、SSE イベント列 `stream.status`（provider=ollama/qwen2.5:14b）→ `nonce.refresh` → `stream.delta` ×27 → `stream.done`。typewriter 描画（MutationObserver で 42 step・約 50ms 間隔の逐字增長を実測）、in-character 回覆、`mpuChatHistory` に user/assistant 記録、stream 終了後に入力欄解鎖を確認。
 > - ⏳ ⑤ `ukagaka-chat.js` and backend split remain out of scope for this branch.
 >
 > ## 📈 進捗（2026-06-10 家チーム、branch `refactor/frontend-split`）
@@ -31,7 +32,7 @@
 > 全刀：php -l / phpcs-baseline gate / PHPUnit 88/88 / git diff --check / Playwright smoke 緑。
 > 刀3-5 は逐字節純搬移を diff で実証。工作流＝Claude と CODEX が交替で下刀・相互レビュー。
 >
-> **残課題（次回）**：④release 前に chat SSE / touch の手動 smoke（LLM 額度節約のため未実施）⑤ukagaka-chat.js（bundle 対象）と後端は未着手
+> **残課題（次回）**：⑤ukagaka-chat.js（bundle 対象）と後端は未着手（本ブランチ scope 外）。④ は 2026-06-11 家実環境 streaming smoke でクローズ済み。
 
 > 📅 作成：2026-06-10（公司CLAUDE(Fable 5) と 家 CODEX の協議をまとめ、実コード v2.25.6 で裏取り）
 > 🎯 想定読者：家の御三家（実装担当）
