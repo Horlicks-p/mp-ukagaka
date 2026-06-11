@@ -543,28 +543,44 @@ function mpu_enqueue_frontend_assets() {
 			$scripts_to_load = array( $manifest['script'] );
 		}
 
+		$personality_bundle_file = plugin_dir_path( $main_file ) . 'ghost/' . $personality_id . '/dist/frieren-bundle.min.js';
+		$use_personality_bundle  = ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG )
+			&& 'Frieren' === $personality_id
+			&& file_exists( $personality_bundle_file );
+
 		// 載入所有腳本（排除 *-emoji.js，因為有獨立載入機制）
 		$script_index = 0;
-		foreach ( $scripts_to_load as $script_file ) {
-			// 跳過 emoji 腳本（由獨立機制處理）
-			if ( preg_match( '/-emoji\.js$/i', $script_file ) ) {
-				continue;
-			}
-
-			$handle      = 0 === $script_index ? $personality_script_handle : "mpu-personality-{$script_index}";
-			$script_url  = plugins_url( 'ghost/' . $personality_id . '/' . $script_file, $main_file );
-			$script_deps = 0 === $script_index
-				? array( $anime_handle )
-				: array( $last_personality_script_handle );
+		if ( $use_personality_bundle ) {
 			wp_enqueue_script(
-				$handle,
-				$script_url,
-				$script_deps,
+				$personality_script_handle,
+				plugins_url( 'ghost/' . $personality_id . '/dist/frieren-bundle.min.js', $main_file ),
+				array( $anime_handle ),
 				MPU_VERSION,
 				true
 			);
-			$last_personality_script_handle = $handle;
-			++$script_index;
+			$last_personality_script_handle = $personality_script_handle;
+		} else {
+			foreach ( $scripts_to_load as $script_file ) {
+				// 跳過 emoji 腳本（由獨立機制處理）
+				if ( preg_match( '/-emoji\.js$/i', $script_file ) ) {
+					continue;
+				}
+
+				$handle      = 0 === $script_index ? $personality_script_handle : "mpu-personality-{$script_index}";
+				$script_url  = plugins_url( 'ghost/' . $personality_id . '/' . $script_file, $main_file );
+				$script_deps = 0 === $script_index
+					? array( $anime_handle )
+					: array( $last_personality_script_handle );
+				wp_enqueue_script(
+					$handle,
+					$script_url,
+					$script_deps,
+					MPU_VERSION,
+					true
+				);
+				$last_personality_script_handle = $handle;
+				++$script_index;
+			}
 		}
 	}
 
