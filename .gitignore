@@ -91,3 +91,6 @@ Multi-AI-Relay-Hub-SOP.md
 Multi-AI-Relay-Hub.md
 wp-dev-master.skill
 avatar-ui/
+
+# Playwright MCP session artifacts (snapshots, console logs, screenshots)
+.playwright-mcp/
