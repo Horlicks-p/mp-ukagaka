@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.5-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.25.7-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.25.6
+## 🎉 What's New in v2.25.7
+
+**Frontend modular split (A-2)**: The frontend runtime was reorganized without behavior changes — boot globals and bootstrap logic moved out of inline `<head>` scripts into the enqueue flow, the Frieren runtime split into animation/interactions/decorations modules, and `ukagaka-chat.js` split into seven focused modules with a byte-identical production bundle.
+
+**Faster Frieren loading**: Frieren's personality scripts are now bundled and minified into a single file (about 60 KB down to 28 KB, four HTTP requests down to one), with automatic per-file fallback for `SCRIPT_DEBUG` and third-party ghosts.
+
+**Robustness fixes**: Chat now degrades gracefully to the synchronous endpoint when the server lacks php-curl, and the initial system bubble waits up to 12 seconds for the character to appear on slow first visits.
+
+### v2.25.6 Highlights
 
 **Security Hardening**: Upgraded API key encryption to authenticated AES-256-GCM (removing weak fallbacks), and gated full LLM prompt/conversation debug logging behind an explicit opt-in to prevent PII leaks.
 

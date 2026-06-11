@@ -1,0 +1,1799 @@
+/**
+ * MP Ukagaka Frieren Bundle
+ * Generated: 2026-06-11T13:25:55.754Z
+ *
+ * 包含: frieren.js, frieren-animation.js, frieren-interactions.js, frieren-decorations.js
+ */
+
+// ========== frieren.js ==========
+/**
+ * MP Ukagaka 芙莉蓮專用功能模組
+ *
+ * 從 ukagaka-anime.js 分離的芙莉蓮專用功能
+ * 負責管理芙莉蓮角色的動畫、裝飾物和互動
+ */
+
+(function () {
+  "use strict";
+
+  /**
+   * 芙莉蓮管理器
+   * 擴展 mpuCanvasManager 的功能
+   */
+  const mpuFrierenManager = {
+    // 芙莉蓮專用狀態
+    isFrierenMode: false, // 是否為芙莉蓮模式
+    frierenIdleImage: null, // 閒置狀態圖片（frieren[0].png）
+    frierenSleepImage: null, // 睡眠狀態圖片（frieren[s].png）
+    frierenWakeUpImages: [], // 醒來動畫圖片序列（frieren[w1-w5].png）
+    frierenBookFlipImages: [], // 翻書動畫圖片序列（frieren[1-12].png）
+    frierenImages: [], // 芙莉蓮所有圖片對象陣列
+    frierenAnimationTimer: null, // 芙莉蓮動畫定時器
+    frierenIsSpeaking: false, // 是否正在說話
+    frierenIdleImgElement: null, // 用於顯示 APNG 的 <img> 元素
+    frierenDecorations: [], // 裝飾元素陣列
+    frierenIdleOpacity: 1.0, // 芙莉蓮閒置狀態透明度（0.0 - 1.0）；黑底下 0.95 會壓暗 5%，故設 1.0
+    decorationChatInProgress: false, // 裝飾物對話是否正在進行中
+    decorationHitCanvases: new Map(), // 裝飾物像素檢測用的隱藏 Canvas
+    pixelHitThreshold: 10, // 像素透明度閾值（0-255），大於此值才視為可點擊
+    _decorationClickThroughHandler: null, // 點擊穿透事件處理器（綁定在容器上，避免 img 尚未建立時漏綁）
+    sleepModeAwoken: false, // 睡眠模式是否已被用戶喚醒（刷新頁面重置）
+
+    // 觸摸區域點擊計數和冷卻機制
+    touchZoneClicks: {}, // { zoneName: [timestamp1, timestamp2, ...] }
+    touchZoneCooldown: {}, // { zoneName: cooldownEndTime }
+    touchZoneLimits: {
+      // 各區域的點擊限制設定
+      chest: { maxClicks: 3, windowMs: 30000, cooldownMs: 180000 }, // 30秒內點3次 → 冷卻180秒
+    },
+
+    /**
+     * 初始化芙莉蓮模式
+     * @param {Object} shellInfo - Shell 資訊對象
+     * @param {string} name - 春菜名稱
+     */
+    initFrierenMode: function (shellInfo, name) {
+      this.isFrierenMode = true;
+      this.frierenIsSpeaking = false;
+
+      if (!shellInfo || !shellInfo.url) {
+        mpuLogger.errorL('frierenShellInfoInvalid', 'フリーレンモード：shellInfo が無効です');
+        return;
+      }
+
+      const baseUrl = shellInfo.url;
+      this.frierenIdleImage = baseUrl + "frieren[0].png";
+      this.frierenSleepImage = baseUrl + "frieren[s].png";
+
+      this.frierenWakeUpImages = [];
+      for (let i = 1; i <= 5; i++) {
+        this.frierenWakeUpImages.push(baseUrl + "frieren[w" + i + "].png");
+      }
+
+      this.frierenBookFlipImages = [];
+      for (let i = 1; i <= 11; i++) {
+        this.frierenBookFlipImages.push(baseUrl + "frieren[" + i + "].png");
+      }
+
+      this.loadFrierenImages();
+
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (imgContainer) {
+        imgContainer.style.position = "relative";
+      }
+
+      this.loadFrierenDecorations();
+      this.setupCharacterTouchEvents();
+    },
+  };
+
+  window.mpuFrierenManager = mpuFrierenManager;
+})();
+
+// ========== frieren-animation.js ==========
+/**
+ * MP Ukagaka 芙莉蓮動畫模組
+ *
+ * 擴展 frieren.js 建立的 window.mpuFrierenManager，負責圖片載入、
+ * idle/APNG 顯示、翻書動畫、睡眠判定與喚醒動畫。
+ */
+
+(function () {
+  "use strict";
+
+  const manager = window.mpuFrierenManager;
+  if (!manager) {
+    return;
+  }
+
+  Object.assign(manager, {
+    /**
+     * 載入芙莉蓮所有圖片
+     */
+    loadFrierenImages: function () {
+      if (!window.mpuCanvasManager || !window.mpuCanvasManager.canvas) {
+        mpuLogger.errorL('frierenImageCanvasManagerMissing', '画像読み込み前に Canvas マネージャーが初期化されていません');
+        return;
+      }
+
+      this.frierenImages = [];
+      const allImageUrls = [this.frierenIdleImage].concat(
+        this.frierenBookFlipImages
+      );
+      let loadedCount = 0;
+      const totalImages = allImageUrls.length;
+
+      for (let i = 0; i < allImageUrls.length; i++) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+
+        img.onload = function (index) {
+          loadedCount++;
+          if (loadedCount === 1) {
+            window.mpuCanvasManager.canvas.width = img.width;
+            window.mpuCanvasManager.canvas.height = img.height;
+          }
+          if (loadedCount === totalImages) {
+            window.mpuCanvasManager.imagesLoaded = true;
+            this.showFrierenIdle();
+          }
+        }.bind(this);
+
+        img.onerror = function (url) {
+          mpuLogger.errorF('frierenImageLoadFailed', 'フリーレン画像の読み込みに失敗しました：%s', url);
+          loadedCount++;
+          if (loadedCount === totalImages) {
+            window.mpuCanvasManager.imagesLoaded = true;
+            if (this.frierenImages.length > 0) {
+              this.showFrierenIdle();
+            }
+          }
+        }.bind(this);
+
+        img.src = allImageUrls[i];
+        this.frierenImages.push(img);
+      }
+    },
+
+    /**
+     * 檢查是否為深夜睡眠時間（00:00-05:59）
+     * 優先使用伺服器端判定，確保時區一致性
+     * @returns {boolean}
+     */
+    isDeepSleepTime: function () {
+      if (
+        typeof window.mpuInfo !== "undefined" &&
+        typeof window.mpuInfo.isDeepSleepTime !== "undefined"
+      ) {
+        return window.mpuInfo.isDeepSleepTime;
+      }
+      const now = new Date();
+      return now.getHours() >= 0 && now.getHours() < 6;
+    },
+
+    /**
+     * 顯示芙莉蓮閒置狀態
+     * 睡眠模式且未喚醒時顯示 frieren[s].png，否則顯示 frieren[0].png
+     */
+    showFrierenIdle: function () {
+      if (!this.isFrierenMode || !this.frierenIdleImage) {
+        return;
+      }
+
+      this.stopFrierenAnimation();
+
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (!imgContainer) {
+        return;
+      }
+
+      const self = this;
+
+      if (!this.frierenIdleImgElement) {
+        // 先嘗試從 DOM 中獲取，避免 SPA 重載時建立重複元素
+        const existingImg = document.getElementById("frieren_idle_apng");
+
+        if (existingImg) {
+          this.frierenIdleImgElement = existingImg;
+        } else {
+          this.frierenIdleImgElement = document.createElement("img");
+          this.frierenIdleImgElement.id = "frieren_idle_apng";
+          this.frierenIdleImgElement.style.display = "none";
+          this.frierenIdleImgElement.style.opacity = String(
+            this.frierenIdleOpacity
+          );
+          this.frierenIdleImgElement.style.cursor = "pointer";
+          this.frierenIdleImgElement.style.maxWidth = "none";
+          this.frierenIdleImgElement.style.width = "auto";
+          this.frierenIdleImgElement.style.height = "auto";
+
+          if (!this.frierenIdleImgElement.dataset.mpuSizeLocked) {
+            this.frierenIdleImgElement.addEventListener("load", () => {
+              const w = this.frierenIdleImgElement.naturalWidth;
+              const h = this.frierenIdleImgElement.naturalHeight;
+              if (w && h) {
+                this.frierenIdleImgElement.style.width = w + "px";
+                this.frierenIdleImgElement.style.height = h + "px";
+                this.frierenIdleImgElement.style.maxWidth = "none";
+              }
+            });
+            this.frierenIdleImgElement.dataset.mpuSizeLocked = "1";
+          }
+
+          // 設置 title 和 alt
+          if (
+            window.mpuCanvasManager &&
+            window.mpuCanvasManager.currentCharacterName
+          ) {
+            this.frierenIdleImgElement.setAttribute(
+              "title",
+              window.mpuCanvasManager.currentCharacterName
+            );
+            this.frierenIdleImgElement.setAttribute(
+              "alt",
+              window.mpuCanvasManager.currentCharacterName
+            );
+          }
+
+          // 如果舊元素不存在，才掛載新元素
+          imgContainer.appendChild(this.frierenIdleImgElement);
+        }
+      }
+
+      const shouldShowSleep = this.isSleepMessage() && !this.sleepModeAwoken;
+      const imageToShow =
+        shouldShowSleep && this.frierenSleepImage
+          ? this.frierenSleepImage
+          : this.frierenIdleImage;
+
+      const preloadImg = new Image();
+      const finalizeIdle = function() {
+          // [Fix] 使用 endsWith 比對，避免絕對路徑造成的誤判，減少重複賦值 src。
+          const currentSrc = self.frierenIdleImgElement.src || "";
+          if (!currentSrc.endsWith(imageToShow)) {
+              self.frierenIdleImgElement.src = imageToShow;
+          }
+
+          // 先顯示閒置圖片
+          self.frierenIdleImgElement.style.display = "block";
+          self.frierenIdleImgElement.style.opacity = String(self.frierenIdleOpacity);
+
+          // 後隱藏畫布，確保視覺無縫過接
+          if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
+              window.mpuCanvasManager.canvas.style.display = "none";
+          }
+
+          const imgContainer = document.getElementById("ukagaka_img");
+          if (imgContainer) imgContainer.style.visibility = "visible";
+
+          const msgbox = document.getElementById("ukagaka_msgbox");
+          if (msgbox) msgbox.style.visibility = "visible";
+
+          self.setupDecorationClickThrough();
+          self.frierenIsSpeaking = false;
+
+          // [Fix] 加回 Debug Log，方便監測切換時機
+          if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+            mpuLogger.logL("frierenSleepIdleImageSelected", "🌙 睡眠画像 frieren[s].png を表示します / ☀️ ゴースト画像 frieren[0].png を表示します");
+          }
+      };
+
+      preloadImg.onload = finalizeIdle;
+      preloadImg.onerror = finalizeIdle;
+      preloadImg.src = imageToShow;
+    },
+
+    /**
+     * 設置芙莉蓮閒置狀態透明度
+     * @param {number} opacity - 透明度值（0.0 - 1.0）
+     */
+    setFrierenIdleOpacity: function (opacity) {
+      opacity = Math.max(0.0, Math.min(1.0, parseFloat(opacity)));
+      this.frierenIdleOpacity = opacity;
+      if (
+        this.frierenIdleImgElement &&
+        this.frierenIdleImgElement.style.display !== "none"
+      ) {
+        this.frierenIdleImgElement.style.opacity = String(opacity);
+      }
+    },
+
+    /**
+     * 播放芙莉蓮翻書動畫（frieren[1].png ~ frieren[12].png）
+     */
+    playFrierenBookFlipAnimation: function () {
+      if (
+        !this.isFrierenMode ||
+        !this.frierenImages ||
+        this.frierenImages.length < 12
+      ) {
+        return;
+      }
+
+      // 如果正在播放動畫，等待完成
+      if (this.frierenAnimationTimer) {
+        return;
+      }
+
+      if (
+        !window.mpuCanvasManager ||
+        !window.mpuCanvasManager.canvas ||
+        !window.mpuCanvasManager.ctx
+      ) {
+        mpuLogger.errorL('frierenDrawCanvasManagerMissing', '描画前に Canvas マネージャーが初期化されていません');
+        return;
+      }
+
+      this.frierenIsSpeaking = true;
+
+      const firstFrameImg = this.frierenImages[1];
+      const canvas = window.mpuCanvasManager.canvas;
+      const ctx = window.mpuCanvasManager.ctx;
+      const frameInterval = window.mpuCanvasManager.frameInterval || 150;
+
+      if (
+        firstFrameImg &&
+        firstFrameImg.complete &&
+        firstFrameImg.naturalWidth > 0
+      ) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(firstFrameImg, 0, 0);
+
+        if (
+          canvas.width !== firstFrameImg.width ||
+          canvas.height !== firstFrameImg.height
+        ) {
+          canvas.width = firstFrameImg.width;
+          canvas.height = firstFrameImg.height;
+          ctx.drawImage(firstFrameImg, 0, 0);
+        }
+
+        if (this.frierenIdleImgElement) {
+          this.frierenIdleImgElement.style.display = "none";
+        }
+        if (canvas) {
+          canvas.style.display = "block";
+        }
+      } else {
+        const checkFirstFrame = function () {
+          if (
+            firstFrameImg &&
+            firstFrameImg.complete &&
+            firstFrameImg.naturalWidth > 0
+          ) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(firstFrameImg, 0, 0);
+
+            if (
+              canvas.width !== firstFrameImg.width ||
+              canvas.height !== firstFrameImg.height
+            ) {
+              canvas.width = firstFrameImg.width;
+              canvas.height = firstFrameImg.height;
+              ctx.drawImage(firstFrameImg, 0, 0);
+            }
+
+            if (this.frierenIdleImgElement) {
+              this.frierenIdleImgElement.style.display = "none";
+            }
+            if (canvas) {
+              canvas.style.display = "block";
+            }
+          } else {
+            setTimeout(checkFirstFrame, 50);
+          }
+        }.bind(this);
+
+        checkFirstFrame();
+      }
+
+      let frameIndex = 2;
+
+      this.frierenAnimationTimer = setInterval(
+        function () {
+          // [Fix] frieren[1..11] 是翻書幀，最後要交棒給原生 <img> 渲染的 idle（frieren[0].png，APNG）。
+          // 直接從翻書末幀 frieren[11]（翻書中段姿勢）跳到 idle <img> 會「閃一下」：
+          //   ① 姿勢落差：11 是翻書中段、0 是 idle 定格；
+          //   ② 亮度落差：半透明 APNG 在 canvas 上以 source-over 繪製會雙重混合偏暗，<img> 原生渲染較亮。
+          // 收尾時先用 'copy' 合成把 idle 姿勢（frieren[0]）畫到 canvas（copy 直接覆蓋像素、不疊 alpha，
+          // 避免偏暗），使最後一張 canvas 幀＝idle 定格且亮度與 <img> 一致，再由 showFrierenIdle 無縫換成 <img>。
+          if (frameIndex >= 12) {
+            this.stopFrierenAnimation();
+            const idleImg = this.frierenImages[0];
+            if (idleImg && idleImg.complete && idleImg.naturalWidth > 0 && ctx) {
+              const prevOp = ctx.globalCompositeOperation;
+              ctx.globalCompositeOperation = "copy";
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(idleImg, 0, 0);
+              ctx.globalCompositeOperation = prevOp;
+            }
+            this.showFrierenIdle();
+            return;
+          }
+
+          const img = this.frierenImages[frameIndex];
+          if (img && img.complete && img.naturalWidth > 0) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+          }
+
+          frameIndex++;
+        }.bind(this),
+        frameInterval
+      );
+    },
+
+    /**
+     * 停止芙莉蓮動畫
+     */
+    stopFrierenAnimation: function () {
+      if (this.frierenAnimationTimer) {
+        clearInterval(this.frierenAnimationTimer);
+        this.frierenAnimationTimer = null;
+      }
+    },
+
+    /**
+     * 清理芙莉蓮相關元素（用於角色切換）
+     */
+    cleanupFrierenElements: function () {
+      this.isFrierenMode = false;
+
+      if (this.frierenIdleImgElement && this.frierenIdleImgElement.parentNode) {
+        this.frierenIdleImgElement.parentNode.removeChild(
+          this.frierenIdleImgElement
+        );
+        this.frierenIdleImgElement = null;
+      }
+
+      // 防止 DOM 裡面有殘留未被綁定的重複元素
+      const strayImgs = document.querySelectorAll("#frieren_idle_apng");
+      strayImgs.forEach(img => {
+        if (img.parentNode) {
+          img.parentNode.removeChild(img);
+        }
+      });
+
+      this.clearFrierenDecorations();
+      this._decorationsLoaded = false; // 重置標誌，允許重新載入
+
+      if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
+        window.mpuCanvasManager.canvas.style.display = "block";
+      }
+    },
+
+    /**
+     * 檢查是否為睡眠模式（深夜 + 初始訊息是睡眠相關 + 尚未被喚醒）
+     * @returns {boolean} 是否為睡眠模式
+     */
+    isSleepMessage: function () {
+      if (this.sleepModeAwoken) {
+        return false;
+      }
+
+      // 如果是暫時喚醒，我們仍然視為正在處理睡眠訊息（以便播放喚醒動畫）
+      const isTemporaryWakeUp = typeof window.mpuInfo !== "undefined" && window.mpuInfo.isTemporaryWakeUp === true;
+
+      if (!this.isDeepSleepTime() && !isTemporaryWakeUp) {
+        return false;
+      }
+
+      const msgElement = document.getElementById("ukagaka_msg");
+      if (!msgElement) return false;
+
+      const initialMsg = msgElement.getAttribute("data-initial-msg") || "";
+      return initialMsg.includes("<!-- mpu-sleep -->");
+    },
+
+    /**
+     * 喚醒芙莉蓮（用戶點擊 OK 按鈕時調用）
+     * @returns {boolean} 是否需要播放醒來動畫
+     */
+    wakeUp: function () {
+      const isForced = window.mpuForceWakeUpNextTime === true;
+      window.mpuForceWakeUpNextTime = false;
+      if ((this.isSleepMessage() || isForced) && !this.sleepModeAwoken) {
+        this.sleepModeAwoken = true;
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenAwakened", "☀️ フリーレンが目を覚ましました！");
+        }
+        return true;
+      }
+      return false;
+    },
+
+    /**
+     * 播放醒來動畫（frieren[w1-w4].png）
+     * @param {Function} callback - 動畫完成後的回調函數
+     */
+    playWakeUpAnimation: function (callback) {
+      if (
+        !this.isFrierenMode ||
+        !this.frierenWakeUpImages ||
+        this.frierenWakeUpImages.length === 0
+      ) {
+        if (callback) callback();
+        return;
+      }
+
+      if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        mpuLogger.logL("frierenWakeAnimationPlaying", "👀 目覚めアニメーション frieren[w1-w5].png を再生します");
+      }
+
+      this.stopFrierenAnimation();
+
+      const self = this;
+      let frameIndex = 0;
+      const frameInterval = 80;
+
+      const wakeUpImgs = [];
+      let loadedCount = 0;
+
+      for (let i = 0; i < this.frierenWakeUpImages.length; i++) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = function () {
+          loadedCount++;
+          if (loadedCount === self.frierenWakeUpImages.length) {
+            startAnimation();
+          }
+        };
+        img.onerror = function () {
+          loadedCount++;
+          if (loadedCount === self.frierenWakeUpImages.length) {
+            startAnimation();
+          }
+        };
+        img.src = this.frierenWakeUpImages[i];
+        wakeUpImgs.push(img);
+      }
+
+      function startAnimation() {
+        if (
+          !window.mpuCanvasManager ||
+          !window.mpuCanvasManager.canvas ||
+          !window.mpuCanvasManager.ctx
+        ) {
+          if (callback) callback();
+          return;
+        }
+
+        const canvas = window.mpuCanvasManager.canvas;
+        const ctx = window.mpuCanvasManager.ctx;
+
+        const firstImg = wakeUpImgs[0];
+        if (firstImg && firstImg.complete && firstImg.naturalWidth > 0) {
+          canvas.width = firstImg.width;
+          canvas.height = firstImg.height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(firstImg, 0, 0);
+        }
+
+        if (self.frierenIdleImgElement) {
+          self.frierenIdleImgElement.style.display = "none";
+        }
+        canvas.style.display = "block";
+
+        frameIndex = 1;
+        playFrames();
+      }
+
+      function playFrames() {
+        if (frameIndex >= wakeUpImgs.length) {
+          self.frierenAnimationTimer = null;
+          if (callback) callback();
+          return;
+        }
+
+        const img = wakeUpImgs[frameIndex];
+        if (
+          img.complete &&
+          img.naturalWidth > 0 &&
+          window.mpuCanvasManager &&
+          window.mpuCanvasManager.ctx
+        ) {
+          const canvas = window.mpuCanvasManager.canvas;
+          const ctx = window.mpuCanvasManager.ctx;
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+        }
+
+        frameIndex++;
+        self.frierenAnimationTimer = setTimeout(playFrames, frameInterval);
+      }
+    },
+
+    /**
+     * 觸發芙莉蓮說話動畫
+     * @param {boolean} forceAnimation - 使用者主動觸發時設為 true，會喚醒芙莉蓮
+     * @param {Function} onWakeUpComplete - 喚醒動畫完成後的回調函數
+     * @param {boolean} skipBookFlip - 是否跳過翻書動畫（對話模式開啟時只需喚醒不翻書）
+     * @returns {boolean} 是否正在播放喚醒動畫（用於判斷是否需要延遲對話）
+     */
+    triggerFrierenSpeaking: function (
+      forceAnimation,
+      onWakeUpComplete,
+      skipBookFlip
+    ) {
+      if (!this.isFrierenMode) {
+        return false;
+      }
+
+      if (forceAnimation) {
+        const needWakeUpAnimation = this.wakeUp();
+        if (needWakeUpAnimation) {
+          const self = this;
+          if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+            mpuLogger.logF("frierenWakeAnimationStarted", "🌅 目覚めアニメーションを開始します。skipBookFlip = %s", skipBookFlip);
+          }
+          this.playWakeUpAnimation(function () {
+            if (!skipBookFlip) {
+              if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+                mpuLogger.logL("frierenPostWakeBookFlipPlaying", "📖 目覚め後にページめくりアニメーションを再生します");
+              }
+              self.playFrierenBookFlipAnimation();
+            } else {
+              if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+                mpuLogger.logL("frierenPostWakeBookFlipSkipped", "📖 目覚め後のページめくりアニメーションをスキップします");
+              }
+            }
+            if (onWakeUpComplete) {
+              onWakeUpComplete();
+            }
+          });
+          return true;
+        }
+      }
+
+      if (this.isSleepMessage()) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenSleepModeBookFlipSkipped", "🌙 睡眠モード：ページめくりアニメーションをスキップします");
+        }
+        return false;
+      }
+
+      if (skipBookFlip) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenManualWakeDialogueBookFlipSkipped", "📖 手動の目覚め会話：ページめくりアニメーションをスキップします");
+        }
+        if (onWakeUpComplete) {
+          onWakeUpComplete();
+        }
+        return false;
+      }
+
+      if (
+        !window.mpuCanvasManager ||
+        !window.mpuCanvasManager.imagesLoaded ||
+        !this.frierenImages ||
+        this.frierenImages.length < 12
+      ) {
+        setTimeout(
+          function () {
+            this.triggerFrierenSpeaking(forceAnimation, onWakeUpComplete);
+          }.bind(this),
+          100
+        );
+        return false;
+      }
+
+      this.playFrierenBookFlipAnimation();
+      return false;
+    },
+  });
+})();
+
+// ========== frieren-interactions.js ==========
+/**
+ * MP Ukagaka 芙莉蓮互動反應模組
+ *
+ * 擴展 frieren.js 建立的 window.mpuFrierenManager，負責裝飾點擊、
+ * 身體 touch zone、互動後狀態恢復與冷卻計數。
+ */
+
+(function () {
+  "use strict";
+
+  function warnFrieren(key, fallback, ...args) {
+    if (typeof mpuLogger === "undefined") {
+      return;
+    }
+    if (args.length > 0 && typeof mpuLogger.warnAlwaysF === "function") {
+      mpuLogger.warnAlwaysF(key, fallback, ...args);
+    } else if (typeof mpuLogger.warnAlways === "function") {
+      mpuLogger.warnAlways(key, fallback);
+    }
+  }
+
+  const manager = window.mpuFrierenManager;
+  if (!manager) {
+    warnFrieren("frierenInteractionsManagerMissing", "Frieren manager が見つからないため、インタラクションモジュールを初期化できません");
+    return;
+  }
+
+  Object.assign(manager, {
+    /**
+     * 處理裝飾物點擊事件
+     * @param {string} decorationType - 裝飾物類型
+     */
+    handleDecorationClick: function (decorationType) {
+      if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        mpuLogger.logF("frierenDecorationClickHandled", "handleDecorationClick が呼び出されました。装飾品タイプ：%s", decorationType);
+        mpuLogger.log(
+          "mpuAiEnabled:",
+          typeof mpuAiEnabled !== "undefined" ? mpuAiEnabled : "undefined"
+        );
+      }
+
+      if (this.decorationChatInProgress) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenDecorationClickIgnoredDialogActive", "装飾品会話中のため、今回のクリックを無視します");
+        }
+        return;
+      }
+
+      if (typeof mpuAiEnabled === "undefined" || !mpuAiEnabled) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenDecorationDialogSkippedAiDisabled", "AI 機能が有効ではないため、装飾品会話をスキップします");
+        }
+        return;
+      }
+
+      this.decorationChatInProgress = true;
+
+      if (typeof window !== "undefined") {
+        window.mpuMessageBlocking = true;
+      }
+
+      if (typeof stopAutoTalk !== "undefined") {
+        stopAutoTalk();
+      }
+
+      if (typeof mpuCancelRequest !== "undefined") {
+        mpuCancelRequest("", { requestId: "mpu_nextmsg_llm" });
+      }
+      if (typeof mpuRequestManager !== "undefined") {
+        mpuRequestManager.activeRequests.forEach((controller, requestId) => {
+          if (requestId.includes("mpu_nextmsg")) {
+            controller.abort();
+            mpuRequestManager.activeRequests.delete(requestId);
+            if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+              mpuLogger.logL("frierenDecorationClickRequestCancelled", "装飾品クリック：リクエストをキャンセルしました");
+            }
+          }
+        });
+      }
+
+      if (typeof mpu_cancelTypewriter !== "undefined") {
+        mpu_cancelTypewriter();
+      }
+
+      if (typeof mpuOllamaRequesting !== "undefined") {
+        window.mpuOllamaRequesting = false;
+      }
+      if (typeof mpuOllamaRequestQueue !== "undefined") {
+        window.mpuOllamaRequestQueue = [];
+      }
+
+      this.setDecorationsClickable(false);
+
+      const executeAjaxReq = () => {
+        const formData = new FormData();
+        formData.append("decoration_type", decorationType);
+
+        if (typeof mpuFetch !== "undefined" && typeof mpuRestUrl !== "undefined") {
+          mpuFetch(mpuRestUrl + "touch/decoration", {
+            method: "POST",
+            body: formData,
+            timeout: 30000,
+            retries: 1,
+            requestId: "mpu_decoration_chat_" + decorationType,
+          })
+            .then((res) => {
+              if (jQuery("#ukagaka_msgbox").is(":hidden") && typeof mpu_showmsg !== "undefined") {
+                mpu_showmsg(400);
+              }
+
+              if (res && res.msg && !res.error) {
+                if (typeof mpu_typewriter !== "undefined") {
+                  mpu_typewriter(res.msg, "#ukagaka_msg");
+                }
+
+                if (this.isFrierenMode) {
+                  this.triggerFrierenSpeaking(true);
+                }
+
+                if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
+                  window.mpuEmojiManager.showEmoji(res.emoji);
+                }
+
+                // 記錄裝飾物對話到歷史，讓互動對話模式能記得此次觸摸反應
+                if (typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+                  // synthetic user 錨點：讓 LLM 能在後續對話中看到裝飾物觸摸的完整脈絡
+                  window.mpuChatHistory.push({
+                    role: "user",
+                    content: "（装飾品に触れた）",
+                    type: "synthetic",
+                    timestamp: Date.now(),
+                  });
+                  window.mpuChatHistory.push({
+                    role: "assistant",
+                    content: res.msg,
+                    type: "touch_decoration",
+                    timestamp: Date.now(),
+                  });
+                  if (typeof mpu_saveChatHistory === "function") {
+                    mpu_saveChatHistory();
+                  }
+                }
+
+                this.waitForTypewriterAndRestore();
+              } else {
+                const errorMsg = res?.error || ((window.mpuL10n && window.mpuL10n.errorOccurred) || "エラーが発生しました。後でもう一度お試しください。");
+                if (typeof mpu_typewriter !== "undefined") {
+                  mpu_typewriter(errorMsg, "#ukagaka_msg");
+                }
+
+                this.waitForTypewriterAndRestore();
+              }
+            })
+            .catch((error) => {
+              if (jQuery("#ukagaka_msgbox").is(":hidden") && typeof mpu_showmsg !== "undefined") {
+                mpu_showmsg(400);
+              }
+
+              if (typeof mpuLogger !== "undefined" && mpuLogger.errorL) {
+                mpuLogger.errorL('frierenDecorationDialogRequestFailed', '装飾品会話リクエストに失敗しました', error);
+              }
+              if (typeof mpu_typewriter !== "undefined") {
+                mpu_typewriter((window.mpuL10n && window.mpuL10n.connectionError) || "（…通信状況が良くないみたいだ…）", "#ukagaka_msg");
+              }
+
+              this.waitForTypewriterAndRestore();
+            });
+        }
+      };
+
+      const $msgbox = jQuery("#ukagaka_msgbox");
+      const isAsleep = this.isSleepMessage();
+
+      // 如果處於睡眠模式，觸發喚醒動畫
+      if (isAsleep) {
+        const wakeThenContinue = () => {
+          if (typeof mpu_send_wake_up_request !== "function") {
+            executeAjaxReq();
+            return;
+          }
+
+          mpu_send_wake_up_request()
+            .then((reactionDisplayed) => {
+              if (!reactionDisplayed) {
+                executeAjaxReq();
+              } else {
+                this.waitForTypewriterAndRestore();
+              }
+            })
+            .catch(() => {
+              executeAjaxReq();
+            });
+        };
+
+        if ($msgbox.is(":visible")) {
+          $msgbox.fadeOut(1000, () => {
+            this.triggerFrierenSpeaking(true, null, true);
+            wakeThenContinue();
+          });
+        } else {
+          this.triggerFrierenSpeaking(true, null, true);
+          wakeThenContinue();
+        }
+      } else {
+        // 一般模式：顯示思考中
+        mpuShowSystemPlaceholder({ context: "decoration" });
+        mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
+        if ($msgbox.is(":visible")) {
+          $msgbox.fadeOut(400, () => {
+            executeAjaxReq();
+          });
+        } else {
+          executeAjaxReq();
+        }
+      }
+    },
+
+    /**
+     * 等待打字效果完成後恢復狀態
+     */
+    waitForTypewriterAndRestore: function () {
+      const self = this;
+
+      if (typeof mpu_waitForTypewriterComplete !== "undefined") {
+        mpu_waitForTypewriterComplete(function () {
+          setTimeout(function () {
+            self.restoreAfterDecorationChat();
+          }, 2000);
+        });
+      } else {
+        const msgElement = document.querySelector("#ukagaka_msg");
+        let estimatedTime = 3000;
+
+        if (msgElement) {
+          const msgText = msgElement.textContent || msgElement.innerText || "";
+          const typewriterSpeed =
+            typeof mpuTypewriterSpeed !== "undefined" && mpuTypewriterSpeed
+              ? mpuTypewriterSpeed
+              : 40;
+          estimatedTime = Math.max(
+            2000,
+            msgText.length * typewriterSpeed + 500
+          );
+        }
+
+        setTimeout(function () {
+          self.restoreAfterDecorationChat();
+        }, estimatedTime);
+      }
+    },
+
+    /**
+     * 恢復裝飾物對話後的狀態
+     */
+    restoreAfterDecorationChat: function () {
+      this.decorationChatInProgress = false;
+      if (typeof mpuClearSystemPlaceholder === "function") {
+        mpuClearSystemPlaceholder("#ukagaka_msg");
+      }
+
+      if (typeof window !== "undefined") {
+        window.mpuMessageBlocking = false;
+      }
+
+      this.setDecorationsClickable(true);
+
+      if (
+        typeof mpuAutoTalk !== "undefined" &&
+        mpuAutoTalk &&
+        typeof startAutoTalk !== "undefined"
+      ) {
+        startAutoTalk();
+      }
+
+      if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        mpuLogger.logL("frierenDecorationDialogCompletedStateRestored", "装飾品会話が完了し、状態を復元しました");
+      }
+    },
+
+    /**
+     * 設置裝飾物是否可點擊
+     * @param {boolean} clickable - 是否可點擊
+     */
+    setDecorationsClickable: function (clickable) {
+      this.frierenDecorations.forEach((decoration) => {
+        if (decoration && decoration.style) {
+          if (clickable) {
+            decoration.style.pointerEvents = "auto";
+            decoration.style.cursor = "pointer";
+            decoration.style.opacity = "1.0";
+          } else {
+            decoration.style.pointerEvents = "none";
+            decoration.style.cursor = "not-allowed";
+            decoration.style.opacity = "1.0";
+          }
+        }
+      });
+    },
+
+    /**
+     * 檢測觸摸區域
+     * @param {MouseEvent} event - 滑鼠事件
+     * @param {HTMLElement} element - 被點擊的元素
+     * @returns {string|null} - 區域名稱或 null
+     */
+    detectTouchZone: function (event, element) {
+      if (
+        !element ||
+        typeof mpuTouchZones === "undefined" ||
+        !mpuTouchZones.zones
+      ) {
+        return null;
+      }
+
+      const rect = element.getBoundingClientRect();
+      const clickY = event.clientY - rect.top;
+      const relativeY = clickY / rect.height;
+
+      for (const [zoneName, zone] of Object.entries(mpuTouchZones.zones)) {
+        if (zoneName.startsWith("_")) continue;
+        if (relativeY >= zone.yStart && relativeY < zone.yEnd) {
+          if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+            mpuLogger.logF("frierenTouchZoneDetected", "タッチ領域検出：%1$s、relativeY=%2$s", zoneName, relativeY.toFixed(2));
+          }
+          return zoneName;
+        }
+      }
+
+      return mpuTouchZones.default_reaction ? "body" : null;
+    },
+
+    /**
+     * 處理角色觸摸事件
+     * @param {string} zoneName - 區域名稱
+     */
+    handleTouchZone: function (zoneName) {
+      if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        mpuLogger.logF("frierenTouchZoneHandled", "handleTouchZone が呼び出されました。領域：%s", zoneName);
+      }
+
+      if (this.decorationChatInProgress) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenTouchZoneIgnoredDialogActive", "装飾品またはタッチ会話中のため、タッチ領域クリックを無視します");
+        }
+        return;
+      }
+
+      if (this.isZoneInCooldown(zoneName)) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logF("frierenTouchZoneClickIgnoredCooldown", "領域がクールダウン中のため、クリックを無視します：%s", zoneName);
+        }
+        return;
+      }
+
+      if (this.recordZoneClick(zoneName)) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logF("frierenTouchZoneClickLimitReached", "領域のクリック上限に達したため、クールダウンに入ります：%s", zoneName);
+        }
+        return;
+      }
+
+      if (typeof mpuAiEnabled === "undefined" || !mpuAiEnabled) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenTouchZoneDialogSkippedAiDisabled", "AI 機能が有効ではないため、タッチ領域会話をスキップします");
+        }
+        return;
+      }
+
+      this.decorationChatInProgress = true;
+
+      if (typeof window !== "undefined") {
+        window.mpuMessageBlocking = true;
+      }
+
+      if (typeof stopAutoTalk !== "undefined") {
+        stopAutoTalk();
+      }
+
+      if (typeof mpuCancelRequest !== "undefined") {
+        mpuCancelRequest("", { requestId: "mpu_nextmsg_llm" });
+      }
+      if (typeof mpuRequestManager !== "undefined") {
+        mpuRequestManager.activeRequests.forEach((controller, requestId) => {
+          if (requestId.includes("mpu_nextmsg")) {
+            controller.abort();
+            mpuRequestManager.activeRequests.delete(requestId);
+            if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+              mpuLogger.logL("frierenTouchZoneRequestCancelled", "タッチ領域クリック：リクエストをキャンセルしました");
+            }
+          }
+        });
+      }
+
+      if (typeof mpu_cancelTypewriter !== "undefined") {
+        mpu_cancelTypewriter();
+      }
+
+      if (typeof mpuOllamaRequesting !== "undefined") {
+        window.mpuOllamaRequesting = false;
+      }
+      if (typeof mpuOllamaRequestQueue !== "undefined") {
+        window.mpuOllamaRequestQueue = [];
+      }
+
+      const self = this;
+
+      const executeAjaxReq = () => {
+        const formData = new FormData();
+        formData.append("touch_zone", zoneName);
+
+        if (typeof mpuFetch !== "undefined" && typeof mpuRestUrl !== "undefined") {
+          mpuFetch(mpuRestUrl + "touch/zone", {
+            method: "POST",
+            body: formData,
+            timeout: 30000,
+            retries: 1,
+            requestId: "mpu_touch_zone_" + zoneName,
+          })
+            .then((res) => {
+              if (jQuery("#ukagaka_msgbox").is(":hidden") && typeof mpu_showmsg !== "undefined") {
+                mpu_showmsg(400);
+              }
+
+              if (res && res.msg && !res.error) {
+                if (typeof mpu_typewriter !== "undefined") {
+                  mpu_typewriter(res.msg, "#ukagaka_msg");
+                }
+
+                if (self.isFrierenMode) {
+                  self.triggerFrierenSpeaking(true);
+                }
+
+                if (res.emoji && typeof mpuEmojiManager !== "undefined") {
+                  mpuEmojiManager.showEmoji(res.emoji);
+                }
+
+                // 記錄身體觸摸對話到歷史，讓互動對話模式能記得此次觸摸反應
+                if (typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
+                  // synthetic user 錨點：讓 LLM 能在後續對話中看到身體觸摸的完整脈絡
+                  window.mpuChatHistory.push({
+                    role: "user",
+                    content: "（芙莉蓮の体に触れた）",
+                    type: "synthetic",
+                    timestamp: Date.now(),
+                  });
+                  window.mpuChatHistory.push({
+                    role: "assistant",
+                    content: res.msg,
+                    type: "touch_zone",
+                    timestamp: Date.now(),
+                  });
+                  if (typeof mpu_saveChatHistory === "function") {
+                    mpu_saveChatHistory();
+                  }
+                }
+              }
+
+              self.scheduleRestoreAfterChat();
+            })
+            .catch((err) => {
+              if (jQuery("#ukagaka_msgbox").is(":hidden") && typeof mpu_showmsg !== "undefined") {
+                mpu_showmsg(400);
+              }
+
+              mpuLogger.errorL('frierenTouchZoneDialogRequestFailed', 'タッチ領域の会話リクエストに失敗しました', err);
+              self.restoreAfterDecorationChat();
+            });
+        } else {
+          warnFrieren("frierenTouchZoneRuntimeUnavailable", "mpuFetch または mpuRestUrl が利用できないため、タッチ領域会話を送信できません");
+          self.restoreAfterDecorationChat();
+        }
+      };
+
+      const $msgbox = jQuery("#ukagaka_msgbox");
+      const isAsleep = this.isSleepMessage();
+
+      // 如果處於睡眠模式，觸發喚醒動畫
+      if (isAsleep) {
+        const wakeThenContinue = () => {
+          if (typeof mpu_send_wake_up_request !== "function") {
+            executeAjaxReq();
+            return;
+          }
+
+          mpu_send_wake_up_request()
+            .then((reactionDisplayed) => {
+              if (!reactionDisplayed) {
+                executeAjaxReq();
+              } else {
+                self.waitForTypewriterAndRestore();
+              }
+            })
+            .catch(() => {
+              executeAjaxReq();
+            });
+        };
+
+        if ($msgbox.is(":visible")) {
+          $msgbox.fadeOut(1000, () => {
+            self.triggerFrierenSpeaking(true, null, true);
+            wakeThenContinue();
+          });
+        } else {
+          self.triggerFrierenSpeaking(true, null, true);
+          wakeThenContinue();
+        }
+      } else {
+        // 一般模式：顯示思考中
+        mpuShowSystemPlaceholder({ context: "touch" });
+        mpuMarkSystemPlaceholder("#ukagaka_msg"); // §16.3-A：飾品/touch 思考中 placeholder
+        if ($msgbox.is(":visible")) {
+          $msgbox.fadeOut(400, () => {
+            executeAjaxReq();
+          });
+        } else {
+          executeAjaxReq();
+        }
+      }
+    },
+
+    /**
+     * 設置角色觸摸事件監聽
+     */
+    setupCharacterTouchEvents: function () {
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (!imgContainer) {
+        warnFrieren("frierenTouchContainerMissing", "#ukagaka_img が見つからないため、タッチイベントを設定できません");
+        return;
+      }
+
+      const self = this;
+
+      imgContainer.addEventListener("mousemove", function (e) {
+        const target = e.target;
+
+        if (target.id !== "frieren_idle_apng" && target.id !== "cur_ukagaka") {
+          return;
+        }
+
+        const zone = self.detectTouchZone(e, target);
+        if (zone) {
+          const cursorMap = {
+            head: "grab",
+            face: "pointer",
+            chest: "not-allowed",
+            book: "help",
+            legs: "pointer",
+          };
+          target.style.cursor = cursorMap[zone] || "pointer";
+        } else {
+          target.style.cursor = "default";
+        }
+      });
+
+      imgContainer.addEventListener(
+        "click",
+        function (e) {
+          const target = e.target;
+
+          if (
+            target.id !== "frieren_idle_apng" &&
+            target.id !== "cur_ukagaka"
+          ) {
+            return;
+          }
+
+          const zone = self.detectTouchZone(e, target);
+          if (zone) {
+            e.stopPropagation();
+            e.preventDefault();
+            self.handleTouchZone(zone);
+          }
+        },
+        true
+      );
+
+      if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        mpuLogger.logL("frierenTouchEventsBound", "キャラクターのタッチイベントを設定しました");
+      }
+    },
+
+    /**
+     * 延遲恢復對話完成後的狀態
+     */
+    scheduleRestoreAfterChat: function () {
+      const self = this;
+
+      if (typeof mpu_waitForTypewriterComplete !== "undefined") {
+        mpu_waitForTypewriterComplete(function () {
+          setTimeout(function () {
+            self.restoreAfterDecorationChat();
+          }, 2000);
+        });
+      } else {
+        setTimeout(function () {
+          self.restoreAfterDecorationChat();
+        }, 3000);
+      }
+    },
+
+    /**
+     * 檢查區域是否在冷卻中
+     * @param {string} zoneName - 區域名稱
+     * @returns {boolean} - 是否在冷卻中
+     */
+    isZoneInCooldown: function (zoneName) {
+      const cooldownEnd = this.touchZoneCooldown[zoneName];
+      if (!cooldownEnd) return false;
+
+      const now = Date.now();
+      if (now < cooldownEnd) {
+        return true;
+      }
+
+      delete this.touchZoneCooldown[zoneName];
+      delete this.touchZoneClicks[zoneName];
+      return false;
+    },
+
+    /**
+     * 記錄區域點擊，並檢查是否需要進入冷卻
+     * @param {string} zoneName - 區域名稱
+     * @returns {boolean} - 是否剛進入冷卻（true = 應該忽略這次點擊）
+     */
+    recordZoneClick: function (zoneName) {
+      const limit = this.touchZoneLimits[zoneName];
+      if (!limit) return false;
+
+      const now = Date.now();
+
+      if (!this.touchZoneClicks[zoneName]) {
+        this.touchZoneClicks[zoneName] = [];
+      }
+
+      this.touchZoneClicks[zoneName] = this.touchZoneClicks[zoneName].filter(
+        (timestamp) => now - timestamp < limit.windowMs
+      );
+
+      this.touchZoneClicks[zoneName].push(now);
+
+      if (this.touchZoneClicks[zoneName].length >= limit.maxClicks) {
+        this.touchZoneCooldown[zoneName] = now + limit.cooldownMs;
+
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logF("frierenTouchZoneCooldownStarted", "領域がクールダウンに入りました：%1$s、クールダウン時間：%2$s 秒", zoneName, limit.cooldownMs / 1000);
+        }
+
+        return true;
+      }
+
+      return false;
+    },
+  });
+})();
+
+// ========== frieren-decorations.js ==========
+/**
+ * MP Ukagaka 芙莉蓮裝飾物模組
+ *
+ * 擴展 frieren.js 建立的 window.mpuFrierenManager，負責裝飾物載入、
+ * 像素命中判定與裝飾 DOM 管理。
+ */
+
+(function () {
+  "use strict";
+
+  function warnFrieren(key, fallback, ...args) {
+    if (typeof mpuLogger === "undefined") {
+      return;
+    }
+    if (args.length > 0 && typeof mpuLogger.warnAlwaysF === "function") {
+      mpuLogger.warnAlwaysF(key, fallback, ...args);
+    } else if (typeof mpuLogger.warnAlways === "function") {
+      mpuLogger.warnAlways(key, fallback);
+    }
+  }
+
+  const manager = window.mpuFrierenManager;
+  if (!manager) {
+    warnFrieren("frierenDecorationsManagerMissing", "Frieren manager が見つからないため、装飾モジュールを初期化できません");
+    return;
+  }
+
+  Object.assign(manager, {
+    /**
+     * 載入裝飾物（透過 AJAX 動態載入配置）
+     */
+    loadFrierenDecorations: function () {
+      const self = this;
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (!imgContainer) {
+        warnFrieren("frierenDecorationsContainerMissing", "#ukagaka_img が見つからないため、装飾を読み込めません");
+        return;
+      }
+
+      // 防止重複載入（已載入過就跳過）
+      if (this._decorationsLoaded) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenDecorationsAlreadyLoaded", "装飾品は読み込み済みのため、重複読み込みをスキップします");
+        }
+        return;
+      }
+
+      if (window.mpuDecorationConfig !== undefined && window.mpuDecorationsBaseUrl !== undefined) {
+        if (!window.mpuShowDecorations) {
+          if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+            mpuLogger.logL("frierenDecorationsDisabled", "装飾表示が無効のため、装飾を読み込みません");
+          }
+          return;
+        }
+        this._decorationsLoaded = true; // 標記為已載入
+        self._loadDecorationsFromConfig(
+          window.mpuDecorationsBaseUrl,
+          window.mpuDecorationConfig
+        );
+        return;
+      }
+
+      if (typeof jQuery !== "undefined") {
+        jQuery(document).one("mpuInitComplete", function(event, response) {
+          if (response && response.show_decorations && response.decoration_config) {
+            self._decorationsLoaded = true; // 標記為已載入
+            self._loadDecorationsFromConfig(
+              response.decorations_base_url,
+              response.decoration_config
+            );
+          }
+        });
+        return;
+      }
+
+      if (typeof jQuery !== "undefined" && typeof mpuurl !== "undefined") {
+        jQuery.ajax({
+          url: mpuurl,
+          type: "GET",
+          data: {
+            action: "mpu_get_decoration_config",
+            mpu_nonce: typeof mpuNonce !== "undefined" ? mpuNonce : ""
+          },
+          dataType: "json",
+          success: function(response) {
+            if (response.success) {
+              window.mpuDecorationsBaseUrl = response.decorations_base_url;
+              window.mpuDecorationConfig = response.decoration_config;
+              window.mpuTouchZones = response.touchzones;
+              window.mpuShowDecorations = response.show_decorations;
+
+              if (!response.show_decorations) {
+                return;
+              }
+
+              self._decorationsLoaded = true; // 標記為已載入
+              self._loadDecorationsFromConfig(
+                response.decorations_base_url,
+                response.decoration_config
+              );
+            } else {
+              if (response.error) {
+                mpuLogger.warnAlwaysF('frierenDecorationConfigLoadFailed', '装飾設定を読み込めませんでした：%s', response.error);
+              } else {
+                mpuLogger.warnAlways('frierenDecorationConfigLoadFailedUnknown', '装飾設定を読み込めませんでした：不明なエラー');
+              }
+            }
+          },
+          error: function(xhr, status, error) {
+            mpuLogger.errorF('frierenDecorationConfigAjaxFailed', 'AJAX による装飾設定の読み込みに失敗しました：%s', error);
+          }
+        });
+      } else {
+        mpuLogger.warnAlways('frierenDecorationConfigRuntimeUnavailable', 'jQuery または mpuurl が利用できないため、装飾設定を読み込めません');
+      }
+    },
+
+    /**
+     * 從配置載入裝飾物（內部方法）
+     * @param {string} decorationsBaseUrl - 裝飾圖片基礎 URL
+     * @param {Array} decorationConfig - 裝飾配置陣列
+     */
+    _loadDecorationsFromConfig: function(decorationsBaseUrl, decorationConfig) {
+      if (!decorationsBaseUrl || !Array.isArray(decorationConfig)) {
+        mpuLogger.warnAlways('frierenDecorationConfigInvalid', '装飾設定が無効です');
+        return;
+      }
+
+      if (!decorationsBaseUrl.endsWith("/")) {
+        decorationsBaseUrl += "/";
+      }
+
+      const sortedConfig = [...decorationConfig].sort(
+        (a, b) => (a.z_index || 0) - (b.z_index || 0)
+      );
+
+      for (const item of sortedConfig) {
+        if (!item.type || !item.image) continue;
+
+        this.addFrierenDecoration({
+          type: item.type,
+          src: decorationsBaseUrl + item.image,
+          top: item.position?.top || "auto",
+          left: item.position?.left || "auto",
+          right: item.position?.right || "auto",
+          bottom: item.position?.bottom || "auto",
+          width: item.size?.width || "auto",
+          height: item.size?.height || "auto",
+          transform: item.transform || "",
+          zIndex: item.z_index || 0,
+          opacity: item.opacity !== undefined ? item.opacity : 1.0,
+        });
+      }
+
+      if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        mpuLogger.logF("frierenDecorationConfigLoaded", "JSON 設定から %s 個の装飾品を読み込みました", sortedConfig.length);
+      }
+
+      this.setupDecorationClickThrough();
+    },
+
+    /**
+     * 設置點擊穿透：當點擊 canvas 或 img 時，檢查是否點擊到裝飾物區域
+     * 使用事件委派綁定在容器上（capture），避免元素晚建立的問題
+     */
+    setupDecorationClickThrough: function () {
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (!imgContainer) {
+        warnFrieren("frierenDecorationClickThroughContainerMissing", "#ukagaka_img が見つからないため、装飾クリック判定を設定できません");
+        return;
+      }
+
+      if (this._decorationClickThroughHandler) {
+        imgContainer.removeEventListener(
+          "click",
+          this._decorationClickThroughHandler,
+          true
+        );
+      }
+
+      this._decorationClickThroughHandler = (e) => {
+        const target = e.target;
+
+        if (
+          target &&
+          target.classList &&
+          target.classList.contains("frieren-decoration")
+        ) {
+          const m = target.className.match(/frieren-decoration\s+(\w+)/);
+          const type = m && m[1] ? m[1] : null;
+          if (type && this.isPixelHit(type, target, e)) {
+            return;
+          }
+        }
+
+        const rect = imgContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const ordered = this.frierenDecorations
+          .map((d, idx) => {
+            if (!d || !d.parentNode) return null;
+            const z = parseInt(window.getComputedStyle(d).zIndex || "0", 10);
+            return { d, idx, z: isNaN(z) ? 0 : z };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.z - b.z || a.idx - b.idx);
+
+        for (let i = ordered.length - 1; i >= 0; i--) {
+          const decoration = ordered[i].d;
+          const decRect = decoration.getBoundingClientRect();
+          const decX = decRect.left - rect.left;
+          const decY = decRect.top - rect.top;
+
+          if (
+            x >= decX &&
+            x <= decX + decRect.width &&
+            y >= decY &&
+            y <= decY + decRect.height
+          ) {
+            const m = decoration.className.match(/frieren-decoration\s+(\w+)/);
+            const type = m && m[1] ? m[1] : null;
+            if (type && this.isPixelHit(type, decoration, e)) {
+              e.stopPropagation();
+              e.preventDefault();
+              this.handleDecorationClick(type);
+              return;
+            }
+          }
+        }
+      };
+
+      imgContainer.addEventListener(
+        "click",
+        this._decorationClickThroughHandler,
+        true
+      );
+    },
+
+    /**
+     * 添加芙莉蓮裝飾
+     * @param {Object} config - 裝飾配置 { type, src, top, left, right, bottom, width, height, transform, zIndex, opacity }
+     */
+    addFrierenDecoration: function (config) {
+      if (!this.isFrierenMode) {
+        warnFrieren("frierenDecorationAddSkippedInactiveMode", "Frieren mode が有効ではないため、装飾を追加できません");
+        return;
+      }
+
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (!imgContainer) {
+        warnFrieren("frierenDecorationAddContainerMissing", "#ukagaka_img が見つからないため、装飾を追加できません");
+        return;
+      }
+
+      // 檢查是否已存在相同類型的裝飾
+      const existing = imgContainer.querySelector(
+        ".frieren-decoration." + config.type
+      );
+      if (existing) {
+        existing.remove();
+      }
+
+      const decoration = document.createElement("img");
+      decoration.className = "frieren-decoration " + config.type;
+      decoration.src = config.src;
+      decoration.alt = config.type || "decoration";
+
+      let styleString = "position: absolute; pointer-events: auto;";
+      if (config.top !== undefined) styleString += " top: " + config.top + ";";
+      if (config.right !== undefined && config.right !== "auto")
+        styleString += " right: " + config.right + ";";
+      if (config.bottom !== undefined)
+        styleString += " bottom: " + config.bottom + ";";
+      if (
+        config.left !== undefined &&
+        (config.right === undefined || config.right === "auto")
+      )
+        styleString += " left: " + config.left + ";";
+      if (config.width !== undefined)
+        styleString += " width: " + config.width + ";";
+      if (config.height !== undefined)
+        styleString += " height: " + config.height + ";";
+      if (config.transform !== undefined)
+        styleString += " transform: " + config.transform + ";";
+      styleString +=
+        " z-index: " +
+        (config.zIndex !== undefined ? config.zIndex : "10") +
+        ";";
+      if (config.opacity !== undefined) {
+        styleString += " opacity: " + config.opacity + ";";
+      }
+
+      decoration.style.cssText = styleString;
+
+      decoration.addEventListener("load", () => {
+        this.createHitCanvas(config.type, decoration);
+      });
+
+      decoration.addEventListener("click", (e) => {
+        if (!this.isPixelHit(config.type, decoration, e)) {
+          if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+            mpuLogger.logF("frierenDecorationTransparentClickIgnored", "透明領域がクリックされたため無視します：%s", config.type);
+          }
+          return;
+        }
+
+        e.stopPropagation();
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logF("frierenDecorationPixelHitClicked", "装飾品がクリックされました（ピクセルヒット）：%s", config.type);
+        }
+        this.handleDecorationClick(config.type);
+      });
+
+      const canvas = imgContainer.querySelector("canvas");
+      const frierenImg = imgContainer.querySelector("#frieren_idle_apng");
+      const referenceElement = frierenImg || canvas;
+
+      if (referenceElement && referenceElement.parentNode) {
+        referenceElement.parentNode.insertBefore(decoration, referenceElement);
+      } else {
+        imgContainer.appendChild(decoration);
+      }
+
+      this.frierenDecorations.push(decoration);
+    },
+
+    /**
+     * 為裝飾物創建像素檢測用的隱藏 Canvas
+     * @param {string} type - 裝飾物類型
+     * @param {HTMLImageElement} imgElement - 裝飾物圖片元素
+     */
+    createHitCanvas: function (type, imgElement) {
+      if (
+        !imgElement ||
+        !imgElement.complete ||
+        imgElement.naturalWidth === 0
+      ) {
+        return;
+      }
+
+      const hitCanvas = document.createElement("canvas");
+      hitCanvas.width = imgElement.naturalWidth;
+      hitCanvas.height = imgElement.naturalHeight;
+
+      const ctx = hitCanvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) {
+        mpuLogger.errorF('frierenPixelCanvasCreateFailed', 'ピクセル判定用 Canvas を作成できません：%s', type);
+        return;
+      }
+
+      ctx.drawImage(imgElement, 0, 0);
+
+      this.decorationHitCanvases.set(type, {
+        canvas: hitCanvas,
+        ctx: ctx,
+        width: hitCanvas.width,
+        height: hitCanvas.height,
+      });
+
+      if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        mpuLogger.logF("frierenPixelDetectionCanvasCreated", "ピクセル検出 Canvas を作成しました：%1$s、%2$s", type, hitCanvas.width, hitCanvas.height);
+      }
+    },
+
+    /**
+     * 檢測點擊位置是否命中不透明像素
+     * @param {string} type - 裝飾物類型
+     * @param {HTMLImageElement} imgElement - 裝飾物圖片元素
+     * @param {MouseEvent} event - 滑鼠事件
+     * @returns {boolean} - 是否命中不透明像素
+     */
+    isPixelHit: function (type, imgElement, event) {
+      const hitData = this.decorationHitCanvases.get(type);
+
+      if (!hitData || !hitData.ctx) {
+        return true;
+      }
+
+      const rect = imgElement.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const clickY = event.clientY - rect.top;
+
+      const scaleX = hitData.width / rect.width;
+      const scaleY = hitData.height / rect.height;
+      const pixelX = Math.floor(clickX * scaleX);
+      const pixelY = Math.floor(clickY * scaleY);
+
+      if (
+        pixelX < 0 ||
+        pixelX >= hitData.width ||
+        pixelY < 0 ||
+        pixelY >= hitData.height
+      ) {
+        return false;
+      }
+
+      try {
+        const imageData = hitData.ctx.getImageData(pixelX, pixelY, 1, 1);
+        const alpha = imageData.data[3];
+
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logF("frierenPixelDetectionSample", "ピクセル検出：%1$s、x=%2$s、y=%3$s、alpha=%4$s、threshold=%5$s", type, pixelX, pixelY, alpha, this.pixelHitThreshold);
+        }
+
+        return alpha > this.pixelHitThreshold;
+      } catch (e) {
+        mpuLogger.warnAlwaysF(
+          'frierenPixelDataUnavailable',
+          'ピクセルデータを取得できません（クロスオリジンの可能性があります）：タイプ=%1$s、メッセージ=%2$s',
+          type,
+          e.message
+        );
+        return true;
+      }
+    },
+
+    /**
+     * 移除芙莉蓮裝飾
+     * @param {string} type - 裝飾類型
+     */
+    removeFrierenDecoration: function (type) {
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (!imgContainer) {
+        warnFrieren("frierenDecorationRemoveContainerMissing", "#ukagaka_img が見つからないため、装飾を削除できません：%s", type);
+        return;
+      }
+
+      const decoration = imgContainer.querySelector(
+        ".frieren-decoration." + type
+      );
+      if (decoration) {
+        decoration.remove();
+        this.frierenDecorations = this.frierenDecorations.filter(
+          (d) => d !== decoration
+        );
+        this.decorationHitCanvases.delete(type);
+      }
+    },
+
+    /**
+     * 清除所有裝飾
+     */
+    clearFrierenDecorations: function () {
+      this.frierenDecorations.forEach((decoration) => {
+        if (decoration.parentNode) {
+          decoration.parentNode.removeChild(decoration);
+        }
+      });
+      this.frierenDecorations = [];
+      this.decorationHitCanvases.clear();
+    },
+  });
+})();
+

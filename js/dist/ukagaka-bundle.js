@@ -1,8 +1,8 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-11T12:07:06.610Z
+ * Generated: 2026-06-11T12:58:33.291Z
  * 
- * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat.js, ukagaka-features.js
+ * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
 
 // ========== ukagaka-base.js ==========
@@ -4496,7 +4496,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
     });
 }
 
-// ========== ukagaka-chat.js ==========
+// ========== ukagaka-chat-history.js ==========
 // ====== 互動對話模式 ======
 // 對話模式狀態
 window.mpuChatModeActive = false;
@@ -4571,6 +4571,7 @@ function mpu_clearChatHistory() {
   mpu_getOrCreateChatSessionId(true);
 }
 
+// ========== ukagaka-chat-mode.js ==========
 /**
  * 切換對話模式
  * @param {boolean} enable - 是否啟用對話模式
@@ -4740,6 +4741,7 @@ function mpu_toggleChatMode(enable) {
   }
 }
 
+// ========== ukagaka-chat-format.js ==========
 /**
  * 輕量級 Markdown 解析（處理粗體、斜體和行內代碼）
  *
@@ -4772,6 +4774,7 @@ function mpu_parseMarkdown(text) {
   );
 }
 
+// ========== ukagaka-chat-sse.js ==========
 /**
  * 使用 SSE (Server-Sent Events) 獲取 AI 回應
  *
@@ -4952,6 +4955,7 @@ async function mpuFetchSSE(url, options, handlers) {
   }
 }
 
+// ========== ukagaka-chat-send.js ==========
 let mpuChatAbortController = null;
 
 /**
@@ -5492,6 +5496,9 @@ function mpu_sendUserMessage() {
   }
 }
 
+// ========== ukagaka-chat.js ==========
+
+// ========== ukagaka-chat-events.js ==========
 // 綁定對話模式事件
 jQuery(document).ready(function () {
   // 初始化：載入對話歷史
@@ -5644,6 +5651,7 @@ jQuery(document).ready(function () {
   mpuLogger.logL("chatModeInitialized", "インタラクティブ会話モードを初期化しました");
 });
 
+// ========== ukagaka-chat-wake.js ==========
 /**
  * 發送喚醒角色請求給後端
  */

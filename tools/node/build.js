@@ -21,7 +21,14 @@ const coreFiles = [
     'ukagaka-context.js',
     'ukagaka-greeting.js',
     'ukagaka-dialog.js',
+    'ukagaka-chat-history.js',
+    'ukagaka-chat-mode.js',
+    'ukagaka-chat-format.js',
+    'ukagaka-chat-sse.js',
+    'ukagaka-chat-send.js',
     'ukagaka-chat.js',
+    'ukagaka-chat-events.js',
+    'ukagaka-chat-wake.js',
     'ukagaka-features.js'
 ];
 
@@ -33,6 +40,48 @@ const standaloneFiles = [
 const repoRoot = path.resolve(__dirname, '..', '..');
 const jsDir = path.join(repoRoot, 'js');
 const distDir = path.join(repoRoot, 'js', 'dist');
+const frierenDir = path.join(repoRoot, 'ghost', 'Frieren');
+const frierenDistDir = path.join(frierenDir, 'dist');
+
+function getFrierenBundleFiles() {
+    const manifestPath = path.join(frierenDir, 'manifest.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+    const scripts = Array.isArray(manifest.scripts)
+        ? manifest.scripts
+        : manifest.script
+            ? [manifest.script]
+            : [];
+
+    return scripts.filter((file) => !/-emoji\.js$/i.test(file));
+}
+
+async function minifyBundle(bundleContent, options = {}) {
+    return minify(bundleContent, {
+        compress: {
+            drop_console: false,
+            drop_debugger: true,
+            passes: 2
+        },
+        mangle: options.mangle || {
+            reserved: [
+                'mpuCanvasManager',
+                'mpuAjax',
+                'mpuFeatures',
+                'mpuChatManager',
+                'mpuAutoTalk',
+                'mpuTouch',
+                'mpuEmojiLoader',
+                'mpu_getCookie',
+                'mpu_setCookie',
+                'mpu_nextmsg'
+            ]
+        },
+        format: {
+            comments: false
+        },
+        sourceMap: false
+    });
+}
 
 async function build() {
     let failed = false;
@@ -78,32 +127,7 @@ async function build() {
     console.log('🔧 Phase 2: Minifying bundle...');
     
     try {
-        const minified = await minify(bundleContent, {
-            compress: {
-                drop_console: false, // 保留 console 以便調試
-                drop_debugger: true,
-                passes: 2
-            },
-            mangle: {
-                reserved: [
-                    // 保留全域變數
-                    'mpuCanvasManager',
-                    'mpuAjax',
-                    'mpuFeatures',
-                    'mpuChatManager',
-                    'mpuAutoTalk',
-                    'mpuTouch',
-                    'mpuEmojiLoader',
-                    'mpu_getCookie',
-                    'mpu_setCookie',
-                    'mpu_nextmsg'
-                ]
-            },
-            format: {
-                comments: false
-            },
-            sourceMap: false
-        });
+        const minified = await minifyBundle(bundleContent);
 
         const minBundlePath = path.join(distDir, 'ukagaka-bundle.min.js');
         fs.writeFileSync(minBundlePath, minified.code);
@@ -142,6 +166,56 @@ async function build() {
                 failed = true;
             }
         }
+    }
+
+    // === Phase 4: Build Frieren personality bundle ===
+    console.log('\n📦 Phase 4: Building Frieren personality bundle...');
+
+    try {
+        const frierenFiles = getFrierenBundleFiles();
+        if (!fs.existsSync(frierenDistDir)) {
+            fs.mkdirSync(frierenDistDir, { recursive: true });
+        }
+
+        let frierenBundleContent = `/**
+ * MP Ukagaka Frieren Bundle
+ * Generated: ${new Date().toISOString()}
+ *
+ * 包含: ${frierenFiles.join(', ')}
+ */
+`;
+
+        for (const file of frierenFiles) {
+            const filePath = path.join(frierenDir, file);
+            if (fs.existsSync(filePath)) {
+                const content = fs.readFileSync(filePath, 'utf-8');
+                frierenBundleContent += `\n// ========== ${file} ==========\n`;
+                frierenBundleContent += content;
+                console.log(`  ✓ Added: ghost/Frieren/${file}`);
+            } else {
+                console.log(`  ✗ Not found: ghost/Frieren/${file}`);
+            }
+        }
+
+        frierenBundleContent += '\n';
+
+        const frierenBundlePath = path.join(frierenDistDir, 'frieren-bundle.js');
+        fs.writeFileSync(frierenBundlePath, frierenBundleContent);
+        console.log(`  → Saved: ghost/Frieren/dist/frieren-bundle.js (${(frierenBundleContent.length / 1024).toFixed(1)} KB)`);
+
+        const minified = await minifyBundle(frierenBundleContent, { mangle: true });
+        const frierenMinBundlePath = path.join(frierenDistDir, 'frieren-bundle.min.js');
+        fs.writeFileSync(frierenMinBundlePath, minified.code);
+
+        const originalSize = frierenBundleContent.length;
+        const minifiedSize = minified.code.length;
+        const savings = ((1 - minifiedSize / originalSize) * 100).toFixed(1);
+
+        console.log(`  → Saved: ghost/Frieren/dist/frieren-bundle.min.js (${(minifiedSize / 1024).toFixed(1)} KB)`);
+        console.log(`  → Compression: ${savings}% reduction`);
+    } catch (error) {
+        console.error('  ✗ Frieren bundle failed:', error.message);
+        failed = true;
     }
 
     if (failed) {

@@ -437,9 +437,65 @@ function mpu_enqueue_frontend_assets() {
 		);
 
 		wp_enqueue_script(
+			'mpu-chat-history',
+			plugins_url( 'js/ukagaka-chat-history.js', $main_file ),
+			array( 'mpu-core' ),
+			MPU_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
+			'mpu-chat-mode',
+			plugins_url( 'js/ukagaka-chat-mode.js', $main_file ),
+			array( 'mpu-core', 'mpu-anime', 'mpu-chat-history' ),
+			MPU_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
+			'mpu-chat-format',
+			plugins_url( 'js/ukagaka-chat-format.js', $main_file ),
+			array( 'mpu-core', 'mpu-chat-mode' ),
+			MPU_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
+			'mpu-chat-sse',
+			plugins_url( 'js/ukagaka-chat-sse.js', $main_file ),
+			array( 'mpu-core', 'mpu-chat-format' ),
+			MPU_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
+			'mpu-chat-send',
+			plugins_url( 'js/ukagaka-chat-send.js', $main_file ),
+			array( 'mpu-core', 'mpu-anime', 'mpu-chat-history', 'mpu-chat-format', 'mpu-chat-mode', 'mpu-chat-sse' ),
+			MPU_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
 			'mpu-chat',
 			plugins_url( 'js/ukagaka-chat.js', $main_file ),
-			array( 'mpu-core', 'mpu-anime' ),
+			array( 'mpu-chat-send' ),
+			MPU_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
+			'mpu-chat-events',
+			plugins_url( 'js/ukagaka-chat-events.js', $main_file ),
+			array( 'mpu-chat' ),
+			MPU_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
+			'mpu-chat-wake',
+			plugins_url( 'js/ukagaka-chat-wake.js', $main_file ),
+			array( 'mpu-chat-events' ),
 			MPU_VERSION,
 			true
 		);
@@ -487,28 +543,44 @@ function mpu_enqueue_frontend_assets() {
 			$scripts_to_load = array( $manifest['script'] );
 		}
 
+		$personality_bundle_file = plugin_dir_path( $main_file ) . 'ghost/' . $personality_id . '/dist/frieren-bundle.min.js';
+		$use_personality_bundle  = ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG )
+			&& 'Frieren' === $personality_id
+			&& file_exists( $personality_bundle_file );
+
 		// 載入所有腳本（排除 *-emoji.js，因為有獨立載入機制）
 		$script_index = 0;
-		foreach ( $scripts_to_load as $script_file ) {
-			// 跳過 emoji 腳本（由獨立機制處理）
-			if ( preg_match( '/-emoji\.js$/i', $script_file ) ) {
-				continue;
-			}
-
-			$handle      = 0 === $script_index ? $personality_script_handle : "mpu-personality-{$script_index}";
-			$script_url  = plugins_url( 'ghost/' . $personality_id . '/' . $script_file, $main_file );
-			$script_deps = 0 === $script_index
-				? array( $anime_handle )
-				: array( $last_personality_script_handle );
+		if ( $use_personality_bundle ) {
 			wp_enqueue_script(
-				$handle,
-				$script_url,
-				$script_deps,
+				$personality_script_handle,
+				plugins_url( 'ghost/' . $personality_id . '/dist/frieren-bundle.min.js', $main_file ),
+				array( $anime_handle ),
 				MPU_VERSION,
 				true
 			);
-			$last_personality_script_handle = $handle;
-			++$script_index;
+			$last_personality_script_handle = $personality_script_handle;
+		} else {
+			foreach ( $scripts_to_load as $script_file ) {
+				// 跳過 emoji 腳本（由獨立機制處理）
+				if ( preg_match( '/-emoji\.js$/i', $script_file ) ) {
+					continue;
+				}
+
+				$handle      = 0 === $script_index ? $personality_script_handle : "mpu-personality-{$script_index}";
+				$script_url  = plugins_url( 'ghost/' . $personality_id . '/' . $script_file, $main_file );
+				$script_deps = 0 === $script_index
+					? array( $anime_handle )
+					: array( $last_personality_script_handle );
+				wp_enqueue_script(
+					$handle,
+					$script_url,
+					$script_deps,
+					MPU_VERSION,
+					true
+				);
+				$last_personality_script_handle = $handle;
+				++$script_index;
+			}
 		}
 	}
 
