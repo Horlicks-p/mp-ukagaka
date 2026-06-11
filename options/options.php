@@ -371,10 +371,10 @@ $current_page_label = isset($page_labels[$cur_page]) ? $page_labels[$cur_page] :
             <div class="mpu-quick-link-card">
                 <h4><?php _e('Documentation', 'mp-ukagaka'); ?></h4>
                 <ul>
-                    <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs/README.md" target="_blank">README</a></li>
-                    <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs/USER_GUIDE.md" target="_blank">User Guide</a></li>
-                    <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs/DEVELOPER_GUIDE.md" target="_blank">Developer Guide</a></li>
-                    <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs/API_REFERENCE.md" target="_blank">API Reference</a></li>
+                    <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/README.md" target="_blank">README</a></li>
+                    <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/USER_GUIDE.md" target="_blank">User Guide</a></li>
+                    <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/DEVELOPER_GUIDE.md" target="_blank">Developer Guide</a></li>
+                    <li><a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/API_REFERENCE.md" target="_blank">API Reference</a></li>
                 </ul>
             </div>
 

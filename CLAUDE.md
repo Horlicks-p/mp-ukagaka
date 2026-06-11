@@ -103,9 +103,7 @@ mp-ukagaka/
 ├── options/                    # Admin settings page PHP files (10 files)
 ├── languages/                  # i18n files (.po, .pot, .mo)
 │   └── compile_po.py           # Script to compile .po → .mo files
-├── docs-en/                    # English documentation
-├── docs-jp/                    # Japanese documentation
-├── docs/                       # Primary documentation (mirrors docs-en)
+├── docs-en/                    # Canonical documentation (English, single source of truth)
 ├── plan/                       # Development planning documents
 └── example/                    # Example configuration files
 ```
