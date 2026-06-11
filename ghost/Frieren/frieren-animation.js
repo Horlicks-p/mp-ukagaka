@@ -160,7 +160,7 @@
           if (!currentSrc.endsWith(imageToShow)) {
               self.frierenIdleImgElement.src = imageToShow;
           }
-          
+
           // 先顯示閒置圖片
           self.frierenIdleImgElement.style.display = "block";
           self.frierenIdleImgElement.style.opacity = String(self.frierenIdleOpacity);
