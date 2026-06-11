@@ -453,9 +453,17 @@ function mpu_enqueue_frontend_assets() {
 		);
 
 		wp_enqueue_script(
+			'mpu-chat-format',
+			plugins_url( 'js/ukagaka-chat-format.js', $main_file ),
+			array( 'mpu-core', 'mpu-chat-mode' ),
+			MPU_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
 			'mpu-chat',
 			plugins_url( 'js/ukagaka-chat.js', $main_file ),
-			array( 'mpu-core', 'mpu-anime', 'mpu-chat-history', 'mpu-chat-mode' ),
+			array( 'mpu-core', 'mpu-anime', 'mpu-chat-history', 'mpu-chat-format', 'mpu-chat-mode' ),
 			MPU_VERSION,
 			true
 		);

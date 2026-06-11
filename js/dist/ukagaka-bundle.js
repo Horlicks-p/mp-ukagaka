@@ -1,8 +1,8 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-11T12:43:32.439Z
+ * Generated: 2026-06-11T12:45:35.303Z
  * 
- * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat.js, ukagaka-chat-wake.js, ukagaka-features.js
+ * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
 
 // ========== ukagaka-base.js ==========
@@ -4741,7 +4741,7 @@ function mpu_toggleChatMode(enable) {
   }
 }
 
-// ========== ukagaka-chat.js ==========
+// ========== ukagaka-chat-format.js ==========
 /**
  * 輕量級 Markdown 解析（處理粗體、斜體和行內代碼）
  *
@@ -4774,6 +4774,7 @@ function mpu_parseMarkdown(text) {
   );
 }
 
+// ========== ukagaka-chat.js ==========
 /**
  * 使用 SSE (Server-Sent Events) 獲取 AI 回應
  *
