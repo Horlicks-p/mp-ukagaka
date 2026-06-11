@@ -1209,7 +1209,6 @@ function mpu_frontend_boot_inline_js( $mpu_opt ) {
 	$js .= 'var mpuAiEnabled = ' . wp_json_encode( (bool) $ai_enabled ) . ";\n";
 	// 裝飾配置改為 AJAX 延遲載入（避免在網頁原始碼中暴露圖片路徑）
 	// 前端會透過 mpu_get_decoration_config AJAX 動態獲取裝飾配置.
-	$js .= "var mpuDecorationConfigPending = true;\n";
 	// 輸出 ukagaka_num 供前端 AJAX 載入使用（不直接輸出 shellInfo，改用 AJAX 延遲載入）.
 	$js .= 'var mpuInitParams = ' . wp_json_encode( array( 'ukagaka_num' => $ukagaka_num ) ) . ';';
 

@@ -8,8 +8,20 @@
 (function () {
   "use strict";
 
+  function warnFrieren(key, fallback, ...args) {
+    if (typeof mpuLogger === "undefined") {
+      return;
+    }
+    if (args.length > 0 && typeof mpuLogger.warnAlwaysF === "function") {
+      mpuLogger.warnAlwaysF(key, fallback, ...args);
+    } else if (typeof mpuLogger.warnAlways === "function") {
+      mpuLogger.warnAlways(key, fallback);
+    }
+  }
+
   const manager = window.mpuFrierenManager;
   if (!manager) {
+    warnFrieren("frierenInteractionsManagerMissing", "Frieren manager が見つからないため、インタラクションモジュールを初期化できません");
     return;
   }
 
@@ -327,6 +339,9 @@
       }
 
       if (this.decorationChatInProgress) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenTouchZoneIgnoredDialogActive", "装飾品またはタッチ会話中のため、タッチ領域クリックを無視します");
+        }
         return;
       }
 
@@ -345,6 +360,9 @@
       }
 
       if (typeof mpuAiEnabled === "undefined" || !mpuAiEnabled) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+          mpuLogger.logL("frierenTouchZoneDialogSkippedAiDisabled", "AI 機能が有効ではないため、タッチ領域会話をスキップします");
+        }
         return;
       }
 
@@ -447,6 +465,9 @@
               mpuLogger.errorL('frierenTouchZoneDialogRequestFailed', 'タッチ領域の会話リクエストに失敗しました', err);
               self.restoreAfterDecorationChat();
             });
+        } else {
+          warnFrieren("frierenTouchZoneRuntimeUnavailable", "mpuFetch または mpuRestUrl が利用できないため、タッチ領域会話を送信できません");
+          self.restoreAfterDecorationChat();
         }
       };
 
@@ -502,7 +523,10 @@
      */
     setupCharacterTouchEvents: function () {
       const imgContainer = document.getElementById("ukagaka_img");
-      if (!imgContainer) return;
+      if (!imgContainer) {
+        warnFrieren("frierenTouchContainerMissing", "#ukagaka_img が見つからないため、タッチイベントを設定できません");
+        return;
+      }
 
       const self = this;
 

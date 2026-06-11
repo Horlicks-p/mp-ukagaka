@@ -1,5 +1,13 @@
 # A-2 巨大ファイル分割プラン（前端優先・漸進）
 
+> ## Follow-up status（2026-06-11）
+>
+> - ✅ ① `js_area` timing caveat recorded in the Unreleased changelog entries.
+> - ✅ ② Frieren decorations/interactions precondition silent returns now emit `warnAlways` logs where actionable.
+> - ✅ ③ Removed dead `mpuDecorationConfigPending`.
+> - ⏳ ④ chat SSE / touch manual smoke remains release-gate work; intentionally not run here to avoid LLM quota use.
+> - ⏳ ⑤ `ukagaka-chat.js` and backend split remain out of scope for this branch.
+>
 > ## 📈 進捗（2026-06-10 家チーム、branch `refactor/frontend-split`）
 >
 > | 刀 | commit | 内容 | 状態 |
@@ -15,7 +23,7 @@
 > 全刀：php -l / phpcs-baseline gate / PHPUnit 88/88 / git diff --check / Playwright smoke 緑。
 > 刀3-5 は逐字節純搬移を diff で実証。工作流＝Claude と CODEX が交替で下刀・相互レビュー。
 >
-> **残課題（次回）**：①js_area が `<head>` 同期実行でなくなる caveat を release note へ ②decorations/interactions の silent return に warnAlways log（console-log-i18n red-lines 準拠）③`mpuDecorationConfigPending` 死変数削除 ④release 前に chat SSE / touch の手動 smoke（LLM 額度節約のため未実施）⑤ukagaka-chat.js（bundle 対象）と後端は未着手
+> **残課題（次回）**：④release 前に chat SSE / touch の手動 smoke（LLM 額度節約のため未実施）⑤ukagaka-chat.js（bundle 対象）と後端は未着手
 
 > 📅 作成：2026-06-10（公司CLAUDE(Fable 5) と 家 CODEX の協議をまとめ、実コード v2.25.6 で裏取り）
 > 🎯 想定読者：家の御三家（実装担当）

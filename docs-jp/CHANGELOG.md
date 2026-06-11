@@ -4,6 +4,16 @@
 
 ---
 
+## [Unreleased]
+
+### A-2 フロントエンド分割
+
+- **フロントエンド起動スクリプトの分割**：`frontend-functions.php` 内の純データ boot 変数と bootstrap ロジックを enqueue フローへ移し、Frieren 専用 runtime を `frieren.js`、`frieren-animation.js`、`frieren-interactions.js`、`frieren-decorations.js` に分割しました。
+- **互換性メモ**：カスタム `extend.js_area` は引き続き MP Ukagaka bootstrap の後に実行されますが、`<head>` 内の同期 inline script ではなくなりました。`<head>` 同期実行に依存するカスタムコードは、DOM ready または MP Ukagaka の初期化完了イベントを待つ形へ調整してください。
+- **Release 前チェック**：これはフロントエンド runtime のリファクタリングであるため、正式リリース前に chat SSE と touch/decoration の手動 smoke test が必要です。
+
+---
+
 ## [2.25.6] - 2026-06-10
 
 ### 🛡️ セキュリティ強化（A級修正）

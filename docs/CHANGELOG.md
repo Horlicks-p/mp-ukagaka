@@ -4,6 +4,16 @@
 
 ---
 
+## [Unreleased]
+
+### A-2 前端拆分
+
+- **前端啟動腳本拆分**：將 `frontend-functions.php` 中的純資料 boot 變數與 bootstrap 邏輯移到 enqueue 流程，並將 Frieren 專用 runtime 拆為 `frieren.js`、`frieren-animation.js`、`frieren-interactions.js`、`frieren-decorations.js`。
+- **相容性提醒**：自訂 `extend.js_area` 仍會在 MP Ukagaka bootstrap 之後執行，但不再是 `<head>` 內的同步 inline script。若自訂程式依賴 `<head>` 同步執行時機，請改為等待 DOM ready 或 MP Ukagaka 初始化完成事件。
+- **Release 前檢查**：此拆分屬於前端 runtime 重構，正式發版前仍需手動 smoke 測試 chat SSE 與 touch/decoration 互動路徑。
+
+---
+
 ## [2.25.6] - 2026-06-10
 
 ### 🛡️ 安全強化 (A-級修復)

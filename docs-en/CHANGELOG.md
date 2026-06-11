@@ -4,6 +4,16 @@
 
 ---
 
+## [Unreleased]
+
+### A-2 Frontend Split
+
+- **Frontend boot script split**: Moved the pure-data boot globals and bootstrap logic out of `frontend-functions.php` into the enqueue flow, and split the Frieren-specific runtime into `frieren.js`, `frieren-animation.js`, `frieren-interactions.js`, and `frieren-decorations.js`.
+- **Compatibility note**: Custom `extend.js_area` still runs after the MP Ukagaka bootstrap, but it is no longer a synchronous `<head>` inline script. Custom code that depended on `<head>`-time execution should wait for DOM ready or the MP Ukagaka init-complete event.
+- **Pre-release check**: This is a frontend runtime refactor, so chat SSE and touch/decoration interaction paths still need manual smoke testing before release.
+
+---
+
 ## [2.25.6] - 2026-06-10
 
 ### 🛡️ Security Hardening (A-tier fixes)

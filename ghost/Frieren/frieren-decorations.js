@@ -8,8 +8,20 @@
 (function () {
   "use strict";
 
+  function warnFrieren(key, fallback, ...args) {
+    if (typeof mpuLogger === "undefined") {
+      return;
+    }
+    if (args.length > 0 && typeof mpuLogger.warnAlwaysF === "function") {
+      mpuLogger.warnAlwaysF(key, fallback, ...args);
+    } else if (typeof mpuLogger.warnAlways === "function") {
+      mpuLogger.warnAlways(key, fallback);
+    }
+  }
+
   const manager = window.mpuFrierenManager;
   if (!manager) {
+    warnFrieren("frierenDecorationsManagerMissing", "Frieren manager が見つからないため、装飾モジュールを初期化できません");
     return;
   }
 
@@ -20,7 +32,10 @@
     loadFrierenDecorations: function () {
       const self = this;
       const imgContainer = document.getElementById("ukagaka_img");
-      if (!imgContainer) return;
+      if (!imgContainer) {
+        warnFrieren("frierenDecorationsContainerMissing", "#ukagaka_img が見つからないため、装飾を読み込めません");
+        return;
+      }
 
       // 防止重複載入（已載入過就跳過）
       if (this._decorationsLoaded) {
@@ -32,6 +47,9 @@
 
       if (window.mpuDecorationConfig !== undefined && window.mpuDecorationsBaseUrl !== undefined) {
         if (!window.mpuShowDecorations) {
+          if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+            mpuLogger.logL("frierenDecorationsDisabled", "装飾表示が無効のため、装飾を読み込みません");
+          }
           return;
         }
         this._decorationsLoaded = true; // 標記為已載入
@@ -147,7 +165,10 @@
      */
     setupDecorationClickThrough: function () {
       const imgContainer = document.getElementById("ukagaka_img");
-      if (!imgContainer) return;
+      if (!imgContainer) {
+        warnFrieren("frierenDecorationClickThroughContainerMissing", "#ukagaka_img が見つからないため、装飾クリック判定を設定できません");
+        return;
+      }
 
       if (this._decorationClickThroughHandler) {
         imgContainer.removeEventListener(
@@ -221,10 +242,16 @@
      * @param {Object} config - 裝飾配置 { type, src, top, left, right, bottom, width, height, transform, zIndex, opacity }
      */
     addFrierenDecoration: function (config) {
-      if (!this.isFrierenMode) return;
+      if (!this.isFrierenMode) {
+        warnFrieren("frierenDecorationAddSkippedInactiveMode", "Frieren mode が有効ではないため、装飾を追加できません");
+        return;
+      }
 
       const imgContainer = document.getElementById("ukagaka_img");
-      if (!imgContainer) return;
+      if (!imgContainer) {
+        warnFrieren("frierenDecorationAddContainerMissing", "#ukagaka_img が見つからないため、装飾を追加できません");
+        return;
+      }
 
       // 檢查是否已存在相同類型的裝飾
       const existing = imgContainer.querySelector(
@@ -394,7 +421,10 @@
      */
     removeFrierenDecoration: function (type) {
       const imgContainer = document.getElementById("ukagaka_img");
-      if (!imgContainer) return;
+      if (!imgContainer) {
+        warnFrieren("frierenDecorationRemoveContainerMissing", "#ukagaka_img が見つからないため、装飾を削除できません：%s", type);
+        return;
+      }
 
       const decoration = imgContainer.querySelector(
         ".frieren-decoration." + type
