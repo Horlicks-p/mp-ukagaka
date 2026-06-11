@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "generatedAt": "2026-05-30T04:58:55+00:00",
+    "generatedAt": "2026-06-10T12:09:30+00:00",
     "description": "PHPCS baseline grouped by file + sniff source + message. Line numbers are metadata only.",
     "entries": [
         {
@@ -1857,7 +1857,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                84
+                69
             ]
         },
         {
@@ -1865,21 +1865,10 @@
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 4 spaces but found 1 space",
             "type": "WARNING",
-            "count": 3,
+            "count": 2,
             "firstLines": [
                 50,
-                64,
-                101
-            ]
-        },
-        {
-            "file": "includes/ajax/chat-api-handlers.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 5 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                37
+                86
             ]
         },
         {
@@ -1907,10 +1896,9 @@
             "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceAfterOpen",
             "message": "Expected 1 space after open parenthesis; 0 found",
             "type": "ERROR",
-            "count": 2,
+            "count": 1,
             "firstLines": [
-                52,
-                66
+                52
             ]
         },
         {
@@ -1918,10 +1906,9 @@
             "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceBeforeClose",
             "message": "Expected 1 space before close parenthesis; 0 found",
             "type": "ERROR",
-            "count": 2,
+            "count": 1,
             "firstLines": [
-                52,
-                66
+                52
             ]
         },
         {
@@ -1929,7 +1916,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 79,
+            "count": 64,
             "firstLines": [
                 12,
                 28,
@@ -1943,7 +1930,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 41,
+            "count": 30,
             "firstLines": [
                 11,
                 28,
@@ -1957,23 +1944,13 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 41,
+            "count": 30,
             "firstLines": [
                 11,
                 28,
                 29,
                 30,
                 31
-            ]
-        },
-        {
-            "file": "includes/ajax/chat-api-handlers.php",
-            "source": "PSR2.Files.EndFileNewline.TooMany",
-            "message": "Expected 1 blank line at end of file; 2 found",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                115
             ]
         },
         {
@@ -2016,13 +1993,11 @@
             "source": "Squiz.Commenting.InlineComment.InvalidEndChar",
             "message": "Inline comments must end in full-stops, exclamation marks, or question marks",
             "type": "ERROR",
-            "count": 6,
+            "count": 3,
             "firstLines": [
-                36,
-                40,
-                56,
+                57,
                 72,
-                87
+                82
             ]
         },
         {
@@ -2064,21 +2039,7 @@
             "count": 2,
             "firstLines": [
                 26,
-                88
-            ]
-        },
-        {
-            "file": "includes/ajax/chat-api-handlers.php",
-            "source": "WordPress.PHP.DevelopmentFunctions.error_log_error_log",
-            "message": "error_log() found. Debug code should not normally be used in production.",
-            "type": "WARNING",
-            "count": 8,
-            "firstLines": [
-                57,
-                58,
-                59,
-                60,
-                61
+                73
             ]
         },
         {
@@ -2088,7 +2049,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                77
+                62
             ]
         },
         {
@@ -2096,13 +2057,13 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
             "message": "No space after opening parenthesis is prohibited",
             "type": "ERROR",
-            "count": 10,
+            "count": 9,
             "firstLines": [
                 11,
                 28,
                 31,
-                41,
-                42
+                36,
+                38
             ]
         },
         {
@@ -2110,13 +2071,13 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
             "message": "No space before closing parenthesis is prohibited",
             "type": "ERROR",
-            "count": 10,
+            "count": 9,
             "firstLines": [
                 11,
                 28,
                 31,
-                41,
-                42
+                36,
+                38
             ]
         },
         {
@@ -3579,7 +3540,7 @@
             "count": 2,
             "firstLines": [
                 16,
-                98
+                135
             ]
         },
         {
@@ -3589,7 +3550,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                196
+                228
             ]
         },
         {
@@ -3599,7 +3560,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                105
+                142
             ]
         },
         {
@@ -3610,10 +3571,10 @@
             "count": 7,
             "firstLines": [
                 19,
-                101,
-                131,
-                158,
-                177
+                138,
+                163,
+                190,
+                209
             ]
         },
         {
@@ -3621,7 +3582,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 153,
+            "count": 149,
             "firstLines": [
                 11,
                 20,
@@ -3650,7 +3611,7 @@
                 45,
                 84,
                 85,
-                245
+                277
             ]
         },
         {
@@ -3663,7 +3624,7 @@
                 45,
                 84,
                 85,
-                245
+                277
             ]
         },
         {
@@ -3671,7 +3632,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 34,
+            "count": 32,
             "firstLines": [
                 10,
                 44,
@@ -3685,7 +3646,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 34,
+            "count": 32,
             "firstLines": [
                 10,
                 44,
@@ -3711,7 +3672,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                218
+                250
             ]
         },
         {
@@ -3719,10 +3680,9 @@
             "source": "Squiz.Commenting.InlineComment.InvalidEndChar",
             "message": "Inline comments must end in full-stops, exclamation marks, or question marks",
             "type": "ERROR",
-            "count": 2,
+            "count": 1,
             "firstLines": [
-                81,
-                114
+                81
             ]
         },
         {
@@ -3732,11 +3692,11 @@
             "type": "ERROR",
             "count": 5,
             "firstLines": [
-                130,
-                157,
-                176,
-                193,
-                222
+                162,
+                189,
+                208,
+                225,
+                254
             ]
         },
         {
@@ -3746,11 +3706,11 @@
             "type": "ERROR",
             "count": 5,
             "firstLines": [
-                130,
-                157,
-                176,
-                193,
-                222
+                162,
+                189,
+                208,
+                225,
+                254
             ]
         },
         {
@@ -4369,8 +4329,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                105,
-                110
+                142,
+                147
             ]
         },
         {
@@ -4634,8 +4594,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                239,
-                243
+                271,
+                275
             ]
         },
         {
@@ -5185,11 +5145,11 @@
             "type": "ERROR",
             "count": 7,
             "firstLines": [
-                104,
-                133,
-                159,
-                198,
-                201
+                141,
+                165,
+                191,
+                230,
+                233
             ]
         },
         {
@@ -5199,7 +5159,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                132
+                164
             ]
         },
         {
@@ -5210,10 +5170,10 @@
             "count": 17,
             "firstLines": [
                 10,
-                104,
-                108,
-                115,
-                133
+                105,
+                141,
+                145,
+                165
             ]
         },
         {
@@ -5224,10 +5184,10 @@
             "count": 17,
             "firstLines": [
                 10,
-                104,
-                108,
-                115,
-                133
+                105,
+                141,
+                145,
+                165
             ]
         },
         {
@@ -5235,13 +5195,13 @@
             "source": "WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter",
             "message": "Expected 1 space after \"!\"; 0 found",
             "type": "ERROR",
-            "count": 8,
+            "count": 7,
             "firstLines": [
                 10,
-                108,
-                115,
-                137,
-                144
+                145,
+                169,
+                176,
+                256
             ]
         },
         {
@@ -5252,10 +5212,10 @@
             "count": 5,
             "firstLines": [
                 10,
-                108,
-                137,
-                144,
-                224
+                145,
+                169,
+                176,
+                256
             ]
         },
         {
@@ -5266,8 +5226,8 @@
             "count": 3,
             "firstLines": [
                 28,
-                62,
-                73
+                76,
+                87
             ]
         },
         {
@@ -5314,16 +5274,6 @@
         },
         {
             "file": "includes/core/debug-functions.php",
-            "source": "PSR2.Files.EndFileNewline.TooMany",
-            "message": "Expected 1 blank line at end of file; 3 found",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                75
-            ]
-        },
-        {
-            "file": "includes/core/debug-functions.php",
             "source": "Squiz.Commenting.FunctionComment.ParamCommentFullStop",
             "message": "Parameter comment must end with a full stop",
             "type": "ERROR",
@@ -5331,8 +5281,8 @@
             "firstLines": [
                 23,
                 24,
-                58,
-                69
+                72,
+                83
             ]
         },
         {
@@ -5367,8 +5317,8 @@
             "count": 3,
             "firstLines": [
                 27,
-                61,
-                72
+                75,
+                86
             ]
         },
         {
@@ -5379,8 +5329,8 @@
             "count": 3,
             "firstLines": [
                 27,
-                61,
-                72
+                75,
+                86
             ]
         },
         {
@@ -5394,7 +5344,7 @@
                 7,
                 19,
                 22,
-                57
+                71
             ]
         },
         {
@@ -5483,22 +5433,11 @@
         {
             "file": "includes/core/encryption-functions.php",
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 2 spaces but found 1 space",
+            "message": "Equals sign not aligned with surrounding assignments; expected 4 spaces but found 1 space",
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                83
-            ]
-        },
-        {
-            "file": "includes/core/encryption-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 4 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                52,
-                87
+                136
             ]
         },
         {
@@ -5506,10 +5445,9 @@
             "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
             "message": "Equals sign not aligned with surrounding assignments; expected 8 spaces but found 1 space",
             "type": "WARNING",
-            "count": 2,
+            "count": 1,
             "firstLines": [
-                54,
-                89
+                138
             ]
         },
         {
@@ -5520,10 +5458,10 @@
             "count": 6,
             "firstLines": [
                 25,
-                38,
-                76,
-                127,
-                140
+                44,
+                89,
+                176,
+                189
             ]
         },
         {
@@ -5533,9 +5471,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                157,
-                162,
-                168
+                206,
+                211,
+                217
             ]
         },
         {
@@ -5545,9 +5483,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                157,
-                162,
-                168
+                206,
+                211,
+                217
             ]
         },
         {
@@ -5555,13 +5493,13 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 95,
+            "count": 76,
             "firstLines": [
                 11,
-                26,
-                27,
-                28,
-                39
+                33,
+                45,
+                46,
+                47
             ]
         },
         {
@@ -5569,13 +5507,13 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 39,
+            "count": 28,
             "firstLines": [
                 10,
-                27,
-                28,
-                39,
-                44
+                45,
+                90,
+                128,
+                133
             ]
         },
         {
@@ -5583,13 +5521,13 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 39,
+            "count": 28,
             "firstLines": [
                 10,
-                27,
-                28,
-                39,
-                44
+                45,
+                90,
+                128,
+                133
             ]
         },
         {
@@ -5609,11 +5547,11 @@
             "type": "ERROR",
             "count": 6,
             "firstLines": [
-                34,
-                72,
-                123,
-                135,
-                136
+                40,
+                85,
+                172,
+                184,
+                185
             ]
         },
         {
@@ -5623,7 +5561,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                135
+                184
             ]
         },
         {
@@ -5631,13 +5569,13 @@
             "source": "Squiz.Commenting.InlineComment.InvalidEndChar",
             "message": "Inline comments must end in full-stops, exclamation marks, or question marks",
             "type": "ERROR",
-            "count": 13,
+            "count": 11,
             "firstLines": [
-                26,
-                43,
-                50,
-                59,
-                64
+                33,
+                49,
+                94,
+                127,
+                148
             ]
         },
         {
@@ -5647,11 +5585,11 @@
             "type": "ERROR",
             "count": 5,
             "firstLines": [
-                37,
-                75,
-                126,
-                139,
-                182
+                43,
+                88,
+                175,
+                188,
+                231
             ]
         },
         {
@@ -5661,11 +5599,11 @@
             "type": "ERROR",
             "count": 5,
             "firstLines": [
-                37,
-                75,
-                126,
-                139,
-                182
+                43,
+                88,
+                175,
+                188,
+                231
             ]
         },
         {
@@ -5676,10 +5614,10 @@
             "count": 6,
             "firstLines": [
                 21,
-                33,
-                71,
-                122,
-                134
+                39,
+                84,
+                171,
+                183
             ]
         },
         {
@@ -5689,8 +5627,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                84,
-                106
+                133,
+                155
             ]
         },
         {
@@ -5698,10 +5636,9 @@
             "source": "WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode",
             "message": "base64_encode() can be used to obfuscate code which is strongly discouraged. Please verify that the function is used for benign reasons.",
             "type": "WARNING",
-            "count": 2,
+            "count": 1,
             "firstLines": [
-                60,
-                65
+                73
             ]
         },
         {
@@ -5709,13 +5646,13 @@
             "source": "WordPress.PHP.YodaConditions.NotYoda",
             "message": "Use Yoda Condition checks, you must.",
             "type": "ERROR",
-            "count": 7,
+            "count": 6,
             "firstLines": [
-                58,
-                86,
-                94,
-                107,
-                141
+                135,
+                143,
+                156,
+                190,
+                195
             ]
         },
         {
@@ -5723,13 +5660,13 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
             "message": "No space after opening parenthesis is prohibited",
             "type": "ERROR",
-            "count": 16,
+            "count": 13,
             "firstLines": [
                 10,
-                39,
-                44,
-                51,
-                58
+                45,
+                90,
+                128,
+                135
             ]
         },
         {
@@ -5737,13 +5674,13 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
             "message": "No space before closing parenthesis is prohibited",
             "type": "ERROR",
-            "count": 16,
+            "count": 13,
             "firstLines": [
                 10,
-                39,
-                44,
-                51,
-                58
+                45,
+                90,
+                128,
+                135
             ]
         },
         {
@@ -5754,10 +5691,10 @@
             "count": 7,
             "firstLines": [
                 10,
-                155,
-                157,
-                160,
-                162
+                204,
+                206,
+                209,
+                211
             ]
         },
         {
@@ -5768,9 +5705,9 @@
             "count": 4,
             "firstLines": [
                 10,
-                157,
-                162,
-                168
+                206,
+                211,
+                217
             ]
         },
         {
@@ -6058,258 +5995,6 @@
         },
         {
             "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 13 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                251
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 2 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 11,
-            "firstLines": [
-                111,
-                245,
-                361,
-                381,
-                382
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 3 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 3,
-            "firstLines": [
-                516,
-                1055,
-                1056
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 4 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 3,
-            "firstLines": [
-                75,
-                544,
-                1085
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 5 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 6,
-            "firstLines": [
-                105,
-                238,
-                246,
-                495,
-                517
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 6 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                93
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 7 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                253,
-                472
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 8 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                104,
-                1089
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.Functions.OpeningFunctionBraceKernighanRitchie.BraceOnNewLine",
-            "message": "Opening brace should be on the same line as the declaration",
-            "type": "ERROR",
-            "count": 9,
-            "firstLines": [
-                32,
-                160,
-                208,
-                215,
-                225
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceAfterOpen",
-            "message": "Expected 1 space after open parenthesis; 0 found",
-            "type": "ERROR",
-            "count": 10,
-            "firstLines": [
-                110,
-                167,
-                181,
-                361,
-                1082
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceBeforeClose",
-            "message": "Expected 1 space before close parenthesis; 0 found",
-            "type": "ERROR",
-            "count": 10,
-            "firstLines": [
-                110,
-                167,
-                181,
-                361,
-                1082
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
-            "message": "Tabs must be used to indent lines; spaces are not allowed",
-            "type": "ERROR",
-            "count": 945,
-            "firstLines": [
-                11,
-                33,
-                34,
-                35,
-                36
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Modernize.FunctionCalls.Dirname.FileConstant",
-            "message": "Use the __DIR__ constant instead of calling dirname(__FILE__) (PHP >= 5.3)",
-            "type": "ERROR",
-            "count": 3,
-            "firstLines": [
-                245,
-                338,
-                357
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "NormalizedArrays.Arrays.ArrayBraceSpacing.SpaceAfterArrayOpenerSingleLine",
-            "message": "Expected 1 space after the array opener in a single line array. Found: no spaces",
-            "type": "ERROR",
-            "count": 60,
-            "firstLines": [
-                175,
-                374,
-                392,
-                400,
-                408
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "NormalizedArrays.Arrays.ArrayBraceSpacing.SpaceBeforeArrayCloserSingleLine",
-            "message": "Expected 1 space before the array closer in a single line array. Found: no spaces",
-            "type": "ERROR",
-            "count": 60,
-            "firstLines": [
-                175,
-                374,
-                392,
-                400,
-                408
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "PEAR.Functions.FunctionCallSignature.CloseBracketLine",
-            "message": "Closing parenthesis of a multi-line function call must be on a line by itself",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                154,
-                351
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket",
-            "message": "Opening parenthesis of a multi-line function call must be the last content on the line",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                142,
-                348
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "PEAR.Functions.FunctionCallSignature.MultipleArguments",
-            "message": "Only one argument is allowed per line in a multi-line function call",
-            "type": "ERROR",
-            "count": 3,
-            "firstLines": [
-                142,
-                348,
-                351
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
-            "message": "Expected 1 spaces after opening parenthesis; 0 found",
-            "type": "ERROR",
-            "count": 625,
-            "firstLines": [
-                10,
-                38,
-                39,
-                41,
-                47
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
-            "message": "Expected 1 spaces before closing parenthesis; 0 found",
-            "type": "ERROR",
-            "count": 625,
-            "firstLines": [
-                10,
-                38,
-                39,
-                41,
-                47
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
             "source": "Squiz.Commenting.FileComment.SpacingAfterOpen",
             "message": "There must be no blank lines before the file comment",
             "type": "ERROR",
@@ -6335,7 +6020,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1045
+                1046
             ]
         },
         {
@@ -6345,7 +6030,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                207
+                208
             ]
         },
         {
@@ -6365,7 +6050,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                221
+                220
             ]
         },
         {
@@ -6375,637 +6060,11 @@
             "type": "ERROR",
             "count": 47,
             "firstLines": [
-                36,
-                49,
-                53,
-                57,
-                74
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingAfterOpen",
-            "message": "Expected 1 spaces after opening parenthesis; 0 found",
-            "type": "ERROR",
-            "count": 4,
-            "firstLines": [
-                31,
-                207,
-                224,
-                348
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingBeforeClose",
-            "message": "Expected 1 spaces before closing parenthesis; 0 found",
-            "type": "ERROR",
-            "count": 4,
-            "firstLines": [
-                31,
-                207,
-                224,
-                348
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \" is_admin: \" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1102
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \" ollama_replace: \" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1099
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \" streaming_enabled: \" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1101
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \" typewriter_speed: \" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1100
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 7,
-            "firstLines": [
-                174,
-                181,
-                185,
-                191,
-                196
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"(*)\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                194
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \".\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                253
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"/<\\/body>/i\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                211
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"://\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                182
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"DOING_AJAX\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                167
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"HTTP_HOST\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                179,
-                183
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"REQUEST_URI\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                179,
-                184
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"cur_ukagaka\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                237,
-                1112
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"default_1\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 3,
-            "firstLines": [
-                237,
-                239,
-                1112
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"dialog_filename\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                252
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"dialogs/\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                253
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"extend\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                1192,
-                1193
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"external_file_format\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                251
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"http\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                180
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"images/cancel_hover.png\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                247
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"images/ok_hover.png\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                246
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"insert_html\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                146,
-                146
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"js_area\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                1192,
-                1193
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"mp-ukagaka\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 10,
-            "firstLines": [
-                133,
-                136,
-                266,
-                300,
-                303
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"mpu_echo_html\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                147
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"mpu_head\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1198
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"mpu_ob_callback\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                150
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"mpu_shutdown_callback\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                151
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"mpu_ukagaka_\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 4,
-            "firstLines": [
-                228,
-                230,
-                1113,
-                1114
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"name\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                286,
-                288
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"no_page\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                191
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"no_style\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                336
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"ob_get_level\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                216
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"pagenow\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                174
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"s\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                181
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"show_msg\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1180
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"show_ukagaka\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1169
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"txt\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                251
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"ukagakas\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                232,
-                1115
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"var mpuAiEnabled = \" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1105
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"var mpuInitParams = { ukagaka_num: \" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1121
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"wp\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                142
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"wp-login.php\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                175
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"wp-register.php\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                175
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"wp_footer\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                147
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"wp_head\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1198
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"キャラを表示 ▲\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1053
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"キャラを隠す ▼\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 2,
-            "firstLines": [
-                303,
-                1054
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"チャット\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                306
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"トップへ戻る ▼\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                300
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"メッセージを入力...\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                266
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"会話を表示 ▲\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1055
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"会話を隠す ▼\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1056
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"（えっと…何を話せばいいかな…）\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                133
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"（思考中…）\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                136
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Squiz.WhiteSpace.SuperfluousWhitespace.EndLine",
-            "message": "Whitespace found at end of line",
-            "type": "ERROR",
-            "count": 15,
-            "firstLines": [
-                5,
-                16,
-                18,
-                93,
-                94
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Universal.Arrays.DisallowShortArraySyntax.Found",
-            "message": "Short array syntax is not allowed",
-            "type": "ERROR",
-            "count": 56,
-            "firstLines": [
-                55,
-                75,
-                107,
-                175,
-                478
+                35,
+                48,
+                52,
+                56,
+                73
             ]
         },
         {
@@ -7015,271 +6074,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                345
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "Universal.Operators.DisallowStandalonePostIncrementDecrement.PostIncrementFound",
-            "message": "Stand-alone post-increment statement found. Use pre-increment instead: ++$script_index.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                504
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.ArrayKeySpacingRestrictions.NoSpacesAroundArrayKeys",
-            "message": "Array keys must be surrounded by spaces unless they contain a string or an integer.",
-            "type": "ERROR",
-            "count": 7,
-            "firstLines": [
-                122,
-                228,
-                230,
-                232,
-                1113
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 11 space(s) between \"'dialogLoadFailed'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                992
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 11 space(s) between \"'diaryTitlePrefix'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                987
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 11 space(s) between \"'duplicateRequest'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                999
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 12 space(s) between \"'chatPlaceholder'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1007
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 12 space(s) between \"'connectionError'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1003
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 12 space(s) between \"'dialogNotLoaded'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                994
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 12 space(s) between \"'loadingOwnDiary'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                986
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 12 space(s) between \"'processingError'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                996
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 12 space(s) between \"'thinkingMessage'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                990
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 13 space(s) between \"'loadingArticle'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                985
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 13 space(s) between \"'unknownVisitor'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                988
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 14 space(s) between \"'errorOccurred'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                998
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 14 space(s) between \"'executingTool'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1009
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 14 space(s) between \"'loadingFailed'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                997
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 14 space(s) between \"'requestFailed'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1000
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 15 space(s) between \"'chatThinking'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1008
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 15 space(s) between \"'streamStates'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1011
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 16 space(s) between \"'chatWelcome'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1006
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 16 space(s) between \"'dialogEmpty'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                993
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 19 space(s) between \"'chatExit'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1005
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 19 space(s) between \"'llmError'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                995
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 23 space(s) between \"'logs'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1020
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 7 space(s) between \"'apiMagicInsufficient'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                989
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 8 space(s) between \"'animationLoadFailed'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                1002
+                343
             ]
         },
         {
@@ -7289,7 +6084,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                217
+                216
             ]
         },
         {
@@ -7299,11 +6094,11 @@
             "type": "ERROR",
             "count": 9,
             "firstLines": [
-                38,
-                50,
-                76,
-                81,
-                97
+                37,
+                49,
+                75,
+                80,
+                96
             ]
         },
         {
@@ -7343,7 +6138,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                321
+                320
             ]
         },
         {
@@ -7369,17 +6164,7 @@
         {
             "file": "includes/core/frontend-functions.php",
             "source": "WordPress.Security.ValidatedSanitizedInput.InputNotSanitized",
-            "message": "Detected usage of a non-sanitized input variable: $_SERVER[\"HTTP_HOST\"]",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                183
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.Security.ValidatedSanitizedInput.InputNotSanitized",
-            "message": "Detected usage of a non-sanitized input variable: $_SERVER[\"REQUEST_URI\"]",
+            "message": "Detected usage of a non-sanitized input variable: $_SERVER['HTTP_HOST']",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
@@ -7388,33 +6173,43 @@
         },
         {
             "file": "includes/core/frontend-functions.php",
+            "source": "WordPress.Security.ValidatedSanitizedInput.InputNotSanitized",
+            "message": "Detected usage of a non-sanitized input variable: $_SERVER['REQUEST_URI']",
+            "type": "ERROR",
+            "count": 1,
+            "firstLines": [
+                185
+            ]
+        },
+        {
+            "file": "includes/core/frontend-functions.php",
             "source": "WordPress.Security.ValidatedSanitizedInput.MissingUnslash",
-            "message": "$_COOKIE[\"mpu_ukagaka_\" . COOKIEHASH] not unslashed before sanitization. Use wp_unslash() or similar",
+            "message": "$_COOKIE['mpu_ukagaka_' . COOKIEHASH] not unslashed before sanitization. Use wp_unslash() or similar",
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                230,
+                228,
                 1114
             ]
         },
         {
             "file": "includes/core/frontend-functions.php",
             "source": "WordPress.Security.ValidatedSanitizedInput.MissingUnslash",
-            "message": "$_SERVER[\"HTTP_HOST\"] not unslashed before sanitization. Use wp_unslash() or similar",
+            "message": "$_SERVER['HTTP_HOST'] not unslashed before sanitization. Use wp_unslash() or similar",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                183
+                184
             ]
         },
         {
             "file": "includes/core/frontend-functions.php",
             "source": "WordPress.Security.ValidatedSanitizedInput.MissingUnslash",
-            "message": "$_SERVER[\"REQUEST_URI\"] not unslashed before sanitization. Use wp_unslash() or similar",
+            "message": "$_SERVER['REQUEST_URI'] not unslashed before sanitization. Use wp_unslash() or similar",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                184
+                185
             ]
         },
         {
@@ -7424,73 +6219,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1009
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.WP.I18n.UnorderedPlaceholdersText",
-            "message": "Multiple placeholders in translatable strings should be ordered. Expected \"%1$s, %2$s\", but got \"%s, %s\" in 'mpu_check_page_trigger: チェック条件 = %s、path = %s'.",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                788
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
-            "message": "No space after opening parenthesis is prohibited",
-            "type": "ERROR",
-            "count": 54,
-            "firstLines": [
-                10,
-                38,
-                47,
-                50,
-                54
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
-            "message": "No space before closing parenthesis is prohibited",
-            "type": "ERROR",
-            "count": 54,
-            "firstLines": [
-                10,
-                38,
-                47,
-                50,
-                54
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter",
-            "message": "Expected 1 space after \"!\"; 0 found",
-            "type": "ERROR",
-            "count": 24,
-            "firstLines": [
-                10,
-                54,
-                58,
-                61,
-                64
-            ]
-        },
-        {
-            "file": "includes/core/frontend-functions.php",
-            "source": "WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore",
-            "message": "Expected 1 space before \"!\"; 0 found",
-            "type": "ERROR",
-            "count": 21,
-            "firstLines": [
-                10,
-                54,
-                58,
-                61,
-                64
+                1011
             ]
         },
         {
@@ -7978,11 +6707,11 @@
             "type": "ERROR",
             "count": 6,
             "firstLines": [
-                20,
-                42,
-                67,
-                76,
-                98
+                24,
+                46,
+                71,
+                80,
+                102
             ]
         },
         {
@@ -7992,11 +6721,11 @@
             "type": "ERROR",
             "count": 58,
             "firstLines": [
-                11,
-                21,
-                22,
-                23,
-                24
+                15,
+                25,
+                26,
+                27,
+                28
             ]
         },
         {
@@ -8006,7 +6735,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                89
+                93
             ]
         },
         {
@@ -8016,7 +6745,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                86
+                90
             ]
         },
         {
@@ -8026,8 +6755,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                86,
-                89
+                90,
+                93
             ]
         },
         {
@@ -8037,11 +6766,11 @@
             "type": "ERROR",
             "count": 19,
             "firstLines": [
-                10,
-                43,
-                46,
-                46,
-                50
+                14,
+                47,
+                50,
+                50,
+                54
             ]
         },
         {
@@ -8051,11 +6780,11 @@
             "type": "ERROR",
             "count": 19,
             "firstLines": [
-                10,
-                43,
-                46,
-                46,
-                50
+                14,
+                47,
+                50,
+                50,
+                54
             ]
         },
         {
@@ -8075,10 +6804,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                34,
-                72,
-                92,
-                119
+                38,
+                76,
+                96,
+                123
             ]
         },
         {
@@ -8088,7 +6817,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                72
+                76
             ]
         },
         {
@@ -8098,10 +6827,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                41,
-                75,
-                97,
-                122
+                45,
+                79,
+                101,
+                126
             ]
         },
         {
@@ -8111,10 +6840,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                41,
-                75,
-                97,
-                122
+                45,
+                79,
+                101,
+                126
             ]
         },
         {
@@ -8124,9 +6853,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                21,
-                86,
-                113
+                25,
+                90,
+                117
             ]
         },
         {
@@ -8136,10 +6865,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                45,
-                82,
-                100,
-                125
+                49,
+                86,
+                104,
+                129
             ]
         },
         {
@@ -8149,7 +6878,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                43
+                47
             ]
         },
         {
@@ -8159,11 +6888,11 @@
             "type": "ERROR",
             "count": 11,
             "firstLines": [
-                10,
-                45,
-                46,
-                53,
-                55
+                14,
+                49,
+                50,
+                57,
+                59
             ]
         },
         {
@@ -8173,11 +6902,11 @@
             "type": "ERROR",
             "count": 11,
             "firstLines": [
-                10,
-                45,
-                46,
-                53,
-                55
+                14,
+                49,
+                50,
+                57,
+                59
             ]
         },
         {
@@ -8187,11 +6916,11 @@
             "type": "ERROR",
             "count": 7,
             "firstLines": [
-                10,
-                46,
-                46,
-                77,
-                105
+                14,
+                50,
+                50,
+                81,
+                109
             ]
         },
         {
@@ -8201,11 +6930,11 @@
             "type": "ERROR",
             "count": 5,
             "firstLines": [
-                10,
-                46,
-                77,
-                105,
-                109
+                14,
+                50,
+                81,
+                109,
+                113
             ]
         },
         {
@@ -11095,7 +9824,7 @@
             "count": 2,
             "firstLines": [
                 73,
-                101
+                149
             ]
         },
         {
@@ -11105,7 +9834,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                672
+                744
             ]
         },
         {
@@ -11115,8 +9844,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                809,
-                987
+                881,
+                1059
             ]
         },
         {
@@ -11126,9 +9855,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                388,
-                554,
-                677
+                460,
+                626,
+                749
             ]
         },
         {
@@ -11138,10 +9867,10 @@
             "type": "WARNING",
             "count": 4,
             "firstLines": [
-                119,
-                152,
-                184,
-                975
+                167,
+                204,
+                240,
+                1047
             ]
         },
         {
@@ -11151,11 +9880,11 @@
             "type": "WARNING",
             "count": 6,
             "firstLines": [
-                353,
-                379,
-                521,
-                546,
-                634
+                425,
+                451,
+                593,
+                618,
+                706
             ]
         },
         {
@@ -11175,11 +9904,11 @@
             "type": "WARNING",
             "count": 6,
             "firstLines": [
-                352,
-                520,
-                633,
-                946,
-                953
+                424,
+                592,
+                705,
+                1018,
+                1025
             ]
         },
         {
@@ -11200,11 +9929,11 @@
             "type": "WARNING",
             "count": 8,
             "firstLines": [
-                336,
-                380,
-                513,
-                547,
-                626
+                408,
+                452,
+                585,
+                619,
+                698
             ]
         },
         {
@@ -11214,8 +9943,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                750,
-                883
+                822,
+                955
             ]
         },
         {
@@ -11237,9 +9966,9 @@
             "firstLines": [
                 29,
                 66,
-                98,
-                328,
-                456
+                146,
+                400,
+                528
             ]
         },
         {
@@ -11250,10 +9979,10 @@
             "count": 21,
             "firstLines": [
                 82,
-                332,
-                397,
-                400,
-                403
+                404,
+                469,
+                472,
+                475
             ]
         },
         {
@@ -11264,10 +9993,10 @@
             "count": 21,
             "firstLines": [
                 82,
-                332,
-                397,
-                400,
-                403
+                404,
+                469,
+                472,
+                475
             ]
         },
         {
@@ -11275,7 +10004,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 789,
+            "count": 746,
             "firstLines": [
                 17,
                 30,
@@ -11294,8 +10023,8 @@
                 85,
                 87,
                 93,
-                380,
-                547
+                452,
+                619
             ]
         },
         {
@@ -11308,8 +10037,8 @@
                 85,
                 87,
                 93,
-                380,
-                547
+                452,
+                619
             ]
         },
         {
@@ -11319,8 +10048,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                108,
-                308
+                156,
+                380
             ]
         },
         {
@@ -11328,13 +10057,11 @@
             "source": "PEAR.Functions.FunctionCallSignature.CloseBracketLine",
             "message": "Closing parenthesis of a multi-line function call must be on a line by itself",
             "type": "ERROR",
-            "count": 9,
+            "count": 3,
             "firstLines": [
-                109,
-                137,
-                168,
-                202,
-                230
+                157,
+                381,
+                389
             ]
         },
         {
@@ -11342,13 +10069,11 @@
             "source": "PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket",
             "message": "Opening parenthesis of a multi-line function call must be the last content on the line",
             "type": "ERROR",
-            "count": 9,
+            "count": 3,
             "firstLines": [
-                107,
-                132,
-                163,
-                197,
-                225
+                155,
+                379,
+                385
             ]
         },
         {
@@ -11356,13 +10081,12 @@
             "source": "PEAR.Functions.FunctionCallSignature.MultipleArguments",
             "message": "Only one argument is allowed per line in a multi-line function call",
             "type": "ERROR",
-            "count": 10,
+            "count": 4,
             "firstLines": [
-                109,
-                137,
-                168,
-                202,
-                230
+                157,
+                381,
+                385,
+                385
             ]
         },
         {
@@ -11420,7 +10144,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                312
+                384
             ]
         },
         {
@@ -11430,7 +10154,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                97
+                145
             ]
         },
         {
@@ -11460,11 +10184,11 @@
             "type": "ERROR",
             "count": 7,
             "firstLines": [
-                324,
-                452,
-                481,
-                501,
-                614
+                396,
+                524,
+                553,
+                573,
+                686
             ]
         },
         {
@@ -11478,7 +10202,7 @@
                 34,
                 40,
                 45,
-                99
+                147
             ]
         },
         {
@@ -11488,11 +10212,11 @@
             "type": "ERROR",
             "count": 7,
             "firstLines": [
-                327,
-                455,
-                484,
-                504,
-                617
+                399,
+                527,
+                556,
+                576,
+                689
             ]
         },
         {
@@ -11502,11 +10226,11 @@
             "type": "ERROR",
             "count": 7,
             "firstLines": [
-                327,
-                455,
-                484,
-                504,
-                617
+                399,
+                527,
+                556,
+                576,
+                689
             ]
         },
         {
@@ -11516,9 +10240,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                673,
-                810,
-                988
+                745,
+                882,
+                1060
             ]
         },
         {
@@ -11528,7 +10252,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                556
+                628
             ]
         },
         {
@@ -11538,7 +10262,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                390
+                462
             ]
         },
         {
@@ -11548,7 +10272,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                978
+                1050
             ]
         },
         {
@@ -11558,7 +10282,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                977
+                1049
             ]
         },
         {
@@ -11571,8 +10295,8 @@
                 5,
                 10,
                 22,
-                185,
-                186
+                241,
+                242
             ]
         },
         {
@@ -11580,7 +10304,7 @@
             "source": "Universal.Arrays.DisallowShortArraySyntax.Found",
             "message": "Short array syntax is not allowed",
             "type": "ERROR",
-            "count": 50,
+            "count": 44,
             "firstLines": [
                 35,
                 75,
@@ -11617,85 +10341,11 @@
             "type": "ERROR",
             "count": 14,
             "firstLines": [
-                379,
-                472,
-                493,
-                546,
-                659
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 2 space(s) between \"'bot_name'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                229
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 2 space(s) between \"'has_event'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                164,
-                295
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 3 space(s) between \"'company'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                257
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 3 space(s) between \"'crawler'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                256
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 3 space(s) between \"'has_event'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                133,
-                198
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 4 space(s) between \"'action'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                228,
-                255
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 5 space(s) between \"'action'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                166,
-                297
+                451,
+                544,
+                565,
+                618,
+                731
             ]
         },
         {
@@ -11706,50 +10356,6 @@
             "count": 1,
             "firstLines": [
                 36
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 6 space(s) between \"'action'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                135,
-                200
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 7 space(s) between \"'msg'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                227,
-                254
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 8 space(s) between \"'msg'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                165,
-                296
-            ]
-        },
-        {
-            "file": "includes/integrations/akismet-integration.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 9 space(s) between \"'msg'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                134,
-                199
             ]
         },
         {
@@ -11773,8 +10379,8 @@
                 33,
                 82,
                 84,
-                101,
-                115
+                149,
+                163
             ]
         },
         {
@@ -11814,9 +10420,9 @@
             "firstLines": [
                 16,
                 77,
-                106,
-                378,
-                397
+                154,
+                450,
+                469
             ]
         },
         {
@@ -11828,9 +10434,9 @@
             "firstLines": [
                 16,
                 77,
-                106,
-                378,
-                397
+                154,
+                450,
+                469
             ]
         },
         {
@@ -11840,8 +10446,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                954,
-                963
+                1026,
+                1035
             ]
         },
         {
@@ -11851,7 +10457,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                956
+                1028
             ]
         },
         {
@@ -12998,7 +11604,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                78
+                109
             ]
         },
         {
@@ -13010,8 +11616,8 @@
             "firstLines": [
                 6,
                 15,
-                134,
-                192
+                139,
+                197
             ]
         },
         {
@@ -13021,17 +11627,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                103
-            ]
-        },
-        {
-            "file": "includes/llm/ai-functions.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 5 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                56
+                63
             ]
         },
         {
@@ -13041,9 +11637,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                32,
-                43,
-                112
+                34,
+                73,
+                117
             ]
         },
         {
@@ -13054,8 +11650,8 @@
             "count": 3,
             "firstLines": [
                 25,
-                137,
-                196
+                142,
+                201
             ]
         },
         {
@@ -13065,7 +11661,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                111
+                116
             ]
         },
         {
@@ -13075,7 +11671,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                111
+                116
             ]
         },
         {
@@ -13083,13 +11679,13 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 136,
+            "count": 106,
             "firstLines": [
                 10,
                 26,
                 27,
                 28,
-                30
+                32
             ]
         },
         {
@@ -13097,13 +11693,13 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 44,
+            "count": 43,
             "firstLines": [
                 9,
                 26,
                 27,
                 30,
-                31
+                32
             ]
         },
         {
@@ -13111,13 +11707,13 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 44,
+            "count": 43,
             "firstLines": [
                 9,
                 26,
                 27,
                 30,
-                31
+                32
             ]
         },
         {
@@ -13147,7 +11743,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                124
+                129
             ]
         },
         {
@@ -13193,13 +11789,13 @@
             "source": "Squiz.Commenting.InlineComment.InvalidEndChar",
             "message": "Inline comments must end in full-stops, exclamation marks, or question marks",
             "type": "ERROR",
-            "count": 11,
+            "count": 8,
             "firstLines": [
-                55,
-                59,
-                81,
-                90,
-                111
+                50,
+                116,
+                149,
+                165,
+                180
             ]
         },
         {
@@ -13210,8 +11806,8 @@
             "count": 3,
             "firstLines": [
                 24,
-                136,
-                195
+                141,
+                200
             ]
         },
         {
@@ -13222,8 +11818,8 @@
             "count": 3,
             "firstLines": [
                 24,
-                136,
-                195
+                141,
+                200
             ]
         },
         {
@@ -13233,7 +11829,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                98
+                58
             ]
         },
         {
@@ -13243,7 +11839,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                99
+                59
             ]
         },
         {
@@ -13253,7 +11849,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                99
+                59
             ]
         },
         {
@@ -13263,7 +11859,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                202
+                207
             ]
         },
         {
@@ -13273,7 +11869,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                92
+                52
             ]
         },
         {
@@ -13283,7 +11879,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                93
+                53
             ]
         },
         {
@@ -13293,7 +11889,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                93
+                53
             ]
         },
         {
@@ -13303,7 +11899,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                96
+                56
             ]
         },
         {
@@ -13313,7 +11909,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                102
+                62
             ]
         },
         {
@@ -13323,7 +11919,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                200
+                205
             ]
         },
         {
@@ -13333,7 +11929,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                99
+                59
             ]
         },
         {
@@ -13343,7 +11939,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                93
+                53
             ]
         },
         {
@@ -13353,7 +11949,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                96
+                56
             ]
         },
         {
@@ -13363,7 +11959,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                101
+                61
             ]
         },
         {
@@ -13373,7 +11969,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                102
+                62
             ]
         },
         {
@@ -13383,7 +11979,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                103
+                63
             ]
         },
         {
@@ -13393,7 +11989,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                95
+                55
             ]
         },
         {
@@ -13403,7 +11999,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                96
+                56
             ]
         },
         {
@@ -13413,7 +12009,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                103
+                63
             ]
         },
         {
@@ -13423,7 +12019,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                198
+                203
             ]
         },
         {
@@ -13433,7 +12029,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                201
+                206
             ]
         },
         {
@@ -13443,8 +12039,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                199,
-                205
+                204,
+                210
             ]
         },
         {
@@ -13454,8 +12050,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                154,
-                169
+                159,
+                174
             ]
         },
         {
@@ -13463,11 +12059,10 @@
             "source": "Universal.Arrays.DisallowShortArraySyntax.Found",
             "message": "Short array syntax is not allowed",
             "type": "ERROR",
-            "count": 3,
+            "count": 2,
             "firstLines": [
-                82,
-                145,
-                161
+                150,
+                166
             ]
         },
         {
@@ -13477,8 +12072,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                45,
-                117
+                83,
+                122
             ]
         },
         {
@@ -13488,7 +12083,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                71
+                39
             ]
         },
         {
@@ -13500,9 +12095,9 @@
             "firstLines": [
                 9,
                 26,
-                30,
-                33,
-                42
+                32,
+                35,
+                51
             ]
         },
         {
@@ -13514,9 +12109,9 @@
             "firstLines": [
                 9,
                 26,
-                30,
-                33,
-                42
+                32,
+                35,
+                51
             ]
         },
         {
@@ -13527,9 +12122,9 @@
             "count": 4,
             "firstLines": [
                 9,
-                117,
-                117,
-                138
+                122,
+                122,
+                143
             ]
         },
         {
@@ -13561,9 +12156,9 @@
             "firstLines": [
                 21,
                 32,
-                48,
-                61,
-                86
+                52,
+                76,
+                101
             ]
         },
         {
@@ -13571,7 +12166,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 58,
+            "count": 55,
             "firstLines": [
                 12,
                 22,
@@ -13587,7 +12182,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                137
+                152
             ]
         },
         {
@@ -13595,7 +12190,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 15,
+            "count": 14,
             "firstLines": [
                 11,
                 23,
@@ -13609,7 +12204,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 15,
+            "count": 14,
             "firstLines": [
                 11,
                 23,
@@ -13623,13 +12218,11 @@
             "source": "Squiz.Commenting.FunctionComment.ParamCommentFullStop",
             "message": "Parameter comment must end with a full stop",
             "type": "ERROR",
-            "count": 6,
+            "count": 3,
             "firstLines": [
-                42,
-                43,
-                44,
-                57,
-                81
+                72,
+                96,
+                97
             ]
         },
         {
@@ -13640,10 +12233,10 @@
             "count": 6,
             "firstLines": [
                 35,
-                49,
-                69,
-                91,
-                109
+                53,
+                84,
+                106,
+                124
             ]
         },
         {
@@ -13653,9 +12246,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                47,
-                60,
-                85
+                51,
+                75,
+                100
             ]
         },
         {
@@ -13665,9 +12258,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                47,
-                60,
-                85
+                51,
+                75,
+                100
             ]
         },
         {
@@ -13681,7 +12274,7 @@
                 17,
                 28,
                 41,
-                56
+                71
             ]
         },
         {
@@ -13691,7 +12284,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                134
+                149
             ]
         },
         {
@@ -13701,7 +12294,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                135
+                150
             ]
         },
         {
@@ -13711,7 +12304,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                136
+                151
             ]
         },
         {
@@ -13721,8 +12314,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                110,
-                130
+                125,
+                145
             ]
         },
         {
@@ -13732,8 +12325,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                110,
-                130
+                125,
+                145
             ]
         },
         {
@@ -13743,7 +12336,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                68
+                83
             ]
         },
         {
@@ -13754,10 +12347,10 @@
             "count": 6,
             "firstLines": [
                 11,
-                62,
-                68,
-                70,
-                87
+                77,
+                83,
+                85,
+                102
             ]
         },
         {
@@ -13768,10 +12361,10 @@
             "count": 6,
             "firstLines": [
                 11,
-                62,
-                68,
-                70,
-                87
+                77,
+                83,
+                85,
+                102
             ]
         },
         {
@@ -13783,8 +12376,8 @@
             "firstLines": [
                 11,
                 23,
-                62,
-                87
+                77,
+                102
             ]
         },
         {
@@ -13795,8 +12388,8 @@
             "count": 3,
             "firstLines": [
                 11,
-                62,
-                87
+                77,
+                102
             ]
         },
         {
@@ -15165,7 +13758,7 @@
             "count": 2,
             "firstLines": [
                 118,
-                662
+                667
             ]
         },
         {
@@ -15175,8 +13768,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                559,
-                661
+                564,
+                666
             ]
         },
         {
@@ -15186,7 +13779,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                558
+                563
             ]
         },
         {
@@ -15197,10 +13790,10 @@
             "count": 6,
             "firstLines": [
                 395,
-                479,
-                513,
-                560,
-                572
+                484,
+                518,
+                565,
+                577
             ]
         },
         {
@@ -15214,7 +13807,7 @@
                 64,
                 77,
                 337,
-                477
+                482
             ]
         },
         {
@@ -15226,7 +13819,7 @@
             "firstLines": [
                 90,
                 318,
-                593
+                598
             ]
         },
         {
@@ -15250,7 +13843,7 @@
                 334,
                 336,
                 372,
-                803
+                808
             ]
         },
         {
@@ -15339,8 +13932,8 @@
             "count": 3,
             "firstLines": [
                 154,
-                652,
-                686
+                657,
+                691
             ]
         },
         {
@@ -15354,7 +13947,7 @@
                 267,
                 273,
                 288,
-                608
+                613
             ]
         },
         {
@@ -15368,7 +13961,7 @@
                 267,
                 273,
                 288,
-                608
+                613
             ]
         },
         {
@@ -15379,10 +13972,10 @@
             "count": 5,
             "firstLines": [
                 412,
-                436,
-                447,
-                459,
-                538
+                441,
+                452,
+                464,
+                543
             ]
         },
         {
@@ -15392,11 +13985,11 @@
             "type": "ERROR",
             "count": 5,
             "firstLines": [
-                709,
-                725,
-                741,
-                747,
-                809
+                714,
+                730,
+                746,
+                752,
+                814
             ]
         },
         {
@@ -15406,11 +13999,11 @@
             "type": "ERROR",
             "count": 5,
             "firstLines": [
-                706,
-                721,
-                737,
-                743,
-                805
+                711,
+                726,
+                742,
+                748,
+                810
             ]
         },
         {
@@ -15420,11 +14013,11 @@
             "type": "ERROR",
             "count": 8,
             "firstLines": [
-                706,
-                709,
-                721,
-                725,
-                737
+                711,
+                714,
+                726,
+                730,
+                742
             ]
         },
         {
@@ -15496,7 +14089,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                635
+                640
             ]
         },
         {
@@ -15558,7 +14151,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                424
+                429
             ]
         },
         {
@@ -15568,7 +14161,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                493
+                498
             ]
         },
         {
@@ -15666,11 +14259,11 @@
             "type": "WARNING",
             "count": 10,
             "firstLines": [
-                484,
-                485,
-                486,
-                487,
-                488
+                489,
+                490,
+                491,
+                492,
+                493
             ]
         },
         {
@@ -15694,7 +14287,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                602
+                607
             ]
         },
         {
@@ -15704,7 +14297,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                601
+                606
             ]
         },
         {
@@ -15714,7 +14307,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                599
+                604
             ]
         },
         {
@@ -15724,9 +14317,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                434,
-                445,
-                457
+                439,
+                450,
+                462
             ]
         },
         {
@@ -15736,7 +14329,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                603
+                608
             ]
         },
         {
@@ -15747,7 +14340,7 @@
             "count": 2,
             "firstLines": [
                 411,
-                536
+                541
             ]
         },
         {
@@ -15757,7 +14350,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                535
+                540
             ]
         },
         {
@@ -15777,7 +14370,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                534
+                539
             ]
         },
         {
@@ -15787,7 +14380,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                761
+                766
             ]
         },
         {
@@ -15797,7 +14390,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                671
+                676
             ]
         },
         {
@@ -15832,7 +14425,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                806
+                811
             ]
         },
         {
@@ -15842,7 +14435,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                806
+                811
             ]
         },
         {
@@ -19936,7 +18529,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                178
+                176
             ]
         },
         {
@@ -19946,7 +18539,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                125
+                123
             ]
         },
         {
@@ -19966,7 +18559,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                114
+                112
             ]
         },
         {
@@ -19976,9 +18569,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                111,
-                112,
-                124
+                109,
+                110,
+                122
             ]
         },
         {
@@ -19988,7 +18581,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                88
+                86
             ]
         },
         {
@@ -19998,8 +18591,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                179,
-                181
+                177,
+                179
             ]
         },
         {
@@ -20010,8 +18603,8 @@
             "count": 3,
             "firstLines": [
                 40,
-                95,
-                178
+                93,
+                176
             ]
         },
         {
@@ -20022,8 +18615,8 @@
             "count": 3,
             "firstLines": [
                 40,
-                95,
-                178
+                93,
+                176
             ]
         },
         {
@@ -20031,7 +18624,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 158,
+            "count": 156,
             "firstLines": [
                 10,
                 22,
@@ -20047,8 +18640,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                118,
-                150
+                116,
+                148
             ]
         },
         {
@@ -20058,8 +18651,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                118,
-                150
+                116,
+                148
             ]
         },
         {
@@ -20070,7 +18663,7 @@
             "count": 2,
             "firstLines": [
                 66,
-                148
+                146
             ]
         },
         {
@@ -20081,7 +18674,7 @@
             "count": 2,
             "firstLines": [
                 48,
-                141
+                139
             ]
         },
         {
@@ -20100,7 +18693,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 69,
+            "count": 67,
             "firstLines": [
                 9,
                 22,
@@ -20114,7 +18707,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 69,
+            "count": 67,
             "firstLines": [
                 9,
                 22,
@@ -20133,8 +18726,8 @@
                 16,
                 17,
                 18,
-                162,
-                163
+                160,
+                161
             ]
         },
         {
@@ -20167,8 +18760,8 @@
                 36,
                 46,
                 62,
-                75,
-                87
+                74,
+                85
             ]
         },
         {
@@ -20181,8 +18774,8 @@
                 21,
                 48,
                 48,
-                167,
-                175
+                165,
+                173
             ]
         },
         {
@@ -20195,8 +18788,8 @@
                 21,
                 48,
                 48,
-                167,
-                175
+                165,
+                173
             ]
         },
         {
@@ -20207,7 +18800,7 @@
             "count": 2,
             "firstLines": [
                 48,
-                175
+                173
             ]
         },
         {
@@ -20217,7 +18810,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                198
+                196
             ]
         },
         {
@@ -20227,7 +18820,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                127
+                125
             ]
         },
         {
@@ -20237,7 +18830,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                127
+                125
             ]
         },
         {
@@ -20258,10 +18851,10 @@
             "count": 6,
             "firstLines": [
                 28,
+                114,
                 116,
-                118,
-                150,
-                170
+                148,
+                168
             ]
         },
         {
@@ -20271,7 +18864,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                150
+                148
             ]
         },
         {
@@ -20281,7 +18874,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                141
+                139
             ]
         },
         {
@@ -20291,22 +18884,11 @@
             "type": "ERROR",
             "count": 6,
             "firstLines": [
-                76,
-                90,
-                103,
-                183,
-                187
-            ]
-        },
-        {
-            "file": "includes/llm/provider-stream-http.php",
-            "source": "WordPress.WP.AlternativeFunctions.curl_curl_close",
-            "message": "Using cURL functions is highly discouraged. Use wp_remote_get() instead.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                73,
-                84
+                75,
+                88,
+                101,
+                181,
+                185
             ]
         },
         {
@@ -20347,7 +18929,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                83
+                82
             ]
         },
         {
@@ -20412,8 +18994,8 @@
                 9,
                 22,
                 29,
-                185,
-                204
+                183,
+                202
             ]
         },
         {
@@ -20426,8 +19008,8 @@
                 9,
                 22,
                 29,
-                185,
-                204
+                183,
+                202
             ]
         },
         {
@@ -25346,7 +23928,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                196
+                279
             ]
         },
         {
@@ -25356,8 +23938,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                74,
-                159
+                139,
+                236
             ]
         },
         {
@@ -25367,9 +23949,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                172,
-                174,
-                175
+                249,
+                251,
+                252
             ]
         },
         {
@@ -25379,9 +23961,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                173,
-                241,
-                242
+                250,
+                324,
+                325
             ]
         },
         {
@@ -25391,7 +23973,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                171
+                248
             ]
         },
         {
@@ -25401,7 +23983,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                188
+                271
             ]
         },
         {
@@ -25411,8 +23993,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                187,
-                195
+                270,
+                278
             ]
         },
         {
@@ -25422,7 +24004,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                170
+                247
             ]
         },
         {
@@ -25433,9 +24015,9 @@
             "count": 4,
             "firstLines": [
                 26,
-                72,
-                150,
-                233
+                137,
+                227,
+                316
             ]
         },
         {
@@ -25445,10 +24027,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                188,
-                188,
-                196,
-                196
+                271,
+                271,
+                279,
+                279
             ]
         },
         {
@@ -25458,10 +24040,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                188,
-                188,
-                196,
-                196
+                271,
+                271,
+                279,
+                279
             ]
         },
         {
@@ -25485,7 +24067,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                98
+                163
             ]
         },
         {
@@ -25495,7 +24077,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                96
+                161
             ]
         },
         {
@@ -25505,9 +24087,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                96,
-                96,
-                96
+                161,
+                161,
+                161
             ]
         },
         {
@@ -25518,10 +24100,10 @@
             "count": 39,
             "firstLines": [
                 12,
-                74,
-                74,
-                74,
-                75
+                139,
+                139,
+                139,
+                140
             ]
         },
         {
@@ -25532,10 +24114,10 @@
             "count": 39,
             "firstLines": [
                 12,
-                74,
-                74,
-                74,
-                75
+                139,
+                139,
+                139,
+                140
             ]
         },
         {
@@ -25556,10 +24138,10 @@
             "count": 5,
             "firstLines": [
                 22,
-                67,
-                68,
-                228,
-                229
+                132,
+                133,
+                311,
+                312
             ]
         },
         {
@@ -25584,8 +24166,8 @@
             "count": 3,
             "firstLines": [
                 25,
-                71,
-                232
+                136,
+                315
             ]
         },
         {
@@ -25596,8 +24178,8 @@
             "count": 3,
             "firstLines": [
                 25,
-                71,
-                232
+                136,
+                315
             ]
         },
         {
@@ -25611,7 +24193,7 @@
                 7,
                 18,
                 21,
-                63
+                128
             ]
         },
         {
@@ -25622,10 +24204,10 @@
             "count": 6,
             "firstLines": [
                 27,
-                96,
-                111,
-                112,
-                117
+                161,
+                176,
+                177,
+                182
             ]
         },
         {
@@ -25645,8 +24227,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                119,
-                128
+                184,
+                193
             ]
         },
         {
@@ -25656,8 +24238,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                120,
-                129
+                185,
+                194
             ]
         },
         {
@@ -25667,8 +24249,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                121,
-                130
+                186,
+                195
             ]
         },
         {
@@ -25678,8 +24260,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                122,
-                131
+                187,
+                196
             ]
         },
         {
@@ -25689,7 +24271,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                113
+                178
             ]
         },
         {
@@ -25699,8 +24281,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                118,
-                127
+                183,
+                192
             ]
         },
         {
@@ -25710,7 +24292,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                126
+                191
             ]
         },
         {
@@ -25720,7 +24302,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                112
+                177
             ]
         },
         {
@@ -25730,7 +24312,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                117
+                182
             ]
         },
         {
@@ -25740,8 +24322,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                124,
-                133
+                189,
+                198
             ]
         },
         {
@@ -25751,7 +24333,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                92
+                157
             ]
         },
         {
@@ -25761,11 +24343,11 @@
             "type": "ERROR",
             "count": 11,
             "firstLines": [
-                102,
-                165,
-                179,
-                180,
-                181
+                167,
+                242,
+                262,
+                263,
+                264
             ]
         },
         {
@@ -25776,10 +24358,10 @@
             "count": 10,
             "firstLines": [
                 12,
-                79,
-                100,
-                102,
-                154
+                144,
+                165,
+                167,
+                231
             ]
         },
         {
@@ -25790,10 +24372,10 @@
             "count": 10,
             "firstLines": [
                 12,
-                79,
-                100,
-                102,
-                154
+                144,
+                165,
+                167,
+                231
             ]
         },
         {
@@ -25804,8 +24386,8 @@
             "count": 3,
             "firstLines": [
                 12,
-                100,
-                100
+                165,
+                165
             ]
         },
         {
@@ -28974,7 +27556,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                490
+                524
             ]
         },
         {
@@ -29006,8 +27588,8 @@
             "firstLines": [
                 339,
                 342,
-                464,
-                492
+                391,
+                526
             ]
         },
         {
@@ -29017,7 +27599,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                450
+                489
             ]
         },
         {
@@ -29030,7 +27612,7 @@
                 71,
                 115,
                 116,
-                536
+                570
             ]
         },
         {
@@ -29041,16 +27623,6 @@
             "count": 1,
             "firstLines": [
                 272
-            ]
-        },
-        {
-            "file": "includes/personality/personality-loader.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 8 spaces but found 1 space",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                463
             ]
         },
         {
@@ -29084,9 +27656,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                399,
-                400,
-                400
+                438,
+                439,
+                439
             ]
         },
         {
@@ -29096,9 +27668,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                399,
-                400,
-                400
+                438,
+                439,
+                439
             ]
         },
         {
@@ -29106,7 +27678,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 364,
+            "count": 360,
             "firstLines": [
                 30,
                 40,
@@ -29152,7 +27724,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                452
+                491
             ]
         },
         {
@@ -29162,7 +27734,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                450
+                489
             ]
         },
         {
@@ -29172,7 +27744,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                452
+                491
             ]
         },
         {
@@ -29234,8 +27806,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                388,
-                605
+                427,
+                639
             ]
         },
         {
@@ -29245,10 +27817,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                387,
-                389,
-                479,
-                606
+                426,
+                428,
+                513,
+                640
             ]
         },
         {
@@ -29262,7 +27834,7 @@
                 182,
                 358,
                 363,
-                394
+                433
             ]
         },
         {
@@ -29300,7 +27872,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                430
+                469
             ]
         },
         {
@@ -29338,7 +27910,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                610
+                644
             ]
         },
         {
@@ -30167,7 +28739,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 109,
+            "count": 98,
             "firstLines": [
                 14,
                 19,
@@ -30205,7 +28777,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 15,
+            "count": 10,
             "firstLines": [
                 13,
                 44,
@@ -30219,7 +28791,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 15,
+            "count": 10,
             "firstLines": [
                 13,
                 44,
@@ -30261,21 +28833,11 @@
         {
             "file": "includes/rest/class-mpu-rest-base.php",
             "source": "Squiz.Commenting.FunctionComment.MissingParamTag",
-            "message": "Doc comment for parameter \"$request\" missing",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                114
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-base.php",
-            "source": "Squiz.Commenting.FunctionComment.MissingParamTag",
             "message": "Doc comment for parameter \"$session_token\" missing",
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                128
+                180
             ]
         },
         {
@@ -30285,7 +28847,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                128
+                180
             ]
         },
         {
@@ -30317,13 +28879,13 @@
             "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingAfterOpen",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 6,
+            "count": 5,
             "firstLines": [
                 43,
                 61,
                 86,
                 99,
-                117
+                183
             ]
         },
         {
@@ -30331,13 +28893,13 @@
             "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingBeforeClose",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 6,
+            "count": 5,
             "firstLines": [
                 43,
                 61,
                 86,
                 99,
-                117
+                183
             ]
         },
         {
@@ -30359,7 +28921,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                118
+                121
             ]
         },
         {
@@ -30377,21 +28939,10 @@
             "source": "WordPress.PHP.YodaConditions.NotYoda",
             "message": "Use Yoda Condition checks, you must.",
             "type": "ERROR",
-            "count": 3,
+            "count": 2,
             "firstLines": [
                 104,
-                108,
-                121
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-base.php",
-            "source": "WordPress.WhiteSpace.CastStructureSpacing.NoSpaceBeforeOpenParenthesis",
-            "message": "Expected a space before the type cast open parenthesis; none found",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                119
+                108
             ]
         },
         {
@@ -30399,7 +28950,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
             "message": "No space after opening parenthesis is prohibited",
             "type": "ERROR",
-            "count": 9,
+            "count": 8,
             "firstLines": [
                 13,
                 62,
@@ -30413,7 +28964,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
             "message": "No space before closing parenthesis is prohibited",
             "type": "ERROR",
-            "count": 9,
+            "count": 8,
             "firstLines": [
                 13,
                 62,
@@ -30453,7 +29004,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                554
+                544
             ]
         },
         {
@@ -30466,8 +29017,8 @@
                 131,
                 133,
                 158,
-                363,
-                365
+                358,
+                360
             ]
         },
         {
@@ -30477,7 +29028,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                622
+                612
             ]
         },
         {
@@ -30488,7 +29039,7 @@
             "count": 2,
             "firstLines": [
                 184,
-                429
+                424
             ]
         },
         {
@@ -30498,7 +29049,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                430
+                425
             ]
         },
         {
@@ -30508,7 +29059,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                755
+                745
             ]
         },
         {
@@ -30518,8 +29069,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                1027,
-                1148
+                1017,
+                1132
             ]
         },
         {
@@ -30529,8 +29080,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                422,
-                1026
+                417,
+                1016
             ]
         },
         {
@@ -30540,7 +29091,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                1025
+                1015
             ]
         },
         {
@@ -30551,10 +29102,10 @@
             "count": 11,
             "firstLines": [
                 205,
-                564,
-                580,
-                764,
-                796
+                554,
+                570,
+                754,
+                786
             ]
         },
         {
@@ -30574,7 +29125,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                525
+                515
             ]
         },
         {
@@ -30584,11 +29135,11 @@
             "type": "WARNING",
             "count": 8,
             "firstLines": [
-                531,
-                852,
-                853,
-                854,
-                855
+                521,
+                842,
+                843,
+                844,
+                845
             ]
         },
         {
@@ -30599,7 +29150,7 @@
             "count": 2,
             "firstLines": [
                 204,
-                771
+                761
             ]
         },
         {
@@ -30609,8 +29160,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                931,
-                935
+                921,
+                925
             ]
         },
         {
@@ -30621,7 +29172,7 @@
             "count": 2,
             "firstLines": [
                 206,
-                795
+                785
             ]
         },
         {
@@ -30631,8 +29182,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                683,
-                692
+                673,
+                682
             ]
         },
         {
@@ -30642,7 +29193,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                851
+                841
             ]
         },
         {
@@ -30652,8 +29203,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                892,
-                1033
+                882,
+                1023
             ]
         },
         {
@@ -30664,7 +29215,7 @@
             "count": 2,
             "firstLines": [
                 89,
-                720
+                710
             ]
         },
         {
@@ -30674,7 +29225,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                668
+                658
             ]
         },
         {
@@ -30684,7 +29235,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                529
+                519
             ]
         },
         {
@@ -30694,7 +29245,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                725
+                715
             ]
         },
         {
@@ -30740,7 +29291,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 1108,
+            "count": 1078,
             "firstLines": [
                 21,
                 26,
@@ -30756,7 +29307,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                616
+                606
             ]
         },
         {
@@ -30764,7 +29315,7 @@
             "source": "NormalizedArrays.Arrays.ArrayBraceSpacing.SpaceAfterArrayOpenerSingleLine",
             "message": "Expected 1 space after the array opener in a single line array. Found: no spaces",
             "type": "ERROR",
-            "count": 17,
+            "count": 13,
             "firstLines": [
                 33,
                 39,
@@ -30780,7 +29331,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                617
+                607
             ]
         },
         {
@@ -30788,7 +29339,7 @@
             "source": "NormalizedArrays.Arrays.ArrayBraceSpacing.SpaceBeforeArrayCloserSingleLine",
             "message": "Expected 1 space before the array closer in a single line array. Found: no spaces",
             "type": "ERROR",
-            "count": 17,
+            "count": 13,
             "firstLines": [
                 33,
                 39,
@@ -30804,7 +29355,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                617
+                607
             ]
         },
         {
@@ -30812,7 +29363,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.CloseBracketLine",
             "message": "Closing parenthesis of a multi-line function call must be on a line by itself",
             "type": "ERROR",
-            "count": 12,
+            "count": 11,
             "firstLines": [
                 35,
                 41,
@@ -30826,7 +29377,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket",
             "message": "Opening parenthesis of a multi-line function call must be the last content on the line",
             "type": "ERROR",
-            "count": 12,
+            "count": 11,
             "firstLines": [
                 31,
                 37,
@@ -30840,7 +29391,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.MultipleArguments",
             "message": "Only one argument is allowed per line in a multi-line function call",
             "type": "ERROR",
-            "count": 14,
+            "count": 13,
             "firstLines": [
                 31,
                 31,
@@ -30854,7 +29405,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 420,
+            "count": 408,
             "firstLines": [
                 20,
                 70,
@@ -30868,7 +29419,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 420,
+            "count": 408,
             "firstLines": [
                 20,
                 70,
@@ -30904,7 +29455,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1013
+                1003
             ]
         },
         {
@@ -30924,7 +29475,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1005
+                995
             ]
         },
         {
@@ -30934,7 +29485,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                984
+                974
             ]
         },
         {
@@ -30944,7 +29495,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                995
+                985
             ]
         },
         {
@@ -30954,7 +29505,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                976
+                966
             ]
         },
         {
@@ -30964,7 +29515,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                972
+                962
             ]
         },
         {
@@ -30974,7 +29525,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1047
+                1037
             ]
         },
         {
@@ -30984,7 +29535,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1057
+                1047
             ]
         },
         {
@@ -30994,7 +29545,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1129
+                1113
             ]
         },
         {
@@ -31004,7 +29555,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                518
+                508
             ]
         },
         {
@@ -31012,10 +29563,9 @@
             "source": "Squiz.Commenting.FunctionComment.MissingParamTag",
             "message": "Doc comment for parameter \"$request\" missing",
             "type": "ERROR",
-            "count": 2,
+            "count": 1,
             "firstLines": [
-                1266,
-                1285
+                1252
             ]
         },
         {
@@ -31026,7 +29576,7 @@
             "count": 2,
             "firstLines": [
                 67,
-                361
+                356
             ]
         },
         {
@@ -31034,13 +29584,13 @@
             "source": "Squiz.Commenting.InlineComment.InvalidEndChar",
             "message": "Inline comments must end in full-stops, exclamation marks, or question marks",
             "type": "ERROR",
-            "count": 21,
+            "count": 19,
             "firstLines": [
-                526,
-                556,
-                615,
-                628,
-                653
+                516,
+                546,
+                605,
+                618,
+                643
             ]
         },
         {
@@ -31048,13 +29598,13 @@
             "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingAfterOpen",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 18,
+            "count": 15,
             "firstLines": [
                 67,
                 129,
-                361,
-                521,
-                972
+                356,
+                511,
+                962
             ]
         },
         {
@@ -31062,23 +29612,13 @@
             "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingBeforeClose",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 18,
+            "count": 15,
             "firstLines": [
                 67,
                 129,
-                361,
-                521,
-                972
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-chat.php",
-            "source": "Squiz.Functions.MultiLineFunctionDeclaration.SpaceAfterFunction",
-            "message": "Expected 1 space after FUNCTION keyword; 0 found",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                1188
+                356,
+                511,
+                962
             ]
         },
         {
@@ -31088,7 +29628,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                1183
+                1167
             ]
         },
         {
@@ -31096,11 +29636,10 @@
             "source": "Squiz.WhiteSpace.SuperfluousWhitespace.EndLine",
             "message": "Whitespace found at end of line",
             "type": "ERROR",
-            "count": 3,
+            "count": 2,
             "firstLines": [
-                517,
-                1187,
-                1197
+                507,
+                1185
             ]
         },
         {
@@ -31108,7 +29647,7 @@
             "source": "Universal.Arrays.DisallowShortArraySyntax.Found",
             "message": "Short array syntax is not allowed",
             "type": "ERROR",
-            "count": 62,
+            "count": 57,
             "firstLines": [
                 31,
                 33,
@@ -31122,10 +29661,9 @@
             "source": "Universal.Operators.DisallowShortTernary.Found",
             "message": "Using short ternaries is not allowed as they are rarely used correctly",
             "type": "ERROR",
-            "count": 2,
+            "count": 1,
             "firstLines": [
-                348,
-                1275
+                343
             ]
         },
         {
@@ -31135,7 +29673,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                617
+                607
             ]
         },
         {
@@ -31145,11 +29683,11 @@
             "type": "ERROR",
             "count": 58,
             "firstLines": [
-                565,
-                565,
-                565,
-                565,
-                566
+                555,
+                555,
+                555,
+                555,
+                556
             ]
         },
         {
@@ -31159,7 +29697,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                616
+                606
             ]
         },
         {
@@ -31167,13 +29705,10 @@
             "source": "WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound",
             "message": "When a multi-item array uses associative keys, each value should start on a new line.",
             "type": "ERROR",
-            "count": 6,
+            "count": 2,
             "firstLines": [
-                352,
-                506,
-                633,
-                917,
-                1122
+                623,
+                907
             ]
         },
         {
@@ -31183,7 +29718,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                617
+                607
             ]
         },
         {
@@ -31207,7 +29742,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                965
+                955
             ]
         },
         {
@@ -31217,7 +29752,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                959
+                949
             ]
         },
         {
@@ -31227,7 +29762,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                966
+                956
             ]
         },
         {
@@ -31237,7 +29772,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                963
+                953
             ]
         },
         {
@@ -31247,7 +29782,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                954
+                944
             ]
         },
         {
@@ -31257,7 +29792,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                962
+                952
             ]
         },
         {
@@ -31267,7 +29802,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                953
+                943
             ]
         },
         {
@@ -31277,7 +29812,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                957
+                947
             ]
         },
         {
@@ -31287,7 +29822,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                956
+                946
             ]
         },
         {
@@ -31297,7 +29832,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                950
+                940
             ]
         },
         {
@@ -31307,7 +29842,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                951
+                941
             ]
         },
         {
@@ -31317,7 +29852,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                567
+                557
             ]
         },
         {
@@ -31327,7 +29862,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                958
+                948
             ]
         },
         {
@@ -31337,7 +29872,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                952
+                942
             ]
         },
         {
@@ -31347,7 +29882,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                575
+                565
             ]
         },
         {
@@ -31357,7 +29892,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                574
+                564
             ]
         },
         {
@@ -31367,7 +29902,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                581
+                571
             ]
         },
         {
@@ -31377,7 +29912,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                967
+                957
             ]
         },
         {
@@ -31387,7 +29922,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                565
+                555
             ]
         },
         {
@@ -31397,7 +29932,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                571
+                561
             ]
         },
         {
@@ -31407,7 +29942,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                566
+                556
             ]
         },
         {
@@ -31417,7 +29952,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                578
+                568
             ]
         },
         {
@@ -31427,7 +29962,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                570
+                560
             ]
         },
         {
@@ -31437,7 +29972,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                568
+                558
             ]
         },
         {
@@ -31447,7 +29982,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                569
+                559
             ]
         },
         {
@@ -31457,7 +29992,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                575
+                565
             ]
         },
         {
@@ -31467,7 +30002,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                574
+                564
             ]
         },
         {
@@ -31477,7 +30012,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                565
+                555
             ]
         },
         {
@@ -31487,7 +30022,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                581
+                571
             ]
         },
         {
@@ -31497,7 +30032,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                658
+                648
             ]
         },
         {
@@ -31507,7 +30042,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                566
+                556
             ]
         },
         {
@@ -31517,7 +30052,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                571
+                561
             ]
         },
         {
@@ -31527,7 +30062,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                567
+                557
             ]
         },
         {
@@ -31537,7 +30072,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                578
+                568
             ]
         },
         {
@@ -31547,7 +30082,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                566
+                556
             ]
         },
         {
@@ -31557,7 +30092,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                568
+                558
             ]
         },
         {
@@ -31567,7 +30102,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                571
+                561
             ]
         },
         {
@@ -31577,7 +30112,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                570
+                560
             ]
         },
         {
@@ -31587,7 +30122,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                569
+                559
             ]
         },
         {
@@ -31597,7 +30132,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                570
+                560
             ]
         },
         {
@@ -31607,7 +30142,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                961
+                951
             ]
         },
         {
@@ -31617,7 +30152,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                960
+                950
             ]
         },
         {
@@ -31627,7 +30162,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                568
+                558
             ]
         },
         {
@@ -31637,7 +30172,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                964
+                954
             ]
         },
         {
@@ -31647,7 +30182,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                955
+                945
             ]
         },
         {
@@ -31657,7 +30192,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                569
+                559
             ]
         },
         {
@@ -31665,7 +30200,7 @@
             "source": "WordPress.PHP.YodaConditions.NotYoda",
             "message": "Use Yoda Condition checks, you must.",
             "type": "ERROR",
-            "count": 28,
+            "count": 27,
             "firstLines": [
                 79,
                 91,
@@ -31679,7 +30214,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
             "message": "No space after opening parenthesis is prohibited",
             "type": "ERROR",
-            "count": 143,
+            "count": 134,
             "firstLines": [
                 20,
                 70,
@@ -31693,7 +30228,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
             "message": "No space before closing parenthesis is prohibited",
             "type": "ERROR",
-            "count": 143,
+            "count": 134,
             "firstLines": [
                 20,
                 70,
@@ -31707,7 +30242,7 @@
             "source": "WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter",
             "message": "Expected 1 space after \"!\"; 0 found",
             "type": "ERROR",
-            "count": 68,
+            "count": 63,
             "firstLines": [
                 20,
                 73,
@@ -31721,7 +30256,7 @@
             "source": "WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore",
             "message": "Expected 1 space before \"!\"; 0 found",
             "type": "ERROR",
-            "count": 39,
+            "count": 38,
             "firstLines": [
                 20,
                 73,
@@ -31737,7 +30272,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                379
+                374
             ]
         },
         {
@@ -31747,7 +30282,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                374
+                369
             ]
         },
         {
@@ -31768,8 +30303,8 @@
             "count": 3,
             "firstLines": [
                 139,
-                378,
-                698
+                373,
+                688
             ]
         },
         {
@@ -31779,7 +30314,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                379
+                374
             ]
         },
         {
@@ -31790,7 +30325,7 @@
             "count": 2,
             "firstLines": [
                 139,
-                698
+                688
             ]
         },
         {
@@ -31800,7 +30335,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                374
+                369
             ]
         },
         {
@@ -31810,7 +30345,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                378
+                373
             ]
         },
         {
@@ -31821,10 +30356,10 @@
             "count": 7,
             "firstLines": [
                 74,
-                237,
-                291,
-                320,
-                321
+                234,
+                288,
+                317,
+                318
             ]
         },
         {
@@ -31834,7 +30369,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                296
+                293
             ]
         },
         {
@@ -31844,18 +30379,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                328,
-                329
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-dialog.php",
-            "source": "Generic.Formatting.MultipleStatementAlignment.NotSameWarning",
-            "message": "Equals sign not aligned with surrounding assignments; expected 10 spaces but found 9 spaces",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                180
+                325,
+                326
             ]
         },
         {
@@ -31865,7 +30390,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                207
+                202
             ]
         },
         {
@@ -31875,10 +30400,10 @@
             "type": "WARNING",
             "count": 4,
             "firstLines": [
-                455,
-                481,
-                482,
-                511
+                452,
+                478,
+                479,
+                508
             ]
         },
         {
@@ -31888,7 +30413,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                327
+                324
             ]
         },
         {
@@ -31898,7 +30423,7 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                400,
+                397,
                 557,
                 558
             ]
@@ -31910,7 +30435,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                353
+                350
             ]
         },
         {
@@ -31920,8 +30445,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                466,
-                495
+                463,
+                492
             ]
         },
         {
@@ -31931,7 +30456,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                403
+                400
             ]
         },
         {
@@ -31941,7 +30466,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                465
+                462
             ]
         },
         {
@@ -31951,7 +30476,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                194
+                189
             ]
         },
         {
@@ -32132,9 +30657,9 @@
             "count": 4,
             "firstLines": [
                 72,
-                235,
-                289,
-                349
+                232,
+                286,
+                346
             ]
         },
         {
@@ -32144,7 +30669,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                295
+                292
             ]
         },
         {
@@ -32155,10 +30680,10 @@
             "count": 7,
             "firstLines": [
                 72,
-                235,
-                289,
-                349,
-                389
+                232,
+                286,
+                346,
+                386
             ]
         },
         {
@@ -32169,10 +30694,10 @@
             "count": 7,
             "firstLines": [
                 72,
-                235,
-                289,
-                349,
-                389
+                232,
+                286,
+                346,
+                386
             ]
         },
         {
@@ -32182,7 +30707,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                490
+                487
             ]
         },
         {
@@ -32218,8 +30743,8 @@
             "firstLines": [
                 83,
                 87,
-                193,
-                356,
+                188,
+                353,
                 540
             ]
         },
@@ -32231,7 +30756,7 @@
             "count": 2,
             "firstLines": [
                 152,
-                312
+                309
             ]
         },
         {
@@ -32241,8 +30766,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                209,
-                215
+                204,
+                210
             ]
         },
         {
@@ -32256,7 +30781,7 @@
                 154,
                 155,
                 164,
-                362
+                359
             ]
         },
         {
@@ -32266,8 +30791,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                310,
-                314
+                307,
+                311
             ]
         },
         {
@@ -32277,8 +30802,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                310,
-                314
+                307,
+                311
             ]
         },
         {
@@ -32288,7 +30813,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                313
+                310
             ]
         },
         {
@@ -32298,7 +30823,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                314
+                311
             ]
         },
         {
@@ -32333,7 +30858,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                293
+                290
             ]
         },
         {
@@ -32343,7 +30868,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                327
+                324
             ]
         },
         {
@@ -32351,7 +30876,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
             "message": "No space after opening parenthesis is prohibited",
             "type": "ERROR",
-            "count": 70,
+            "count": 69,
             "firstLines": [
                 26,
                 79,
@@ -32365,7 +30890,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
             "message": "No space before closing parenthesis is prohibited",
             "type": "ERROR",
-            "count": 70,
+            "count": 69,
             "firstLines": [
                 26,
                 79,
@@ -32379,12 +30904,12 @@
             "source": "WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter",
             "message": "Expected 1 space after \"!\"; 0 found",
             "type": "ERROR",
-            "count": 24,
+            "count": 23,
             "firstLines": [
                 26,
                 91,
                 109,
-                182,
+                186,
                 191
             ]
         },
@@ -32397,9 +30922,9 @@
             "firstLines": [
                 26,
                 91,
-                196,
-                199,
-                316
+                191,
+                194,
+                313
             ]
         },
         {
@@ -32410,10 +30935,10 @@
             "count": 7,
             "firstLines": [
                 84,
-                177,
-                212,
-                284,
-                295
+                182,
+                217,
+                289,
+                300
             ]
         },
         {
@@ -32424,7 +30949,7 @@
             "count": 2,
             "firstLines": [
                 127,
-                374
+                379
             ]
         },
         {
@@ -32459,7 +30984,7 @@
             "count": 2,
             "firstLines": [
                 101,
-                337
+                342
             ]
         },
         {
@@ -32588,10 +31113,10 @@
             "count": 7,
             "firstLines": [
                 82,
-                175,
-                210,
-                282,
-                293
+                180,
+                215,
+                287,
+                298
             ]
         },
         {
@@ -32604,7 +31129,7 @@
                 103,
                 107,
                 123,
-                134
+                137
             ]
         },
         {
@@ -32615,10 +31140,10 @@
             "count": 7,
             "firstLines": [
                 82,
-                175,
-                210,
-                282,
-                293
+                180,
+                215,
+                287,
+                298
             ]
         },
         {
@@ -32629,10 +31154,10 @@
             "count": 7,
             "firstLines": [
                 82,
-                175,
-                210,
-                282,
-                293
+                180,
+                215,
+                287,
+                298
             ]
         },
         {
@@ -32656,7 +31181,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                298
+                303
             ]
         },
         {
@@ -32666,8 +31191,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                137,
-                187
+                140,
+                192
             ]
         },
         {
@@ -32679,9 +31204,9 @@
             "firstLines": [
                 93,
                 105,
-                237,
                 242,
-                250
+                247,
+                255
             ]
         },
         {
@@ -32691,8 +31216,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                144,
-                194
+                147,
+                199
             ]
         },
         {
@@ -32702,8 +31227,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                146,
-                196
+                149,
+                201
             ]
         },
         {
@@ -32713,8 +31238,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                143,
-                193
+                146,
+                198
             ]
         },
         {
@@ -32724,8 +31249,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                151,
-                201
+                154,
+                206
             ]
         },
         {
@@ -32735,8 +31260,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                140,
-                190
+                143,
+                195
             ]
         },
         {
@@ -32746,8 +31271,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                148,
-                198
+                151,
+                203
             ]
         },
         {
@@ -32757,8 +31282,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                147,
-                197
+                150,
+                202
             ]
         },
         {
@@ -32768,8 +31293,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                141,
-                191
+                144,
+                196
             ]
         },
         {
@@ -32779,8 +31304,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                145,
-                195
+                148,
+                200
             ]
         },
         {
@@ -32790,8 +31315,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                150,
-                200
+                153,
+                205
             ]
         },
         {
@@ -32801,8 +31326,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                142,
-                192
+                145,
+                197
             ]
         },
         {
@@ -32812,7 +31337,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                245
+                250
             ]
         },
         {
@@ -32823,10 +31348,10 @@
             "count": 7,
             "firstLines": [
                 84,
-                177,
-                212,
-                284,
-                295
+                182,
+                217,
+                289,
+                300
             ]
         },
         {
@@ -32866,9 +31391,9 @@
             "firstLines": [
                 23,
                 111,
-                140,
                 143,
-                148
+                146,
+                151
             ]
         },
         {
@@ -32880,9 +31405,9 @@
             "firstLines": [
                 23,
                 111,
-                217,
-                219,
-                221
+                222,
+                224,
+                226
             ]
         },
         {
@@ -32896,7 +31421,7 @@
                 54,
                 55,
                 57,
-                112
+                116
             ]
         },
         {
@@ -32906,7 +31431,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                128
+                132
             ]
         },
         {
@@ -32916,7 +31441,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                129
+                133
             ]
         },
         {
@@ -32969,7 +31494,7 @@
                 24,
                 25,
                 65,
-                135
+                139
             ]
         },
         {
@@ -32982,7 +31507,7 @@
                 24,
                 25,
                 65,
-                135
+                139
             ]
         },
         {
@@ -32993,8 +31518,8 @@
             "count": 3,
             "firstLines": [
                 26,
-                142,
-                148
+                146,
+                152
             ]
         },
         {
@@ -33005,8 +31530,8 @@
             "count": 3,
             "firstLines": [
                 22,
-                138,
-                144
+                142,
+                148
             ]
         },
         {
@@ -33018,8 +31543,8 @@
             "firstLines": [
                 22,
                 22,
-                138,
-                138
+                142,
+                142
             ]
         },
         {
@@ -33136,7 +31661,7 @@
             "count": 2,
             "firstLines": [
                 65,
-                135
+                139
             ]
         },
         {
@@ -33146,8 +31671,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                127,
-                128
+                131,
+                132
             ]
         },
         {
@@ -33161,7 +31686,7 @@
                 54,
                 57,
                 71,
-                114
+                118
             ]
         },
         {
@@ -33173,7 +31698,7 @@
             "firstLines": [
                 56,
                 79,
-                99
+                103
             ]
         },
         {
@@ -33215,7 +31740,7 @@
                 45,
                 52,
                 79,
-                104
+                108
             ]
         },
         {
@@ -33228,8 +31753,8 @@
                 15,
                 45,
                 52,
-                104,
-                112
+                108,
+                116
             ]
         },
         {
@@ -33244,30 +31769,10 @@
         },
         {
             "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceAfterOpen",
-            "message": "Expected 1 space after open parenthesis; 0 found",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                67
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "Generic.WhiteSpace.ArbitraryParenthesesSpacing.SpaceBeforeClose",
-            "message": "Expected 1 space before close parenthesis; 0 found",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                67
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 45,
+            "count": 31,
             "firstLines": [
                 11,
                 16,
@@ -33336,7 +31841,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 24,
+            "count": 17,
             "firstLines": [
                 10,
                 25,
@@ -33350,7 +31855,7 @@
             "source": "PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 24,
+            "count": 17,
             "firstLines": [
                 10,
                 25,
@@ -33401,34 +31906,12 @@
         },
         {
             "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "Squiz.Commenting.FunctionComment.Missing",
-            "message": "Missing doc comment for function request_session_token()",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                66
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "Squiz.Commenting.FunctionComment.Missing",
-            "message": "Missing doc comment for function require_valid_session_token()",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                53
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
             "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingAfterOpen",
             "message": "Expected 1 spaces after opening parenthesis; 0 found",
             "type": "ERROR",
-            "count": 3,
+            "count": 1,
             "firstLines": [
-                24,
-                53,
-                66
+                24
             ]
         },
         {
@@ -33436,11 +31919,9 @@
             "source": "Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingBeforeClose",
             "message": "Expected 1 spaces before closing parenthesis; 0 found",
             "type": "ERROR",
-            "count": 3,
+            "count": 1,
             "firstLines": [
-                24,
-                53,
-                66
+                24
             ]
         },
         {
@@ -33458,24 +31939,13 @@
         },
         {
             "file": "includes/rest/class-mpu-rest-observation.php",
-            "source": "Universal.Operators.DisallowShortTernary.Found",
-            "message": "Using short ternaries is not allowed as they are rarely used correctly",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                67
-            ]
-        },
-        {
-            "file": "includes/rest/class-mpu-rest-observation.php",
             "source": "WordPress.PHP.YodaConditions.NotYoda",
             "message": "Use Yoda Condition checks, you must.",
             "type": "ERROR",
-            "count": 3,
+            "count": 2,
             "firstLines": [
                 26,
-                31,
-                55
+                31
             ]
         },
         {
@@ -33483,10 +31953,9 @@
             "source": "WordPress.WhiteSpace.CastStructureSpacing.NoSpaceBeforeOpenParenthesis",
             "message": "Expected a space before the type cast open parenthesis; none found",
             "type": "ERROR",
-            "count": 2,
+            "count": 1,
             "firstLines": [
-                35,
-                67
+                35
             ]
         },
         {
@@ -33494,7 +31963,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
             "message": "No space after opening parenthesis is prohibited",
             "type": "ERROR",
-            "count": 6,
+            "count": 5,
             "firstLines": [
                 10,
                 26,
@@ -33508,7 +31977,7 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
             "message": "No space before closing parenthesis is prohibited",
             "type": "ERROR",
-            "count": 6,
+            "count": 5,
             "firstLines": [
                 10,
                 26,
@@ -33876,8 +32345,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                53,
-                146
+                58,
+                148
             ]
         },
         {
@@ -33887,8 +32356,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                56,
-                149
+                61,
+                151
             ]
         },
         {
@@ -33896,7 +32365,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 184,
+            "count": 179,
             "firstLines": [
                 18,
                 23,
@@ -33914,7 +32383,7 @@
             "firstLines": [
                 30,
                 36,
-                177
+                179
             ]
         },
         {
@@ -33926,7 +32395,7 @@
             "firstLines": [
                 30,
                 36,
-                177
+                179
             ]
         },
         {
@@ -33934,12 +32403,10 @@
             "source": "PEAR.Functions.FunctionCallSignature.CloseBracketLine",
             "message": "Closing parenthesis of a multi-line function call must be on a line by itself",
             "type": "ERROR",
-            "count": 4,
+            "count": 2,
             "firstLines": [
                 32,
-                38,
-                131,
-                251
+                38
             ]
         },
         {
@@ -33947,12 +32414,10 @@
             "source": "PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket",
             "message": "Opening parenthesis of a multi-line function call must be the last content on the line",
             "type": "ERROR",
-            "count": 4,
+            "count": 2,
             "firstLines": [
                 28,
-                34,
-                128,
-                247
+                34
             ]
         },
         {
@@ -33976,10 +32441,10 @@
             "count": 89,
             "firstLines": [
                 17,
-                48,
-                49,
-                49,
-                52
+                46,
+                53,
+                54,
+                54
             ]
         },
         {
@@ -33990,10 +32455,10 @@
             "count": 89,
             "firstLines": [
                 17,
-                48,
-                49,
-                49,
-                52
+                46,
+                53,
+                54,
+                54
             ]
         },
         {
@@ -34024,7 +32489,7 @@
             "count": 2,
             "firstLines": [
                 41,
-                134
+                131
             ]
         },
         {
@@ -34035,7 +32500,7 @@
             "count": 2,
             "firstLines": [
                 45,
-                138
+                135
             ]
         },
         {
@@ -34046,7 +32511,7 @@
             "count": 2,
             "firstLines": [
                 45,
-                138
+                135
             ]
         },
         {
@@ -34054,13 +32519,13 @@
             "source": "Universal.Arrays.DisallowShortArraySyntax.Found",
             "message": "Short array syntax is not allowed",
             "type": "ERROR",
-            "count": 10,
+            "count": 8,
             "firstLines": [
                 28,
                 30,
                 34,
                 36,
-                128
+                169
             ]
         },
         {
@@ -34070,11 +32535,11 @@
             "type": "ERROR",
             "count": 7,
             "firstLines": [
-                74,
-                157,
-                172,
-                186,
-                186
+                79,
+                159,
+                174,
+                188,
+                188
             ]
         },
         {
@@ -34084,11 +32549,11 @@
             "type": "ERROR",
             "count": 6,
             "firstLines": [
-                53,
-                70,
-                84,
-                146,
-                163
+                58,
+                75,
+                89,
+                148,
+                165
             ]
         },
         {
@@ -34098,8 +32563,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                85,
-                204
+                90,
+                206
             ]
         },
         {
@@ -34107,13 +32572,13 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis",
             "message": "No space after opening parenthesis is prohibited",
             "type": "ERROR",
-            "count": 29,
+            "count": 27,
             "firstLines": [
                 17,
-                48,
-                60,
-                70,
-                84
+                47,
+                53,
+                65,
+                75
             ]
         },
         {
@@ -34121,13 +32586,13 @@
             "source": "WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis",
             "message": "No space before closing parenthesis is prohibited",
             "type": "ERROR",
-            "count": 29,
+            "count": 27,
             "firstLines": [
                 17,
-                48,
-                60,
-                70,
-                84
+                47,
+                53,
+                65,
+                75
             ]
         },
         {
@@ -34135,13 +32600,13 @@
             "source": "WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter",
             "message": "Expected 1 space after \"!\"; 0 found",
             "type": "ERROR",
-            "count": 7,
+            "count": 5,
             "firstLines": [
                 17,
-                56,
-                116,
-                149,
-                173
+                61,
+                151,
+                175,
+                188
             ]
         },
         {
@@ -34152,8 +32617,8 @@
             "count": 3,
             "firstLines": [
                 17,
-                173,
-                186
+                175,
+                188
             ]
         },
         {
@@ -35392,7 +33857,7 @@
             "firstLines": [
                 45,
                 52,
-                169
+                170
             ]
         },
         {
@@ -35404,7 +33869,7 @@
             "firstLines": [
                 36,
                 50,
-                164
+                165
             ]
         },
         {
@@ -35416,8 +33881,8 @@
             "firstLines": [
                 36,
                 50,
-                164,
-                169
+                165,
+                170
             ]
         },
         {
@@ -35480,16 +33945,6 @@
             "count": 1,
             "firstLines": [
                 28
-            ]
-        },
-        {
-            "file": "mp-ukagaka.php",
-            "source": "Squiz.Strings.DoubleQuoteUsage.NotRequired",
-            "message": "String \"2.24.1\" does not require double quotes; use single quotes instead",
-            "type": "ERROR",
-            "count": 1,
-            "firstLines": [
-                16
             ]
         },
         {
@@ -35560,8 +34015,8 @@
             "count": 3,
             "firstLines": [
                 64,
-                112,
-                117
+                113,
+                118
             ]
         },
         {
@@ -35571,9 +34026,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                128,
-                139,
-                151
+                129,
+                140,
+                152
             ]
         },
         {
@@ -35586,8 +34041,8 @@
                 11,
                 38,
                 42,
-                123,
-                125
+                124,
+                126
             ]
         },
         {
@@ -35600,8 +34055,8 @@
                 11,
                 38,
                 42,
-                123,
-                125
+                124,
+                126
             ]
         },
         {
@@ -35614,7 +34069,7 @@
                 11,
                 38,
                 42,
-                133
+                134
             ]
         },
         {
@@ -35627,7 +34082,7 @@
                 11,
                 38,
                 42,
-                133
+                134
             ]
         },
         {

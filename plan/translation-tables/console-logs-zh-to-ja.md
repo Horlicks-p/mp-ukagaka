@@ -28,7 +28,7 @@ Normalize each row manually before migration:
 ## Inventory Summary
 
 - Included zh-TW/CJK rows: 0
-- Excluded source/backlog rows: 0
+- Excluded source/backlog rows: 1
 
 
 
@@ -42,3 +42,4 @@ Normalize each row manually before migration:
 
 | Source file | Line | Channel | Bucket | Key | Original | Call preview | Reason |
 | --- | ---: | --- | --- | --- | --- | --- | --- |
+| js/ukagaka-context.js | 310 | mpuLogger.log | logsDebug | ukagakaContextLog310 | mpu_chat_context: クールダウン中（残り / 秒）のためスキップします | mpuLogger.log("mpu_chat_context: クールダウン中（残り" + remainSec + "秒）のためスキップします") | Japanese source/backlog |
