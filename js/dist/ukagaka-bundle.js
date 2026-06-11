@@ -1,8 +1,8 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-11T12:45:35.303Z
+ * Generated: 2026-06-11T12:48:01.258Z
  * 
- * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat.js, ukagaka-chat-wake.js, ukagaka-features.js
+ * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
 
 // ========== ukagaka-base.js ==========
@@ -4774,7 +4774,7 @@ function mpu_parseMarkdown(text) {
   );
 }
 
-// ========== ukagaka-chat.js ==========
+// ========== ukagaka-chat-sse.js ==========
 /**
  * 使用 SSE (Server-Sent Events) 獲取 AI 回應
  *
@@ -4955,6 +4955,7 @@ async function mpuFetchSSE(url, options, handlers) {
   }
 }
 
+// ========== ukagaka-chat.js ==========
 let mpuChatAbortController = null;
 
 /**
