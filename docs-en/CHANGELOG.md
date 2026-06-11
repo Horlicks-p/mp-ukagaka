@@ -4,13 +4,18 @@
 
 ---
 
-## [Unreleased]
+## [2.25.7] - 2026-06-11
 
-### A-2 Frontend Split
+### A-2 Frontend Split & Performance
 
 - **Frontend boot script split**: Moved the pure-data boot globals and bootstrap logic out of `frontend-functions.php` into the enqueue flow, and split the Frieren-specific runtime into `frieren.js`, `frieren-animation.js`, `frieren-interactions.js`, and `frieren-decorations.js`.
+- **Chat module split**: `ukagaka-chat.js` (1,301 lines) is now split into seven focused modules — history/state, mode controls, formatting, SSE client, send orchestration, event bindings, and wake helpers. `ukagaka-chat.js` remains as a zero-byte compatibility entry so the `mpu-chat` handle keeps working. The production bundle output is byte-identical to the pre-split build.
+- **Frieren script bundle**: The build now produces `ghost/Frieren/dist/frieren-bundle.min.js` from the manifest script list (about 60 KB down to 28 KB, four HTTP requests down to one). When `SCRIPT_DEBUG` is enabled, the personality is not Frieren, or the bundle file is missing, loading falls back to the original per-file manifest enqueue, so third-party ghosts are unaffected.
+- **SSE graceful degradation**: When the server lacks the php-curl extension, chat now falls back to the synchronous endpoint automatically instead of surfacing a streaming error to visitors.
+- **Initial system bubble timing**: Extended the character-visibility wait for the initial system bubble from 6 to 12 seconds, so slow first-visit asset loads no longer show the bubble before the character appears.
 - **Compatibility note**: Custom `extend.js_area` still runs after the MP Ukagaka bootstrap, but it is no longer a synchronous `<head>` inline script. Custom code that depended on `<head>`-time execution should wait for DOM ready or the MP Ukagaka init-complete event.
-- **Pre-release check**: This is a frontend runtime refactor, so chat SSE and touch/decoration interaction paths still need manual smoke testing before release.
+- **Docs consolidation**: English documentation under `docs-en/` is now the single canonical source; the Chinese and Japanese copies (`docs/`, `docs-jp/`) were removed.
+- **Validation**: Chat SSE streaming, touch/decoration interactions, and first-visit flows were manually smoke-tested in a real browser, in both production bundle mode and `SCRIPT_DEBUG` per-file mode.
 
 ---
 

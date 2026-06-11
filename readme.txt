@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.25.6
+Stable tag: 2.25.7
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,15 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-11 =
+* v2.25.7
+* [REFACTOR] A-2 frontend split: boot globals and bootstrap logic moved out of `frontend-functions.php` into the enqueue flow; Frieren runtime split into `frieren.js` / `frieren-animation.js` / `frieren-interactions.js` / `frieren-decorations.js`; `ukagaka-chat.js` split into seven focused modules (history, mode, format, SSE, send, events, wake) with a zero-byte compatibility entry. Production bundle output is byte-identical to the pre-split build.
+* [PERF] Frieren personality scripts are now bundled into `ghost/Frieren/dist/frieren-bundle.min.js` (about 60 KB down to 28 KB, four HTTP requests down to one). `SCRIPT_DEBUG`, non-Frieren personalities, or a missing bundle file fall back to the original per-file manifest enqueue, so third-party ghosts are unaffected.
+* [FIX] SSE graceful degradation: when the server lacks php-curl, chat falls back to the synchronous endpoint automatically instead of showing visitors a streaming error.
+* [FIX] Initial system bubble wait extended from 6 to 12 seconds so slow first-visit asset loads no longer show the bubble before the character appears.
+* [NOTE] Custom `extend.js_area` still runs after the MP Ukagaka bootstrap but is no longer a synchronous `<head>` inline script; code that depended on `<head>`-time execution should wait for DOM ready.
+* [DOCS] English documentation under `docs-en/` is now the single canonical source; `docs/` and `docs-jp/` copies were removed.
 
 = 2026-06-10 =
 * v2.25.6
