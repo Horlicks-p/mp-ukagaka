@@ -22,6 +22,7 @@ const coreFiles = [
     'ukagaka-greeting.js',
     'ukagaka-dialog.js',
     'ukagaka-chat-history.js',
+    'ukagaka-chat-mode.js',
     'ukagaka-chat.js',
     'ukagaka-features.js'
 ];
