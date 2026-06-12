@@ -73,6 +73,14 @@
 > **(U-4) 入口位置は R2-5 と同一**：`#ukagaka_msgbox` 入力欄付近のアイコン（🎁 等。Unicode/SVG で追加図依存を作らない）。R2-5 を**否定せず細化**（文字ボタン→アイコン、文字リスト→画像グリッド）。
 > ⏳#2（メニュー展開の見た目）は本 U-1 でスタンプグリッド方式に確定。
 >
+> #### 家 CODEX レビュー（2026-06-12・U-1 方向を承認＋着手前に釘す 5 点）
+> 方向承認（貼图 picker は文字指令送禮より自然・このプラグインの互動型態に合う）。実コードに照らして以下を確定タスク化：
+> **(CX-1) localize handle は `mpu-personality` に確定（⏳#1 解決）**：catalog は Frieren UI のデータで core chat bundle の責務ではない。`$personality_script_handle = 'mpu-personality'`（`frontend-functions.php:528`）に `wp_localize_script`。production bundle／SCRIPT_DEBUG の双方で整合が取りやすい。
+> **(CX-2) SCRIPT_DEBUG 依存を明確タスク化**：production では `mpu-personality` が core bundle の後に載るため `mpu_getOrCreateChatSessionId` / `window.mpuChatHistory` は満たされる。だが debug/非 bundle では personality script は現状 `$anime_handle` のみ依存（`:557`/`:571-573`）。gift picker が chat API を直接触るため、**personality script の依存配列に `$chat_handle` を追加する**（debug=`mpu-chat`、これは `mpu-chat-send`→…→`mpu-chat-history` を transitively 引き、`mpu_getOrCreateChatSessionId` を定義する `ukagaka-chat-history.js` を保証する。production=`mpu-bundle`）。または gift picker 初期化を chat globals 存在後へ遅延。**ノートではなくタスク**。
+> **(CX-3) UI 位置・a11y を固定**：入口は chat 入力の**尾端**（`#mpu_user_input` 付近）に `type="button"` の小アイコン。クリックで anchored popover。**Esc 閉じ／外側クリック閉じ／`aria-expanded`／送出中 disable** を実装し、decoration/touch/give の lock 状態（`decorationChatInProgress`・`mpuMessageBlocking`・`giveItemInProgress`）と衝突しないこと。
+> **(CX-4) catalog は display 情報のみ expose（セキュリティ）**：localize は `id`/`kind`/`name`/`image`/`favorite` だけ。**`prompt`・reaction hint・内部語意は絶対に localize しない**（前端へ漏らさない）。加えて **loader 層で `image` ファイル名を安全な文字に制限**（`/\A[a-z0-9_-]+\.(png|webp)\z/` 等の whitelist）し、`<img src>` 経由の path traversal を防ぐ。
+> **(CX-5) checksum / history は正しい（変更不要）**：backend が `user_anchor` 生成 → 前端は原様 push、give を2箇所の allowlist に追加、`store_after_auto(..., 'give')`。この一式は既存 checksum/filter 挙動と一致。**計画で最も重要かつ手を抜けない部分**——そのまま実装する。
+>
 > #### 会社 CLAUDE 裁決（2026-06-09・Gemini 提案への判定）
 > Gemini から4点。G-2 を採用し D-2 の方向を改訂、G-3 採用、G-1 は Phase 2 へ降格、G-4 は A-1 への同調のみ：
 > **(G-2 採用・D-2 を改訂) synthetic anchor は「backend 単一所有」にする（最重要）**：checksum filter は user / synthetic anchor を hash 対象にしないため、anchor 文字列の逐字一致そのものは checksum の必要条件ではない。ただし anchor は history window の entry 位置を決め、assistant reply を孤立させず、後続チャットで「何を渡したか」を LLM に伝える語意文脈になる。よって anchor 文字列は **backend が解決済み言語で生成 → REST レスポンスにも同梱して返す**。前端はそれを**そのまま**表示・履歴 push する（前端で組まない）。これで i18n の単一情報源、前後端 history shape の対称、追問時の語意文脈を同時に満たす。§3⑤／§4／D-2 の「前端で動的組立」記述はこの方針で上書き。
@@ -201,6 +209,9 @@ mpu_get_personality_item_ids($personality_id = null): array
 ```
 
 - `mp-ukagaka.php` の load order に追加：personality-decorations の直後（人格系ブロック内）。
+- ⚠️ **`image` ファイル名を loader で whitelist（CX-4・セキュリティ）**：`image` は前端で `<img src>` になるため、
+  loader（`mpu_get_personality_item` / `mpu_load_personality_items`）で `/\A[a-z0-9_-]+\.(png|webp)\z/` 等に合致しない
+  ファイル名は弾く（空文字へ落として fallback、または item ごと skip）。path traversal（`../`）や不正拡張子を防ぐ。
 
 ### ③ REST（既存コントローラを拡張・新規コントローラは作らない）
 
@@ -294,11 +305,22 @@ mpu_get_personality_item_ids($personality_id = null): array
 ### ⑤ Frontend
 
 - **Catalog 供給は `wp_localize_script`**（家 CODEX #2）：サーバ側で `mpu_load_personality_items()` を読み、
-  表示用フィールド（`id` / `kind` / `name` / `favorite` / **`image`**）と **`items_base_url`**（`decorations_base_url` を鏡像、
+  **display 情報のみ**（`id` / `kind` / `name` / `favorite` / **`image`**）と **`items_base_url`**（`decorations_base_url` を鏡像、
   `plugins_url("ghost/{$personality_id}/items/")`）を localize で渡す。新 GET endpoint を生やさず、catalog を硬編みもしない。
-- **UI 入口（R2-5 を U-1 で細化）**：**LINE スタンプ風ギフトピッカー**。入口は **`#ukagaka_msgbox` 入力欄付近のアイコン**
-  （🎁 等。Unicode/SVG で追加図依存を作らない）。クリックで**小さなポップアップ**を開き、登録アイテムを
-  **画像グリッド**（スタンプ一覧と同じ作法）で並べる。画像クリック＝送禮／給食。Frieren の **Canvas 描画域に干渉しない**。
+  - **handle は `mpu-personality` に確定（CX-1・⏳#1 解決）**：catalog は Frieren UI のデータなので、core chat bundle ではなく
+    personality script handle（`$personality_script_handle = 'mpu-personality'`、`frontend-functions.php:528`）に `wp_localize_script` する。
+  - ⚠️ **`prompt`・reaction hint・内部語意は localize しない（CX-4・セキュリティ）**：前端へ渡すのは上記 display 5 フィールドのみ。
+  - ⚠️ **SCRIPT_DEBUG 依存タスク（CX-2）**：debug/非 bundle では personality script は `$anime_handle` のみ依存（`:557`/`:571-573`）。
+    gift picker が `mpu_getOrCreateChatSessionId`（`ukagaka-chat-history.js`）/ `window.mpuChatHistory` を触るため、
+    personality script の依存に **`$chat_handle`** を追加（debug=`mpu-chat`→transitively `mpu-chat-history` を保証／production=`mpu-bundle`）、
+    または picker 初期化を chat globals 存在後へ遅延する。
+- **UI 入口（R2-5 を U-1 で細化・CX-3 で a11y 確定）**：**LINE スタンプ風ギフトピッカー**。入口は **chat 入力の尾端**
+  （`#mpu_user_input` 付近）に `type="button"` の小アイコン（🎁 等。Unicode/SVG で追加図依存を作らない）。
+  クリックで **anchored popover** を開き、登録アイテムを **画像グリッド**（スタンプ一覧と同じ作法）で並べる。画像クリック＝送禮／給食。
+  Frieren の **Canvas 描画域に干渉しない**。
+  - **a11y / 操作性（CX-3）**：**Esc 閉じ・外側クリック閉じ・`aria-expanded`・送出中 disable** を実装。
+    decoration/touch/give の lock（`decorationChatInProgress`・`mpuMessageBlocking`・`giveItemInProgress`）と衝突させない
+    （これらが立っている間は picker から送出させない／ボタンを disable）。
   - **画像優先＋テキスト fallback（U-3）**：各セルは `<img src="${items_base_url}${item.image}">`。`onerror` で
     `item.name` テキスト表示へ退避（缺図でも壊れない）。画像未生成の間は全セルがテキストになるだけ＝同一 UI の退化態。
   - **縮図正規化**：固定サイズの枠＋ `object-fit: contain`（素材サイズ不揃いでもレイアウトが崩れない）。
@@ -362,7 +384,8 @@ mpu_get_personality_item_ids($personality_id = null): array
 |---|---|---|
 | items.json `id` | `[a-z_][a-z0-9_]*` | observation normalize と一致 |
 | items.json `kind` | `food` \| `gift` | ホワイトリスト、不一致は読み飛ばし（将来 medicine/book/tool 拡張可） |
-| catalog → 前端 | `wp_localize_script`（`id`/`kind`/`name`/`favorite`/`image`）＋ `items_base_url` | 画像優先（U-1）。`image` ＋ `items_base_url`（`decorations_base_url` 鏡像）を渡す。前端は `onerror` で `name` テキストへ fallback |
+| catalog → 前端 | `mpu-personality` handle に `wp_localize_script`（**display のみ** `id`/`kind`/`name`/`favorite`/`image`）＋ `items_base_url` | CX-1：handle = `mpu-personality`。CX-4：`prompt`／内部語意は**渡さない**。画像優先（U-1）、前端は `onerror` で `name` へ fallback |
+| items.json `image` | `/\A[a-z0-9_-]+\.(png\|webp)\z/` | **loader 層で whitelist（CX-4）**。`<img src>` になるため path traversal／不正拡張子を弾く |
 | REST 入力 | `item_id`, `session_id`, `history`（POST body） | `item_id` は sanitize_text_field、空 or 未知は 400。`session_id` 空は 400。`history` は raw param が存在し JSON decode 後 array であること（空配列 `[]` は合法） |
 | REST session token | `X-MPU-Session-Token` header | `MPU_REST_Base::check_session_token()` で検証。公開 AI endpoint 防濫用用で、checksum 用 `session_id` とは別物 |
 | REST 出力 | `{msg, emoji, display_text…, item_id, kind, user_anchor}` | 既存 normalize fields ＋ item_id/kind ＋ backend 生成 localized anchor（G-2） |
@@ -394,7 +417,8 @@ mpu_get_personality_item_ids($personality_id = null): array
 - **Step 1 — Config**：`ghost/Frieren/items.json` 新設＋ Frieren 初期カタログ（魔導書 gift/favorite、
   蒼月草 gift/favorite、メルクーアプリン food、薬草 food）。＋ AI 生成画像を `ghost/Frieren/items/*.png` に配置
   （未生成でもテキスト fallback で先行可）。
-- **Step 2 — Loader**：`personality-items.php` 新設＋ load order 追加。
+- **Step 2 — Loader**：`personality-items.php` 新設＋ load order 追加。＋ **`image` ファイル名 whitelist（CX-4）**：
+  `/\A[a-z0-9_-]+\.(png|webp)\z/` 非合致は弾く（path traversal 防止）。
 - **Step 3 — REST**：`give_item()` ＋ route `/touch/give`。
   ＋ **backend 側で synthetic anchor を含めた history を組み立てて `store_after_auto(..., 'give')` で checksum 書き込み（C-B / D-2）**
   ＋ **`class-mpu-rest-chat.php:606-607` の `$allowed_types` と `MPU_Chat_History_Service::ALLOWED_MSG_TYPES` の両方に `'give'` 追加（C-A / D-1）**
@@ -402,8 +426,9 @@ mpu_get_personality_item_ids($personality_id = null): array
   ＋ `stats-collector.php` の conversation stats に `'give'` 追加（D-3）。
 - **Step 4 — Observation**：`item` type ＋ normalize ＋ format（kind 分岐）＋ **`dedupe_key` の `item` 判定（R2-1・必須）**
   ＋ `mpu_observation_push_item()` ＋ `get_item_display_name()`。
-- **Step 5 — Frontend**：catalog（`image` ＋ `items_base_url` 込み）を `wp_localize_script` で供給 ＋
-  スタンプ風ギフトピッカー UI（画像グリッド・`onerror` テキスト fallback）＋ `/touch/give` 呼び出し。
+- **Step 5 — Frontend**：catalog（display 5 フィールド＋ `items_base_url`）を **`mpu-personality` handle に** `wp_localize_script`（CX-1、`prompt` は渡さない CX-4）
+  ＋ スタンプ風ギフトピッカー UI（画像グリッド・`onerror` テキスト fallback・CX-3 の a11y / lock 非衝突）＋ `/touch/give` 呼び出し。
+  - サブタスク **CX-2**：SCRIPT_DEBUG/非 bundle で personality script の依存に `$chat_handle` を追加（or picker 初期化を遅延）。忘れると debug で `mpu_getOrCreateChatSessionId` 未定義 race。
 - **Step 6 — 仕上げ**：dist 再ビルド（`node tools/node/build.js`）、PHPUnit（items.json の kind 妥当性・
   prompt 非空・可視タグ無し）、CHANGELOG / README（実装完了時）。
 
@@ -516,7 +541,11 @@ mpu_get_personality_item_ids($personality_id = null): array
 - **エンドポイント名** → `/touch/give`（A-1・G-4）。`MPU_REST_Touch` 名前空間に同居。
 - **UI 入口** → `#ukagaka_msgbox` 入力欄付近のアイコン → **LINE スタンプ風画像グリッドのポップアップ**。画像クリック＝送禮／給食。Canvas 域に干渉しない（R2-5 を U-1 で細化）。
 - **アイテムカタログ** → 魔導書（gift/fav）・蒼月草（gift/fav）・メルクーアプリン（food）・薬草（food）。画像は AI 生成（維護者確定・U-1）。
+- **localize handle** → `mpu-personality`（CX-1）。display 5 フィールドのみ、`prompt` は渡さない（CX-4）。
+- **image 安全性** → loader で `[a-z0-9_-]+\.(png|webp)` whitelist（CX-4）。
+- **a11y / UI** → 入口は `#mpu_user_input` 尾端の `type=button` アイコン → anchored popover。Esc／外側クリック閉じ・`aria-expanded`・送出中 disable・既存 lock と非衝突（CX-3）。
 
 ### ⏳ 実装時に確定（残）
 
-1. **localize ハンドル**：catalog をどの enqueue 済みスクリプトにぶら下げるか（A-2 後は `mpu-bundle` ／ `mpu-personality`＝frieren-bundle が候補。既存 frontend の localize 箇所に相乗り）。
+- **なし**：⏳#1（localize handle）は CX-1 で `mpu-personality` に、⏳#2（メニュー見た目）は U-1 でスタンプグリッドに確定済み。
+  着手前の論点はすべて解消。実装は §5 ステップ順に進められる（CX-2 の SCRIPT_DEBUG 依存だけ Step 5 のサブタスクとして忘れず）。
