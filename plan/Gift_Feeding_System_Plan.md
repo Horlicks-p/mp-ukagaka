@@ -4,6 +4,7 @@
 > 📅 改訂：2026-06-06（家 CODEX レビュー 6 点を本文に反映）
 > 📅 改訂：2026-06-09（御三家＋Gemini レビュー反映後、家 CLAUDE/CODEX が実コード突合せ → 文書 3 点修正 F-1〜F-3）
 > 📅 改訂：2026-06-10（checksum filter の実挙動に合わせ C-A / G-2 / D-2 の根拠を訂正）
+> 📅 改訂：2026-06-12（**UI を LINE スタンプ風ギフトピッカーへ**。画像優先＋テキスト fallback に方針変更。後端設計は一切不変＝U-1）
 > 📋 訪客がキャラクターに「物を差し出す（ギフト／食事）」インタラクションの設計
 > 🎯 想定読者：実装担当
 > 🔖 対象バージョン基点：v2.25.1
@@ -26,7 +27,7 @@
 | 初回スコープ | **MVP（無状態の反応のみ）** | 既存 decoration 経路とほぼ同型。好感度・飽食度などの永続状態は持たず、まず「差し出す→反応→observation/chat 履歴に記録」までを出して挙動を確認する。 |
 | Observation type 名 | **`item`（`gift` ではない）** | food は gift ではなく、将来 medicine / book / tool も来うる。総称 `item` 型に統一し、`kind` プレフィクスで `food:` / `gift:` を出し分ける（家 CODEX #1）。 |
 | Catalog 供給 | **`wp_localize_script` で渡す** | 新 GET endpoint を生やさず、catalog を frieren.js に硬編みもしない。ghost-agnostic とキャッシュが綺麗（家 CODEX #2）。 |
-| アイテム画像 | **MVP は text-only**（`image` 欄は保持） | 第一版で素材・サイズ・欠図 fallback を抱えないため画像は後回し。まず「差し出す→反応→記録」を安定させる（家 CODEX #3）。 |
+| アイテム画像 | **画像優先＋テキスト fallback**（U-1 で #3 を改訂） | LINE スタンプ風ピッカーで `<img>` グリッド表示。画像 load 失敗時は item `name` テキストへ graceful fallback。画像パイプラインは既存 decoration 資産（`decorations_base_url`＋ファイル名）の流用で安く、欠図 fallback も同型で吸収できる。画像が揃うまではテキスト表示で先行可（同じ UI の退化態）。 |
 
 > #### 家 CODEX レビュー反映（2026-06-06・第1巡）
 > 方向性（統合 items + kind / MVP 無状態 / `MPU_REST_Touch` 拡張）は承認。実装前の収斂点 6 件を本文へ反映済み：
@@ -63,6 +64,14 @@
 > #### 会社 CLAUDE 確認補足（2026-06-09・A-A の重大度校正）
 > CODEX の D-1 / D-2 / D-3、Antigravity の A-A / A-1 / A-2 はコードに照らして全て妥当・採用。ただし A-A の表現を 1 点だけ校正する：
 > **A-A の「次回 `/chat/user` で 409 mismatch エラーが発生する」は現状では不正確**。checksum 既定は `audit` モード（`chat-integrity.php:28`）で、mismatch は**ログ記録のみ・チャットは中断しない**（409 にもならない）。`session_id`/`history` 未送信時の**現状の実害は「checksum 未保存＝姉妹 Emotion/Think plan §13.2 漂移＋ mismatch ログ noise」**であり、ハードな WP_Error は `block` モードに切り替えた場合に限る。したがって A-A の対処（前端が `session_id`＋`history` を body 送信）は**必須**だが、根拠は「409 防止」ではなく「姉妹 plan §13.2 整合と block モード移行時の前方互換」と理解すること。
+>
+> #### 維護者＋公司CLAUDE UI 改訂（2026-06-12・U-1）
+> MVP の UI 入口を**テキストメニュー → LINE スタンプ風ギフトピッカー**へ変更（維護者の発案）。要点：
+> **(U-1) 後端は完全 decoupled・一切不変**：審査済みの後端（`give_item` REST / observation `item` type / checksum / dedupe / anchor / allowlist）は `item_id` のみを受け、その id が「テキスト click」由来か「画像 click」由来かを区別しない。よって本変更は **§3⑤（前端）と §0/§3① の画像決定だけ**を触り、C-A〜D-3・G-2 等の後端設計には**一行も影響しない**。
+> **(U-2) 画像パイプラインは既存資産の流用で安い**：`/init` は既に `decorations_base_url`＋`decoration_config`（画像パス入り）・`emoji_base_url` を返し（`class-mpu-rest-ghost.php:115/124/163-167`）、`frieren-decorations.js` は `el.src = base + file` で描画している。items も loader が `image` を返す（§②）。よって「ghost 範囲の画像 base URL＋ファイル名」を localize に足すだけ。真のコストは**美術素材（AI 生成で対応）**であって工程ではない。
+> **(U-3) 二段階を一段に統合**：旧「テキスト MVP → Phase 3 画像」を「**画像優先＋テキスト fallback**」一段へ。缺図 fallback は Phase 3 の包袱ではなく内蔵の graceful degradation（その格だけ `name` テキスト）。画像が未生成の間はテキスト表示で先行でき、それは同一 UI の退化態。
+> **(U-4) 入口位置は R2-5 と同一**：`#ukagaka_msgbox` 入力欄付近のアイコン（🎁 等。Unicode/SVG で追加図依存を作らない）。R2-5 を**否定せず細化**（文字ボタン→アイコン、文字リスト→画像グリッド）。
+> ⏳#2（メニュー展開の見た目）は本 U-1 でスタンプグリッド方式に確定。
 >
 > #### 会社 CLAUDE 裁決（2026-06-09・Gemini 提案への判定）
 > Gemini から4点。G-2 を採用し D-2 の方向を改訂、G-3 採用、G-1 は Phase 2 へ降格、G-4 は A-1 への同調のみ：
@@ -121,7 +130,7 @@ frieren.js（クリック描画）
 | AI 呼び出し定型 | `decoration_chat()` / `touch_zone_chat()` に**重複**している呼び出し〜normalize〜display limit | **先に private helper へ抽出**してから 3 か所で共有（Step 0） |
 | emotion tag → APNG | `mpu_normalize_ai_response_for_rest()` | そのまま通すだけ。prompt 側で `[laugh]`/`[love]`/`[sigh]` を誘導すれば表情が自動で出る（**追加実装ゼロ**） |
 | セッション記憶 | `MPU_Observation_Buffer` + `mpu_observation_push_touch()` | 総称 `item` type を追加し `mpu_observation_push_item()` を新設（§3④・家 CODEX #1） |
-| フロント描画・反応表示 | `ghost/Frieren/frieren.js` の decoration クリック処理 | ギフトメニュー UI として流用（反応表示・emoji・chat history push は既存コードが使える） |
+| フロント描画・反応表示 | `ghost/Frieren/frieren-decorations.js`（画像描画）／`frieren-interactions.js`（クリック処理）（A-2 後の責務配置） | スタンプ風ギフトピッカー UI として流用（画像グリッド描画・反応表示・emoji・chat history push は既存コードが使える） |
 
 ---
 
@@ -139,29 +148,46 @@ frieren.js（クリック描画）
   "items_base_folder": "items",
   "items": [
     {
-      "id": "mapo_tofu",
-      "kind": "food",
-      "name": "麻婆豆腐",
-      "image": "mapo_tofu.png",
+      "id": "grimoire",
+      "kind": "gift",
+      "name": "魔導書",
+      "image": "grimoire.png",
       "favorite": true,
-      "prompt": "相手があなたに麻婆豆腐を差し出した。フリーレンとして、好物として喜びながら食べる反応を…"
+      "prompt": "相手が古びた魔導書をくれた。フリーレンとして、魔法収集家らしく強い興味と喜びを示す反応を…"
     },
     {
-      "id": "flower",
+      "id": "blue_moon_grass",
       "kind": "gift",
-      "name": "花",
-      "image": "flower.png",
+      "name": "蒼月草",
+      "image": "blue_moon_grass.png",
+      "favorite": true,
+      "prompt": "相手が蒼月草を差し出した。フリーレンとして、ヒンメルとの思い出に触れつつ受け取る反応を…"
+    },
+    {
+      "id": "merkur_pudding",
+      "kind": "food",
+      "name": "メルクーアプリン",
+      "image": "merkur_pudding.png",
       "favorite": false,
-      "prompt": "相手が花をくれた。フリーレンとして、受け取った反応を…"
+      "prompt": "相手がメルクーアプリンを差し出した。フリーレンとして、食べて味の感想を述べる反応を…"
+    },
+    {
+      "id": "herb",
+      "kind": "food",
+      "name": "薬草",
+      "image": "herb.png",
+      "favorite": false,
+      "prompt": "相手が薬草を差し出した。フリーレンとして、口にしてみる反応を…"
     }
   ]
 }
 ```
+> 初期カタログ（維護者確定・U-1）：魔導書（gift/favorite・魔法収集）、蒼月草（gift/favorite・ヒンメル連結）、メルクーアプリン（food）、薬草（food）。favorite は「特別に喜ぶ」反応ルールを追加するので、最も思い入れの深い 2 件のみ true。画像は AI 生成で用意（`ghost/Frieren/items/*.png`）。
 
 - `kind`：`"food"` | `"gift"`（ホワイトリスト。将来 `medicine` / `book` / `tool` 等を足せる総称設計）
 - `favorite`：true なら「特別に喜ぶ」反応ルールを追加付与
 - `id`：`[a-z_][a-z0-9_]*`（observation の normalize 正規表現と一致させる）
-- `image`：欄は持つが **MVP では未使用（UI は text-only）**。Phase 3 で素材・サイズ・欠図 fallback を設計してから使う。
+- `image`：スタンプピッカーの `<img>` ソース（`items_base_folder` ＋ファイル名）。**画像優先＋テキスト fallback**（U-1）：load 失敗時は `name` を表示。素材は AI 生成で `ghost/Frieren/items/` に置く。
 - **ghost-agnostic 厳守**：アイテム種別・名前をコアにハードコードしない。catalog は各 ghost の json が持つ。
 
 ### ② Loader
@@ -245,12 +271,12 @@ mpu_get_personality_item_ids($personality_id = null): array
   ```php
   // MPU_Observation_Buffer::dedupe_key() に追加
   if ($type === 'item' && preg_match('/\A(food|gift):([a-z_][a-z0-9_]*)\z/u', $content, $matches)) {
-      return 'item:' . $matches[1] . ':' . $matches[2]; // 例: item:food:mapo_tofu
+      return 'item:' . $matches[1] . ':' . $matches[2]; // 例: item:food:merkur_pudding
   }
   ```
   （`touch` が `touch:<part>`、`page_view` が `page_view:<post_id>` で dedupe しているのと同じ作法。
-  kind+id で鍵を作るので「麻婆豆腐×3＝最新1件」「麻婆豆腐＋花＝2件」になる。）
-  ⚠️ **鍵は必ず `kind + id` 粒度（`item:food:mapo_tofu`）で、`id` 単独にしない**。将来 food と gift が
+  kind+id で鍵を作るので「メルクーアプリン×3＝最新1件」「メルクーアプリン＋魔導書＝2件」になる。）
+  ⚠️ **鍵は必ず `kind + id` 粒度（`item:food:merkur_pudding`）で、`id` 単独にしない**。将来 food と gift が
   たまたま同じ `id` を持った場合に、別物の記録が互いに上書きされる事故を防ぐ。
 - `mpu_observation_push_item(WP_REST_Request $request, string $kind, string $id): void`
   （session token 取得 → `item` type で `"{$kind}:{$id}"` を push。push 側は `MPU_Observation_Buffer::push()` が
@@ -268,13 +294,19 @@ mpu_get_personality_item_ids($personality_id = null): array
 ### ⑤ Frontend
 
 - **Catalog 供給は `wp_localize_script`**（家 CODEX #2）：サーバ側で `mpu_load_personality_items()` を読み、
-  表示用の最小フィールド（`id` / `kind` / `name` / `favorite`、画像は MVP 不要）だけを localize で渡す。
-  新 GET endpoint を生やさず、catalog を frieren.js に硬編みもしない。
-- **UI 入口（R2-5）**：MVP はテキストメニュー。入口は **`#ukagaka_msgbox` の入力欄付近に小ボタン**を置き、
-  クリックで道具テキスト一覧をドロップ表示。「キャラと会話して物を渡す」という動線に最も直感的で、
-  Frieren の **Canvas 描画域に干渉しない**。
-- `ghost/Frieren/frieren.js`：decoration 描画ロジックを流用して「ギフトメニュー」UI を追加
-  - ボタン → item リスト表示（localize 済み catalog を描画、**MVP は text ラベルのみ・画像なし**）→ クリックで
+  表示用フィールド（`id` / `kind` / `name` / `favorite` / **`image`**）と **`items_base_url`**（`decorations_base_url` を鏡像、
+  `plugins_url("ghost/{$personality_id}/items/")`）を localize で渡す。新 GET endpoint を生やさず、catalog を硬編みもしない。
+- **UI 入口（R2-5 を U-1 で細化）**：**LINE スタンプ風ギフトピッカー**。入口は **`#ukagaka_msgbox` 入力欄付近のアイコン**
+  （🎁 等。Unicode/SVG で追加図依存を作らない）。クリックで**小さなポップアップ**を開き、登録アイテムを
+  **画像グリッド**（スタンプ一覧と同じ作法）で並べる。画像クリック＝送禮／給食。Frieren の **Canvas 描画域に干渉しない**。
+  - **画像優先＋テキスト fallback（U-3）**：各セルは `<img src="${items_base_url}${item.image}">`。`onerror` で
+    `item.name` テキスト表示へ退避（缺図でも壊れない）。画像未生成の間は全セルがテキストになるだけ＝同一 UI の退化態。
+  - **縮図正規化**：固定サイズの枠＋ `object-fit: contain`（素材サイズ不揃いでもレイアウトが崩れない）。
+  - **food / gift 混排**：MVP は 1 グリッドに混在で可。各 item の `kind` が後端反応を駆動するため、タブ分割は不要。
+  - **ポップアップ定位**：アイコンに錨。件数超過時はスクロール。行動裝置で視窗端に裁切されないこと。⏳#2 は本方式で確定。
+  - ⚠️ **描画ロジックは decoration の画像生成を流用**（`frieren-decorations.js` の `el.src = base + file` と同型）。
+- `ghost/Frieren/frieren-interactions.js`（A-2 後の責務配置）に「ギフトピッカー」UI を追加
+  - アイコン → ポップアップ（localize 済み catalog を**画像グリッド**で描画）→ 画像クリックで
     `session_id` と `history` を含めて POST リクエスト（FormData 形式）：
     ```javascript
     const formData = new FormData();
@@ -330,7 +362,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 |---|---|---|
 | items.json `id` | `[a-z_][a-z0-9_]*` | observation normalize と一致 |
 | items.json `kind` | `food` \| `gift` | ホワイトリスト、不一致は読み飛ばし（将来 medicine/book/tool 拡張可） |
-| catalog → 前端 | `wp_localize_script`（`id`/`kind`/`name`/`favorite`） | 画像は MVP 渡さない |
+| catalog → 前端 | `wp_localize_script`（`id`/`kind`/`name`/`favorite`/`image`）＋ `items_base_url` | 画像優先（U-1）。`image` ＋ `items_base_url`（`decorations_base_url` 鏡像）を渡す。前端は `onerror` で `name` テキストへ fallback |
 | REST 入力 | `item_id`, `session_id`, `history`（POST body） | `item_id` は sanitize_text_field、空 or 未知は 400。`session_id` 空は 400。`history` は raw param が存在し JSON decode 後 array であること（空配列 `[]` は合法） |
 | REST session token | `X-MPU-Session-Token` header | `MPU_REST_Base::check_session_token()` で検証。公開 AI endpoint 防濫用用で、checksum 用 `session_id` とは別物 |
 | REST 出力 | `{msg, emoji, display_text…, item_id, kind, user_anchor}` | 既存 normalize fields ＋ item_id/kind ＋ backend 生成 localized anchor（G-2） |
@@ -359,8 +391,9 @@ mpu_get_personality_item_ids($personality_id = null): array
   `run_reaction()` は `WP_Error` を返す。既存 REST 挙動を維持するため、`WP_Error` に status 400 を入れるか、caller が
   `$this->fail('rest_error', $error->get_error_message(), 400)` に包む。caller 側の分岐は `is_wp_error()` のみに揃え、
   3 メソッドのエラーハンドリングを統一・最小化する。
-- **Step 1 — Config**：`ghost/Frieren/items.json` 新設＋ Frieren 初期カタログ（麻婆豆腐 food/favorite、
-  甘い物 food、花 gift、本 gift など）。
+- **Step 1 — Config**：`ghost/Frieren/items.json` 新設＋ Frieren 初期カタログ（魔導書 gift/favorite、
+  蒼月草 gift/favorite、メルクーアプリン food、薬草 food）。＋ AI 生成画像を `ghost/Frieren/items/*.png` に配置
+  （未生成でもテキスト fallback で先行可）。
 - **Step 2 — Loader**：`personality-items.php` 新設＋ load order 追加。
 - **Step 3 — REST**：`give_item()` ＋ route `/touch/give`。
   ＋ **backend 側で synthetic anchor を含めた history を組み立てて `store_after_auto(..., 'give')` で checksum 書き込み（C-B / D-2）**
@@ -369,8 +402,8 @@ mpu_get_personality_item_ids($personality_id = null): array
   ＋ `stats-collector.php` の conversation stats に `'give'` 追加（D-3）。
 - **Step 4 — Observation**：`item` type ＋ normalize ＋ format（kind 分岐）＋ **`dedupe_key` の `item` 判定（R2-1・必須）**
   ＋ `mpu_observation_push_item()` ＋ `get_item_display_name()`。
-- **Step 5 — Frontend**：catalog を `wp_localize_script` で供給 ＋ frieren.js にギフトメニュー UI（text-only）＋
-  `/touch/give` 呼び出し。
+- **Step 5 — Frontend**：catalog（`image` ＋ `items_base_url` 込み）を `wp_localize_script` で供給 ＋
+  スタンプ風ギフトピッカー UI（画像グリッド・`onerror` テキスト fallback）＋ `/touch/give` 呼び出し。
 - **Step 6 — 仕上げ**：dist 再ビルド（`node tools/node/build.js`）、PHPUnit（items.json の kind 妥当性・
   prompt 非空・可視タグ無し）、CHANGELOG / README（実装完了時）。
 
@@ -388,14 +421,16 @@ mpu_get_personality_item_ids($personality_id = null): array
 | 拡張 | `includes/stats/stats-collector.php`（conversation stats type に `give`） |
 | 拡張 | `includes/llm/response-normalizer.php`（`MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` に `'give' => false`・C-1） |
 | 拡張 | `includes/core/class-mpu-observation-buffer.php`（`item` type） |
-| 拡張 | `ghost/Frieren/frieren.js`（ギフトメニュー・text-only） |
-| 拡張 | catalog の `wp_localize_script` 供給（enqueue 箇所。`frontend-functions.php` 付近） |
-| 拡張 | `includes/core/frontend-functions.php`（personality script dependency に chat runtime を含める） |
+| 拡張 | `ghost/Frieren/frieren-interactions.js`（A-2 後の責務配置。スタンプ風ギフトピッカー・画像グリッド＋テキスト fallback） |
+| 新規 | `ghost/Frieren/items/*.png`（AI 生成。魔導書／蒼月草／メルクーアプリン／薬草。未生成でもテキスト fallback で先行可） |
+| 拡張 | catalog（`image`＋`items_base_url`）の `wp_localize_script` 供給（enqueue 箇所。`frontend-functions.php` 付近） |
+| 拡張 | `includes/core/frontend-functions.php`（catalog localize＋ script 依存。下記 ⚠️A-2 参照） |
 | 1 行 | `mp-ukagaka.php`（personality-items の load order） |
-| 再ビルド | `js/dist/ukagaka-bundle.js` / `.min.js`（core 変更時） |
-| 後回し | `ghost/Frieren/items/*.png`（Phase 3 で画像 UI 化する時） |
+| 再ビルド | `ghost/Frieren/dist/frieren-bundle.js` / `.min.js`（frieren-interactions.js 変更時＝**必須**）。core JS を触れば `js/dist/ukagaka-bundle.*` も |
 
-> 差分規模感：新規 2 ファイル＋既存 6 ファイル拡張＋ load order 1 行。Step 0 のおかげで REST 追加は薄い。
+> 差分規模感：新規 3 ファイル（items.json／personality-items.php／items/*.png）＋既存 6 ファイル拡張＋ load order 1 行。Step 0 のおかげで REST 追加は薄い。後端は U-1 で完全不変。
+>
+> ⚠️ **A-2 後の前端構成に注意**：本プラン初稿は frieren.js 単体・`$chat_handle` 前提で書かれているが、v2.25.7 で (a) Frieren 系は `ghost/Frieren/dist/frieren-bundle.min.js` に bundle 化（production）／SCRIPT_DEBUG で個別 enqueue、(b) `ukagaka-chat.js` は 7 モジュールに分割され `mpu-bundle` に同梱。`mpu_getOrCreateChatSessionId` / `window.mpuChatHistory` への依存は bundle mode では満たされる。実装者は §3⑤ の旧「script dependency」注記を現行の bundle 構成で読み替えること。
 >
 > ⚠️ **`MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` の所在は `includes/llm/response-normalizer.php`（define は同ファイル冒頭）**。
 > 姉妹プラン `Emotion_Tag_And_Think_Block_Plan.md` は旧構成のまま `utility-functions.php` と記すが、現行では response-normalizer.php に移動済み。C-1 の `'give' => false` 追加はこちらを編集する。
@@ -410,10 +445,10 @@ mpu_get_personality_item_ids($personality_id = null): array
     のような**可視 emotion tag が含まれていない**ことを assert。v2.25.1 で直したばかりの回帰をここで防ぐ。
   - **tag ⊆ supported（会社 CLAUDE C-2）**：item `prompt` が誘導する `[tag]` は全て当該 ghost の `emoji.supported` 内である
     ことを assert。2.25.2 以降 supported 外 tag は `strip_unknown=false` で display に残るため、未サポート tag を誘導すると漏れる。
-- observation の `item` normalize / format をユニットで（`food:mapo_tofu` → 「麻婆豆腐を貰って食べた」、
-  `gift:flower` → 「花を貰った」。kind 分岐の両方を確認）
-- **dedup ユニット（R2-1）**：`tests/Unit/ObservationBufferTest.php` にテストを追加。同じ `food:mapo_tofu` を 3 回 push → buffer に 1 件のみ（最新）。
-  `food:mapo_tofu` ＋ `gift:flower` → 2 件。さらに touch / page_view と混在させ、連投で他イベントが
+- observation の `item` normalize / format をユニットで（`food:merkur_pudding` → 「メルクーアプリンを貰って食べた」、
+  `gift:grimoire` → 「魔導書を貰った」。kind 分岐の両方を確認）
+- **dedup ユニット（R2-1）**：`tests/Unit/ObservationBufferTest.php` にテストを追加。同じ `food:merkur_pudding` を 3 回 push → buffer に 1 件のみ（最新）。
+  `food:merkur_pudding` ＋ `gift:grimoire` → 2 件。さらに touch / page_view と混在させ、連投で他イベントが
   押し出されないこと（5 枠を道具で埋めない）を確認。
 - **history allowlist ユニット（D-1）**：`give` type が `class-mpu-rest-chat.php` 側の history sanitize と
   `MPU_Chat_History_Service::parse_history_from_request()` の両方で保持されることを確認。片方だけ追加してもテストが落ちる形にする。
@@ -436,6 +471,7 @@ mpu_get_personality_item_ids($personality_id = null): array
   異なる道具を5件以上差し出すと 5 枠が item で埋まり page_view 等が押し出される。`push()` に item の per-type 上限
   （全体 2–3 件）を入れる、もしくは閾値超で「色々な物を貰った」集約レコードへ merge する。MVP では非対応。
 - **Phase 3（演出強化）**：ドラッグ&ドロップで口元に運ぶ、食べるアニメ、ギフト箱を開ける演出。
+  （※ U-1 により「画像 UI 化」自体は MVP に前倒し済み。Phase 3 に残るのは D&D・食べる/開封アニメ等の追加演出のみ。）
 
 ---
 
@@ -471,16 +507,16 @@ mpu_get_personality_item_ids($personality_id = null): array
 ### ✅ 確定済み（レビューで決着）
 
 - **catalog 供給** → `wp_localize_script`（#2）。
-- **アイテム画像** → MVP は text-only、`image` 欄は保持（#3）。
+- **アイテム画像** → **画像優先＋テキスト fallback**（U-1 が #3 を改訂）。`image`＋`items_base_url` を localize、`onerror` で `name` へ退避。
 - **observation type 名** → `item`／`dedupe_key` 必須（#1・R2-1）。
 - **normalizer context** → `give`、inner monologue default = false（#5）。
 - **エラー契約** → `run_reaction()` は `WP_Error` を返し caller は `is_wp_error()` 即 return（R2-3）。
 - **rate limit key** → `give_item` で独立（R2-4）。
 - **synthetic anchor** → backend 生成の localized anchor（`res.user_anchor`）。REST 返却・前端 push は同一文字列。checksum hash 対象ではないが、history window と語意文脈を揃える（G-2 が R2-2/D-2 の前端組立を改訂）。
 - **エンドポイント名** → `/touch/give`（A-1・G-4）。`MPU_REST_Touch` 名前空間に同居。
-- **UI 入口** → `#ukagaka_msgbox` 入力欄付近の小ボタン → テキスト一覧。Canvas 域に干渉しない（R2-5）。
+- **UI 入口** → `#ukagaka_msgbox` 入力欄付近のアイコン → **LINE スタンプ風画像グリッドのポップアップ**。画像クリック＝送禮／給食。Canvas 域に干渉しない（R2-5 を U-1 で細化）。
+- **アイテムカタログ** → 魔導書（gift/fav）・蒼月草（gift/fav）・メルクーアプリン（food）・薬草（food）。画像は AI 生成（維護者確定・U-1）。
 
 ### ⏳ 実装時に確定（残）
 
-1. **localize ハンドル**：catalog をどの enqueue 済みスクリプトにぶら下げるか（既存 frontend の localize 箇所に相乗り）。
-2. **メニュー展開の見た目**：小ボタン押下後のドロップ表示スタイル（位置・最大件数・スクロール）。Phase 3 の D&D／画像化と整合する形が望ましい。
+1. **localize ハンドル**：catalog をどの enqueue 済みスクリプトにぶら下げるか（A-2 後は `mpu-bundle` ／ `mpu-personality`＝frieren-bundle が候補。既存 frontend の localize 箇所に相乗り）。
