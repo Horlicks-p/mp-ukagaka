@@ -548,4 +548,4 @@ window.mpuSpaEvents.forEach(function(eventName) {
 mpuLogger.logL("featuresScriptLoaded", "スクリプトの読み込みが完了しました");
 
 // ====== 互動對話模式 ======
-// 已移至 ukagaka-chat.js
+// 已移至 ukagaka-chat-send.js

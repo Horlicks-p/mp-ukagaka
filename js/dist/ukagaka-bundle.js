@@ -1,8 +1,8 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-11T12:58:33.291Z
+ * Generated: 2026-06-15T09:20:47.873Z
  * 
- * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
+ * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
 
 // ========== ukagaka-base.js ==========
@@ -5496,8 +5496,6 @@ function mpu_sendUserMessage() {
   }
 }
 
-// ========== ukagaka-chat.js ==========
-
 // ========== ukagaka-chat-events.js ==========
 // 綁定對話模式事件
 jQuery(document).ready(function () {
@@ -6358,5 +6356,4 @@ window.mpuSpaEvents.forEach(function(eventName) {
 mpuLogger.logL("featuresScriptLoaded", "スクリプトの読み込みが完了しました");
 
 // ====== 互動對話模式 ======
-// 已移至 ukagaka-chat.js
-
+// 已移至 ukagaka-chat-send.js

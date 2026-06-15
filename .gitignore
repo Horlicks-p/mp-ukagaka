@@ -94,3 +94,6 @@ avatar-ui/
 
 # Playwright MCP session artifacts (snapshots, console logs, screenshots)
 .playwright-mcp/
+
+# CodeGraph MCP local index (SQLite knowledge graph, machine-generated)
+.codegraph/

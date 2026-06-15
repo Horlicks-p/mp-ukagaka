@@ -383,7 +383,6 @@ function mpu_enqueue_frontend_assets() {
 		$base_handle  = 'mpu-bundle';
 		$core_handle  = 'mpu-bundle';
 		$anime_handle = 'mpu-bundle';
-		$chat_handle  = 'mpu-bundle';
 	} else {
 		// === 開發模式：載入獨立檔案（便於調試）===
 
@@ -431,7 +430,7 @@ function mpu_enqueue_frontend_assets() {
 		wp_enqueue_script(
 			'mpu-greeting',
 			plugins_url( 'js/ukagaka-greeting.js', $main_file ),
-			array( 'mpu-core', 'mpu-chat' ),
+			array( 'mpu-core', 'mpu-chat-send' ),
 			MPU_VERSION,
 			true
 		);
@@ -477,17 +476,9 @@ function mpu_enqueue_frontend_assets() {
 		);
 
 		wp_enqueue_script(
-			'mpu-chat',
-			plugins_url( 'js/ukagaka-chat.js', $main_file ),
-			array( 'mpu-chat-send' ),
-			MPU_VERSION,
-			true
-		);
-
-		wp_enqueue_script(
 			'mpu-chat-events',
 			plugins_url( 'js/ukagaka-chat-events.js', $main_file ),
-			array( 'mpu-chat' ),
+			array( 'mpu-chat-send' ),
 			MPU_VERSION,
 			true
 		);
@@ -512,7 +503,7 @@ function mpu_enqueue_frontend_assets() {
 		wp_enqueue_script(
 			'mpu-features',
 			plugins_url( 'js/ukagaka-features.js', $main_file ),
-			array( 'mpu-core', 'mpu-anime', 'mpu-chat', 'mpu-context', 'mpu-dialog', 'mpu-greeting' ),
+			array( 'mpu-core', 'mpu-anime', 'mpu-chat-send', 'mpu-context', 'mpu-dialog', 'mpu-greeting' ),
 			MPU_VERSION,
 			true
 		);
@@ -520,7 +511,6 @@ function mpu_enqueue_frontend_assets() {
 		$base_handle  = 'mpu-base';
 		$core_handle  = 'mpu-core';
 		$anime_handle = 'mpu-anime';
-		$chat_handle  = 'mpu-chat';
 	}
 
 	// 動態載入人格專屬腳本（從 manifest.json 讀取）
@@ -625,7 +615,7 @@ function mpu_enqueue_frontend_assets() {
 	}
 
 	// 根據模式選擇正確的 script handle
-	// 修正：掛載到更基礎的 handle (mpu-core)，確保 mpu-chat 等依賴它的腳本能讀取到 mpuL10n
+	// 修正：掛載到更基礎的 handle (mpu-core)，確保 chat 模組等依賴它的腳本能讀取到 mpuL10n
 	$l10n_handle = $use_bundle ? 'mpu-bundle' : 'mpu-core';
 
 	$log_i18n = function_exists( 'mpu_console_log_i18n_builder' )
@@ -1216,7 +1206,7 @@ function mpu_frontend_bootstrap_inline_js( $mpu_opt ) {
  *
  * 輸出掛在最早的 script handle（mpu-bundle / mpu-base）的 'before' 位置，
  * 確保所有模組腳本在 parse 階段即可讀取這些全域變數。
- * ukagaka-base.js / ukagaka-chat.js 以 `=== true` 嚴格比較讀取 mpuPreSettings，
+ * ukagaka-base.js / ukagaka-chat-send.js / ukagaka-features.js 以 `=== true` 嚴格比較讀取 mpuPreSettings，
  * 必須以 wp_json_encode 保持原生布林／數值型別，不可改用 wp_localize_script
  * （top-level 純量會被轉成字串）。per-request 的 mpuRestUrl / mpuRestNonce /
  * mpuSessionToken / mpuDebugMode 不在此處，仍由 mpu_head() 輸出。
