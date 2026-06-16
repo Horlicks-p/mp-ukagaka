@@ -381,7 +381,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
      * Detect which sleep phase is active before the wake marker is written.
      *
      * @param string $personality_id Personality ID.
-     * @return string|null deep_sleep, oversleep, or null.
+     * @return string|null nap, deep_sleep, oversleep, or null.
      */
     private function get_wake_sleep_phase(string $personality_id): ?string {
         if (!function_exists('mpu_get_sleep_settings')) {
@@ -392,6 +392,12 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         if (empty($sleep_settings)) {
             return null;
         }
+
+		// 午休（白天小睡）優先判斷：行為類似深眠（刷新繼續睡、不記 IP），
+		// 但叫醒反應用專屬的 nap 提示.
+		if ( function_exists( 'mpu_is_nap_time' ) && mpu_is_nap_time( $personality_id ) ) {
+			return 'nap';
+		}
 
         $current_mod = (int) wp_date('G') * 60 + (int) wp_date('i');
         $start_mod = function_exists('mpu_get_daily_deep_sleep_start_mod')
@@ -431,7 +437,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
      *
      * @param string      $personality_id Personality ID.
      * @param string      $ukagaka_num    Current ukagaka key.
-     * @param string|null $sleep_phase    deep_sleep or oversleep.
+     * @param string|null $sleep_phase    nap, deep_sleep, or oversleep.
      * @return string
      */
     private function generate_wake_reaction(string $personality_id, string $ukagaka_num, ?string $sleep_phase): string {
@@ -475,7 +481,13 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             $personality_id
         );
 
-        $phase_label = $sleep_phase === 'oversleep' ? '二度寝' : '深い眠り';
+		if ( 'oversleep' === $sleep_phase ) {
+			$phase_label = '二度寝';
+		} elseif ( 'nap' === $sleep_phase ) {
+			$phase_label = '昼寝';
+		} else {
+			$phase_label = '深い眠り';
+		}
         $user_prompt = "【現在の状況】\n";
         $user_prompt .= "あなたは{$phase_label}の途中で、訪問者に起こされました。\n";
         $user_prompt .= "これは通常会話ではなく、起こされた直後の最初の一言です。\n\n";
@@ -563,7 +575,10 @@ class MPU_REST_Dialog extends MPU_REST_Base {
 
                 if (!$result) {
                     $is_deep_sleep = false;
-                    if (function_exists('mpu_get_sleep_settings')) {
+					// 午休與深眠同樣是「可臨時叫醒、刷新後繼續睡」的狀態.
+					if ( function_exists( 'mpu_is_nap_time' ) && mpu_is_nap_time( $personality_id ) ) {
+						$is_deep_sleep = true;
+                    } elseif (function_exists('mpu_get_sleep_settings')) {
                         $sleep_settings = mpu_get_sleep_settings($personality_id);
                         $current_mod    = (int) wp_date('G') * 60 + (int) wp_date('i');
                         $d_start_mod    = mpu_get_daily_deep_sleep_start_mod($personality_id);
@@ -576,7 +591,11 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                         }
                     }
 
-                    if ($is_deep_sleep) {
+					if ( $is_deep_sleep ) {
+						$temporary_message = 'nap' === $sleep_phase
+							? __( 'キャラクターが一時的に起こされました（昼寝中。ページを更新すると再び眠ります）', 'mp-ukagaka' )
+							: __( 'キャラクターが一時的に起こされました（深い眠り中。ページを更新すると再び眠ります）', 'mp-ukagaka' );
+
                         $wake_reaction = $this->generate_wake_reaction($personality_id, $ukagaka_num, $sleep_phase);
                         if (class_exists('MPU_Observation_Buffer')) {
                             $token = $request->get_header('X-MPU-Session-Token') ?: (string) $request->get_param('session_token');
@@ -585,7 +604,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
 
                         return $this->ok([
                             'success'        => true,
-                            'message'        => __('キャラクターが一時的に起こされました（深い眠り中。ページを更新すると再び眠ります）', 'mp-ukagaka'),
+                            'message'        => $temporary_message,
                             'personality_id' => $personality_id,
                             'is_temporary'   => true,
                             'sleep_phase'    => $sleep_phase,
@@ -608,7 +627,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             $wake_reaction = $this->generate_wake_reaction($personality_id, $ukagaka_num, $sleep_phase);
             if (class_exists('MPU_Observation_Buffer')) {
                 $token = $request->get_header('X-MPU-Session-Token') ?: (string) $request->get_param('session_token');
-                $event = $sleep_phase === 'deep_sleep' ? 'wake_from_sleep' : 'wake';
+				$event = in_array( $sleep_phase, array( 'deep_sleep', 'nap' ), true ) ? 'wake_from_sleep' : 'wake';
                 MPU_Observation_Buffer::push('lifecycle_event', $event, $token);
             }
 

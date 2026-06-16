@@ -124,6 +124,16 @@ function mpu_pick_sleep_dream_line($personality_id, $category, $merge_basic = tr
         return false;
     }
 
+	// 午休時段（白天小睡）優先使用 nap_dreams 池：晚睡的夢話與 visitor/bot 等.
+	// 子類別偏夜晚語氣（例：「こんな夜更けに」），不適合白天，故直接以 nap 池取代.
+	if (
+		function_exists( 'mpu_is_nap_time' ) && mpu_is_nap_time( $personality_id )
+		&& ! empty( $sleep_config['nap_dreams'] ) && is_array( $sleep_config['nap_dreams'] )
+	) {
+		$nap_pool = $sleep_config['nap_dreams'];
+		return $nap_pool[ array_rand( $nap_pool ) ] . '<!-- mpu-sleep -->';
+	}
+
     $pool = [];
     if (!empty($sleep_config[$category]) && is_array($sleep_config[$category])) {
         $pool = array_merge($pool, $sleep_config[$category]);
@@ -154,13 +164,13 @@ function mpu_pick_sleep_dream_line($personality_id, $category, $merge_basic = tr
  * }
  *
  * @param string|null $personality_id Character ID.
- * @param string      $phase          Sleep phase: deep_sleep or oversleep.
+ * @param string      $phase          Sleep phase: deep_sleep, oversleep, or nap.
  * @return string|false
  */
 function mpu_pick_wake_reaction_prompt($personality_id, $phase)
 {
     $phase = sanitize_key($phase);
-    if (!in_array($phase, ['deep_sleep', 'oversleep'], true)) {
+	if ( ! in_array( $phase, array( 'deep_sleep', 'oversleep', 'nap' ), true ) ) {
         return false;
     }
 

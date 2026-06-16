@@ -4,6 +4,18 @@
 
 ---
 
+## [2.26.0] - 2026-06-16
+
+### 😴 Daytime Nap (after-lunch sleep)
+
+- **New nap window**: Characters can now take an after-lunch nap in addition to the existing nighttime sleep. The nap does not happen every day (probability-based, ~2–3 times a week) and its length varies (30–60 minutes) within a configurable window (default 12:30–13:30). Like nighttime deep sleep, a nap is temporary: refreshing the page keeps the character asleep, and the woken-IP record is not used.
+- **Reuses the existing sleep machinery**: `mpu_is_deep_sleep_time()` now returns `true` during a nap, so every downstream behavior (reduced auto-talk frequency, dream lines, touch/wake reactions, weight adjustments, the `isDeepSleepTime` frontend flag) applies automatically. Two helpers were added in `llm-context-builder.php`: `mpu_get_daily_nap_window()` (rolls the day's nap once and caches it in a transient until midnight) and `mpu_is_nap_time()`.
+- **Nap-specific flavor**: `sleep_mode.json` gains a `nap_dreams` pool and `wake_reaction_prompts.nap`. During a nap, dream lines are drawn from `nap_dreams` (daytime, post-meal tone) instead of the night pools, and the wake reaction uses the `nap` phase. The frontend wake fallback (`ukagaka-chat-wake.js`) also gains nap-specific lines for when the LLM reaction is empty or fails.
+- **Per-character config**: Add a `nap` block under `sleep_settings` in a character's `manifest.json` (`enabled`, `window_start` / `window_end` in minutes-of-day, `probability`, `min_minutes`, `max_minutes`). Nap is **off by default**; partial nap configs now deep-merge onto the defaults, so a manifest only needs `nap.enabled: true` to inherit the rest. Frieren ships with nap enabled (12:30–13:30, p=0.4, 30–60 min).
+- **Wake UX**: The temporary-wake message distinguishes a nap ("昼寝中…") from deep sleep ("深い眠り中…").
+
+---
+
 ## [2.25.7] - 2026-06-11
 
 ### A-2 Frontend Split & Performance

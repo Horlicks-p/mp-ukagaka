@@ -411,6 +411,12 @@ function mpu_get_time_context($personality_id = null)
  */
 function mpu_is_deep_sleep_time($personality_id = null)
 {
+	// 午休時段（白天小睡）也視為「睡著」，讓所有下游行為（降頻、夢話、
+	// 摸頭／叫醒反應、權重調整）自動沿用晚睡的機制.
+	if ( mpu_is_nap_time( $personality_id ) ) {
+		return true;
+	}
+
     // 目前時間（站點時區），minutes-of-day (0–1439)
     $current_mod = (int) wp_date('G') * 60 + (int) wp_date('i');
 
@@ -476,12 +482,26 @@ function mpu_get_sleep_settings($personality_id = null)
         'oversleep_enabled'       => true, // 是否啟用賴床（人格可不同）
         'oversleep_max_hour'      => 8,    // 最晚 08:00
         'oversleep_probability'   => 0.5,  // 50% 機率賴床
+		// 午休（白天小睡）：預設關閉，人格可於 manifest 的 sleep_settings.nap 開啟.
+		// window_* 為 minutes-of-day（分鐘精度），與晚睡的整點 hour 不同.
+		'nap'                   => array(
+			'enabled'      => false, // 是否啟用午休.
+			'window_start' => 750,   // 12:30（午休可發生的最早時刻）.
+			'window_end'   => 810,   // 13:30（午休必須結束的最晚時刻）.
+			'probability'  => 0.4,   // 當天午休的機率（0.4 ≈ 每週 2.8 次）.
+			'min_minutes'  => 30,    // 最短午睡（分鐘）.
+			'max_minutes'  => 60,    // 最長午睡（分鐘）.
+		),
     ];
 
     if (function_exists('mpu_load_personality_manifest')) {
         $manifest = mpu_load_personality_manifest($personality_id);
         if (!empty($manifest['sleep_settings']) && is_array($manifest['sleep_settings'])) {
-            return array_merge($defaults, $manifest['sleep_settings']);
+			$settings = array_merge($defaults, $manifest['sleep_settings']);
+			if ( ! empty( $settings['nap'] ) && is_array( $settings['nap'] ) ) {
+				$settings['nap'] = array_merge( $defaults['nap'], $settings['nap'] );
+			}
+			return $settings;
         }
     }
 
@@ -666,6 +686,101 @@ function mpu_get_daily_deep_sleep_start_mod($personality_id = null)
 
     set_transient($cache_key, $start_mod, $seconds_until_midnight);
     return $start_mod;
+}
+
+/**
+ * 獲取今天的午休時段（白天小睡，每個人格每天各自抽一次）
+ *
+ * 與晚睡不同，午休：
+ *   1) 不是每天都發生（依 nap.probability 抽籤，例如 0.4 ≈ 每週 2.8 次）
+ *   2) 起訖採分鐘精度（window_start / window_end 為 minutes-of-day）
+ *   3) 午睡長度隨機（min_minutes ~ max_minutes），整段保證落在 window 內
+ *
+ * 結果以 transient 快取到午夜，確保同一天判斷穩定（刷新頁面不會重抽）。
+ *
+ * @param string|null $personality_id 角色 ID.
+ * @return array|null [start_mod, end_mod]；今天不午休或未啟用時回 null
+ */
+function mpu_get_daily_nap_window( $personality_id = null ) {
+	$sleep_settings = mpu_get_sleep_settings( $personality_id );
+	$nap            = ( isset( $sleep_settings['nap'] ) && is_array( $sleep_settings['nap'] ) )
+		? $sleep_settings['nap']
+		: array();
+
+	// 未啟用午休：直接視為今天不午休.
+	if ( empty( $nap['enabled'] ) ) {
+		return null;
+	}
+
+	$today = wp_date( 'Y-m-d' );
+	$pid   = mpu_norm_personality_key( $personality_id );
+
+	$cache_key = "mpu_nap_window_{$today}_{$pid}";
+	$cached    = get_transient( $cache_key );
+	if ( is_array( $cached ) ) {
+		return ! empty( $cached['has_nap'] )
+			? array( (int) $cached['start'], (int) $cached['end'] )
+			: null;
+	}
+
+	// 解析設定（minutes-of-day）.
+	$window_start = mpu_sleep_clamp_mod( $nap['window_start'] ?? 750 );
+	$window_end   = mpu_sleep_clamp_mod( $nap['window_end'] ?? 810 );
+	$min_minutes  = max( 1, (int) ( $nap['min_minutes'] ?? 30 ) );
+	$max_minutes  = max( $min_minutes, (int) ( $nap['max_minutes'] ?? 60 ) );
+	$probability  = max( 0.0, min( 1.0, (float) ( $nap['probability'] ?? 0.4 ) ) );
+
+	// 到午夜的秒數（站點時區）.
+	$tz                     = wp_timezone();
+	$now                    = new DateTimeImmutable( 'now', $tz );
+	$mid                    = new DateTimeImmutable( 'tomorrow', $tz );
+	$seconds_until_midnight = max( 60, $mid->getTimestamp() - $now->getTimestamp() );
+
+	$result = array(
+		'has_nap' => false,
+		'start'   => 0,
+		'end'     => 0,
+	);
+
+	// 設定合理性檢查：window 至少要容得下最短午睡.
+	$window_span = $window_end - $window_start;
+	if ( $window_span < $min_minutes ) {
+		mpu_log_warning( '午休設定錯誤：nap window 太窄，無法容納 min_minutes' );
+		set_transient( $cache_key, $result, $seconds_until_midnight );
+		return null;
+	}
+
+	// 抽籤決定今天是否午休.
+	if ( random_int( 1, 10000 ) <= (int) round( $probability * 10000 ) ) {
+		// 午睡長度受 window 寬度上限約束，保證整段落在 window 內.
+		$duration     = random_int( $min_minutes, min( $max_minutes, $window_span ) );
+		$latest_start = $window_end - $duration;
+		$start_mod    = random_int( $window_start, $latest_start );
+		$result       = array(
+			'has_nap' => true,
+			'start'   => $start_mod,
+			'end'     => $start_mod + $duration,
+		);
+	}
+
+	set_transient( $cache_key, $result, $seconds_until_midnight );
+	return ! empty( $result['has_nap'] ) ? array( $result['start'], $result['end'] ) : null;
+}
+
+/**
+ * 判斷當前是否在午休時段內
+ *
+ * @param string|null $personality_id 角色 ID.
+ * @return bool
+ */
+function mpu_is_nap_time( $personality_id = null ) {
+	$window = mpu_get_daily_nap_window( $personality_id );
+	if ( null === $window ) {
+		return false;
+	}
+
+	$current_mod = (int) wp_date( 'G' ) * 60 + (int) wp_date( 'i' );
+	return $current_mod >= $window[0] && $current_mod < $window[1];
 }
 
 /**
@@ -1045,5 +1160,3 @@ function mpu_build_optimized_system_prompt(
 
     return $system_prompt;
 }
-
-

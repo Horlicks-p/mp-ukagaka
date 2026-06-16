@@ -3,7 +3,15 @@
  */
 function mpu_display_wake_reaction(res) {
   const fallbackPool =
-    res && res.sleep_phase === "oversleep"
+    res && res.sleep_phase === "nap"
+      ? [
+          "……食べたばかりなんだけど。",
+          "……少しだけ昼寝してたのに。",
+          "……お腹いっぱいで、まだ眠い。",
+          "……午後は眠いね。",
+          "……もう少しだけ、目を閉じてたかった。",
+        ]
+      : res && res.sleep_phase === "oversleep"
       ? [
           "……もう少し寝ていたかったんだけど。",
           "……起こすの、少し早くない？",

@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-15T09:20:47.873Z
+ * Generated: 2026-06-16T04:23:14.144Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -5655,7 +5655,15 @@ jQuery(document).ready(function () {
  */
 function mpu_display_wake_reaction(res) {
   const fallbackPool =
-    res && res.sleep_phase === "oversleep"
+    res && res.sleep_phase === "nap"
+      ? [
+          "……食べたばかりなんだけど。",
+          "……少しだけ昼寝してたのに。",
+          "……お腹いっぱいで、まだ眠い。",
+          "……午後は眠いね。",
+          "……もう少しだけ、目を閉じてたかった。",
+        ]
+      : res && res.sleep_phase === "oversleep"
       ? [
           "……もう少し寝ていたかったんだけど。",
           "……起こすの、少し早くない？",

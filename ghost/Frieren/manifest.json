@@ -84,6 +84,14 @@
     "deep_sleep_end": 7,
     "oversleep_enabled": true,
     "oversleep_max_hour": 9,
-    "oversleep_probability": 1.0
+    "oversleep_probability": 1.0,
+    "nap": {
+      "enabled": true,
+      "window_start": 750,
+      "window_end": 810,
+      "probability": 0.4,
+      "min_minutes": 30,
+      "max_minutes": 60
+    }
   }
  }
