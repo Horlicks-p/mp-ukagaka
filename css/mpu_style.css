@@ -388,10 +388,16 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 #mpu_user_input {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  box-sizing: border-box;
   padding: 8px 12px;
   border: 1px solid rgba(30, 58, 138, 0.3);
   border-radius: 16px;
@@ -410,6 +416,108 @@
 
 #mpu_user_input::placeholder {
   color: #9ca3af;
+}
+
+.mpu-gift-picker-button {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(30, 58, 138, 0.3);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.mpu-gift-picker-button:focus-visible {
+  outline: 2px solid #1d8ac3;
+  outline-offset: 2px;
+}
+
+.mpu-gift-picker-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.mpu-gift-picker {
+  position: absolute;
+  right: 12px;
+  left: 12px;
+  bottom: calc(100% + 8px);
+  z-index: 10030;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 8px;
+  width: auto;
+  box-sizing: border-box;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid rgba(30, 58, 138, 0.25);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 8px 24px rgba(30, 58, 138, 0.22);
+}
+
+.mpu-gift-picker[hidden] {
+  display: none;
+}
+
+.mpu-gift-picker-item {
+  min-width: 0;
+  padding: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent !important;
+  color: #1e3a8a !important;
+  cursor: pointer;
+  font-family: "Noto Sans TC", "Noto Sans JP", serif;
+  transition: transform 0.16s ease;
+}
+
+.mpu-gift-picker-item:hover {
+  border: 0;
+  background: transparent !important;
+  color: #1e3a8a !important;
+  transform: scale(1.08);
+  z-index: 1;
+}
+
+.mpu-gift-picker-item:focus-visible {
+  background: transparent !important;
+  color: #1e3a8a !important;
+  outline: 2px dashed rgba(30, 58, 138, 0.55);
+  outline-offset: 2px;
+}
+
+.mpu-gift-picker-item img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 4px;
+  object-fit: contain;
+  transition: transform 0.16s ease;
+  transform-origin: center;
+}
+
+.mpu-gift-picker-item:hover img {
+  transform: scale(1.12);
+}
+
+.mpu-gift-picker-name,
+.mpu-gift-picker-fallback {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.mpu-gift-picker-fallback {
+  min-height: 64px;
+  padding-top: 20px;
 }
 
 .mpu-chat-message {

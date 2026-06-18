@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Frieren Bundle
- * Generated: 2026-06-11T13:25:55.754Z
+ * Generated: 2026-06-18T07:27:08.305Z
  *
  * 包含: frieren.js, frieren-animation.js, frieren-interactions.js, frieren-decorations.js
  */
@@ -727,7 +727,7 @@
         );
       }
 
-      if (this.decorationChatInProgress) {
+      if (this.decorationChatInProgress || this.giveItemInProgress) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
           mpuLogger.logL("frierenDecorationClickIgnoredDialogActive", "装飾品会話中のため、今回のクリックを無視します");
         }
@@ -1026,7 +1026,7 @@
         mpuLogger.logF("frierenTouchZoneHandled", "handleTouchZone が呼び出されました。領域：%s", zoneName);
       }
 
-      if (this.decorationChatInProgress) {
+      if (this.decorationChatInProgress || this.giveItemInProgress) {
         if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
           mpuLogger.logL("frierenTouchZoneIgnoredDialogActive", "装飾品またはタッチ会話中のため、タッチ領域クリックを無視します");
         }
@@ -1264,6 +1264,219 @@
 
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
         mpuLogger.logL("frierenTouchEventsBound", "キャラクターのタッチイベントを設定しました");
+      }
+
+      this.setupGiftPicker();
+    },
+
+    /**
+     * チャット入力欄の末尾にギフトピッカーを設置する。
+     */
+    setupGiftPicker: function () {
+      const config = window.mpuPersonalityItems;
+      const input = document.getElementById("mpu_user_input");
+      const container = document.getElementById("ukagaka_chat_input");
+      if (
+        !config ||
+        !Array.isArray(config.items) ||
+        config.items.length === 0 ||
+        !input ||
+        !container ||
+        document.getElementById("mpu_gift_picker_button")
+      ) {
+        return;
+      }
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.id = "mpu_gift_picker_button";
+      button.className = "mpu-gift-picker-button";
+      button.textContent = "🎁";
+      button.setAttribute("aria-label", config.pickerLabel || "ギフトを選ぶ");
+      button.setAttribute("aria-expanded", "false");
+      button.setAttribute("aria-controls", "mpu_gift_picker");
+
+      const picker = document.createElement("div");
+      picker.id = "mpu_gift_picker";
+      picker.className = "mpu-gift-picker";
+      picker.hidden = true;
+      picker.setAttribute("role", "menu");
+      picker.setAttribute("aria-label", config.pickerLabel || "ギフトを選ぶ");
+
+      config.items.forEach((item) => {
+        const itemButton = document.createElement("button");
+        itemButton.type = "button";
+        itemButton.className = "mpu-gift-picker-item";
+        itemButton.setAttribute("role", "menuitem");
+        itemButton.setAttribute("aria-label", item.name);
+        itemButton.title = item.name;
+
+        const image = document.createElement("img");
+        image.src = String(config.itemsBaseUrl || "") + item.image;
+        image.alt = "";
+        image.loading = "lazy";
+        image.addEventListener("error", () => {
+          const fallback = document.createElement("span");
+          fallback.className = "mpu-gift-picker-fallback";
+          fallback.textContent = item.name;
+          image.replaceWith(fallback);
+        }, { once: true });
+
+        const label = document.createElement("span");
+        label.className = "mpu-gift-picker-name";
+        label.textContent = item.name;
+        itemButton.append(image, label);
+        itemButton.addEventListener("click", () => {
+          this.closeGiftPicker();
+          this.giveItem(item.id);
+        });
+        picker.appendChild(itemButton);
+      });
+
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const willOpen = picker.hidden;
+        picker.hidden = !willOpen;
+        button.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      });
+      picker.addEventListener("click", (event) => event.stopPropagation());
+
+      container.append(button, picker);
+      document.addEventListener("click", () => this.closeGiftPicker());
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !picker.hidden) {
+          this.closeGiftPicker();
+          button.focus();
+        }
+      });
+    },
+
+    closeGiftPicker: function () {
+      const button = document.getElementById("mpu_gift_picker_button");
+      const picker = document.getElementById("mpu_gift_picker");
+      if (picker) {
+        picker.hidden = true;
+      }
+      if (button) {
+        button.setAttribute("aria-expanded", "false");
+      }
+    },
+
+    /**
+     * 選択されたアイテムを /touch/give に送信する。
+     * @param {string} itemId
+     */
+    giveItem: async function (itemId) {
+      if (
+        this.giveItemInProgress ||
+        this.decorationChatInProgress ||
+        window.mpuMessageBlocking ||
+        typeof mpuAiEnabled === "undefined" ||
+        !mpuAiEnabled
+      ) {
+        return;
+      }
+
+      const button = document.getElementById("mpu_gift_picker_button");
+      this.giveItemInProgress = true;
+      window.mpuMessageBlocking = true;
+      if (button) {
+        button.disabled = true;
+      }
+
+      try {
+        if (
+          typeof mpuFetch !== "function" ||
+          typeof mpuRestUrl === "undefined" ||
+          typeof mpu_getOrCreateChatSessionId !== "function"
+        ) {
+          throw new Error("Gift picker runtime is unavailable");
+        }
+
+        if (typeof stopAutoTalk === "function") {
+          stopAutoTalk();
+        }
+        if (typeof mpu_cancelTypewriter === "function") {
+          mpu_cancelTypewriter();
+        }
+        if (typeof mpuShowSystemPlaceholder === "function") {
+          mpuShowSystemPlaceholder({ context: "give" });
+        }
+        if (typeof mpuMarkSystemPlaceholder === "function") {
+          mpuMarkSystemPlaceholder("#ukagaka_msg");
+        }
+        if (jQuery("#ukagaka_msgbox").is(":hidden") && typeof mpu_showmsg !== "undefined") {
+          mpu_showmsg(400);
+        }
+
+        const history = Array.isArray(window.mpuChatHistory)
+          ? window.mpuChatHistory.slice(-20)
+          : [];
+        const formData = new FormData();
+        formData.append("item_id", itemId);
+        formData.append("session_id", mpu_getOrCreateChatSessionId());
+        formData.append("history", JSON.stringify(history));
+
+        const res = await mpuFetch(mpuRestUrl + "touch/give", {
+          method: "POST",
+          body: formData,
+          timeout: 30000,
+          retries: 1,
+          requestId: "mpu_give_item_" + itemId,
+        });
+
+        if (!res || !res.msg || res.error) {
+          throw new Error(res?.error || "Gift reaction failed");
+        }
+
+        if (typeof mpu_typewriter === "function") {
+          mpu_typewriter(res.msg, "#ukagaka_msg");
+        }
+        if (this.isFrierenMode) {
+          this.triggerFrierenSpeaking(true);
+        }
+        if (res.emoji && window.mpuEmojiManager) {
+          window.mpuEmojiManager.showEmoji(res.emoji);
+        }
+        if (Array.isArray(window.mpuChatHistory) && res.user_anchor) {
+          window.mpuChatHistory.push({
+            role: "user",
+            content: res.user_anchor,
+            type: "synthetic",
+            timestamp: Date.now(),
+          });
+          window.mpuChatHistory.push({
+            role: "assistant",
+            content: res.msg,
+            type: "give",
+            timestamp: Date.now(),
+          });
+          if (typeof mpu_saveChatHistory === "function") {
+            mpu_saveChatHistory();
+          }
+        }
+      } catch (error) {
+        if (typeof mpuLogger !== "undefined" && mpuLogger.errorL) {
+          mpuLogger.errorL("frierenGiveItemRequestFailed", "ギフト反応リクエストに失敗しました", error);
+        }
+        if (typeof mpu_typewriter === "function") {
+          mpu_typewriter(
+            (window.mpuL10n && window.mpuL10n.connectionError) || "（…通信状況が良くないみたいだ…）",
+            "#ukagaka_msg"
+          );
+        }
+      } finally {
+        this.giveItemInProgress = false;
+        window.mpuMessageBlocking = false;
+        if (button) {
+          button.disabled = false;
+        }
+        if (typeof mpuClearSystemPlaceholder === "function") {
+          mpuClearSystemPlaceholder("#ukagaka_msg");
+        }
+        if (typeof mpuAutoTalk !== "undefined" && mpuAutoTalk && typeof startAutoTalk === "function") {
+          startAutoTalk();
+        }
       }
     },
 

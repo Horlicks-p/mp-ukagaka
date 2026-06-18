@@ -36,6 +36,16 @@ class MPU_REST_Touch extends MPU_REST_Base {
             'callback'            => [$this, 'touch_zone_chat'],
             'permission_callback' => '__return_true',
         ]);
+
+		register_rest_route(
+			$this->namespace,
+			'/touch/give',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'give_item' ),
+				'permission_callback' => '__return_true',
+			)
+		);
     }
 
     /**
@@ -80,42 +90,11 @@ class MPU_REST_Touch extends MPU_REST_Base {
 
         $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で{$ukagaka_name}として直接反応すること。第三者視点の描写は禁止。";
 
-        $language = $mpu_opt['ai_language'] ?? 'ja';
-
-        $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name);
-
-        $provider = mpu_get_current_provider($mpu_opt);
-        $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
-        if ($provider !== 'ollama' && empty($api_key)) {
-            return $this->fail('rest_error', sprintf(__('%s API Key が設定されていません', 'mp-ukagaka'), ucfirst($provider)), 400);
-        }
-
-        $max_tokens = 800;
-        if (function_exists('mpu_get_personality_max_tokens')) {
-            $max_tokens = mpu_get_personality_max_tokens($personality_id);
-        }
-
-        $result = mpu_call_ai_api(
-            $provider,
-            $api_key,
-            $system_prompt,
-            $user_prompt,
-            $language,
-            $mpu_opt,
-            $max_tokens
-        );
-
-        if (is_wp_error($result)) {
-            return $this->fail('rest_error', $result->get_error_message(), 400);
-        }
-
-        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'decoration' ));
-        $max_length = 500;
-        if (function_exists('mpu_get_personality_max_response_length')) {
-            $max_length = mpu_get_personality_max_response_length($personality_id);
-        }
-        $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
-        $result     = $normalized['display_text'];
+		$normalized = $this->run_reaction( $user_prompt, $personality_id, 'decoration' );
+		if ( is_wp_error( $normalized ) ) {
+			return $this->fail( 'rest_error', $normalized->get_error_message(), 400 );
+		}
+        $result = $normalized['display_text'];
 
         if (function_exists('mpu_record_conversation')) {
             mpu_record_conversation('decoration');
@@ -196,42 +175,11 @@ class MPU_REST_Touch extends MPU_REST_Base {
 
         $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で{$ukagaka_name}として直接反応すること。第三者視点の描写は禁止。";
 
-        $language = $mpu_opt['ai_language'] ?? 'ja';
-
-        $system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name);
-
-        $provider = mpu_get_current_provider($mpu_opt);
-        $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
-        if ($provider !== 'ollama' && empty($api_key)) {
-            return $this->fail('rest_error', sprintf(__('%s API Key が設定されていません', 'mp-ukagaka'), ucfirst($provider)), 400);
-        }
-
-        $max_tokens = 800;
-        if (function_exists('mpu_get_personality_max_tokens')) {
-            $max_tokens = mpu_get_personality_max_tokens($personality_id);
-        }
-
-        $result = mpu_call_ai_api(
-            $provider,
-            $api_key,
-            $system_prompt,
-            $user_prompt,
-            $language,
-            $mpu_opt,
-            $max_tokens
-        );
-
-        if (is_wp_error($result)) {
-            return $this->fail('rest_error', $result->get_error_message(), 400);
-        }
-
-        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'touch' ));
-        $max_length = 500;
-        if (function_exists('mpu_get_personality_max_response_length')) {
-            $max_length = mpu_get_personality_max_response_length($personality_id);
-        }
-        $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
-        $result     = $normalized['display_text'];
+		$normalized = $this->run_reaction( $user_prompt, $personality_id, 'touch' );
+		if ( is_wp_error( $normalized ) ) {
+			return $this->fail( 'rest_error', $normalized->get_error_message(), 400 );
+		}
+        $result = $normalized['display_text'];
 
         if (function_exists('mpu_record_conversation')) {
             mpu_record_conversation('touch');
@@ -246,4 +194,159 @@ class MPU_REST_Touch extends MPU_REST_Base {
 
         return $this->ok($response);
     }
+
+	// phpcs:disable Generic.Formatting.MultipleStatementAlignment
+	/**
+	 * React to a gift or food item.
+	 *
+	 * @param WP_REST_Request $request REST request.
+	 * @return WP_REST_Response|WP_Error REST response.
+	 */
+	public function give_item( WP_REST_Request $request ) {
+		$session_token_error = $this->check_session_token( $request );
+		if ( null !== $session_token_error ) {
+			return $session_token_error;
+		}
+
+		$mpu_opt = mpu_get_option();
+		if ( empty( $mpu_opt['ai_enabled'] ) ) {
+			return $this->fail( 'rest_error', __( 'AI機能が有効になっていません', 'mp-ukagaka' ), 400 );
+		}
+
+		$rate_limit = $this->rate_limit( 'give_item', 20, 60 );
+		if ( null !== $rate_limit ) {
+			return $rate_limit;
+		}
+
+		$item_id = sanitize_key( wp_unslash( (string) $request->get_param( 'item_id' ) ) );
+		$personality_id = function_exists( 'mpu_get_current_personality_id' )
+			? mpu_get_current_personality_id()
+			: null;
+		$item = function_exists( 'mpu_get_personality_item' )
+			? mpu_get_personality_item( $item_id, $personality_id )
+			: false;
+		if ( false === $item ) {
+			return $this->fail( 'rest_error', __( '不明なアイテムです', 'mp-ukagaka' ), 400 );
+		}
+
+		$session_id = MPU_Chat_History_Service::get_session_id( $request );
+		if ( '' === $session_id ) {
+			return $this->fail( 'rest_error', __( '会話セッションが指定されていません', 'mp-ukagaka' ), 400 );
+		}
+
+		if ( ! $request->has_param( 'history' ) ) {
+			return $this->fail( 'rest_error', __( '会話履歴が指定されていません', 'mp-ukagaka' ), 400 );
+		}
+
+		$raw_history = $request->get_param( 'history' );
+		$decoded_history = is_string( $raw_history )
+			? json_decode( wp_unslash( $raw_history ), true )
+			: $raw_history;
+		if ( ! is_array( $decoded_history ) ) {
+			return $this->fail( 'rest_error', __( '会話履歴の形式が正しくありません', 'mp-ukagaka' ), 400 );
+		}
+		$history = MPU_Chat_History_Service::normalize_history( $decoded_history );
+
+		$ukagaka_name = $mpu_opt['ukagakas'][ $mpu_opt['cur_ukagaka'] ]['name'] ?? 'キャラクター';
+		$user_prompt = $item['prompt'];
+		$user_prompt .= 'food' === $item['kind']
+			? "\n\n差し出された食べ物を受け取って食べ、味の感想を述べること。"
+			: "\n\n差し出された贈り物を受け取り、お礼を述べること。";
+		if ( ! empty( $item['favorite'] ) ) {
+			$user_prompt .= "\n特別に喜ぶ反応をすること。";
+		}
+		$user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で{$ukagaka_name}として直接反応すること。第三者視点の描写は禁止。";
+
+		$normalized = $this->run_reaction( $user_prompt, $personality_id, 'give' );
+		if ( is_wp_error( $normalized ) ) {
+			return $this->fail( 'rest_error', $normalized->get_error_message(), 400 );
+		}
+
+		if ( function_exists( 'mpu_record_conversation' ) ) {
+			mpu_record_conversation( 'give' );
+		}
+		if ( function_exists( 'mpu_observation_push_item' ) ) {
+			mpu_observation_push_item( $request, $item['kind'], $item['id'] );
+		}
+
+		$user_anchor = sprintf(
+			/* translators: %s is an item name. */
+			__( '（%sを差し出した）', 'mp-ukagaka' ),
+			$item['name']
+		);
+		$history[] = array(
+			'role'    => 'user',
+			'content' => $user_anchor,
+			'type'    => 'synthetic',
+		);
+		MPU_Chat_History_Service::store_after_auto(
+			$session_id,
+			$history,
+			$normalized['checksum_text'],
+			'give'
+		);
+
+		$response = mpu_normalize_ai_response_rest_fields( $normalized );
+		$response['item_id'] = $item['id'];
+		$response['kind'] = $item['kind'];
+		$response['user_anchor'] = $user_anchor;
+
+		return $this->ok( $response );
+	}
+
+	/**
+	 * Execute the shared AI reaction pipeline.
+	 *
+	 * @param string      $user_prompt    User prompt.
+	 * @param string|null $personality_id Personality ID.
+	 * @param string      $context        Normalizer context.
+	 * @return array|WP_Error Normalized response or error.
+	 */
+	private function run_reaction( $user_prompt, $personality_id, $context ) {
+		$mpu_opt = mpu_get_option();
+		$ukagaka_name = $mpu_opt['ukagakas'][ $mpu_opt['cur_ukagaka'] ]['name'] ?? 'キャラクター';
+		$language = $mpu_opt['ai_language'] ?? 'ja';
+		$system_prompt = mpu_resolve_system_prompt( $personality_id, $mpu_opt, $ukagaka_name );
+		$provider = mpu_get_current_provider( $mpu_opt );
+		$api_key = mpu_get_provider_api_key( $provider, $mpu_opt );
+
+		if ( 'ollama' !== $provider && empty( $api_key ) ) {
+			return new WP_Error(
+				'rest_error',
+				sprintf( __( '%s API Key が設定されていません', 'mp-ukagaka' ), ucfirst( $provider ) ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$max_tokens = 800;
+		if ( function_exists( 'mpu_get_personality_max_tokens' ) ) {
+			$max_tokens = mpu_get_personality_max_tokens( $personality_id );
+		}
+
+		$result = mpu_call_ai_api(
+			$provider,
+			$api_key,
+			$system_prompt,
+			$user_prompt,
+			$language,
+			$mpu_opt,
+			$max_tokens
+		);
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$normalized = mpu_normalize_ai_response_for_rest(
+			$result,
+			$personality_id,
+			array( 'context' => $context )
+		);
+		$max_length = 500;
+		if ( function_exists( 'mpu_get_personality_max_response_length' ) ) {
+			$max_length = mpu_get_personality_max_response_length( $personality_id );
+		}
+
+		return mpu_normalize_ai_response_apply_display_limit( $normalized, $max_length );
+	}
+	// phpcs:enable Generic.Formatting.MultipleStatementAlignment
 }

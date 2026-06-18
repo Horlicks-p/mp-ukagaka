@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "items_base_folder": "items",
+  "items": [
+    {
+      "id": "merkur_pudding",
+      "kind": "food",
+      "name": "メルクーアプリン",
+      "image": "merkur_pudding.png",
+      "favorite": false,
+      "prompt": "相手がメルクーアプリンを差し出した。フリーレンとして、受け取って食べ、味の感想を自然に述べる反応をする。"
+    }
+  ]
+}

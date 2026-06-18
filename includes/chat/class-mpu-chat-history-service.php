@@ -19,6 +19,7 @@ class MPU_Chat_History_Service {
     const ALLOWED_MSG_TYPES = [
         'chat', 'synthetic', 'auto_talk', 'greet',
         'context', 'event', 'touch_decoration', 'touch_zone',
+		'give',
     ];
 
     /**
@@ -50,25 +51,40 @@ class MPU_Chat_History_Service {
             return $history;
         }
 
-        foreach ($decoded as $msg) {
-            if (!is_array($msg) || empty($msg['role']) || !isset($msg['content'])) {
-                continue;
-            }
-            $role = in_array($msg['role'], ['user', 'assistant'], true) ? $msg['role'] : null;
-            if ($role === null) {
-                continue;
-            }
-            $content = sanitize_textarea_field(wp_unslash((string) ($msg['content'] ?? '')));
-            if ($content === '') {
-                continue;
-            }
-            $type = in_array($msg['type'] ?? '', self::ALLOWED_MSG_TYPES, true)
-                ? (string) $msg['type'] : 'chat';
-            $history[] = ['role' => $role, 'content' => $content, 'type' => $type];
-        }
-
-        return $history;
+        return self::normalize_history($decoded);
     }
+
+	/**
+	 * 正規化已解析的 history 陣列。
+	 *
+	 * @param array $decoded 已解析的 history.
+	 * @return array<int, array{role: string, content: string, type: string}>
+	 */
+	public static function normalize_history( array $decoded ): array {
+		$history = array();
+		foreach ( $decoded as $msg ) {
+			if ( ! is_array( $msg ) || empty( $msg['role'] ) || ! isset( $msg['content'] ) ) {
+				continue;
+			}
+			$role = in_array( $msg['role'], array( 'user', 'assistant' ), true ) ? $msg['role'] : null;
+			if ( null === $role ) {
+				continue;
+			}
+			$content = sanitize_textarea_field( wp_unslash( (string) ( $msg['content'] ?? '' ) ) );
+			if ( '' === $content ) {
+				continue;
+			}
+			$type      = in_array( $msg['type'] ?? '', self::ALLOWED_MSG_TYPES, true )
+				? (string) $msg['type'] : 'chat';
+			$history[] = array(
+				'role'    => $role,
+				'content' => $content,
+				'type'    => $type,
+			);
+		}
+
+		return $history;
+	}
 
     /**
      * 驗證 checksum（chat/user 路徑）。

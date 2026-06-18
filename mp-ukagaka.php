@@ -77,6 +77,7 @@ function mpu_load_modules()
         'personality/personality-loader.php',  // 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
         'personality/personality-prompts.php', // 人格提示詞模組（動態提示詞、變數替換）
         'personality/personality-decorations.php', // 裝飾物系統
+		'personality/personality-items.php', // Gift and food item catalog.
         'personality/personality-emoji.php',   // 表情系統
         'stats/stats-collector.php',   // 統計收集器（需在 ai-functions.php 之前載入）
         'stats/stats-analyzer.php',    // 統計分析器

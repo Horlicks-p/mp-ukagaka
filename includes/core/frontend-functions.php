@@ -383,6 +383,7 @@ function mpu_enqueue_frontend_assets() {
 		$base_handle  = 'mpu-bundle';
 		$core_handle  = 'mpu-bundle';
 		$anime_handle = 'mpu-bundle';
+		$chat_handle  = 'mpu-bundle';
 	} else {
 		// === 開發模式：載入獨立檔案（便於調試）===
 
@@ -511,6 +512,7 @@ function mpu_enqueue_frontend_assets() {
 		$base_handle  = 'mpu-base';
 		$core_handle  = 'mpu-core';
 		$anime_handle = 'mpu-anime';
+		$chat_handle  = 'mpu-chat-history';
 	}
 
 	// 動態載入人格專屬腳本（從 manifest.json 讀取）
@@ -544,7 +546,7 @@ function mpu_enqueue_frontend_assets() {
 			wp_enqueue_script(
 				$personality_script_handle,
 				plugins_url( 'ghost/' . $personality_id . '/dist/frieren-bundle.min.js', $main_file ),
-				array( $anime_handle ),
+				array_values( array_unique( array( $anime_handle, $chat_handle ) ) ),
 				MPU_VERSION,
 				true
 			);
@@ -559,7 +561,7 @@ function mpu_enqueue_frontend_assets() {
 				$handle      = 0 === $script_index ? $personality_script_handle : "mpu-personality-{$script_index}";
 				$script_url  = plugins_url( 'ghost/' . $personality_id . '/' . $script_file, $main_file );
 				$script_deps = 0 === $script_index
-					? array( $anime_handle )
+					? array_values( array_unique( array( $anime_handle, $chat_handle ) ) )
 					: array( $last_personality_script_handle );
 				wp_enqueue_script(
 					$handle,
@@ -571,6 +573,31 @@ function mpu_enqueue_frontend_assets() {
 				$last_personality_script_handle = $handle;
 				++$script_index;
 			}
+		}
+
+		if ( function_exists( 'mpu_load_personality_items' ) ) {
+			$item_catalog = mpu_load_personality_items( $personality_id );
+			$item_display = array();
+			foreach ( $item_catalog['items'] ?? array() as $item ) {
+				$item_display[] = array(
+					'id'       => $item['id'],
+					'kind'     => $item['kind'],
+					'name'     => $item['name'],
+					'image'    => $item['image'],
+					'favorite' => (bool) $item['favorite'],
+				);
+			}
+
+			wp_localize_script(
+				$personality_script_handle,
+				'mpuPersonalityItems',
+				array(
+					'items'        => $item_display,
+					'itemsBaseUrl' => plugins_url( 'ghost/' . $personality_id . '/items/', $main_file ),
+					'pickerLabel'  => __( 'ギフトを選ぶ', 'mp-ukagaka' ),
+					'closeLabel'   => __( 'ギフト一覧を閉じる', 'mp-ukagaka' ),
+				)
+			);
 		}
 	}
 
