@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.26.0
+Stable tag: 2.27.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,12 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-18 =
+* v2.27.0
+* [FEATURE] Gift / feeding system: a 🎁 picker by the chat input lets visitors hand the character gift or food items. Each item drives an LLM reaction — food is eaten with a taste comment, gifts are accepted with thanks, and `favorite` items get an extra-delighted reaction — rendered through the existing emotion-tag/APNG pipeline. Reactions are recorded in the session observation buffer (ghost-agnostic `item` type with per-item dedupe) and chat history, so later chat can refer back to what was given. New `POST /mp-ukagaka/v1/touch/give` on `MPU_REST_Touch` with an independent rate limit, a ghost-agnostic `items.json` catalog read by `personality-items.php` (image-filename whitelisting), and a backend-owned synthetic history anchor + checksum write for front/back history parity. Frieren ships with メルクーアプリン (food) and 魔導書 (gift).
+* [UI] The gift picker is a single-item carousel (prev/next buttons, arrow keys, touch swipe, position counter) with image-first thumbnails and a text fallback; the picker button gains an explicit hover state.
+* [FIX] Frontend interaction lock now routes gift/decoration/touch through the core `mpuSetMessageBlocking()` channel instead of `window.mpuMessageBlocking`, so a gift can no longer be sent while chat/context holds the lock (and vice versa).
 
 = 2026-06-16 =
 * v2.26.0
