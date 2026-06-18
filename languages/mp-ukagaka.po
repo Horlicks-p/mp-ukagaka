@@ -3569,6 +3569,10 @@ msgstr ""
 msgid "裝飾品反應"
 msgstr ""
 
+#: options/options_page_stats.php:48
+msgid "贈禮餵食反應"
+msgstr ""
+
 #: options/options_page_stats.php:56
 msgid "📊 統計儀表板"
 msgstr ""

@@ -848,6 +848,10 @@ msgstr "自言自語"
 msgid "裝飾品反應"
 msgstr "裝飾品反應"
 
+#: options/options_page_stats.php:48
+msgid "贈禮餵食反應"
+msgstr "贈禮餵食反應"
+
 #: options/options_page_ai.php:109
 msgid "最大輸出 Token (Max Output Tokens)："
 msgstr "最大輸出 Token (Max Output Tokens)："
