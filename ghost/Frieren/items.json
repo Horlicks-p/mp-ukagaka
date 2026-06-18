@@ -7,8 +7,9 @@
       "kind": "food",
       "name": "メルクーアプリン",
       "image": "merkur_pudding.png",
-      "favorite": false,
-      "prompt": "相手がメルクーアプリンを差し出した。フリーレンとして、受け取って食べ、味の感想を自然に述べる反応をする。"
+      "favorite": true,
+      "prompt": "相手がメルクーアプリンを差し出した。メルクーアプリンはフリーレンの大好物である。",
+      "reactions": ["give_food", "give_favorite"]
     }
   ]
 }

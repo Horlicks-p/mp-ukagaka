@@ -252,7 +252,27 @@ class MPU_REST_Touch extends MPU_REST_Base {
 		$user_prompt .= 'food' === $item['kind']
 			? "\n\n差し出された食べ物を受け取って食べ、味の感想を述べること。"
 			: "\n\n差し出された贈り物を受け取り、お礼を述べること。";
-		if ( ! empty( $item['favorite'] ) ) {
+
+		// item の reactions が指す prompts.json カテゴリからランダムに 1 件抽き、
+		// 演出の角度を毎回ばらつかせる (touch_zone_chat と同型).
+		$reaction_pool = array();
+		if ( ! empty( $item['reactions'] ) && function_exists( 'mpu_load_personality_prompts' ) ) {
+			$prompts_data = mpu_load_personality_prompts( $personality_id );
+			foreach ( $item['reactions'] as $category ) {
+				if ( empty( $prompts_data[ $category ] ) || ! is_array( $prompts_data[ $category ] ) ) {
+					continue;
+				}
+				// malformed JSON 對策：非字串・空白のみの行は候選から除外する.
+				foreach ( $prompts_data[ $category ] as $line ) {
+					if ( is_string( $line ) && '' !== trim( $line ) ) {
+						$reaction_pool[] = $line;
+					}
+				}
+			}
+		}
+		if ( ! empty( $reaction_pool ) ) {
+			$user_prompt .= "\n" . $reaction_pool[ array_rand( $reaction_pool ) ];
+		} elseif ( ! empty( $item['favorite'] ) ) {
 			$user_prompt .= "\n特別に喜ぶ反応をすること。";
 		}
 		$user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で{$ukagaka_name}として直接反応すること。第三者視点の描写は禁止。";

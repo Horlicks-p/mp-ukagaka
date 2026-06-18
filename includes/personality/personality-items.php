@@ -66,13 +66,25 @@ function mpu_normalize_personality_items_catalog( array $catalog ) {
 			continue;
 		}
 
+		$reactions = array();
+		if ( ! empty( $item['reactions'] ) && is_array( $item['reactions'] ) ) {
+			foreach ( $item['reactions'] as $category ) {
+				$category = sanitize_key( (string) $category );
+				if ( '' !== $category ) {
+					$reactions[] = $category;
+				}
+			}
+			$reactions = array_values( array_unique( $reactions ) );
+		}
+
 		$items[] = array(
-			'id'       => $id,
-			'kind'     => $kind,
-			'name'     => $name,
-			'image'    => $image,
-			'favorite' => ! empty( $item['favorite'] ),
-			'prompt'   => $prompt,
+			'id'        => $id,
+			'kind'      => $kind,
+			'name'      => $name,
+			'image'     => $image,
+			'favorite'  => ! empty( $item['favorite'] ),
+			'prompt'    => $prompt,
+			'reactions' => $reactions,
 		);
 	}
 

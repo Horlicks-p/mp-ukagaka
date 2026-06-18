@@ -82,8 +82,37 @@ function mpu_add_statistics_prompts(&$categories, $wp_info, $personality_id = nu
 }
 
 /**
+ * 判斷某個 prompts.json 類別是否可進入「自發性對話」候選。
+ *
+ * 排除：
+ *   - `_*` metadata key（_comment, _format_version 等）
+ *   - 反應專用類別（玩家明示互動端點觸發，絕不自發）：
+ *       touch_*（/touch/zone）、give_*（/touch/give）
+ *
+ * 新增反應類別前綴時，只需在 $reaction_prefixes 補一筆。
+ *
+ * @param string $key Prompt category key.
+ * @return bool True if the category may be used for spontaneous conversation.
+ */
+function mpu_is_spontaneous_prompt_category( $key ) {
+	$key = (string) $key;
+	if ( '' === $key || '_' === $key[0] ) {
+		return false;
+	}
+
+	$reaction_prefixes = array( 'touch_', 'give_' );
+	foreach ( $reaction_prefixes as $prefix ) {
+		if ( 0 === strpos( $key, $prefix ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * 建構 User Prompt 的類別指令
- * 
+ *
  * 此函數生成不同類別的對話指令，用於「使用 LLM 取代內建對話」功能。
  * 這些指令會與實際的用戶/訪客/網站資訊一起組成 User Prompt，提供上下文並引導 LLM 生成對應類型的對話。
  * 
@@ -109,12 +138,13 @@ function mpu_build_prompt_categories(
     // 從快取獲取靜態類別
     $prompt_categories = mpu_get_static_prompt_categories($personality_id);
 
-    // ★ 過濾掉不應出現在自發性對話中的分類：
-    //   - touch_* 類別：僅供 /touch/zone 端點使用（由玩家點擊觸發）
-    //   - _*  metadata key（_comment, _format_version, _variable_placeholders 等）
-    $prompt_categories = array_filter($prompt_categories, function ($key) {
-        return strpos($key, 'touch_') !== 0 && strpos($key, '_') !== 0;
-    }, ARRAY_FILTER_USE_KEY);
+	// 過濾掉不應出現在自發性對話中的分類（touch_* / give_* 反應類別、_* metadata）.
+	// 判斷邏輯集中於 mpu_is_spontaneous_prompt_category() 便於測試與擴充.
+	$prompt_categories = array_filter(
+		$prompt_categories,
+		'mpu_is_spontaneous_prompt_category',
+		ARRAY_FILTER_USE_KEY
+	);
 
     // 使用 JSON 動態提示詞（如果可用）
     if (function_exists('mpu_apply_dynamic_prompts')) {

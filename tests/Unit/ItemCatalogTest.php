@@ -18,12 +18,29 @@ final class ItemCatalogTest extends TestCase {
         $this->assertSame('food', $item['kind']);
         $this->assertSame('メルクーアプリン', $item['name']);
         $this->assertSame('merkur_pudding.png', $item['image']);
-        $this->assertFalse($item['favorite']);
+        $this->assertTrue($item['favorite']);
         $this->assertNotSame('', trim($item['prompt']));
         $this->assertMatchesRegularExpression('/\A[a-z_][a-z0-9_]*\z/', $item['id']);
         $this->assertMatchesRegularExpression('/\A[a-z0-9_-]+\.(png|webp)\z/', $item['image']);
         $this->assertDoesNotMatchRegularExpression('/\[(thinking|laugh|sigh|love)\]/i', $item['name']);
         $this->assertDoesNotMatchRegularExpression('/\[(thinking|laugh|sigh|love)\]/i', $item['prompt']);
+
+        // reactions は prompts.json のカテゴリ名（任意・配列）。
+        $this->assertArrayHasKey('reactions', $item);
+        $this->assertIsArray($item['reactions']);
+        foreach ($item['reactions'] as $category) {
+            $this->assertMatchesRegularExpression('/\A[a-z_][a-z0-9_]*\z/', $category);
+        }
+
+        // items.json の reactions が指すカテゴリが prompts.json に実在すること。
+        $prompts = json_decode(
+            (string) file_get_contents(MPU_TESTS_ROOT . '/ghost/Frieren/prompts.json'),
+            true
+        );
+        foreach ($item['reactions'] as $category) {
+            $this->assertArrayHasKey($category, $prompts);
+            $this->assertNotEmpty($prompts[$category]);
+        }
     }
 
     public function test_catalog_normalizer_rejects_invalid_items_and_sanitizes_valid_item(): void {
@@ -38,6 +55,7 @@ final class ItemCatalogTest extends TestCase {
                     'image' => 'valid_item.webp',
                     'favorite' => 1,
                     'prompt' => '<i>React naturally.</i>',
+                    'reactions' => ['Give_Food', 'give_food', 'bad cat!', ''],
                 ],
                 [
                     'id' => 'bad/id',
@@ -66,6 +84,8 @@ final class ItemCatalogTest extends TestCase {
         $this->assertSame('1.0', $catalog['version']);
         $this->assertSame('items', $catalog['items_base_folder']);
         $this->assertCount(1, $catalog['items']);
+        // reactions は sanitize_key 適用・空除去・重複除去される
+        // （'Give_Food'→'give_food'、'give_food' は重複、'bad cat!'→'badcat'、'' は除去）。
         $this->assertSame([
             'id' => 'valid_item',
             'kind' => 'food',
@@ -73,6 +93,7 @@ final class ItemCatalogTest extends TestCase {
             'image' => 'valid_item.webp',
             'favorite' => true,
             'prompt' => 'React naturally.',
+            'reactions' => ['give_food', 'badcat'],
         ], $catalog['items'][0]);
     }
 }
