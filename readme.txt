@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.27.0
+Stable tag: 2.27.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,10 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-19 =
+* v2.27.1
+* [I18N] Add the gift/feeding strings to the translation catalog — the four `/touch/give` error messages, the localized history anchor (`（%sを差し出した）`), the picker label, and the carousel previous/next labels. They were missing from the `.pot`/`.po`/`.mo` files, so non-Japanese sites showed Japanese and the backend-owned "localized anchor" fell back to Japanese. The carousel nav labels are now passed through `wp_localize_script` so they are translatable instead of hardcoded. Traditional Chinese and English translations added; `.mo` files recompiled.
 
 = 2026-06-18 =
 * v2.27.0

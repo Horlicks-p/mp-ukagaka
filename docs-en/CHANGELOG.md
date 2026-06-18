@@ -4,6 +4,14 @@
 
 ---
 
+## [2.27.1] - 2026-06-19
+
+### 🌐 i18n fix
+
+- **Gift strings added to the catalog**: The gift/feeding feature shipped with new `__()` strings that were never added to the translation files — the four `/touch/give` error messages, the localized history anchor `（%sを差し出した）`, the picker label, and the carousel previous/next labels. Non-Japanese sites therefore showed Japanese, and the backend-owned "localized anchor" fell back to Japanese. All are now in `mp-ukagaka.pot` and the `.po` / `.mo` catalogs with Traditional Chinese and English translations, and the carousel navigation labels are passed through `wp_localize_script` so they are translatable instead of hardcoded.
+
+---
+
 ## [2.27.0] - 2026-06-18
 
 ### 🎁 Gift / Feeding System
