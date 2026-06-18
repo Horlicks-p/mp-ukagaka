@@ -618,14 +618,40 @@
       picker.id = "mpu_gift_picker";
       picker.className = "mpu-gift-picker";
       picker.hidden = true;
-      picker.setAttribute("role", "menu");
+      picker.setAttribute("role", "dialog");
       picker.setAttribute("aria-label", config.pickerLabel || "ギフトを選ぶ");
 
-      config.items.forEach((item) => {
+      const slider = document.createElement("div");
+      slider.className = "mpu-gift-picker-slider";
+
+      const previousButton = document.createElement("button");
+      previousButton.type = "button";
+      previousButton.className = "mpu-gift-picker-nav mpu-gift-picker-nav-previous";
+      previousButton.textContent = "‹";
+      previousButton.setAttribute("aria-label", config.previousLabel || "前のアイテム");
+
+      const slide = document.createElement("div");
+      slide.className = "mpu-gift-picker-slide";
+
+      const nextButton = document.createElement("button");
+      nextButton.type = "button";
+      nextButton.className = "mpu-gift-picker-nav mpu-gift-picker-nav-next";
+      nextButton.textContent = "›";
+      nextButton.setAttribute("aria-label", config.nextLabel || "次のアイテム");
+
+      const counter = document.createElement("div");
+      counter.className = "mpu-gift-picker-counter";
+      counter.setAttribute("aria-live", "polite");
+
+      let currentIndex = 0;
+      let touchStartX = null;
+      const hasNavigation = config.items.length > 1;
+
+      const renderSlide = () => {
+        const item = config.items[currentIndex];
         const itemButton = document.createElement("button");
         itemButton.type = "button";
         itemButton.className = "mpu-gift-picker-item";
-        itemButton.setAttribute("role", "menuitem");
         itemButton.setAttribute("aria-label", item.name);
         itemButton.title = item.name;
 
@@ -640,22 +666,63 @@
           image.replaceWith(fallback);
         }, { once: true });
 
-        const label = document.createElement("span");
-        label.className = "mpu-gift-picker-name";
-        label.textContent = item.name;
-        itemButton.append(image, label);
+        itemButton.appendChild(image);
         itemButton.addEventListener("click", () => {
           this.closeGiftPicker();
           this.giveItem(item.id);
         });
-        picker.appendChild(itemButton);
-      });
+        slide.replaceChildren(itemButton);
+        counter.textContent = `${currentIndex + 1} / ${config.items.length}`;
+      };
+
+      const moveSlide = (offset) => {
+        currentIndex = (currentIndex + offset + config.items.length) % config.items.length;
+        renderSlide();
+        const itemButton = slide.querySelector(".mpu-gift-picker-item");
+        if (!picker.hidden && itemButton) {
+          itemButton.focus();
+        }
+      };
+
+      previousButton.addEventListener("click", () => moveSlide(-1));
+      nextButton.addEventListener("click", () => moveSlide(1));
+
+      if (!hasNavigation) {
+        slider.classList.add("is-single");
+        previousButton.hidden = true;
+        nextButton.hidden = true;
+        counter.hidden = true;
+      }
+
+      slider.addEventListener("touchstart", (event) => {
+        touchStartX = event.changedTouches[0]?.clientX ?? null;
+      }, { passive: true });
+      slider.addEventListener("touchend", (event) => {
+        if (!hasNavigation || touchStartX === null) {
+          touchStartX = null;
+          return;
+        }
+        const touchEndX = event.changedTouches[0]?.clientX ?? touchStartX;
+        const deltaX = touchEndX - touchStartX;
+        touchStartX = null;
+        if (Math.abs(deltaX) < 30) {
+          return;
+        }
+        moveSlide(deltaX > 0 ? -1 : 1);
+      }, { passive: true });
+
+      slider.append(previousButton, slide, nextButton);
+      picker.append(slider, counter);
+      renderSlide();
 
       button.addEventListener("click", (event) => {
         event.stopPropagation();
         const willOpen = picker.hidden;
         picker.hidden = !willOpen;
         button.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        if (willOpen) {
+          slide.querySelector(".mpu-gift-picker-item")?.focus();
+        }
       });
       picker.addEventListener("click", (event) => event.stopPropagation());
 
@@ -665,6 +732,12 @@
         if (event.key === "Escape" && !picker.hidden) {
           this.closeGiftPicker();
           button.focus();
+        } else if (!picker.hidden && hasNavigation && event.key === "ArrowLeft") {
+          event.preventDefault();
+          moveSlide(-1);
+        } else if (!picker.hidden && hasNavigation && event.key === "ArrowRight") {
+          event.preventDefault();
+          moveSlide(1);
         }
       });
     },
@@ -699,6 +772,7 @@
       }
 
       const button = document.getElementById("mpu_gift_picker_button");
+      const pickerButtons = document.querySelectorAll("#mpu_gift_picker button");
       this.giveItemInProgress = true;
       if (typeof mpuSetMessageBlocking === "function") {
         mpuSetMessageBlocking(true);
@@ -708,6 +782,9 @@
       if (button) {
         button.disabled = true;
       }
+      pickerButtons.forEach((pickerButton) => {
+        pickerButton.disabled = true;
+      });
 
       try {
         if (
@@ -800,6 +877,9 @@
         if (button) {
           button.disabled = false;
         }
+        pickerButtons.forEach((pickerButton) => {
+          pickerButton.disabled = false;
+        });
         if (typeof mpuClearSystemPlaceholder === "function") {
           mpuClearSystemPlaceholder("#ukagaka_msg");
         }

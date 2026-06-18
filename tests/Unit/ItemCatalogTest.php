@@ -5,41 +5,56 @@ use PHPUnit\Framework\TestCase;
 require_once MPU_TESTS_ROOT . '/includes/personality/personality-items.php';
 
 final class ItemCatalogTest extends TestCase {
-    public function test_frieren_item_catalog_contains_only_valid_test_item(): void {
+    public function test_frieren_item_catalog_contains_expected_valid_items(): void {
         $path = MPU_TESTS_ROOT . '/ghost/Frieren/items.json';
         $catalog = json_decode((string) file_get_contents($path), true);
 
         $this->assertIsArray($catalog);
         $this->assertSame('items', $catalog['items_base_folder']);
-        $this->assertCount(1, $catalog['items']);
+        $this->assertCount(2, $catalog['items']);
 
-        $item = $catalog['items'][0];
-        $this->assertSame('merkur_pudding', $item['id']);
-        $this->assertSame('food', $item['kind']);
-        $this->assertSame('メルクーアプリン', $item['name']);
-        $this->assertSame('merkur_pudding.png', $item['image']);
-        $this->assertTrue($item['favorite']);
-        $this->assertNotSame('', trim($item['prompt']));
-        $this->assertMatchesRegularExpression('/\A[a-z_][a-z0-9_]*\z/', $item['id']);
-        $this->assertMatchesRegularExpression('/\A[a-z0-9_-]+\.(png|webp)\z/', $item['image']);
-        $this->assertDoesNotMatchRegularExpression('/\[(thinking|laugh|sigh|love)\]/i', $item['name']);
-        $this->assertDoesNotMatchRegularExpression('/\[(thinking|laugh|sigh|love)\]/i', $item['prompt']);
-
-        // reactions は prompts.json のカテゴリ名（任意・配列）。
-        $this->assertArrayHasKey('reactions', $item);
-        $this->assertIsArray($item['reactions']);
-        foreach ($item['reactions'] as $category) {
-            $this->assertMatchesRegularExpression('/\A[a-z_][a-z0-9_]*\z/', $category);
-        }
-
-        // items.json の reactions が指すカテゴリが prompts.json に実在すること。
         $prompts = json_decode(
             (string) file_get_contents(MPU_TESTS_ROOT . '/ghost/Frieren/prompts.json'),
             true
         );
-        foreach ($item['reactions'] as $category) {
-            $this->assertArrayHasKey($category, $prompts);
-            $this->assertNotEmpty($prompts[$category]);
+        $expected = [
+            'merkur_pudding' => [
+                'kind' => 'food',
+                'name' => 'メルクーアプリン',
+                'image' => 'merkur_pudding.png',
+                'reactions' => ['give_food', 'give_favorite'],
+                'size' => [112, 66],
+            ],
+            'grimoire' => [
+                'kind' => 'gift',
+                'name' => '魔導書',
+                'image' => 'grimoire.png',
+                'reactions' => ['give_gift', 'give_favorite'],
+                'size' => [68, 85],
+            ],
+        ];
+
+        foreach ($catalog['items'] as $item) {
+            $this->assertArrayHasKey($item['id'], $expected);
+            $this->assertSame($expected[$item['id']]['kind'], $item['kind']);
+            $this->assertSame($expected[$item['id']]['name'], $item['name']);
+            $this->assertSame($expected[$item['id']]['image'], $item['image']);
+            $this->assertSame($expected[$item['id']]['reactions'], $item['reactions']);
+            $imagePath = MPU_TESTS_ROOT . '/ghost/Frieren/items/' . $item['image'];
+            $this->assertFileExists($imagePath);
+            $this->assertSame($expected[$item['id']]['size'], array_slice(getimagesize($imagePath), 0, 2));
+            $this->assertTrue($item['favorite']);
+            $this->assertNotSame('', trim($item['prompt']));
+            $this->assertMatchesRegularExpression('/\A[a-z_][a-z0-9_]*\z/', $item['id']);
+            $this->assertMatchesRegularExpression('/\A[a-z0-9_-]+\.(png|webp)\z/', $item['image']);
+            $this->assertDoesNotMatchRegularExpression('/\[(thinking|laugh|sigh|love)\]/i', $item['name']);
+            $this->assertDoesNotMatchRegularExpression('/\[(thinking|laugh|sigh|love)\]/i', $item['prompt']);
+
+            foreach ($item['reactions'] as $category) {
+                $this->assertMatchesRegularExpression('/\A[a-z_][a-z0-9_]*\z/', $category);
+                $this->assertArrayHasKey($category, $prompts);
+                $this->assertNotEmpty($prompts[$category]);
+            }
         }
     }
 

@@ -22,6 +22,7 @@ final class PromptCategoriesTest extends TestCase {
         // 反応専用カテゴリ（touch_* / give_*）は除外される。
         $this->assertFalse(mpu_is_spontaneous_prompt_category('touch_head'));
         $this->assertFalse(mpu_is_spontaneous_prompt_category('give_food'));
+        $this->assertFalse(mpu_is_spontaneous_prompt_category('give_gift'));
         $this->assertFalse(mpu_is_spontaneous_prompt_category('give_favorite'));
 
         // metadata key（_*）と空文字も除外される。
@@ -39,6 +40,7 @@ final class PromptCategoriesTest extends TestCase {
 
         // give_* が実際に存在することを先に確認（テストが空振りしないように）。
         $this->assertArrayHasKey('give_food', $prompts);
+        $this->assertArrayHasKey('give_gift', $prompts);
         $this->assertArrayHasKey('give_favorite', $prompts);
 
         $candidates = array_filter(
@@ -61,6 +63,7 @@ final class PromptCategoriesTest extends TestCase {
             'greeting'      => ['挨拶'],
             'touch_head'    => ['頭を撫でられた反応'],
             'give_food'     => ['食べ物の感想'],
+            'give_gift'     => ['贈り物の感想'],
             'give_favorite' => ['大好物の反応'],
             '_comment'      => 'metadata',
         ];
@@ -83,6 +86,7 @@ final class PromptCategoriesTest extends TestCase {
             // 反応専用 / metadata カテゴリは builder を通すと除外される。
             $this->assertArrayNotHasKey('touch_head', $result);
             $this->assertArrayNotHasKey('give_food', $result);
+            $this->assertArrayNotHasKey('give_gift', $result);
             $this->assertArrayNotHasKey('give_favorite', $result);
             $this->assertArrayNotHasKey('_comment', $result);
         } finally {

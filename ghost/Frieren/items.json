@@ -10,6 +10,15 @@
       "favorite": true,
       "prompt": "相手がメルクーアプリンを差し出した。メルクーアプリンはフリーレンの大好物である。",
       "reactions": ["give_food", "give_favorite"]
+    },
+    {
+      "id": "grimoire",
+      "kind": "gift",
+      "name": "魔導書",
+      "image": "grimoire.png",
+      "favorite": true,
+      "prompt": "相手が魔導書を差し出した。魔導書はフリーレンが特に喜ぶ贈り物である。",
+      "reactions": ["give_gift", "give_favorite"]
     }
   ]
 }
