@@ -29,6 +29,7 @@ if ( ! defined( 'MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS' ) ) {
 			'touch'      => true,
 			'page_aware' => true,
 			'decoration' => false,
+			'give'       => false,
 			'initial'    => false,
 			'diary'      => false,
 		)

@@ -49,7 +49,8 @@ function mpu_get_daily_stats($date = null)
                 'greeting' => 0,
                 'touch' => 0,
                 'auto_talk' => 0,
-                'decoration' => 0
+                'decoration' => 0,
+				'give'        => 0
             ],
             'topics' => [],
             'response_times' => [],
@@ -129,7 +130,7 @@ function mpu_record_api_call($provider, $status, $response_time = 0)
  */
 function mpu_record_conversation($type)
 {
-    $valid_types = ['context', 'interactive', 'greeting', 'touch', 'auto_talk', 'decoration'];
+    $valid_types = ['context', 'interactive', 'greeting', 'touch', 'auto_talk', 'decoration', 'give'];
     if (!in_array($type, $valid_types)) {
         return false;
     }

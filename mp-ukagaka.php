@@ -3,7 +3,7 @@
 Plugin Name: MP Ukagaka
 Plugin URI: https://www.moelog.com/
 Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取對話。新增 AI 頁面感知功能（Gemini、OpenAI、Claude）。本機 LLM 支援（Ollama，測試階段）。API Key 加密存儲、安全文件操作、可配置打字速度。Claude 風格後台管理介面。JSON 人格系統。
-Version: 2.26.0
+Version: 2.27.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 */
@@ -13,7 +13,7 @@ if (!defined("ABSPATH")) {
 }
 
 // 定義常量
-define("MPU_VERSION", '2.26.0');
+define("MPU_VERSION", '2.27.0');
 define("MPU_MAIN_FILE", __FILE__);
 
 /**
@@ -77,6 +77,7 @@ function mpu_load_modules()
         'personality/personality-loader.php',  // 人格系統（JSON 載入器，需在其他 personality 模組之前載入）
         'personality/personality-prompts.php', // 人格提示詞模組（動態提示詞、變數替換）
         'personality/personality-decorations.php', // 裝飾物系統
+		'personality/personality-items.php', // Gift and food item catalog.
         'personality/personality-emoji.php',   // 表情系統
         'stats/stats-collector.php',   // 統計收集器（需在 ai-functions.php 之前載入）
         'stats/stats-analyzer.php',    // 統計分析器

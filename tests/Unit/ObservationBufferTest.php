@@ -105,6 +105,38 @@ final class ObservationBufferTest extends TestCase {
         $this->assertSame('head:3', $entries[1]['content']);
     }
 
+    public function test_item_dedupe_replaces_same_kind_and_id(): void {
+        $token = mpu_generate_session_token();
+
+        MPU_Observation_Buffer::push('item', 'food:merkur_pudding', $token);
+        MPU_Observation_Buffer::push('item', 'gift:grimoire', $token);
+        MPU_Observation_Buffer::push('item', 'food:merkur_pudding', $token);
+
+        $entries = MPU_Observation_Buffer::peek($token);
+        $this->assertCount(2, $entries);
+        $this->assertSame('gift:grimoire', $entries[0]['content']);
+        $this->assertSame('food:merkur_pudding', $entries[1]['content']);
+    }
+
+    public function test_item_dedupe_does_not_evict_other_observation_types(): void {
+        $token = mpu_generate_session_token();
+        $GLOBALS['_mpu_test_posts'][1] = (object) [
+            'post_status' => 'publish',
+            'post_password' => '',
+            'post_title' => 'Article',
+        ];
+
+        MPU_Observation_Buffer::push('page_view', 'post:1', $token);
+        MPU_Observation_Buffer::push('touch', 'head:1', $token);
+        for ($i = 0; $i < 5; $i++) {
+            MPU_Observation_Buffer::push('item', 'food:merkur_pudding', $token);
+        }
+
+        $entries = MPU_Observation_Buffer::peek($token);
+        $this->assertCount(3, $entries);
+        $this->assertSame(['page_view', 'touch', 'item'], array_column($entries, 'type'));
+    }
+
     public function test_ring_buffer_keeps_latest_five(): void {
         $token = mpu_generate_session_token();
         for ($i = 1; $i <= 6; $i++) {

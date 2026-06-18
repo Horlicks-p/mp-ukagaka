@@ -1055,6 +1055,10 @@ msgstr "Self Talk"
 msgid "裝飾品反應"
 msgstr "Accessory Response"
 
+#: options/options_page_stats.php:48
+msgid "贈禮餵食反應"
+msgstr "Gift & Feeding Response"
+
 #: options/options.php:353
 msgid "控制台狀態"
 msgstr "Console Status"

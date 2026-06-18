@@ -5,6 +5,7 @@
 > 📅 改訂：2026-06-09（御三家＋Gemini レビュー反映後、家 CLAUDE/CODEX が実コード突合せ → 文書 3 点修正 F-1〜F-3）
 > 📅 改訂：2026-06-10（checksum filter の実挙動に合わせ C-A / G-2 / D-2 の根拠を訂正）
 > 📅 改訂：2026-06-12（**UI を LINE スタンプ風ギフトピッカーへ**。画像優先＋テキスト fallback に方針変更。後端設計は一切不変＝U-1）
+> 📅 改訂：2026-06-18（複数アイテム時の picker を**単項 slider**へ変更。1 件時はナビゲーション非表示＝U-5）
 > 📋 訪客がキャラクターに「物を差し出す（ギフト／食事）」インタラクションの設計
 > 🎯 想定読者：実装担当
 > 🔖 対象バージョン基点：v2.25.1
@@ -27,7 +28,7 @@
 | 初回スコープ | **MVP（無状態の反応のみ）** | 既存 decoration 経路とほぼ同型。好感度・飽食度などの永続状態は持たず、まず「差し出す→反応→observation/chat 履歴に記録」までを出して挙動を確認する。 |
 | Observation type 名 | **`item`（`gift` ではない）** | food は gift ではなく、将来 medicine / book / tool も来うる。総称 `item` 型に統一し、`kind` プレフィクスで `food:` / `gift:` を出し分ける（家 CODEX #1）。 |
 | Catalog 供給 | **`wp_localize_script` で渡す** | 新 GET endpoint を生やさず、catalog を frieren.js に硬編みもしない。ghost-agnostic とキャッシュが綺麗（家 CODEX #2）。 |
-| アイテム画像 | **画像優先＋テキスト fallback**（U-1 で #3 を改訂） | LINE スタンプ風ピッカーで `<img>` グリッド表示。画像 load 失敗時は item `name` テキストへ graceful fallback。画像パイプラインは既存 decoration 資産（`decorations_base_url`＋ファイル名）の流用で安く、欠図 fallback も同型で吸収できる。画像が揃うまではテキスト表示で先行可（同じ UI の退化態）。 |
+| アイテム画像 | **画像優先＋テキスト fallback**（U-1 で #3 を改訂、U-5 で slider 化） | LINE スタンプ風ピッカーでアイテムを表示。1 件時は単項表示、2 件以上は一度に 1 件だけ表示する slider。画像 load 失敗時は item `name` テキストへ graceful fallback。 |
 
 > #### 家 CODEX レビュー反映（2026-06-06・第1巡）
 > 方向性（統合 items + kind / MVP 無状態 / `MPU_REST_Touch` 拡張）は承認。実装前の収斂点 6 件を本文へ反映済み：
@@ -72,6 +73,15 @@
 > **(U-3) 二段階を一段に統合**：旧「テキスト MVP → Phase 3 画像」を「**画像優先＋テキスト fallback**」一段へ。缺図 fallback は Phase 3 の包袱ではなく内蔵の graceful degradation（その格だけ `name` テキスト）。画像が未生成の間はテキスト表示で先行でき、それは同一 UI の退化態。
 > **(U-4) 入口位置は R2-5 と同一**：`#ukagaka_msgbox` 入力欄付近のアイコン（🎁 等。Unicode/SVG で追加図依存を作らない）。R2-5 を**否定せず細化**（文字ボタン→アイコン、文字リスト→画像グリッド）。
 > ⏳#2（メニュー展開の見た目）は本 U-1 でスタンプグリッド方式に確定。
+>
+> #### 維護者 UI 改訂（2026-06-18・U-5）
+> アイテム増加時の picker 表示を **grid → 単項 slider** に変更する。後端・catalog・送信契約は変更しない。
+> **(U5-1) 表示単位**：常に一度に 1 アイテムのみ表示。画像、名称、必要なら kind 表示を同一 slide にまとめる。
+> **(U5-2) ナビゲーション**：catalog が 2 件以上のときだけ左右矢印と `現在位置 / 総数`（例：`2 / 4`）を表示。1 件時は矢印・頁碼とも非表示。
+> **(U5-3) 循環**：末尾から次へ進むと先頭、先頭から戻ると末尾へ循環する。
+> **(U5-4) 操作性**：左右矢印キーと touch swipe を支援。Esc／外側クリック閉じ、`aria-expanded`、送出中 disable は CX-3 を継続。
+> **(U5-5) 視覚効果**：LINE スタンプ同様、hover/focus 時は背景色・色付き border を付けず、アイテム画像を軽く拡大する。
+> **(U5-6) 実装時期**：現行テスト catalog が 1 件の間は単項表示として成立する。2 件目を追加する前に slider navigation を実装・検証する。
 >
 > #### 家 CODEX レビュー（2026-06-12・U-1 方向を承認＋着手前に釘す 5 点）
 > 方向承認（貼图 picker は文字指令送禮より自然・このプラグインの互動型態に合う）。実コードに照らして以下を確定タスク化：
@@ -138,7 +148,7 @@ frieren.js（クリック描画）
 | AI 呼び出し定型 | `decoration_chat()` / `touch_zone_chat()` に**重複**している呼び出し〜normalize〜display limit | **先に private helper へ抽出**してから 3 か所で共有（Step 0） |
 | emotion tag → APNG | `mpu_normalize_ai_response_for_rest()` | そのまま通すだけ。prompt 側で `[laugh]`/`[love]`/`[sigh]` を誘導すれば表情が自動で出る（**追加実装ゼロ**） |
 | セッション記憶 | `MPU_Observation_Buffer` + `mpu_observation_push_touch()` | 総称 `item` type を追加し `mpu_observation_push_item()` を新設（§3④・家 CODEX #1） |
-| フロント描画・反応表示 | `ghost/Frieren/frieren-decorations.js`（画像描画）／`frieren-interactions.js`（クリック処理）（A-2 後の責務配置） | スタンプ風ギフトピッカー UI として流用（画像グリッド描画・反応表示・emoji・chat history push は既存コードが使える） |
+| フロント描画・反応表示 | `ghost/Frieren/frieren-decorations.js`（画像描画）／`frieren-interactions.js`（クリック処理）（A-2 後の責務配置） | スタンプ風単項 slider として流用（画像描画・反応表示・emoji・chat history push は既存コードが使える） |
 
 ---
 
@@ -314,9 +324,9 @@ mpu_get_personality_item_ids($personality_id = null): array
     gift picker が `mpu_getOrCreateChatSessionId`（`ukagaka-chat-history.js`）/ `window.mpuChatHistory` を触るため、
     personality script の依存に **`$chat_handle`** を追加（debug=`mpu-chat`→transitively `mpu-chat-history` を保証／production=`mpu-bundle`）、
     または picker 初期化を chat globals 存在後へ遅延する。
-- **UI 入口（R2-5 を U-1 で細化・CX-3 で a11y 確定）**：**LINE スタンプ風ギフトピッカー**。入口は **chat 入力の尾端**
+- **UI 入口（R2-5 を U-1 で細化・CX-3 で a11y 確定・U-5 で slider 化）**：**LINE スタンプ風ギフトピッカー**。入口は **chat 入力の尾端**
   （`#mpu_user_input` 付近）に `type="button"` の小アイコン（🎁 等。Unicode/SVG で追加図依存を作らない）。
-  クリックで **anchored popover** を開き、登録アイテムを **画像グリッド**（スタンプ一覧と同じ作法）で並べる。画像クリック＝送禮／給食。
+  クリックで **anchored popover** を開き、登録アイテムを **一度に 1 件だけ表示する slider** として描画する。画像クリック＝送禮／給食。
   Frieren の **Canvas 描画域に干渉しない**。
   - **a11y / 操作性（CX-3）**：**Esc 閉じ・外側クリック閉じ・`aria-expanded`・送出中 disable** を実装。
     decoration/touch/give の lock（`decorationChatInProgress`・`mpuMessageBlocking`・`giveItemInProgress`）と衝突させない
@@ -324,11 +334,13 @@ mpu_get_personality_item_ids($personality_id = null): array
   - **画像優先＋テキスト fallback（U-3）**：各セルは `<img src="${items_base_url}${item.image}">`。`onerror` で
     `item.name` テキスト表示へ退避（缺図でも壊れない）。画像未生成の間は全セルがテキストになるだけ＝同一 UI の退化態。
   - **縮図正規化**：固定サイズの枠＋ `object-fit: contain`（素材サイズ不揃いでもレイアウトが崩れない）。
-  - **food / gift 混排**：MVP は 1 グリッドに混在で可。各 item の `kind` が後端反応を駆動するため、タブ分割は不要。
-  - **ポップアップ定位**：アイコンに錨。件数超過時はスクロール。行動裝置で視窗端に裁切されないこと。⏳#2 は本方式で確定。
+  - **slider navigation（U-5）**：2 件以上で左右矢印＋頁碼を表示し、首尾循環する。左右キー／touch swipe に対応。1 件時は navigation を描画しない。
+  - **hover/focus（U5-5）**：背景色・色付き border は使わず、画像を軽く拡大する。
+  - **food / gift 混在**：kind に関係なく catalog 順で切り替える。各 item の `kind` が後端反応を駆動するため、タブ分割は不要。
+  - **ポップアップ定位**：アイコンに錨。popover は主対話框の内幅に収め、行動裝置で視窗端に裁切されないこと。
   - ⚠️ **描画ロジックは decoration の画像生成を流用**（`frieren-decorations.js` の `el.src = base + file` と同型）。
 - `ghost/Frieren/frieren-interactions.js`（A-2 後の責務配置）に「ギフトピッカー」UI を追加
-  - アイコン → ポップアップ（localize 済み catalog を**画像グリッド**で描画）→ 画像クリックで
+  - アイコン → ポップアップ（localize 済み catalog を**単項 slider**で描画）→ 画像クリックで
     `session_id` と `history` を含めて POST リクエスト（FormData 形式）：
     ```javascript
     const formData = new FormData();
@@ -427,7 +439,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 - **Step 4 — Observation**：`item` type ＋ normalize ＋ format（kind 分岐）＋ **`dedupe_key` の `item` 判定（R2-1・必須）**
   ＋ `mpu_observation_push_item()` ＋ `get_item_display_name()`。
 - **Step 5 — Frontend**：catalog（display 5 フィールド＋ `items_base_url`）を **`mpu-personality` handle に** `wp_localize_script`（CX-1、`prompt` は渡さない CX-4）
-  ＋ スタンプ風ギフトピッカー UI（画像グリッド・`onerror` テキスト fallback・CX-3 の a11y / lock 非衝突）＋ `/touch/give` 呼び出し。
+  ＋ スタンプ風ギフトピッカー UI（単項 slider・複数時の左右循環 navigation・頁碼・方向キー／swipe・`onerror` テキスト fallback・CX-3 の a11y / lock 非衝突）＋ `/touch/give` 呼び出し。
   - サブタスク **CX-2**：SCRIPT_DEBUG/非 bundle で personality script の依存に `$chat_handle` を追加（or picker 初期化を遅延）。忘れると debug で `mpu_getOrCreateChatSessionId` 未定義 race。
 - **Step 6 — 仕上げ**：dist 再ビルド（`node tools/node/build.js`）、PHPUnit（items.json の kind 妥当性・
   prompt 非空・可視タグ無し）、CHANGELOG / README（実装完了時）。
@@ -446,7 +458,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 | 拡張 | `includes/stats/stats-collector.php`（conversation stats type に `give`） |
 | 拡張 | `includes/llm/response-normalizer.php`（`MPU_INNER_MONOLOGUE_CONTEXT_DEFAULTS` に `'give' => false`・C-1） |
 | 拡張 | `includes/core/class-mpu-observation-buffer.php`（`item` type） |
-| 拡張 | `ghost/Frieren/frieren-interactions.js`（A-2 後の責務配置。スタンプ風ギフトピッカー・画像グリッド＋テキスト fallback） |
+| 拡張 | `ghost/Frieren/frieren-interactions.js`（A-2 後の責務配置。スタンプ風単項 slider＋テキスト fallback） |
 | 新規 | `ghost/Frieren/items/*.png`（AI 生成。魔導書／蒼月草／メルクーアプリン／薬草。未生成でもテキスト fallback で先行可） |
 | 拡張 | catalog（`image`＋`items_base_url`）の `wp_localize_script` 供給（enqueue 箇所。`frontend-functions.php` 付近） |
 | 拡張 | `includes/core/frontend-functions.php`（catalog localize＋ script 依存。下記 ⚠️A-2 参照） |
@@ -526,6 +538,14 @@ mpu_get_personality_item_ids($personality_id = null): array
   history に追加してから checksum を保存し、同一文字列を `res.user_anchor` で返して前端に使わせる。
 - **conversation stats が無効 type（会社 CODEX D-3）**：`mpu_record_conversation('give')` を呼んでも `stats-collector.php`
   の valid types に無ければ記録されない。送禮／給食を分析したいなら stats type も同時に追加する。
+- **前端 `mpuMessageBlocking` は ownership を持たない単一 boolean（既有鎖模型の技術債・2026-06-18 記録）**：
+  give／decoration／touch-zone の互動鎖を `mpuSetMessageBlocking()` channel に統一し、`window.mpuMessageBlocking` と
+  bare `let`（global lexical）の desync は解消した（giveItem は核心鎖を読んで自己 gate する）。ただし decoration/touch-zone は
+  進入時に核心鎖を**読まず**「直接互動優先」で搶佔し、完了時に**無条件** `mpuSetMessageBlocking(false)` する。別の流れ
+  （context/chat/greet）が鎖を保持中だと、その鎖を**早期解除**しうる。単一 boolean には所有権がないため。現状は
+  context/chat/greeting 側に独自 guard があるため実害は限定的。**「直接互動優先」設計を維持するなら本版は許容**だが、
+  厳密解は token/ref-count lock（後端 `MPU_Chat_Lock`＝`includes/llm/class-mpu-chat-lock.php` の atomic token 方式の前端版）で
+  あって、これ以上 boolean 判定を足すことではない。前端鎖モデルの hardening として backlog 化。
 
 ---
 
@@ -539,7 +559,7 @@ mpu_get_personality_item_ids($personality_id = null): array
 - **rate limit key** → `give_item` で独立（R2-4）。
 - **synthetic anchor** → backend 生成の localized anchor（`res.user_anchor`）。REST 返却・前端 push は同一文字列。checksum hash 対象ではないが、history window と語意文脈を揃える（G-2 が R2-2/D-2 の前端組立を改訂）。
 - **エンドポイント名** → `/touch/give`（A-1・G-4）。`MPU_REST_Touch` 名前空間に同居。
-- **UI 入口** → `#ukagaka_msgbox` 入力欄付近のアイコン → **LINE スタンプ風画像グリッドのポップアップ**。画像クリック＝送禮／給食。Canvas 域に干渉しない（R2-5 を U-1 で細化）。
+- **UI 入口** → `#ukagaka_msgbox` 入力欄付近のアイコン → **LINE スタンプ風単項 slider のポップアップ**。2 件以上で左右循環、頁碼、方向キー／swipe。1 件時は navigation 非表示。画像クリック＝送禮／給食。Canvas 域に干渉しない（U-5）。
 - **アイテムカタログ** → 魔導書（gift/fav）・蒼月草（gift/fav）・メルクーアプリン（food）・薬草（food）。画像は AI 生成（維護者確定・U-1）。
 - **localize handle** → `mpu-personality`（CX-1）。display 5 フィールドのみ、`prompt` は渡さない（CX-4）。
 - **image 安全性** → loader で `[a-z0-9_-]+\.(png|webp)` whitelist（CX-4）。

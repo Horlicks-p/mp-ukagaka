@@ -193,7 +193,8 @@ function mpu_build_conversation_distribution_from_dataset($dataset, $days = 7)
         'greeting' => 0,
         'touch' => 0,
         'auto_talk' => 0,
-        'decoration' => 0
+        'decoration' => 0,
+		'give'        => 0
     ];
     $now = current_time('timestamp');
     

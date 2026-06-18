@@ -120,6 +120,10 @@ function sanitize_text_field($value) {
     return trim(strip_tags((string) $value));
 }
 
+function sanitize_textarea_field($value) {
+    return trim(strip_tags((string) $value));
+}
+
 function wp_strip_all_tags($value) {
     return strip_tags((string) $value);
 }

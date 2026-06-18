@@ -44,7 +44,8 @@ $chart_data = [
             __('首次問候', 'mp-ukagaka'),
             __('觸摸反應', 'mp-ukagaka'),
             __('自言自語', 'mp-ukagaka'),
-            __('裝飾品反應', 'mp-ukagaka')
+            __('裝飾品反應', 'mp-ukagaka'),
+			__( '贈禮餵食反應', 'mp-ukagaka' )
         ],
         'values' => array_values($conversation_distribution)
     ]
@@ -240,14 +241,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const conversationData = chartData.conversation.values;
         const hasData = conversationData.some(v => v > 0);
         
-        // 6 種對話類型的專屬顏色（Frieren 紫色系）
+        // 7 種對話類型的專屬顏色（Frieren 紫色系）
         const conversationColors = [
             'rgba(123, 104, 174, 0.85)',  // 頁面感知 - 長袍紫
             'rgba(106, 159, 91, 0.85)',   // 互動對話 - 森林綠
             'rgba(255, 183, 77, 0.85)',   // 首次問候 - 橙黃
             'rgba(201, 79, 79, 0.85)',    // 觸摸反應 - 柔紅
             'rgba(196, 182, 222, 0.85)',  // 自言自語 - 柔薰衣草
-            'rgba(94, 77, 139, 0.85)'     // 裝飾品反應 - 深紫
+            'rgba(94, 77, 139, 0.85)',    // 裝飾品反應 - 深紫
+			'rgba(214, 140, 170, 0.85)'   // 贈禮餵食反應 - 玫瑰粉
         ];
         
         new Chart(conversationCtx, {

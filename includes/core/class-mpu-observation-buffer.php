@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile Universal.Files.SeparateFunctionsFromOO.Mixed
 
 /**
  * Volatile per-session observation buffer.
@@ -21,6 +22,7 @@ class MPU_Observation_Buffer {
         'page_view',
         'stay_duration',
         'touch',
+		'item',
         'lifecycle_event',
         'bot_signal',
     ];
@@ -174,6 +176,14 @@ class MPU_Observation_Buffer {
             return $matches[1] . ':' . max(1, min(9999, (int) $matches[2]));
         }
 
+		if ( 'item' === $type ) {
+			if ( ! preg_match( '/\A(food|gift):([a-z_][a-z0-9_]*)\z/u', $content, $matches ) ) {
+				return '';
+			}
+
+			return $matches[1] . ':' . $matches[2];
+		}
+
         if ($type === 'lifecycle_event') {
             if (!preg_match('/\A[a-z_]+(?::[a-z0-9_-]+)?\z/u', $content)) {
                 return '';
@@ -235,6 +245,10 @@ class MPU_Observation_Buffer {
             return 'stay_duration:' . $matches[1];
         }
 
+		if ( 'item' === $type && preg_match( '/\A(food|gift):([a-z_][a-z0-9_]*)\z/u', $content, $matches ) ) {
+			return 'item:' . $matches[1] . ':' . $matches[2];
+		}
+
         return '';
     }
 
@@ -281,6 +295,15 @@ class MPU_Observation_Buffer {
                 }
                 break;
 
+			case 'item':
+				if ( preg_match( '/\A(food|gift):([a-z_][a-z0-9_]*)\z/u', $content, $matches ) ) {
+					$name = self::get_item_display_name( $matches[2] );
+					return 'food' === $matches[1]
+						? sprintf( '「%s」を貰って食べた', $name )
+						: sprintf( '「%s」を貰った', $name );
+				}
+				break;
+
             case 'lifecycle_event':
                 if ($content === 'wake') {
                     return '起こされた';
@@ -325,6 +348,23 @@ class MPU_Observation_Buffer {
         // 不硬編特定角色的裝飾類型——此類別為 ghost-agnostic，名稱應由各 ghost 的 decorations.json 提供。
         return str_replace('_', ' ', $type);
     }
+
+	/**
+	 * Resolve an item ID to the current personality's display name.
+	 *
+	 * @param string $id Item ID.
+	 * @return string Display name.
+	 */
+	private static function get_item_display_name( string $id ): string {
+		if ( function_exists( 'mpu_get_personality_item' ) ) {
+			$item = mpu_get_personality_item( $id );
+			if ( is_array( $item ) && ! empty( $item['name'] ) ) {
+				return sanitize_text_field( $item['name'] );
+			}
+		}
+
+		return str_replace( '_', ' ', $id );
+	}
 
     private static function debug_log(string $action, string $type, string $detail): void {
         if (!(defined('WP_DEBUG') && WP_DEBUG)) {
@@ -374,4 +414,30 @@ function mpu_observation_push_touch(WP_REST_Request $request, string $part): voi
     }
 
     MPU_Observation_Buffer::push('touch', $part . ':' . min(9999, $current_count + 1), $token);
+}
+
+/**
+ * Push an item interaction into the current session observation buffer.
+ *
+ * @param WP_REST_Request $request REST request.
+ * @param string          $kind    Item kind.
+ * @param string          $id      Item ID.
+ * @return void
+ */
+function mpu_observation_push_item( WP_REST_Request $request, string $kind, string $id ): void {
+	if ( ! class_exists( 'MPU_Observation_Buffer' ) ) {
+		return;
+	}
+
+	$kind = sanitize_key( $kind );
+	$id   = sanitize_key( $id );
+	if ( ! in_array( $kind, array( 'food', 'gift' ), true ) || ! preg_match( '/\A[a-z_][a-z0-9_]*\z/', $id ) ) {
+		return;
+	}
+
+	$token = $request->get_header( 'X-MPU-Session-Token' );
+	if ( ! $token ) {
+		$token = (string) $request->get_param( 'session_token' );
+	}
+	MPU_Observation_Buffer::push( 'item', $kind . ':' . $id, $token );
 }

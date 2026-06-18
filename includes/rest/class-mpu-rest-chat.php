@@ -603,8 +603,17 @@ class MPU_REST_Chat extends MPU_REST_Base {
         }
 
         // 允許的 type 白名單（type 欄位用於區分真實對話與 synthetic/auto-talk/touch 等）
-        $allowed_types = ['chat', 'synthetic', 'auto_talk', 'greet', 'context',
-                          'event', 'touch_decoration', 'touch_zone'];
+		$allowed_types = [
+			'chat',
+			'synthetic',
+			'auto_talk',
+			'greet',
+			'context',
+			'event',
+			'touch_decoration',
+			'touch_zone',
+			'give',
+		];
 
         $valid_history = [];
         foreach ($chat_history as $msg) {

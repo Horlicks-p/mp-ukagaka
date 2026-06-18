@@ -4,6 +4,17 @@
 
 ---
 
+## [2.27.0] - 2026-06-18
+
+### 🎁 Gift / Feeding System
+
+- **Give items to the character**: A new 🎁 picker by the chat input lets visitors hand the character gift or food items. Each item drives an LLM reaction — food is eaten with a taste comment, gifts are accepted with thanks, and `favorite` items get an extra-delighted reaction — rendered through the existing emotion-tag/APNG pipeline so expressions appear automatically.
+- **Memory integration**: Reactions are recorded in the session observation buffer (new ghost-agnostic `item` type with `food:` / `gift:` kinds and per-item dedupe) and in chat history, so later conversation can refer back to what was given. The backend owns a localized synthetic history anchor and writes the checksum (`store_after_auto(..., 'give')`) to keep front/back history in parity.
+- **Architecture**: New `POST /mp-ukagaka/v1/touch/give` on `MPU_REST_Touch` (independent `give_item` rate limit), a ghost-agnostic `ghost/<Character>/items.json` catalog read by a new `personality-items.php` loader (with image-filename whitelisting), and a shared `run_reaction()` helper extracted from the decoration/touch paths. The `give` type was registered across the chat-history allowlists, inner-monologue defaults, and conversation stats.
+- **UI**: The picker is a single-item carousel (prev/next buttons, arrow keys, touch swipe, a position counter) with image-first thumbnails and a text fallback. The interaction lock now routes through the core `mpuSetMessageBlocking()` channel so a gift cannot be sent while chat/context holds the lock. Frieren ships with two items: メルクーアプリン (food) and 魔導書 (gift).
+
+---
+
 ## [2.26.0] - 2026-06-16
 
 ### 😴 Daytime Nap (after-lunch sleep)
