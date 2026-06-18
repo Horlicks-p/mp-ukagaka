@@ -538,6 +538,14 @@ mpu_get_personality_item_ids($personality_id = null): array
   history に追加してから checksum を保存し、同一文字列を `res.user_anchor` で返して前端に使わせる。
 - **conversation stats が無効 type（会社 CODEX D-3）**：`mpu_record_conversation('give')` を呼んでも `stats-collector.php`
   の valid types に無ければ記録されない。送禮／給食を分析したいなら stats type も同時に追加する。
+- **前端 `mpuMessageBlocking` は ownership を持たない単一 boolean（既有鎖模型の技術債・2026-06-18 記録）**：
+  give／decoration／touch-zone の互動鎖を `mpuSetMessageBlocking()` channel に統一し、`window.mpuMessageBlocking` と
+  bare `let`（global lexical）の desync は解消した（giveItem は核心鎖を読んで自己 gate する）。ただし decoration/touch-zone は
+  進入時に核心鎖を**読まず**「直接互動優先」で搶佔し、完了時に**無条件** `mpuSetMessageBlocking(false)` する。別の流れ
+  （context/chat/greet）が鎖を保持中だと、その鎖を**早期解除**しうる。単一 boolean には所有権がないため。現状は
+  context/chat/greeting 側に独自 guard があるため実害は限定的。**「直接互動優先」設計を維持するなら本版は許容**だが、
+  厳密解は token/ref-count lock（後端 `MPU_Chat_Lock`＝`includes/llm/class-mpu-chat-lock.php` の atomic token 方式の前端版）で
+  あって、これ以上 boolean 判定を足すことではない。前端鎖モデルの hardening として backlog 化。
 
 ---
 
