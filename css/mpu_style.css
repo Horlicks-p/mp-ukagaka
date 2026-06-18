@@ -429,6 +429,12 @@
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.mpu-gift-picker-button:hover:not(:disabled) {
+  border-color: rgba(30, 58, 138, 0.55);
+  background: rgba(219, 234, 254, 0.98);
 }
 
 .mpu-gift-picker-button:focus-visible {
