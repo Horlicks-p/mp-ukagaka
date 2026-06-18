@@ -55,7 +55,9 @@
 
       this.decorationChatInProgress = true;
 
-      if (typeof window !== "undefined") {
+      if (typeof mpuSetMessageBlocking === "function") {
+        mpuSetMessageBlocking(true);
+      } else if (typeof window !== "undefined") {
         window.mpuMessageBlocking = true;
       }
 
@@ -258,7 +260,9 @@
         mpuClearSystemPlaceholder("#ukagaka_msg");
       }
 
-      if (typeof window !== "undefined") {
+      if (typeof mpuSetMessageBlocking === "function") {
+        mpuSetMessageBlocking(false);
+      } else if (typeof window !== "undefined") {
         window.mpuMessageBlocking = false;
       }
 
@@ -368,7 +372,9 @@
 
       this.decorationChatInProgress = true;
 
-      if (typeof window !== "undefined") {
+      if (typeof mpuSetMessageBlocking === "function") {
+        mpuSetMessageBlocking(true);
+      } else if (typeof window !== "undefined") {
         window.mpuMessageBlocking = true;
       }
 
@@ -679,10 +685,13 @@
      * @param {string} itemId
      */
     giveItem: async function (itemId) {
+      const messageBlocking = typeof mpuMessageBlocking !== "undefined"
+        ? mpuMessageBlocking
+        : Boolean(window.mpuMessageBlocking);
       if (
         this.giveItemInProgress ||
         this.decorationChatInProgress ||
-        window.mpuMessageBlocking ||
+        messageBlocking ||
         typeof mpuAiEnabled === "undefined" ||
         !mpuAiEnabled
       ) {
@@ -691,7 +700,11 @@
 
       const button = document.getElementById("mpu_gift_picker_button");
       this.giveItemInProgress = true;
-      window.mpuMessageBlocking = true;
+      if (typeof mpuSetMessageBlocking === "function") {
+        mpuSetMessageBlocking(true);
+      } else {
+        window.mpuMessageBlocking = true;
+      }
       if (button) {
         button.disabled = true;
       }
@@ -779,7 +792,11 @@
         }
       } finally {
         this.giveItemInProgress = false;
-        window.mpuMessageBlocking = false;
+        if (typeof mpuSetMessageBlocking === "function") {
+          mpuSetMessageBlocking(false);
+        } else {
+          window.mpuMessageBlocking = false;
+        }
         if (button) {
           button.disabled = false;
         }
