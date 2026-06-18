@@ -592,10 +592,12 @@ function mpu_enqueue_frontend_assets() {
 				$personality_script_handle,
 				'mpuPersonalityItems',
 				array(
-					'items'        => $item_display,
-					'itemsBaseUrl' => plugins_url( 'ghost/' . $personality_id . '/items/', $main_file ),
-					'pickerLabel'  => __( 'ギフトを選ぶ', 'mp-ukagaka' ),
-					'closeLabel'   => __( 'ギフト一覧を閉じる', 'mp-ukagaka' ),
+					'items'         => $item_display,
+					'itemsBaseUrl'  => plugins_url( 'ghost/' . $personality_id . '/items/', $main_file ),
+					'pickerLabel'   => __( 'ギフトを選ぶ', 'mp-ukagaka' ),
+					'closeLabel'    => __( 'ギフト一覧を閉じる', 'mp-ukagaka' ),
+					'previousLabel' => __( '前のアイテム', 'mp-ukagaka' ),
+					'nextLabel'     => __( '次のアイテム', 'mp-ukagaka' ),
 				)
 			);
 		}

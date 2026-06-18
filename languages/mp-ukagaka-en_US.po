@@ -3695,3 +3695,39 @@ msgstr ""
 #: options/options_page_diary.php:397
 msgid "測試失敗"
 msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:229
+msgid "不明なアイテムです"
+msgstr "Unknown item"
+
+#: includes/rest/class-mpu-rest-touch.php:234
+msgid "会話セッションが指定されていません"
+msgstr "No conversation session specified"
+
+#: includes/rest/class-mpu-rest-touch.php:238
+msgid "会話履歴が指定されていません"
+msgstr "No conversation history specified"
+
+#: includes/rest/class-mpu-rest-touch.php:246
+msgid "会話履歴の形式が正しくありません"
+msgstr "Invalid conversation history format"
+
+#: includes/rest/class-mpu-rest-touch.php:286
+msgid "（%sを差し出した）"
+msgstr "(You offered %s)"
+
+#: includes/core/frontend-functions.php:597
+msgid "ギフトを選ぶ"
+msgstr "Choose a gift"
+
+#: includes/core/frontend-functions.php:598
+msgid "ギフト一覧を閉じる"
+msgstr "Close gift list"
+
+#: includes/core/frontend-functions.php:599
+msgid "前のアイテム"
+msgstr "Previous item"
+
+#: includes/core/frontend-functions.php:600
+msgid "次のアイテム"
+msgstr "Next item"

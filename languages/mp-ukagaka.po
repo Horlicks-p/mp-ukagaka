@@ -3699,3 +3699,39 @@ msgstr ""
 #: options/options_ukagakas.php:60
 msgid "每行代表一條吐槽。不可使用 HTML 代碼。"
 msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:229
+msgid "不明なアイテムです"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:234
+msgid "会話セッションが指定されていません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:238
+msgid "会話履歴が指定されていません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:246
+msgid "会話履歴の形式が正しくありません"
+msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:286
+msgid "（%sを差し出した）"
+msgstr ""
+
+#: includes/core/frontend-functions.php:597
+msgid "ギフトを選ぶ"
+msgstr ""
+
+#: includes/core/frontend-functions.php:598
+msgid "ギフト一覧を閉じる"
+msgstr ""
+
+#: includes/core/frontend-functions.php:599
+msgid "前のアイテム"
+msgstr ""
+
+#: includes/core/frontend-functions.php:600
+msgid "次のアイテム"
+msgstr ""

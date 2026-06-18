@@ -3694,3 +3694,39 @@ msgstr ""
 #: options/options_page_llm.php:489
 msgid "清除中..."
 msgstr ""
+
+#: includes/rest/class-mpu-rest-touch.php:229
+msgid "不明なアイテムです"
+msgstr "未知的物品"
+
+#: includes/rest/class-mpu-rest-touch.php:234
+msgid "会話セッションが指定されていません"
+msgstr "未指定對話工作階段"
+
+#: includes/rest/class-mpu-rest-touch.php:238
+msgid "会話履歴が指定されていません"
+msgstr "未指定對話歷史"
+
+#: includes/rest/class-mpu-rest-touch.php:246
+msgid "会話履歴の形式が正しくありません"
+msgstr "對話歷史格式不正確"
+
+#: includes/rest/class-mpu-rest-touch.php:286
+msgid "（%sを差し出した）"
+msgstr "（遞出了 %s）"
+
+#: includes/core/frontend-functions.php:597
+msgid "ギフトを選ぶ"
+msgstr "選擇禮物"
+
+#: includes/core/frontend-functions.php:598
+msgid "ギフト一覧を閉じる"
+msgstr "關閉禮物清單"
+
+#: includes/core/frontend-functions.php:599
+msgid "前のアイテム"
+msgstr "上一個物品"
+
+#: includes/core/frontend-functions.php:600
+msgid "次のアイテム"
+msgstr "下一個物品"
