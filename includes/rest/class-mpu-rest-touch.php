@@ -256,19 +256,11 @@ class MPU_REST_Touch extends MPU_REST_Base {
 		// item の reactions が指す prompts.json カテゴリからランダムに 1 件抽き、
 		// 演出の角度を毎回ばらつかせる (touch_zone_chat と同型).
 		$reaction_pool = array();
-		if ( ! empty( $item['reactions'] ) && function_exists( 'mpu_load_personality_prompts' ) ) {
-			$prompts_data = mpu_load_personality_prompts( $personality_id );
-			foreach ( $item['reactions'] as $category ) {
-				if ( empty( $prompts_data[ $category ] ) || ! is_array( $prompts_data[ $category ] ) ) {
-					continue;
-				}
-				// malformed JSON 對策：非字串・空白のみの行は候選から除外する.
-				foreach ( $prompts_data[ $category ] as $line ) {
-					if ( is_string( $line ) && '' !== trim( $line ) ) {
-						$reaction_pool[] = $line;
-					}
-				}
-			}
+		if ( ! empty( $item['reactions'] ) && function_exists( 'mpu_load_personality_prompts' ) && function_exists( 'mpu_collect_item_reaction_pool' ) ) {
+			$reaction_pool = mpu_collect_item_reaction_pool(
+				$item['reactions'],
+				mpu_load_personality_prompts( $personality_id )
+			);
 		}
 		if ( ! empty( $reaction_pool ) ) {
 			$user_prompt .= "\n" . $reaction_pool[ array_rand( $reaction_pool ) ];

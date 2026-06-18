@@ -96,4 +96,36 @@ final class ItemCatalogTest extends TestCase {
             'reactions' => ['give_food', 'badcat'],
         ], $catalog['items'][0]);
     }
+
+    public function test_reaction_pool_merges_categories_and_drops_malformed_entries(): void {
+        $prompts_data = [
+            'give_food' => [
+                'first line',
+                '',            // 空文字 → 除外
+                '   ',         // 空白のみ → 除外
+                123,           // 非文字列 → 除外
+                ['nested'],    // 非文字列 → 除外
+                null,          // 非文字列 → 除外
+                'second line',
+            ],
+            'give_favorite' => [
+                'favorite line',
+            ],
+            'give_empty' => [],          // 空配列 → スキップ
+            'give_scalar' => 'not-array', // 非配列 → スキップ
+        ];
+
+        // 複数カテゴリを順序通りにマージし、有効な文字列のみ残す。
+        $pool = mpu_collect_item_reaction_pool(
+            ['give_food', 'give_favorite', 'give_empty', 'give_scalar', 'give_missing'],
+            $prompts_data
+        );
+        $this->assertSame(
+            ['first line', 'second line', 'favorite line'],
+            $pool
+        );
+
+        // reactions が空なら pool も空。
+        $this->assertSame([], mpu_collect_item_reaction_pool([], $prompts_data));
+    }
 }

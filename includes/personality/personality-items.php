@@ -125,3 +125,29 @@ function mpu_get_personality_item_ids( $personality_id = null ) {
 	$catalog = mpu_load_personality_items( $personality_id );
 	return array_values( array_column( $catalog['items'] ?? array(), 'id' ) );
 }
+
+/**
+ * Collect the usable reaction prompt pool for an item.
+ *
+ * Merges the prompt lines of the given prompts.json categories in order,
+ * dropping non-string and blank entries (malformed-JSON guard).
+ *
+ * @param array $reactions    Reaction category names referenced by an item.
+ * @param array $prompts_data Loaded prompts.json data (category => lines[]).
+ * @return array Flat list of usable prompt strings.
+ */
+function mpu_collect_item_reaction_pool( array $reactions, array $prompts_data ) {
+	$pool = array();
+	foreach ( $reactions as $category ) {
+		if ( empty( $prompts_data[ $category ] ) || ! is_array( $prompts_data[ $category ] ) ) {
+			continue;
+		}
+		foreach ( $prompts_data[ $category ] as $line ) {
+			if ( is_string( $line ) && '' !== trim( $line ) ) {
+				$pool[] = $line;
+			}
+		}
+	}
+
+	return $pool;
+}
