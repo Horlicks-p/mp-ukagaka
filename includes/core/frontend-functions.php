@@ -1102,8 +1102,6 @@ function mpu_enqueue_frontend_assets() {
 		// 互動對話模式
 		'chatExit'                   => __( '……', 'mp-ukagaka' ),
 		'chatWelcome'                => __( '何か話したいことはありますか？', 'mp-ukagaka' ),
-		'chatPlaceholder'            => __( 'メッセージを入力...', 'mp-ukagaka' ),
-		'chatThinking'               => __( '…うーん、そうだね…', 'mp-ukagaka' ),
 		'executingTool'              => __( '（…%sを実行中…）', 'mp-ukagaka' ),
 		// Stream state badge labels（v2.18 #4：runtime 驗收用，data-mpu-stream-state 對應）
 		'streamStates'               => array(

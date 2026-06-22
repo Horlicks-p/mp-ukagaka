@@ -2919,10 +2919,6 @@ msgstr ""
 msgid "何か話したいことはありますか？"
 msgstr ""
 
-#: includes/core/frontend-functions.php:995
-msgid "…うーん、そうだね…"
-msgstr ""
-
 #: includes/core/frontend-functions.php:996
 #, php-format
 msgid "（…%sを実行中…）"

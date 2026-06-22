@@ -1543,10 +1543,6 @@ msgstr "連接成功！現在：%s %.0f°C%s / 明日：%s %.0f~%.0f°C%s"
 msgid "……"
 msgstr "……"
 
-#: includes/core/frontend-functions.php:995
-msgid "…うーん、そうだね…"
-msgstr "…嗯，就是這樣…"
-
 #: includes/core/frontend-functions.php:976
 msgid "…ちょっと待って。API魔力が足りない"
 msgstr "…等一下，API 魔力不足"
