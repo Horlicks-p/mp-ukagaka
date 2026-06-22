@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.25.7-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.27.1-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,13 +98,19 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.25.7
+## 🎉 What's New in v2.27.1
 
-**Frontend modular split (A-2)**: The frontend runtime was reorganized without behavior changes — boot globals and bootstrap logic moved out of inline `<head>` scripts into the enqueue flow, the Frieren runtime split into animation/interactions/decorations modules, and `ukagaka-chat.js` split into seven focused modules with a byte-identical production bundle.
+**Gift / Feeding system** (v2.27.0): A new 🎁 picker by the chat input lets visitors hand the character gift or food items. Each item drives an LLM reaction — food is eaten with a taste comment, gifts are accepted with thanks, and `favorite` items get an extra-delighted reaction — rendered through the existing emotion-tag/APNG pipeline so expressions appear automatically. Reactions are recorded in the session observation buffer and chat history, so later conversation can refer back to what was given. It is built on a new `POST /mp-ukagaka/v1/touch/give` endpoint, a ghost-agnostic `ghost/<Character>/items.json` catalog, and a single-item carousel UI (image-first thumbnails with a text fallback). Frieren ships with two items: メルクーアプリン (food) and 魔導書 (gift).
 
-**Faster Frieren loading**: Frieren's personality scripts are now bundled and minified into a single file (about 60 KB down to 28 KB, four HTTP requests down to one), with automatic per-file fallback for `SCRIPT_DEBUG` and third-party ghosts.
+**Gift string translations** (v2.27.1): The gift/feeding strings — the `/touch/give` error messages, the localized history anchor `（%sを差し出した）`, and the picker / carousel navigation labels — are now in the `.pot` / `.po` / `.mo` catalogs with Traditional Chinese and English translations, so non-Japanese sites no longer fall back to Japanese.
 
-**Robustness fixes**: Chat now degrades gracefully to the synchronous endpoint when the server lacks php-curl, and the initial system bubble waits up to 12 seconds for the character to appear on slow first visits.
+### v2.26.0 Highlights
+
+**Daytime nap (after-lunch sleep)**: Characters can now take an after-lunch nap in addition to the existing nighttime sleep — probability-based (~2–3 times a week), with a variable length (30–60 minutes) inside a configurable window (default 12:30–13:30). It reuses the existing sleep machinery, so reduced auto-talk, dream lines, touch/wake reactions, and weight adjustments all apply automatically, with nap-specific dream and wake-reaction flavor. Off by default; Frieren ships with nap enabled.
+
+### v2.25.7 Highlights
+
+**Frontend modular split & performance**: The frontend runtime was reorganized without behavior changes — boot globals moved out of inline `<head>` scripts into the enqueue flow, the Frieren runtime split into animation/interactions/decorations modules, and `ukagaka-chat.js` split into seven focused modules with a byte-identical production bundle. Frieren's personality scripts are now bundled and minified into a single file (about 60 KB down to 28 KB, four HTTP requests down to one), with automatic per-file fallback for `SCRIPT_DEBUG` and third-party ghosts. Chat also degrades gracefully to the synchronous endpoint when the server lacks php-curl.
 
 ### v2.25.6 Highlights
 
