@@ -104,75 +104,90 @@ function mpu_greet_first_visitor(settings) {
         if (res && res.msg && !res.error) {
           let greetingMessage = mpu_unescapeHTML(res.msg);
           greetingMessage = mpu_linkifyUrls(greetingMessage);
+          const visualReady = typeof mpuWaitForVisualReady === "function"
+            ? mpuWaitForVisualReady()
+            : Promise.resolve();
 
-          showMainDialog();
-          mpu_typewriter(
-            `<span style="color: ${mpuAiTextColor};">${greetingMessage}</span>`,
-            "#ukagaka_msg",
-          );
-
-          // 觸發角色動畫（訪客問候是使用者觸發，強制播放動畫）
-          if (
-            typeof window.mpuCanvasManager !== "undefined" &&
-            window.mpuCanvasManager.isCharacterMode
-          ) {
-            window.mpuCanvasManager.triggerCharacterAnimation(true);
-          }
-
-          // 顯示表情（如果有的話）
-          if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-            window.mpuEmojiManager.showEmoji(res.emoji);
-          }
-
-          // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
-          if (
-            typeof window.mpuChatHistory !== "undefined" &&
-            Array.isArray(window.mpuChatHistory)
-          ) {
-            // synthetic user 錨點：讓 LLM 能在後續對話中看到初次問候的完整脈絡
-            window.mpuChatHistory.push({
-              role: "user",
-              content: "（新しい訪客が来た）",
-              type: "synthetic",
-              timestamp: Date.now(),
-            });
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: res.msg,
-              type: "greet",
-              timestamp: Date.now(),
-            });
-
-            if (typeof mpu_saveChatHistory === "function") {
-              mpu_saveChatHistory();
-              mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
-            } else {
-              mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
+          return visualReady.then(function () {
+            // A page-context or other blocking flow may have started while the
+            // greeting response waited for character assets.
+            if (mpuAiContextInProgress || mpuMessageBlocking) {
+              mpuLogger.logL("greetingSkippedCompetingFlow", "視覚初期化の待機中に別の対話が開始されたため、初回挨拶の表示をスキップします");
+              // false means the greeting was not shown. The caller must not set
+              // the first-visit cookie, so a later page load can retry it.
+              resolve(false);
+              return;
             }
-          } else {
-            mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
-          }
 
-          // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
-          if (mpuAiDisplayTimer !== null) {
-            clearTimeout(mpuAiDisplayTimer);
-            mpuSetAiDisplayTimer(null);
-          }
+            showMainDialog();
+            mpu_typewriter(
+              `<span style="color: ${mpuAiTextColor};">${greetingMessage}</span>`,
+              "#ukagaka_msg",
+            );
 
-          mpu_waitForTypewriterComplete(function () {
-            // 打字完成後，開始 displayDuration 計時
-            const displayDurationMs = mpuAiDisplayDuration * 1000;
-            mpuSetAiDisplayTimer(setTimeout(function () {
-              mpuSetAiDisplayTimer(null);
-              if (
-                wasAutoTalkRunning &&
-                settings.auto_talk === true &&
-                mpuAutoTalk
-              ) {
-                startAutoTalk();
+            // 觸發角色動畫（訪客問候是使用者觸發，強制播放動畫）
+            if (
+              typeof window.mpuCanvasManager !== "undefined" &&
+              window.mpuCanvasManager.isCharacterMode
+            ) {
+              window.mpuCanvasManager.triggerCharacterAnimation(true);
+            }
+
+            // 顯示表情（如果有的話）
+            if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
+              window.mpuEmojiManager.showEmoji(res.emoji);
+            }
+
+            // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
+            if (
+              typeof window.mpuChatHistory !== "undefined" &&
+              Array.isArray(window.mpuChatHistory)
+            ) {
+              // synthetic user 錨點：讓 LLM 能在後續對話中看到初次問候的完整脈絡
+              window.mpuChatHistory.push({
+                role: "user",
+                content: "（新しい訪客が来た）",
+                type: "synthetic",
+                timestamp: Date.now(),
+              });
+              window.mpuChatHistory.push({
+                role: "assistant",
+                content: res.msg,
+                type: "greet",
+                timestamp: Date.now(),
+              });
+
+              if (typeof mpu_saveChatHistory === "function") {
+                mpu_saveChatHistory();
+                mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
+              } else {
+                mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
               }
-              resolve();
-            }, displayDurationMs));
+            } else {
+              mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
+            }
+
+            // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
+            if (mpuAiDisplayTimer !== null) {
+              clearTimeout(mpuAiDisplayTimer);
+              mpuSetAiDisplayTimer(null);
+            }
+
+            mpu_waitForTypewriterComplete(function () {
+              // 打字完成後，開始 displayDuration 計時
+              const displayDurationMs = mpuAiDisplayDuration * 1000;
+              mpuSetAiDisplayTimer(setTimeout(function () {
+                mpuSetAiDisplayTimer(null);
+                if (
+                  wasAutoTalkRunning &&
+                  settings.auto_talk === true &&
+                  mpuAutoTalk
+                ) {
+                  startAutoTalk();
+                }
+                resolve();
+              }, displayDurationMs));
+            });
           });
         } else {
           mpuLogger.warnF("greetingFirstVisitorFailed", "初回訪問者への挨拶に失敗しました：%s", res);

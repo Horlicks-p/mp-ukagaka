@@ -26,6 +26,22 @@
         currentCharacterNum: null, // 當前角色 num
         currentCharacterName: null, // 當前角色 name
 
+        markInitialVisualReady: function(source) {
+            const imgContainer = document.getElementById('ukagaka_img');
+            if (imgContainer) {
+                imgContainer.style.visibility = 'visible';
+            }
+
+            const msgbox = document.getElementById('ukagaka_msgbox');
+            if (msgbox) {
+                msgbox.style.visibility = 'visible';
+            }
+
+            if (typeof window.mpuMarkVisualReady === 'function') {
+                window.mpuMarkVisualReady(source);
+            }
+        },
+
         /**
          * 初始化 Canvas
          * @param {Object} shellInfo - Shell 資訊對象 {type: 'single'|'folder', url: string, images: string[]}
@@ -143,17 +159,7 @@
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.ctx.drawImage(img, 0, 0);
                 
-                // 設置 #ukagaka_img 的 visibility 為 visible（CSS 中初始為 hidden）
-                const imgContainer = document.getElementById('ukagaka_img');
-                if (imgContainer) {
-                    imgContainer.style.visibility = 'visible';
-                }
-                
-                // 顯示對話視窗（初始為 hidden，避免定位錯誤）
-                const msgbox = document.getElementById('ukagaka_msgbox');
-                if (msgbox) {
-                    msgbox.style.visibility = 'visible';
-                }
+                this.markInitialVisualReady('generic-single');
             }).bind(this);
 
             img.onerror = function() {
@@ -193,17 +199,6 @@
                     // 所有圖片載入完成時，繪製第一幀
                     if (loadedCount === totalImages) {
                         this.imagesLoaded = true;
-                        // 設置 #ukagaka_img 的 visibility 為 visible（CSS 中初始為 hidden）
-                        const imgContainer = document.getElementById('ukagaka_img');
-                        if (imgContainer) {
-                            imgContainer.style.visibility = 'visible';
-                        }
-                        
-                        // 顯示對話視窗（初始為 hidden，避免定位錯誤）
-                        const msgbox = document.getElementById('ukagaka_msgbox');
-                        if (msgbox) {
-                            msgbox.style.visibility = 'visible';
-                        }
                         this.currentFrame = 0;
                         this.drawFrame(0);
                         
@@ -214,6 +209,7 @@
                                 this.playAnimation();
                             }).bind(this), 50);
                         }
+                        this.markInitialVisualReady('generic-multi');
                     }
                 }).bind(this);
 
@@ -236,6 +232,7 @@
                                 }).bind(this), 50);
                             }
                         }
+                        this.markInitialVisualReady('generic-multi');
                     }
                 }).bind(this);
 

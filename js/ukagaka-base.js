@@ -53,6 +53,85 @@ window.MPU_STATE = window.MPU_STATE || {
 
 const mpuState = window.MPU_STATE;
 
+// Initial visual readiness latch. LLM requests may start before character assets
+// finish loading, but response rendering must wait until the character and main
+// dialog have a stable layout. The timeout is armed lazily by the first waiter.
+const MPU_VISUAL_READY_TIMEOUT_MS =
+    Number(window.MPU_VISUAL_READY_TIMEOUT_MS) > 0
+        ? Number(window.MPU_VISUAL_READY_TIMEOUT_MS)
+        : 12000;
+const mpuVisualReadyState = {
+    ready: false,
+    source: "",
+    timeoutId: null,
+    resolve: null,
+};
+
+window.mpuVisualReadyPromise = new Promise(function (resolve) {
+    mpuVisualReadyState.resolve = resolve;
+});
+
+function mpuMarkVisualReady(source) {
+    if (mpuVisualReadyState.ready) {
+        return window.mpuVisualReadyPromise;
+    }
+
+    mpuVisualReadyState.ready = true;
+    mpuVisualReadyState.source = String(source || "unknown");
+    if (mpuVisualReadyState.timeoutId !== null) {
+        clearTimeout(mpuVisualReadyState.timeoutId);
+        mpuVisualReadyState.timeoutId = null;
+    }
+
+    mpuVisualReadyState.resolve({
+        source: mpuVisualReadyState.source,
+        timedOut: mpuVisualReadyState.source === "timeout",
+    });
+
+    if (typeof document !== "undefined" && typeof document.dispatchEvent === "function") {
+        const detail = { source: mpuVisualReadyState.source };
+        const event = typeof CustomEvent === "function"
+            ? new CustomEvent("mpuVisualReady", { detail: detail })
+            : null;
+        if (event) {
+            document.dispatchEvent(event);
+        }
+    }
+
+    return window.mpuVisualReadyPromise;
+}
+
+function mpuForceVisualReadyFallback() {
+    if (typeof document !== "undefined") {
+        const imgContainer = document.getElementById("ukagaka_img");
+        const msgbox = document.getElementById("ukagaka_msgbox");
+        if (imgContainer) {
+            imgContainer.style.visibility = "visible";
+        }
+        if (msgbox) {
+            // Do not change display. A visitor may intentionally keep the dialog hidden.
+            msgbox.style.visibility = "visible";
+        }
+    }
+
+    return mpuMarkVisualReady("timeout");
+}
+
+function mpuWaitForVisualReady() {
+    if (!mpuVisualReadyState.ready && mpuVisualReadyState.timeoutId === null) {
+        mpuVisualReadyState.timeoutId = setTimeout(
+            mpuForceVisualReadyFallback,
+            MPU_VISUAL_READY_TIMEOUT_MS
+        );
+    }
+
+    return window.mpuVisualReadyPromise;
+}
+
+window.mpuMarkVisualReady = mpuMarkVisualReady;
+window.mpuWaitForVisualReady = mpuWaitForVisualReady;
+window.mpuForceVisualReadyFallback = mpuForceVisualReadyFallback;
+
 function mpuGetState() {
     return window.MPU_STATE;
 }

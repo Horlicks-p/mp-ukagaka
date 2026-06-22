@@ -423,78 +423,98 @@ function mpu_chat_context() {
       if (res && res.msg && !res.error) {
         let aiResponse = mpu_unescapeHTML(res.msg);
         aiResponse = mpu_linkifyUrls(aiResponse);
-        showMainDialog();
-        // 記錄感想顯示時間，啟動 60 秒再觸發冷卻（見 mpu_chat_context 開頭的 cooldown 守衛）。
-        try {
-          sessionStorage.setItem("mpu_context_last_shown", String(Date.now()));
-        } catch (e) {}
-        mpu_typewriter(
-          `<span style="color: ${mpuAiTextColor};">${aiResponse}</span>`,
-          "#ukagaka_msg",
-        );
+        const visualReady = typeof mpuWaitForVisualReady === "function"
+          ? mpuWaitForVisualReady()
+          : Promise.resolve();
 
-        // 觸發角色動畫（頁面感知是使用者觸發，強制播放動畫）
-        if (
-          typeof window.mpuCanvasManager !== "undefined" &&
-          window.mpuCanvasManager.isCharacterMode
-        ) {
-          window.mpuCanvasManager.triggerCharacterAnimation(true);
-        }
-
-        // 顯示表情（如果有的話）
-        if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-          window.mpuEmojiManager.showEmoji(res.emoji);
-        }
-
-        // 記憶功能：將頁面感知對話存入對話歷史
-        // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話
-        if (
-          typeof window.mpuChatHistory !== "undefined" &&
-          Array.isArray(window.mpuChatHistory)
-        ) {
-          // synthetic user 錨點：讓 LLM 能在後續對話中看到頁面感知的完整脈絡
-          window.mpuChatHistory.push({
-            role: "user",
-            content: "（ページの内容を感知した）",
-            type: "synthetic",
-            timestamp: Date.now(),
-          });
-          window.mpuChatHistory.push({
-            role: "assistant",
-            content: res.msg,
-            type: "context",
-            timestamp: Date.now(),
-          });
-
-          if (typeof mpu_saveChatHistory === "function") {
-            mpu_saveChatHistory();
-            mpuLogger.logL("contextChatSavedToHistory", "mpu_chat_context: 会話を履歴に追加して保存しました");
-          }
-        }
-
-        // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
-        // 這樣用戶可以自由設定 AI 回應的顯示時間
-        if (mpuAiDisplayTimer !== null) {
-          clearTimeout(mpuAiDisplayTimer);
-          mpuSetAiDisplayTimer(null);
-        }
-
-        mpu_waitForTypewriterComplete(function () {
-          // 打字完成後，開始 displayDuration 計時
-          const displayDurationMs = mpuAiDisplayDuration * 1000;
-          mpuSetAiDisplayTimer(setTimeout(function () {
-            mpuSetAiDisplayTimer(null);
-            mpuSetMessageBlocking(false);
-            mpuSetAiContextInProgress(false);
-            // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；startup 被跳過時
-            // auto-talk 從未啟動（wasAutoTalkRunning=false），但 mpuAutoTalk 仍為 true，
-            // 因此改用 mpuAutoTalk 判斷。不再加 !mpuAutoTalkTimer guard：生產環境 API
-            // 延遲會讓此刻殘留 stale timer 參照，guard 會誤判而永不重啟（本機 API 快、
-            // 重現不出）。startAutoTalk() 內部已先 stopAutoTalk()，重複呼叫不會疊計時器。
-            if (mpuAutoTalk) {
-              startAutoTalk();
+        return visualReady.then(function () {
+          // Re-check ownership after the visual wait. A stale context response
+          // must not overwrite a greeting or a flow that already released its locks.
+          if (!mpuAiContextInProgress || !mpuMessageBlocking || mpuGreetInProgress) {
+            mpuLogger.logL("contextChatResponseSkippedCompetingFlow", "視覚初期化の待機中に別の対話状態へ移行したため、ページ感知応答の表示をスキップします");
+            // If this context flow still owns its in-progress flag, release both
+            // context locks on every skip path. Do not touch messageBlocking when
+            // the context flag is already false; another flow may own that lock.
+            if (mpuAiContextInProgress) {
+              mpuSetMessageBlocking(false);
+              mpuSetAiContextInProgress(false);
             }
-          }, displayDurationMs));
+            return;
+          }
+
+          showMainDialog();
+          // 記錄感想顯示時間，啟動 60 秒再觸發冷卻（見 mpu_chat_context 開頭的 cooldown 守衛）。
+          try {
+            sessionStorage.setItem("mpu_context_last_shown", String(Date.now()));
+          } catch (e) {}
+          mpu_typewriter(
+            `<span style="color: ${mpuAiTextColor};">${aiResponse}</span>`,
+            "#ukagaka_msg",
+          );
+
+          // 觸發角色動畫（頁面感知是使用者觸發，強制播放動畫）
+          if (
+            typeof window.mpuCanvasManager !== "undefined" &&
+            window.mpuCanvasManager.isCharacterMode
+          ) {
+            window.mpuCanvasManager.triggerCharacterAnimation(true);
+          }
+
+          // 顯示表情（如果有的話）
+          if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
+            window.mpuEmojiManager.showEmoji(res.emoji);
+          }
+
+          // 記憶功能：將頁面感知對話存入對話歷史
+          // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話
+          if (
+            typeof window.mpuChatHistory !== "undefined" &&
+            Array.isArray(window.mpuChatHistory)
+          ) {
+            // synthetic user 錨點：讓 LLM 能在後續對話中看到頁面感知的完整脈絡
+            window.mpuChatHistory.push({
+              role: "user",
+              content: "（ページの内容を感知した）",
+              type: "synthetic",
+              timestamp: Date.now(),
+            });
+            window.mpuChatHistory.push({
+              role: "assistant",
+              content: res.msg,
+              type: "context",
+              timestamp: Date.now(),
+            });
+
+            if (typeof mpu_saveChatHistory === "function") {
+              mpu_saveChatHistory();
+              mpuLogger.logL("contextChatSavedToHistory", "mpu_chat_context: 会話を履歴に追加して保存しました");
+            }
+          }
+
+          // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
+          // 這樣用戶可以自由設定 AI 回應的顯示時間
+          if (mpuAiDisplayTimer !== null) {
+            clearTimeout(mpuAiDisplayTimer);
+            mpuSetAiDisplayTimer(null);
+          }
+
+          mpu_waitForTypewriterComplete(function () {
+            // 打字完成後，開始 displayDuration 計時
+            const displayDurationMs = mpuAiDisplayDuration * 1000;
+            mpuSetAiDisplayTimer(setTimeout(function () {
+              mpuSetAiDisplayTimer(null);
+              mpuSetMessageBlocking(false);
+              mpuSetAiContextInProgress(false);
+              // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；startup 被跳過時
+              // auto-talk 從未啟動（wasAutoTalkRunning=false），但 mpuAutoTalk 仍為 true，
+              // 因此改用 mpuAutoTalk 判斷。不再加 !mpuAutoTalkTimer guard：生產環境 API
+              // 延遲會讓此刻殘留 stale timer 參照，guard 會誤判而永不重啟（本機 API 快、
+              // 重現不出）。startAutoTalk() 內部已先 stopAutoTalk()，重複呼叫不會疊計時器。
+              if (mpuAutoTalk) {
+                startAutoTalk();
+              }
+            }, displayDurationMs));
+          });
         });
       } else {
         mpuLogger.warnF("contextChatAiFailedUseDefault", "AI 会話に失敗したため、既定の会話システムを使用します：%s", res);

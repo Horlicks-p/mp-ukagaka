@@ -176,6 +176,10 @@
           const msgbox = document.getElementById("ukagaka_msgbox");
           if (msgbox) msgbox.style.visibility = "visible";
 
+          if (typeof window.mpuMarkVisualReady === "function") {
+            window.mpuMarkVisualReady("frieren");
+          }
+
           self.setupDecorationClickThrough();
           self.frierenIsSpeaking = false;
 

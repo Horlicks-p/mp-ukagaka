@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-16T04:23:14.144Z
+ * Generated: 2026-06-22T07:10:07.234Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -60,6 +60,85 @@ window.MPU_STATE = window.MPU_STATE || {
 };
 
 const mpuState = window.MPU_STATE;
+
+// Initial visual readiness latch. LLM requests may start before character assets
+// finish loading, but response rendering must wait until the character and main
+// dialog have a stable layout. The timeout is armed lazily by the first waiter.
+const MPU_VISUAL_READY_TIMEOUT_MS =
+    Number(window.MPU_VISUAL_READY_TIMEOUT_MS) > 0
+        ? Number(window.MPU_VISUAL_READY_TIMEOUT_MS)
+        : 12000;
+const mpuVisualReadyState = {
+    ready: false,
+    source: "",
+    timeoutId: null,
+    resolve: null,
+};
+
+window.mpuVisualReadyPromise = new Promise(function (resolve) {
+    mpuVisualReadyState.resolve = resolve;
+});
+
+function mpuMarkVisualReady(source) {
+    if (mpuVisualReadyState.ready) {
+        return window.mpuVisualReadyPromise;
+    }
+
+    mpuVisualReadyState.ready = true;
+    mpuVisualReadyState.source = String(source || "unknown");
+    if (mpuVisualReadyState.timeoutId !== null) {
+        clearTimeout(mpuVisualReadyState.timeoutId);
+        mpuVisualReadyState.timeoutId = null;
+    }
+
+    mpuVisualReadyState.resolve({
+        source: mpuVisualReadyState.source,
+        timedOut: mpuVisualReadyState.source === "timeout",
+    });
+
+    if (typeof document !== "undefined" && typeof document.dispatchEvent === "function") {
+        const detail = { source: mpuVisualReadyState.source };
+        const event = typeof CustomEvent === "function"
+            ? new CustomEvent("mpuVisualReady", { detail: detail })
+            : null;
+        if (event) {
+            document.dispatchEvent(event);
+        }
+    }
+
+    return window.mpuVisualReadyPromise;
+}
+
+function mpuForceVisualReadyFallback() {
+    if (typeof document !== "undefined") {
+        const imgContainer = document.getElementById("ukagaka_img");
+        const msgbox = document.getElementById("ukagaka_msgbox");
+        if (imgContainer) {
+            imgContainer.style.visibility = "visible";
+        }
+        if (msgbox) {
+            // Do not change display. A visitor may intentionally keep the dialog hidden.
+            msgbox.style.visibility = "visible";
+        }
+    }
+
+    return mpuMarkVisualReady("timeout");
+}
+
+function mpuWaitForVisualReady() {
+    if (!mpuVisualReadyState.ready && mpuVisualReadyState.timeoutId === null) {
+        mpuVisualReadyState.timeoutId = setTimeout(
+            mpuForceVisualReadyFallback,
+            MPU_VISUAL_READY_TIMEOUT_MS
+        );
+    }
+
+    return window.mpuVisualReadyPromise;
+}
+
+window.mpuMarkVisualReady = mpuMarkVisualReady;
+window.mpuWaitForVisualReady = mpuWaitForVisualReady;
+window.mpuForceVisualReadyFallback = mpuForceVisualReadyFallback;
 
 function mpuGetState() {
     return window.MPU_STATE;
@@ -2027,119 +2106,136 @@ function mpu_nextmsg(trigger) {
         if (res && res.msg) {
           const auto = mpuGetDialogStore()?.auto_msg || "";
           const out = res.msg + auto;
+          const visualReady = typeof mpuWaitForVisualReady === "function"
+            ? mpuWaitForVisualReady()
+            : Promise.resolve();
 
-          // 觸發角色動畫（手動觸發時強制播放）
-          if (
-            typeof window.mpuCanvasManager !== "undefined" &&
-            window.mpuCanvasManager.isCharacterMode
-          ) {
-            const forceAnimation = !isAuto && !isStartup;
-            const skipBookFlip =
-              forceAnimation && window.mpuSkipNextManualBookFlip === true;
-            if (skipBookFlip) {
-              window.mpuSkipNextManualBookFlip = false;
-              window.mpuSkipBookFlipExpireToken = null;
+          return visualReady.then(function () {
+            // The response may have arrived before visual initialization. Re-check
+            // competing flows after readiness so a later context/greet cannot be overwritten.
+            if (mpuMessageBlocking || mpuAiContextInProgress || mpuGreetInProgress) {
+              mpuLogger.logL("nextMessageLlmResponseSkippedPageAwareInProgress", "mpu_nextmsg: 視覚初期化の待機中に別の対話が開始されたため、LLM 応答の表示をスキップします");
+              return;
             }
 
-            // 喚醒動畫完成後顯示對話
-            const isWakingUp =
-              window.mpuCanvasManager.triggerCharacterAnimation(
-                forceAnimation,
-                function () {
-                  mpu_cancelTypewriter();
-                  jQuery("#ukagaka_msg").html("");
-                  mpu_showMsgText();
-                  mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-                  mpu_showmsg(400);
-                },
-                skipBookFlip
-              );
+            // 觸發角色動畫（手動觸發時強制播放）
+            if (
+              typeof window.mpuCanvasManager !== "undefined" &&
+              window.mpuCanvasManager.isCharacterMode
+            ) {
+              const forceAnimation = !isAuto && !isStartup;
+              const skipBookFlip =
+                forceAnimation && window.mpuSkipNextManualBookFlip === true;
+              if (skipBookFlip) {
+                window.mpuSkipNextManualBookFlip = false;
+                window.mpuSkipBookFlipExpireToken = null;
+              }
 
-            if (!isWakingUp) {
+              // 喚醒動畫完成後顯示對話
+              const isWakingUp =
+                window.mpuCanvasManager.triggerCharacterAnimation(
+                  forceAnimation,
+                  function () {
+                    mpu_cancelTypewriter();
+                    jQuery("#ukagaka_msg").html("");
+                    mpu_showMsgText();
+                    mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+                    mpu_showmsg(400);
+                  },
+                  skipBookFlip
+                );
+
+              if (!isWakingUp) {
+                mpu_showMsgText();
+                mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+                mpu_showmsg(400);
+              }
+            } else {
               mpu_showMsgText();
               mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
               mpu_showmsg(400);
             }
-          } else {
-            mpu_showMsgText();
-            mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-            mpu_showmsg(400);
-          }
 
-          // 顯示表情（如果有的話）
-          if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-            // 確保配置已載入
+            // 顯示表情（如果有的話）
+            if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
+              // 確保配置已載入
+              if (
+                typeof window.mpuEmojiConfig === "undefined" ||
+                !window.mpuEmojiConfig.baseUrl
+              ) {
+                if (typeof window.loadEmojiConfig === "function") {
+                  window
+                    .loadEmojiConfig()
+                    .then(() => {
+                      window.mpuEmojiManager.showEmoji(res.emoji);
+                    })
+                    .catch((error) => {
+                      if (typeof mpuLogger !== "undefined" && mpuLogger.warn) {
+                        mpuLogger.warn("Failed to load emoji config:", error);
+                      }
+                    });
+                } else {
+                  window.mpuEmojiManager.showEmoji(res.emoji);
+                }
+              } else {
+                window.mpuEmojiManager.showEmoji(res.emoji);
+              }
+            }
+
+            mpuSetLastLLMResponse(res.msg);
+
+            if (mpuLLMResponseHistory.length >= mpuMaxResponseHistory) {
+              mpuLLMResponseHistory.shift();
+            }
+            mpuLLMResponseHistory.push(res.msg);
+
+            // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
             if (
-              typeof window.mpuEmojiConfig === "undefined" ||
-              !window.mpuEmojiConfig.baseUrl
+              typeof window.mpuChatHistory !== "undefined" &&
+              Array.isArray(window.mpuChatHistory)
             ) {
-              if (typeof window.loadEmojiConfig === "function") {
-                window
-                  .loadEmojiConfig()
-                  .then(() => {
-                    window.mpuEmojiManager.showEmoji(res.emoji);
-                  })
-                  .catch((error) => {
-                    if (typeof mpuLogger !== "undefined" && mpuLogger.warn) {
-                      mpuLogger.warn("Failed to load emoji config:", error);
-                    }
-                  });
-                return;
+              // synthetic user 錨點：讓 LLM 能在後續對話中看到自語的完整脈絡
+              window.mpuChatHistory.push({
+                role: "user",
+                content: "（独り言）",
+                type: "synthetic",
+                timestamp: Date.now(),
+              });
+              window.mpuChatHistory.push({
+                role: "assistant",
+                content: out,
+                type: "auto_talk",
+                timestamp: Date.now(),
+              });
+              mpuLogger.logF("nextMessageSpontaneousAddedToHistory", "mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s", window.mpuChatHistory.length);
+              if (typeof mpu_saveChatHistory === "function") {
+                mpu_saveChatHistory();
+                mpuLogger.logL("nextMessageHistorySaved", "mpu_nextmsg: 会話履歴を保存しました");
+              } else {
+                mpuLogger.warnL("nextMessageSaveHistoryMissing", "mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
               }
-            }
-            window.mpuEmojiManager.showEmoji(res.emoji);
-          }
-
-          mpuSetLastLLMResponse(res.msg);
-
-          if (mpuLLMResponseHistory.length >= mpuMaxResponseHistory) {
-            mpuLLMResponseHistory.shift();
-          }
-          mpuLLMResponseHistory.push(res.msg);
-
-          // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
-          if (
-            typeof window.mpuChatHistory !== "undefined" &&
-            Array.isArray(window.mpuChatHistory)
-          ) {
-            // synthetic user 錨點：讓 LLM 能在後續對話中看到自語的完整脈絡
-            window.mpuChatHistory.push({
-              role: "user",
-              content: "（独り言）",
-              type: "synthetic",
-              timestamp: Date.now(),
-            });
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: out,
-              type: "auto_talk",
-              timestamp: Date.now(),
-            });
-            mpuLogger.logF("nextMessageSpontaneousAddedToHistory", "mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s", window.mpuChatHistory.length);
-            if (typeof mpu_saveChatHistory === "function") {
-              mpu_saveChatHistory();
-              mpuLogger.logL("nextMessageHistorySaved", "mpu_nextmsg: 会話履歴を保存しました");
             } else {
-              mpuLogger.warnL("nextMessageSaveHistoryMissing", "mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
+              mpuLogger.warnL("nextMessageHistoryUnavailable", "mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません");
             }
-          } else {
-            mpuLogger.warnL("nextMessageHistoryUnavailable", "mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません");
-          }
 
-          if (res.msgnum !== undefined) {
-            jQuery("#ukagaka_msgnum").html(res.msgnum);
-          }
+            if (res.msgnum !== undefined) {
+              jQuery("#ukagaka_msgnum").html(res.msgnum);
+            }
 
-          // ⚠️ LLM 回應成功後，等待打字效果完成再啟動自動對話計時器
-          if (mpuAutoTalk && !mpuAutoTalkTimer) {
-            mpuLogger.logL("nextMessageLlmCompleteWaitingForTypewriter", "mpu_nextmsg: LLM 応答が完了しました。タイピング完了後に自動会話タイマーを開始します");
-            mpu_waitForTypewriterComplete(function () {
-              if (mpuAutoTalk && !mpuAutoTalkTimer) {
-                mpuLogger.logL("nextMessageTypewriterCompleteStartingAutoTalk", "mpu_nextmsg: タイピングが完了しました。自動会話タイマーを開始します");
-                startAutoTalk();
-              }
-            });
-          }
+            // ⚠️ LLM 回應成功後，等待打字效果完成再啟動自動對話計時器
+            if (mpuAutoTalk && !mpuAutoTalkTimer) {
+              mpuLogger.logL("nextMessageLlmCompleteWaitingForTypewriter", "mpu_nextmsg: LLM 応答が完了しました。タイピング完了後に自動会話タイマーを開始します");
+              mpu_waitForTypewriterComplete(function () {
+                if (mpuAutoTalk && !mpuAutoTalkTimer) {
+                  mpuLogger.logL("nextMessageTypewriterCompleteStartingAutoTalk", "mpu_nextmsg: タイピングが完了しました。自動会話タイマーを開始します");
+                  startAutoTalk();
+                }
+              });
+            }
+          }).finally(function () {
+            mpuSetOllamaRequesting(false);
+            mpu_processOllamaQueue();
+          });
         } else {
           mpuLogger.warnL("nextMessageLlmResponseMissingMessage", "mpu_nextmsg: LLM 応答に msg がありません", res);
 
@@ -2615,6 +2711,22 @@ jQuery(function () {
         currentCharacterNum: null, // 當前角色 num
         currentCharacterName: null, // 當前角色 name
 
+        markInitialVisualReady: function(source) {
+            const imgContainer = document.getElementById('ukagaka_img');
+            if (imgContainer) {
+                imgContainer.style.visibility = 'visible';
+            }
+
+            const msgbox = document.getElementById('ukagaka_msgbox');
+            if (msgbox) {
+                msgbox.style.visibility = 'visible';
+            }
+
+            if (typeof window.mpuMarkVisualReady === 'function') {
+                window.mpuMarkVisualReady(source);
+            }
+        },
+
         /**
          * 初始化 Canvas
          * @param {Object} shellInfo - Shell 資訊對象 {type: 'single'|'folder', url: string, images: string[]}
@@ -2732,17 +2844,7 @@ jQuery(function () {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.ctx.drawImage(img, 0, 0);
                 
-                // 設置 #ukagaka_img 的 visibility 為 visible（CSS 中初始為 hidden）
-                const imgContainer = document.getElementById('ukagaka_img');
-                if (imgContainer) {
-                    imgContainer.style.visibility = 'visible';
-                }
-                
-                // 顯示對話視窗（初始為 hidden，避免定位錯誤）
-                const msgbox = document.getElementById('ukagaka_msgbox');
-                if (msgbox) {
-                    msgbox.style.visibility = 'visible';
-                }
+                this.markInitialVisualReady('generic-single');
             }).bind(this);
 
             img.onerror = function() {
@@ -2782,17 +2884,6 @@ jQuery(function () {
                     // 所有圖片載入完成時，繪製第一幀
                     if (loadedCount === totalImages) {
                         this.imagesLoaded = true;
-                        // 設置 #ukagaka_img 的 visibility 為 visible（CSS 中初始為 hidden）
-                        const imgContainer = document.getElementById('ukagaka_img');
-                        if (imgContainer) {
-                            imgContainer.style.visibility = 'visible';
-                        }
-                        
-                        // 顯示對話視窗（初始為 hidden，避免定位錯誤）
-                        const msgbox = document.getElementById('ukagaka_msgbox');
-                        if (msgbox) {
-                            msgbox.style.visibility = 'visible';
-                        }
                         this.currentFrame = 0;
                         this.drawFrame(0);
                         
@@ -2803,6 +2894,7 @@ jQuery(function () {
                                 this.playAnimation();
                             }).bind(this), 50);
                         }
+                        this.markInitialVisualReady('generic-multi');
                     }
                 }).bind(this);
 
@@ -2825,6 +2917,7 @@ jQuery(function () {
                                 }).bind(this), 50);
                             }
                         }
+                        this.markInitialVisualReady('generic-multi');
                     }
                 }).bind(this);
 
@@ -3784,78 +3877,98 @@ function mpu_chat_context() {
       if (res && res.msg && !res.error) {
         let aiResponse = mpu_unescapeHTML(res.msg);
         aiResponse = mpu_linkifyUrls(aiResponse);
-        showMainDialog();
-        // 記錄感想顯示時間，啟動 60 秒再觸發冷卻（見 mpu_chat_context 開頭的 cooldown 守衛）。
-        try {
-          sessionStorage.setItem("mpu_context_last_shown", String(Date.now()));
-        } catch (e) {}
-        mpu_typewriter(
-          `<span style="color: ${mpuAiTextColor};">${aiResponse}</span>`,
-          "#ukagaka_msg",
-        );
+        const visualReady = typeof mpuWaitForVisualReady === "function"
+          ? mpuWaitForVisualReady()
+          : Promise.resolve();
 
-        // 觸發角色動畫（頁面感知是使用者觸發，強制播放動畫）
-        if (
-          typeof window.mpuCanvasManager !== "undefined" &&
-          window.mpuCanvasManager.isCharacterMode
-        ) {
-          window.mpuCanvasManager.triggerCharacterAnimation(true);
-        }
-
-        // 顯示表情（如果有的話）
-        if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-          window.mpuEmojiManager.showEmoji(res.emoji);
-        }
-
-        // 記憶功能：將頁面感知對話存入對話歷史
-        // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話
-        if (
-          typeof window.mpuChatHistory !== "undefined" &&
-          Array.isArray(window.mpuChatHistory)
-        ) {
-          // synthetic user 錨點：讓 LLM 能在後續對話中看到頁面感知的完整脈絡
-          window.mpuChatHistory.push({
-            role: "user",
-            content: "（ページの内容を感知した）",
-            type: "synthetic",
-            timestamp: Date.now(),
-          });
-          window.mpuChatHistory.push({
-            role: "assistant",
-            content: res.msg,
-            type: "context",
-            timestamp: Date.now(),
-          });
-
-          if (typeof mpu_saveChatHistory === "function") {
-            mpu_saveChatHistory();
-            mpuLogger.logL("contextChatSavedToHistory", "mpu_chat_context: 会話を履歴に追加して保存しました");
-          }
-        }
-
-        // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
-        // 這樣用戶可以自由設定 AI 回應的顯示時間
-        if (mpuAiDisplayTimer !== null) {
-          clearTimeout(mpuAiDisplayTimer);
-          mpuSetAiDisplayTimer(null);
-        }
-
-        mpu_waitForTypewriterComplete(function () {
-          // 打字完成後，開始 displayDuration 計時
-          const displayDurationMs = mpuAiDisplayDuration * 1000;
-          mpuSetAiDisplayTimer(setTimeout(function () {
-            mpuSetAiDisplayTimer(null);
-            mpuSetMessageBlocking(false);
-            mpuSetAiContextInProgress(false);
-            // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；startup 被跳過時
-            // auto-talk 從未啟動（wasAutoTalkRunning=false），但 mpuAutoTalk 仍為 true，
-            // 因此改用 mpuAutoTalk 判斷。不再加 !mpuAutoTalkTimer guard：生產環境 API
-            // 延遲會讓此刻殘留 stale timer 參照，guard 會誤判而永不重啟（本機 API 快、
-            // 重現不出）。startAutoTalk() 內部已先 stopAutoTalk()，重複呼叫不會疊計時器。
-            if (mpuAutoTalk) {
-              startAutoTalk();
+        return visualReady.then(function () {
+          // Re-check ownership after the visual wait. A stale context response
+          // must not overwrite a greeting or a flow that already released its locks.
+          if (!mpuAiContextInProgress || !mpuMessageBlocking || mpuGreetInProgress) {
+            mpuLogger.logL("contextChatResponseSkippedCompetingFlow", "視覚初期化の待機中に別の対話状態へ移行したため、ページ感知応答の表示をスキップします");
+            // If this context flow still owns its in-progress flag, release both
+            // context locks on every skip path. Do not touch messageBlocking when
+            // the context flag is already false; another flow may own that lock.
+            if (mpuAiContextInProgress) {
+              mpuSetMessageBlocking(false);
+              mpuSetAiContextInProgress(false);
             }
-          }, displayDurationMs));
+            return;
+          }
+
+          showMainDialog();
+          // 記錄感想顯示時間，啟動 60 秒再觸發冷卻（見 mpu_chat_context 開頭的 cooldown 守衛）。
+          try {
+            sessionStorage.setItem("mpu_context_last_shown", String(Date.now()));
+          } catch (e) {}
+          mpu_typewriter(
+            `<span style="color: ${mpuAiTextColor};">${aiResponse}</span>`,
+            "#ukagaka_msg",
+          );
+
+          // 觸發角色動畫（頁面感知是使用者觸發，強制播放動畫）
+          if (
+            typeof window.mpuCanvasManager !== "undefined" &&
+            window.mpuCanvasManager.isCharacterMode
+          ) {
+            window.mpuCanvasManager.triggerCharacterAnimation(true);
+          }
+
+          // 顯示表情（如果有的話）
+          if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
+            window.mpuEmojiManager.showEmoji(res.emoji);
+          }
+
+          // 記憶功能：將頁面感知對話存入對話歷史
+          // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話
+          if (
+            typeof window.mpuChatHistory !== "undefined" &&
+            Array.isArray(window.mpuChatHistory)
+          ) {
+            // synthetic user 錨點：讓 LLM 能在後續對話中看到頁面感知的完整脈絡
+            window.mpuChatHistory.push({
+              role: "user",
+              content: "（ページの内容を感知した）",
+              type: "synthetic",
+              timestamp: Date.now(),
+            });
+            window.mpuChatHistory.push({
+              role: "assistant",
+              content: res.msg,
+              type: "context",
+              timestamp: Date.now(),
+            });
+
+            if (typeof mpu_saveChatHistory === "function") {
+              mpu_saveChatHistory();
+              mpuLogger.logL("contextChatSavedToHistory", "mpu_chat_context: 会話を履歴に追加して保存しました");
+            }
+          }
+
+          // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
+          // 這樣用戶可以自由設定 AI 回應的顯示時間
+          if (mpuAiDisplayTimer !== null) {
+            clearTimeout(mpuAiDisplayTimer);
+            mpuSetAiDisplayTimer(null);
+          }
+
+          mpu_waitForTypewriterComplete(function () {
+            // 打字完成後，開始 displayDuration 計時
+            const displayDurationMs = mpuAiDisplayDuration * 1000;
+            mpuSetAiDisplayTimer(setTimeout(function () {
+              mpuSetAiDisplayTimer(null);
+              mpuSetMessageBlocking(false);
+              mpuSetAiContextInProgress(false);
+              // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；startup 被跳過時
+              // auto-talk 從未啟動（wasAutoTalkRunning=false），但 mpuAutoTalk 仍為 true，
+              // 因此改用 mpuAutoTalk 判斷。不再加 !mpuAutoTalkTimer guard：生產環境 API
+              // 延遲會讓此刻殘留 stale timer 參照，guard 會誤判而永不重啟（本機 API 快、
+              // 重現不出）。startAutoTalk() 內部已先 stopAutoTalk()，重複呼叫不會疊計時器。
+              if (mpuAutoTalk) {
+                startAutoTalk();
+              }
+            }, displayDurationMs));
+          });
         });
       } else {
         mpuLogger.warnF("contextChatAiFailedUseDefault", "AI 会話に失敗したため、既定の会話システムを使用します：%s", res);
@@ -4091,75 +4204,90 @@ function mpu_greet_first_visitor(settings) {
         if (res && res.msg && !res.error) {
           let greetingMessage = mpu_unescapeHTML(res.msg);
           greetingMessage = mpu_linkifyUrls(greetingMessage);
+          const visualReady = typeof mpuWaitForVisualReady === "function"
+            ? mpuWaitForVisualReady()
+            : Promise.resolve();
 
-          showMainDialog();
-          mpu_typewriter(
-            `<span style="color: ${mpuAiTextColor};">${greetingMessage}</span>`,
-            "#ukagaka_msg",
-          );
-
-          // 觸發角色動畫（訪客問候是使用者觸發，強制播放動畫）
-          if (
-            typeof window.mpuCanvasManager !== "undefined" &&
-            window.mpuCanvasManager.isCharacterMode
-          ) {
-            window.mpuCanvasManager.triggerCharacterAnimation(true);
-          }
-
-          // 顯示表情（如果有的話）
-          if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-            window.mpuEmojiManager.showEmoji(res.emoji);
-          }
-
-          // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
-          if (
-            typeof window.mpuChatHistory !== "undefined" &&
-            Array.isArray(window.mpuChatHistory)
-          ) {
-            // synthetic user 錨點：讓 LLM 能在後續對話中看到初次問候的完整脈絡
-            window.mpuChatHistory.push({
-              role: "user",
-              content: "（新しい訪客が来た）",
-              type: "synthetic",
-              timestamp: Date.now(),
-            });
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: res.msg,
-              type: "greet",
-              timestamp: Date.now(),
-            });
-
-            if (typeof mpu_saveChatHistory === "function") {
-              mpu_saveChatHistory();
-              mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
-            } else {
-              mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
+          return visualReady.then(function () {
+            // A page-context or other blocking flow may have started while the
+            // greeting response waited for character assets.
+            if (mpuAiContextInProgress || mpuMessageBlocking) {
+              mpuLogger.logL("greetingSkippedCompetingFlow", "視覚初期化の待機中に別の対話が開始されたため、初回挨拶の表示をスキップします");
+              // false means the greeting was not shown. The caller must not set
+              // the first-visit cookie, so a later page load can retry it.
+              resolve(false);
+              return;
             }
-          } else {
-            mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
-          }
 
-          // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
-          if (mpuAiDisplayTimer !== null) {
-            clearTimeout(mpuAiDisplayTimer);
-            mpuSetAiDisplayTimer(null);
-          }
+            showMainDialog();
+            mpu_typewriter(
+              `<span style="color: ${mpuAiTextColor};">${greetingMessage}</span>`,
+              "#ukagaka_msg",
+            );
 
-          mpu_waitForTypewriterComplete(function () {
-            // 打字完成後，開始 displayDuration 計時
-            const displayDurationMs = mpuAiDisplayDuration * 1000;
-            mpuSetAiDisplayTimer(setTimeout(function () {
-              mpuSetAiDisplayTimer(null);
-              if (
-                wasAutoTalkRunning &&
-                settings.auto_talk === true &&
-                mpuAutoTalk
-              ) {
-                startAutoTalk();
+            // 觸發角色動畫（訪客問候是使用者觸發，強制播放動畫）
+            if (
+              typeof window.mpuCanvasManager !== "undefined" &&
+              window.mpuCanvasManager.isCharacterMode
+            ) {
+              window.mpuCanvasManager.triggerCharacterAnimation(true);
+            }
+
+            // 顯示表情（如果有的話）
+            if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
+              window.mpuEmojiManager.showEmoji(res.emoji);
+            }
+
+            // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
+            if (
+              typeof window.mpuChatHistory !== "undefined" &&
+              Array.isArray(window.mpuChatHistory)
+            ) {
+              // synthetic user 錨點：讓 LLM 能在後續對話中看到初次問候的完整脈絡
+              window.mpuChatHistory.push({
+                role: "user",
+                content: "（新しい訪客が来た）",
+                type: "synthetic",
+                timestamp: Date.now(),
+              });
+              window.mpuChatHistory.push({
+                role: "assistant",
+                content: res.msg,
+                type: "greet",
+                timestamp: Date.now(),
+              });
+
+              if (typeof mpu_saveChatHistory === "function") {
+                mpu_saveChatHistory();
+                mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
+              } else {
+                mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
               }
-              resolve();
-            }, displayDurationMs));
+            } else {
+              mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
+            }
+
+            // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
+            if (mpuAiDisplayTimer !== null) {
+              clearTimeout(mpuAiDisplayTimer);
+              mpuSetAiDisplayTimer(null);
+            }
+
+            mpu_waitForTypewriterComplete(function () {
+              // 打字完成後，開始 displayDuration 計時
+              const displayDurationMs = mpuAiDisplayDuration * 1000;
+              mpuSetAiDisplayTimer(setTimeout(function () {
+                mpuSetAiDisplayTimer(null);
+                if (
+                  wasAutoTalkRunning &&
+                  settings.auto_talk === true &&
+                  mpuAutoTalk
+                ) {
+                  startAutoTalk();
+                }
+                resolve();
+              }, displayDurationMs));
+            });
           });
         } else {
           mpuLogger.warnF("greetingFirstVisitorFailed", "初回訪問者への挨拶に失敗しました：%s", res);
@@ -6064,8 +6192,10 @@ jQuery(document).ready(function () {
         if (isFirstVisit) {
           mpuSetGreetInProgress(true);
           mpu_greet_first_visitor(res)
-            .then(() => {
-              mpu_setCookie(firstVisitCookie, "1", 365, "/");
+            .then((greetingDisplayed) => {
+              if (greetingDisplayed !== false) {
+                mpu_setCookie(firstVisitCookie, "1", 365, "/");
+              }
               mpuSetGreetInProgress(false);
             })
             .catch((error) => {
@@ -6083,14 +6213,16 @@ jQuery(document).ready(function () {
       if (isFirstVisit) {
         mpuSetGreetInProgress(true);
         mpu_greet_first_visitor(res)
-          .then(() => {
-            if (typeof jQuery.cookie !== "undefined") {
-              jQuery.cookie(firstVisitCookie, "1", {
-                expires: 365,
-                path: "/",
-              });
-            } else {
-              mpu_setCookie(firstVisitCookie, "1", 365, "/");
+          .then((greetingDisplayed) => {
+            if (greetingDisplayed !== false) {
+              if (typeof jQuery.cookie !== "undefined") {
+                jQuery.cookie(firstVisitCookie, "1", {
+                  expires: 365,
+                  path: "/",
+                });
+              } else {
+                mpu_setCookie(firstVisitCookie, "1", 365, "/");
+              }
             }
             mpuSetGreetInProgress(false);
           })
@@ -6365,3 +6497,4 @@ mpuLogger.logL("featuresScriptLoaded", "スクリプトの読み込みが完了�
 
 // ====== 互動對話模式 ======
 // 已移至 ukagaka-chat-send.js
+

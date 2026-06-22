@@ -634,119 +634,136 @@ function mpu_nextmsg(trigger) {
         if (res && res.msg) {
           const auto = mpuGetDialogStore()?.auto_msg || "";
           const out = res.msg + auto;
+          const visualReady = typeof mpuWaitForVisualReady === "function"
+            ? mpuWaitForVisualReady()
+            : Promise.resolve();
 
-          // 觸發角色動畫（手動觸發時強制播放）
-          if (
-            typeof window.mpuCanvasManager !== "undefined" &&
-            window.mpuCanvasManager.isCharacterMode
-          ) {
-            const forceAnimation = !isAuto && !isStartup;
-            const skipBookFlip =
-              forceAnimation && window.mpuSkipNextManualBookFlip === true;
-            if (skipBookFlip) {
-              window.mpuSkipNextManualBookFlip = false;
-              window.mpuSkipBookFlipExpireToken = null;
+          return visualReady.then(function () {
+            // The response may have arrived before visual initialization. Re-check
+            // competing flows after readiness so a later context/greet cannot be overwritten.
+            if (mpuMessageBlocking || mpuAiContextInProgress || mpuGreetInProgress) {
+              mpuLogger.logL("nextMessageLlmResponseSkippedPageAwareInProgress", "mpu_nextmsg: 視覚初期化の待機中に別の対話が開始されたため、LLM 応答の表示をスキップします");
+              return;
             }
 
-            // 喚醒動畫完成後顯示對話
-            const isWakingUp =
-              window.mpuCanvasManager.triggerCharacterAnimation(
-                forceAnimation,
-                function () {
-                  mpu_cancelTypewriter();
-                  jQuery("#ukagaka_msg").html("");
-                  mpu_showMsgText();
-                  mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-                  mpu_showmsg(400);
-                },
-                skipBookFlip
-              );
+            // 觸發角色動畫（手動觸發時強制播放）
+            if (
+              typeof window.mpuCanvasManager !== "undefined" &&
+              window.mpuCanvasManager.isCharacterMode
+            ) {
+              const forceAnimation = !isAuto && !isStartup;
+              const skipBookFlip =
+                forceAnimation && window.mpuSkipNextManualBookFlip === true;
+              if (skipBookFlip) {
+                window.mpuSkipNextManualBookFlip = false;
+                window.mpuSkipBookFlipExpireToken = null;
+              }
 
-            if (!isWakingUp) {
+              // 喚醒動畫完成後顯示對話
+              const isWakingUp =
+                window.mpuCanvasManager.triggerCharacterAnimation(
+                  forceAnimation,
+                  function () {
+                    mpu_cancelTypewriter();
+                    jQuery("#ukagaka_msg").html("");
+                    mpu_showMsgText();
+                    mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+                    mpu_showmsg(400);
+                  },
+                  skipBookFlip
+                );
+
+              if (!isWakingUp) {
+                mpu_showMsgText();
+                mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+                mpu_showmsg(400);
+              }
+            } else {
               mpu_showMsgText();
               mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
               mpu_showmsg(400);
             }
-          } else {
-            mpu_showMsgText();
-            mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
-            mpu_showmsg(400);
-          }
 
-          // 顯示表情（如果有的話）
-          if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-            // 確保配置已載入
+            // 顯示表情（如果有的話）
+            if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
+              // 確保配置已載入
+              if (
+                typeof window.mpuEmojiConfig === "undefined" ||
+                !window.mpuEmojiConfig.baseUrl
+              ) {
+                if (typeof window.loadEmojiConfig === "function") {
+                  window
+                    .loadEmojiConfig()
+                    .then(() => {
+                      window.mpuEmojiManager.showEmoji(res.emoji);
+                    })
+                    .catch((error) => {
+                      if (typeof mpuLogger !== "undefined" && mpuLogger.warn) {
+                        mpuLogger.warn("Failed to load emoji config:", error);
+                      }
+                    });
+                } else {
+                  window.mpuEmojiManager.showEmoji(res.emoji);
+                }
+              } else {
+                window.mpuEmojiManager.showEmoji(res.emoji);
+              }
+            }
+
+            mpuSetLastLLMResponse(res.msg);
+
+            if (mpuLLMResponseHistory.length >= mpuMaxResponseHistory) {
+              mpuLLMResponseHistory.shift();
+            }
+            mpuLLMResponseHistory.push(res.msg);
+
+            // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
             if (
-              typeof window.mpuEmojiConfig === "undefined" ||
-              !window.mpuEmojiConfig.baseUrl
+              typeof window.mpuChatHistory !== "undefined" &&
+              Array.isArray(window.mpuChatHistory)
             ) {
-              if (typeof window.loadEmojiConfig === "function") {
-                window
-                  .loadEmojiConfig()
-                  .then(() => {
-                    window.mpuEmojiManager.showEmoji(res.emoji);
-                  })
-                  .catch((error) => {
-                    if (typeof mpuLogger !== "undefined" && mpuLogger.warn) {
-                      mpuLogger.warn("Failed to load emoji config:", error);
-                    }
-                  });
-                return;
+              // synthetic user 錨點：讓 LLM 能在後續對話中看到自語的完整脈絡
+              window.mpuChatHistory.push({
+                role: "user",
+                content: "（独り言）",
+                type: "synthetic",
+                timestamp: Date.now(),
+              });
+              window.mpuChatHistory.push({
+                role: "assistant",
+                content: out,
+                type: "auto_talk",
+                timestamp: Date.now(),
+              });
+              mpuLogger.logF("nextMessageSpontaneousAddedToHistory", "mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s", window.mpuChatHistory.length);
+              if (typeof mpu_saveChatHistory === "function") {
+                mpu_saveChatHistory();
+                mpuLogger.logL("nextMessageHistorySaved", "mpu_nextmsg: 会話履歴を保存しました");
+              } else {
+                mpuLogger.warnL("nextMessageSaveHistoryMissing", "mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
               }
-            }
-            window.mpuEmojiManager.showEmoji(res.emoji);
-          }
-
-          mpuSetLastLLMResponse(res.msg);
-
-          if (mpuLLMResponseHistory.length >= mpuMaxResponseHistory) {
-            mpuLLMResponseHistory.shift();
-          }
-          mpuLLMResponseHistory.push(res.msg);
-
-          // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
-          if (
-            typeof window.mpuChatHistory !== "undefined" &&
-            Array.isArray(window.mpuChatHistory)
-          ) {
-            // synthetic user 錨點：讓 LLM 能在後續對話中看到自語的完整脈絡
-            window.mpuChatHistory.push({
-              role: "user",
-              content: "（独り言）",
-              type: "synthetic",
-              timestamp: Date.now(),
-            });
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: out,
-              type: "auto_talk",
-              timestamp: Date.now(),
-            });
-            mpuLogger.logF("nextMessageSpontaneousAddedToHistory", "mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s", window.mpuChatHistory.length);
-            if (typeof mpu_saveChatHistory === "function") {
-              mpu_saveChatHistory();
-              mpuLogger.logL("nextMessageHistorySaved", "mpu_nextmsg: 会話履歴を保存しました");
             } else {
-              mpuLogger.warnL("nextMessageSaveHistoryMissing", "mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
+              mpuLogger.warnL("nextMessageHistoryUnavailable", "mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません");
             }
-          } else {
-            mpuLogger.warnL("nextMessageHistoryUnavailable", "mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません");
-          }
 
-          if (res.msgnum !== undefined) {
-            jQuery("#ukagaka_msgnum").html(res.msgnum);
-          }
+            if (res.msgnum !== undefined) {
+              jQuery("#ukagaka_msgnum").html(res.msgnum);
+            }
 
-          // ⚠️ LLM 回應成功後，等待打字效果完成再啟動自動對話計時器
-          if (mpuAutoTalk && !mpuAutoTalkTimer) {
-            mpuLogger.logL("nextMessageLlmCompleteWaitingForTypewriter", "mpu_nextmsg: LLM 応答が完了しました。タイピング完了後に自動会話タイマーを開始します");
-            mpu_waitForTypewriterComplete(function () {
-              if (mpuAutoTalk && !mpuAutoTalkTimer) {
-                mpuLogger.logL("nextMessageTypewriterCompleteStartingAutoTalk", "mpu_nextmsg: タイピングが完了しました。自動会話タイマーを開始します");
-                startAutoTalk();
-              }
-            });
-          }
+            // ⚠️ LLM 回應成功後，等待打字效果完成再啟動自動對話計時器
+            if (mpuAutoTalk && !mpuAutoTalkTimer) {
+              mpuLogger.logL("nextMessageLlmCompleteWaitingForTypewriter", "mpu_nextmsg: LLM 応答が完了しました。タイピング完了後に自動会話タイマーを開始します");
+              mpu_waitForTypewriterComplete(function () {
+                if (mpuAutoTalk && !mpuAutoTalkTimer) {
+                  mpuLogger.logL("nextMessageTypewriterCompleteStartingAutoTalk", "mpu_nextmsg: タイピングが完了しました。自動会話タイマーを開始します");
+                  startAutoTalk();
+                }
+              });
+            }
+          }).finally(function () {
+            mpuSetOllamaRequesting(false);
+            mpu_processOllamaQueue();
+          });
         } else {
           mpuLogger.warnL("nextMessageLlmResponseMissingMessage", "mpu_nextmsg: LLM 応答に msg がありません", res);
 

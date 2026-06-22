@@ -248,8 +248,10 @@ jQuery(document).ready(function () {
         if (isFirstVisit) {
           mpuSetGreetInProgress(true);
           mpu_greet_first_visitor(res)
-            .then(() => {
-              mpu_setCookie(firstVisitCookie, "1", 365, "/");
+            .then((greetingDisplayed) => {
+              if (greetingDisplayed !== false) {
+                mpu_setCookie(firstVisitCookie, "1", 365, "/");
+              }
               mpuSetGreetInProgress(false);
             })
             .catch((error) => {
@@ -267,14 +269,16 @@ jQuery(document).ready(function () {
       if (isFirstVisit) {
         mpuSetGreetInProgress(true);
         mpu_greet_first_visitor(res)
-          .then(() => {
-            if (typeof jQuery.cookie !== "undefined") {
-              jQuery.cookie(firstVisitCookie, "1", {
-                expires: 365,
-                path: "/",
-              });
-            } else {
-              mpu_setCookie(firstVisitCookie, "1", 365, "/");
+          .then((greetingDisplayed) => {
+            if (greetingDisplayed !== false) {
+              if (typeof jQuery.cookie !== "undefined") {
+                jQuery.cookie(firstVisitCookie, "1", {
+                  expires: 365,
+                  path: "/",
+                });
+              } else {
+                mpu_setCookie(firstVisitCookie, "1", 365, "/");
+              }
             }
             mpuSetGreetInProgress(false);
           })
