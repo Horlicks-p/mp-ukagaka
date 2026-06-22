@@ -4,6 +4,24 @@
 
 ---
 
+## [2.27.2] - 2026-06-22
+
+### 🐛 Boot-time rendering race
+
+- **LLM replies no longer render into an un-initialized dialog box**: On slow connections a startup, first-visit greeting, or page-context reply could be written into `#ukagaka_msg` before the character and main box finished loading, so text appeared abruptly — or already half-typed/complete — when image loading finally released `visibility`. A shared one-shot **visual-ready latch** (`mpuWaitForVisualReady()` in `ukagaka-base.js`, Promise + `mpuVisualReady` DOM event) now gates the official render of these auto-responses. The LLM request still goes out early; only the rendering waits. A lazy 12-second fallback force-reveals `visibility` (never touching `display`, so a visitor's hidden-dialog preference is preserved) to avoid a permanent hang if assets never load.
+- **Frieren and generic characters both signal readiness**: Frieren marks ready in `finalizeIdle()` after the idle image and main box become visible; generic single/multi-image characters mark ready from their image-load completion (`ukagaka-anime.js`).
+- **Competing-flow guards re-checked after the wait**: startup / greeting / page-context re-evaluate `mpuMessageBlocking` / `mpuAiContextInProgress` / `mpuGreetInProgress` *after* readiness, so a reply that arrived before initialization cannot overwrite a different flow that started during the wait.
+- **Greeting retry & lock hygiene**: a greeting skipped by a competing flow no longer sets the first-visit cookie (a later load can retry it), and page-context defensively releases its own locks when it skips.
+- **Fixed a pre-existing visibility bug**: `loadImages()` only released the main box from the `onload` completion branch, so a multi-image character whose last-completing frame failed via `onerror` stayed hidden forever. Both completion branches now release visibility.
+- **Tests**: new `test:visual-ready` smoke test (latch resolve/idempotency/timeout + static checks that each flow waits and re-guards) wired into `npm run verify`.
+
+### 🎁 Gift interaction hardening
+
+- **History verified before checksum write**: `POST /touch/give` now verifies the submitted chat history before overwriting the integrity checksum, mirroring the `chat/user` path. This is a no-op under the current audit mode but gates tampered history once block mode is enabled.
+- **Gift lock held until the typewriter completes**: the gift reaction unlock now waits for `mpu_waitForTypewriterComplete()`, so a visitor can no longer resend or let auto-talk interrupt an in-progress typewriter — matching the decoration/touch flow.
+
+---
+
 ## [2.27.1] - 2026-06-19
 
 ### 🌐 i18n fix

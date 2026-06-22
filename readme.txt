@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.27.1
+Stable tag: 2.27.2
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,13 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-22 =
+* v2.27.2
+* [FIX] Initialization race: on slow connections an LLM reply (startup, first-visit greeting, or page-context) could be written into the main dialog box before the character and box finished initializing, so text appeared abruptly or already half-typed once visibility was released. These auto-responses now defer rendering until a shared visual-ready signal fires (one-shot latch with a 12-second fallback that force-reveals visibility only, never overriding a visitor's hidden-dialog preference), while the LLM request itself still goes out early. Each flow re-checks its competing-flow guards after the wait so a later flow is not overwritten.
+* [FIX] A greeting skipped by a competing flow no longer consumes the first-visit cookie, so a later page load can retry it; page-context defensively releases its own locks when it skips.
+* [FIX] `loadImages()` left the main box hidden when the last animation frame finished via `onerror` (multi-image characters whose last-completing frame failed); visibility is now released from both completion branches.
+* [FIX] Gift/feeding: `/touch/give` verifies the submitted chat history before writing its integrity checksum (audit-mode no-op today; gates tampered history under future block mode), and the gift reaction holds its input lock until the typewriter finishes so a reply cannot be interrupted by a second gift or auto-talk.
 
 = 2026-06-19 =
 * v2.27.1

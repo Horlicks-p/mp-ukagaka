@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.27.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.27.2-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,13 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.27.1
+## 🎉 What's New in v2.27.2
+
+**Boot-time rendering race fixed**: On slow connections an LLM reply (startup, first-visit greeting, or page-context) could be written into the main dialog box before the character and box finished initializing, making text appear abruptly or already half-typed once visibility was released. These auto-responses now defer rendering until a shared visual-ready signal fires (a one-shot latch with a 12-second fallback that force-reveals visibility only — it never overrides a visitor's hidden-dialog preference), while the LLM request itself still goes out early. A greeting skipped by a competing flow no longer consumes the first-visit cookie, so a later load can retry it.
+
+**Gift interaction hardening**: The gift/feeding endpoint now verifies submitted chat history before writing its integrity checksum, and the gift reaction keeps its input lock until the typewriter finishes, so a reply can no longer be interrupted by a second gift or auto-talk.
+
+### v2.27.1 Highlights
 
 **Gift / Feeding system** (v2.27.0): A new 🎁 picker by the chat input lets visitors hand the character gift or food items. Each item drives an LLM reaction — food is eaten with a taste comment, gifts are accepted with thanks, and `favorite` items get an extra-delighted reaction — rendered through the existing emotion-tag/APNG pipeline so expressions appear automatically. Reactions are recorded in the session observation buffer and chat history, so later conversation can refer back to what was given. It is built on a new `POST /mp-ukagaka/v1/touch/give` endpoint, a ghost-agnostic `ghost/<Character>/items.json` catalog, and a single-item carousel UI (image-first thumbnails with a text fallback). Frieren ships with two items: メルクーアプリン (food) and 魔導書 (gift).
 
