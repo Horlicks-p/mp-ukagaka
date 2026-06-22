@@ -868,23 +868,34 @@
           );
         }
       } finally {
-        this.giveItemInProgress = false;
-        if (typeof mpuSetMessageBlocking === "function") {
-          mpuSetMessageBlocking(false);
+        const self = this;
+        const restoreAfterGive = function () {
+          self.giveItemInProgress = false;
+          if (typeof mpuSetMessageBlocking === "function") {
+            mpuSetMessageBlocking(false);
+          } else {
+            window.mpuMessageBlocking = false;
+          }
+          if (button) {
+            button.disabled = false;
+          }
+          pickerButtons.forEach((pickerButton) => {
+            pickerButton.disabled = false;
+          });
+          if (typeof mpuClearSystemPlaceholder === "function") {
+            mpuClearSystemPlaceholder("#ukagaka_msg");
+          }
+          if (typeof mpuAutoTalk !== "undefined" && mpuAutoTalk && typeof startAutoTalk === "function") {
+            startAutoTalk();
+          }
+        };
+
+        // 打字機仍在輸出時不可解鎖，否則使用者能立刻再次送禮、或讓自動對話打斷尚未完成的演出。
+        // decoration/touch 流程同型（scheduleRestoreAfterChat → mpu_waitForTypewriterComplete）。
+        if (typeof mpu_waitForTypewriterComplete !== "undefined") {
+          mpu_waitForTypewriterComplete(restoreAfterGive);
         } else {
-          window.mpuMessageBlocking = false;
-        }
-        if (button) {
-          button.disabled = false;
-        }
-        pickerButtons.forEach((pickerButton) => {
-          pickerButton.disabled = false;
-        });
-        if (typeof mpuClearSystemPlaceholder === "function") {
-          mpuClearSystemPlaceholder("#ukagaka_msg");
-        }
-        if (typeof mpuAutoTalk !== "undefined" && mpuAutoTalk && typeof startAutoTalk === "function") {
-          startAutoTalk();
+          setTimeout(restoreAfterGive, 3000);
         }
       }
     },

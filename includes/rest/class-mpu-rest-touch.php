@@ -247,6 +247,16 @@ class MPU_REST_Touch extends MPU_REST_Base {
 		}
 		$history = MPU_Chat_History_Service::normalize_history( $decoded_history );
 
+		// 前端送來的既存履歴を、checksum を上書きする前に検証する (chat/user と同型).
+		// audit モードでは null を返すだけで何もブロックしないが、block モード切替時に
+		// 改竄された履歴で整合性ステートを上書きするのを防ぐ.
+		$integrity_check = MPU_Chat_History_Service::verify( $session_id, $history );
+		if ( is_wp_error( $integrity_check ) ) {
+			$error_data = $integrity_check->get_error_data();
+			$status     = is_array( $error_data ) && isset( $error_data['status'] ) ? (int) $error_data['status'] : 400;
+			return $this->fail( 'rest_error', $integrity_check->get_error_message(), $status );
+		}
+
 		$ukagaka_name = $mpu_opt['ukagakas'][ $mpu_opt['cur_ukagaka'] ]['name'] ?? 'キャラクター';
 		$user_prompt = $item['prompt'];
 		$user_prompt .= 'food' === $item['kind']
