@@ -6,6 +6,7 @@
 > 📅 改訂：2026-06-10（checksum filter の実挙動に合わせ C-A / G-2 / D-2 の根拠を訂正）
 > 📅 改訂：2026-06-12（**UI を LINE スタンプ風ギフトピッカーへ**。画像優先＋テキスト fallback に方針変更。後端設計は一切不変＝U-1）
 > 📅 改訂：2026-06-18（複数アイテム時の picker を**単項 slider**へ変更。1 件時はナビゲーション非表示＝U-5）
+> 📅 状態更新：2026-06-26（v2.27.x 実装済み。MVP は完了、Phase 2 は将来拡張として保留）
 > 📋 訪客がキャラクターに「物を差し出す（ギフト／食事）」インタラクションの設計
 > 🎯 想定読者：実装担当
 > 🔖 対象バージョン基点：v2.25.1
@@ -14,9 +15,9 @@
 
 ## ⚠️ ステータス
 
-- **状態**：**設計のみ（as-design）／未施作（Not implemented）**
-- このドキュメントは方向性と実装手順を固めるための設計書。コードはまだ書いていない。
-- 施作開始時は `feature/gift-system` ブランチを切ってから進める。
+- **状態**：**MVP 実装済み（v2.27.x）／Phase 2 保留**
+- 実装済み：`POST /touch/give`、`ghost/<Character>/items.json`、`personality-items.php`、gift/feeding picker、localized anchor、chat history / checksum parity、observation `item`、stats `give`、i18n、typewriter lock hardening。
+- 保留：Phase 2 の「好感度／飽食度」など状態ありリアクション、および異種アイテム flooding 対策（per-type cap / summary merge）。現時点では MVP の「差し出す→反応→短期記憶へ記録」で十分。
 
 ---
 

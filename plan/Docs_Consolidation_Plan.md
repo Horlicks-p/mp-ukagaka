@@ -1,8 +1,9 @@
 # 文件單一語言化プラン（Docs Consolidation）
 
 > 📅 作成：2026-06-11（公司CLAUDE(Opus 4.8) と 維護者の協議。CODEX / Antigravity も英文 canonical を推奨）
+> 📅 状態更新：2026-06-26（散文 docs は `docs-en/` へ収斂済み。多言語 root README は残存）
 > 🎯 想定読者：御三家（実装担当）
-> 📌 性質：**設計のみ／未着手**。コード挙動には一切触れない（docs / readme のみ）。
+> 📌 性質：**一部実施済み／残りは低優先 docs cleanup**。コード挙動には一切触れない（docs / readme のみ）。
 > 🔑 結論：散文ドキュメントを **英語単一 canonical** に収斂。UI 在地化（.po/.mo）と `readme.txt` は対象外。
 
 ---
@@ -28,6 +29,16 @@
 - **CHANGELOG は 1 本（英語 `docs-en/CHANGELOG.md`）**。多言語 release note が要るなら GitHub Release 作成時にその場で書く（常駐させない）。
 - **`README_zh-TW.md` / `README_ja.md` は導覽頁に縮小、または削除**。英語 `README.md` を主とする。
 - **`readme.txt` と `languages/*` は無変更**。
+
+### 2026-06-26 実施状況
+
+| 項目 | 状態 | 備考 |
+|---|:--:|---|
+| `docs/` / `docs-jp/` 削除 | ✅ | 現在 tree には `docs-en/` のみ存在 |
+| canonical を `docs-en/` 維持 | ✅ | ディレクトリ名は本計画の推奨 A を採用 |
+| `docs-en/CHANGELOG.md` 一本化 | ✅ | 多言語 changelog は tree から除外済み |
+| `README_zh-TW.md` / `README_ja.md` 導覽頁化または削除 | 🟡 | 2 ファイルは残存。発版ごとに変わる詳細を載せない形へ縮小するか、削除を決める |
+| `readme.txt` / `languages/*` 無変更 | ✅ | 本計画の対象外として保持 |
 
 ---
 

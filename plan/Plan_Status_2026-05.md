@@ -81,3 +81,41 @@
 - 本文件是**狀態快照**，不是凍結設計。每完成一個 plan 項目後在此標 ✅ 並補證據檔路徑。
 - 判斷「是否真待辦」一律**對照實際 code/檔案**，不要只看設計文件的 checkbox。
 - 信心標註：B 區與 A#1/#2 為本輪逐碼核對；版本史推斷者（C 區多數 ✅）以 CLAUDE.md 版本史與 Next_Plan 為據，未逐碼重驗。
+
+---
+
+## D. 2026-06-26 追補狀態（docs / v2.27 系列後）
+
+> 本節是 2026-05-27 快照之後的追加核對。舊章節保留歷史上下文，不直接重寫。
+
+### D-1. 仍算「半成品 / 保留項」的項目
+
+| 項目 | 現況 | 建議 |
+|---|---|---|
+| Observation Buffer Phase 2 | `MPU_Observation_Buffer::VALID_TYPES` 已預留 `bot_signal`，但 `push()` 直接以 `phase_2` drop；REST `/observation/push` 仍只允許 `page_view` / `stay_duration` | ⏸ 繼續保留。bot / spam 已有獨立反應路徑，接進 observation 目前偏冗餘 |
+| Chat controller 進階拆分 | `class-mpu-rest-chat.php` 約 1072 行；History Service 已抽出，但 request normalizer / prompt builder 尚未抽 | 🟡 等下一次大改 chat 流程時順手做，避免純重構回歸 |
+| Admin save handler class 化 | `mpu_save_*_settings()` helpers 已存在；router/saver class 未做 | 🟡 低優先，只在 admin save 再長大時處理 |
+| User Memory v2 | MVP 已有 admin memory；訪客/namespace/boundary 型 v2 尚未設計完成 | ⏸ 需先決定隱私、TTL、讀寫 namespace，不宜為了完成 plan 硬做 |
+| Docs Consolidation 多語 README | `docs/` / `docs-jp/` 已移除，只剩 `docs-en/`；但 `README_zh-TW.md` / `README_ja.md` 仍在 | 🟡 後續決定縮成導覽頁或刪除 |
+
+### D-2. 狀態過期、實際已完成或可封存
+
+| 文件 / 項目 | 2026-06-26 核對 |
+|---|---|
+| `Gift_Feeding_System_Plan.md` | MVP 已在 v2.27.x 完成：`/touch/give`、`items.json`、picker、i18n、checksum/history parity、lock hardening 均已落地。Plan 頂部已改為「MVP 実装済み / Phase 2 保留」。 |
+| `Visual_Ready_Sync_Plan.md` | 已標示実装・検証完了；`mpuWaitForVisualReady()` / visual-ready latch 已存在。 |
+| A2 streaming graceful fallback | `frontend-functions.php` 的 `streaming_enabled` 已 AND `function_exists('curl_init')`，A2 finding 已處理。 |
+| Docs canonical consolidation | `docs/` / `docs-jp/` 已不存在；`docs-en/` 為 canonical。`Docs_Consolidation_Plan.md` 已補狀態表。 |
+
+### D-3. Observation Buffer Phase 2 用途備忘
+
+Phase 2 的用途不是「讓角色能記住所有訪客資料」，而是把**已經發生、但不值得立即打斷使用者的低強度訊號**放進短期 observation context，讓下一次使用者主動聊天時角色可以自然提到。
+
+預留的兩類：
+
+| 類型 | 用途 | 為何延後 |
+|---|---|---|
+| `bot_signal` | Turnstile / Akismet / honeypot / bot blocker 的 soft signal，例如「剛剛有可疑訪問跡象」；只存粗分類，不存 raw score / provider detail | 目前 bot / spam 事件已有獨立即時反應路徑；再塞進 observation 容易重複 |
+| `lifecycle_event:sleep` | 記錄「角色進入睡眠」這種生命周期事件，讓下一次聊天能接續上下文 | 目前沒有穩定 server-side sleep hook；由前端推會破壞邊界 |
+
+結論：Phase 2 是「短期上下文豐富化」而不是核心功能缺口。除非要讓 bot/security soft signal 更自然地進入後續聊天，否則不急。
