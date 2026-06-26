@@ -19,7 +19,7 @@
 | Document                                                       | Description                                                        | Audience                   |
 | -------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------- |
 | [Developer Guide](./DEVELOPER_GUIDE.md)                        | Architecture overview, module structure, and extension development | Developers                 |
-| [API Reference](./API_REFERENCE.md)                            | Detailed reference for functions, Hooks, and AJAX endpoints        | Developers                 |
+| [API Reference](./API_REFERENCE.md)                            | Detailed reference for functions, hooks, and REST endpoints        | Developers                 |
 | [Canvas Animation &amp; Custom CSS](./CANVAS_CUSTOMIZATION.md) | Canvas animation features and CSS positioning guide                | Developers, Advanced Users |
 | [Slimstat Debugging Guide](./DEBUG_SLIMSTAT.md)                | Guide for debugging Slimstat API integration                       | Developers                 |
 
@@ -41,15 +41,15 @@
 
 - [Module Architecture Overview](./DEVELOPER_GUIDE.md#architecture-overview)
 - [Adding a new AI provider](./DEVELOPER_GUIDE.md#adding-a-new-ai-provider)
-- [Adding a new AJAX endpoint](./DEVELOPER_GUIDE.md#adding-a-new-ajax-endpoint)
+- [Adding new REST endpoints](./DEVELOPER_GUIDE.md#adding-new-rest-endpoints)
 - [List of all PHP functions](./API_REFERENCE.md#php-functions)
 
 ---
 
 ## 📋 Version Information
 
-- **Current Version**: 2.22.1
-- **Last Updated**: 2026-05-23
+- **Current Version**: 2.27.2
+- **Last Updated**: 2026-06-26
 - **WordPress Requirement**: 5.0+
 - **PHP Requirement**: 7.4+
 

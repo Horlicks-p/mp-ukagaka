@@ -14,24 +14,25 @@
 4. [Basic Settings](#basic-settings)
 5. [Ukagaka Management](#ukagaka-management)
 6. [Custom Emoji System](#custom-emoji-system)
+7. [Touch, Decoration, and Sleep Interactions](#touch-decoration-and-sleep-interactions)
 
 ### Part 2: AI Features
 
-7. [LLM Settings (AI Dialogue Engine)](#llm-settings-ai-dialogue-engine)
-8. [Page Awareness Feature](#page-awareness-feature)
-9. [Interactive Chat Mode](#interactive-chat-mode)
-10. [Thinking Mode](#thinking-mode)
-11. [Weather Awareness Feature](#weather-awareness-feature)
-12. [Automated Diary Feature](#automated-diary-feature)
+8. [LLM Settings (AI Dialogue Engine)](#llm-settings-ai-dialogue-engine)
+9. [Page Awareness Feature](#page-awareness-feature)
+10. [Interactive Chat Mode](#interactive-chat-mode)
+11. [Thinking Mode](#thinking-mode)
+12. [Weather Awareness Feature](#weather-awareness-feature)
+13. [Automated Diary Feature](#automated-diary-feature)
 
 ### Part 3: Static Dialogue Features
 
-13. [External Dialogue Files](#external-dialogue-files)
-14. [Dialogue Settings](#dialogue-settings)
-15. [Special Codes](#special-codes)
-16. [Extensions](#extensions)
+14. [External Dialogue Files](#external-dialogue-files)
+15. [Dialogue Settings](#dialogue-settings)
+16. [Special Codes](#special-codes)
+17. [Extensions](#extensions)
 
-17. [FAQ](#faq)
+18. [FAQ](#faq)
 
 ---
 
@@ -49,6 +50,7 @@ MP Ukagaka is a WordPress plugin that lets you display interactive desktop masco
 - 📁 **External Dialogue Files**: Supports TXT and JSON format dialogue files
 - ⚙️ **Highly Customizable**: Typing speed, display position, styles, and more are adjustable
 - 🎭 **Custom Prompt System**: Markdown-formatted System Prompt for structured character settings
+- 🎁 **Gift / Feeding Interactions**: Visitors can give configured food or gift items to the character in Chat Mode
 
 ---
 
@@ -83,7 +85,7 @@ After activation, go to **Settings** → **MP Ukagaka** to configure.
 ### 5-Minute Setup
 
 1. **Go to Settings**: WordPress Admin → Settings → MP Ukagaka
-2. **Confirm Default Ukagaka**: In **⚙️ 通用設定** (`General Settings`), ensure a "Default Ukagaka" is selected, then check "Default Show Ukagaka" and "Default Show Balloon"
+2. **Confirm Default Ukagaka**: In **General Settings**, ensure a "Default Ukagaka" is selected, then check "Default Show Ukagaka" and "Default Show Balloon"
 3. **Save Settings**: Click the "Save" button
 4. **Check the Result**: Go to your site's frontend — you should see the Ukagaka character in the bottom right corner
 
@@ -91,7 +93,7 @@ After activation, go to **Settings** → **MP Ukagaka** to configure.
 
 ## Basic Settings
 
-Go to **Settings** → **MP Ukagaka** → **⚙️ 通用設定** (`General Settings`)
+Go to **Settings** → **MP Ukagaka** → **General Settings**
 
 ### Display Settings
 
@@ -116,6 +118,18 @@ Go to **Settings** → **MP Ukagaka** → **⚙️ 通用設定** (`General Sett
 | Enable Auto Dialogue | Whether to automatically rotate dialogue |
 | Auto Dialogue Interval | Interval for automatic dialogue change (3-30 seconds) |
 | Typing Effect Speed | Dialogue typing animation speed (10-200 ms/char) |
+
+### Admin Profile
+
+The default character personality can use administrator profile values in prompts and seasonal events.
+
+| Setting | Description |
+| --- | --- |
+| Admin full nickname | Replaces `{{admin_nickname}}` in personality prompts |
+| Admin short name | Replaces `{{admin_name}}` in personality prompts |
+| Admin birthday | Replaces `{{admin_birthday}}`; use `MM-DD` format, for example `10-18` |
+
+These fields let you personalize the character without editing `personality.md`, `instructions.md`, or `calendar.json` manually.
 
 ### Page Exclusion
 
@@ -148,7 +162,7 @@ Supports wildcard matching: add `(*)` at the end of the URL to match all subpage
 
 ### View Existing Ukagaka
 
-Go to **Settings** → **MP Ukagaka** → **👻 偽春菜們** (`Ukagaka`)
+Go to **Settings** → **MP Ukagaka** → **Ukagaka**
 
 On this page you can view all created Ukagaka, edit their name/image/dialogue, delete non-default Ukagaka, and set visibility.
 
@@ -168,7 +182,7 @@ The ZIP file must contain the following directly in its root directory:
 
 #### Upload Steps
 
-1. Go to **Settings** → **MP Ukagaka** → **👻 偽春菜們** (`Ukagaka`)
+1. Go to **Settings** → **MP Ukagaka** → **Ukagaka**
 2. Click the "**Upload ZIP**" button at the top of the page
 3. Select your prepared ZIP file
 4. Wait for the upload to complete — the system will automatically validate and install
@@ -178,7 +192,7 @@ The ZIP file must contain the following directly in its root directory:
 
 > 📘 **Advanced Guide**: For creating character personalities with full LLM support, refer to the [Character Creation Guide](GHOST_CREATE_GUIDE.md).
 
-Go to **Settings** → **MP Ukagaka** → **✨ 創建新偽春菜** (`Create New Ukagaka`)
+Go to **Settings** → **MP Ukagaka** → **Create New Ukagaka**
 
 #### Required Fields
 
@@ -206,7 +220,7 @@ Magic requires time to study slowly.
 
 ## Custom Emoji System
 
-> 🎭 **v2.4.0 Feature**: Give each character their own set of emojis.
+Give each character their own set of emojis.
 
 The emoji system automatically displays emoji images next to the character based on keywords detected in the dialogue text. **Both static dialogue and AI-generated dialogue support the emoji feature.**
 
@@ -249,6 +263,34 @@ Create the following structure in the character's folder (`ghost/CharacterID/`):
 
 ---
 
+## Touch, Decoration, and Sleep Interactions
+
+Some character packages include extra frontend interactions beyond the basic dialogue balloon. These are controlled by files inside the character folder, so the exact behavior depends on the selected Ukagaka.
+
+### Touch and Decoration Reactions
+
+Characters can respond when visitors click configured body areas or decoration items. If AI dialogue is enabled, these reactions are generated in character and can use the same emotion / emoji display pipeline as chat responses.
+
+Touch and decoration events are also recorded as recent observations, so later Chat Mode replies can naturally refer to what the visitor just touched.
+
+Typical character files:
+
+| File | Purpose |
+| --- | --- |
+| `touchzones.json` | Defines clickable body zones and their reaction prompt categories |
+| `decorations.json` | Defines visible accessories / decorations and click reactions |
+| `prompts.json` | Provides the prompt categories used by touch, decoration, gift, and other reactions |
+
+For full character-package details, see the [Character Creation Guide](GHOST_CREATE_GUIDE.md).
+
+### Sleep and Nap Behavior
+
+Character packages can define sleep behavior in `manifest.json` and `sleep_mode.json`. During sleep, auto-talk becomes less frequent, some event reactions may use dream-like fallback lines, and clicking or opening chat can wake the character.
+
+Frieren includes nighttime sleep behavior and an optional after-lunch nap window. Naps reuse the same sleep system, but use nap-specific dream and wake-up lines when configured.
+
+---
+
 # Part 2: AI Features
 
 > Settings in this section require an AI provider (or local Ollama service) to be configured.
@@ -257,7 +299,7 @@ Create the following structure in the character's folder (`ghost/CharacterID/`):
 
 ## LLM Settings (AI Dialogue Engine)
 
-Go to **Settings** → **MP Ukagaka** → **🤖 LLM 設定** (`LLM Settings`)
+Go to **Settings** → **MP Ukagaka** → **LLM Settings**
 
 The LLM (Large Language Model) feature allows Ukagaka to generate dialogue using AI, supporting four providers:
 
@@ -274,10 +316,7 @@ The LLM (Large Language Model) feature allows Ukagaka to generate dialogue using
 
 1. Select your provider in the **LLM Settings** page
 2. Enter your API Key in the **API Key** field (automatically encrypted at rest)
-3. Select a model from the dropdown:
-   - **Gemini**: Gemini 2.5 Flash (Recommended — fast and cost-effective), Gemini 2.5 Pro
-   - **OpenAI**: GPT-4.1 Mini (Recommended — fast and cost-effective), GPT-4o Mini, GPT-4o
-   - **Claude**: Claude Sonnet 4.6 (Recommended), Claude Haiku 4.5 (Fast), Claude Opus 4.7 (Advanced)
+3. Select a model from the dropdown. The recommended option shown in the UI is usually the best first choice for cost and response speed.
 4. Click "Test Connection" to confirm the API Key is valid
 
 > 💡 **Security**: API Keys are encrypted with WordPress `AUTH_KEY` and OpenSSL, and are never saved as plaintext in the database. If the site has no `AUTH_KEY` or OpenSSL is unavailable, the API Key will not be saved.
@@ -410,6 +449,7 @@ You are the mage Frieren.
 | `{{time_context}}` | Time context (Morning, Afternoon, Evening, Late Night) |
 | `{{admin_nickname}}` | Admin's full nickname |
 | `{{admin_name}}` | Admin's short name |
+| `{{admin_birthday}}` | Admin birthday in `MM-DD` format |
 | `{{wp_version}}` | WordPress version |
 | `{{php_version}}` | PHP version |
 | `{{post_count}}` | Post count |
@@ -441,7 +481,7 @@ After confirming the tunnel URL, enter `https://your-domain.com` in the endpoint
 
 ## Page Awareness Feature
 
-Go to **Settings** → **MP Ukagaka** → **🧠 AI 設定** (`AI Settings`)
+Go to **Settings** → **MP Ukagaka** → **AI Settings**
 
 Page Awareness lets Ukagaka automatically generate AI comments related to article content on specific pages. **You must first configure an AI provider in LLM Settings.**
 
@@ -528,7 +568,7 @@ Both can be enabled simultaneously: Page Awareness comments on articles on speci
 
 ## Interactive Chat Mode
 
-> 🎉 **v2.3.0 Feature**: Let visitors engage in real-time multi-turn conversations with Ukagaka!
+Let visitors engage in real-time multi-turn conversations with Ukagaka.
 
 ### What is Interactive Chat Mode?
 
@@ -538,7 +578,7 @@ Interactive Chat Mode transforms the "Change Ukagaka" button into a real-time ch
 
 ### How to Enable
 
-1. Go to **Settings → MP Ukagaka → ⚙️ 通用設定** (`General Settings`)
+1. Go to **Settings → MP Ukagaka → General Settings**
 2. In the "💬 Dialogue Settings" section, check "**Enable Interactive Chat**"
 3. Click "Save"
 4. The "Change Ukagaka" button on the frontend will become a "💬 Chat" button
@@ -554,6 +594,32 @@ Interactive Chat Mode transforms the "Change Ukagaka" button into a real-time ch
 Conversation history is retained on the current page only (cleared after refresh).
 
 ![Interactive Chat Mode Demo](../screenshot3.PNG)
+
+### Gift / Feeding
+
+When the selected character has an item catalog, Chat Mode shows a 🎁 picker beside the message input. Visitors can use it to hand the character a configured food or gift item.
+
+![Gift / Feeding Picker](../screenshot8.PNG)
+
+How it works:
+
+1. Click the 🎁 button beside the chat input.
+2. Use the previous / next buttons, keyboard arrow keys, or touch swipe to choose an item.
+3. Select the item to give it to the character.
+4. The character reacts with an AI-generated response.
+
+Food items are handled as something the character eats or tastes. Gift items are handled as something the character accepts and comments on. Items marked as `favorite` can trigger a more delighted reaction.
+
+Gift and feeding reactions are added to the current conversation history and recent observation buffer, so later chat replies can refer back to what was given. The interaction is locked while the character is replying, preventing another gift or auto-talk from interrupting the typewriter.
+
+Frieren currently ships with two sample items:
+
+| Item | Type | Notes |
+| --- | --- | --- |
+| `メルクーアプリン` | Food | Favorite food item |
+| `魔導書` | Gift | Favorite gift item |
+
+Character authors can define available items in `ghost/<CharacterID>/items.json`. Supported item kinds are `food` and `gift`; item images are loaded from the character's `items/` folder. For the full file format, see the [Character Creation Guide](GHOST_CREATE_GUIDE.md).
 
 ### Slash Commands
 
@@ -575,11 +641,11 @@ Conversation history is retained on the current page only (cleared after refresh
 | **Interactivity** | Two-way multi-turn dialogue | One-way comments |
 | **Context** | Full conversation history | Analyzes current page only |
 | **Token Consumption** | Accumulates per turn | Single comment |
-| **Enable Location** | `⚙️ 通用設定` → Dialogue Settings | `🧠 AI 設定` → Page Awareness |
+| **Enable Location** | General Settings → Dialogue Settings | AI Settings → Page Awareness |
 
 ### Abilities
 
-> 🛠️ **v2.8.0 Feature**: Your character can now perform site management tasks.
+Your character can perform site management tasks when the required integrations are available.
 
 Abilities are server-side functions that the character can automatically invoke during conversations. As an admin, simply make a request in natural language through Chat Mode — the character will execute the appropriate backend tool and report the results. No special commands required — just talk naturally.
 
@@ -621,15 +687,15 @@ Simply talk to the character in Chat Mode:
 
 ## Thinking Mode
 
-> 🧠 **v2.3.0 Feature**: Let Ollama models think before answering to improve response quality.
+Let supported local models use their internal reasoning behavior before answering.
 
 ### What is Thinking Mode?
 
-Thinking Mode lets supported AI models (like Qwen3, DeepSeek) perform internal reasoning before answering. The thinking process is completely hidden from visitors — only the final response is shown.
+Thinking Mode controls the internal reasoning behavior of supported Ollama models such as Qwen and DeepSeek families. The reasoning content is not shown to visitors; the frontend only displays the final answer and the normal loading / placeholder state.
 
 > 💡 Cloud services like Gemini, OpenAI, and Claude don't need this setting — their thinking process is handled internally.
 
-### Default Behavior (from v2.3.0)
+### Default Behavior
 
 Thinking Mode is **enabled by default** (`think = true`). AI thinks first then answers, ensuring output quality.
 
@@ -642,7 +708,7 @@ Thinking Mode is **enabled by default** (`think = true`). AI thinks first then a
 
 If you need faster responses (at the cost of some accuracy):
 
-1. Go to **Settings → MP Ukagaka → 🤖 LLM 設定** (`LLM Settings`)
+1. Go to **Settings → MP Ukagaka → LLM Settings**
 2. In the **Ollama Settings** section, check "**Disable Thinking Mode (Qwen3, DeepSeek, etc.)**"
 3. Click "Save"
 
@@ -657,7 +723,7 @@ If you need faster responses (at the cost of some accuracy):
 
 ## Weather Awareness Feature
 
-> 🌤️ **v2.5.0 Feature**: Let your Ukagaka be aware of the weather!
+Let your Ukagaka be aware of the weather.
 
 Uses the [Open-Meteo](https://open-meteo.com/) free API — **no API Key required**. When enabled, the character is aware of local weather conditions and may mention them in dialogue or AI-generated comments (requires a System Prompt that uses weather variables).
 
@@ -679,9 +745,9 @@ Uses the [Open-Meteo](https://open-meteo.com/) free API — **no API Key require
 
 ## Automated Diary Feature
 
-> 📓 **v2.5.0 Feature**: Let your character automatically write diary posts!
+Let your character automatically write diary posts.
 
-Go to **Settings** → **MP Ukagaka** → **📓 日記設定** (`Diary Settings`)
+Go to **Settings** → **MP Ukagaka** → **Diary Settings**
 
 ### What is the Automated Diary Feature?
 
@@ -716,7 +782,7 @@ When enabled, the character will automatically write and publish diary posts at 
 
 ### Diary AI Provider
 
-The diary feature uses **independent AI settings**, meaning you can use a different provider than the general dialogue. For example: Ollama (free) for chat, Gemini 2.5 Flash (high quality, low cost) for diaries.
+The diary feature uses **independent AI settings**, meaning you can use a different provider than the general dialogue. For example: Ollama for chat and a cloud model for diary generation.
 
 Supports the same providers as LLM Settings: Gemini, OpenAI, Claude, Ollama.
 
@@ -744,7 +810,7 @@ Click "**Generate Diary Now (Test)**" at the bottom of the settings page to imme
 
 Ukagaka can load dialogue from external files, supporting TXT and JSON formats.
 
-**Enable:** In **⚙️ 通用設定** (`General Settings`), check "Use External Dialogue File" and select the format (TXT or JSON).
+**Enable:** In **General Settings**, check "Use External Dialogue File" and select the format (TXT or JSON).
 
 ### TXT Format
 
@@ -810,7 +876,7 @@ Recent posts: :recentpost[3]:
 
 ## Extensions
 
-Go to **Settings** → **MP Ukagaka** → **🔌 擴展** (`Extensions`)
+Go to **Settings** → **MP Ukagaka** → **Extensions**
 
 ### JS Area
 
@@ -851,7 +917,7 @@ document.getElementById('cur_ukagaka').addEventListener('dblclick', function() {
 
 ### AI Response Too Slow
 
-1. Switch to a faster model (e.g., `gemini-2.5-flash`, `qwen3:8b`)
+1. Switch to a faster model using the recommended low-latency option shown in the model dropdown
 2. **Cloud AI**: Shorten the System Prompt to reduce API processing time
 3. **Local LLM (Ollama)**: Prompt length has less impact on speed — consider adjusting model size or hardware
 4. Check your internet connection
@@ -874,7 +940,7 @@ document.getElementById('cur_ukagaka').addEventListener('dblclick', function() {
 
 1. Lower "Page Awareness Probability" (suggest 10-20%)
 2. Limit "Trigger Pages" (only trigger on `is_single`)
-3. Use cheaper models (e.g., `gemini-2.5-flash`, `gpt-4o-mini`)
+3. Use the recommended lower-cost model option shown in the model dropdown
 4. Use Ollama (runs locally, completely free)
 
 ---

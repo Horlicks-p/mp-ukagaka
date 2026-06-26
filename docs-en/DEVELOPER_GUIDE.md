@@ -62,11 +62,14 @@ mp-ukagaka/
 │   │   ├── personality-loader.php  # Personality system (JSON loader)
 │   │   ├── personality-prompts.php # Personality prompts module
 │   │   ├── personality-decorations.php # Decoration system
+│   │   ├── personality-items.php   # Gift / feeding item catalog
 │   │   ├── personality-emoji.php   # Emoji system
 │   │   └── emoji-mapper.php        # Emoji mapping and emotion analysis
 │   ├── llm/                    # LLM/AI functions modules
 │   │   ├── api-cache.php           # API cache system
 │   │   ├── ai-functions.php        # AI functions (Cloud APIs: Gemini, OpenAI, Claude)
+│   │   ├── response-normalizer.php # AI response normalization (emotion tags / think blocks)
+│   │   ├── class-mpu-stream-output-parser.php # SSE stream parser
 │   │   ├── llm-functions.php       # LLM functions (Ollama specifically)
 │   │   ├── llm-context-builder.php # LLM context builder
 │   │   ├── llm-slimstat.php        # LLM Slimstat integration
@@ -113,6 +116,10 @@ mp-ukagaka/
 │   │   ├── shell/              # Character images
 │   │   ├── decorations/        # Decoration images
 │   │   ├── emojis/             # Character emoji images
+│   │   ├── items/              # Gift / feeding item images
+│   │   ├── dist/               # Bundled character runtime
+│   │   │   ├── frieren-bundle.js
+│   │   │   └── frieren-bundle.min.js
 │   │   ├── manifest.json       # Metadata and settings
 │   │   ├── personality.md      # Core personality description
 │   │   ├── instructions.md     # Behavior rules and instructions
@@ -123,9 +130,13 @@ mp-ukagaka/
 │   │   ├── calendar.json       # Calendar/Holiday events
 │   │   ├── touchzones.json     # Touch zones configuration
 │   │   ├── decorations.json    # Decoration click prompts
+│   │   ├── items.json          # Gift / feeding item catalog
 │   │   ├── diary.json          # AI diary configuration
 │   │   ├── emoji-keywords.json # Emoji keywords configuration
-│   │   ├── frieren.js          # Character-specific JavaScript
+│   │   ├── frieren.js          # Character runtime entry
+│   │   ├── frieren-animation.js    # Character animation runtime
+│   │   ├── frieren-interactions.js # Touch / gift interaction runtime
+│   │   ├── frieren-decorations.js  # Decoration click runtime
 │   │   └── frieren-emoji.js    # Frieren-specific emoji system
 │   └── [Other Characters...]/
 │       ├── shell/              # Character images
@@ -133,7 +144,10 @@ mp-ukagaka/
 ├── dialogs/                # Dialog files
 ├── images/                 # Common image resources
 ├── languages/              # Translation files
-├── docs/                   # Documentation
+├── docs-en/                # Canonical English documentation
+├── plan/                   # Development planning notes
+├── tests/                  # PHPUnit test suite
+├── tools/                  # Node/PHP build, lint, and test tooling
 ├── options/                # Admin settings pages
 │   ├── options.php             # Admin page framework
 │   ├── options_general.php     # General settings page
@@ -156,7 +170,13 @@ mp-ukagaka/
 │   ├── ukagaka-features.js     # Frontend features JS (Settings configuration, Event listeners)
 │   ├── ukagaka-context.js      # Page-aware AI chat feature
 │   ├── ukagaka-greeting.js     # First-time visitor greeting feature
-│   ├── ukagaka-chat.js         # Chat frontend (Interactive dialogs)
+│   ├── ukagaka-chat-mode.js    # Chat UI open/close and mode state
+│   ├── ukagaka-chat-history.js # Frontend chat history/session state
+│   ├── ukagaka-chat-send.js    # Chat send pipeline
+│   ├── ukagaka-chat-sse.js     # SSE streaming client
+│   ├── ukagaka-chat-format.js  # Chat text formatting helpers
+│   ├── ukagaka-chat-events.js  # Chat event bindings
+│   ├── ukagaka-chat-wake.js    # Sleep/wake chat integration
 │   ├── ukagaka-dialog.js       # External dialog loading and fallback
 │   ├── ukagaka-anime.js        # Canvas animation manager (Image sequence playback)
 │   ├── ukagaka-emoji.js        # Emoji configuration loader
@@ -188,34 +208,37 @@ $core_modules = [
     'personality/personality-loader.php',  // 12. Personality system (JSON loader, must be before other personality modules)
     'personality/personality-prompts.php', // 13. Personality prompts module (Dynamic prompts, variable replacement)
     'personality/personality-decorations.php', // 14. Decoration system
-    'personality/personality-emoji.php',   // 15. Emoji system
-    'stats/stats-collector.php',   // 16. Stats collector (must be before ai-functions.php)
-    'stats/stats-analyzer.php',    // 17. Stats analyzer
-    'llm/api-cache.php',           // 18. API cache system
-    'llm/provider-helpers.php',    // 19. Provider common helpers (JSON encoding / tool result formatting)
-    'llm/chat-integrity.php',      // 20. Chat history integrity checksum (prevents frontend tampering)
-    'llm/class-mpu-chat-lock.php', // 21. Chat lifecycle lock (concurrent LLM request guard)
-    'llm/request-state.php',       // 22. Request-level state management
-    'llm/class-mpu-session-event.php', // 23. Transport-neutral session event envelope
-    'llm/tool-loop-guard.php',     // 24. Tool call loop protection mechanism
-    'llm/streaming-helpers.php',   // 25. SSE streaming helper functions
-    'llm/provider-stream-http.php', // 26. cURL streaming HTTP client
-    'llm/providers/bootstrap.php', // 27. AI provider factory + classes
-    'llm/ai-functions.php',        // 28. AI functions (Cloud APIs: Gemini, OpenAI, Claude)
-    'llm/prompt-categories.php',   // 29. Prompt category instruction management
-    'llm/llm-slimstat.php',        // 30. LLM Slimstat integration
-    'llm/llm-context-builder.php', // 31. LLM context builder
-    'llm/weather-functions.php',   // 32. Weather functions (Open-Meteo API)
-    'llm/diary-functions.php',     // 33. AI diary functions (Frieren's journal)
-    'llm/llm-functions.php',       // 34. LLM functions (Local LLM: Ollama)
-    'personality/emoji-mapper.php', // 35. Emoji mapping and emotion analysis
-    'core/ukagaka-functions.php',   // 36. Ukagaka management
-    'rest/bootstrap.php',           // 37. REST OO Controller registration entry
-    'ajax/chat-api-handlers.php',   // 38. Chat mode AJAX handlers (Multi-turn)
-    'integrations/akismet-integration.php', // 39. Akismet anti-spam integration
-    'integrations/turnstile-integration.php', // 40. Turnstile verification integration
-    'integrations/abilities-integration.php', // 41. Abilities API integration
-    'integrations/bot-blocker-integration.php', // 42. Bot Blocker integration
+    'personality/personality-items.php', // 15. Gift / feeding item catalog
+    'personality/personality-emoji.php',   // 16. Emoji system
+    'stats/stats-collector.php',   // 17. Stats collector (must be before ai-functions.php)
+    'stats/stats-analyzer.php',    // 18. Stats analyzer
+    'llm/api-cache.php',           // 19. API cache system
+    'llm/provider-helpers.php',    // 20. Provider common helpers (JSON encoding / tool result formatting)
+    'llm/chat-integrity.php',      // 21. Chat history integrity checksum (prevents frontend tampering)
+    'llm/class-mpu-chat-lock.php', // 22. Chat lifecycle lock (concurrent LLM request guard)
+    'llm/request-state.php',       // 23. Request-level state management
+    'llm/class-mpu-session-event.php', // 24. Transport-neutral session event envelope
+    'llm/tool-loop-guard.php',     // 25. Tool call loop protection mechanism
+    'llm/streaming-helpers.php',   // 26. SSE streaming helper functions
+    'llm/provider-stream-http.php', // 27. cURL streaming HTTP client
+    'llm/providers/bootstrap.php', // 28. AI provider factory + classes
+    'llm/ai-functions.php',        // 29. AI functions (Cloud APIs: Gemini, OpenAI, Claude)
+    'llm/response-normalizer.php', // 30. AI response normalization contract
+    'llm/class-mpu-stream-output-parser.php', // 31. SSE output parser
+    'llm/prompt-categories.php',   // 32. Prompt category instruction management
+    'llm/llm-slimstat.php',        // 33. LLM Slimstat integration
+    'llm/llm-context-builder.php', // 34. LLM context builder
+    'llm/weather-functions.php',   // 35. Weather functions (Open-Meteo API)
+    'llm/diary-functions.php',     // 36. AI diary functions (Frieren's journal)
+    'llm/llm-functions.php',       // 37. LLM functions (Local LLM: Ollama)
+    'personality/emoji-mapper.php', // 38. Emoji mapping and emotion analysis
+    'core/ukagaka-functions.php',   // 39. Ukagaka management
+    'rest/bootstrap.php',           // 40. REST OO Controller registration entry
+    'ajax/chat-api-handlers.php',   // 41. Chat mode API handlers (Multi-turn)
+    'integrations/akismet-integration.php', // 42. Akismet anti-spam integration
+    'integrations/turnstile-integration.php', // 43. Turnstile verification integration
+    'integrations/abilities-integration.php', // 44. Abilities API integration
+    'integrations/bot-blocker-integration.php', // 45. Bot Blocker integration
 ];
 
 // Frontend-only modules (loaded only in non-admin environments)
@@ -1457,7 +1480,7 @@ A universal character manager system can be implemented in the future, supportin
 
 3. **Implementation Locations**
    - Major modifications: `js/ukagaka-anime.js` (approx. 20 references need modification).
-   - Minor modifications: `js/ukagaka-chat.js` and `js/ukagaka-core.js` (a few references).
+   - Minor modifications: the split chat modules (`js/ukagaka-chat-*.js`) and `js/ukagaka-core.js` (a few references).
    - Estimated workload: ~2-3 hours (including testing).
 
 4. **Trigger Timing**
@@ -1478,7 +1501,7 @@ A universal character manager system can be implemented in the future, supportin
 
 1. `mpu_normalize_ai_response()` (`includes/llm/response-normalizer.php`) extracts the **leading** `<think>...</think>` block from any AI response into a `think` field, and keeps it out of `display_text` / `history_text` / `checksum_text` / `tts_text`. (Mid-message `<think>` is stripped to a warning log, never rendered.)
 2. The SSE state machine `MPU_Stream_Output_Parser` (`includes/llm/class-mpu-stream-output-parser.php`) detects `<think>` across chunk boundaries and emits normalized events: `status {type:"thinking_start"|"thinking_end"}`, `think_delta {text}` (progressive), and `think {text}` (final).
-3. The frontend (`js/ukagaka-chat.js`) already consumes all of those events — and the non-streaming `res.think` field — and renders them via `mpuShowThinkBubble(text, { source: "llm", context })` into `#ukagaka_think`. Streaming, progressive, and non-streaming paths are all wired.
+3. The frontend chat modules (`js/ukagaka-chat-sse.js`, `js/ukagaka-chat-send.js`, and related `js/ukagaka-chat-*.js` files) already consume all of those events — and the non-streaming `res.think` field — and render them via `mpuShowThinkBubble(text, { source: "llm", context })` into `#ukagaka_think`. Streaming, progressive, and non-streaming paths are all wired.
 
 **The one missing link:** a provider must actually emit `<think>...</think>` *in its text output*. Cloud reasoning models (Claude/OpenAI/Gemini) put reasoning in **separate API fields that never enter this pipeline**, so emitting `<think>` has to be requested explicitly. Two ways:
 
