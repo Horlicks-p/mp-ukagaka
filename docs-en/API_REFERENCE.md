@@ -1,6 +1,6 @@
 # MP Ukagaka API Reference
 
-> 📚 Complete Function, Hooks, and REST Endpoints Reference (v2.24.0)
+> 📚 Complete Function, Hooks, and REST Endpoints Reference (v2.27.2)
 
 ---
 
@@ -1223,6 +1223,7 @@ add_filter('mpu_observation_post_visibility', function($visible, $post) {
 | --- | --- | --- | --- | --- | --- |
 | `/touch/decoration` | POST | Public | `decoration_type` (required) | 20/60s | AI reaction when clicking decorations; returns `{msg, emoji}` |
 | `/touch/zone` | POST | Public | `touch_zone` (required) | 20/60s | Petting reaction when clicking character body zones; returns `{msg, emoji, zone}` |
+| `/touch/give` | POST | Public + valid session token | `item_id` (required), `history`, `session_id` | 10/60s | Gift / feeding reaction for an item from `ghost/<CharacterID>/items.json`; returns normalized `{msg, emoji, emotion_tags, ...}` fields |
 
 ### Observations
 
@@ -1375,8 +1376,8 @@ Upon frontend loading, data passed via `wp_localize_script` and returned by the 
 | `window.mpuInitData` | `/init` return | Complete original init response object |
 | `window.mpuPersonalityId` | `/init` return | Current personality ID |
 | `window.mpuCanvasManager` | `ukagaka-anime.js` | Canvas animation manager |
-| `window.mpuChatHistory` | `ukagaka-chat.js` | Multi-turn chat history array (max 40 items) |
-| `window.mpuChatModeActive` | `ukagaka-chat.js` | Interactive chat mode flag |
+| `window.mpuChatHistory` | `ukagaka-chat-history.js` | Multi-turn chat history array (max 40 items) |
+| `window.mpuChatModeActive` | `ukagaka-chat-mode.js` | Interactive chat mode flag |
 | `window.mpuDecorationsBaseUrl` / `mpuDecorationConfig` / `mpuTouchZones` / `mpuShowDecorations` | `/init` return | Decoration and touchzone related info |
 | `window.mpuEmojiBaseUrl` / `mpuSupportedEmojis` / `mpuEmojiMappings` | `/init` return | Emoji system related data |
 
