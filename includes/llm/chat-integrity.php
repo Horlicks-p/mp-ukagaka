@@ -456,14 +456,19 @@ function mpu_chat_integrity_store_history($session_id, array $history): bool
 }
 
 /**
- * 對歷史進行正規化與滑動窗口裁切。
+ * 對 checksum 歷史進行正規化與滑動窗口裁切。
  *
  * [Fix 2026-02-27] 順序改為「先正規化（移除孤立 assistant）→ 再 slice」，
  * 與 verify 端（prepare_user_chat_args line 647-659）的處理順序完全對稱。
  * 舊版為 slice→normalize，在長對話窗口滑動時會產生不對稱。
  *
+ * [Fix 2026-06-29] checksum 只計入 type="chat" 的 assistant；synthetic、
+ * auto_talk、give 等非 checksum 訊息不應推動 checksum 視窗。因此改為
+ * 「正規化 → filter checksum messages → slice」，避免自發對話/送禮等
+ * 非 chat 訊息讓較舊的 chat assistant 在 store/verify 兩端被不同地擠出視窗。
+ *
  * @param array $history 完整歷史
- * @param int   $limit   保留筆數上限
+ * @param int   $limit   保留的 checksum 訊息上限
  * @return array
  */
 function mpu_chat_integrity_slice_for_store(array $history, int $limit = 10): array
@@ -478,6 +483,9 @@ function mpu_chat_integrity_slice_for_store(array $history, int $limit = 10): ar
         $prev_role    = $role;
     }
 
-    // Step 2: 再 slice — 取最後 N 筆
-    return array_slice($normalized, -$limit);
+    // Step 2: 只保留真正參與 checksum 的訊息。
+    $filtered = mpu_chat_integrity_filter_messages($normalized);
+
+    // Step 3: 再 slice — 取最後 N 筆 checksum 訊息。
+    return array_slice($filtered, -$limit);
 }

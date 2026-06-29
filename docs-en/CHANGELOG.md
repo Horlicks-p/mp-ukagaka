@@ -4,6 +4,14 @@
 
 ---
 
+## [2.27.4] - Unreleased
+
+### 🐛 Checksum window must count checksum messages, not raw history
+
+- **Non-chat messages no longer push chat replies out of the checksum window**: The integrity checksum only counts `type="chat"` assistant messages, but `mpu_chat_integrity_slice_for_store()` was taking the last *N raw* history entries before filtering. Interleaved non-checksum messages (`give`, `auto_talk`, `synthetic` anchors) therefore consumed window slots and could evict an older `chat` assistant — and because store and verify saw slightly different distributions of those non-chat entries near the boundary, they clipped different `chat` assistants and produced a mismatch even during a perfectly normal conversation. The slice order is now **normalize (drop orphan assistants) → filter to checksum messages → slice last N**, so the window is "the last N checksum-bearing `chat` assistants" regardless of how many gifts or auto-talks are interleaved. All store and verify paths funnel through this one helper, so the fix is uniform; short conversations (window not clipped) are byte-identical to before. Adds a regression test covering `give`/`auto_talk` interleaving.
+
+---
+
 ## [2.27.3] - 2026-06-29
 
 ### 🌐 Expression-tag prompt is now Japanese
