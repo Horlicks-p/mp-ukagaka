@@ -819,11 +819,15 @@
         formData.append("session_id", mpu_getOrCreateChatSessionId());
         formData.append("history", JSON.stringify(history));
 
+        // timeout は後端 provider の 30 秒より大きくし、ネットワーク + PHP 前処理の
+        // 余白を確保する。これがないと「後端は成功したのに前端だけ abort」で
+        // 偽の「通信状況が良くない」が出る（chat の watchdog 45 秒と揃える）。
+        // give は history/統計を書き込む非冪等 POST なので retries は 0（二重送信防止）。
         const res = await mpuFetch(mpuRestUrl + "touch/give", {
           method: "POST",
           body: formData,
-          timeout: 30000,
-          retries: 1,
+          timeout: 45000,
+          retries: 0,
           requestId: "mpu_give_item_" + itemId,
         });
 
@@ -862,10 +866,21 @@
           mpuLogger.errorL("frierenGiveItemRequestFailed", "ギフト反応リクエストに失敗しました", error);
         }
         if (typeof mpu_typewriter === "function") {
-          mpu_typewriter(
-            (window.mpuL10n && window.mpuL10n.connectionError) || "（…通信状況が良くないみたいだ…）",
-            "#ukagaka_msg"
-          );
+          // 真の通信/タイムアウト障害だけ「通信状況…」を表示し、後端が返した
+          // 構造化エラー（rate limit・不明なアイテム等、いずれもユーザー向け日本語）は
+          // そのまま見せる。これで checksum / rate limit / provider error を区別できる。
+          const rawMsg = error && error.message ? String(error.message) : "";
+          const fallback =
+            (window.mpuL10n && window.mpuL10n.connectionError) ||
+            "（…通信状況が良くないみたいだ…）";
+          const isConnectionIssue =
+            rawMsg === "" ||
+            rawMsg.indexOf("請求已被取消") !== -1 ||
+            rawMsg.indexOf("Failed to fetch") !== -1 ||
+            rawMsg.indexOf("NetworkError") !== -1 ||
+            rawMsg.toLowerCase().indexOf("timeout") !== -1 ||
+            rawMsg.indexOf("Gift picker runtime is unavailable") !== -1;
+          mpu_typewriter(isConnectionIssue ? fallback : rawMsg, "#ukagaka_msg");
         }
       } finally {
         const self = this;

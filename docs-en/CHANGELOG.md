@@ -10,6 +10,10 @@
 
 - **Built-in expression-tag instruction Japanese-ized**: The expression-tag prompt block injected into every personality (`mpu_build_emotion_tag_instruction` in `personality-loader.php`) was written in Traditional Chinese while every other built-in prompt/instruction is Japanese, so it read as jarringly out of place. It is now Japanese, and its inline examples were made character-neutral — the old examples were Frieren-flavored lines that would have nudged other ghosts toward Frieren's voice. Behavior is unchanged (same tags, same `[表情: xxx]` backward-compat note); the corresponding test assertions were updated.
 
+### 🎁 Gift request false "connection error"
+
+- **No more spurious "（…通信状況が良くないみたいだ…）" on gifts**: Sending a gift could report a connection error even when chat worked a second earlier. The synchronous (non-streaming) `POST /touch/give` had a front-end fetch timeout of 30s — *equal* to the back-end provider timeout of 30s — leaving zero headroom for network latency and PHP pre-processing, so a slow-but-successful generation tripped the front-end abort while the back-end actually succeeded. (Chat does not hit this: SSE streams the first bytes within seconds and is governed by a 45s watchdog that the stream keeps refreshing.) The gift fetch timeout is raised to **45s** (above the back-end 30s, matching the chat watchdog), `retries` is set to **0** because the gift POST is non-idempotent (it writes history and stats), and the error branch now distinguishes genuine connection/timeout failures from structured back-end errors (rate limit, unknown item) instead of masking every failure as a connection problem. Frieren bundle rebuilt.
+
 ---
 
 ## [2.27.2] - 2026-06-22
