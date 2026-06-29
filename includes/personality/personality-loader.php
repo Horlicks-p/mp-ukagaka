@@ -393,20 +393,20 @@ function mpu_build_emotion_tag_instruction( $supported ) {
 	$example_2 = $tags[1] ?? $example_1;
 	$example_3 = $tags[2] ?? $example_1;
 
-	$instruction  = "\n\n## 表情標籤（Expression Tags）\n";
-	$instruction .= "你可以在回覆中嵌入一個表情標籤，用方括號包住，例如 [{$example_1}]。\n";
-	$instruction .= "標籤會被系統解析來切換你的表情圖案，並從顯示文字中移除（讀者看不到方括號）。\n\n";
-	$instruction .= "當前可用標籤：{$tag_list}\n\n";
-	$instruction .= "### 範例\n";
-	$instruction .= "- 「找到了！[{$example_1}] 這個魔法我研究很久了。」\n";
-	$instruction .= "- 「[{$example_2}] 嗯…等等，這個圖案我見過。」\n";
-	$instruction .= "- 「[{$example_3}] 又是這種無聊的請求…」\n\n";
-	$instruction .= "### 規則\n";
-	$instruction .= "- 每次回覆只使用一個表情標籤，放在最能代表整段話情緒的位置。\n";
-	$instruction .= "- 表情圖是動畫（APNG），連續切換會打斷動畫週期，因此單一鮮明的情緒比多個切換更有表現力。\n";
-	$instruction .= "- 只能使用上方列出的標籤，其他標籤會被忽略。\n";
-	$instruction .= "- 標籤不會被朗讀，僅控制表情。\n";
-	$instruction .= '- 仍可使用 [表情: xxx] 中文格式（向下相容）。';
+	$instruction  = "\n\n## 表情タグ（Expression Tags）\n";
+	$instruction .= "返信の中に表情タグを一つだけ埋め込める。角括弧で囲むこと。例：[{$example_1}]。\n";
+	$instruction .= "タグはシステムが解析して表情の画像を切り替えるために使い、表示テキストからは取り除かれる（読み手に角括弧は見えない）。\n\n";
+	$instruction .= "現在使用できるタグ：{$tag_list}\n\n";
+	$instruction .= "### 例\n";
+	$instruction .= "- 「見つけた。[{$example_1}] ずっと探してたんだ。」\n";
+	$instruction .= "- 「[{$example_2}] ……待って、これ前にも見た気がする。」\n";
+	$instruction .= "- 「[{$example_3}] また同じ話か……。」\n\n";
+	$instruction .= "### ルール\n";
+	$instruction .= "- 一回の返信につき表情タグは一つだけ。発言全体の感情を最もよく表す位置に置くこと。\n";
+	$instruction .= "- 表情画像はアニメーション（APNG）であり、連続して切り替えると再生周期が途切れる。複数の切り替えより、一つのはっきりした感情のほうが表現力がある。\n";
+	$instruction .= "- 上に挙げたタグだけを使うこと。それ以外のタグは無視される。\n";
+	$instruction .= "- タグは読み上げられず、表情の制御にのみ使われる。\n";
+	$instruction .= '- 後方互換のため [表情: xxx] の中国語形式も引き続き使用できる。';
 
 	return $instruction;
 }

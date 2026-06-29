@@ -4,6 +4,14 @@
 
 ---
 
+## [2.27.3] - 2026-06-29
+
+### 🌐 Expression-tag prompt is now Japanese
+
+- **Built-in expression-tag instruction Japanese-ized**: The expression-tag prompt block injected into every personality (`mpu_build_emotion_tag_instruction` in `personality-loader.php`) was written in Traditional Chinese while every other built-in prompt/instruction is Japanese, so it read as jarringly out of place. It is now Japanese, and its inline examples were made character-neutral — the old examples were Frieren-flavored lines that would have nudged other ghosts toward Frieren's voice. Behavior is unchanged (same tags, same `[表情: xxx]` backward-compat note); the corresponding test assertions were updated.
+
+---
+
 ## [2.27.2] - 2026-06-22
 
 ### 🐛 Boot-time rendering race

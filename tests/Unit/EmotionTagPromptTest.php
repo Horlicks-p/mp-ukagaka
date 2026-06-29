@@ -15,12 +15,12 @@ final class EmotionTagPromptTest extends TestCase {
 
         $prompt = mpu_build_emotion_tag_instruction(['laugh', 'thinking', 'sigh']);
 
-        $this->assertStringContainsString('## 表情標籤（Expression Tags）', $prompt);
+        $this->assertStringContainsString('## 表情タグ（Expression Tags）', $prompt);
         $this->assertStringContainsString('[laugh]', $prompt);
         $this->assertStringContainsString('[thinking]', $prompt);
         $this->assertStringContainsString('[sigh]', $prompt);
-        $this->assertStringContainsString('每次回覆只使用一個表情標籤', $prompt);
-        $this->assertStringContainsString('標籤不會被朗讀', $prompt);
+        $this->assertStringContainsString('一回の返信につき表情タグは一つだけ', $prompt);
+        $this->assertStringContainsString('タグは読み上げられず', $prompt);
         $this->assertStringNotContainsString('回覆末尾添加 [表情:', $prompt);
     }
 
