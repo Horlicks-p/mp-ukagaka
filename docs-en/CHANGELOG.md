@@ -14,6 +14,10 @@
 
 - **No more spurious "（…通信状況が良くないみたいだ…）" on gifts**: Sending a gift could report a connection error even when chat worked a second earlier. The synchronous (non-streaming) `POST /touch/give` had a front-end fetch timeout of 30s — *equal* to the back-end provider timeout of 30s — leaving zero headroom for network latency and PHP pre-processing, so a slow-but-successful generation tripped the front-end abort while the back-end actually succeeded. (Chat does not hit this: SSE streams the first bytes within seconds and is governed by a 45s watchdog that the stream keeps refreshing.) The gift fetch timeout is raised to **45s** (above the back-end 30s, matching the chat watchdog), `retries` is set to **0** because the gift POST is non-idempotent (it writes history and stats), and the error branch now distinguishes genuine connection/timeout failures from structured back-end errors (rate limit, unknown item) instead of masking every failure as a connection problem. Frieren bundle rebuilt.
 
+### 🐛 Checksum mismatch on gift replies
+
+- **`give` replies no longer poison the history checksum**: A `give`-type assistant reply in the submitted chat history was mislabeled as `chat` by some checksum-store paths, so the stored checksum *included* it, while the verify path (using the shared normalizer, which recognizes `give`) correctly *excluded* it — meaning even a normal conversation that contained a gift could log a `checksum-mismatch` entry. The message-type allowlist had drifted into **four** copies; the two hand-written ones in `class-mpu-rest-dialog.php` and `akismet-integration.php` were missing `give`, and `class-mpu-rest-chat.php` carried a redundant (correct) copy. All three are now consolidated onto the single source of truth, `MPU_Chat_History_Service::normalize_history()` / `parse_history_from_request()`, so store and verify normalize identically. This is harmless under the current audit mode but would have hard-failed gifts (HTTP 400) under block mode. Test bootstrap now loads the history service so the Akismet unit test resolves the class.
+
 ---
 
 ## [2.27.2] - 2026-06-22

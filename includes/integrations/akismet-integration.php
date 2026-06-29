@@ -72,24 +72,9 @@ function mpu_store_spam_event_checksum( WP_REST_Request $request, $message )
 
     if (empty($cs_sid)) return;
 
-    $prior = [];
-    $hp    = $request->get_param('history');
-    if (!empty($hp)) {
-        $decoded = is_string($hp) ? json_decode(wp_unslash($hp), true) : (array)$hp;
-        if (is_array($decoded)) {
-            foreach ($decoded as $hm) {
-                if (is_array($hm) && isset($hm['role'], $hm['content'])) {
-                    $r = ($hm['role'] === 'user') ? 'user' : 'assistant';
-                    $c = sanitize_textarea_field(wp_unslash($hm['content']));
-                    if ($c !== '') {
-                        $t = isset($hm['type']) && in_array($hm['type'], ['chat', 'synthetic', 'auto_talk', 'greet', 'context', 'event', 'touch_decoration', 'touch_zone'], true)
-                            ? (string) $hm['type'] : 'chat';
-                        $prior[] = ['role' => $r, 'content' => $c, 'type' => $t];
-                    }
-                }
-            }
-        }
-    }
+    // type 正規化は共用 normalizer に統一（手書き allowlist の drift で give 等が
+    // 漏れ、store/verify の checksum がずれるのを防ぐ単一の真実源）。
+    $prior   = MPU_Chat_History_Service::parse_history_from_request($request);
     $prior[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($message), 'type' => 'event'];
     mpu_chat_integrity_store_history($cs_sid, mpu_chat_integrity_slice_for_store($prior, 10));
 }

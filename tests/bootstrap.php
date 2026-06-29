@@ -240,6 +240,9 @@ function mpu_log_error($message) {
 }
 
 require_once MPU_TESTS_ROOT . '/includes/llm/chat-integrity.php';
+// Shared history normalizer：dialog/chat/akismet の checksum store が依存する。
+// chat-integrity.php（mpu_chat_integrity_* 関数）の後に読み込むこと。
+require_once MPU_TESTS_ROOT . '/includes/chat/class-mpu-chat-history-service.php';
 require_once MPU_TESTS_ROOT . '/includes/llm/class-mpu-chat-lock.php';
 require_once MPU_TESTS_ROOT . '/includes/core/class-mpu-input-role.php';
 require_once MPU_TESTS_ROOT . '/includes/llm/class-mpu-session-event.php';

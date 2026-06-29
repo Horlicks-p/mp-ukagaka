@@ -602,37 +602,14 @@ class MPU_REST_Chat extends MPU_REST_Base {
             }
         }
 
-        // 允許的 type 白名單（type 欄位用於區分真實對話與 synthetic/auto-talk/touch 等）
-		$allowed_types = [
-			'chat',
-			'synthetic',
-			'auto_talk',
-			'greet',
-			'context',
-			'event',
-			'touch_decoration',
-			'touch_zone',
-			'give',
-		];
-
-        $valid_history = [];
-        foreach ($chat_history as $msg) {
-            if (is_array($msg) && isset($msg['role'], $msg['content'])) {
-                $role    = ($msg['role'] === 'user') ? 'user' : 'assistant';
-
-                // [Fix] 對於對話歷史（尤其是包含 MCP 結果的長文本），使用 sanitize_textarea_field
-                // 這樣能保留換行符，確保與後端儲存時的內容完全一致，防止 Checksum 失敗。
-                $content = sanitize_textarea_field(wp_unslash($msg['content']));
-
-                // 保留 type 欄位，用於 checksum filter 與 LLM context 區分
-                $type = isset($msg['type']) && in_array($msg['type'], $allowed_types, true)
-                        ? (string) $msg['type'] : 'chat';
-
-                if (!empty(trim($content))) {
-                    $valid_history[] = ['role' => $role, 'content' => $content, 'type' => $type];
-                }
-            }
-        }
+        // type 正規化は共用 normalizer（MPU_Chat_History_Service::ALLOWED_MSG_TYPES）に
+        // 一本化する。手書き allowlist の drift（過去に dialog 端点で give が漏れ、
+        // store/verify の checksum がずれた）を防ぐための単一の真実源。
+        // content は sanitize_textarea_field で正規化され、空文字は除外される
+        // （verify 側と完全に同じ規則）。
+        $valid_history = MPU_Chat_History_Service::normalize_history(
+            is_array($chat_history) ? $chat_history : []
+        );
 
         // [Fix] 修正正規化邏輯：必須在 array_slice 之前進行。
         // 否則當窗口滑動時，第一筆 assistant 訊息會因前面的 user 訊息被 slice 掉而變成「孤立」訊息被濾除，

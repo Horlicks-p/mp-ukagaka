@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.27.2
+Stable tag: 2.27.3
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,12 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-29 =
+* v2.27.3
+* [I18N] Built-in expression-tag instruction (`mpu_build_emotion_tag_instruction`) was Traditional Chinese while every other built-in prompt is Japanese; translated to Japanese with character-neutral examples. Behavior unchanged.
+* [FIX] Gift requests no longer show a false "（…通信状況が良くないみたいだ…）": the synchronous `/touch/give` had a 30s front-end timeout equal to the back-end provider's 30s timeout, so a slow-but-successful generation tripped a front-end abort. Raised the gift timeout to 45s, set retries to 0 (non-idempotent POST), and split the error branch so structured back-end errors surface instead of all reading as connection failures.
+* [FIX] Checksum mismatch on gift replies: a `give` assistant reply was mislabeled `chat` by some checksum-store paths (hand-written allowlists in `class-mpu-rest-dialog.php` and `akismet-integration.php` were missing `give`), so a normal conversation containing a gift could log a checksum mismatch. Consolidated all message-type allowlists onto the shared `MPU_Chat_History_Service` normalizer so store and verify match.
 
 = 2026-06-22 =
 * v2.27.2
