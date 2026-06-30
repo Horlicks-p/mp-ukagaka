@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.27.3
+Stable tag: 2.27.4
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,10 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-06-30 =
+* v2.27.4
+* [FIX] Checksum mismatch during normal conversation: the integrity checksum only counts `type="chat"` assistant messages, but the history window was sliced from the last N *raw* entries before filtering, so interleaved `give`/`auto_talk`/`synthetic` messages could evict an older `chat` reply and make store/verify clip different messages. The slice now normalizes, filters to checksum messages, then takes the last N — so gifts and auto-talk no longer push chat replies out of the window. All store/verify paths share this helper; short histories are byte-identical to before.
 
 = 2026-06-29 =
 * v2.27.3

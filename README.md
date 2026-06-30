@@ -98,57 +98,13 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.27.2
+## 🎉 What's New in v2.27.4
 
-**Boot-time rendering race fixed**: On slow connections an LLM reply (startup, first-visit greeting, or page-context) could be written into the main dialog box before the character and box finished initializing, making text appear abruptly or already half-typed once visibility was released. These auto-responses now defer rendering until a shared visual-ready signal fires (a one-shot latch with a 12-second fallback that force-reveals visibility only — it never overrides a visitor's hidden-dialog preference), while the LLM request itself still goes out early. A greeting skipped by a competing flow no longer consumes the first-visit cookie, so a later load can retry it.
+**Checksum window fix** (v2.27.4): The chat-history integrity checksum now windows over the messages it actually counts, so interleaved gifts and auto-talk no longer evict older chat replies and cause spurious checksum mismatches during normal conversation.
 
-**Gift interaction hardening**: The gift/feeding endpoint now verifies submitted chat history before writing its integrity checksum, and the gift reaction keeps its input lock until the typewriter finishes, so a reply can no longer be interrupted by a second gift or auto-talk.
+**Gift reliability & checksum consolidation** (v2.27.3): Gifts no longer show a false "connection error" on slow-but-successful generations — the front-end timeout now has headroom over the back-end — and the chat-history message-type allowlists were consolidated onto one shared normalizer so a `give` reply can no longer poison the integrity checksum. The built-in expression-tag prompt was also translated from Chinese to Japanese to match the other built-in prompts.
 
-### v2.27.1 Highlights
-
-**Gift / Feeding system** (v2.27.0): A new 🎁 picker by the chat input lets visitors hand the character gift or food items. Each item drives an LLM reaction — food is eaten with a taste comment, gifts are accepted with thanks, and `favorite` items get an extra-delighted reaction — rendered through the existing emotion-tag/APNG pipeline so expressions appear automatically. Reactions are recorded in the session observation buffer and chat history, so later conversation can refer back to what was given. It is built on a new `POST /mp-ukagaka/v1/touch/give` endpoint, a ghost-agnostic `ghost/<Character>/items.json` catalog, and a single-item carousel UI (image-first thumbnails with a text fallback). Frieren ships with two items: メルクーアプリン (food) and 魔導書 (gift).
-
-**Gift string translations** (v2.27.1): The gift/feeding strings — the `/touch/give` error messages, the localized history anchor `（%sを差し出した）`, and the picker / carousel navigation labels — are now in the `.pot` / `.po` / `.mo` catalogs with Traditional Chinese and English translations, so non-Japanese sites no longer fall back to Japanese.
-
-### v2.26.0 Highlights
-
-**Daytime nap (after-lunch sleep)**: Characters can now take an after-lunch nap in addition to the existing nighttime sleep — probability-based (~2–3 times a week), with a variable length (30–60 minutes) inside a configurable window (default 12:30–13:30). It reuses the existing sleep machinery, so reduced auto-talk, dream lines, touch/wake reactions, and weight adjustments all apply automatically, with nap-specific dream and wake-reaction flavor. Off by default; Frieren ships with nap enabled.
-
-### v2.25.7 Highlights
-
-**Frontend modular split & performance**: The frontend runtime was reorganized without behavior changes — boot globals moved out of inline `<head>` scripts into the enqueue flow, the Frieren runtime split into animation/interactions/decorations modules, and `ukagaka-chat.js` split into seven focused modules with a byte-identical production bundle. Frieren's personality scripts are now bundled and minified into a single file (about 60 KB down to 28 KB, four HTTP requests down to one), with automatic per-file fallback for `SCRIPT_DEBUG` and third-party ghosts. Chat also degrades gracefully to the synchronous endpoint when the server lacks php-curl.
-
-### v2.25.6 Highlights
-
-**Security Hardening**: Upgraded API key encryption to authenticated AES-256-GCM (removing weak fallbacks), and gated full LLM prompt/conversation debug logging behind an explicit opt-in to prevent PII leaks.
-
-### v2.25.5 Highlights
-
-**Security & Stability Enhancements**: Fixed Touch API session token guard, API cache key integrity, and option deep merge issues.
-
-### v2.25.4 Highlights
-
-**Weather rain-label refinement**: Tomorrow's forecast rain label now uses Open-Meteo `precipitation_sum` to avoid understating heavy 24-hour rainfall as drizzle. Current weather still keeps the live WMO code, while the context adds the day’s accumulated rainfall so the character can talk about real rain intensity without overstating what is happening right now.
-
-**Frieren reaction wording**: One bot-detection prompt was rewritten to remove a contradictory metaphor, making security-event dialogue more natural.
-
-### v2.25.0 Highlights
-
-**Emotion tags**: AI responses can now use inline `[tag]` expression markers. The new response normalizer keeps display/history/checksum/TTS text aligned while extracting emotion tags into structured data for REST and SSE responses.
-
-**Frieren expression prompt**: Frieren now declares supported emoji tags in `manifest.json`, and the prompt uses the new inline tag style instead of the older trailing `[表情:xxx]` instruction. Backward-compatible parsing remains available.
-
-**Streaming support**: SSE output now parses split emotion tags and think blocks across chunks, avoids Markdown link false positives, and preserves explicit streamed emotion choices instead of overwriting them with keyword guessing at completion.
-
-**Think bubble placeholders**: System placeholders such as `えっと` and the initial `何を話せばいいかな` now render in the character-side think bubble instead of the main dialogue box. Touch, decoration, and initial loading flows were adjusted to avoid stale placeholder state and empty dialogue-box flashes.
-
-**Note**: Ollama `message.thinking` integration was implemented and then reverted after testing. Ollama shares the `num_predict` budget between reasoning and final content, which caused empty or truncated replies and chat history/checksum issues. The think bubble itself ships and is actively used for the loading / placeholder UI (the initial `何を話せばいいかな`, touch / decoration thinking states). The separate LLM `<think>` inner-monologue channel that would feed character thoughts into that bubble has been shelved after testing — its code remains in the tree but no provider feeds it and no prompt asks for it, so it has no visible effect. We no longer maintain it, but the full pipeline (normalizer, SSE parser, bubble) ships intact: `DEVELOPER_GUIDE.md` → "Inner Monologue (`<think>`) Channel" documents the opt-in wiring points and pitfalls for developers experimenting with providers that can produce good short monologue.
-
-### Previous Highlights
-
-**Observation decoration names** (v2.24.1): Recent visitor activity resolves touched decoration slugs into readable names before prompt injection.
-
-**Code quality workflow** (v2.24.1): Added the PHPCS baseline workflow and wired `lint:phpcs` into verification.
+**Earlier releases**: the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

@@ -4,7 +4,7 @@
 
 ---
 
-## [2.27.4] - Unreleased
+## [2.27.4] - 2026-06-30
 
 ### 🐛 Checksum window must count checksum messages, not raw history
 
