@@ -75,6 +75,10 @@
 - **Per-character config**: Add a `nap` block under `sleep_settings` in a character's `manifest.json` (`enabled`, `window_start` / `window_end` in minutes-of-day, `probability`, `min_minutes`, `max_minutes`). Nap is **off by default**; partial nap configs now deep-merge onto the defaults, so a manifest only needs `nap.enabled: true` to inherit the rest. Frieren ships with nap enabled (12:30–13:30, p=0.4, 30–60 min).
 - **Wake UX**: The temporary-wake message distinguishes a nap ("昼寝中…") from deep sleep ("深い眠り中…").
 
+### 🧹 Cleanup
+
+- **`ukagaka-chat.js` compatibility shell removed**: The zero-byte `js/ukagaka-chat.js` left behind by the 2.25.7 chat-module split is deleted, and the `mpu-chat` script handle is no longer registered. The three former dependents (`mpu-greeting`, `mpu-chat-events`, `mpu-features`) now depend on `mpu-chat-send` instead. **Breaking for third-party code**: anything that enqueues a script with `mpu-chat` as a dependency must switch to `mpu-chat-send` (or another `mpu-chat-*` module handle).
+
 ---
 
 ## [2.25.7] - 2026-06-11

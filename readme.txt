@@ -216,6 +216,7 @@ This plugin uses a modular architecture for better maintainability:
 * [FEATURE] Daytime nap: characters can take an after-lunch nap (default window 12:30–13:30) in addition to nighttime sleep. It is probability-based (~2–3 times a week) with a variable 30–60 minute length, and is temporary like deep sleep (refreshing keeps the character asleep). `mpu_is_deep_sleep_time()` returns true during a nap, so reduced auto-talk frequency, dream lines, touch/wake reactions, and weight adjustments all apply automatically. Added `mpu_get_daily_nap_window()` and `mpu_is_nap_time()` in `llm-context-builder.php`.
 * [FEATURE] Nap flavor: `sleep_mode.json` gains a `nap_dreams` pool and `wake_reaction_prompts.nap`; the frontend wake fallback (`ukagaka-chat-wake.js`) gains nap-specific lines. The temporary-wake message distinguishes "昼寝中" from "深い眠り中".
 * [CONFIG] Per-character `nap` block under `sleep_settings` in `manifest.json` (off by default; partial configs deep-merge onto defaults). Frieren ships with nap enabled (12:30–13:30, p=0.4, 30–60 min).
+* [REMOVED] The zero-byte `ukagaka-chat.js` compatibility shell from the 2.25.7 chat split is deleted and the `mpu-chat` script handle is no longer registered; former dependents now use `mpu-chat-send`. Third-party scripts depending on `mpu-chat` must switch to `mpu-chat-send` (or another `mpu-chat-*` handle).
 
 = 2026-06-11 =
 * v2.25.7
