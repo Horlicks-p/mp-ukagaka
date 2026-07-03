@@ -140,6 +140,22 @@
   transform: translateY(0);
 }
 
+/* 圖片預載：思考氣泡流程時 #ukagaka_msgbox 以 display:none 出場、
+   #ukagaka_think 初始為 hidden，兩者子樹內的 background / border-image
+   在 display:none 下瀏覽器不會下載，導致第一句 LLM 自發對話文字先於
+   對話框圖片出現。掛在恆常渲染的 #mp_ukagaka 上讓這些小圖在頁面
+   載入時就開始下載（LLM 回應抵達前早已完成）。 */
+#mp_ukagaka::after {
+  content: url(../images/msgbox_top.png) url(../images/msgbox_bg.png)
+    url(../images/msgbox_bottom.png) url(../images/think-bubble.png)
+    url(../images/think-tail.png);
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  z-index: -1;
+}
+
 #ukagaka_msgbox.mpu-main-bubble-dimmed {
   opacity: 0.72;
   transition: opacity 0.18s ease;
