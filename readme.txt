@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.27.4
+Stable tag: 2.27.5
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,13 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-07-09 =
+* v2.27.5
+* [NEW] uninstall.php: deleting the plugin now removes the `mp_ukagaka` option (including encrypted API keys), diary bookkeeping options, `mpu_*` transients (session tokens, rate-limit counters, API cache), `mpu_stats_*` / `mpu_chat_lock_*` options, the integrated bot-blocker data (banned-IP list, DB version, logs table), and unschedules both daily cron events. Deactivation now also clears the `mpu_daily_diary_check` cron.
+* [FIX] Slimstat integration: self-directed REST calls no longer hardcode `sslverify => false`; they default to verified TLS and delegate overrides to the standard `https_ssl_verify` / `https_local_ssl_verify` filters, matching the streaming HTTP client.
+* [CHORE] Legacy AI option keys (`ai_provider`, `ai_api_key`, `gemini_model`, `openai_*`, `claude_*`, `ollama_replace_dialogue`) are no longer seeded in defaults nor mirrored on save; leftover values migrate to the `llm_*` keys on the next admin save and the duplicates are removed. Reading paths keep backward compatibility.
+* [CHORE] PHPCS baseline check is green again: fixed the 7 findings introduced with v2.27.3 while keeping natural CJK comment punctuation via scoped suppressions.
 
 = 2026-06-30 =
 * v2.27.4

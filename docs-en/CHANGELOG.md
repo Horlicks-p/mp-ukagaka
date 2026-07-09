@@ -4,6 +4,29 @@
 
 ---
 
+## [2.27.5] - 2026-07-09
+
+> Housekeeping release: the remaining B/C-tier items from the 2026-06-10 codebase review.
+
+### 🧹 Uninstall cleanup (review B-3)
+
+- **`uninstall.php` added**: Deleting the plugin now removes the `mp_ukagaka` option (including encrypted API keys), the diary bookkeeping options (`mpu_last_diary_date` / `mpu_last_diary_post_id`), all `mpu_*` transients (session tokens, rate-limit counters, API response cache), `mpu_stats_*` / `mpu_chat_lock_*` options, and the integrated bot-blocker data (banned-IP list, DB version, `{prefix}moelog_bot_blocker_logs` table — owned by this plugin since the standalone Moelog Bot Blocker was merged in), and unschedules both daily cron events. Deactivation now also clears the `mpu_daily_diary_check` cron, which was previously left scheduled.
+
+### 🔒 Slimstat requests verify TLS (review B-1)
+
+- **`sslverify => false` removed**: The two self-directed Slimstat REST calls in `llm-slimstat.php` now default to verified TLS and delegate overrides to the standard `https_ssl_verify` / `https_local_ssl_verify` filters — the same stance as the streaming HTTP client, ending the plugin's split personality on SSL verification.
+
+### 🗝️ Legacy AI option keys retired (review C-2)
+
+- **Dual-key storage ended**: `ai_provider`, `ai_api_key`, `gemini_model`, `openai_api_key`, `openai_model`, `claude_api_key`, `claude_model`, and `ollama_replace_dialogue` are no longer seeded in the defaults nor mirrored on every save. A new `mpu_normalize_llm_option_keys()` runs on admin save: it migrates any leftover legacy values into the `llm_*` keys (only when the new key is empty) and removes the duplicates from the stored option. Reading paths keep their backward-compatible fallbacks, so old installs work before and after the migration. Unit tests cover the migration and the pruned defaults.
+
+### 🧽 Housekeeping
+
+- Removed the orphaned activation-hook docblock at the end of `core-functions.php` (review C-1).
+- `phpcs-baseline.php check` is green again: the 7 findings introduced with v2.27.3 are fixed with narrowly scoped `phpcs:disable` annotations instead of rewriting CJK comments to ASCII punctuation, and `chat-integrity.php`'s slice helper is restored to the file's own indentation style.
+
+---
+
 ## [2.27.4] - 2026-06-30
 
 ### 🐛 Checksum window must count checksum messages, not raw history

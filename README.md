@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.27.2-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.27.5-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,13 +98,13 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.27.4
+## 🎉 What's New in v2.27.5
+
+**Housekeeping release** (v2.27.5): A new `uninstall.php` cleans up everything on plugin deletion — options (including encrypted API keys), transients, stats, bot-blocker data, and scheduled crons. Slimstat integration calls now verify TLS by default (overridable via the standard WordPress filters), and the legacy `ai_*` option keys are migrated to their `llm_*` successors and removed from storage.
 
 **Checksum window fix** (v2.27.4): The chat-history integrity checksum now windows over the messages it actually counts, so interleaved gifts and auto-talk no longer evict older chat replies and cause spurious checksum mismatches during normal conversation.
 
-**Gift reliability & checksum consolidation** (v2.27.3): Gifts no longer show a false "connection error" on slow-but-successful generations — the front-end timeout now has headroom over the back-end — and the chat-history message-type allowlists were consolidated onto one shared normalizer so a `give` reply can no longer poison the integrity checksum. The built-in expression-tag prompt was also translated from Chinese to Japanese to match the other built-in prompts.
-
-**Earlier releases**: the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
