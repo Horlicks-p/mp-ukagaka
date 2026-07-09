@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
     exit();
 }
 
+// phpcs:disable WordPress.Arrays, Generic.WhiteSpace.ScopeIndent -- Preserve the legacy defaults layout while pruning deprecated keys.
 /**
  * 取得預設設定內容
  * @return {array} 預設設定陣列
@@ -60,14 +61,6 @@ function mpu_default_opt()
         "llm_claude_api_key" => "",
         "llm_claude_model" => "claude-sonnet-4-6",
         "llm_replace_dialogue" => false,
-        "ai_provider" => "gemini",
-        "ai_api_key" => "",
-        "gemini_model" => "gemini-2.5-flash",
-        "openai_api_key" => "",
-        "openai_model" => "gpt-4.1-mini-2025-04-14",
-        "claude_api_key" => "",
-        "claude_model" => "claude-sonnet-4-6",
-        "ollama_replace_dialogue" => false,
         "ai_language" => "",
         "ai_system_prompt" => "你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。",
         "ai_probability" => 10,
@@ -91,6 +84,7 @@ function mpu_default_opt()
         ],
     ];
 }
+// phpcs:enable WordPress.Arrays, Generic.WhiteSpace.ScopeIndent
 
 /**
  * Merge defaults for known nested option groups without deep-merging arbitrary data.
@@ -280,8 +274,3 @@ function mpu_apply_admin_profile_calendar($calendar, $mpu_opt = null)
 
     return $calendar;
 }
-
-/**
- * 啟用時建立目錄
- * 注意：這個 hook 需要在主文件中註冊，因為需要在定義 MPU_MAIN_FILE 之後
- */

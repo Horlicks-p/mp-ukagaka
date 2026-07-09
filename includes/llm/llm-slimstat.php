@@ -81,9 +81,11 @@ function mpu_fetch_slimstat_stats()
         'dimension' => '*',
     ], $rest_url);
 
+	$sslverify = apply_filters( 'https_local_ssl_verify', apply_filters( 'https_ssl_verify', true ), $count_url );
+
     $count_response = wp_remote_get($count_url, [
         'timeout' => 5,
-        'sslverify' => false,
+        'sslverify' => $sslverify,
     ]);
 
     if (!is_wp_error($count_response) && wp_remote_retrieve_response_code($count_response) === 200) {
@@ -102,7 +104,7 @@ function mpu_fetch_slimstat_stats()
 
     $top_response = wp_remote_get($top_url, [
         'timeout' => 5,
-        'sslverify' => false,
+        'sslverify' => $sslverify,
     ]);
 
     if (!is_wp_error($top_response) && wp_remote_retrieve_response_code($top_response) === 200) {
@@ -563,4 +565,3 @@ function mpu_detect_visitor_pulse_event()
 
     return false;
 }
-

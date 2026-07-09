@@ -47,9 +47,12 @@ register_activation_hook(__FILE__, function () {
 /**
  * 停用時清除排程
  */
+// phpcs:disable Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature -- 沿用本檔既有 4 空格縮排風格
 register_deactivation_hook(__FILE__, function () {
     wp_clear_scheduled_hook('mpu_daily_stats_cleanup');
+    wp_clear_scheduled_hook('mpu_daily_diary_check');
 });
+// phpcs:enable Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature
 
 /**
  * 載入所有模組文件

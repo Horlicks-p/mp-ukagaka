@@ -53,6 +53,50 @@ add_action('admin_enqueue_scripts', 'mpu_admin_enqueue_scripts');
 // 每個 helper 修改 $mpu_opt（by reference）並回傳成功提示訊息 HTML。
 // =========================================================================
 
+/**
+ * Migrate legacy AI option keys to current LLM keys and remove duplicate storage.
+ *
+ * @param array $mpu_opt Plugin options.
+ * @return void
+ */
+function mpu_normalize_llm_option_keys( array &$mpu_opt ): void {
+	$mpu_opt['llm_provider'] = $mpu_opt['llm_provider'] ?? ( $mpu_opt['ai_provider'] ?? 'gemini' );
+
+	foreach ( array(
+		'llm_gemini_api_key' => 'ai_api_key',
+		'llm_openai_api_key' => 'openai_api_key',
+		'llm_claude_api_key' => 'claude_api_key',
+		'llm_gemini_model'   => 'gemini_model',
+		'llm_openai_model'   => 'openai_model',
+		'llm_claude_model'   => 'claude_model',
+	) as $new_key => $legacy_key ) {
+		if ( empty( $mpu_opt[ $new_key ] ) && ! empty( $mpu_opt[ $legacy_key ] ) ) {
+			$mpu_opt[ $new_key ] = $mpu_opt[ $legacy_key ];
+		}
+	}
+
+	if ( ! isset( $mpu_opt['llm_replace_dialogue'] ) && ! empty( $mpu_opt['ollama_replace_dialogue'] ) ) {
+		$mpu_opt['llm_replace_dialogue'] = true;
+	}
+
+	unset(
+		$mpu_opt['ai_provider'],
+		$mpu_opt['ai_api_key'],
+		$mpu_opt['gemini_model'],
+		$mpu_opt['openai_api_key'],
+		$mpu_opt['openai_model'],
+		$mpu_opt['claude_api_key'],
+		$mpu_opt['claude_model'],
+		$mpu_opt['ollama_replace_dialogue']
+	);
+}
+
+/**
+ * Save general display and behavior settings.
+ *
+ * @param array $mpu_opt Plugin options.
+ * @return string Admin notice HTML.
+ */
 function mpu_save_general_settings(array &$mpu_opt): string {
     $mpu_opt['show_ukagaka']  = isset($_POST['show_ukagaka']);
     $mpu_opt['show_msg']      = isset($_POST['show_msg']);
@@ -176,7 +220,6 @@ function mpu_save_llm_settings(array &$mpu_opt): string {
         $allowed = ['gemini', 'openai', 'claude', 'ollama'];
         $provider = in_array($_POST['llm_provider'], $allowed, true) ? $_POST['llm_provider'] : 'gemini';
         $mpu_opt['llm_provider'] = $provider;
-        $mpu_opt['ai_provider']  = $provider;
     }
 
     $gemini_key = isset($_POST['llm_gemini_api_key']) ? sanitize_text_field($_POST['llm_gemini_api_key']) : '';
@@ -185,28 +228,22 @@ function mpu_save_llm_settings(array &$mpu_opt): string {
 
     if (!empty($gemini_key) && !mpu_is_api_key_encrypted($gemini_key)) {
         $mpu_opt['llm_gemini_api_key'] = mpu_encrypt_api_key($gemini_key);
-        $mpu_opt['ai_api_key']         = $mpu_opt['llm_gemini_api_key'];
     }
     if (!empty($openai_key) && !mpu_is_api_key_encrypted($openai_key)) {
         $mpu_opt['llm_openai_api_key'] = mpu_encrypt_api_key($openai_key);
-        $mpu_opt['openai_api_key']     = $mpu_opt['llm_openai_api_key'];
     }
     if (!empty($claude_key) && !mpu_is_api_key_encrypted($claude_key)) {
         $mpu_opt['llm_claude_api_key'] = mpu_encrypt_api_key($claude_key);
-        $mpu_opt['claude_api_key']     = $mpu_opt['llm_claude_api_key'];
     }
 
     if (isset($_POST['llm_gemini_model'])) {
         $mpu_opt['llm_gemini_model'] = sanitize_text_field($_POST['llm_gemini_model']);
-        $mpu_opt['gemini_model']     = $mpu_opt['llm_gemini_model'];
     }
     if (isset($_POST['llm_openai_model'])) {
         $mpu_opt['llm_openai_model'] = sanitize_text_field($_POST['llm_openai_model']);
-        $mpu_opt['openai_model']     = $mpu_opt['llm_openai_model'];
     }
     if (isset($_POST['llm_claude_model'])) {
         $mpu_opt['llm_claude_model'] = sanitize_text_field($_POST['llm_claude_model']);
-        $mpu_opt['claude_model']     = $mpu_opt['llm_claude_model'];
     }
 
     if (isset($_POST['ollama_endpoint'])) {
@@ -219,9 +256,6 @@ function mpu_save_llm_settings(array &$mpu_opt): string {
     $mpu_opt['ollama_disable_thinking'] = !empty($_POST['ollama_disable_thinking']);
 
     $mpu_opt['llm_replace_dialogue'] = !empty($_POST['llm_replace_dialogue']);
-    if ($mpu_opt['llm_replace_dialogue'] && isset($mpu_opt['llm_provider']) && $mpu_opt['llm_provider'] === 'ollama') {
-        $mpu_opt['ollama_replace_dialogue'] = true;
-    }
 
     $mpu_opt['enable_chat_mode'] = !empty($_POST['enable_chat_mode']);
 
@@ -617,6 +651,8 @@ function mpu_handle_options_save()
     } elseif (isset($_POST['submit_bot_blocker'])) {
         $text = mpu_save_bot_blocker_settings($mpu_opt);
     }
+
+    mpu_normalize_llm_option_keys($mpu_opt);
 
     // 將選項保存到資料庫
     update_option('mp_ukagaka', $mpu_opt);

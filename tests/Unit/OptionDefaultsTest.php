@@ -38,4 +38,33 @@ final class OptionDefaultsTest extends TestCase {
         $this->assertSame('Custom Frieren', $opt['ukagakas']['default_1']['name']);
         $this->assertTrue($opt['ukagakas']['default_1']['show_decorations']);
     }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_default_options_do_not_include_legacy_ai_storage_keys(): void {
+        if (!function_exists('plugins_url')) {
+            function plugins_url($path = '', $plugin = '') {
+                return 'https://example.test/wp-content/plugins/mp-ukagaka/' . ltrim((string) $path, '/');
+            }
+        }
+
+        require_once MPU_TESTS_ROOT . '/includes/core/core-functions.php';
+
+        $defaults = mpu_default_opt();
+
+        foreach ([
+            'ai_provider',
+            'ai_api_key',
+            'gemini_model',
+            'openai_api_key',
+            'openai_model',
+            'claude_api_key',
+            'claude_model',
+            'ollama_replace_dialogue',
+        ] as $legacy_key) {
+            $this->assertArrayNotHasKey($legacy_key, $defaults);
+        }
+    }
 }
