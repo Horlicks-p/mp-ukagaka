@@ -72,8 +72,10 @@ function mpu_store_spam_event_checksum( WP_REST_Request $request, $message )
 
     if (empty($cs_sid)) return;
 
+    // phpcs:disable Squiz.Commenting.InlineComment.InvalidEndChar -- 日本語コメントは全角句点で終わる
     // type 正規化は共用 normalizer に統一（手書き allowlist の drift で give 等が
     // 漏れ、store/verify の checksum がずれるのを防ぐ単一の真実源）。
+    // phpcs:enable Squiz.Commenting.InlineComment.InvalidEndChar
     $prior   = MPU_Chat_History_Service::parse_history_from_request($request);
     $prior[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($message), 'type' => 'event'];
     mpu_chat_integrity_store_history($cs_sid, mpu_chat_integrity_slice_for_store($prior, 10));

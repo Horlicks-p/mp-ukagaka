@@ -189,11 +189,13 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             $chat_session_id = mpu_chat_integrity_normalize_session_id($chat_session_id_param);
 
             if (!empty($chat_session_id) && !connection_aborted()) {
+                // phpcs:disable Squiz.Commenting.InlineComment.InvalidEndChar -- 日本語コメントは全角句点で終わる
                 // 共用 normalizer を使う（chat/user verify と完全に同じ正規化）。
                 // 手書きの allowlist は give など新しい type を漏らしやすく、store 側で
                 // give→chat に誤分類すると、verify 側（give を正しく除外）と checksum が
                 // ずれて mismatch を生む。ALLOWED_MSG_TYPES を単一の真実源に統一する。
-                $prior_history = MPU_Chat_History_Service::parse_history_from_request($request);
+                // phpcs:enable Squiz.Commenting.InlineComment.InvalidEndChar
+                $prior_history   = MPU_Chat_History_Service::parse_history_from_request($request);
                 $prior_history[] = ['role' => 'assistant', 'content' => sanitize_textarea_field($msg), 'type' => 'auto_talk'];
                 mpu_chat_integrity_store_history(
                     $chat_session_id,

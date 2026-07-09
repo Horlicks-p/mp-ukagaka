@@ -483,9 +483,11 @@ function mpu_chat_integrity_slice_for_store(array $history, int $limit = 10): ar
         $prev_role    = $role;
     }
 
+    // phpcs:disable Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, Squiz.Commenting.InlineComment.InvalidEndChar -- 沿用本檔既有 4 空格風格；中文註解以全形句號結尾
     // Step 2: 只保留真正參與 checksum 的訊息。
     $filtered = mpu_chat_integrity_filter_messages($normalized);
 
     // Step 3: 再 slice — 取最後 N 筆 checksum 訊息。
     return array_slice($filtered, -$limit);
+    // phpcs:enable Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, Squiz.Commenting.InlineComment.InvalidEndChar
 }
