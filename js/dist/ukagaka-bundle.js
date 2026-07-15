@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-07-15T09:57:44.030Z
+ * Generated: 2026-07-15T13:14:45.865Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -4659,19 +4659,9 @@ function mpu_getOrCreateChatSessionId(forceNew = false) {
     return window.mpuChatSessionId;
   }
 
-  let stored = null;
-  if (!forceNew) {
-    try {
-      stored = window.sessionStorage.getItem(MPU_CHAT_SESSION_KEY);
-    } catch (e) {
-      stored = window.__mpuChatTabSessionId || null;
-    }
-  }
-  if (!forceNew && typeof stored === "string" && stored) {
-    window.mpuChatSessionId = stored;
-    return window.mpuChatSessionId;
-  }
-
+  // Generate once per page instance. Browsers copy sessionStorage when a tab is
+  // duplicated, so restoring an ID from it can make two live tabs share one
+  // checksum session. Full navigation safely starts a new server checksum.
   window.mpuChatSessionId = mpu_generateChatSessionId();
   try {
     window.sessionStorage.setItem(MPU_CHAT_SESSION_KEY, window.mpuChatSessionId);

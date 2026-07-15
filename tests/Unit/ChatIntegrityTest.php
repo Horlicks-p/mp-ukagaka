@@ -97,12 +97,20 @@ final class ChatIntegrityTest extends TestCase {
         );
         $stored = mpu_chat_integrity_slice_for_store($after_gift, 10);
 
+        // The REST controller keeps a separate 20-entry LLM context. Using that
+        // truncated context for checksum storage loses older chat replies.
+        $truncated_store = mpu_chat_integrity_slice_for_store(
+            array_slice($after_gift, -20),
+            10
+        );
+
         $next_request = $after_gift;
         $next_request[] = ['role' => 'user', 'content' => 'next user', 'type' => 'chat'];
         $transport = array_slice($next_request, -40);
         $verified = mpu_chat_integrity_slice_for_store($transport, 10);
 
         $this->assertCount(10, $stored);
+        $this->assertNotSame($truncated_store, $verified);
         $this->assertSame($stored, $verified);
         $this->assertSame(
             mpu_chat_integrity_compute_checksum($stored),

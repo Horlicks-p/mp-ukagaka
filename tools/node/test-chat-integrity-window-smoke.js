@@ -48,5 +48,13 @@ assert(
   restChatSource.includes("verify($chat_session_id, $integrity_history)"),
   "chat integrity is still verified after the 20-entry LLM context slice"
 );
+assert(
+  /'integrity_history'\s+=>\s+\$integrity_history/.test(restChatSource),
+  "the full integrity window is not carried to response storage"
+);
+assert(
+  !/store_after_user_chat\([\s\S]{0,160}\$args\['chat_history'\]/.test(restChatSource),
+  "checksum storage still uses the truncated LLM context"
+);
 
 console.log("chat integrity window smoke tests passed");

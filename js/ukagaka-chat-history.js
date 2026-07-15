@@ -27,19 +27,9 @@ function mpu_getOrCreateChatSessionId(forceNew = false) {
     return window.mpuChatSessionId;
   }
 
-  let stored = null;
-  if (!forceNew) {
-    try {
-      stored = window.sessionStorage.getItem(MPU_CHAT_SESSION_KEY);
-    } catch (e) {
-      stored = window.__mpuChatTabSessionId || null;
-    }
-  }
-  if (!forceNew && typeof stored === "string" && stored) {
-    window.mpuChatSessionId = stored;
-    return window.mpuChatSessionId;
-  }
-
+  // Generate once per page instance. Browsers copy sessionStorage when a tab is
+  // duplicated, so restoring an ID from it can make two live tabs share one
+  // checksum session. Full navigation safely starts a new server checksum.
   window.mpuChatSessionId = mpu_generateChatSessionId();
   try {
     window.sessionStorage.setItem(MPU_CHAT_SESSION_KEY, window.mpuChatSessionId);

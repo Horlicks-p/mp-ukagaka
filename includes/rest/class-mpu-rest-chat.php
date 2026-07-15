@@ -635,11 +635,12 @@ class MPU_REST_Chat extends MPU_REST_Base {
 
         if ($is_debug_mcp) {
             return [
-                'is_debug_mcp'   => true,
-                'chat_session_id' => $chat_session_id,
-                'chat_history'    => $chat_history,
-                'user_message'    => $user_message,
-                'chat_lock'       => null,
+                'is_debug_mcp'      => true,
+                'chat_session_id'   => $chat_session_id,
+                'chat_history'      => $chat_history,
+                'integrity_history' => $integrity_history,
+                'user_message'      => $user_message,
+                'chat_lock'         => null,
             ];
         }
 
@@ -943,6 +944,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'input_role'           => $input_role,
             'input_context'        => $input_context,
             'chat_history'         => $chat_history,
+            'integrity_history'     => $integrity_history,
             'user_message'         => $user_message,
             'ukagaka_display_name' => $ukagaka_display_name,
             'runtime_session_token' => $runtime_session_token,
@@ -1027,7 +1029,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
     protected function store_debug_mcp_report(array $args, string $report): void {
         MPU_Chat_History_Service::store_after_user_chat(
             $args['chat_session_id'],
-            $args['chat_history'],
+            $args['integrity_history'],
             $args['user_message'],
             $report,
             false
@@ -1087,7 +1089,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             // [Fix] 儲存 Checksum，含 Double-Append 防護
             MPU_Chat_History_Service::store_after_user_chat(
                 $args['chat_session_id'],
-                $args['chat_history'],
+                $args['integrity_history'],
                 $args['user_message'],
                 $result
             );
@@ -1225,7 +1227,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         // 寫入 Checksum，含 Double-Append 防護
         MPU_Chat_History_Service::store_after_user_chat(
             $args['chat_session_id'],
-            $args['chat_history'],
+            $args['integrity_history'],
             $args['user_message'],
             $result
         );

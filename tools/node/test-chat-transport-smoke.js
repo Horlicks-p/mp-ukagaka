@@ -8,8 +8,8 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function storage() {
-  const values = new Map();
+function storage(initial = {}) {
+  const values = new Map(Object.entries(initial));
   return {
     getItem(key) { return values.has(key) ? values.get(key) : null; },
     setItem(key, value) { values.set(key, String(value)); },
@@ -41,6 +41,24 @@ async function main() {
   const firstId = vm.runInContext("mpu_getOrCreateChatSessionId()", firstTab);
   const secondId = vm.runInContext("mpu_getOrCreateChatSessionId()", secondTab);
   assert(firstId !== secondId, "separate tabs must not share a checksum session");
+  assert(
+    vm.runInContext("mpu_getOrCreateChatSessionId()", firstTab) === firstId,
+    "one page instance must reuse its checksum session"
+  );
+
+  const duplicatedStorage = storage({ mpu_chat_tab_session_id: firstId });
+  const duplicatedTab = historyContext(
+    duplicatedStorage,
+    "33333333-3333-4333-8333-333333333333",
+  );
+  const duplicatedId = vm.runInContext(
+    "mpu_getOrCreateChatSessionId()",
+    duplicatedTab,
+  );
+  assert(
+    duplicatedId !== firstId,
+    "a duplicated tab must not restore the copied checksum session",
+  );
 
   const errors = [];
   const sseWindow = {};
