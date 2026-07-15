@@ -4,6 +4,17 @@
 
 ---
 
+## [2.27.6] - 2026-07-15
+
+### Review follow-up hardening
+
+- **Legacy LLM migration now reads raw stored options**: Default-filled `llm_*` values no longer mask legacy provider, model, or Ollama replacement settings during migration. Resetting settings now replaces the option with the current defaults without passing an undefined value into the migration helper.
+- **Checksum transport and storage use the same raw window**: Browser persistence, REST request history, checksum store, and checksum verify now share a 40-entry raw-history boundary before selecting the last 10 checksum-bearing chat replies. Long chats and histories interleaved with gifts or auto-talk no longer drift at the transport boundary.
+- **Gift provider errors stay server-side**: Actionable local validation errors remain visible, while provider and transport diagnostics are logged and replaced with the existing localized generic error for anonymous visitors.
+- **Tests**: Added production-shaped legacy migration/reset coverage, a raw-window checksum regression test, and a static request-window smoke test wired into `npm run verify`.
+
+---
+
 ## [2.27.5] - 2026-07-09
 
 > Housekeeping release: the remaining B/C-tier items from the 2026-06-10 codebase review.
@@ -22,6 +33,7 @@
 
 ### 🧽 Housekeeping
 
+- Preloaded the main dialog and think-bubble frame images from the always-rendered Ukagaka root, preventing the first LLM text from appearing before its frame assets finish loading.
 - Removed the orphaned activation-hook docblock at the end of `core-functions.php` (review C-1).
 - `phpcs-baseline.php check` is green again: the 7 findings introduced with v2.27.3 are fixed with narrowly scoped `phpcs:disable` annotations instead of rewriting CJK comments to ASCII punctuation, and `chat-integrity.php`'s slice helper is restored to the file's own indentation style.
 

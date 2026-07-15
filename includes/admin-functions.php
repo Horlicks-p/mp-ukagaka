@@ -56,11 +56,18 @@ add_action('admin_enqueue_scripts', 'mpu_admin_enqueue_scripts');
 /**
  * Migrate legacy AI option keys to current LLM keys and remove duplicate storage.
  *
- * @param array $mpu_opt Plugin options.
+ * @param array      $mpu_opt    Plugin options after defaults have been merged.
+ * @param array|null $stored_opt Raw options read from the database before defaults.
  * @return void
  */
-function mpu_normalize_llm_option_keys( array &$mpu_opt ): void {
-	$mpu_opt['llm_provider'] = $mpu_opt['llm_provider'] ?? ( $mpu_opt['ai_provider'] ?? 'gemini' );
+function mpu_normalize_llm_option_keys( array &$mpu_opt, ?array $stored_opt = null ): void {
+	$source = null === $stored_opt ? $mpu_opt : $stored_opt;
+
+	if ( ( empty( $source['llm_provider'] ) ) && ! empty( $source['ai_provider'] ) ) {
+		$mpu_opt['llm_provider'] = $source['ai_provider'];
+	} elseif ( empty( $mpu_opt['llm_provider'] ) ) {
+		$mpu_opt['llm_provider'] = 'gemini';
+	}
 
 	foreach ( array(
 		'llm_gemini_api_key' => 'ai_api_key',
@@ -70,12 +77,12 @@ function mpu_normalize_llm_option_keys( array &$mpu_opt ): void {
 		'llm_openai_model'   => 'openai_model',
 		'llm_claude_model'   => 'claude_model',
 	) as $new_key => $legacy_key ) {
-		if ( empty( $mpu_opt[ $new_key ] ) && ! empty( $mpu_opt[ $legacy_key ] ) ) {
-			$mpu_opt[ $new_key ] = $mpu_opt[ $legacy_key ];
+		if ( empty( $source[ $new_key ] ) && ! empty( $source[ $legacy_key ] ) ) {
+			$mpu_opt[ $new_key ] = $source[ $legacy_key ];
 		}
 	}
 
-	if ( ! isset( $mpu_opt['llm_replace_dialogue'] ) && ! empty( $mpu_opt['ollama_replace_dialogue'] ) ) {
+	if ( ! array_key_exists( 'llm_replace_dialogue', $source ) && ! empty( $source['ollama_replace_dialogue'] ) ) {
 		$mpu_opt['llm_replace_dialogue'] = true;
 	}
 
@@ -89,6 +96,18 @@ function mpu_normalize_llm_option_keys( array &$mpu_opt ): void {
 		$mpu_opt['claude_model'],
 		$mpu_opt['ollama_replace_dialogue']
 	);
+}
+
+/**
+ * Replace all saved settings with the current defaults.
+ *
+ * @param array $mpu_opt Plugin options.
+ * @return string Admin notice markup.
+ */
+function mpu_reset_options( array &$mpu_opt ): string {
+	$mpu_opt = mpu_default_opt();
+
+	return '<div class="updated"><p><strong>' . __( '設定をリセットしました', 'mp-ukagaka' ) . '</strong></p></div>';
 }
 
 /**
@@ -130,13 +149,6 @@ function mpu_save_general_settings(array &$mpu_opt): string {
     // 保留 AI 設定（不在此處處理）
     $current_opt = mpu_get_option();
     $mpu_opt['ai_enabled']        = $current_opt['ai_enabled'] ?? false;
-    $mpu_opt['ai_provider']       = $current_opt['ai_provider'] ?? 'gemini';
-    $mpu_opt['ai_api_key']        = $current_opt['ai_api_key'] ?? '';
-    $mpu_opt['gemini_model']      = $current_opt['gemini_model'] ?? 'gemini-2.5-flash';
-    $mpu_opt['openai_api_key']    = $current_opt['openai_api_key'] ?? '';
-    $mpu_opt['openai_model']      = $current_opt['openai_model'] ?? 'gpt-4.1-mini-2025-04-14';
-    $mpu_opt['claude_api_key']    = $current_opt['claude_api_key'] ?? '';
-    $mpu_opt['claude_model']      = $current_opt['claude_model'] ?? 'claude-sonnet-4-6';
     $allowed_languages = ['', 'zh-TW', 'ja', 'en'];
     $posted_language = isset($_POST['ai_language']) ? sanitize_text_field(wp_unslash($_POST['ai_language'])) : '';
     $mpu_opt['ai_language'] = in_array($posted_language, $allowed_languages, true)
@@ -413,8 +425,12 @@ function mpu_handle_options_save()
 
     // Nonce 驗證通過，開始處理儲存邏輯
 
-    // 取得當前選項
+    // 取得當前選項。Legacy migration 必須參考 defaults merge 前的原始資料，
+    // 否則 llm_provider/model 的非空預設值會被誤判成已由使用者設定。
+    $stored_opt = get_option( 'mp_ukagaka', array() );
+    $stored_opt = is_array($stored_opt) ? $stored_opt : array();
     $mpu_opt = mpu_get_option();
+    mpu_normalize_llm_option_keys($mpu_opt, $stored_opt);
     $text = ''; // 用於顯示訊息
 
     if (isset($_POST['submit1'])) {
@@ -641,10 +657,7 @@ function mpu_handle_options_save()
     } elseif (isset($_POST['submit_reset'])) {
         // 處理重置設定
         if (isset($_POST['reset_mpu'])) {
-            unset($mpu_opt);
-            update_option('mp_ukagaka', []); // 清空選項
-            mpu_default_opt(); // 重新設定預設值
-            $text = '<div class="updated"><p><strong>' . __('設定をリセットしました', 'mp-ukagaka') . '</strong></p></div>';
+            $text = mpu_reset_options($mpu_opt);
         } else {
             $text = '<div class="error"><p><strong>' . __('設定はリセットされませんでした', 'mp-ukagaka') . '</strong></p></div>';
         }

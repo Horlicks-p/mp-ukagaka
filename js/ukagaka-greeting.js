@@ -88,7 +88,7 @@ function mpu_greet_first_visitor(settings) {
           formData.append("session_id", greetSessionId);
         }
         if (typeof window.mpuChatHistory !== "undefined" && window.mpuChatHistory.length > 0) {
-          formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-10)));
+          formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
         }
 
         return mpuFetch(mpuRestUrl + "chat/greet", {

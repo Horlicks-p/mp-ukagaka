@@ -626,7 +626,11 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $previous_role        = $message['role'];
         }
 
-        // 正規化後取最後 20 筆（synthetic+assistant 各佔一則，20 entries = 10 個互動事件）
+        // Integrity 必須在裁成 LLM context 前使用完整 transport window（前端最多 40 筆），
+        // 否則 non-chat 訊息會先把 checksum-bearing assistant 擠出 history。
+        $integrity_history = $normalized_history;
+
+        // LLM context 仍只取最後 20 筆，避免擴大 prompt。
         $chat_history = array_slice($normalized_history, -20);
 
         if ($is_debug_mcp) {
@@ -661,7 +665,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             }
         }
 
-        $integrity_check = MPU_Chat_History_Service::verify($chat_session_id, $chat_history);
+        $integrity_check = MPU_Chat_History_Service::verify($chat_session_id, $integrity_history);
         if (is_wp_error($integrity_check)) {
             $this->release_chat_lock($chat_session_id, $chat_lock);
             $error_data = $integrity_check->get_error_data();

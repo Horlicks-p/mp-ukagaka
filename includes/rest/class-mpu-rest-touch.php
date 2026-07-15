@@ -281,7 +281,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
 
 		$normalized = $this->run_reaction( $user_prompt, $personality_id, 'give' );
 		if ( is_wp_error( $normalized ) ) {
-			return $this->fail( 'rest_error', $normalized->get_error_message(), 400 );
+			return $this->fail( 'rest_error', $this->public_reaction_error_message( $normalized ), 400 );
 		}
 
 		if ( function_exists( 'mpu_record_conversation' ) ) {
@@ -369,6 +369,24 @@ class MPU_REST_Touch extends MPU_REST_Base {
 		}
 
 		return mpu_normalize_ai_response_apply_display_limit( $normalized, $max_length );
+	}
+
+	/**
+	 * Keep provider and transport diagnostics out of anonymous REST responses.
+	 *
+	 * @param WP_Error $error Reaction error.
+	 * @return string
+	 */
+	private function public_reaction_error_message( WP_Error $error ) {
+		if ( 'rest_error' === $error->get_error_code() ) {
+			return $error->get_error_message();
+		}
+
+		if ( function_exists( 'mpu_log_error' ) ) {
+			mpu_log_error( 'Gift reaction provider error: ' . $error->get_error_message() );
+		}
+
+		return __( 'エラーが発生しました。後でもう一度お試しください。', 'mp-ukagaka' );
 	}
 	// phpcs:enable Generic.Formatting.MultipleStatementAlignment
 }

@@ -811,9 +811,9 @@
           mpu_showmsg(400);
         }
 
-        const history = Array.isArray(window.mpuChatHistory)
-          ? window.mpuChatHistory.slice(-20)
-          : [];
+        const history = typeof mpu_getChatHistoryForRequest === "function"
+          ? mpu_getChatHistoryForRequest()
+          : (Array.isArray(window.mpuChatHistory) ? window.mpuChatHistory.slice(-40) : []);
         const formData = new FormData();
         formData.append("item_id", itemId);
         formData.append("session_id", mpu_getOrCreateChatSessionId());

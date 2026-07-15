@@ -355,7 +355,7 @@ function mpu_checkSpamEvent(callback) {
     formData.append("session_id", spamSessionId);
   }
   if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
-    formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+    formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   }
 
   mpuFetch(mpuRestUrl + "check-spam-event", {
@@ -610,7 +610,7 @@ function mpu_nextmsg(trigger) {
       formData.append("session_id", nextmsgSessionId);
     }
     if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
-      formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+      formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
     }
 
     mpuLogger.logF("nextMessageSendingLlmPost", "mpu_nextmsg: LLM POST リクエストを送信します: %s", mpuRestUrl + "nextmsg");

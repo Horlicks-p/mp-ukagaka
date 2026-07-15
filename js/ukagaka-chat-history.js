@@ -62,6 +62,16 @@ function mpu_saveChatHistory() {
 }
 
 /**
+ * Return the raw history window shared by request transport and persistence.
+ * The backend applies the same 40-entry boundary before checksum filtering.
+ *
+ * @returns {Array}
+ */
+function mpu_getChatHistoryForRequest() {
+  return (window.mpuChatHistory || []).slice(-MPU_MAX_CHAT_HISTORY);
+}
+
+/**
  * 清除對話歷史
  */
 function mpu_clearChatHistory() {

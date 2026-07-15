@@ -408,7 +408,7 @@ function mpu_chat_context() {
     formData.append("session_id", contextSessionId);
   }
   if (typeof window.mpuChatHistory !== "undefined" && window.mpuChatHistory.length > 0) {
-    formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-10)));
+    formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   }
 
   mpuFetch(mpuRestUrl + "chat/context", {

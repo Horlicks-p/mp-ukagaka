@@ -80,4 +80,33 @@ final class ChatIntegrityTest extends TestCase {
         $this->assertSame($expected, mpu_chat_integrity_slice_for_store($before_auto_talk, 2));
         $this->assertSame($expected, mpu_chat_integrity_slice_for_store($after_frontend_auto_talk, 2));
     }
+
+    public function test_raw_transport_window_matches_store_after_non_chat_append(): void {
+        $history = [];
+        for ($turn = 1; $turn <= 20; $turn++) {
+            $history[] = ['role' => 'user', 'content' => 'user ' . $turn, 'type' => 'chat'];
+            $history[] = ['role' => 'assistant', 'content' => 'reply ' . $turn, 'type' => 'chat'];
+        }
+
+        $after_gift = array_merge(
+            $history,
+            [
+                ['role' => 'user', 'content' => 'gift anchor', 'type' => 'synthetic'],
+                ['role' => 'assistant', 'content' => 'gift reply', 'type' => 'give'],
+            ]
+        );
+        $stored = mpu_chat_integrity_slice_for_store($after_gift, 10);
+
+        $next_request = $after_gift;
+        $next_request[] = ['role' => 'user', 'content' => 'next user', 'type' => 'chat'];
+        $transport = array_slice($next_request, -40);
+        $verified = mpu_chat_integrity_slice_for_store($transport, 10);
+
+        $this->assertCount(10, $stored);
+        $this->assertSame($stored, $verified);
+        $this->assertSame(
+            mpu_chat_integrity_compute_checksum($stored),
+            mpu_chat_integrity_compute_checksum($verified)
+        );
+    }
 }

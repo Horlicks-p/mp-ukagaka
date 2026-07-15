@@ -484,10 +484,15 @@ function mpu_chat_integrity_slice_for_store(array $history, int $limit = 10): ar
     }
 
     // phpcs:disable Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, Squiz.Commenting.InlineComment.InvalidEndChar -- 沿用本檔既有 4 空格風格；中文註解以全形句號結尾
-    // Step 2: 只保留真正參與 checksum 的訊息。
-    $filtered = mpu_chat_integrity_filter_messages($normalized);
+    // Step 2: 與前端 localStorage/request transport 使用相同的 raw window。
+    // 先套用 raw retention，才能讓 auto/gift append 後的 store 與下一次
+    // 瀏覽器送來的 history 在同一個邊界上淘汰舊訊息。
+    $windowed = array_slice($normalized, -40);
 
-    // Step 3: 再 slice — 取最後 N 筆 checksum 訊息。
+    // Step 3: 只保留真正參與 checksum 的訊息。
+    $filtered = mpu_chat_integrity_filter_messages($windowed);
+
+    // Step 4: 再 slice — 取最後 N 筆 checksum 訊息。
     return array_slice($filtered, -$limit);
     // phpcs:enable Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, Squiz.Commenting.InlineComment.InvalidEndChar
 }

@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.27.5
+Stable tag: 2.27.6
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,13 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-07-15 =
+* v2.27.6
+* [FIX] Legacy LLM provider, model, and Ollama replacement settings now migrate from raw stored options before defaults are merged; resetting settings no longer passes an undefined value to the migration helper.
+* [FIX] Browser persistence, REST transport, checksum store, and checksum verify now share the same 40-entry raw-history boundary, preventing long chats and gift/auto-talk interleaving from drifting.
+* [SECURITY] Gift provider diagnostics are logged server-side and replaced with the existing localized generic error for visitors.
+* [TEST] Added production-shaped migration/reset coverage and checksum transport-window regression tests.
 
 = 2026-07-09 =
 * v2.27.5

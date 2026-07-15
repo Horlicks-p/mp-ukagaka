@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Frieren Bundle
- * Generated: 2026-06-29T07:19:19.867Z
+ * Generated: 2026-07-15T09:08:17.793Z
  *
  * 包含: frieren.js, frieren-animation.js, frieren-interactions.js, frieren-decorations.js
  */
@@ -1503,9 +1503,9 @@
           mpu_showmsg(400);
         }
 
-        const history = Array.isArray(window.mpuChatHistory)
-          ? window.mpuChatHistory.slice(-20)
-          : [];
+        const history = typeof mpu_getChatHistoryForRequest === "function"
+          ? mpu_getChatHistoryForRequest()
+          : (Array.isArray(window.mpuChatHistory) ? window.mpuChatHistory.slice(-40) : []);
         const formData = new FormData();
         formData.append("item_id", itemId);
         formData.append("session_id", mpu_getOrCreateChatSessionId());

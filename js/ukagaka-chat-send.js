@@ -113,7 +113,7 @@ function mpu_sendUserMessage() {
   // 準備 FormData
   const formData = new FormData();
   formData.append("message", message);
-  formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-20)));
+  formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   if (chatSessionId) {
     formData.append("session_id", chatSessionId);
   }

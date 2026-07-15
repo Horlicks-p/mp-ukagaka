@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-06-22T07:10:07.234Z
+ * Generated: 2026-07-15T09:08:17.505Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -1827,7 +1827,7 @@ function mpu_checkSpamEvent(callback) {
     formData.append("session_id", spamSessionId);
   }
   if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
-    formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+    formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   }
 
   mpuFetch(mpuRestUrl + "check-spam-event", {
@@ -2082,7 +2082,7 @@ function mpu_nextmsg(trigger) {
       formData.append("session_id", nextmsgSessionId);
     }
     if (typeof mpuChatHistory !== "undefined" && mpuChatHistory.length > 0) {
-      formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
+      formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
     }
 
     mpuLogger.logF("nextMessageSendingLlmPost", "mpu_nextmsg: LLM POST リクエストを送信します: %s", mpuRestUrl + "nextmsg");
@@ -3862,7 +3862,7 @@ function mpu_chat_context() {
     formData.append("session_id", contextSessionId);
   }
   if (typeof window.mpuChatHistory !== "undefined" && window.mpuChatHistory.length > 0) {
-    formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-10)));
+    formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   }
 
   mpuFetch(mpuRestUrl + "chat/context", {
@@ -4188,7 +4188,7 @@ function mpu_greet_first_visitor(settings) {
           formData.append("session_id", greetSessionId);
         }
         if (typeof window.mpuChatHistory !== "undefined" && window.mpuChatHistory.length > 0) {
-          formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-10)));
+          formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
         }
 
         return mpuFetch(mpuRestUrl + "chat/greet", {
@@ -4686,6 +4686,16 @@ function mpu_saveChatHistory() {
   // 使用通用存儲函數，支援多層後備機制
   const toSave = (window.mpuChatHistory || []).slice(-MPU_MAX_CHAT_HISTORY);
   mpu_setLocal(MPU_CHAT_HISTORY_KEY, toSave);
+}
+
+/**
+ * Return the raw history window shared by request transport and persistence.
+ * The backend applies the same 40-entry boundary before checksum filtering.
+ *
+ * @returns {Array}
+ */
+function mpu_getChatHistoryForRequest() {
+  return (window.mpuChatHistory || []).slice(-MPU_MAX_CHAT_HISTORY);
 }
 
 /**
@@ -5199,7 +5209,7 @@ function mpu_sendUserMessage() {
   // 準備 FormData
   const formData = new FormData();
   formData.append("message", message);
-  formData.append("history", JSON.stringify(window.mpuChatHistory.slice(-20)));
+  formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   if (chatSessionId) {
     formData.append("session_id", chatSessionId);
   }
