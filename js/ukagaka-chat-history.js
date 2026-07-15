@@ -3,7 +3,7 @@
 window.mpuChatModeActive = false;
 window.mpuChatRequesting = false;
 const MPU_CHAT_HISTORY_KEY = "mpu_chat_history";
-const MPU_CHAT_SESSION_KEY = "mpu_chat_session_id";
+const MPU_CHAT_SESSION_KEY = "mpu_chat_tab_session_id";
 const MPU_MAX_CHAT_HISTORY = 40; // synthetic+assistant 各佔一則，20 個互動事件 = 40 entries
 
 function mpu_generateChatSessionId() {
@@ -27,14 +27,25 @@ function mpu_getOrCreateChatSessionId(forceNew = false) {
     return window.mpuChatSessionId;
   }
 
-  const stored = !forceNew ? mpu_getLocal(MPU_CHAT_SESSION_KEY) : null;
+  let stored = null;
+  if (!forceNew) {
+    try {
+      stored = window.sessionStorage.getItem(MPU_CHAT_SESSION_KEY);
+    } catch (e) {
+      stored = window.__mpuChatTabSessionId || null;
+    }
+  }
   if (!forceNew && typeof stored === "string" && stored) {
     window.mpuChatSessionId = stored;
     return window.mpuChatSessionId;
   }
 
   window.mpuChatSessionId = mpu_generateChatSessionId();
-  mpu_setLocal(MPU_CHAT_SESSION_KEY, window.mpuChatSessionId);
+  try {
+    window.sessionStorage.setItem(MPU_CHAT_SESSION_KEY, window.mpuChatSessionId);
+  } catch (e) {
+    window.__mpuChatTabSessionId = window.mpuChatSessionId;
+  }
   return window.mpuChatSessionId;
 }
 

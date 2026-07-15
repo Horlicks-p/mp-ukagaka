@@ -10,8 +10,10 @@
 
 - **Legacy LLM migration now reads raw stored options**: Default-filled `llm_*` values no longer mask legacy provider, model, or Ollama replacement settings during migration. Resetting settings now replaces the option with the current defaults without passing an undefined value into the migration helper.
 - **Checksum transport and storage use the same raw window**: Browser persistence, REST request history, checksum store, and checksum verify now share a 40-entry raw-history boundary before selecting the last 10 checksum-bearing chat replies. Long chats and histories interleaved with gifts or auto-talk no longer drift at the transport boundary.
+- **Checksum sessions are isolated per browser tab**: Chat history remains shared by the frontend modules, but its integrity session ID now lives in `sessionStorage` instead of the cross-tab `localStorage` fallback. A stale tab can no longer submit an older in-memory history under another tab's checksum session and trigger a false mismatch; reload/reset cleanup rotates the tab-scoped ID together with the history.
+- **Premature SSE disconnects no longer leave the UI at the thinking placeholder**: A stream that closes without a terminal `done` or `error` event now reports an identifiable transport failure immediately, clears the `えっと` placeholder, rolls back the pending user entry, and restores the chat input with the localized connection error. Network failures are handled through the callback contract without an unhandled promise rejection.
 - **Gift provider errors stay server-side**: Actionable local validation errors remain visible, while provider and transport diagnostics are logged and replaced with the existing localized generic error for anonymous visitors.
-- **Tests**: Added production-shaped legacy migration/reset coverage, a raw-window checksum regression test, and a static request-window smoke test wired into `npm run verify`.
+- **Tests**: Added production-shaped legacy migration/reset coverage, a raw-window checksum regression test, a static request-window smoke test, and transport smoke coverage for per-tab sessions, premature SSE EOF, and network failures, all wired into `npm run verify`.
 
 ---
 

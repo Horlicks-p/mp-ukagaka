@@ -36,6 +36,7 @@ function mpuNormalizeSseEvent(eventName, data) {
 async function mpuFetchSSE(url, options, handlers) {
   const controller = options.controller || new AbortController();
   const signal = controller.signal;
+  let terminalEventReceived = false;
 
   try {
     const sessionTok = typeof mpuEnsureSessionToken === 'function' ? await mpuEnsureSessionToken() : (window.mpuSessionToken || '');
@@ -149,10 +150,12 @@ async function mpuFetchSSE(url, options, handlers) {
             break;
           case window.MPU_EVENTS.STREAM_DONE:
           case "done":
+            terminalEventReceived = true;
             if (handlers.onDone) handlers.onDone(data);
             return;
           case window.MPU_EVENTS.STREAM_ERROR:
           case "error":
+            terminalEventReceived = true;
             if (handlers.onError) handlers.onError(data);
             return; // [Fix] 直接結束，避免 throw 導致 catch 再次觸發 onError
           case window.MPU_EVENTS.TOOL_REQUEST:
@@ -166,6 +169,12 @@ async function mpuFetchSSE(url, options, handlers) {
         }
       }
     }
+
+    if (!terminalEventReceived && handlers.onError) {
+      const error = new Error("SSE stream ended before completion.");
+      error.code = "mpu_sse_incomplete";
+      handlers.onError(error);
+    }
   } catch (error) {
     if (error.name === "AbortError") {
       mpuLogger.log("SSE Request aborted");
@@ -173,7 +182,6 @@ async function mpuFetchSSE(url, options, handlers) {
       if (handlers.onAbort) handlers.onAbort();
     } else {
       if (handlers.onError) handlers.onError(error);
-      throw error;
     }
   }
 }

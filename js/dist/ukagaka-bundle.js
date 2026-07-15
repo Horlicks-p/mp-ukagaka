@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-07-15T09:08:17.505Z
+ * Generated: 2026-07-15T09:57:44.030Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -181,6 +181,11 @@ function mpuClearReloadChatSession() {
     } catch (e) {
       // localStorage 不可用時靜默略過
     }
+    try {
+      sessionStorage.removeItem("mpu_chat_tab_session_id");
+    } catch (e) {
+      // sessionStorage 不可用時靜默略過
+    }
     mpuLogger.logL(
       'pageReloadClearedChatSession',
       '🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました'
@@ -188,7 +193,7 @@ function mpuClearReloadChatSession() {
   }
 }
 
-// 對話歷史與 Session ID 全域共享（確保各個 JS 模組同步，避免 Checksum Mismatch）
+// 對話歷史與目前分頁的 Session ID 供各個 JS 模組共用
 window.mpuChatHistory = window.mpuChatHistory || [];
 window.mpuChatSessionId = window.mpuChatSessionId || "";
 
@@ -4630,7 +4635,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 window.mpuChatModeActive = false;
 window.mpuChatRequesting = false;
 const MPU_CHAT_HISTORY_KEY = "mpu_chat_history";
-const MPU_CHAT_SESSION_KEY = "mpu_chat_session_id";
+const MPU_CHAT_SESSION_KEY = "mpu_chat_tab_session_id";
 const MPU_MAX_CHAT_HISTORY = 40; // synthetic+assistant 各佔一則，20 個互動事件 = 40 entries
 
 function mpu_generateChatSessionId() {
@@ -4654,14 +4659,25 @@ function mpu_getOrCreateChatSessionId(forceNew = false) {
     return window.mpuChatSessionId;
   }
 
-  const stored = !forceNew ? mpu_getLocal(MPU_CHAT_SESSION_KEY) : null;
+  let stored = null;
+  if (!forceNew) {
+    try {
+      stored = window.sessionStorage.getItem(MPU_CHAT_SESSION_KEY);
+    } catch (e) {
+      stored = window.__mpuChatTabSessionId || null;
+    }
+  }
   if (!forceNew && typeof stored === "string" && stored) {
     window.mpuChatSessionId = stored;
     return window.mpuChatSessionId;
   }
 
   window.mpuChatSessionId = mpu_generateChatSessionId();
-  mpu_setLocal(MPU_CHAT_SESSION_KEY, window.mpuChatSessionId);
+  try {
+    window.sessionStorage.setItem(MPU_CHAT_SESSION_KEY, window.mpuChatSessionId);
+  } catch (e) {
+    window.__mpuChatTabSessionId = window.mpuChatSessionId;
+  }
   return window.mpuChatSessionId;
 }
 
@@ -4951,6 +4967,7 @@ function mpuNormalizeSseEvent(eventName, data) {
 async function mpuFetchSSE(url, options, handlers) {
   const controller = options.controller || new AbortController();
   const signal = controller.signal;
+  let terminalEventReceived = false;
 
   try {
     const sessionTok = typeof mpuEnsureSessionToken === 'function' ? await mpuEnsureSessionToken() : (window.mpuSessionToken || '');
@@ -5064,10 +5081,12 @@ async function mpuFetchSSE(url, options, handlers) {
             break;
           case window.MPU_EVENTS.STREAM_DONE:
           case "done":
+            terminalEventReceived = true;
             if (handlers.onDone) handlers.onDone(data);
             return;
           case window.MPU_EVENTS.STREAM_ERROR:
           case "error":
+            terminalEventReceived = true;
             if (handlers.onError) handlers.onError(data);
             return; // [Fix] 直接結束，避免 throw 導致 catch 再次觸發 onError
           case window.MPU_EVENTS.TOOL_REQUEST:
@@ -5081,6 +5100,12 @@ async function mpuFetchSSE(url, options, handlers) {
         }
       }
     }
+
+    if (!terminalEventReceived && handlers.onError) {
+      const error = new Error("SSE stream ended before completion.");
+      error.code = "mpu_sse_incomplete";
+      handlers.onError(error);
+    }
   } catch (error) {
     if (error.name === "AbortError") {
       mpuLogger.log("SSE Request aborted");
@@ -5088,7 +5113,6 @@ async function mpuFetchSSE(url, options, handlers) {
       if (handlers.onAbort) handlers.onAbort();
     } else {
       if (handlers.onError) handlers.onError(error);
-      throw error;
     }
   }
 }
@@ -5256,6 +5280,14 @@ function mpu_sendUserMessage() {
     }
 
     function streamErrorMessage(error) {
+      if (
+        error &&
+        error.code === "mpu_sse_incomplete" &&
+        typeof mpuL10n !== "undefined" &&
+        mpuL10n.connectionError
+      ) {
+        return mpuL10n.connectionError;
+      }
       if (error && error.message) return error.message;
       if (error && error.error) return error.error;
       if (typeof mpuL10n !== "undefined" && mpuL10n.connectionError) {

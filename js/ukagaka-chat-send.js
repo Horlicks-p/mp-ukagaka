@@ -160,6 +160,14 @@ function mpu_sendUserMessage() {
     }
 
     function streamErrorMessage(error) {
+      if (
+        error &&
+        error.code === "mpu_sse_incomplete" &&
+        typeof mpuL10n !== "undefined" &&
+        mpuL10n.connectionError
+      ) {
+        return mpuL10n.connectionError;
+      }
       if (error && error.message) return error.message;
       if (error && error.error) return error.error;
       if (typeof mpuL10n !== "undefined" && mpuL10n.connectionError) {

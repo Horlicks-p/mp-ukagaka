@@ -173,6 +173,11 @@ function mpuClearReloadChatSession() {
     } catch (e) {
       // localStorage 不可用時靜默略過
     }
+    try {
+      sessionStorage.removeItem("mpu_chat_tab_session_id");
+    } catch (e) {
+      // sessionStorage 不可用時靜默略過
+    }
     mpuLogger.logL(
       'pageReloadClearedChatSession',
       '🔄 ページの再読み込みを検出したため、会話履歴とセッション ID をクリアしました'
@@ -180,7 +185,7 @@ function mpuClearReloadChatSession() {
   }
 }
 
-// 對話歷史與 Session ID 全域共享（確保各個 JS 模組同步，避免 Checksum Mismatch）
+// 對話歷史與目前分頁的 Session ID 供各個 JS 模組共用
 window.mpuChatHistory = window.mpuChatHistory || [];
 window.mpuChatSessionId = window.mpuChatSessionId || "";
 
