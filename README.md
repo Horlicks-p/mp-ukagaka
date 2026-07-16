@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.27.6-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.27.7-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,13 +98,13 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.27.6
+## 🎉 What's New in v2.27.7
+
+**Chat integrity session follow-up** (v2.27.7): Checksum verification and storage now use the same full 40-entry transport window while the LLM context remains capped at 20 entries. Each page instance also receives a fresh checksum session ID, including duplicated tabs whose `sessionStorage` was copied by the browser.
 
 **Review follow-up hardening** (v2.27.6): Legacy LLM settings now migrate from the raw stored option without being masked by defaults, settings reset no longer risks a PHP type error, and chat checksum storage/verification shares the same 40-entry raw-history window used by browser persistence and REST transport. Gift provider diagnostics are now kept server-side instead of being shown to visitors.
 
-**Housekeeping release** (v2.27.5): A new `uninstall.php` cleans up plugin-owned options, transients, stats, bot-blocker data, and scheduled crons. Slimstat calls verify TLS by default, legacy AI option storage was retired, and the main dialog/think-bubble frame images are preloaded before the first LLM response.
-
-**Earlier releases**: checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

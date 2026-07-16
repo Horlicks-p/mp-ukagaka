@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.27.6
+Stable tag: 2.27.7
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,12 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-07-16 =
+* v2.27.7
+* [FIX] Synchronous chat, SSE chat, and administrator MCP diagnostics now store checksums from the same full 40-entry transport history used for verification, while the LLM context remains capped at 20 entries.
+* [FIX] Each page instance now generates an independent checksum session ID, so duplicated tabs cannot reuse the `sessionStorage` ID copied by the browser.
+* [TEST] Expanded checksum-window and duplicated-tab regression coverage; the complete verification suite passes.
 
 = 2026-07-15 =
 * v2.27.6

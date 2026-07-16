@@ -4,6 +4,16 @@
 
 ---
 
+## [2.27.7] - 2026-07-16
+
+### Chat integrity session follow-up
+
+- **Checksum storage keeps the full transport history**: The REST chat controller now carries the complete normalized 40-entry transport window separately from the 20-entry LLM context. Synchronous chat, SSE chat, and administrator MCP diagnostics all store checksums from that full integrity window, preventing older checksum-bearing replies from being lost when gifts or auto-talk entries are interleaved near the boundary.
+- **Duplicated tabs receive independent checksum sessions**: A checksum session ID is now generated once per page instance instead of being restored from `sessionStorage`, which browsers copy when a tab is duplicated. Normal navigation starts a fresh server checksum chain, while calls within the same page continue to reuse one ID.
+- **Tests**: Expanded checksum-window regression coverage and transport smoke tests for same-page reuse and duplicated-tab isolation. The full PHP, PHPCS, JavaScript smoke, and production-build verification suite passes.
+
+---
+
 ## [2.27.6] - 2026-07-15
 
 ### Review follow-up hardening
