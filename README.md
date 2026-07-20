@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.27.7-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.28.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,7 +98,9 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.27.7
+## 🎉 What's New in v2.28.0
+
+**Per-item variant substitution for gift reactions** (v2.28.0): Item catalog entries can now define an optional `variants` list. When present, `/touch/give` picks one at random and substitutes it into the item prompt's `{variant}` placeholder, so a single gift or food item produces varied, content-aware reactions instead of one fixed line. Frieren's `魔導書` gift ships 10 distinct variants so repeated gifting no longer returns the same response. See the Character Creation Guide for the full `items.json` format.
 
 **Chat integrity session follow-up** (v2.27.7): Checksum verification and storage now use the same full 40-entry transport window while the LLM context remains capped at 20 entries. Each page instance also receives a fresh checksum session ID, including duplicated tabs whose `sessionStorage` was copied by the browser.
 
