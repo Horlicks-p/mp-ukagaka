@@ -4,6 +4,17 @@
 
 ---
 
+## [2.28.0] - 2026-07-20
+
+### Per-item variant substitution for gift reactions
+
+- **Items can now define a `variants` list**: A new optional `variants` array on `ghost/<Character>/items.json` entries lets a single gift or food item produce varied, content-aware reactions instead of one fixed line. When present, `POST /touch/give` picks one variant at random on each give and substitutes it into the item prompt's `{variant}` placeholder via `mpu_replace_single_prompt_variables()`, telling the character *what specifically* was offered. Variants are sanitized with `sanitize_text_field` and de-duplicated in the catalog normalizer; non-string and blank entries are dropped. When a prompt contains `{variant}` but no variants resolve, the unresolved placeholder is stripped before the prompt reaches the LLM, so template syntax is never leaked. The chat-history anchor keeps using the item `name`, so only the character's own reply reflects the chosen variant.
+- **Frieren's grimoire gift ships 10 variants**: The default character's `魔導書` gift now spans ten distinct reaction angles (suspected forgeries, Flamme's handwritten notes, Serie's rare grant, ancient-script tomes, faded era magic, folk-magic records, already-mastered spells, demon-curse studies, and a hero's-tale book mistaken for a grimoire) so repeated gifting no longer returns the same response.
+- **Docs**: Added the previously missing `items.json` format section to the Character Creation Guide, documenting all fields plus the `variants` / `{variant}` mechanism.
+- **Tests**: Extended `ItemCatalogTest` to cover variant sanitization (HTML stripping, blank/non-string removal, de-duplication) and to assert that items with variants pair with a `{variant}` placeholder in their prompt and vice versa. The full PHP unit suite passes.
+
+---
+
 ## [2.27.7] - 2026-07-16
 
 ### Chat integrity session follow-up

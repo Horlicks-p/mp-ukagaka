@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.27.7
+Stable tag: 2.28.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,13 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-07-20 =
+* v2.28.0
+* [NEW] Item catalog (`items.json`) entries support an optional `variants` list. When present, `/touch/give` picks one at random and substitutes it into the item prompt's `{variant}` placeholder, so a single gift or food item yields varied, content-aware reactions instead of one fixed line. Variants are sanitized and de-duplicated; unresolved `{variant}` placeholders are stripped before reaching the LLM.
+* [NEW] Frieren's `魔導書` gift ships 10 distinct variants so repeated gifting no longer returns the same reaction.
+* [DOCS] Added the missing `items.json` format section (including `variants`) to the Character Creation Guide.
+* [TEST] Extended item-catalog coverage for variant sanitization and prompt/`{variant}` pairing.
 
 = 2026-07-16 =
 * v2.27.7

@@ -557,6 +557,68 @@ Adjusts weights based on the time period. Will be merged with `base_weights`.
 
 ---
 
+## items.json Format Guide (Optional)
+
+`items.json` defines the gift and food items a visitor can hand to the character through the give/feed interaction. Each item is validated and sanitized on load; malformed entries are silently dropped.
+
+### File Structure
+
+```json
+{
+  "version": "1.0",
+  "items_base_folder": "items",
+  "items": [
+    {
+      "id": "merkur_pudding",
+      "kind": "food",
+      "name": "メルクーアプリン",
+      "image": "merkur_pudding.png",
+      "favorite": true,
+      "prompt": "相手がメルクーアプリンを差し出した。メルクーアプリンはフリーレンの大好物である。",
+      "reactions": ["give_food", "give_favorite"]
+    },
+    {
+      "id": "grimoire",
+      "kind": "gift",
+      "name": "魔導書",
+      "image": "grimoire.png",
+      "favorite": true,
+      "prompt": "相手が魔導書を差し出した。それは{variant}だった。中身に具体的に触れて反応すること。",
+      "variants": [
+        "大魔法使いフランメの魔法手記の写本",
+        "古代文字で書かれ、解読に時間のかかりそうな古い魔導書",
+        "既に習得済みの属性魔法ばかり載っていた魔導書"
+      ],
+      "reactions": ["give_gift", "give_favorite"]
+    }
+  ]
+}
+```
+
+### Field Description
+
+| Field | Required | Description |
+|---|---|---|
+| `id` | Yes | Unique item identifier. Must match `^[a-z_][a-z0-9_]*$`. |
+| `kind` | Yes | Item type. Must be `food` or `gift`. |
+| `name` | Yes | Display name (also used for the chat-history anchor). |
+| `image` | Yes | Image file name in the `items/` folder. Must match `^[a-z0-9_-]+\.(png\|webp)$`. |
+| `favorite` | No | `true` marks the item as a favorite. When no `reactions` pool resolves, favorites still get an extra-happy fallback line. |
+| `prompt` | Yes | Base LLM prompt describing the item being offered. May contain a `{variant}` placeholder (see below). |
+| `reactions` | No | Category names from `prompts.json`. One line is drawn at random from the merged pool each time to vary the staging angle. |
+| `variants` | No | List of concrete descriptions (see below). |
+
+### Variants (`{variant}`)
+
+`variants` lets a single item produce varied, content-aware reactions instead of one fixed line. When an item defines a non-empty `variants` list, the server picks one entry at random on each give and substitutes it into the `{variant}` placeholder in `prompt`. This tells the character *what specifically* was given — for example, which grimoire — so the reply differs from turn to turn.
+
+- Each variant is sanitized with `sanitize_text_field`; non-string, blank, and duplicate entries are dropped.
+- If `prompt` contains `{variant}` but no variants resolve (e.g. the list is empty), the unresolved placeholder is stripped before the prompt reaches the LLM — it is never passed through as literal template text.
+- The chat-history anchor always uses the item `name`, not the chosen variant, so the picked variant only surfaces inside the character's own reply.
+- Write variants as concrete nouns/phrases that fit the sentence around `{variant}`; keep them consistent in tone with the item's `prompt`.
+
+---
+
 ## Shell Image Files
 
 Shell images are the visual representation of the character, stored in the `shell/{PersonalityID}/` folder.
