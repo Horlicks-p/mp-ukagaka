@@ -259,6 +259,16 @@ class MPU_REST_Touch extends MPU_REST_Base {
 
 		$ukagaka_name = $mpu_opt['ukagakas'][ $mpu_opt['cur_ukagaka'] ]['name'] ?? 'キャラクター';
 		$user_prompt = $item['prompt'];
+
+		// item に variants があればランダムに 1 件抽き、prompt 中の {variant} に代入する。
+		// mpu_replace_single_prompt_variables は未置換の {placeholder} も除去するため、
+		// variants 未定義の item に {variant} が残っていても LLM には渡らない.
+		if ( function_exists( 'mpu_replace_single_prompt_variables' ) ) {
+			$variant = ! empty( $item['variants'] )
+				? $item['variants'][ array_rand( $item['variants'] ) ]
+				: '';
+			$user_prompt = mpu_replace_single_prompt_variables( $user_prompt, array( 'variant' => $variant ) );
+		}
 		$user_prompt .= 'food' === $item['kind']
 			? "\n\n差し出された食べ物を受け取って食べ、味の感想を述べること。"
 			: "\n\n差し出された贈り物を受け取り、お礼を述べること。";

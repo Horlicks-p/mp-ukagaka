@@ -77,6 +77,20 @@ function mpu_normalize_personality_items_catalog( array $catalog ) {
 			$reactions = array_values( array_unique( $reactions ) );
 		}
 
+		$variants = array();
+		if ( ! empty( $item['variants'] ) && is_array( $item['variants'] ) ) {
+			foreach ( $item['variants'] as $variant ) {
+				if ( ! is_string( $variant ) ) {
+					continue;
+				}
+				$variant = sanitize_text_field( $variant );
+				if ( '' !== $variant ) {
+					$variants[] = $variant;
+				}
+			}
+			$variants = array_values( array_unique( $variants ) );
+		}
+
 		$items[] = array(
 			'id'        => $id,
 			'kind'      => $kind,
@@ -85,6 +99,7 @@ function mpu_normalize_personality_items_catalog( array $catalog ) {
 			'favorite'  => ! empty( $item['favorite'] ),
 			'prompt'    => $prompt,
 			'reactions' => $reactions,
+			'variants'  => $variants,
 		);
 	}
 

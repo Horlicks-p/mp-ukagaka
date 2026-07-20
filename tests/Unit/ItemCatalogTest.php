@@ -24,6 +24,7 @@ final class ItemCatalogTest extends TestCase {
                 'image' => 'merkur_pudding.png',
                 'reactions' => ['give_food', 'give_favorite'],
                 'size' => [112, 66],
+                'has_variants' => false,
             ],
             'grimoire' => [
                 'kind' => 'gift',
@@ -31,6 +32,7 @@ final class ItemCatalogTest extends TestCase {
                 'image' => 'grimoire.png',
                 'reactions' => ['give_gift', 'give_favorite'],
                 'size' => [68, 85],
+                'has_variants' => true,
             ],
         ];
 
@@ -55,6 +57,19 @@ final class ItemCatalogTest extends TestCase {
                 $this->assertArrayHasKey($category, $prompts);
                 $this->assertNotEmpty($prompts[$category]);
             }
+
+            $variants = $item['variants'] ?? [];
+            $this->assertSame($expected[$item['id']]['has_variants'], !empty($variants));
+            foreach ($variants as $variant) {
+                $this->assertIsString($variant);
+                $this->assertNotSame('', trim($variant));
+                $this->assertDoesNotMatchRegularExpression('/\[(thinking|laugh|sigh|love)\]/i', $variant);
+            }
+            // variants を持つ item は prompt 側に {variant} 差し込み位置が必要（逆も同様）。
+            $this->assertSame(
+                !empty($variants),
+                strpos($item['prompt'], '{variant}') !== false
+            );
         }
     }
 
@@ -71,6 +86,7 @@ final class ItemCatalogTest extends TestCase {
                     'favorite' => 1,
                     'prompt' => '<i>React naturally.</i>',
                     'reactions' => ['Give_Food', 'give_food', 'bad cat!', ''],
+                    'variants' => ['<b>Fire Tome</b>', '', '   ', 123, ['nested'], 'Fire Tome', 'Ice Tome'],
                 ],
                 [
                     'id' => 'bad/id',
@@ -101,6 +117,7 @@ final class ItemCatalogTest extends TestCase {
         $this->assertCount(1, $catalog['items']);
         // reactions は sanitize_key 適用・空除去・重複除去される
         // （'Give_Food'→'give_food'、'give_food' は重複、'bad cat!'→'badcat'、'' は除去）。
+        // variants は sanitize_text_field 適用・非文字列/空除去・重複除去される。
         $this->assertSame([
             'id' => 'valid_item',
             'kind' => 'food',
@@ -109,6 +126,7 @@ final class ItemCatalogTest extends TestCase {
             'favorite' => true,
             'prompt' => 'React naturally.',
             'reactions' => ['give_food', 'badcat'],
+            'variants' => ['Fire Tome', 'Ice Tome'],
         ], $catalog['items'][0]);
     }
 
