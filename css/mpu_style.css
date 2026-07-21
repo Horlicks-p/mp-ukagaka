@@ -584,10 +584,10 @@
   transform: scale(1.12);
 }
 
-/* 魔導書は縦長 (68x85) で他より大きく見えるため、56x70 に抑える（同比例＝無歪み） */
+/* 魔導書は縦長(67x85) */
 .mpu-gift-picker-item img[src$="grimoire.png"] {
-  max-width: 56px;
-  max-height: 70px;
+  max-width: 85px;
+  max-height: 67px;
 }
 
 .mpu-gift-picker-fallback {
