@@ -14,6 +14,7 @@
     "test:visual-ready": "cd ../.. && node tools/node/test-visual-ready-smoke.js",
     "test:chat-integrity-window": "cd ../.. && node tools/node/test-chat-integrity-window-smoke.js",
     "test:chat-transport": "cd ../.. && node tools/node/test-chat-transport-smoke.js",
+    "test:gift-message": "cd ../.. && node tools/node/test-gift-message-smoke.js",
     "lint:php": "cd ../.. && php -r \"$e=0;foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('includes')) as $f){if($f->getExtension()==='php'){$r=0;passthru('php -l '.escapeshellarg($f),$r);$e|=$r;}}foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator('options')) as $f){if($f->getExtension()==='php'){$r=0;passthru('php -l '.escapeshellarg($f),$r);$e|=$r;}}$r=0;passthru('php -l mp-ukagaka.php',$r);$e|=$r;exit($e);\"",
     "version:set": "cd ../.. && node tools/node/bump-version.js",
     "version:check": "cd ../.. && node tools/node/bump-version.js --check",
@@ -21,7 +22,7 @@
     "lint:phpcs:baseline": "cd ../.. && php tools/php/phpcs-baseline.php generate",
     "lint:phpcs:summary": "cd ../.. && php tools/php/phpcs-baseline.php summary",
     "test:php": "cd ../../tests && php ../tools/php/vendor/bin/phpunit --colors=always",
-    "verify": "npm run version:check && npm run lint:php && npm run lint:phpcs && npm run test:logger && npm run test:visual-ready && npm run test:chat-integrity-window && npm run test:chat-transport && npm run build && npm run test:php",
+    "verify": "npm run version:check && npm run lint:php && npm run lint:phpcs && npm run test:logger && npm run test:visual-ready && npm run test:chat-integrity-window && npm run test:chat-transport && npm run test:gift-message && npm run build && npm run test:php",
     "translate:en": "cd ../.. && node tools/node/translate-po.js",
     "test": "npm run test:php"
   },

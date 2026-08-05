@@ -10,6 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit();
 }
 
+if ( ! defined( 'MPU_ITEM_MESSAGE_MAX_LENGTH' ) ) {
+	// 送禮附言の上限。/chat/user の user_message 及び入力欄の maxlength="500" と揃える.
+	define( 'MPU_ITEM_MESSAGE_MAX_LENGTH', 500 );
+}
+
 /**
  * Load and validate the current personality item catalog.
  *
@@ -165,4 +170,72 @@ function mpu_collect_item_reaction_pool( array $reactions, array $prompts_data )
 	}
 
 	return $pool;
+}
+
+/**
+ * Sanitize the optional visitor message attached to an item.
+ *
+ * 単行メッセージとして /chat/user の user_message と同じ規則で正規化する
+ * （sanitize_text_field は改行・タブを空白に畳む）。空文字は「附言なし」を意味し、
+ * エラーにはしない。
+ *
+ * @param mixed $message Raw request value.
+ * @return string Sanitized message, or '' when absent.
+ */
+function mpu_sanitize_item_message( $message ) {
+	if ( ! is_string( $message ) ) {
+		return '';
+	}
+
+	$message = sanitize_text_field( wp_unslash( $message ) );
+	if ( mb_strlen( $message, 'UTF-8' ) > MPU_ITEM_MESSAGE_MAX_LENGTH ) {
+		$message = mb_substr( $message, 0, MPU_ITEM_MESSAGE_MAX_LENGTH, 'UTF-8' );
+	}
+
+	return trim( $message );
+}
+
+/**
+ * Build the prompt fragment carrying the visitor message.
+ *
+ * 訪客の生テキストは信頼できない入力なので、必ず明示的な引用ブロックに閉じ込め、
+ * 後段の【回応ルール】が最後に来るよう呼び出し側で並べること。
+ * {variant} 置換より後に連結し、mpu_replace_single_prompt_variables() には通さない
+ * （通すと台詞中の {…} が placeholder として削除される）。
+ *
+ * @param string $message Sanitized visitor message.
+ * @return string Prompt fragment, or '' when there is no message.
+ */
+function mpu_build_item_message_prompt( $message ) {
+	$message = trim( (string) $message );
+	if ( '' === $message ) {
+		return '';
+	}
+
+	return "\n\n【相手の台詞】\n「" . $message . '」';
+}
+
+/**
+ * Build the synthetic user anchor stored in chat history for an item.
+ *
+ * 後端がこの 1 箇所で生成し、backend history / checksum / REST response /
+ * 前端 mpuChatHistory の全てが同じ文字列を使う（前後端で別々に組み立てない）。
+ *
+ * @param string $item_name Item display name.
+ * @param string $message   Sanitized visitor message, or '' when absent.
+ * @return string Anchor text.
+ */
+function mpu_build_item_user_anchor( $item_name, $message = '' ) {
+	$anchor = sprintf(
+		/* translators: %s is an item name. */
+		__( '（%sを差し出した）', 'mp-ukagaka' ),
+		$item_name
+	);
+
+	$message = trim( (string) $message );
+	if ( '' !== $message ) {
+		$anchor .= "\n「" . $message . '」';
+	}
+
+	return $anchor;
 }

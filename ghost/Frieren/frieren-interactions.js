@@ -715,8 +715,7 @@
       picker.append(slider, counter);
       renderSlide();
 
-      button.addEventListener("click", (event) => {
-        event.stopPropagation();
+      button.addEventListener("click", () => {
         const willOpen = picker.hidden;
         picker.hidden = !willOpen;
         button.setAttribute("aria-expanded", willOpen ? "true" : "false");
@@ -724,22 +723,76 @@
           slide.querySelector(".mpu-gift-picker-item")?.focus();
         }
       });
-      picker.addEventListener("click", (event) => event.stopPropagation());
 
       container.append(button, picker);
-      document.addEventListener("click", () => this.closeGiftPicker());
+
+      // ピッカーは「🎁 を開く → 入力欄に台詞を書く → アイテムを押して贈る」順で使う。
+      // button / picker / 入力欄はいずれも #ukagaka_chat_input の子なので、
+      // コンテナ内のクリックでは閉じない（台詞を書くために入力欄を押しても開いたまま）.
+      document.addEventListener("click", (event) => {
+        const target = event.target;
+        if (target && target.closest && target.closest("#ukagaka_chat_input")) {
+          return;
+        }
+        this.closeGiftPicker();
+      });
+
+      // ピッカーが開いている間の入力欄は「贈り物への添え書き」なので、Enter は
+      // 一般チャット送信ではなく現在のアイテムの贈与に割り当てる。
+      // ukagaka-chat-events.js の keypress ハンドラより先に走らせるため、
+      // 祖先要素の capture フェーズで捕まえて keydown を canceled にする
+      // （keydown を preventDefault すると keypress は発火しない）.
+      container.addEventListener(
+        "keydown",
+        (event) => {
+          if (
+            picker.hidden ||
+            event.target !== input ||
+            event.key !== "Enter" ||
+            event.shiftKey
+          ) {
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          const item = config.items[currentIndex];
+          this.closeGiftPicker();
+          this.giveItem(item.id);
+        },
+        true
+      );
+
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && !picker.hidden) {
           this.closeGiftPicker();
           button.focus();
-        } else if (!picker.hidden && hasNavigation && event.key === "ArrowLeft") {
+          return;
+        }
+        // 入力欄で台詞を書いている間の矢印キーはキャレット移動。スライダーが奪わない.
+        if (picker.hidden || !hasNavigation || event.target === input) {
+          return;
+        }
+        if (event.key === "ArrowLeft") {
           event.preventDefault();
           moveSlide(-1);
-        } else if (!picker.hidden && hasNavigation && event.key === "ArrowRight") {
+        } else if (event.key === "ArrowRight") {
           event.preventDefault();
           moveSlide(1);
         }
       });
+    },
+
+    /**
+     * チャット入力欄の値を差し替え、input 依存の UI（リサイズ等）へ通知する。
+     * @param {HTMLInputElement} input
+     * @param {string} value
+     */
+    setChatInputValue: function (input, value) {
+      if (!input) {
+        return;
+      }
+      input.value = value;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
     },
 
     closeGiftPicker: function () {
@@ -755,6 +808,7 @@
 
     /**
      * 選択されたアイテムを /touch/give に送信する。
+     * チャット入力欄に文字があれば、同じ give イベントの附言として一緒に送る。
      * @param {string} itemId
      */
     giveItem: async function (itemId) {
@@ -771,6 +825,10 @@
         return;
       }
 
+      // 附言 snapshot。空白のみの入力は「附言なし」扱いで、入力欄も触らない。
+      const chatInput = document.getElementById("mpu_user_input");
+      const giveMessage = chatInput ? String(chatInput.value || "").trim() : "";
+
       const button = document.getElementById("mpu_gift_picker_button");
       const pickerButtons = document.querySelectorAll("#mpu_gift_picker button");
       this.giveItemInProgress = true;
@@ -785,6 +843,10 @@
       pickerButtons.forEach((pickerButton) => {
         pickerButton.disabled = true;
       });
+      // 送信と同時に入力欄を空にする（通常チャット送信と同じ節奏）。
+      if (giveMessage) {
+        this.setChatInputValue(chatInput, "");
+      }
 
       try {
         if (
@@ -818,6 +880,9 @@
         formData.append("item_id", itemId);
         formData.append("session_id", mpu_getOrCreateChatSessionId());
         formData.append("history", JSON.stringify(history));
+        if (giveMessage) {
+          formData.append("message", giveMessage);
+        }
 
         // timeout は後端 provider の 30 秒より大きくし、ネットワーク + PHP 前処理の
         // 余白を確保する。これがないと「後端は成功したのに前端だけ abort」で
@@ -862,6 +927,14 @@
           }
         }
       } catch (error) {
+        // 失敗時は附言を取り戻す。ただし待機中に新しく入力していたら上書きしない。
+        if (
+          giveMessage &&
+          chatInput &&
+          String(chatInput.value || "").trim() === ""
+        ) {
+          this.setChatInputValue(chatInput, giveMessage);
+        }
         if (typeof mpuLogger !== "undefined" && mpuLogger.errorL) {
           mpuLogger.errorL("frierenGiveItemRequestFailed", "ギフト反応リクエストに失敗しました", error);
         }

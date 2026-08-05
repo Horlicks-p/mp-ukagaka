@@ -161,4 +161,73 @@ final class ItemCatalogTest extends TestCase {
         // reactions が空なら pool も空。
         $this->assertSame([], mpu_collect_item_reaction_pool([], $prompts_data));
     }
+
+    public function test_item_message_sanitizer_normalizes_and_truncates(): void {
+        // 附言なしは一貫して空文字（= 従来どおりの送禮フロー）。
+        $this->assertSame('', mpu_sanitize_item_message(null));
+        $this->assertSame('', mpu_sanitize_item_message(''));
+        $this->assertSame('', mpu_sanitize_item_message('   '));
+        $this->assertSame('', mpu_sanitize_item_message(['array']));
+        $this->assertSame('', mpu_sanitize_item_message(123));
+
+        // HTML はサニタイズされ、前後の空白は落ちる。
+        $this->assertSame(
+            'Take it.',
+            mpu_sanitize_item_message('  <b>Take it.</b>  ')
+        );
+
+        // 500 文字上限で安全に切り詰め、マルチバイト境界を壊さない。
+        $long = str_repeat('あ', MPU_ITEM_MESSAGE_MAX_LENGTH + 30);
+        $truncated = mpu_sanitize_item_message($long);
+        $this->assertSame(MPU_ITEM_MESSAGE_MAX_LENGTH, mb_strlen($truncated, 'UTF-8'));
+        $this->assertSame($truncated, mb_convert_encoding($truncated, 'UTF-8', 'UTF-8'));
+
+        // 500 文字ちょうどはそのまま通る。
+        $exact = str_repeat('あ', MPU_ITEM_MESSAGE_MAX_LENGTH);
+        $this->assertSame($exact, mpu_sanitize_item_message($exact));
+    }
+
+    public function test_item_message_prompt_block_quotes_visitor_text(): void {
+        // 附言なしなら空文字を返し、prompt は 1 文字も変わらない。
+        $this->assertSame('', mpu_build_item_message_prompt(''));
+        $this->assertSame('', mpu_build_item_message_prompt('   '));
+
+        $this->assertSame(
+            "\n\n【相手の台詞】\n「旅の途中で見つけたんだ」",
+            mpu_build_item_message_prompt('旅の途中で見つけたんだ')
+        );
+
+        // 訪客テキストは placeholder 置換を通さないので {…} がそのまま残る。
+        $this->assertSame(
+            "\n\n【相手の台詞】\n「{variant} と {test} を試した」",
+            mpu_build_item_message_prompt('{variant} と {test} を試した')
+        );
+    }
+
+    public function test_item_user_anchor_matches_backend_and_frontend_contract(): void {
+        // 附言なしの anchor は従来の文字列と逐字一致（checksum 互換）。
+        $this->assertSame(
+            '（メルクーアプリンを差し出した）',
+            mpu_build_item_user_anchor('メルクーアプリン')
+        );
+        $this->assertSame(
+            '（メルクーアプリンを差し出した）',
+            mpu_build_item_user_anchor('メルクーアプリン', '   ')
+        );
+
+        $anchor = mpu_build_item_user_anchor('メルクーアプリン', '君にあげる');
+        $this->assertSame(
+            "（メルクーアプリンを差し出した）\n「君にあげる」",
+            $anchor
+        );
+
+        // anchor は前端から送り返され normalize_history を通るため、再正規化で
+        // 変化しないこと（変化すると次ターンの checksum がずれる）。
+        $normalized = MPU_Chat_History_Service::normalize_history([
+            ['role' => 'user', 'content' => $anchor, 'type' => 'synthetic'],
+        ]);
+        $this->assertSame([
+            ['role' => 'user', 'content' => $anchor, 'type' => 'synthetic'],
+        ], $normalized);
+    }
 }
