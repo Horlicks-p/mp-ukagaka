@@ -77,7 +77,7 @@ function createHarness({ inputValue = "", fetchImpl }) {
 function successResponse() {
   return {
     msg: "……ありがとう。",
-    user_anchor: "（メルクーアプリンを差し出した）\n「旅の途中で見つけたんだ」",
+    user_anchor: "（メルクーアプリンを差し出した）\n発言：旅の途中で見つけたんだ",
   };
 }
 

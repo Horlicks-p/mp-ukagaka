@@ -3712,6 +3712,11 @@ msgstr "Invalid conversation history format"
 msgid "（%sを差し出した）"
 msgstr "(You offered %s)"
 
+#. translators: %s is the visitor's message attached to a gift.
+#: includes/personality/personality-items.php:247
+msgid "発言：%s"
+msgstr "Says: %s"
+
 #: includes/core/frontend-functions.php:597
 msgid "ギフトを選ぶ"
 msgstr "Choose a gift"

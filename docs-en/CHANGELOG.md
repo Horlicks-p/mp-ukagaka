@@ -4,6 +4,17 @@
 
 ---
 
+## [2.29.0] - 2026-08-05
+
+### Gift message attachment
+
+- **Visitors can attach a message to a gift**: Typing in the existing chat box before picking an item now sends the text along with the gift as a single `give` event, so the character reacts to both the item and what was said in one reply. `POST /touch/give` accepts an optional `message` field, sanitized with `sanitize_text_field()` and capped at 500 UTF-8 characters — matching the chat input's own `maxlength`. An empty or whitespace-only message is treated as no message at all, leaving the existing gift flow byte-for-byte unchanged. The visitor text is never passed through `mpu_replace_single_prompt_variables()`, so `{...}` in a message is preserved rather than stripped as an unresolved placeholder. Gifts still run as a single `run_reaction()` pass and deliberately do not gain abilities, tool calls, or SSE.
+- **Gift picker interaction order**: The picker now stays open while the chat input is focused, so the flow is 🎁 open → type → click the item. Arrow-key item switching is skipped while typing, and Enter inside an open picker sends the displayed gift.
+- **Reply format no longer drifts into screenplay style**: Quoting the visitor's message with Japanese corner brackets in the prompt demonstrated a "quoted speech outside narration" script format, which models copied into their own replies as `「line」action「line」`. Because the history anchor is replayed verbatim on every subsequent turn, the pattern also leaked into ordinary chat. Both the prompt block and the stored anchor are now label-delimited (`【相手の発言】` and `発言：`) with no corner brackets, and replies with a message attached carry an explicit rule against self-quoting. Reaction-pool stage directions are intentionally left untouched — they are what gives gift replies their variety, and the bracket removal alone restores the previous rendering.
+- **Tests**: `ItemCatalogTest` covers message sanitization, truncation on a UTF-8 boundary, placeholder preservation, and the exact prompt/anchor strings, with regression guards asserting neither builder emits a corner bracket. A new `tools/node/test-gift-message-smoke.js` covers the frontend contract: empty input sends no `message` field, failures restore the text, a newer draft is never overwritten, and concurrent gives stay blocked. The full PHP, PHPCS, JavaScript smoke, and production-build verification suite passes.
+
+---
+
 ## [2.28.0] - 2026-07-20
 
 ### Per-item variant substitution for gift reactions

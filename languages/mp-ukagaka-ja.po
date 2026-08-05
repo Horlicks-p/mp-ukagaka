@@ -3711,6 +3711,11 @@ msgstr ""
 msgid "（%sを差し出した）"
 msgstr ""
 
+#. translators: %s is the visitor's message attached to a gift.
+#: includes/personality/personality-items.php:247
+msgid "発言：%s"
+msgstr ""
+
 #: includes/core/frontend-functions.php:597
 msgid "ギフトを選ぶ"
 msgstr ""

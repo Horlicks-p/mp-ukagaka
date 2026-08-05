@@ -187,20 +187,27 @@ final class ItemCatalogTest extends TestCase {
         $this->assertSame($exact, mpu_sanitize_item_message($exact));
     }
 
-    public function test_item_message_prompt_block_quotes_visitor_text(): void {
+    public function test_item_message_prompt_block_labels_visitor_text(): void {
         // 附言なしなら空文字を返し、prompt は 1 文字も変わらない。
         $this->assertSame('', mpu_build_item_message_prompt(''));
         $this->assertSame('', mpu_build_item_message_prompt('   '));
 
         $this->assertSame(
-            "\n\n【相手の台詞】\n「旅の途中で見つけたんだ」",
+            "\n\n【相手の発言】\n旅の途中で見つけたんだ",
             mpu_build_item_message_prompt('旅の途中で見つけたんだ')
         );
 
         // 訪客テキストは placeholder 置換を通さないので {…} がそのまま残る。
         $this->assertSame(
-            "\n\n【相手の台詞】\n「{variant} と {test} を試した」",
+            "\n\n【相手の発言】\n{variant} と {test} を試した",
             mpu_build_item_message_prompt('{variant} と {test} を試した')
+        );
+
+        // 鉤括弧で 1 発話を括らないこと。括ると脚本形式の実例になり、モデルが
+        // 自分の返答まで 「台詞」動作「台詞」 で書き出す（provider 非依存で再現）。
+        $this->assertStringNotContainsString(
+            '「',
+            mpu_build_item_message_prompt('旅の途中で見つけたんだ')
         );
     }
 
@@ -217,9 +224,13 @@ final class ItemCatalogTest extends TestCase {
 
         $anchor = mpu_build_item_user_anchor('メルクーアプリン', '君にあげる');
         $this->assertSame(
-            "（メルクーアプリンを差し出した）\n「君にあげる」",
+            "（メルクーアプリンを差し出した）\n発言：君にあげる",
             $anchor
         );
+
+        // anchor は毎ターン素のまま messages へ戻るので、（動作）＋「台詞」= 脚本 1 行を
+        // 履歴に残さないこと。残すと送禮のターンを超えて通常会話まで引きずられる。
+        $this->assertStringNotContainsString('「', $anchor);
 
         // anchor は前端から送り返され normalize_history を通るため、再正規化で
         // 変化しないこと（変化すると次ターンの checksum がずれる）。

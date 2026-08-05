@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.28.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.29.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 

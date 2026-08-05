@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.28.0
+Stable tag: 2.29.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,13 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-08-05 =
+* v2.29.0
+* [NEW] Visitors can attach a message to a gift. Type in the chat box before picking an item and both are sent as one `give` event, so the character reacts to the item and to what was said in a single reply. `POST /touch/give` takes an optional `message` field, sanitized and capped at 500 UTF-8 characters; an empty message leaves the existing gift flow unchanged.
+* [NEW] The gift picker stays open while the chat input is focused, so the order is 🎁 open → type → click the item. Enter inside an open picker sends the displayed gift.
+* [FIX] Replies no longer drift into `「line」action「line」` screenplay format. Quoting the visitor message with corner brackets demonstrated that format to the model, and the history anchor replayed it into ordinary chat. The prompt block and stored anchor are now label-delimited with no corner brackets.
+* [TEST] Added gift-message unit coverage plus a frontend smoke test for the send contract, failure restore, and concurrent-give blocking.
 
 = 2026-07-20 =
 * v2.28.0

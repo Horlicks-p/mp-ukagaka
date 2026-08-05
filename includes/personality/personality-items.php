@@ -201,7 +201,11 @@ function mpu_sanitize_item_message( $message ) {
  * 訪客の生テキストは信頼できない入力なので、必ず明示的な引用ブロックに閉じ込め、
  * 後段の【回応ルール】が最後に来るよう呼び出し側で並べること。
  * {variant} 置換より後に連結し、mpu_replace_single_prompt_variables() には通さない
- * （通すと台詞中の {…} が placeholder として削除される）。
+ * （通すと発言中の {…} が placeholder として削除される）。
+ *
+ * 附言を鉤括弧で囲まないこと。「…」で 1 発話を括ると脚本形式の実例を与えたことになり、
+ * モデルが自分の返答まで 「台詞」動作「台詞」 の形で書き出す（provider 非依存で再現）。
+ * 区切りはラベル行だけで足り、引用ブロックとしての境界は【】見出しが担う。
  *
  * @param string $message Sanitized visitor message.
  * @return string Prompt fragment, or '' when there is no message.
@@ -212,7 +216,7 @@ function mpu_build_item_message_prompt( $message ) {
 		return '';
 	}
 
-	return "\n\n【相手の台詞】\n「" . $message . '」';
+	return "\n\n【相手の発言】\n" . $message;
 }
 
 /**
@@ -220,6 +224,10 @@ function mpu_build_item_message_prompt( $message ) {
  *
  * 後端がこの 1 箇所で生成し、backend history / checksum / REST response /
  * 前端 mpuChatHistory の全てが同じ文字列を使う（前後端で別々に組み立てない）。
+ *
+ * anchor は履歴に残り毎ターン素のまま messages へ戻される（class-mpu-rest-chat.php の
+ * 履歴展開）。（動作）＋「台詞」で組むと脚本 1 行そのものになり、送禮のターンを超えて
+ * 通常会話まで同じ形式に引きずられる。ラベル行にして実例を与えないこと。
  *
  * @param string $item_name Item display name.
  * @param string $message   Sanitized visitor message, or '' when absent.
@@ -234,7 +242,11 @@ function mpu_build_item_user_anchor( $item_name, $message = '' ) {
 
 	$message = trim( (string) $message );
 	if ( '' !== $message ) {
-		$anchor .= "\n「" . $message . '」';
+		$anchor .= "\n" . sprintf(
+			/* translators: %s is the visitor's message attached to a gift. */
+			__( '発言：%s', 'mp-ukagaka' ),
+			$message
+		);
 	}
 
 	return $anchor;
