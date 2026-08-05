@@ -31,7 +31,7 @@ final class ItemCatalogTest extends TestCase {
                 'name' => '魔導書',
                 'image' => 'grimoire.png',
                 'reactions' => ['give_gift', 'give_favorite'],
-                'size' => [68, 85],
+                'size' => [85, 67],
                 'has_variants' => true,
             ],
         ];
