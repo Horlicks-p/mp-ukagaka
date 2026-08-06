@@ -98,15 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.28.0
+## 🎉 What's New in v2.29.0
+
+**Gift message attachment** (v2.29.0): Visitors can now say something while handing over a gift. Typing in the chat box before picking an item sends the text along with the gift as a single `give` event, so the character reacts to both the item and what was said in one reply. `POST /touch/give` accepts an optional `message` field, sanitized and capped at 500 UTF-8 characters; an empty message leaves the existing gift flow unchanged. The picker now stays open while the chat input is focused, making the order 🎁 open → type → click the item, with Enter inside an open picker sending the displayed gift. Gift replies also no longer drift into `「line」action「line」` screenplay format — the prompt block and the stored history anchor are label-delimited instead of corner-bracketed.
 
 **Per-item variant substitution for gift reactions** (v2.28.0): Item catalog entries can now define an optional `variants` list. When present, `/touch/give` picks one at random and substitutes it into the item prompt's `{variant}` placeholder, so a single gift or food item produces varied, content-aware reactions instead of one fixed line. Frieren's `魔導書` gift ships 10 distinct variants so repeated gifting no longer returns the same response. See the Character Creation Guide for the full `items.json` format.
 
 **Chat integrity session follow-up** (v2.27.7): Checksum verification and storage now use the same full 40-entry transport window while the LLM context remains capped at 20 entries. Each page instance also receives a fresh checksum session ID, including duplicated tabs whose `sessionStorage` was copied by the browser.
 
-**Review follow-up hardening** (v2.27.6): Legacy LLM settings now migrate from the raw stored option without being masked by defaults, settings reset no longer risks a PHP type error, and chat checksum storage/verification shares the same 40-entry raw-history window used by browser persistence and REST transport. Gift provider diagnostics are now kept server-side instead of being shown to visitors.
-
-**Earlier releases**: housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
