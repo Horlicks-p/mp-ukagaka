@@ -11,12 +11,23 @@
  *       "Last Updated" field in docs-en/README.md; defaults to today.
  *
  *   node tools/node/bump-version.js --check
- *       Verify every marker already equals MPU_VERSION. Exits non-zero on any
- *       drift (suitable for the verify pipeline). Does not modify files.
+ *       Verify every marker already equals MPU_VERSION, and that a
+ *       human-written release note exists for that version in each of the
+ *       three prose locations. Exits non-zero on any drift (suitable for the
+ *       verify pipeline). Does not modify files.
  *
- * Note: this deliberately does NOT touch the CHANGELOG prose in
- * docs-en/CHANGELOG.md or the readme.txt changelog section — those entries
- * need human-written release notes.
+ * Two kinds of rule:
+ *
+ *   targets      — version strings. Rewritten by <version> mode, compared by
+ *                  --check.
+ *   releaseNotes — human-written prose. NEVER rewritten; --check only asserts
+ *                  that an entry for the current version exists.
+ *
+ * Release notes are deliberately check-only. Auto-inserting the version into a
+ * "What's New" heading would leave the heading claiming a release the prose
+ * below it does not describe, and --check would still pass — worse than the
+ * omission it was meant to catch. Failing until a human writes the entry is
+ * the point.
  */
 
 const fs = require("fs");
@@ -85,6 +96,48 @@ const targets = [
   },
 ];
 
+// Release-note rules. Each asserts that the human-written entry for the current
+// version exists. `present` builds the regex from the version; `hint` tells the
+// author what to write when it is missing.
+const releaseNotes = [
+  {
+    file: "README.md",
+    label: "What's New heading",
+    present: (v) => new RegExp(`^##\\s.*What.s New in v${esc(v)}\\s*$`, "m"),
+    hint: 'retitle the "What\'s New" section to the new version',
+  },
+  {
+    file: "README.md",
+    label: "What's New entry",
+    present: (v) => new RegExp(`\\(v${esc(v)}\\)`),
+    hint: 'add a "**Title** (vX.Y.Z): …" paragraph at the top of that section',
+  },
+  {
+    file: "readme.txt",
+    label: "changelog entry",
+    present: (v) => new RegExp(`^\\* v${esc(v)}\\s*$`, "m"),
+    hint: 'add a "= YYYY-MM-DD =" block with "* vX.Y.Z" under == Changelog ==',
+  },
+  {
+    file: "docs-en/CHANGELOG.md",
+    label: "changelog entry",
+    present: (v) => new RegExp(`^##\\s*\\[${esc(v)}\\]`, "m"),
+    hint: 'add a "## [X.Y.Z] - YYYY-MM-DD" section at the top',
+  },
+];
+
+function esc(version) {
+  return version.replace(/\./g, "\\.");
+}
+
+// Returns the release notes that have no entry for `version`.
+function missingReleaseNotes(version) {
+  return releaseNotes.filter((note) => {
+    const content = fs.readFileSync(path.join(repoRoot, note.file), "utf8");
+    return !note.present(version).test(content);
+  });
+}
+
 function readCanonicalVersion() {
   const target = targets.find((t) => t.canonical);
   const content = fs.readFileSync(path.join(repoRoot, target.file), "utf8");
@@ -141,6 +194,16 @@ function runSet(version, date) {
     const mark = row.changed ? "updated" : "already current";
     console.log(`  ${row.changed ? "✓" : "·"} ${row.file} — ${row.label} → ${row.value} (${mark})`);
   }
+
+  // Bumping the numbers is half a release. Name what is still owed, in the
+  // order it is usually written, so `verify` does not have to be the reminder.
+  const missing = missingReleaseNotes(version);
+  if (missing.length > 0) {
+    console.log(`\nStill to write by hand for ${version} (\`verify\` fails until then):`);
+    for (const note of missing) {
+      console.log(`  ✗ ${note.file} — ${note.label}: ${note.hint}`);
+    }
+  }
 }
 
 function runCheck() {
@@ -171,7 +234,16 @@ function runCheck() {
     process.exit(1);
   }
 
-  console.log(`✓ All version markers match MPU_VERSION (${version}).`);
+  const missing = missingReleaseNotes(version);
+  if (missing.length > 0) {
+    console.error(`✗ No release note written for MPU_VERSION (${version}):`);
+    for (const note of missing) {
+      console.error(`  - ${note.file}: ${note.label} missing — ${note.hint}`);
+    }
+    process.exit(1);
+  }
+
+  console.log(`✓ All version markers match MPU_VERSION (${version}), release notes present.`);
 }
 
 function main() {
