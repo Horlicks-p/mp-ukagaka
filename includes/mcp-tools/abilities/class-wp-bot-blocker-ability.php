@@ -37,6 +37,17 @@ class Wp_Bot_Blocker_Ability
                     ? \MPU_Input_Role::current_can_use_ability('mp-ukagaka/get-bot-blocker-stats')
                     : current_user_can('manage_options');
             },
+            // 呼び出し前に安全性を判断する消費側（MCP host / Command Palette 等）向けの宣言。
+            // core は実行時に検証しないため、未指定は「挙動不明」として扱われる。
+            // 権限は permission_callback 側のホワイトリストが単独で担保しており、ここは
+            // 「この ability が何をするか」の申告であって、アクセス制御ではない.
+            'meta'                => array(
+                'annotations' => array(
+                    'readonly'    => true,
+                    'destructive' => false,
+                    'idempotent'  => true,
+                ),
+            ),
         ));
 
         // Ability 2: Ban an IP manually
@@ -60,6 +71,15 @@ class Wp_Bot_Blocker_Ability
                     ? \MPU_Input_Role::current_can_use_ability('mp-ukagaka/ban-ip')
                     : current_user_can('manage_options');
             },
+            // destructive: false — ban リストへの追加のみで、既存データを消さない。
+            // idempotent: true — 既に ban 済みの IP は ban_ip_callback() が早期返却する.
+            'meta'                => array(
+                'annotations' => array(
+                    'readonly'    => false,
+                    'destructive' => false,
+                    'idempotent'  => true,
+                ),
+            ),
         ));
 
         // Ability 3: Clear Bot Blocker Logs
@@ -89,6 +109,15 @@ class Wp_Bot_Blocker_Ability
                     ? \MPU_Input_Role::current_can_use_ability('mp-ukagaka/clear-bot-blocker-data')
                     : current_user_can('manage_options');
             },
+            // この plugin で唯一 destructive: true の ability。ban リストとログを実際に削除し、
+            // 復元手段はない。自動承認せず確認を求める判断材料として消費側に渡す.
+            'meta'                => array(
+                'annotations' => array(
+                    'readonly'    => false,
+                    'destructive' => true,
+                    'idempotent'  => true,
+                ),
+            ),
         ));
     }
 

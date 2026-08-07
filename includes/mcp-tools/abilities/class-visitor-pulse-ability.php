@@ -57,6 +57,11 @@ class Visitor_Pulse_Ability
                 },
                 'meta' => [
                     'show_in_rest' => true,
+                    'annotations'  => [
+                        'readonly'    => true,
+                        'destructive' => false,
+                        'idempotent'  => true,
+                    ],
                 ],
             ]
         );

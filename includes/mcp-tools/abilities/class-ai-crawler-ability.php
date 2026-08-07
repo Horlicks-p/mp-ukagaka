@@ -67,6 +67,13 @@ class AI_Crawler_Ability
                 },
                 'meta' => [
                     'show_in_rest' => true,
+                    // 呼び出し前に安全性を判断する消費側（MCP host / Command Palette 等）向けの
+                    // 宣言。core は実行時に検証しないため、未指定は「挙動不明」として扱われる.
+                    'annotations'  => [
+                        'readonly'    => true,
+                        'destructive' => false,
+                        'idempotent'  => true,
+                    ],
                 ],
             ]
         );

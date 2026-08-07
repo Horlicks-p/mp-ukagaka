@@ -66,7 +66,12 @@ class Wp_PostViews_Ability
                         : true;
                 },
                 'meta' => [
-                    'show_in_rest' => true, 
+                    'show_in_rest' => true,
+                    'annotations'  => [
+                        'readonly'    => true,
+                        'destructive' => false,
+                        'idempotent'  => true,
+                    ],
                 ]
             ]
         );
