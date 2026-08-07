@@ -29,6 +29,9 @@ class Wp_Bot_Blocker_Ability
             'category'           => 'mp-ukagaka',
             'input_schema'       => array(
                 'type'       => 'object',
+                // 引数を一切取らない ability。間接パスは null を渡すため、頂層 default が
+                // ないと validate_input() が callback 到達前に弾く.
+                'default'    => (object) array(),
                 'properties' => new \stdClass(),
             ),
             'execute_callback'   => [self::class, 'get_stats_callback'],
@@ -89,6 +92,8 @@ class Wp_Bot_Blocker_Ability
             'category'           => 'mp-ukagaka',
             'input_schema'       => array(
                 'type'       => 'object',
+                // target 省略時は 'logs' 扱い（零引数を許す）ため頂層 default が要る.
+                'default'    => (object) array(),
                 'properties' => array(
                     'target' => array(
                         'type'        => 'string',

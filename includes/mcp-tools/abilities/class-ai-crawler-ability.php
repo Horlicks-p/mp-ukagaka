@@ -30,6 +30,11 @@ class AI_Crawler_Ability
                 'category'    => 'mp-ukagaka',
                 'input_schema' => [
                     'type'       => 'object',
+                    // 全プロパティが任意なので零引数呼び出しを許す。間接パス
+                    // （$ability->execute() / REST / MCP）は null を渡してくるが、
+                    // null は object ではないため、この頂層 default がないと
+                    // callback に入る前に validate_input() が弾く.
+                    'default'    => (object) array(),
                     'properties' => [
                         'seconds' => [
                             'type'        => 'integer',

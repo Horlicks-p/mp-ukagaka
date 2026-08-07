@@ -28,6 +28,8 @@ class Visitor_Pulse_Ability
                 'category'    => 'mp-ukagaka',
                 'input_schema' => [
                     'type'       => 'object',
+                    // 零引数呼び出しを許すための頂層 default（間接パスの null 対策）.
+                    'default'    => (object) array(),
                     'properties' => [
                         'minutes' => [
                             'type'        => 'integer',

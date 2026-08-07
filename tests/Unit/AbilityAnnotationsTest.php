@@ -97,6 +97,39 @@ final class AbilityAnnotationsTest extends TestCase {
         }
     }
 
+    public function test_zero_arg_abilities_declare_a_top_level_schema_default(): void {
+        $abilities = $this->registerAll();
+
+        foreach ($abilities as $name => $args) {
+            $schema = $args['input_schema'] ?? null;
+            $this->assertIsArray($schema, "{$name}: input_schema がない");
+
+            // required があるなら零引数呼び出しはそもそも不正なので default は不要。
+            // required がない = 零引数を許す ability であり、間接パス（$ability->execute()
+            // / REST / MCP）は null を渡してくる。null は object ではないので、頂層 default
+            // がないと validate_input() が callback 到達前に ability_invalid_input で弾く。
+            if (!empty($schema['required'])) {
+                $this->assertArrayNotHasKey(
+                    'default',
+                    $schema,
+                    "{$name}: required がある ability に零引数 default は矛盾"
+                );
+                continue;
+            }
+
+            $this->assertArrayHasKey(
+                'default',
+                $schema,
+                "{$name}: 零引数を許すのに頂層 default がない"
+            );
+            $this->assertEquals(
+                new \stdClass(),
+                $schema['default'],
+                "{$name}: 頂層 default は空オブジェクトであること（空配列だと JSON で [] になる）"
+            );
+        }
+    }
+
     public function test_every_ability_gates_execution_behind_a_permission_callback(): void {
         $abilities = $this->registerAll();
 

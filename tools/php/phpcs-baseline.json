@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "generatedAt": "2026-08-07T01:46:33+00:00",
+    "generatedAt": "2026-08-07T02:15:56+00:00",
     "description": "PHPCS baseline grouped by file + sniff source + message. Line numbers are metadata only.",
     "entries": [
         {
@@ -23048,7 +23048,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                102
+                107
             ]
         },
         {
@@ -23059,7 +23059,7 @@
             "count": 2,
             "firstLines": [
                 20,
-                83
+                88
             ]
         },
         {
@@ -23067,7 +23067,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 107,
+            "count": 112,
             "firstLines": [
                 6,
                 19,
@@ -23083,11 +23083,11 @@
             "type": "ERROR",
             "count": 9,
             "firstLines": [
-                44,
-                45,
-                46,
-                52,
-                53
+                49,
+                50,
+                51,
+                57,
+                58
             ]
         },
         {
@@ -23097,11 +23097,11 @@
             "type": "ERROR",
             "count": 9,
             "firstLines": [
-                44,
-                45,
-                46,
-                52,
-                53
+                49,
+                50,
+                51,
+                57,
+                58
             ]
         },
         {
@@ -23111,8 +23111,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                104,
-                122
+                109,
+                127
             ]
         },
         {
@@ -23122,8 +23122,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                102,
-                115
+                107,
+                120
             ]
         },
         {
@@ -23133,8 +23133,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                104,
-                122
+                109,
+                127
             ]
         },
         {
@@ -23148,7 +23148,7 @@
                 21,
                 28,
                 29,
-                36
+                41
             ]
         },
         {
@@ -23162,7 +23162,7 @@
                 21,
                 28,
                 29,
-                36
+                41
             ]
         },
         {
@@ -23182,7 +23182,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                82
+                87
             ]
         },
         {
@@ -23202,7 +23202,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                114
+                119
             ]
         },
         {
@@ -23212,9 +23212,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                82,
-                102,
-                115
+                87,
+                107,
+                120
             ]
         },
         {
@@ -23224,9 +23224,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                82,
-                102,
-                115
+                87,
+                107,
+                120
             ]
         },
         {
@@ -23238,9 +23238,9 @@
             "firstLines": [
                 27,
                 31,
-                33,
-                34,
-                41
+                38,
+                39,
+                46
             ]
         },
         {
@@ -23250,7 +23250,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                59
+                64
             ]
         },
         {
@@ -23280,7 +23280,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                68
+                73
             ]
         },
         {
@@ -23290,7 +23290,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                41
+                46
             ]
         },
         {
@@ -23320,8 +23320,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                98,
-                106
+                103,
+                111
             ]
         },
         {
@@ -23333,9 +23333,9 @@
             "firstLines": [
                 5,
                 21,
-                84,
-                92,
-                96
+                89,
+                97,
+                101
             ]
         },
         {
@@ -23347,9 +23347,9 @@
             "firstLines": [
                 5,
                 21,
-                84,
-                92,
-                96
+                89,
+                97,
+                101
             ]
         },
         {
@@ -23361,7 +23361,7 @@
             "firstLines": [
                 5,
                 21,
-                84
+                89
             ]
         },
         {
@@ -23373,7 +23373,7 @@
             "firstLines": [
                 5,
                 21,
-                84
+                89
             ]
         },
         {
@@ -23394,7 +23394,7 @@
             "count": 2,
             "firstLines": [
                 18,
-                71
+                73
             ]
         },
         {
@@ -23404,7 +23404,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                79
+                81
             ]
         },
         {
@@ -23414,7 +23414,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                79
+                81
             ]
         },
         {
@@ -23422,7 +23422,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 79,
+            "count": 81,
             "firstLines": [
                 6,
                 17,
@@ -23438,11 +23438,11 @@
             "type": "ERROR",
             "count": 10,
             "firstLines": [
-                42,
-                43,
                 44,
                 45,
-                46
+                46,
+                47,
+                48
             ]
         },
         {
@@ -23452,11 +23452,11 @@
             "type": "ERROR",
             "count": 10,
             "firstLines": [
-                42,
-                43,
                 44,
                 45,
-                46
+                46,
+                47,
+                48
             ]
         },
         {
@@ -23470,7 +23470,7 @@
                 19,
                 26,
                 27,
-                34
+                36
             ]
         },
         {
@@ -23484,7 +23484,7 @@
                 19,
                 26,
                 27,
-                34
+                36
             ]
         },
         {
@@ -23504,7 +23504,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                70
+                72
             ]
         },
         {
@@ -23524,7 +23524,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                70
+                72
             ]
         },
         {
@@ -23534,7 +23534,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                70
+                72
             ]
         },
         {
@@ -23546,9 +23546,9 @@
             "firstLines": [
                 25,
                 29,
-                31,
-                32,
-                39
+                33,
+                34,
+                41
             ]
         },
         {
@@ -23558,7 +23558,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                46
+                48
             ]
         },
         {
@@ -23568,7 +23568,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                44
+                46
             ]
         },
         {
@@ -23598,7 +23598,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                58
+                60
             ]
         },
         {
@@ -23608,7 +23608,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                48
+                50
             ]
         },
         {
@@ -23618,7 +23618,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                42
+                44
             ]
         },
         {
@@ -23628,7 +23628,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                43
+                45
             ]
         },
         {
@@ -23638,7 +23638,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                45
+                47
             ]
         },
         {
@@ -23648,7 +23648,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                47
+                49
             ]
         },
         {
@@ -23658,7 +23658,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                46
+                48
             ]
         },
         {
@@ -23668,7 +23668,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                39
+                41
             ]
         },
         {
@@ -23698,7 +23698,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                49
+                51
             ]
         },
         {
@@ -23708,7 +23708,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                82
+                84
             ]
         },
         {
@@ -23718,7 +23718,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                79
+                81
             ]
         },
         {
@@ -23730,7 +23730,7 @@
             "firstLines": [
                 5,
                 19,
-                72
+                74
             ]
         },
         {
@@ -23742,7 +23742,7 @@
             "firstLines": [
                 5,
                 19,
-                72
+                74
             ]
         },
         {
@@ -23754,7 +23754,7 @@
             "firstLines": [
                 5,
                 19,
-                72
+                74
             ]
         },
         {
@@ -23766,7 +23766,7 @@
             "firstLines": [
                 5,
                 19,
-                72
+                74
             ]
         },
         {
@@ -23786,7 +23786,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                127
+                132
             ]
         },
         {
@@ -23796,7 +23796,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                135
+                140
             ]
         },
         {
@@ -23806,7 +23806,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                149
+                154
             ]
         },
         {
@@ -23816,7 +23816,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                215
+                220
             ]
         },
         {
@@ -23826,7 +23826,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                133
+                138
             ]
         },
         {
@@ -23837,9 +23837,9 @@
             "count": 4,
             "firstLines": [
                 16,
-                128,
-                167,
-                194
+                133,
+                172,
+                199
             ]
         },
         {
@@ -23847,7 +23847,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 207,
+            "count": 212,
             "firstLines": [
                 12,
                 13,
@@ -23863,11 +23863,11 @@
             "type": "ERROR",
             "count": 6,
             "firstLines": [
-                34,
-                66,
-                68,
-                95,
-                106
+                37,
+                69,
+                71,
+                100,
+                111
             ]
         },
         {
@@ -23877,11 +23877,11 @@
             "type": "ERROR",
             "count": 6,
             "firstLines": [
-                34,
-                66,
-                68,
-                95,
-                106
+                37,
+                69,
+                71,
+                100,
+                111
             ]
         },
         {
@@ -23891,9 +23891,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                51,
-                83,
-                121
+                54,
+                86,
+                126
             ]
         },
         {
@@ -23904,8 +23904,8 @@
             "count": 3,
             "firstLines": [
                 26,
-                54,
-                86
+                57,
+                89
             ]
         },
         {
@@ -23916,8 +23916,8 @@
             "count": 3,
             "firstLines": [
                 26,
-                54,
-                86
+                57,
+                89
             ]
         },
         {
@@ -23931,7 +23931,7 @@
                 21,
                 27,
                 28,
-                36
+                39
             ]
         },
         {
@@ -23945,7 +23945,7 @@
                 21,
                 27,
                 28,
-                36
+                39
             ]
         },
         {
@@ -23965,9 +23965,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                124,
-                163,
-                190
+                129,
+                168,
+                195
             ]
         },
         {
@@ -23978,8 +23978,8 @@
             "count": 3,
             "firstLines": [
                 25,
-                53,
-                85
+                56,
+                88
             ]
         },
         {
@@ -23989,9 +23989,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                127,
-                166,
-                193
+                132,
+                171,
+                198
             ]
         },
         {
@@ -24001,9 +24001,9 @@
             "type": "ERROR",
             "count": 3,
             "firstLines": [
-                127,
-                166,
-                193
+                132,
+                171,
+                198
             ]
         },
         {
@@ -24013,11 +24013,11 @@
             "type": "ERROR",
             "count": 11,
             "firstLines": [
-                34,
-                68,
-                106,
-                129,
-                133
+                37,
+                71,
+                111,
+                134,
+                138
             ]
         },
         {
@@ -24027,7 +24027,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                185
+                190
             ]
         },
         {
@@ -24037,10 +24037,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                149,
-                150,
-                215,
-                215
+                154,
+                155,
+                220,
+                220
             ]
         },
         {
@@ -24051,8 +24051,8 @@
             "count": 3,
             "firstLines": [
                 29,
-                57,
-                89
+                60,
+                92
             ]
         },
         {
@@ -24063,8 +24063,8 @@
             "count": 3,
             "firstLines": [
                 27,
-                55,
-                87
+                58,
+                90
             ]
         },
         {
@@ -24074,7 +24074,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                66
+                69
             ]
         },
         {
@@ -24084,9 +24084,9 @@
             "type": "WARNING",
             "count": 3,
             "firstLines": [
-                34,
-                68,
-                106
+                37,
+                71,
+                111
             ]
         },
         {
@@ -24097,8 +24097,8 @@
             "count": 3,
             "firstLines": [
                 30,
-                58,
-                90
+                61,
+                93
             ]
         },
         {
@@ -24109,8 +24109,8 @@
             "count": 3,
             "firstLines": [
                 28,
-                56,
-                88
+                59,
+                91
             ]
         },
         {
@@ -24120,10 +24120,10 @@
             "type": "ERROR",
             "count": 4,
             "firstLines": [
-                218,
-                218,
                 223,
-                223
+                223,
+                228,
+                228
             ]
         },
         {
@@ -24133,7 +24133,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                238
+                243
             ]
         },
         {
@@ -24143,7 +24143,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                98
+                103
             ]
         },
         {
@@ -24153,7 +24153,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                195
+                200
             ]
         },
         {
@@ -24165,9 +24165,9 @@
             "firstLines": [
                 17,
                 21,
-                134,
-                148,
-                168
+                139,
+                153,
+                173
             ]
         },
         {
@@ -24179,9 +24179,9 @@
             "firstLines": [
                 17,
                 21,
-                134,
-                148,
-                168
+                139,
+                153,
+                173
             ]
         },
         {
@@ -24193,7 +24193,7 @@
             "firstLines": [
                 17,
                 21,
-                174
+                179
             ]
         },
         {
@@ -24205,7 +24205,7 @@
             "firstLines": [
                 17,
                 21,
-                174
+                179
             ]
         },
         {
@@ -24225,7 +24225,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                122
+                124
             ]
         },
         {
@@ -24235,7 +24235,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                121
+                123
             ]
         },
         {
@@ -24245,8 +24245,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                104,
-                111
+                106,
+                113
             ]
         },
         {
@@ -24256,8 +24256,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                92,
-                116
+                94,
+                118
             ]
         },
         {
@@ -24268,7 +24268,7 @@
             "count": 2,
             "firstLines": [
                 16,
-                87
+                89
             ]
         },
         {
@@ -24276,7 +24276,7 @@
             "source": "Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed",
             "message": "Tabs must be used to indent lines; spaces are not allowed",
             "type": "ERROR",
-            "count": 124,
+            "count": 126,
             "firstLines": [
                 12,
                 13,
@@ -24292,11 +24292,11 @@
             "type": "ERROR",
             "count": 8,
             "firstLines": [
-                45,
-                51,
-                52,
+                47,
                 53,
-                54
+                54,
+                55,
+                56
             ]
         },
         {
@@ -24306,11 +24306,11 @@
             "type": "ERROR",
             "count": 8,
             "firstLines": [
-                45,
-                51,
-                52,
+                47,
                 53,
-                54
+                54,
+                55,
+                56
             ]
         },
         {
@@ -24320,11 +24320,11 @@
             "type": "ERROR",
             "count": 6,
             "firstLines": [
-                55,
-                56,
                 57,
+                58,
                 59,
-                60
+                61,
+                62
             ]
         },
         {
@@ -24336,9 +24336,9 @@
             "firstLines": [
                 17,
                 25,
-                32,
-                37,
-                64
+                34,
+                39,
+                66
             ]
         },
         {
@@ -24350,9 +24350,9 @@
             "firstLines": [
                 17,
                 25,
-                32,
-                37,
-                64
+                34,
+                39,
+                66
             ]
         },
         {
@@ -24372,7 +24372,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                83
+                85
             ]
         },
         {
@@ -24382,7 +24382,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                122
+                124
             ]
         },
         {
@@ -24392,7 +24392,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                86
+                88
             ]
         },
         {
@@ -24402,7 +24402,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                86
+                88
             ]
         },
         {
@@ -24412,7 +24412,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                63
+                65
             ]
         },
         {
@@ -24422,11 +24422,11 @@
             "type": "ERROR",
             "count": 5,
             "firstLines": [
-                82,
-                91,
-                115,
-                123,
-                133
+                84,
+                93,
+                117,
+                125,
+                135
             ]
         },
         {
@@ -24438,9 +24438,9 @@
             "firstLines": [
                 23,
                 27,
-                29,
-                30,
-                35
+                31,
+                32,
+                37
             ]
         },
         {
@@ -24450,11 +24450,11 @@
             "type": "WARNING",
             "count": 28,
             "firstLines": [
-                30,
-                31,
                 32,
                 33,
-                34
+                34,
+                35,
+                36
             ]
         },
         {
@@ -24464,8 +24464,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                43,
-                44
+                45,
+                46
             ]
         },
         {
@@ -24475,8 +24475,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                30,
-                35
+                32,
+                37
             ]
         },
         {
@@ -24486,7 +24486,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                45
+                47
             ]
         },
         {
@@ -24496,8 +24496,8 @@
             "type": "ERROR",
             "count": 2,
             "firstLines": [
-                31,
-                36
+                33,
+                38
             ]
         },
         {
@@ -24507,7 +24507,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                94
+                96
             ]
         },
         {
@@ -24527,7 +24527,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                96
+                98
             ]
         },
         {
@@ -24537,7 +24537,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                97
+                99
             ]
         },
         {
@@ -24557,7 +24557,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                98
+                100
             ]
         },
         {
@@ -24567,13 +24567,55 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                68
+                70
             ]
         },
         {
             "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
             "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
             "message": "Array double arrow not aligned correctly; expected 2 space(s) between \"'date'\" and double arrow, but found 1.",
+            "type": "WARNING",
+            "count": 2,
+            "firstLines": [
+                57,
+                131
+            ]
+        },
+        {
+            "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
+            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
+            "message": "Array double arrow not aligned correctly; expected 2 space(s) between \"'days'\" and double arrow, but found 1.",
+            "type": "WARNING",
+            "count": 1,
+            "firstLines": [
+                37
+            ]
+        },
+        {
+            "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
+            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
+            "message": "Array double arrow not aligned correctly; expected 2 space(s) between \"'note'\" and double arrow, but found 1.",
+            "type": "WARNING",
+            "count": 2,
+            "firstLines": [
+                61,
+                139
+            ]
+        },
+        {
+            "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
+            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
+            "message": "Array double arrow not aligned correctly; expected 2 space(s) between \"'type'\" and double arrow, but found 1.",
+            "type": "WARNING",
+            "count": 1,
+            "firstLines": [
+                49
+            ]
+        },
+        {
+            "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
+            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
+            "message": "Array double arrow not aligned correctly; expected 3 space(s) between \"'url'\" and double arrow, but found 1.",
             "type": "WARNING",
             "count": 2,
             "firstLines": [
@@ -24584,38 +24626,17 @@
         {
             "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
             "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 2 space(s) between \"'days'\" and double arrow, but found 1.",
+            "message": "Array double arrow not aligned correctly; expected 4 space(s) between \"'execute_callback'\" and double arrow, but found 1.",
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                35
+                64
             ]
         },
         {
             "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
             "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 2 space(s) between \"'note'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                59,
-                137
-            ]
-        },
-        {
-            "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 2 space(s) between \"'type'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                47
-            ]
-        },
-        {
-            "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 3 space(s) between \"'url'\" and double arrow, but found 1.",
+            "message": "Array double arrow not aligned correctly; expected 4 space(s) between \"'id'\" and double arrow, but found 1.",
             "type": "WARNING",
             "count": 2,
             "firstLines": [
@@ -24626,32 +24647,11 @@
         {
             "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
             "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 4 space(s) between \"'execute_callback'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 1,
-            "firstLines": [
-                62
-            ]
-        },
-        {
-            "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
-            "message": "Array double arrow not aligned correctly; expected 4 space(s) between \"'id'\" and double arrow, but found 1.",
-            "type": "WARNING",
-            "count": 2,
-            "firstLines": [
-                51,
-                125
-            ]
-        },
-        {
-            "file": "includes/mcp-tools/abilities/class-wp-postviews-ability.php",
-            "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
             "message": "Array double arrow not aligned correctly; expected 5 space(s) between \"'after'\" and double arrow, but found 1.",
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                107
+                109
             ]
         },
         {
@@ -24661,8 +24661,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                33,
-                38
+                35,
+                40
             ]
         },
         {
@@ -24672,7 +24672,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                95
+                97
             ]
         },
         {
@@ -24682,7 +24682,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                42
+                44
             ]
         },
         {
@@ -24690,11 +24690,10 @@
             "source": "WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned",
             "message": "Array double arrow not aligned correctly; expected 7 space(s) between \"'type'\" and double arrow, but found 1.",
             "type": "WARNING",
-            "count": 3,
+            "count": 2,
             "firstLines": [
-                28,
-                43,
-                49
+                45,
+                51
             ]
         },
         {
@@ -24714,8 +24713,8 @@
             "type": "WARNING",
             "count": 2,
             "firstLines": [
-                31,
-                36
+                33,
+                38
             ]
         },
         {
@@ -24735,7 +24734,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                99
+                101
             ]
         },
         {
@@ -24745,7 +24744,7 @@
             "type": "WARNING",
             "count": 1,
             "firstLines": [
-                96
+                98
             ]
         },
         {
@@ -24755,7 +24754,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                122
+                124
             ]
         },
         {
@@ -24765,7 +24764,7 @@
             "type": "ERROR",
             "count": 1,
             "firstLines": [
-                111
+                113
             ]
         },
         {
@@ -24776,9 +24775,9 @@
             "count": 4,
             "firstLines": [
                 17,
-                103,
-                119,
-                120
+                105,
+                121,
+                122
             ]
         },
         {
@@ -24789,9 +24788,9 @@
             "count": 4,
             "firstLines": [
                 17,
-                103,
-                119,
-                120
+                105,
+                121,
+                122
             ]
         },
         {

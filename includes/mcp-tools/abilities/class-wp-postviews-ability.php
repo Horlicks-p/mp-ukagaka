@@ -25,7 +25,9 @@ class Wp_PostViews_Ability
                 'description' => __('Get a list of most viewed posts (requires WP-PostViews plugin).', 'mp-ukagaka'),
                 'category' => 'mp-ukagaka',
                 'input_schema' => [
-                    'type' => 'object',
+                    'type'       => 'object',
+                    // 零引数呼び出しを許すための頂層 default（間接パスの null 対策）.
+                    'default'    => (object) array(),
                     'properties' => [
                          'limit' => [
                              'type' => 'integer',
