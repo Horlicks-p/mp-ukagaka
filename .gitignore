@@ -23,10 +23,7 @@ codex.bat
 *.sublime-project
 *.sublime-workspace
 .cursor/
-# .claude holds machine-local state (settings.local.json), but the WordPress
-# agent skills in .claude/skills/ are shared tooling and belong in version control.
-.claude/*
-!.claude/skills/
+.claude
 claude-5df3-cwd
 claude-9ef6-cwd
 
