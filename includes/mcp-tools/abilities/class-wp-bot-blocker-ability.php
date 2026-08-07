@@ -22,6 +22,9 @@ class Wp_Bot_Blocker_Ability
             return;
         }
 
+        // この 3 つは meta.show_in_rest を意図的に付けない（wp-abilities/v1 に出さない）。
+        // 他の読み取り専用 ability は付けている。方針の全体像は Manager の docblock を参照.
+
         // Ability 1: Get Bot Blocker Stats
         wp_register_ability('mp-ukagaka/get-bot-blocker-stats', array(
             'label'              => __('Get Bot Blocker Stats', 'mp-ukagaka'),

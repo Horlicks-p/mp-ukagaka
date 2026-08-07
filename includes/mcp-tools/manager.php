@@ -4,8 +4,24 @@ namespace MP_Ukagaka\McpTools;
 
 /**
  * Manager for MCP Tools
- * 
+ *
  * Handles loading and registration of all MCP abilities.
+ *
+ * External exposure policy — the absent meta keys are deliberate, not oversights:
+ *
+ * - No ability declares `meta.mcp.public`. The bundled WordPress MCP adapter only
+ *   surfaces abilities where that is strictly true, so none of these are reachable
+ *   from an external MCP client. Frieren does not need it: the in-plugin tool path
+ *   reads wp_get_abilities() directly (see integrations/abilities-integration.php).
+ * - The three Bot Blocker abilities deliberately omit `meta.show_in_rest`, so they
+ *   stay off the wp-abilities/v1 REST namespace. The read-only query abilities set
+ *   it; the two that write (ban-ip, clear-bot-blocker-data) and the stats reader
+ *   that sits beside them do not. permission_callback already confines them to
+ *   administrators — keeping them off the public namespace is defence in depth,
+ *   not the only control.
+ *
+ * Opening either surface is a product decision, not a missing-field fix.
+ * AbilityAnnotationsTest pins the current state so a change has to be intentional.
  */
 class Manager
 {

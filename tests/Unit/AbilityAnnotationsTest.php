@@ -130,6 +130,49 @@ final class AbilityAnnotationsTest extends TestCase {
         }
     }
 
+    public function test_external_exposure_stays_closed(): void {
+        $abilities = $this->registerAll();
+
+        // meta.mcp.public を strictly true にしない限り、公式 MCP adapter は
+        // ability を外部クライアントに出さない。Frieren の tool 経路は
+        // wp_get_abilities() を直接読むのでこれに依存しない。
+        // 外部公開はプロダクト判断であり「付け忘れ」ではない（Manager の docblock 参照）。
+        foreach ($abilities as $name => $args) {
+            $this->assertArrayNotHasKey(
+                'mcp',
+                $args['meta'] ?? [],
+                "{$name}: MCP 公開は意図的に閉じている。開くなら本テストも更新すること"
+            );
+        }
+
+        // show_in_rest は「読み取り専用のクエリ系だけ」。Bot Blocker の 3 つは
+        // wp-abilities/v1 に出さない（permission_callback に加えた多層防御）。
+        $exposed = [
+            'mp-ukagaka/get-recent-ai-crawlers',
+            'mp-ukagaka/get-visitor-pulse',
+            'mp-ukagaka/get-popular-posts',
+        ];
+        $withheld = [
+            'mp-ukagaka/get-bot-blocker-stats',
+            'mp-ukagaka/ban-ip',
+            'mp-ukagaka/clear-bot-blocker-data',
+        ];
+
+        foreach ($exposed as $name) {
+            $this->assertTrue(
+                $abilities[$name]['meta']['show_in_rest'] ?? false,
+                "{$name}: REST 公開されているはず"
+            );
+        }
+        foreach ($withheld as $name) {
+            $this->assertArrayNotHasKey(
+                'show_in_rest',
+                $abilities[$name]['meta'] ?? [],
+                "{$name}: REST 非公開は意図的。開くなら本テストも更新すること"
+            );
+        }
+    }
+
     public function test_every_ability_gates_execution_behind_a_permission_callback(): void {
         $abilities = $this->registerAll();
 
