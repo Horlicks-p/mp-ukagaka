@@ -34,6 +34,15 @@ const masks = [
   ".mpu-thinking",
 ];
 
+// Selectors whose union defines the screenshot clip box. Shared with the
+// containment assertion below so both always read the same list.
+const clipSelectors = [
+  "#ukagaka_shell",
+  "#ukagaka_msgbox",
+  "#ukagaka_think",
+  ".mpu-gift-picker",
+];
+
 const states = [
   ["normal", () => {}],
   [
@@ -192,18 +201,21 @@ async function capture(page, name, setup) {
     throw new Error("gift: .mpu-gift-picker must have a non-zero box");
   }
 
+  // chat-mode gives #ukagaka_msg a 200px min-height; anything shorter means the
+  // state never took effect and we would silently capture the normal frame.
+  if (name === "chat" && !(geometry["#ukagaka_msg"]?.height >= 200)) {
+    throw new Error(
+      `chat: #ukagaka_msg must be expanded (min-height 200px), got ${geometry["#ukagaka_msg"]?.height}`,
+    );
+  }
+
   const maskLocators = [];
   for (const selector of masks) {
     const locator = page.locator(selector);
     if ((await locator.count()) > 0) maskLocators.push(locator);
   }
-  const clip = await page.evaluate(() => {
-    const elements = [
-      "#ukagaka_shell",
-      "#ukagaka_msgbox",
-      "#ukagaka_think",
-      ".mpu-gift-picker",
-    ]
+  const clip = await page.evaluate((selectors) => {
+    const elements = selectors
       .map((selector) => document.querySelector(selector))
       .filter((element) => {
         if (!element) return false;
@@ -224,7 +236,33 @@ async function capture(page, name, setup) {
       Math.ceil(Math.max(...rectangles.map((r) => r.bottom))) + padding,
     );
     return { x: left, y: top, width: right - left, height: bottom - top };
+  }, clipSelectors);
+
+  // geometry, clip and the screenshot are three separate samples of the page.
+  // If the state shifts between them the clip can silently fall back to the
+  // normal-sized box while geometry still reports the expanded layout, and the
+  // comparison then passes on a frame that never showed the state under test.
+  // Rects are clamped to the viewport first because the clip box is too.
+  const escaped = clipSelectors.filter((selector) => {
+    const rect = geometry[selector];
+    if (!rect || rect.width <= 0 || rect.height <= 0) return false;
+    const left = Math.max(0, rect.x);
+    const top = Math.max(0, rect.y);
+    const right = Math.min(viewport.width, rect.x + rect.width);
+    const bottom = Math.min(viewport.height, rect.y + rect.height);
+    return (
+      left < clip.x ||
+      top < clip.y ||
+      right > clip.x + clip.width ||
+      bottom > clip.y + clip.height
+    );
   });
+  if (escaped.length > 0) {
+    throw new Error(
+      `${name}: clip box does not cover ${escaped.join(", ")} - the page state changed mid-capture`,
+    );
+  }
+
   await page.screenshot({
     path: path.join(targetDir, `${name}.png`),
     caret: "hide",
