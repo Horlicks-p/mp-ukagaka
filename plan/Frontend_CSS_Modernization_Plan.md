@@ -9,6 +9,7 @@
 > 🧩 CODEX 檢討整合：2026-09-01（外掛 cascade 邊界、漸進相容、無障礙與驗收順序）
 > 🧩 CLAUDE 第二輪：2026-09-01（核實 CODEX 事實主張、修正四處合併殘留、提出 C2-1～C2-4，見 §9）
 > 🧩 CODEX 第二輪／作者裁決：2026-09-01（接受 C2-1～C2-3；作者拍板 Q-4 保留省略號呼吸效果）
+> 🧩 作者確認：2026-09-01（**深色模式不在路線圖上**；token 化改以內部去重為目的，公開 API 契約暫緩發布）
 
 ---
 
@@ -27,7 +28,7 @@
 三個結論，其餘都是細節：
 
 1. **不要引入 `@layer`。** 主題該用，外掛不該用——理由見 §2，這是本計畫唯一「參照對象有、我方刻意不採用」的特性。
-2. **最高價值的一步是「自訂屬性 + 對外曝露 theming API」**，不是語法現代化。它讓宿主主題能以契約方式接管 MPU 的文字與控制項配色，不必反推選擇器寫 hack。（初稿曾宣稱「可讓 `moelog-20th` 刪掉檔尾那段深色補丁」，該段實際針對 `moelog-ai-qna-links`，與 MPU 無關——見 §4.1 的 CODEX 更正。）
+2. **最高價值的一步是自訂屬性化**，不是語法現代化——把散落 25 處的顏色字面值收斂成單一來源。token 設計照語意化與可對外的規格做，但**是否發布為公開 theming API 暫緩**：深色模式不在路線圖上，該契約目前沒有已知消費者（見 §4.1 註記）。（初稿曾宣稱「可讓 `moelog-20th` 刪掉檔尾那段深色補丁」，該段實際針對 `moelog-ai-qna-links`，與 MPU 無關——見 §4.1 的 CODEX 更正。）
 3. **81 個 `!important` 有 57 個集中在 `#ukagaka-dock`**，全是防禦主題的 `ul / li / a` 樣式。這是 cascade 邊界問題，不是語法問題；但不以大範圍 `all: revert-layer` 或重複 ID 當主要解法，改採元件級 reset、正常特異性與少量有理由的 `!important`。
 
 ---
@@ -124,7 +125,7 @@ CSS 串接規則：**未分層（unlayered）的作者規則，永遠勝過任�
 | 原生巢狀 | **第一輪不採用；先用扁平規則 + `:is()` 收攏** | 完整 selector 可直接被 `rg`／CodeGraph 命中，較適合三方交叉 review；壓行數不是主要目標。見 §4.3 |
 | 邏輯屬性 | **僅限文本流屬性，定位屬性維持物理值** | 角色是右下角視覺錨點，JS 硬寫 `style.left`；半套 RTL 會讓表情與角色分家。見 §4.4 |
 | 現代顏色語法 | **採用 `rgb(r g b / x%)`，透明度階梯用 `color-mix()`** | 與主題一致；`rgb(from …)` 相對顏色語法暫緩（相容性）。見 §4.5 |
-| 深色模式 | **本次不做，只鋪好變數地基** | 對話框底是點陣圖（`msgbox_bg.png` 等），純換色做不完整。見 §7 |
+| 深色模式 | **不在路線圖上**（2026-09-01 作者確認），非僅本次不做 | 對話框底是點陣圖（`msgbox_bg.png` 等），純換色做不完整；且無此需求。連帶影響公開 API 是否發布，見 §4.1 註記與 §7 |
 | 檔案拆分 | **不拆，維持單檔** | 無建置流程，拆檔會多出 HTTP 請求或逼引入 bundler |
 | 相容性底線 | **核心樣式採成熟特性；2023+ 特性只能漸進增強或提供 fallback** | 公開外掛不能讓日期標籤取代失敗模式分析。見 §6 |
 | Lint | **固定版本安裝 stylelint 並掛進 `npm run verify`** | 不用會臨時下載最新版的裸 `npx`；規則由寬到嚴逐步導入 |
@@ -135,7 +136,7 @@ CSS 串接規則：**未分層（unlayered）的作者規則，永遠勝過任�
 
 ### Phase 0（P0）— 自訂屬性 + 對外 theming API
 
-**這是投報率最高的一項，也是唯一「對外部有價值」的一項。**
+**這是投報率最高的一項。** 主要價值是內部去重（25 處顏色字面值 → 單一來源）；對外 theming 是設計上保留的可能性，但暫不發布為契約，理由見本節末註記。
 
 在 `#mp_ukagaka` 上定義 token：
 
@@ -202,6 +203,14 @@ html.dark-mode #mp_ukagaka {
 > The plugin is a separate codebase on its own release cycle, so styling it from here keeps theme updates from carrying plugin edits. **If the plugin ever adopts CSS custom properties or layers, delete this block.**
 
 **驗收**：完成後在 `docs-en/DEVELOPER_GUIDE.md` 新增一節「Theming the frontend widget」，把 `--mpu-*` 公開清單寫成契約（哪些保證穩定、哪些是內部實作）。**沒有文件的變數不算 API。**
+
+> **公開契約是否發布，視深色模式是否列入路線圖而定（2026-09-01 作者確認：目前不列入）。**
+>
+> C2-3 把公開 token 從 8 個擴到 13 個，理由完全來自「宿主主題完整覆寫 palette、但瀏覽器不支援 `color-mix()` 會半套失效」——那是深色模式場景。深色模式既不在路線圖上，這 13 個 token 的公開契約就沒有已知消費者。
+>
+> **因此 P0-A 的預設做法是：只做內部 token 化，暫不發布 API 契約。** 依上一行自己的規則，不寫進 `DEVELOPER_GUIDE.md` 就不形成相容性承諾，日後改名不算破壞性變更——保留彈性，也省掉本項的文件工作。
+>
+> 這**不改變 §4.1 的 token 設計本身**：語意化命名、`--mpu-internal-*` 前綴區分、靜態 fallback + `@supports color-mix` 推導全部照做。差別只在「是否對外承諾」。若日後深色模式進入路線圖，把既有的 13 個 token 寫進文件即可升格為 API，不需重做。
 
 **公開契約決定（C2-3 已收斂）：** 第一版公開 13 個 token。新增的五個不是通用的 `ink-30`／`ink-55` 色階，而是有用途語意的 control border、focus ring 與 scrollbar token。現代瀏覽器會由 ink/link 自動推導；不支援 `color-mix()` 的舊瀏覽器仍有靜態預設值，而需要完整換色的宿主主題必須明確覆寫全部 13 個公開 token。這比默許「只換文字、衍生色不連動」的部分失效更可測試，也避免把無語意的 alpha 階梯永久鎖成 API。
 
@@ -412,7 +421,9 @@ html.dark-mode #mp_ukagaka {
 
 0. **手機與平板版。** MPU 在 `mpu_is_show_page()` 內以 `wp_is_mobile()` 於伺服器端停止輸出，`css/mpu_style.css` 本身沒有 mobile media query。`moelog-20th/style.css` 的 `max-width: 768px` 隱藏規則只是該主題的第二層防護。本計畫不設計觸控版或手機版；只防止桌機使用者在縮放、窄視窗與分割畫面時發生關鍵控制項溢出或不可操作。
 
-1. **深色模式實作。** 對話框底是點陣圖（`msgbox_bg.png` / `msgbox_top.png` / `msgbox_bottom.png` / `think-bubble.png` / `think-tail.png`，皆為淺色），純換 CSS 顏色只會做出「深色文字配淺色圖片框」的半套結果。要真正支援得同時處理圖片（`image-set()` / `filter` / 改為純 CSS 繪製），那是獨立的視覺工程。**本計畫只鋪好變數地基，讓深色模式在下一個里程碑成為可能。**
+1. **深色模式實作。** 對話框底是點陣圖（`msgbox_bg.png` / `msgbox_top.png` / `msgbox_bottom.png` / `think-bubble.png` / `think-tail.png`，皆為淺色），純換 CSS 顏色只會做出「深色文字配淺色圖片框」的半套結果。要真正支援得同時處理圖片（`image-set()` / `filter` / 改為純 CSS 繪製），那是獨立的視覺工程。
+
+   **作者確認（2026-09-01）：深色模式目前不在路線圖上**，不僅是本次不做。本計畫的 token 化因此以**內部去重**為主要目的——把散落 25 處的顏色字面值收斂成單一來源；能否支撐未來的深色模式是附帶效果，不是動機，也不構成排程理由。
 
 2. **`#mp_ukagaka::after` 圖片預載 hack 的改造**（`css/mpu_style.css:148-157`）。這招有效但隱晦，現代做法是 PHP 端 `wp_head` 輸出 `<link rel="preload" as="image">`。但它牽涉 `includes/core/frontend-functions.php:260` 直接輸出的 inline `style="display:none;"`，以及 `:1218` / `:1224` 的 jQuery `fadeOut(400)`（會寫 inline style，與 CSS transition 互踩）。**跨 CSS / PHP / jQuery 三層，應獨立成 issue，不混入本計畫。**
 
@@ -536,7 +547,7 @@ CODEX 的技術結論（保留單一省略號、keyframes 只控 opacity、改�
 | Phase | 內容 | 估算 |
 |---|---|---|
 | P-1 | 視覺基準、DOM inventory、主題與桌機視窗矩陣準備 | 半天 |
-| P0-A | 自訂屬性 + token 化 + 文件化 API | 半天 |
+| P0-A | 自訂屬性 + token 化（**不含 API 文件化**，見 §4.1 註記） | 2～3 小時 |
 | P0-B | `!important` 消除 + 主題交叉測試 | 一天（測試佔一半） |
 | P1-A | 扁平元件區塊整理 + `:is()` 收攏 | 半天 |
 | P1-B | 邏輯屬性（限文本流）+ 現代顏色語法 | 2 小時 |
@@ -544,4 +555,4 @@ CODEX 的技術結論（保留單一省略號、keyframes 只控 opacity、改�
 | B-* | §5 的九項實際問題 | 1 小時 |
 | — | stylelint 導入 | 半天 |
 
-**合計約 3～3.5 個工作天**，其中視覺驗證佔比最高。建議 P-1 基準資料獨立保存，P0-A 與 P0-B 各自獨立 commit，方便回退。
+**合計約 3 個工作天**（API 文件化暫緩後由 3～3.5 天下修），其中視覺驗證佔比最高。建議 P-1 基準資料獨立保存，P0-A 與 P0-B 各自獨立 commit，方便回退。
