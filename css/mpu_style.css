@@ -1,3 +1,60 @@
+#mp_ukagaka {
+  /* Internal implementation details, not a public theming API. */
+  --mpu-internal-ink: #1e3a8a;
+  --mpu-internal-link: #1d8ac3;
+  --mpu-internal-link-hover: #6d6d6d;
+  --mpu-internal-font-family: "Noto Sans TC", "Noto Sans JP", serif;
+  --mpu-internal-duration-fast: 0.18s;
+  --mpu-internal-control-border: rgb(30 58 138 / 30%);
+  --mpu-internal-control-border-strong: rgb(30 58 138 / 55%);
+  --mpu-internal-focus-ring: rgb(29 138 195 / 20%);
+  --mpu-internal-scrollbar-thumb: rgb(30 58 138 / 50%);
+  --mpu-internal-scrollbar-thumb-hover: rgb(30 58 138 / 70%);
+  --mpu-internal-scrollbar-track: rgb(200 200 200 / 30%);
+  --mpu-internal-scrollbar-size: 6px;
+  --mpu-internal-scrollbar-radius: 3px;
+  --mpu-internal-scrollbar-size-chat: 8px;
+  --mpu-internal-scrollbar-radius-chat: 4px;
+  --mpu-internal-z-preload: -1;
+  --mpu-internal-z-emoji: 20;
+  --mpu-internal-z-canvas: 99;
+  --mpu-internal-z-shell: 10000;
+  --mpu-internal-z-msgbox: 10001;
+  --mpu-internal-z-bubble: 10002;
+  --mpu-internal-z-picker: 10030;
+}
+
+@supports (color: color-mix(in srgb, red, transparent)) {
+  #mp_ukagaka {
+    /* Keep these in sync with the static fallbacks above. */
+    --mpu-internal-control-border: color-mix(
+      in srgb,
+      var(--mpu-internal-ink) 30%,
+      transparent
+    );
+    --mpu-internal-control-border-strong: color-mix(
+      in srgb,
+      var(--mpu-internal-ink) 55%,
+      transparent
+    );
+    --mpu-internal-focus-ring: color-mix(
+      in srgb,
+      var(--mpu-internal-link) 20%,
+      transparent
+    );
+    --mpu-internal-scrollbar-thumb: color-mix(
+      in srgb,
+      var(--mpu-internal-ink) 50%,
+      transparent
+    );
+    --mpu-internal-scrollbar-thumb-hover: color-mix(
+      in srgb,
+      var(--mpu-internal-ink) 70%,
+      transparent
+    );
+  }
+}
+
 #mp_ukagaka .mpu-clear {
   clear: both;
   color: #fff;
@@ -12,15 +69,14 @@
   position: fixed;
   right: 0;
   bottom: 20px;
-  float: right;
   display: block;
-  z-index: 10000;
+  z-index: var(--mpu-internal-z-shell);
   margin: 0 50px 0 0;
   padding: 0;
 }
 
 #ukagaka_img {
-  margin-bottom: 0px;
+  margin-bottom: 0;
   position: relative;
   visibility: hidden; /* 初始隱藏，等 JavaScript 完成定位後再顯示，避免載入時的位移閃爍 */
 }
@@ -28,6 +84,7 @@
 /* 確保春菜角色、裝飾物與 Canvas 在任何主題的關燈模式下，皆不被亮度濾鏡（如 brightness(0.9)）影響，避免切換時閃爍 */
 #ukagaka_img img,
 #ukagaka_img canvas {
+  /* stylelint-disable-next-line declaration-no-important -- Defend the ghost from host-theme dark-mode filters. */
   filter: none !important;
 }
 
@@ -45,7 +102,7 @@
 
 /* 行李箱不透明 */
 #ukagaka_img .frieren-decoration[src*="suitcase"] {
-  opacity: 1 !important;
+  opacity: 1;
 }
 
 #ukagaka_img .frieren-decoration:hover {
@@ -55,15 +112,15 @@
 #ukagaka_img canvas {
   opacity: 1;
   position: relative;
-  z-index: 99; /* Canvas 層級調整為 99，讓前方裝飾物（如行李箱 z-100）能蓋過它 */
+  z-index: var(--mpu-internal-z-canvas); /* Must stay below decoration z-index 100. */
 }
 
 #ukagaka_img #frieren_idle_apng {
   position: relative;
-  z-index: 99; /* APNG 層級調整為 99 */
-  width: auto !important;
-  height: auto !important;
-  max-width: none !important;
+  z-index: var(--mpu-internal-z-canvas);
+  width: auto;
+  height: auto;
+  max-width: none;
 }
 
 #ukagaka_img canvas:hover {
@@ -73,10 +130,11 @@
 /* 表情圖案樣式 */
 #ukagaka_img .frieren-emoji {
   position: absolute;
-  z-index: 20;
+  z-index: var(--mpu-internal-z-emoji);
   pointer-events: none;
   max-width: 80px;
   max-height: 80px;
+
   /* 無淡入淡出效果，直接顯示 */
 }
 
@@ -97,20 +155,23 @@
   padding: 4px 6px;
   border-style: solid;
   border-width: 5px 14px 7px 13px; /* think-bubble.png 9-slice 邊框：上右下左 */
-  border-image-source: url(../images/think-bubble.png);
+  border-image-source: url("../images/think-bubble.png");
   border-image-slice: 5 14 7 13 fill; /* fill 保留中心當底；數字＝圖片像素 */
   border-image-repeat: stretch; /* 邊若有紋理/虛線改 round */
-  color: #1e3a8a;
-  font-family: "Noto Sans TC", "Noto Sans JP", serif;
+  color: var(--mpu-internal-ink);
+  font-family: var(--mpu-internal-font-family);
   font-size: 12px;
   line-height: 1.45;
   text-align: right;
   overflow-wrap: anywhere;
-  z-index: 10002;
+  z-index: var(--mpu-internal-z-bubble);
+
   /* 底色與陰影都烤進 think-bubble.png；元素 opacity 留給淡入動畫 */
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity var(--mpu-internal-duration-fast) ease,
+    transform var(--mpu-internal-duration-fast) ease;
   pointer-events: auto;
   cursor: pointer;
 }
@@ -132,7 +193,7 @@
   bottom: -25px;
   width: 19px;
   height: 17px;
-  background: url(../images/think-tail.png) no-repeat center / contain;
+  background: url("../images/think-tail.png") no-repeat center / contain;
 }
 
 .mpu-think-bubble.is-visible {
@@ -146,24 +207,24 @@
    對話框圖片出現。掛在恆常渲染的 #mp_ukagaka 上讓這些小圖在頁面
    載入時就開始下載（LLM 回應抵達前早已完成）。 */
 #mp_ukagaka::after {
-  content: url(../images/msgbox_top.png) url(../images/msgbox_bg.png)
-    url(../images/msgbox_bottom.png) url(../images/think-bubble.png)
-    url(../images/think-tail.png);
+  content: url("../images/msgbox_top.png") url("../images/msgbox_bg.png")
+    url("../images/msgbox_bottom.png") url("../images/think-bubble.png")
+    url("../images/think-tail.png");
   position: absolute;
   width: 0;
   height: 0;
   overflow: hidden;
-  z-index: -1;
+  z-index: var(--mpu-internal-z-preload);
 }
 
 #ukagaka_msgbox.mpu-main-bubble-dimmed {
   opacity: 0.72;
-  transition: opacity 0.18s ease;
+  transition: opacity var(--mpu-internal-duration-fast) ease;
 }
 
 .ukagaka-msgbox-top {
   height: 51px;
-  background: transparent url(../images/msgbox_top.png) no-repeat scroll right 0;
+  background: transparent url("../images/msgbox_top.png") no-repeat scroll right 0;
   margin: 0;
   padding: 0;
   display: block;
@@ -173,22 +234,22 @@
 
 #ukagaka_msgbox {
   position: absolute;
-  font-family: "Noto Sans TC", "Noto Sans JP", serif;
-  color: #1e3a8a;
+  font-family: var(--mpu-internal-font-family);
+  color: var(--mpu-internal-ink);
   top: 50%;
   left: -220px;
   transform: translateY(-50%);
   width: 250px;
   min-height: 50px;
   max-height: 80vh;
-  z-index: 10001;
+  z-index: var(--mpu-internal-z-msgbox);
   box-sizing: border-box;
   visibility: hidden; /* 初始隱藏，等人物載入完成後再顯示，避免定位錯誤 */
 }
 
 .ukagaka-msgbox-border {
   height: 54px;
-  background: transparent url(../images/msgbox_bottom.png) no-repeat scroll
+  background: transparent url("../images/msgbox_bottom.png") no-repeat scroll
     right 0;
   margin: 0;
   padding: 0;
@@ -203,59 +264,52 @@
 #mp_ukagaka .ukagaka-msgbox-border a:hover,
 #mp_ukagaka .ukagaka-msgbox-border a:focus,
 #mp_ukagaka .ukagaka-msgbox-border a:active {
-  outline: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  text-decoration: none !important;
-  -moz-outline-style: none !important;
-  outline-style: none !important;
+  outline: none;
+  border: none;
+  box-shadow: none;
+  text-decoration: none;
 }
 
 #mp_ukagaka .ukagaka-msgbox-border a img {
-  outline: none !important;
-  border: none !important;
-}
-
-.nextmsg {
-  width: 28px;
-  height: 28px;
-  background: transparent url(../images/ok_hover.png) no-repeat scroll right 0;
-  display: block;
+  outline: none;
+  border: none;
 }
 
 #ukagaka_msg {
-  background: transparent url(../images/msgbox_bg.png) repeat-y scroll right 0;
-  border: 0 solid;
+  background: transparent url("../images/msgbox_bg.png") repeat-y scroll right 0;
+  border: 0;
   padding: 10px 15px;
   max-height: 400px; /* 超過 400px 時出現滾動條 */
-  overflow-y: auto;
-  overflow-x: hidden;
-  word-wrap: break-word;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  overflow-wrap: break-word;
   box-sizing: border-box;
   margin: 0;
   display: block;
+
   /* 自訂滾動條樣式（Firefox） */
   scrollbar-width: thin;
-  scrollbar-color: rgba(30, 58, 138, 0.5) rgba(200, 200, 200, 0.3);
+  scrollbar-color: var(--mpu-internal-scrollbar-thumb)
+    var(--mpu-internal-scrollbar-track);
 }
 
 /* 自訂滾動條樣式（Chrome/Safari/Edge） */
 #ukagaka_msg::-webkit-scrollbar {
-  width: 6px;
+  width: var(--mpu-internal-scrollbar-size);
 }
 
 #ukagaka_msg::-webkit-scrollbar-track {
-  background: rgba(200, 200, 200, 0.3);
-  border-radius: 3px;
+  background: var(--mpu-internal-scrollbar-track);
+  border-radius: var(--mpu-internal-scrollbar-radius);
 }
 
 #ukagaka_msg::-webkit-scrollbar-thumb {
-  background: rgba(30, 58, 138, 0.5);
-  border-radius: 3px;
+  background: var(--mpu-internal-scrollbar-thumb);
+  border-radius: var(--mpu-internal-scrollbar-radius);
 }
 
 #ukagaka_msg::-webkit-scrollbar-thumb:hover {
-  background: rgba(30, 58, 138, 0.7);
+  background: var(--mpu-internal-scrollbar-thumb-hover);
 }
 
 #ukagaka_msgbox.chat-mode {
@@ -274,28 +328,28 @@
   flex: 1 1 0;
   height: 0;
   min-height: 200px;
-  overflow-y: auto !important;
-  overflow-x: hidden;
+  overflow: hidden auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(30, 58, 138, 0.5) rgba(200, 200, 200, 0.3);
+  scrollbar-color: var(--mpu-internal-scrollbar-thumb)
+    var(--mpu-internal-scrollbar-track);
 }
 
 #ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar {
-  width: 8px;
+  width: var(--mpu-internal-scrollbar-size-chat);
 }
 
 #ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar-track {
-  background: rgba(200, 200, 200, 0.3);
-  border-radius: 4px;
+  background: var(--mpu-internal-scrollbar-track);
+  border-radius: var(--mpu-internal-scrollbar-radius-chat);
 }
 
 #ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar-thumb {
-  background: rgba(30, 58, 138, 0.5);
-  border-radius: 4px;
+  background: var(--mpu-internal-scrollbar-thumb);
+  border-radius: var(--mpu-internal-scrollbar-radius-chat);
 }
 
 #ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar-thumb:hover {
-  background: rgba(30, 58, 138, 0.7);
+  background: var(--mpu-internal-scrollbar-thumb-hover);
 }
 
 #ukagaka_msgbox.chat-mode #ukagaka_chat_input {
@@ -303,103 +357,97 @@
 }
 
 #ukagaka_msg a {
-  color: #1d8ac3;
+  color: var(--mpu-internal-link);
   text-decoration: none;
 }
 
 #ukagaka_msg a:hover {
   text-decoration: none;
-  color: #6d6d6d;
+  color: var(--mpu-internal-link-hover);
 }
 
 #mp_ukagaka #ukagaka-dock {
-  width: 250px !important;
-  height: 45px !important;
-  color: transparent !important;
-  float: right !important;
-  padding: 0 0 30px 0 !important;
-  margin: 0 !important;
-  text-align: center !important;
-  background: url(../images/menu.png) no-repeat center !important;
-  border: none !important;
-  box-sizing: border-box !important;
+  width: 250px;
+  height: 45px;
+  color: transparent;
+  float: right;
+  padding: 0 0 30px;
+  margin: 0;
+  text-align: center;
+  background: url("../images/menu.png") no-repeat center;
+  border: none;
+  box-sizing: border-box;
 }
 
 #mp_ukagaka #ukagaka-dock ul {
-  list-style: none !important;
-  margin: 0 !important;
-  padding: 0 0 0 64px !important;
-  border: none !important;
-  background: none !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  height: 45px !important;
-  gap: 19px !important;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 64px;
+  border: none;
+  background: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 45px;
+  gap: 19px;
 }
 
 #mp_ukagaka #ukagaka-dock ul li {
-  list-style-type: none !important;
-  list-style: none !important;
-  float: none !important;
-  font-size: 0px !important;
-  display: block !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  background: none !important;
+  list-style: none;
+  float: none;
+  font-size: 0;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
 }
 
 #mp_ukagaka #ukagaka-dock ul li a,
 #mp_ukagaka #ukagaka-dock ul li a:link,
 #mp_ukagaka #ukagaka-dock ul li a:visited {
-  display: block !important;
-  width: 45px !important;
-  height: 45px !important;
-  color: transparent !important;
-  background: none !important;
-  background-image: none !important;
-  border: none !important;
-  text-decoration: none !important;
-  box-shadow: none !important;
-  outline: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  transition: none !important;
-  cursor: pointer !important;
-  font-size: 0 !important;
-  overflow: hidden !important;
+  display: block;
+  width: 45px;
+  height: 45px;
+  color: transparent;
+  background: none;
+  border: none;
+  text-decoration: none;
+  box-shadow: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  transition: none;
+  cursor: pointer;
+  font-size: 0;
+  overflow: hidden;
 }
 
-#mp_ukagaka #ukagaka-dock ul li.gotop a:hover,
-#mp_ukagaka #ukagaka-dock ul li.gotop a:focus,
-#mp_ukagaka #ukagaka-dock ul li.gotop a:active {
-  background: url(../images/top.png) no-repeat center center !important;
-  background-image: url(../images/top.png) !important;
-  background-repeat: no-repeat !important;
-  background-position: center center !important;
+#mp_ukagaka #ukagaka-dock ul li a:is(:hover, :focus-visible, :active) {
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
-#mp_ukagaka #ukagaka-dock ul li.hide a:hover,
-#mp_ukagaka #ukagaka-dock ul li.hide a:focus,
-#mp_ukagaka #ukagaka-dock ul li.hide a:active {
-  background: url(../images/hide.png) no-repeat center center !important;
-  background-image: url(../images/hide.png) !important;
-  background-repeat: no-repeat !important;
-  background-position: center center !important;
+#mp_ukagaka #ukagaka-dock ul li.gotop a:is(:hover, :focus-visible, :active) {
+  background-image: url("../images/top.png");
 }
 
-#mp_ukagaka #ukagaka-dock ul li.change a:hover,
-#mp_ukagaka #ukagaka-dock ul li.change a:focus,
-#mp_ukagaka #ukagaka-dock ul li.change a:active {
-  background: url(../images/change.png) no-repeat center center !important;
-  background-image: url(../images/change.png) !important;
-  background-repeat: no-repeat !important;
-  background-position: center center !important;
+#mp_ukagaka #ukagaka-dock ul li.hide a:is(:hover, :focus-visible, :active) {
+  background-image: url("../images/hide.png");
+}
+
+#mp_ukagaka #ukagaka-dock ul li.change a:is(:hover, :focus-visible, :active) {
+  background-image: url("../images/change.png");
+}
+
+#mp_ukagaka #ukagaka-dock ul li a:focus-visible,
+#mp_ukagaka .ukagaka-msgbox-border a:focus-visible {
+  outline: 2px solid var(--mpu-internal-link);
+  outline-offset: 2px;
 }
 
 #ukagaka_chat_input {
-  background: transparent url(../images/msgbox_bg.png) repeat-y scroll right 0;
+  background: transparent url("../images/msgbox_bg.png") repeat-y scroll right 0;
   padding: 8px 12px;
   display: flex;
   gap: 8px;
@@ -415,19 +463,19 @@
   width: auto;
   box-sizing: border-box;
   padding: 8px 12px;
-  border: 1px solid rgba(30, 58, 138, 0.3);
+  border: 1px solid var(--mpu-internal-control-border);
   border-radius: 16px;
   font-size: 13px;
-  font-family: "Noto Sans TC", "Noto Sans JP", serif;
-  background: rgba(255, 255, 255, 0.9);
-  color: #1e3a8a;
+  font-family: var(--mpu-internal-font-family);
+  background: rgb(255 255 255 / 90%);
+  color: var(--mpu-internal-ink);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 #mpu_user_input:focus {
-  border-color: #1d8ac3;
-  box-shadow: 0 0 0 2px rgba(29, 138, 195, 0.2);
+  border-color: var(--mpu-internal-link);
+  box-shadow: 0 0 0 2px var(--mpu-internal-focus-ring);
 }
 
 #mpu_user_input::placeholder {
@@ -439,9 +487,9 @@
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 1px solid rgba(30, 58, 138, 0.3);
+  border: 1px solid var(--mpu-internal-control-border);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgb(255 255 255 / 92%);
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
@@ -449,12 +497,12 @@
 }
 
 .mpu-gift-picker-button:hover:not(:disabled) {
-  border-color: rgba(30, 58, 138, 0.55);
-  background: rgba(219, 234, 254, 0.98);
+  border-color: var(--mpu-internal-control-border-strong);
+  background: rgb(219 234 254 / 98%);
 }
 
 .mpu-gift-picker-button:focus-visible {
-  outline: 2px solid #1d8ac3;
+  outline: 2px solid var(--mpu-internal-link);
   outline-offset: 2px;
 }
 
@@ -468,15 +516,15 @@
   right: 12px;
   left: 12px;
   bottom: calc(100% + 8px);
-  z-index: 10030;
+  z-index: var(--mpu-internal-z-picker);
   display: block;
   width: auto;
   box-sizing: border-box;
   padding: 10px;
-  border: 1px solid rgba(30, 58, 138, 0.25);
+  border: 1px solid rgb(30 58 138 / 25%);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 8px 24px rgba(30, 58, 138, 0.22);
+  background: rgb(255 255 255 / 98%);
+  box-shadow: 0 8px 24px rgb(30 58 138 / 22%);
 }
 
 .mpu-gift-picker[hidden] {
@@ -509,21 +557,21 @@
   height: 44px;
   padding: 0;
   border: 0;
-  background: transparent !important;
-  color: #1e3a8a !important;
+  background: transparent;
+  color: var(--mpu-internal-ink);
   cursor: pointer;
   font-size: 28px;
   line-height: 1;
 }
 
 .mpu-gift-picker-nav:hover:not(:disabled) {
-  background: transparent !important;
-  color: #1e3a8a !important;
+  background: transparent;
+  color: var(--mpu-internal-ink);
   transform: scale(1.12);
 }
 
 .mpu-gift-picker-nav:focus-visible {
-  outline: 2px dashed rgba(30, 58, 138, 0.55);
+  outline: 2px dashed var(--mpu-internal-control-border-strong);
   outline-offset: 2px;
 }
 
@@ -546,25 +594,25 @@
   padding: 6px;
   border: 0;
   border-radius: 10px;
-  background: transparent !important;
-  color: #1e3a8a !important;
+  background: transparent;
+  color: var(--mpu-internal-ink);
   cursor: pointer;
-  font-family: "Noto Sans TC", "Noto Sans JP", serif;
+  font-family: var(--mpu-internal-font-family);
   transition: transform 0.16s ease;
 }
 
 .mpu-gift-picker-item:hover {
   border: 0;
-  background: transparent !important;
-  color: #1e3a8a !important;
+  background: transparent;
+  color: var(--mpu-internal-ink);
   transform: scale(1.08);
   z-index: 1;
 }
 
 .mpu-gift-picker-item:focus-visible {
-  background: transparent !important;
-  color: #1e3a8a !important;
-  outline: 2px dashed rgba(30, 58, 138, 0.55);
+  background: transparent;
+  color: var(--mpu-internal-ink);
+  outline: 2px dashed var(--mpu-internal-control-border-strong);
   outline-offset: 2px;
 }
 
@@ -592,54 +640,12 @@
 
 .mpu-gift-picker-fallback {
   display: block;
+  min-height: 85px;
+  padding-top: 30px;
   overflow-wrap: anywhere;
   font-size: 11px;
   line-height: 1.35;
   text-align: center;
-}
-
-.mpu-gift-picker-fallback {
-  min-height: 85px;
-  padding-top: 30px;
-}
-
-.mpu-chat-message {
-  margin-bottom: 8px;
-  padding: 6px 10px;
-  border-radius: 12px;
-  max-width: 90%;
-  word-wrap: break-word;
-  animation: mpu-msg-fade-in 0.3s ease-out;
-}
-
-.mpu-chat-message.user {
-  background: rgba(29, 138, 195, 0.15);
-  margin-left: auto;
-  text-align: right;
-  color: #1e3a8a;
-}
-
-.mpu-chat-message.assistant {
-  background: rgba(30, 58, 138, 0.08);
-  margin-right: auto;
-  color: #1e3a8a;
-}
-
-.mpu-chat-message .mpu-msg-role {
-  font-size: 11px;
-  color: #6b7280;
-  margin-bottom: 2px;
-}
-
-@keyframes mpu-msg-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .mpu-thinking {
@@ -657,8 +663,32 @@
     content: "…";
     opacity: 0.3;
   }
+
   50% {
     content: "…";
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #ukagaka_img .frieren-decoration,
+  .mpu-think-bubble,
+  #ukagaka_msgbox.mpu-main-bubble-dimmed,
+  .mpu-gift-picker-button,
+  .mpu-gift-picker-item,
+  .mpu-gift-picker-item img {
+    transition: none;
+  }
+
+  .mpu-think-bubble,
+  .mpu-gift-picker-nav:hover:not(:disabled),
+  .mpu-gift-picker-item:hover,
+  .mpu-gift-picker-item:hover img {
+    transform: none;
+  }
+
+  .mpu-thinking::after {
+    animation: none;
     opacity: 1;
   }
 }
@@ -668,13 +698,13 @@
   position: absolute;
   top: 15px;
   right: 20px;
-  z-index: 10002;
+  z-index: var(--mpu-internal-z-bubble);
   padding: 2px 8px;
   font-size: 11px;
   font-weight: 600;
   line-height: 1.5;
   color: #fff;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgb(0 0 0 / 65%);
   border-radius: 10px;
   pointer-events: none;
   font-family: "Noto Sans TC", "Noto Sans JP", sans-serif;
@@ -682,22 +712,28 @@
   letter-spacing: 0;
   user-select: none;
 }
+
 #ukagaka_msgbox[data-mpu-stream-state="thinking"] .mpu-state-badge {
-  background: rgba(30, 58, 138, 0.85);
+  background: rgb(30 58 138 / 85%);
 }
+
 #ukagaka_msgbox[data-mpu-stream-state="streaming"] .mpu-state-badge,
 #ukagaka_msgbox[data-mpu-stream-state="status"] .mpu-state-badge {
-  background: rgba(16, 122, 56, 0.85);
+  background: rgb(16 122 56 / 85%);
 }
+
 #ukagaka_msgbox[data-mpu-stream-state="tool"] .mpu-state-badge {
-  background: rgba(126, 87, 14, 0.85);
+  background: rgb(126 87 14 / 85%);
 }
+
 #ukagaka_msgbox[data-mpu-stream-state="error"] .mpu-state-badge {
-  background: rgba(176, 32, 32, 0.85);
+  background: rgb(176 32 32 / 85%);
 }
+
 #ukagaka_msgbox[data-mpu-stream-state="timeout"] .mpu-state-badge {
-  background: rgba(120, 60, 30, 0.85);
+  background: rgb(120 60 30 / 85%);
 }
+
 #ukagaka_msgbox[data-mpu-stream-state="busy"] .mpu-state-badge {
-  background: rgba(176, 100, 20, 0.85);
+  background: rgb(176 100 20 / 85%);
 }
