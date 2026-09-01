@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require("node:fs/promises");
+const { createHash } = require("node:crypto");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { chromium } = require("../node/node_modules/playwright");
@@ -48,7 +49,13 @@ const states = [
   [
     "gift",
     () => {
-      document.querySelector(".mpu-gift-picker")?.removeAttribute("hidden");
+      const messageBox = document.querySelector("#ukagaka_msgbox");
+      const chatInput = document.querySelector("#ukagaka_chat_input");
+      const picker = document.querySelector("#mpu_gift_picker");
+      messageBox?.classList.add("chat-mode");
+      if (messageBox) messageBox.style.display = "flex";
+      if (chatInput) chatInput.style.display = "flex";
+      picker?.removeAttribute("hidden");
     },
   ],
   [
@@ -177,6 +184,14 @@ async function capture(page, name, setup) {
     );
   });
 
+  if (
+    name === "gift" &&
+    (geometry[".mpu-gift-picker"]?.width <= 0 ||
+      geometry[".mpu-gift-picker"]?.height <= 0)
+  ) {
+    throw new Error("gift: .mpu-gift-picker must have a non-zero box");
+  }
+
   const maskLocators = [];
   for (const selector of masks) {
     const locator = page.locator(selector);
@@ -243,6 +258,28 @@ async function compareImages(pixelmatch, name) {
   return changed;
 }
 
+function findGeometryDifferences(expected, actual) {
+  const differences = [];
+  for (const [state, expectedSelectors] of Object.entries(expected)) {
+    const actualSelectors = actual[state];
+    if (!actualSelectors) {
+      differences.push(`${state}: missing state`);
+      continue;
+    }
+    for (const [selector, expectedRectangle] of Object.entries(
+      expectedSelectors,
+    )) {
+      const actualRectangle = actualSelectors[selector];
+      if (JSON.stringify(expectedRectangle) !== JSON.stringify(actualRectangle)) {
+        differences.push(
+          `${state} ${selector}: ${JSON.stringify(expectedRectangle)} -> ${JSON.stringify(actualRectangle)}`,
+        );
+      }
+    }
+  }
+  return differences;
+}
+
 async function main() {
   await fs.mkdir(targetDir, { recursive: true });
   if (mode === "compare") await fs.mkdir(diffDir, { recursive: true });
@@ -264,6 +301,7 @@ async function main() {
     await browser.close();
   }
 
+  const cssContent = await fs.readFile(path.join(root, "css/mpu_style.css"));
   const metadata = {
     url,
     theme,
@@ -276,6 +314,7 @@ async function main() {
     pixelThresholdPerChannel: 0,
     maximumDifferentPixels: 0,
     maximumDifferentPixelRatio: 0,
+    cssSha256: createHash("sha256").update(cssContent).digest("hex"),
     geometry,
   };
   await fs.writeFile(
@@ -284,6 +323,9 @@ async function main() {
   );
 
   if (mode === "compare") {
+    const baselineMetadata = JSON.parse(
+      await fs.readFile(path.join(baselineDir, "metadata.json"), "utf8"),
+    );
     const pixelmatchPath = path.join(
       root,
       "tools/node/node_modules/pixelmatch/index.js",
@@ -292,6 +334,13 @@ async function main() {
       pathToFileURL(pixelmatchPath).href
     );
     const failures = [];
+    const geometryDifferences = findGeometryDifferences(
+      baselineMetadata.geometry,
+      metadata.geometry,
+    );
+    failures.push(
+      ...geometryDifferences.map((difference) => `geometry ${difference}`),
+    );
     for (const [name] of states) {
       const changed = await compareImages(pixelmatch, name);
       if (changed !== 0) failures.push(`${name}: ${changed} pixels`);
@@ -299,6 +348,11 @@ async function main() {
     if (failures.length > 0) {
       throw new Error(`Visual differences found:\n${failures.join("\n")}`);
     }
+    const comparisonKind =
+      baselineMetadata.cssSha256 === metadata.cssSha256
+        ? "same CSS (harness repeatability only)"
+        : "different CSS (visual regression)";
+    console.log(`Visual comparison passed: ${comparisonKind}`);
   }
 }
 

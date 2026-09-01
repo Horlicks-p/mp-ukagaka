@@ -118,9 +118,11 @@
 #ukagaka_img #frieren_idle_apng {
   position: relative;
   z-index: var(--mpu-internal-z-canvas);
-  width: auto;
-  height: auto;
-  max-width: none;
+  /* stylelint-disable declaration-no-important -- Preserve intrinsic APNG dimensions against host-theme image resets. */
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  /* stylelint-enable declaration-no-important */
 }
 
 #ukagaka_img canvas:hover {
