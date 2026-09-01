@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.29.0
+Stable tag: 2.30.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,15 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-09-01 =
+* v2.30.0
+* [NEW] Chat scroll no longer chains to the page. Reaching the end of the chat log now stops there instead of scrolling the article behind it.
+* [NEW] Keyboard focus is visible on the dock buttons again, via `:focus-visible` — no focus ring on mouse clicks.
+* [NEW] `prefers-reduced-motion: reduce` now disables the think-bubble slide-in and the gift picker hover scale. The thinking indicator keeps a static ellipsis so it stays distinguishable from idle.
+* [CHANGE] Frontend stylesheet modernized: colours resolve from internal custom properties, `!important` is down from 81 to 4 (each with a documented reason), and dead rules were removed. Deliberately no layout change — screenshots across five scenes are byte-identical before and after.
+* [NOTE] The `--mpu-internal-*` custom properties are internal implementation, not a theming API, and may be renamed at any time.
+* [TEST] Added a Playwright visual-regression harness with per-scene state guards, and wired Stylelint into `npm run verify`.
 
 = 2026-08-05 =
 * v2.29.0

@@ -4,6 +4,26 @@
 
 ---
 
+## [2.30.0] - 2026-09-01
+
+### Frontend CSS modernization
+
+- **`css/mpu_style.css` rebuilt around internal custom properties**: 25 scattered colour literals — the same blue written both as `#1e3a8a` and as eight `rgba(30, 58, 138, …)` alpha steps — now resolve from a single set of `--mpu-internal-*` tokens defined on `#mp_ukagaka`, with `color-mix()` deriving the alpha steps where supported. The derivation is exact rather than approximate: CSS Color 5 specifies premultiplied interpolation, so `color-mix(in srgb, #1e3a8a 30%, transparent)` equals `rgba(30, 58, 138, 0.3)` byte for byte. Tokens are deliberately **not** a public theming API — every name carries the `--mpu-internal-` prefix and may be renamed without notice, because dark mode is not on the roadmap and the contract would have no consumer.
+- **`!important` reduced from 81 to 4**: 57 of the 81 were in `#ukagaka-dock` alone, defending `ul` / `li` / `a` against host themes. Those are now handled with component-level resets and ordinary specificity. The four survivors each carry an inline reason and a `stylelint-disable` comment: `filter: none` guards the character and canvas against theme dark-mode brightness filters, and the three APNG dimension rules preserve intrinsic size against responsive `img` resets.
+- **Chat scroll no longer chains to the page**: `#ukagaka_msg` gained `overscroll-behavior: contain`, so reaching the end of the chat log stops there instead of scrolling the article behind it.
+- **Keyboard focus is visible again**: the dock buttons previously removed `outline` unconditionally. They now use `:focus-visible`, restoring a keyboard focus indicator without showing a ring on mouse clicks.
+- **Reduced-motion support**: `prefers-reduced-motion: reduce` now disables the think-bubble translate-in and the gift picker's hover scale. The thinking indicator keeps its ellipsis as a static glyph rather than disappearing, so "thinking" stays distinguishable from idle.
+- **Dead code and redundant declarations removed**: `.nextmsg`, `.mpu-chat-message` with its `.user` / `.assistant` / `.mpu-msg-role` children, and the orphaned `mpu-msg-fade-in` keyframes had no reference anywhere in PHP, JavaScript, or the production bundles. Also fixed a duplicated `.mpu-gift-picker-fallback` block, a `float` that a `position: fixed` element ignored, `margin-bottom: 0px`, `border: 0 solid`, and a `list-style-type` / `list-style` pair on the dock list items.
+- **No layout change**: this release is a refactor. Positioning stays on physical properties throughout, because the character is anchored bottom-right and `js/ukagaka-emoji.js` writes `style.left` / `style.top` directly — half-converting to logical properties would separate the emoji from the character under RTL. Screenshot comparison across five scenes (normal, chat, gift picker, think bubble, canvas-only) is byte-identical before and after, and every captured bounding box is unchanged.
+
+### Visual regression tooling
+
+- **`tools/visual/frontend-css-visual.js`**: a Playwright harness that captures the five scenes above at a fixed viewport, waits for `mpuVisualReady` before shooting, masks the canvas, APNG, decorations, and emoji, and compares with `pixelmatch` at `threshold: 0`. Screenshot bytes and the full geometry metadata must both match. Baseline metadata records a SHA-256 of the stylesheet so a same-CSS run is reported as harness repeatability rather than as a visual regression.
+- **Scene guards**: each scene asserts that its state actually applied before the screenshot — the gift picker must have a non-zero box, `#ukagaka_msg` must reach its 200px chat-mode min-height, and the clip box must cover every non-zero element. Without these a scene could silently capture the normal frame and compare clean against another equally wrong capture.
+- **Stylelint**: pinned in `tools/node` and wired into `npm run verify`, enforcing `declaration-no-important` (with documented per-line exemptions) and an `^mpu-` custom property pattern.
+
+---
+
 ## [2.29.0] - 2026-08-05
 
 ### Gift message attachment

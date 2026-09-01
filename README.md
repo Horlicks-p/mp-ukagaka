@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.29.0-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.30.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.29.0
+## 🎉 What's New in v2.30.0
+
+**Frontend CSS modernization** (v2.30.0): The frontend stylesheet was rebuilt around internal custom properties, cutting `!important` from 81 to 4 — each survivor now carries a written reason — and removing dead rules that no longer matched anything. Three user-facing improvements came with it: the chat log no longer scrolls the page behind it when you reach the end, the dock buttons show a keyboard focus indicator again, and `prefers-reduced-motion` is respected. This is deliberately a refactor with no layout change: screenshots across five scenes are byte-identical before and after, verified by a new Playwright regression harness. Note that the `--mpu-internal-*` properties are internal implementation, not a theming API.
 
 **Gift message attachment** (v2.29.0): Visitors can now say something while handing over a gift. Typing in the chat box before picking an item sends the text along with the gift as a single `give` event, so the character reacts to both the item and what was said in one reply. `POST /touch/give` accepts an optional `message` field, sanitized and capped at 500 UTF-8 characters; an empty message leaves the existing gift flow unchanged. The picker now stays open while the chat input is focused, making the order 🎁 open → type → click the item, with Enter inside an open picker sending the displayed gift. Gift replies also no longer drift into `「line」action「line」` screenplay format — the prompt block and the stored history anchor are label-delimited instead of corner-bracketed.
 
 **Per-item variant substitution for gift reactions** (v2.28.0): Item catalog entries can now define an optional `variants` list. When present, `/touch/give` picks one at random and substitutes it into the item prompt's `{variant}` placeholder, so a single gift or food item produces varied, content-aware reactions instead of one fixed line. Frieren's `魔導書` gift ships 10 distinct variants so repeated gifting no longer returns the same response. See the Character Creation Guide for the full `items.json` format.
 
-**Chat integrity session follow-up** (v2.27.7): Checksum verification and storage now use the same full 40-entry transport window while the LLM context remains capped at 20 entries. Each page instance also receives a fresh checksum session ID, including duplicated tabs whose `sessionStorage` was copied by the browser.
-
-**Earlier releases**: review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
