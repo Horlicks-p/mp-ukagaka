@@ -4,6 +4,14 @@
 
 ---
 
+## [Unreleased]
+
+### Tooling
+
+- **Stylelint now enforces the custom property namespace**: `custom-property-pattern` is set to `^mpu-internal-[a-z0-9]+(-[a-z0-9]+)*$`. The plan called for this rule but 2.30.0 shipped without it, so the config fell back to `stylelint-config-standard`'s plain kebab-case default and any name — `--ink-30`, `--mpu-color-ink` — passed. The prefix is load-bearing rather than cosmetic: tokens are internal implementation with no public theming contract, and a name like `--mpu-color-ink` reads as a promise the plugin does not make. The 2.30.0 changelog entry claimed this rule was active and has been corrected to describe what actually shipped. All 22 existing tokens pass unchanged.
+
+---
+
 ## [2.30.0] - 2026-09-01
 
 ### Frontend CSS modernization
@@ -20,7 +28,7 @@
 
 - **`tools/visual/frontend-css-visual.js`**: a Playwright harness that captures the five scenes above at a fixed viewport, waits for `mpuVisualReady` before shooting, masks the canvas, APNG, decorations, and emoji, and compares with `pixelmatch` at `threshold: 0`. Screenshot bytes and the full geometry metadata must both match. Baseline metadata records a SHA-256 of the stylesheet so a same-CSS run is reported as harness repeatability rather than as a visual regression.
 - **Scene guards**: each scene asserts that its state actually applied before the screenshot — the gift picker must have a non-zero box, `#ukagaka_msg` must reach its 200px chat-mode min-height, and the clip box must cover every non-zero element. Without these a scene could silently capture the normal frame and compare clean against another equally wrong capture.
-- **Stylelint**: pinned in `tools/node` and wired into `npm run verify`, enforcing `declaration-no-important` (with documented per-line exemptions) and an `^mpu-` custom property pattern.
+- **Stylelint**: pinned in `tools/node` and wired into `npm run verify`, enforcing `declaration-no-important` with documented per-line exemptions.
 
 ---
 

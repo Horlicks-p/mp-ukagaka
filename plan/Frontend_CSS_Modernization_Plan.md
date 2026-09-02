@@ -532,7 +532,7 @@ html.dark-mode #mp_ukagaka {
 掛進 `verify` 鏈。規則只開三條，目的是防回歸不是追求風格統一：
 
 - `declaration-no-important`（保留項以就地 `stylelint-disable-next-line` 加理由，不建立看不出用途的全域 allowlist）
-- `custom-property-pattern: "^mpu-"`
+- `custom-property-pattern: "^mpu-internal-[a-z0-9]+(-[a-z0-9]+)*$"`（**2026-09-02 收緊**：原訂 `"^mpu-"`，但 §11.1 定案「所有 token 一律 `--mpu-internal-*`」，`^mpu-` 會放行 `--mpu-color-ink` 這種讀起來像公開契約的名字。v2.30.0 交付時此規則漏設，config 只繼承 `stylelint-config-standard` 的 kebab-case 預設，等於未生效——已補）
 - 重複 selector／無效值等低爭議 correctness 規則
 
 不建議第一天就開全域 `color-no-hex`：token 定義本身必須容許顏色字面值，否則會逼出無意義的 disable。元件宣告禁止硬寫顏色可在 token 化穩定後，再用精準規則或 review 守門。
