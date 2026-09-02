@@ -11,14 +11,24 @@
 > 🧩 CODEX 第二輪／作者裁決：2026-09-01（接受 C2-1～C2-3；作者拍板 Q-4 保留省略號呼吸效果）
 > 🧩 作者確認：2026-09-01（**深色模式不在路線圖上**；token 化改以內部去重為目的，公開 API 契約暫緩發布）
 > 🧩 **家庭端整合評審：2026-09-01**（家 CODEX + 家 CLAUDE 各自獨立評審後合併；共 14 項待處理（H-1～H-14），其中 **7 項會改動視覺／版面**——5 項立即可見、2 項為 RTL 潛伏。**結論：現稿不可直接開工**，見 §11）
+> ✅ **已實作發版：v2.30.0（2026-09-01）**；本文轉為實作紀錄
+> 🧩 公司端 CLAUDE：2026-09-02（實測覆核交付結果；補 `custom-property-pattern` 守門；以串接靜態分析補足跨主題證據，見 §11.10）
 
 ---
 
 ## ⚠️ 狀態
 
-**提案階段，尚未動工；且經 §11 家庭端整合評審後，現稿不可直接開工。** 新增的驗收約束是「**基本不改動 ghost layout，只改良 CSS、讓代碼更現代化更易於維護**」——原稿有數項在此約束下屬於實質視覺變更，須先依 §11 修正範圍才能進入 Phase -1。
+**已實作並發版：v2.30.0（2026-09-01）。** 本文自此轉為實作紀錄與後續追蹤，不再是提案。
 
-**§11 待處理項目共 14 條**，必須先解決的有三類：token 公開性全文矛盾（§11.1）、會改動 layout 的項目（§11.2）、Phase -1 不可執行（§11.4）。
+實際交付（公司端 CLAUDE 於 2026-09-02 實測確認）：`!important` **81 → 4**（恰為 §4.2 證據表兩列：`filter: none` ×1、APNG 尺寸 ×3）；顏色字面值由 25 處散落收斂為每值各一；新增 22 個 `--mpu-internal-*` token；死碼 `.nextmsg`／`.mpu-chat-message` 群／`mpu-msg-fade-in` 全數移除；`overscroll-behavior`、`:focus-visible`、reduced-motion 到位。§11.2 判定會改動 layout 的項目（B-4 glyph、B-5 badge 字型、邏輯屬性、`dvh`／`text-wrap`）全部確實移出本輪。
+
+**後續追蹤（不阻擋任何工作）**：
+
+1. ~~跨主題證據不足~~ → **已補足**，見 §11.10 的四主題串接分析；僅餘 block theme global styles 的一項瀏覽器抽查。
+2. v2.30.0 漏設 `custom-property-pattern`，lint 守門實際未生效 → 已於 `b4977e5` 補上 `^mpu-internal-`，並更正 changelog（詳見 Unreleased 區塊）。
+3. `visual:baseline` / `visual:compare` 需活站台，刻意不在 `verify` 內 → 視覺閘門仍為手動，CI 不會擋下改壞 layout 的編輯。
+
+> 以下 §1～§10 保留提案當時的原文，供追溯決策脈絡；與 §11 衝突處一律以 §11 為準。
 
 > 以下兩段為家庭端評審前的狀態描述，保留供追溯：
 >
@@ -844,6 +854,52 @@ Firefox 的 `scrollbar-color` 兩邊相同可共用；webkit 那組不行。**�
 門 A 的目標是「遮罩後的靜態區域 0 差異」；未遮罩區域不進入比對，改由 bounding box 斷言覆蓋。
 
 **主題交叉測試矩陣（家 CLAUDE 補充）**：移除 `#mp_ukagaka .ukagaka-msgbox-border a` 那 8 個 `!important`（`:206-216`）是全案風險最高的動作——它防的是宿主主題對 OK／Cancel 連結的 `outline`／`border`／`text-decoration`。原計畫的樣本（`moelog-20th` + 一個核心主題）偏薄，建議加測 Twenty Twenty-One（對 `a` 有重樣式）與 Twenty Twenty-Four；或直接把這 8 條連同證據列一起保留——它們本來就填得出 §4.2 證據表要求的「宿主規則類型」欄。
+
+---
+
+#### §11.10 追加：交叉測試矩陣的串接分析結果（公司端 CLAUDE，2026-09-02）
+
+> **狀態：本格已定案，僅餘一項瀏覽器抽查。** v2.30.0 已移除該 8 條 `!important`，公司端無可執行的 WordPress 站台，改以**串接（cascade）靜態分析**補足證據。分析對象為本機四份主題原始碼，非執行時觀察。
+
+**決定性前提：widget 掛在 `wp_footer`，是 `<body>` 的直接子節點。**
+
+```
+includes/core/frontend-functions.php:148   add_action( 'wp_footer', 'mpu_echo_html' )
+```
+
+四份主題的 `wp_footer()` 均在所有容器**之外**（`twentytwelve/footer.php` 在 `</div><!-- #page -->` 之後；`moelog-20th/footer.php` 在 `</footer>` 之後；兩個 block theme 由樣板渲染器輸出於 body 末端）。因此**所有帶容器前綴的主題規則根本選不到外掛連結**——`.entry-content a`、`#access a`、`#page a`、`.widget-area .widget a`、`.comments-area … a` 全部出局，與其特異性無關。能匹配的只剩無前綴的 `a` 規則。
+
+外掛端現行選擇器 `#mp_ukagaka .ukagaka-msgbox-border a` 特異性 **(1,1,1)**。
+
+| 主題 | 類型 | 可匹配的規則 | 特異性 | 四個防禦屬性上的 `!important` | 判定 |
+|---|---|---|---|---|---|
+| `twentytwelve` | classic | `a { outline: none; color }`（`:499`） | (0,0,1) | 無 | ✅ 安全（且 `outline: none` 與外掛意圖一致） |
+| `moelog-20th` | classic | `a { text-decoration: none; outline: none }`（`:386`） | (0,0,1) | 無 — 2 筆命中皆不相干：`:2504` 在 `@media print` 內、`:2518` 選 `figure.wp-block-embed-twitter` | ✅ 安全（且均在 `@layer overrides` 內，對未分層規則必輸） |
+| `twentytwentyfour` | block | style.css 僅 15 行、**無任何規則**；`theme.json` 的 `elements.link` 只設 `color` 與 `:hover` 的 `textDecoration` | — | 無 | ✅ 安全 |
+| `twentytwentyfive` | block | `a { text-decoration-thickness: 1px !important }`（`:28`） | (0,0,1) + important | **1 筆命中，見下** | ⚠️ 串接有變化，視覺無影響 |
+
+**TT5 命中項的完整串接分析：**
+
+| | 重構前 | 重構後 |
+|---|---|---|
+| 外掛 | `text-decoration: none !important` (1,1,1) | `text-decoration: none` (1,1,1) |
+| TT5 `:28` | `text-decoration-thickness: 1px !important` (0,0,1) | 同左 |
+| `text-decoration-thickness` 勝出者 | **外掛**（同為 important → 比特異性） | **TT5**（important 勝普通 → 不比特異性） |
+
+計算值由 `auto` 變為 `1px`，**這是重構造成的真實串接變化**。但 `text-decoration-line` 仍由外掛簡寫設為 `none`（(1,1,1) 勝過 block theme global styles 的 `:root :where(a…)` (0,1,0)），無線條可繪製時粗細無從表現；且該 `<a>` 內只有 `<img>` 無文字。**視覺影響為零。**
+
+**順帶覆蓋 gift picker 的 8 個 `!important`**（`.mpu-gift-picker-nav` / `-item`，特異性僅 (0,1,0)，比連結那組更低，原計畫未涵蓋）：
+
+- 兩個 block theme 的 `theme.json` `elements.button` 只作用於 `.wp-element-button` / `.wp-block-button__link`，**不含裸 `<button>`**，外掛未使用該等 class。
+- 兩個 classic theme 均無裸 `button` 規則。`moelog-20th:2547` 的 `:is(a, button, input, textarea):focus-visible` 特異性 (0,1,1)，輸給外掛的 `.mpu-gift-picker-nav:focus-visible` (0,2,0)，且身處 `@layer overrides` 內。
+
+**殘留風險已形式化為單一形狀**：無容器前綴的 `a` 規則，帶 `!important`，且設 `outline` / `border` / `box-shadow` / `text-decoration`。此形狀在四份主題中只出現一次（TT5），且無視覺影響。日後評估新主題不需站台，一行即可篩查：
+
+```bash
+grep -nE '(^|[},])\s*(body\s+)?a\b[^{}]*\{[^}]*(outline|border|box-shadow|text-decoration)[^;}]*!important' style.css
+```
+
+**唯一待瀏覽器抽查的一項**：block theme 的 global styles 是 WordPress 執行時生成的，本分析是由 `theme.json` 反推其形狀（`:root :where(a:where(:not(.wp-element-button)))`，`:where()` 使特異性維持 (0,1,0)），**非直接觀察**。兩者的 `elements.link` 都未觸及 `outline` / `border` / `box-shadow`，推論成立機率高，但應於有站台時開 DevTools 確認 `<style id="global-styles-inline-css">` 的實際輸出，才算完成驗證。此項屬確認性質，不阻擋任何後續工作。
 
 ---
 
