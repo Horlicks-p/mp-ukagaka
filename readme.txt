@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.30.0
+Stable tag: 2.31.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,16 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-09-03 =
+* v2.31.0
+* [FIX] Gift and feeding reactions now see the conversation they happen in. The gift endpoint already received and stored the chat history but never passed it to the model, so handing the character something mid-conversation was, from her side, an isolated event -- saying "this is a thank-you gift" a turn earlier could not affect the reply. Gifts now use the same 20-message window as normal chat.
+* [FIX] The character no longer invents a reason you never gave. Fact, motive and stage direction were concatenated as equally binding instructions, so a randomly drawn "wonder why they picked this" could override you plainly saying you had no idea what the item was. Each source now has a defined scope, and what you say this turn wins over an earlier turn.
+* [FIX] Food is no longer eaten by decree -- warning that something may be off now stops her tasting it -- and the grimoire no longer asserts its contents, or that she has already opened it, as established fact.
+* [FIX] Repeat gifts stop replaying word for word. The old path ran through the API response cache, and the pudding has no variants, so its prompt had only 8 possible forms. The new path is not cached.
+* [CHANGE] Four gift and feeding reaction lines rewritten: they presupposed either a deliberate choice on your part or an action already completed. The reaction angle is drawn before your message is read, so it cannot assume anything about you.
+* [DEV] New `mpu_mcp_tools_for_llm` filter withholds tool definitions from a single call without changing anyone's permissions. One-shot reactions use it.
+* [TEST] Added a gift transport smoke test to `npm run verify`, guarding the controller wiring that unit tests cannot reach.
 
 = 2026-09-01 =
 * v2.30.0

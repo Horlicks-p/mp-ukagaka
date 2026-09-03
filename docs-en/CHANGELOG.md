@@ -4,7 +4,7 @@
 
 ---
 
-## [Unreleased]
+## [2.31.0] - 2026-09-03
 
 ### Gift & feeding reactions
 
