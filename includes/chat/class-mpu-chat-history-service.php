@@ -86,6 +86,57 @@ class MPU_Chat_History_Service {
 		return $history;
 	}
 
+	/**
+	 * Drop assistant messages that have no preceding user anchor.
+	 *
+	 * Must run before array_slice: 窗口滑動時第一筆 assistant 的 user 錨點會被切掉，
+	 * 之後才過濾就會把合法訊息當成孤立訊息刪除，下一輪 checksum 隨即對不上。
+	 * synthetic user（送禮／觸摸）的 role 是 "user"，可正常錨定後續的 assistant。
+	 * chat/user 與 touch/give 必須套用同一條規則，否則兩端送給模型的 history
+	 * 會在同一個 session 裡分岔，所以規則只寫在這裡一份.
+	 *
+	 * @param array $history Normalized history.
+	 * @return array<int, array{role: string, content: string, type: string}>
+	 */
+	public static function filter_orphan_assistants( array $history ): array {
+		$filtered      = array();
+		$previous_role = '';
+		foreach ( $history as $message ) {
+			if ( 'assistant' === $message['role'] && 'user' !== $previous_role ) {
+				continue;
+			}
+
+			$filtered[]    = $message;
+			$previous_role = $message['role'];
+		}
+
+		return $filtered;
+	}
+
+	/**
+	 * Convert history into the provider messages array.
+	 *
+	 * The type field is dropped here: 它是 checksum 與前端渲染用的分類，模型只看 role/content。
+	 * 呼叫端若同時需要完整的 integrity window，必須自己保留 filter_orphan_assistants()
+	 * 的結果，因為這裡回傳的是已經裁切過的 LLM 視窗，不是 integrity 視窗.
+	 *
+	 * @param array $history Normalized history.
+	 * @param int   $limit   Maximum messages to keep, counted from the end.
+	 * @return array<int, array{role: string, content: string}>
+	 */
+	public static function to_llm_messages( array $history, int $limit = 20 ): array {
+		$window   = array_slice( self::filter_orphan_assistants( $history ), -$limit );
+		$messages = array();
+		foreach ( $window as $message ) {
+			$messages[] = array(
+				'role'    => $message['role'],
+				'content' => $message['content'],
+			);
+		}
+
+		return $messages;
+	}
+
     /**
      * 驗證 checksum（chat/user 路徑）。
      * audit/warn 模式只記錄後回傳 null；block 模式驗證失敗時回傳 WP_Error。

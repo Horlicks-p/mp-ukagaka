@@ -47,6 +47,30 @@ Core abilities involving sensitive operations (such as file operations, deleting
 
 *Permission Control: System reaction when a non-admin role triggers a tool call*
 
+### Withholding tools from a single call
+
+The role whitelist answers *who may use an ability*. A separate question is *whether a
+given call should offer any at all* — a one-shot character reaction has no use for tools,
+but an administrator browsing their own site would otherwise be handed every tool
+definition, which costs tokens and lets the model reply with a tool call on a code path
+that has no tool-loop handling.
+
+The `mpu_mcp_tools_for_llm` filter answers the second question. Returning an empty array
+means this call offers no abilities; it does not change anyone's permissions.
+
+```php
+$suppress = static function () {
+    return [];
+};
+add_filter( 'mpu_mcp_tools_for_llm', $suppress, 10, 1 );
+// ... make the LLM call ...
+remove_filter( 'mpu_mcp_tools_for_llm', $suppress, 10 );
+```
+
+The full signature is `( array $tools, string $provider, string $role, array $context )`,
+where `$role` is the resolved `MPU_Input_Role` value. `/touch/give` uses this to keep gift
+and feeding reactions tool-free.
+
 ## How to Add Abilities (Developer Guide)
 
 MP Ukagaka will automatically detect and use all Abilities registered to the WordPress core.

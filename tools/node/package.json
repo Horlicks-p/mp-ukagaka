@@ -15,6 +15,7 @@
     "test:chat-integrity-window": "cd ../.. && node tools/node/test-chat-integrity-window-smoke.js",
     "test:chat-transport": "cd ../.. && node tools/node/test-chat-transport-smoke.js",
     "test:gift-message": "cd ../.. && node tools/node/test-gift-message-smoke.js",
+    "test:gift-transport": "cd ../.. && node tools/node/test-gift-transport-smoke.js",
     "lint:css": "cd ../.. && stylelint css/mpu_style.css --config-basedir tools/node",
     "lint:css:fix": "cd ../.. && stylelint css/mpu_style.css --config-basedir tools/node --fix",
     "visual:baseline": "cd ../.. && node tools/visual/frontend-css-visual.js baseline",
@@ -26,7 +27,7 @@
     "lint:phpcs:baseline": "cd ../.. && php tools/php/phpcs-baseline.php generate",
     "lint:phpcs:summary": "cd ../.. && php tools/php/phpcs-baseline.php summary",
     "test:php": "cd ../../tests && php ../tools/php/vendor/bin/phpunit --colors=always",
-    "verify": "npm run version:check && npm run lint:php && npm run lint:phpcs && npm run lint:css && npm run test:logger && npm run test:visual-ready && npm run test:chat-integrity-window && npm run test:chat-transport && npm run test:gift-message && npm run build && npm run test:php",
+    "verify": "npm run version:check && npm run lint:php && npm run lint:phpcs && npm run lint:css && npm run test:logger && npm run test:visual-ready && npm run test:chat-integrity-window && npm run test:chat-transport && npm run test:gift-message && npm run test:gift-transport && npm run build && npm run test:php",
     "translate:en": "cd ../.. && node tools/node/translate-po.js",
     "test": "npm run test:php"
   },

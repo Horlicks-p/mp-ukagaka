@@ -124,7 +124,20 @@ function mpu_get_mcp_tools_for_llm($provider = 'openai', array $context = [])
         }
     }
 
-    return $formatted_tools;
+	/**
+	 * Filter the tool definitions exposed to the LLM for this call.
+	 *
+	 * The role whitelist decides who may use a tool; 這個 filter 決定「這一次要不要給」。
+	 * 送禮／觸摸這類單回合演出用不到工具，卻會因為管理員身分而拿到全部 tool 定義，
+	 * 白白增加 token 並讓模型有機會回 tool_use，而那條路徑沒有 tool loop 的善後處理。
+	 * 回傳空陣列即等同這一次呼叫不開放 abilities.
+	 *
+	 * @param array  $formatted_tools Provider-formatted tool definitions.
+	 * @param string $provider        Provider slug.
+	 * @param string $role            Resolved MPU_Input_Role value.
+	 * @param array  $context         Input role context.
+	 */
+	return apply_filters( 'mpu_mcp_tools_for_llm', $formatted_tools, $provider, $role, $context );
 }
 
 /**

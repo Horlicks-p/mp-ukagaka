@@ -614,17 +614,8 @@ class MPU_REST_Chat extends MPU_REST_Base {
         // [Fix] 修正正規化邏輯：必須在 array_slice 之前進行。
         // 否則當窗口滑動時，第一筆 assistant 訊息會因前面的 user 訊息被 slice 掉而變成「孤立」訊息被濾除，
         // 導致下一輪 Checksum 驗證失敗。
-        // synthetic user（type="synthetic"）的 role 是 "user"，可正常錨定後續的 assistant。
-        $normalized_history = [];
-        $previous_role      = '';
-        foreach ($valid_history as $message) {
-            if ($message['role'] === 'assistant' && $previous_role !== 'user') {
-                continue;
-            }
-
-            $normalized_history[] = $message;
-            $previous_role        = $message['role'];
-        }
+        // 規則本體在 MPU_Chat_History_Service，touch/give 用的是同一份（手寫兩份會分岔）。
+        $normalized_history = MPU_Chat_History_Service::filter_orphan_assistants( $valid_history );
 
         // Integrity 必須在裁成 LLM context 前使用完整 transport window（前端最多 40 筆），
         // 否則 non-chat 訊息會先把 checksum-bearing assistant 擠出 history。

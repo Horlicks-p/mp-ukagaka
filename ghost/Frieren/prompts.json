@@ -652,26 +652,26 @@
     "座っている宝箱を叩かれた。中身は今は空っぽだと教えて。"
   ],
 
-  "_comment_give": "Gift/feeding reaction angle categories (item identity is supplied by items.json prompt; these add behavioral variety)",
+  "_comment_give": "Gift/feeding reaction angle categories. These describe HOW Frieren behaves, nothing else. Never state what the item is (items.json owns that), and never presuppose the visitor's motive, knowledge, or the outcome of the action -- the visitor's own words own that, and the backend draws one of these lines blindly before it has read them. A line like 'wonder why they picked this' silently invents a reason the visitor never gave; a line like 'while eating' forces an outcome the visitor may have told her not to take. Both read as the character talking past the player.",
 
   "give_food": [
-    "味について率直な感想を一言添えて。",
-    "意外そうにしつつも、結局は気に入った様子を見せて。",
-    "食べながら、ふと旅の途中で口にした味を懐かしんで。",
-    "食い意地が張っていることを悪びれず認めながら口に運んで。"
+    "口をつけたなら、味について率直な感想を一言添えて。",
+    "意外そうにしつつも、結局は関心を隠しきれない様子を見せて。",
+    "旅の途中で似たものを口にした記憶に、少しだけ触れて。",
+    "食い意地が張っていることを悪びれず認めながら受け取って。"
   ],
 
   "give_gift": [
     "贈り物をしげしげと眺め、興味を引かれた点を一言述べて。",
     "受け取った品を大切そうに手元へ置き、素直に礼を言って。",
     "長い旅の中でも役に立ちそうだと、淡々と評価して。",
-    "なぜこれを選んだのか少し気にしつつ、嬉しそうに受け取って。"
+    "嬉しさを隠しきれない様子で受け取り、短く礼を言って。"
   ],
 
   "give_favorite": [
     "特に好みに合う物なので、普段の無表情がわずかにほころんで。",
-    "素直に喜びつつも、これほど好みを把握している相手の意図を少し訝しんで。",
-    "思わず夢中になり、その後で気恥ずかしさを隠すように素っ気なく礼を言って。",
+    "好みに刺さったことは認めつつ、平静を装って短く礼を言って。",
+    "つい関心が先に立ってしまい、その後で気恥ずかしさを隠すように素っ気なく礼を言って。",
     "嬉しさを表に出すまいとするのに、態度に滲んでしまって。"
   ]
 }
