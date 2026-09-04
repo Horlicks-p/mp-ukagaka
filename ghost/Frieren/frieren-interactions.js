@@ -762,6 +762,30 @@
         true
       );
 
+      // ✅ ボタンは Enter と同じ「送信」操作なので、ピッカーが開いている間は
+      // 同じ意味を持たせる。片方だけ贈与に割り当てると、添え書きを書いてから
+      // ボタンを押した回だけ品物が消え、台詞だけが普通のチャットとして飛ぶ。
+      // #mpu_ok_btn は #ukagaka_chat_input の外にあるので container では捕まらず、
+      // document の capture フェーズで ukagaka-chat-events.js の click ハンドラより
+      // 先に止める必要がある.
+      document.addEventListener(
+        "click",
+        (event) => {
+          if (picker.hidden || !event.target || !event.target.closest) {
+            return;
+          }
+          if (!event.target.closest("#mpu_ok_btn")) {
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          const item = config.items[currentIndex];
+          this.closeGiftPicker();
+          this.giveItem(item.id);
+        },
+        true
+      );
+
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && !picker.hidden) {
           this.closeGiftPicker();

@@ -192,6 +192,35 @@ async function testConcurrentGiveIsBlocked() {
   assert(harness.input.value === "君にあげる", "a blocked give must not touch the input");
 }
 
+/**
+ * Enter と ✅ ボタンは同じ「送信」操作なので、ピッカーが開いている間は
+ * 両方とも贈与でなければならない。片方だけ割り当てると、添え書きを書いて
+ * ボタンを押した回だけ品物が消え、台詞が普通のチャットとして飛ぶ。
+ *
+ * この配線は giveItem() の外側にあり上のハーネスからは届かないので、
+ * 意図が消えていないことをソース側で確かめる。
+ */
+function testBothSendGesturesAreBoundToTheGive() {
+  assert(
+    /container\.addEventListener\(\s*"keydown",[\s\S]*?event\.key !== "Enter"[\s\S]*?this\.giveItem\(item\.id\);[\s\S]*?true,?\s*\);/.test(
+      source,
+    ),
+    "Enter must be captured before the chat keypress handler and routed to the give",
+  );
+  assert(
+    /document\.addEventListener\(\s*"click",[\s\S]*?closest\("#mpu_ok_btn"\)[\s\S]*?this\.giveItem\(item\.id\);[\s\S]*?true,?\s*\);/.test(
+      source,
+    ),
+    "the ✅ button must be captured while the picker is open and routed to the give",
+  );
+  // #mpu_ok_btn は #ukagaka_chat_input の外にあるので container 上では捕まらない。
+  // capture フェーズでなければ ukagaka-chat-events.js の click ハンドラが先に走る。
+  assert(
+    !/container\.addEventListener\(\s*"click"/.test(source),
+    "the ✅ button lives outside the picker container, so container-level click binding cannot reach it",
+  );
+}
+
 async function main() {
   const tests = [
     ["empty message keeps the current contract", testEmptyMessageKeepsCurrentContract],
@@ -199,6 +228,7 @@ async function main() {
     ["failure restores the message", testFailureRestoresTheMessage],
     ["failure does not overwrite newer input", testFailureDoesNotOverwriteNewInput],
     ["concurrent give is blocked", testConcurrentGiveIsBlocked],
+    ["Enter and the ✅ button both give", testBothSendGesturesAreBoundToTheGive],
   ];
 
   for (const [name, run] of tests) {
