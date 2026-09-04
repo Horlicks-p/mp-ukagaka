@@ -1211,19 +1211,19 @@ add_filter('mpu_observation_post_visibility', function($visible, $post) {
 
 | Endpoint | Method | Permission | Parameters | Rate Limit | Description |
 | --- | --- | --- | --- | --- | --- |
-| `/chat/context` | POST | Public | `page_title`, `page_content`, `publish_date`, `session_id`, `history` | 5/60s | Page aware dialogue, triggers AI comments based on current article content; max 500 chars |
-| `/chat/greet` | POST | Public | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `session_id`, `history` | 10/60s | First-time visitor greeting, customized by source country/search engine |
-| `/chat/user` | POST | Public | `message` (required), `history`, `page_title`, `page_content`, `session_id` | 30/60s | Multi-turn interactive chat (non-streaming), supports MCP Tool/Abilities calls; returns `{msg, emoji}` |
-| `/chat/user-stream` | POST | Public | Same as `/chat/user` | 30/60s | SSE streaming version, outputs token-by-token if supported by Provider |
+| `/chat/context` | POST | Public + valid session token | `page_title`, `page_content`, `publish_date`, `session_id`, `history` | 5/60s | Page aware dialogue, triggers AI comments based on current article content; max 500 chars |
+| `/chat/greet` | POST | Public + valid session token | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `session_id`, `history` | 10/60s | First-time visitor greeting, customized by source country/search engine |
+| `/chat/user` | POST | Public + valid session token | `message` (required), `history`, `page_title`, `page_content`, `session_id` | 30/60s | Multi-turn interactive chat (non-streaming), supports MCP Tool/Abilities calls; returns `{msg, emoji}` |
+| `/chat/user-stream` | POST | Public + valid session token | Same as `/chat/user` | 30/60s | SSE streaming version, outputs token-by-token if supported by Provider |
 | `/session-token` | GET | Public | — | 10/60s | Issues an IP-bound session token for anonymous visitors; returns `{token}` with no-store cache headers |
 
 ### Touch Interactions
 
 | Endpoint | Method | Permission | Parameters | Rate Limit | Description |
 | --- | --- | --- | --- | --- | --- |
-| `/touch/decoration` | POST | Public | `decoration_type` (required) | 20/60s | AI reaction when clicking decorations; returns `{msg, emoji}` |
-| `/touch/zone` | POST | Public | `touch_zone` (required) | 20/60s | Petting reaction when clicking character body zones; returns `{msg, emoji, zone}` |
-| `/touch/give` | POST | Public + valid session token | `item_id` (required), `history`, `session_id` | 10/60s | Gift / feeding reaction for an item from `ghost/<CharacterID>/items.json`; returns normalized `{msg, emoji, emotion_tags, ...}` fields |
+| `/touch/decoration` | POST | Public + valid session token | `decoration_type` (required) | 20/60s | AI reaction when clicking decorations; returns `{msg, emoji}` |
+| `/touch/zone` | POST | Public + valid session token | `touch_zone` (required) | 20/60s | Petting reaction when clicking character body zones; returns `{msg, emoji, zone}` |
+| `/touch/give` | POST | Public + valid session token | `item_id` (required), `message` (optional, sanitized and capped at 500 UTF-8 characters), `history`, `session_id` | 20/60s | Gift / feeding reaction for an item from `ghost/<CharacterID>/items.json`; returns normalized `{msg, emoji, emotion_tags, ...}` fields |
 
 ### Observations
 
