@@ -333,6 +333,34 @@ final class ItemCatalogTest extends TestCase {
         $this->assertStringContainsString('その警告を踏まえて応じること', $prompt);
     }
 
+    /**
+     * 制止の例外は、相手がそれを言える場が実在する回にだけ書く。附言も履歴も無いのに
+     * 「変質や安全性への具体的な懸念を述べている場合」と書くと、参照先の無い警告を
+     * 名指ししたことになり、モデルは誰も言っていない懸念を自分で作り出す
+     * （「食べる前に確認した方がいいかな。変な味がしないか」）。細部の補完は
+     * 別の規則で許可しているので、空振りの参照ほど埋められやすい。
+     */
+    public function test_stop_exceptions_appear_only_when_the_visitor_could_have_said_them(): void {
+        $food = ['kind' => 'food', 'prompt' => '相手がプリンを差し出した。', 'favorite' => false];
+        $gift = ['kind' => 'gift', 'prompt' => '相手が魔導書を差し出した。', 'favorite' => false];
+
+        // 附言も履歴も無い回：許可だけが残り、制止の条件節は出ない。
+        $bare = mpu_build_item_reaction_prompt($food, '', 'フリーレン', []);
+        $this->assertStringContainsString('口をつけてもよい', $bare);
+        $this->assertStringNotContainsString('口をつけないこと', $bare);
+        $this->assertStringNotContainsString('変質や安全性への具体的な懸念', $bare);
+        $this->assertStringNotContainsString('その警告を踏まえて応じること', $bare);
+
+        $bareGift = mpu_build_item_reaction_prompt($gift, '', 'フリーレン', []);
+        $this->assertStringContainsString('その場で確かめてもよい', $bareGift);
+        $this->assertStringNotContainsString('開けない・使わないよう求めている', $bareGift);
+        $this->assertStringNotContainsString('中身には触れないこと', $bareGift);
+
+        // 附言が無くても履歴があれば、制止はそこで述べられ得るので条件節は残す。
+        $withHistory = mpu_build_item_reaction_prompt($food, '', 'フリーレン', [], true);
+        $this->assertStringContainsString('口をつけないこと', $withHistory);
+    }
+
     public function test_reaction_prompt_without_message_omits_visitor_blocks(): void {
         $item = ['kind' => 'gift', 'prompt' => '相手が魔導書を差し出した。', 'favorite' => false];
 
