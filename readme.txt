@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.32.0
+Stable tag: 2.32.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,12 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-09-04 =
+* v2.32.1
+* [FIX] The ✅ button now sends the gift while the picker is open. Only Enter had been wired to it, so writing a note and pressing the button sent the note as an ordinary chat message and quietly dropped the item -- and pressing it with an empty box did nothing at all. Present since gift messages arrived in v2.29.0.
+* [FIX] She no longer invents a warning you never gave. Handing over food with no note and no prior conversation could produce "let me check it does not taste odd before eating": the prompt mentioned a possible warning even on turns where you had said nothing, and the character filled in the missing source herself. The permission to taste stays; the exception now appears only when you actually had somewhere to say it.
+* [FIX] Touch and decoration reactions carry the same anti-screenplay guard as gift replies, so a quoted line in a future reaction prompt cannot drag the whole conversation into script format.
 
 = 2026-09-04 =
 * v2.32.0

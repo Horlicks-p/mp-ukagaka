@@ -6,7 +6,7 @@ This file provides AI assistants with the context needed to understand and contr
 
 ## Project Overview
 
-**MP Ukagaka** is a WordPress plugin (v2.32.0) that creates interactive "ukagaka" (伺か) desktop-companion–style characters on WordPress sites. Characters display dialogue, respond to page content using AI APIs, and support multi-turn chat with visitors.
+**MP Ukagaka** is a WordPress plugin (v2.32.1) that creates interactive "ukagaka" (伺か) desktop-companion–style characters on WordPress sites. Characters display dialogue, respond to page content using AI APIs, and support multi-turn chat with visitors.
 
 - **Language stack**: PHP 7.4+ (backend), JavaScript ES6+ (frontend)
 - **WordPress**: Requires 5.0+, tested up to 6.4

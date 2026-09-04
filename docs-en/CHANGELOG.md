@@ -4,6 +4,18 @@
 
 ---
 
+## [2.32.1] - 2026-09-04
+
+### Gift & feeding fixes
+
+- **The ✅ button gives the gift while the picker is open.** Enter and the button are the same send gesture, but only Enter was bound to it. `#mpu_ok_btn` sits outside `#ukagaka_chat_input`, so the container-level keydown capture that intercepts Enter never saw its click and the chat handler reached it first: writing a note and pressing the button sent the note as an ordinary chat message and dropped the item, while pressing it with an empty field did nothing at all, since `mpu_sendUserMessage()` returns silently on a blank message. Both symptoms date from v2.29.0, when gift messages were added. The button is now captured on `document` — the element is outside the picker container and the chat handler binds directly to it, so anything later in the propagation path is too late — and the interception does not inspect the input, so an empty field gives the item.
+- **She no longer worries about a warning nobody gave.** Handing over the pudding with no message and no prior conversation produced "let me check it does not taste odd before eating". The stop-exception was appended to the situation block unconditionally, so a turn with no 【相手の発言】 and no history still carried "when the visitor asks her not to eat it, or states a concrete concern about spoilage or safety". Naming a warning with no source invites the model to supply one, and the rule permitting unresolved details to be filled in makes it likelier still. This is the rule the builder already states for jurisdiction lines — declare a scope only for blocks that exist — applied to the one clause left out of it. The permission to taste stays unconditional; only the exception is gated on the visitor having somewhere to have said it, and prior history still counts.
+
+### Touch reactions
+
+- **The anti-screenplay guard now covers touch and decoration reactions.** The response-rules block is hand-written in three places and the two in the touch controller had drifted, both omitting "do not wrap your reply in corner brackets" — the clause that stops a quoted line in the prompt from teaching the model to answer in 「line」action「line」 for the rest of the conversation. No reaction category currently quotes anything, but 99 lines across the other categories in `prompts.json` do, and those are the style a future author would copy.
+
+---
 ## [2.32.0] - 2026-09-04
 
 ### Gift & feeding reactions
