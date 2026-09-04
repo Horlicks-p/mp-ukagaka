@@ -652,26 +652,34 @@
     "座っている宝箱を叩かれた。中身は今は空っぽだと教えて。"
   ],
 
-  "_comment_give": "Gift/feeding reaction angle categories. These describe HOW Frieren behaves, nothing else. Never state what the item is (items.json owns that), and never presuppose the visitor's motive, knowledge, or the outcome of the action -- the visitor's own words own that, and the backend draws one of these lines blindly before it has read them. A line like 'wonder why they picked this' silently invents a reason the visitor never gave; a line like 'while eating' forces an outcome the visitor may have told her not to take. Both read as the character talking past the player.",
+  "_comment_give": "Gift/feeding reaction direction candidates. A candidate may say whether to prioritize the conversation or the item, and every conditional candidate must include a usable fallback. Never state what the item is or describe item-specific appearance (items.json owns those), and never presuppose the visitor's motive, knowledge, or a completed action. The backend draws one line blindly before reading the visitor's words, so the final rules may discard a candidate that conflicts with the conversation.",
 
   "give_food": [
-    "口をつけたなら、味について率直な感想を一言添えて。",
-    "意外そうにしつつも、結局は関心を隠しきれない様子を見せて。",
+    "直前に食事や空腹の話をしていたならその流れを優先し、なければ一口ぶんの感想か、後で食べることに短く触れて。",
+    "口をつけたなら味について率直な感想を一言添え、まだなら見た目から気づいた点か後で食べることに触れて。",
+    "すぐ食べない流れなら取っておくことに触れ、そうでなければその場で一口試してみてもよい。",
     "旅の途中で似たものを口にした記憶に、少しだけ触れて。",
-    "食い意地が張っていることを悪びれず認めながら受け取って。"
+    "食い意地が張っていることを悪びれず認めながら受け取って。",
+    "量や大きさについて、思ったことをそのまま口に出して。",
+    "見た目から味の見当をつけて、短く述べて。",
+    "この後どう食べるつもりかを、一言だけ添えて。"
   ],
 
   "give_gift": [
+    "直前の会話に結びつく話題があればそちらを優先し、なければ品物から気づいた点を一言述べて。",
     "贈り物をしげしげと眺め、興味を引かれた点を一言述べて。",
-    "受け取った品を大切そうに手元へ置き、素直に礼を言って。",
+    "中身や正体に触れる流れなら手がかりから具体的に見立て、そうでなければまず気になった点だけを述べて。",
+    "今は調べない流れなら後で調べるつもりだと伝え、そうでなければその場で分かる範囲を見立てて。",
     "長い旅の中でも役に立ちそうだと、淡々と評価して。",
-    "嬉しさを隠しきれない様子で受け取り、短く礼を言って。"
+    "似たものを見た記憶があるかどうか、思い出しながら答えて。",
+    "価値や珍しさについて、思ったままの見立てを述べて。",
+    "嬉しさを隠しきれない様子で受け取り、気になった点を一つ挙げて。"
   ],
 
   "give_favorite": [
-    "特に好みに合う物なので、普段の無表情がわずかにほころんで。",
-    "好みに刺さったことは認めつつ、平静を装って短く礼を言って。",
-    "つい関心が先に立ってしまい、その後で気恥ずかしさを隠すように素っ気なく礼を言って。",
+    "普段の無表情がわずかにほころぶ。何がそんなに好みなのかも一言添えて。",
+    "好みに刺さったことは認めつつ、気になった点を一つだけ添えて。",
+    "つい関心が先に立ってしまい、その後で気恥ずかしさを隠すように素っ気なく応じて。",
     "嬉しさを表に出すまいとするのに、態度に滲んでしまって。"
   ]
 }

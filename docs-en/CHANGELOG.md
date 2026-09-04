@@ -4,6 +4,21 @@
 
 ---
 
+## [2.32.0] - 2026-09-04
+
+### Gift & feeding reactions
+
+- **Gift replies favor the live conversation over a checklist.** Food tasting and inspectable gifts are now explicitly permitted without being forced, while concrete safety warnings and requests not to open an item remain binding. The response rules allow irrelevant taste, contents, thanks, or actions to be omitted and allow unresolved item details to be improvised so long as they do not contradict the conversation or invent the visitor's motive, source, or knowledge.
+- **Reaction candidates have useful content again.** The shared `give_food`, `give_gift`, and `give_favorite` pools replace pure-thanks directions with item, memory, and follow-up hooks. Conditional directions carry their own fallback, and the randomly drawn direction remains discardable whenever it conflicts with the visitor's words or prior conversation.
+- **More varied food scenes.** メルクーアプリン now has seven artwork-aligned visual variants. Frieren also ships a non-favorite ハンバーグ food item with seven variants and an Eisen/Stark memory hook; keeping it out of `give_favorite` preserves pudding as Frieren's actual favorite while exercising the catalog's non-favorite path.
+- **The grimoire no longer has to decide whether to open itself.** v2.31.0 replaced a forced disclosure (`中身に具体的に触れて反応すること`) with a deferred conditional — whether she opens it here is decided by this turn's conversation — which does not let the conversation decide anything. It poses opening someone else's gift as a question for the model to adjudicate, and the safe answer is always no, so there was nothing left to say about the book. The catalog now states the property (a book that reads as {variant} after a few pages) and the reaction builder grants permission to inspect, with a request not to open it remaining binding and its contents off limits in that case. Permission needs no adjudication; the exception has a concrete trigger.
+
+### Testing
+
+- `ItemCatalogTest` covers the three-item catalog and its first non-favorite entry, the tasting/inspection permissions alongside their binding exceptions, the omission and improvisation clauses together with the proviso that keeps the visitor's motive, source, and knowledge off limits, the per-source context-priority branches, and a guard against reaction candidates collapsing back into a bare thank-you.
+
+---
+
 ## [2.31.0] - 2026-09-03
 
 ### Gift & feeding reactions

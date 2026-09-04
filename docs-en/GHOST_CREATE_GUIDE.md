@@ -574,7 +574,12 @@ Adjusts weights based on the time period. Will be merged with `base_weights`.
       "name": "メルクーアプリン",
       "image": "merkur_pudding.png",
       "favorite": true,
-      "prompt": "相手がメルクーアプリンを差し出した。メルクーアプリンはフリーレンの大好物である。",
+      "prompt": "相手がメルクーアプリンを差し出した。メルクーアプリンはフリーレンの大好物である。見たところ{variant}。",
+      "variants": [
+        "赤い木の実がいくつも添えられている",
+        "果実のソースがたっぷりかかっている",
+        "手作りらしい素朴な形をしている"
+      ],
       "reactions": ["give_food", "give_favorite"]
     },
     {
@@ -583,7 +588,7 @@ Adjusts weights based on the time period. Will be merged with `base_weights`.
       "name": "魔導書",
       "image": "grimoire.png",
       "favorite": true,
-      "prompt": "相手が魔導書を差し出した。それは{variant}だった。中身に具体的に触れて反応すること。",
+      "prompt": "相手が魔導書を差し出した。数頁を繰れば{variant}らしいと見て取れる品である。相手が中身を承知の上で選んだとは限らない。",
       "variants": [
         "大魔法使いフランメの魔法手記の写本",
         "古代文字で書かれ、解読に時間のかかりそうな古い魔導書",
@@ -616,6 +621,9 @@ Adjusts weights based on the time period. Will be merged with `base_weights`.
 - If `prompt` contains `{variant}` but no variants resolve (e.g. the list is empty), the unresolved placeholder is stripped before the prompt reaches the LLM — it is never passed through as literal template text.
 - The chat-history anchor always uses the item `name`, not the chosen variant, so the picked variant only surfaces inside the character's own reply.
 - Write variants as concrete nouns/phrases that fit the sentence around `{variant}`; keep them consistent in tone with the item's `prompt`.
+- A visible variant must agree with the picker artwork. Do not describe packaging, quantity, garnish, temperature, or another visual property that the image contradicts or cannot establish.
+- Do not use a variant to invent who made, bought, found, or otherwise obtained the item. The visitor's message and conversation own that information. An item may look handmade (`手作りらしい`), but it must not be declared to have been made by the visitor unless the visitor said so.
+- Describe item facts and clues rather than ordering the model to mention every detail. The reaction builder lets the model omit details that do not fit the conversation and improvise unresolved item details without inventing the visitor's motive, source, or knowledge.
 
 ---
 
