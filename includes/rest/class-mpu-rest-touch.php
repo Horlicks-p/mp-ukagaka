@@ -88,7 +88,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
 
         $ukagaka_name = $mpu_opt['ukagakas'][$mpu_opt['cur_ukagaka']]['name'] ?? 'キャラクター';
 
-        $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で{$ukagaka_name}として直接反応すること。第三者視点の描写は禁止。";
+        $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で{$ukagaka_name}として直接反応すること。第三者視点の描写は禁止。自分の返答を鉤括弧（「」）で囲まないこと。";
 
 		$normalized = $this->run_reaction( $user_prompt, $personality_id, 'decoration' );
 		if ( is_wp_error( $normalized ) ) {
@@ -173,7 +173,7 @@ class MPU_REST_Touch extends MPU_REST_Base {
             ? '触られた反応をする'
             : $available_prompts[array_rand($available_prompts)];
 
-        $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で{$ukagaka_name}として直接反応すること。第三者視点の描写は禁止。";
+        $user_prompt .= "\n\n【回応ルール】淡々とした常体で、30-150文字で{$ukagaka_name}として直接反応すること。第三者視点の描写は禁止。自分の返答を鉤括弧（「」）で囲まないこと。";
 
 		$normalized = $this->run_reaction( $user_prompt, $personality_id, 'touch' );
 		if ( is_wp_error( $normalized ) ) {
