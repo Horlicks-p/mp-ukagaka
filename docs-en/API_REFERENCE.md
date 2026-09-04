@@ -1,6 +1,6 @@
 # MP Ukagaka API Reference
 
-> 📚 Complete Function, Hooks, and REST Endpoints Reference (v2.31.0)
+> 📚 Complete Function, Hooks, and REST Endpoints Reference (v2.32.0)
 
 ---
 

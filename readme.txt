@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.31.0
+Stable tag: 2.32.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,15 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-09-04 =
+* v2.32.0
+* [NEW] ハンバーグ joins Frieren's gift picker: a warrior's dish from Eisen's homeland, with seven appearance variants and a Stark memory to draw on. Deliberately not marked a favourite -- the pudding stays her one real favourite.
+* [FIX] Gift replies stopped saying anything. v2.31.0 fixed the character inventing your motives, but in the same pass it left her unable to mention what she was holding: the grimoire would not say what kind of book it was, and food drew a bare thank-you. Tasting food and looking inside an openable gift are now plainly allowed rather than left for her to adjudicate, and telling her not to eat or not to open something still stops her.
+* [FIX] Reaction lines have something to say again. Two of them had been reduced to "say a short thank-you", which is what you got. Every line now carries a hook -- the item, a memory, what she plans to do with it -- and lines that lean on the conversation fall back to the item when there is no conversation yet.
+* [CHANGE] The pudding is no longer the same picture every time: seven appearance variants, all checked against the artwork you see in the picker.
+* [CHANGE] She may now leave out whatever does not fit -- taste, contents, thanks, the gesture -- and fill in small details herself, while your motive, where you got it and what you knew remain yours alone.
+* [TEST] Catalog tests extended to the three-item catalog, the first non-favourite item, both permissions with their binding exceptions, and a guard against reaction lines collapsing back into a bare thank-you.
 
 = 2026-09-03 =
 * v2.31.0
