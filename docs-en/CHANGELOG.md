@@ -4,6 +4,20 @@
 
 ---
 
+## [2.32.3] - 2026-09-07
+
+### Gift & feeding reactions
+
+- **The reaction candidates are short mood cues again.** They had turned into decision trees — "if the conversation was about food or hunger prioritize that, otherwise a one-bite remark or a mention of eating later" asks the model to test a condition and pick a branch before it says anything, which is the failure this work started from. v2.32.0 removed one such adjudication from `items.json` and then rebuilt it in `prompts.json` through the rule that every conditional candidate must carry its own fallback. That rule is withdrawn. The cues now give mood and leave the rest to context: whether she has eaten, whether to discuss taste or appearance, whether to read the book now or later are all resolved from the item and the conversation, which the reaction can now see.
+- **Pools grew rather than shrank**, since variety has to come from mood alone: `give_food` 4→12, `give_gift` 4→10, `give_favorite` 4→8. The new cues add axes the old pool lacked — a pause before answering, saying slightly more than usual (volume, assigning no subject), a delayed reaction as distinct from sustained composure, and words at odds with what shows. Nothing presupposes the visitor's motive or knowledge, a bite taken, or a book opened, and no line caps its own length.
+- **`give_favorite` lines must read for a plate and an object alike.** It is the one pool merged across kinds — the pudding draws it with `give_food`, the grimoire with `give_gift` — and nothing had said so. A line about careful handling and curt words assumed an object twice: careful handling reads as something fragile, and 口では, idiomatic for "in words", sits beside food where the literal mouth is the obvious reading. Both misfire only on the food side, which is how the line passed review on its own. The constraint is now stated in `_comment_give`.
+
+### Retracted
+
+- **Two inferences from v2.32.0 are withdrawn.** The claim that the bare thank-you was half directly instructed rested on lines saying so going from 2/8 to 4/8 in v2.31.0 — a distribution of prompt text, read as a rate of replies, which was never measured. And the regression that distribution pointed at was the cap in `短く礼を言って`, not the thanks: `素直に礼を言って` is a manner with no ceiling. The test forbidding any line to end in `礼を言って。` was banning the wrong token and is removed, along with the two requiring a "later" option and a conditional item hook.
+- **Acceptance drops "no bare thanks in five runs".** A brief thank-you is a fine answer; the failure worth catching is thanking and nothing else regardless of what was said, which is a question about responsiveness rather than reply shape.
+
+---
 ## [2.32.2] - 2026-09-07
 
 ### Gift & feeding reactions

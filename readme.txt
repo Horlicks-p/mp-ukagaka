@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.32.2
+Stable tag: 2.32.3
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,13 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-09-07 =
+* v2.32.3
+* [CHANGE] Reaction prompts are short mood cues again -- pleased, a little surprised, interested, hiding it badly. They had grown into instructions telling her to weigh whether she had eaten, whether to discuss taste or appearance, whether to read the book now or later. She works that out from the item and the conversation, and the reply reads as a reaction rather than an arranged answer.
+* [CHANGE] More of them, so repeats stay varied: food 4 to 12 cues, gifts 4 to 10, favourites 4 to 8. New ones include a pause before answering, saying a little more than usual, and a reaction that surfaces a beat late.
+* [FIX] A favourite-item cue that only made sense for an object no longer appears when you hand her food.
+* [CHANGE] A brief "thanks, I was just getting hungry" is no longer treated as a failure. What matters is that she answers what you actually said.
 
 = 2026-09-07 =
 * v2.32.2
