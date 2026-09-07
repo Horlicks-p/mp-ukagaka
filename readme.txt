@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.32.1
+Stable tag: 2.32.2
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,12 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-09-07 =
+* v2.32.2
+* [CHANGE] She now follows the conversation even when the alternative was not wrong. Hand her a pudding after asking whether she had lunch and the reply is about lunch; the internal prompt used to let her drop a suggested angle only when it clashed with what you said, so an angle that was merely beside the point still won. Anything that fits the moment better now takes precedence.
+* [CHANGE] A favourite item no longer obliges her to comment on the item itself. The line about what she likes about it appears when there is room for it, not every time.
+* [TEST] A guard against the item remark becoming mandatory again.
 
 = 2026-09-04 =
 * v2.32.1

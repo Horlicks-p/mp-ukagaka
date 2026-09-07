@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.32.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.32.2-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.32.1
+## 🎉 What's New in v2.32.2
+
+**Context wins on a tie** (v2.32.2): v2.32.0 gave the reaction lines something to say and let the character discard one that clashed with the conversation. That still treated the suggested angle as the default and the conversation as the exception — hand her a pudding after asking whether she had lunch, and an angle telling her to remark on the pudding contradicts nothing, it is just the worse of two answers. A suggested angle is now an idea she may use, and she can set it aside whenever the moment offers something more natural, clash or no clash. The same assumption sat in the data: two of the favourite-item lines had been made to require a remark about the item, and now ask for one only when there is room. The guarantees that stop her inventing your motives, or ignoring "don't open it" and "don't eat that", are unchanged.
 
 **Gift fixes** (v2.32.1): Three follow-ups to v2.32.0. The ✅ button now sends the gift while the picker is open — only Enter had been bound to it, so writing a note and pressing the button sent the note as ordinary chat and dropped the item, a gap present since v2.29.0. The character also no longer invents a warning you never gave: the prompt named a possible objection to eating even on turns with no message and no prior conversation, and she supplied the missing source herself. Touch and decoration reactions gained the anti-screenplay guard the gift path already had.
 
 **Gift reactions with something to say** (v2.32.0): v2.31.0 stopped the character inventing your motives, but in the same pass it left her with nothing to say about what she was holding — the grimoire would not name what kind of book it was, and food drew a bare thank-you. The cause was a rule that handed the model a decision instead of a default: whether to open someone else's gift was left for it to adjudicate, and the safe answer is always no. Tasting food and looking inside an openable gift are now plainly permitted, while telling her not to eat or not to open something still binds, and the reaction lines carry hooks — the item, a memory, what she plans to do with it — rather than instructions to say thanks. She may also leave out whatever does not fit the conversation and fill in small details herself, while your motive, where you got it and what you knew stay yours alone. Frieren gains ハンバーグ, a warrior's dish from Eisen's homeland, and the pudding gains seven appearance variants so its scene is no longer identical every time.
 
-**Gift reactions that listen** (v2.31.0): Handing the character a gift is now part of the conversation instead of an isolated event. The gift endpoint had been receiving and storing the chat history without ever passing it to the model, so saying "this is a thank-you gift" a turn earlier could not affect the reply; gifts now use the same 20-message window as normal chat. The prompt no longer lets a randomly drawn stage direction outrank what you actually said — each source of information has a defined scope, so the character stops asking why you chose something you had just said you knew nothing about, stops tasting food you warned her about, and stops treating a hidden random detail as something you must have known. Repeat gifts also no longer replay word for word.
-
-**Earlier releases**: frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

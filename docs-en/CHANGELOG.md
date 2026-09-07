@@ -4,6 +4,19 @@
 
 ---
 
+## [2.32.2] - 2026-09-07
+
+### Gift & feeding reactions
+
+- **The drawn candidate can now lose to a better answer, not only to a contradiction.** v2.32.0 gave the reaction candidates something to say and told the model to discard one that conflicts with the conversation. Both halves still treated the candidate as the default and the conversation as the exception. Handed a pudding after "did you have lunch?", a candidate directing her to remark on the item contradicts nothing — it is simply the less natural of two available answers, and the rule gave her no grounds to drop it. The candidate is now stated as an idea available if useful, which may be ignored whenever the conversation offers a more natural response, contradiction or not.
+- **A favorite item no longer obliges a remark about the item.** The first two `give_favorite` lines were given content hooks in v2.32.0 so that drawing one would not produce a bare attitude reply; that fixed bare replies by making the remark mandatory. Both are now conditional on the item being worth remarking on, and both keep their opening clause — the expression softening, the preference admitted — so the line still directs a reaction when the condition is false. The remaining two lines were always attitude-only and are unchanged.
+- **One guarantee is deliberately relaxed.** "Discard on contradiction" was an imperative and is now a permission, so this clause no longer mandatorily drops a candidate that conflicts with the conversation. The specific failure it was added for in v2.31.0 — a drawn "wonder why they picked this" outranking a visitor who had just said they had no idea what the item was — remains covered by imperatives that did not change: do not invent a reason the visitor never gave, and obey a request not to open or eat. What now rests on permission alone is a candidate clashing with some other conversational fact, which is the case the model handles well and the case this change exists to serve.
+
+### Testing
+
+- `test_favorite_reaction_item_details_are_optional` asserts both the conditional forms and the absence of the mandatory ones, so restoring a hard requirement fails the suite instead of passing quietly.
+
+---
 ## [2.32.1] - 2026-09-04
 
 ### Gift & feeding fixes
