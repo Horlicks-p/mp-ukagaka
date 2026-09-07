@@ -1,7 +1,8 @@
 # 送禮／餵食反應：解除抑制計畫
 
 > v1 2026-09-04（雙軸強制版，作廢）→ v2（解除抑制）→ v3（補明示許可）
-> v4 2026-09-04（本版）：納入 Codex 與二次審查意見；新增ハンバーグ；刪去 v1／v2 事後檢討與已決爭議記錄
+> v4 2026-09-04：納入 Codex 與二次審查意見；新增ハンバーグ；刪去 v1／v2 事後檢討與已決爭議記錄
+> v5 2026-09-07（本版）：將演出候補降為可自由捨棄的靈感；最愛物品的內容鉤子改為情境式
 > 狀態：**已實作**（2026-09-04）。實機以 qwen2.5:14b 驗證；§6 的分布式驗收待在公司實際模型上補跑
 > 基準版本：v2.31.0（`4e584e1`）
 
@@ -199,10 +200,11 @@ if ( '' !== $message && $has_history ) {
 **`:330` 演出候補管轄句微調**（§4.3 改成情境條件式後，候選已不只決定措辭）：
 
 ```php
-'【演出の候補】は反応の方向の候補である。上記や会話と矛盾するなら無視すること。'
+'【演出の候補】は必要なら使える着想にすぎない。'
+	. '会話の流れにより自然な反応があるなら、矛盾していなくても無視してよい。'
 ```
 
-「矛盾就丟棄」是 `89a45e4` 的核心保護，**原樣保留**。
+候補即使不與會話矛盾，也可能只是多餘說明。允許模型在已有更自然的承接方式時直接捨棄，避免抽中的祈使句壓過上下文。
 
 長度 `30-150`、`:314-315` 管轄句、`mpu_collect_item_reaction_pool()`、`reactions` schema **全部不動**。
 
@@ -261,7 +263,7 @@ if ( '' !== $message && $has_history ) {
 | `test_frieren_item_catalog_contains_expected_valid_items` | **修改** | `assertCount(2→3)`；`$expected` 加 hamburg（`size` `[112,66]`、`has_variants` true、`reactions` `['give_food']`）；布丁 `has_variants → true`；**`assertTrue($item['favorite'])` 改為逐項期望值**（hamburg 是 false）。既有的「有 variants ⇔ prompt 含 `{variant}`」雙向不變式會自動驗證兩個新 variants |
 | `test_grimoire_prompt_attributes_the_variant_to_frieren_not_the_visitor` | **修改** | 移除 `assertStringContainsString('この回の会話が決める')`。保留 `承知の上で選んだとは限らない` 與 `assertStringNotContainsString('中身に具体的に触れて')` — 後者守「不得強制說出內容」，依 §1 現在更重要 |
 | `test_reaction_prompt_never_forces_eating` | **不動** | `口をつけないこと` 字面已刻意保留（§4.2 第 4 點）。`受け取って食べ` 仍不存在。逐字保留 |
-| `test_reaction_prompt_ranks_visitor_words_above_the_drawn_angle` | **修改** | `【演出の候補】が決めてよいのは表現の仕方だけである` 隨 §4.2 改寫。新斷言**必須保留「矛盾則忽略」的半句** |
+| `test_reaction_prompt_ranks_visitor_words_above_the_drawn_angle` | **修改** | 驗證候補只是必要時可用的靈感，而且即使不矛盾，只要會話已有更自然的反應也能忽略 |
 | `test_give_reaction_categories_presuppose_nothing_about_the_visitor` | **擴充** | `foreach` 自動涵蓋新候選；再加一條「不得以`礼を言って。`結尾」（§4.3 約束 5） |
 | 其餘 9 個 | **不動** | 管轄、長度、附言、anchor、視窗相關 |
 

@@ -652,7 +652,7 @@
     "座っている宝箱を叩かれた。中身は今は空っぽだと教えて。"
   ],
 
-  "_comment_give": "Gift/feeding reaction direction candidates. A candidate may say whether to prioritize the conversation or the item, and every conditional candidate must include a usable fallback. Never state what the item is or describe item-specific appearance (items.json owns those), and never presuppose the visitor's motive, knowledge, or a completed action. The backend draws one line blindly before reading the visitor's words, so the final rules may discard a candidate that conflicts with the conversation.",
+  "_comment_give": "Gift/feeding reaction direction candidates. A candidate may say whether to prioritize the conversation or the item, and every conditional candidate must include a usable fallback. Never state what the item is or describe item-specific appearance (items.json owns those), and never presuppose the visitor's motive, knowledge, or a completed action. The backend draws one line blindly before reading the visitor's words, so the final rules may freely discard it whenever the conversation suggests a more natural response, even without a direct contradiction.",
 
   "give_food": [
     "直前に食事や空腹の話をしていたならその流れを優先し、なければ一口ぶんの感想か、後で食べることに短く触れて。",
@@ -677,8 +677,8 @@
   ],
 
   "give_favorite": [
-    "普段の無表情がわずかにほころぶ。何がそんなに好みなのかも一言添えて。",
-    "好みに刺さったことは認めつつ、気になった点を一つだけ添えて。",
+    "普段の無表情がわずかにほころぶ。品物そのものにも触れる流れなら、何がそんなに好みなのか一言添えてもよい。",
+    "好みに刺さったことは認めつつ、品物について気になった点があれば一つだけ添えて。",
     "つい関心が先に立ってしまい、その後で気恥ずかしさを隠すように素っ気なく応じて。",
     "嬉しさを表に出すまいとするのに、態度に滲んでしまって。"
   ]

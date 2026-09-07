@@ -349,7 +349,8 @@ function mpu_build_item_reaction_prompt( array $item, $visitor_message, $ukagaka
 	}
 
 	if ( '' !== $angle ) {
-		$rules[] = '【演出の候補】は反応の方向の候補である。上記や会話と矛盾するなら無視すること。';
+		$rules[] = '【演出の候補】は必要なら使える着想にすぎない。'
+			. '会話の流れにより自然な反応があるなら、矛盾していなくても無視してよい。';
 	}
 
 	if ( '' !== $message ) {
