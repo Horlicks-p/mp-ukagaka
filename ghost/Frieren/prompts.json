@@ -652,7 +652,7 @@
     "座っている宝箱を叩かれた。中身は今は空っぽだと教えて。"
   ],
 
-  "_comment_give": "Optional moods for receiving food and gifts. Keep each cue simple; let the item and conversation inspire what to say or do. Brief thanks are welcome. Do not assume the visitor's motives or knowledge, or that the food has already been eaten or the gift opened.",
+  "_comment_give": "Optional moods for receiving food and gifts. Keep each cue simple; let the item and conversation inspire what to say or do. Brief thanks are welcome. Do not assume the visitor's motives or knowledge, or that the food has already been eaten or the gift opened. give_food and give_gift are drawn only for their own kind, but give_favorite is merged into both pools, so every line in it must read naturally for a plate of food and for an object alike -- no handling, gesture, or wording that only fits one of them.",
 
   "give_food": [
     "嬉しそうに受け取って。",
@@ -690,6 +690,6 @@
     "普段より少しだけ饒舌に応じて。",
     "受け取ってから、少し遅れて嬉しさが表に出て。",
     "うっかり顔がゆるみ、すぐに戻して。",
-    "口ではそっけないのに、手つきが丁寧で。"
+    "素っ気なく応じたつもりが、声が少し弾んで。"
   ]
 }
