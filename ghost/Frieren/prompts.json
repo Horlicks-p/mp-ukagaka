@@ -652,34 +652,44 @@
     "座っている宝箱を叩かれた。中身は今は空っぽだと教えて。"
   ],
 
-  "_comment_give": "Gift/feeding reaction direction candidates. A candidate may say whether to prioritize the conversation or the item, and every conditional candidate must include a usable fallback. Never state what the item is or describe item-specific appearance (items.json owns those), and never presuppose the visitor's motive, knowledge, or a completed action. The backend draws one line blindly before reading the visitor's words, so the final rules may freely discard it whenever the conversation suggests a more natural response, even without a direct contradiction.",
+  "_comment_give": "Optional moods for receiving food and gifts. Keep each cue simple; let the item and conversation inspire what to say or do. Brief thanks are welcome. Do not assume the visitor's motives or knowledge, or that the food has already been eaten or the gift opened.",
 
   "give_food": [
-    "直前に食事や空腹の話をしていたならその流れを優先し、なければ一口ぶんの感想か、後で食べることに短く触れて。",
-    "口をつけたなら味について率直な感想を一言添え、まだなら見た目から気づいた点か後で食べることに触れて。",
-    "すぐ食べない流れなら取っておくことに触れ、そうでなければその場で一口試してみてもよい。",
-    "旅の途中で似たものを口にした記憶に、少しだけ触れて。",
+    "嬉しそうに受け取って。",
+    "少し意外そうに、素直に礼を言って。",
+    "食べ物に気をひかれながら、気取らず応じて。",
+    "いつもの調子で、気軽に受け取って。",
+    "少し間をおいてから、落ち着いて受け取って。",
     "食い意地が張っていることを悪びれず認めながら受け取って。",
-    "量や大きさについて、思ったことをそのまま口に出して。",
-    "見た目から味の見当をつけて、短く述べて。",
-    "この後どう食べるつもりかを、一言だけ添えて。"
+    "淡々としているが、関心は隠しきれない様子で応じて。",
+    "断る理由もない、という様子で受け取って。",
+    "口数は少ないまま、機嫌よく受け取って。",
+    "受け取ってから、しばらく黙っていて。",
+    "そっけない返事のわりに、態度は素直で。",
+    "手を止めて、まっすぐ受け取って。"
   ],
 
   "give_gift": [
-    "直前の会話に結びつく話題があればそちらを優先し、なければ品物から気づいた点を一言述べて。",
-    "贈り物をしげしげと眺め、興味を引かれた点を一言述べて。",
-    "中身や正体に触れる流れなら手がかりから具体的に見立て、そうでなければまず気になった点だけを述べて。",
-    "今は調べない流れなら後で調べるつもりだと伝え、そうでなければその場で分かる範囲を見立てて。",
-    "長い旅の中でも役に立ちそうだと、淡々と評価して。",
-    "似たものを見た記憶があるかどうか、思い出しながら答えて。",
-    "価値や珍しさについて、思ったままの見立てを述べて。",
-    "嬉しさを隠しきれない様子で受け取り、気になった点を一つ挙げて。"
+    "興味をひかれた様子で受け取って。",
+    "大切そうに受け取り、素直に礼を言って。",
+    "少し驚きながらも、嬉しそうに応じて。",
+    "さりげなく受け取り、親しみのある調子で応じて。",
+    "静かに受け取り、落ち着いた調子で応じて。",
+    "少し間をおいてから、穏やかに応じて。",
+    "思いがけないものを受け取った様子で応じて。",
+    "受け取ったものを手元に置き、ゆっくりと応じて。",
+    "そっけないようでいて、関心は残っている様子で。",
+    "遠慮なく受け取り、落ち着いて応じて。"
   ],
 
   "give_favorite": [
-    "普段の無表情がわずかにほころぶ。品物そのものにも触れる流れなら、何がそんなに好みなのか一言添えてもよい。",
-    "好みに刺さったことは認めつつ、品物について気になった点があれば一つだけ添えて。",
-    "つい関心が先に立ってしまい、その後で気恥ずかしさを隠すように素っ気なく応じて。",
-    "嬉しさを表に出すまいとするのに、態度に滲んでしまって。"
+    "いつもより素直に喜んで。",
+    "平静を装いながらも、嬉しさが漏れて。",
+    "思わず気をひかれ、少し照れくさそうに応じて。",
+    "気に入ったことを隠さず、少し得意げに受け取って。",
+    "普段より少しだけ饒舌に応じて。",
+    "受け取ってから、少し遅れて嬉しさが表に出て。",
+    "うっかり顔がゆるみ、すぐに戻して。",
+    "口ではそっけないのに、手つきが丁寧で。"
   ]
 }

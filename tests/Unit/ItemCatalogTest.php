@@ -397,11 +397,6 @@ final class ItemCatalogTest extends TestCase {
             $this->assertArrayHasKey($category, $prompts);
             $this->assertNotEmpty($prompts[$category]);
             foreach ($prompts[$category] as $line) {
-                $this->assertDoesNotMatchRegularExpression(
-                    '/礼を言って。\z/u',
-                    $line,
-                    "{$category} に純粋な礼だけへ寄せる候補が残っている: {$line}"
-                );
                 foreach ($forbidden as $needle) {
                     $this->assertStringNotContainsString(
                         $needle,
@@ -411,19 +406,6 @@ final class ItemCatalogTest extends TestCase {
                 }
             }
         }
-    }
-
-    public function test_favorite_reaction_item_details_are_optional(): void {
-        $prompts = json_decode(
-            (string) file_get_contents(MPU_TESTS_ROOT . '/ghost/Frieren/prompts.json'),
-            true
-        );
-        $favorite = implode("\n", $prompts['give_favorite']);
-
-        $this->assertStringContainsString('品物そのものにも触れる流れなら', $favorite);
-        $this->assertStringContainsString('気になった点があれば', $favorite);
-        $this->assertStringNotContainsString('何がそんなに好みなのかも一言添えて。', $favorite);
-        $this->assertStringNotContainsString('気になった点を一つだけ添えて。', $favorite);
     }
 
     /**
@@ -503,22 +485,6 @@ final class ItemCatalogTest extends TestCase {
         $this->assertStringContainsString('自然に補ってよい', $prompt);
         $this->assertStringContainsString('相手の動機・入手経緯・知識は上記のとおり補わないこと', $prompt);
         $this->assertStringContainsString('選択理由・入手経緯・意図を作り出さないこと', $prompt);
-    }
-
-    public function test_base_reaction_categories_include_a_later_option(): void {
-        $prompts = json_decode(
-            (string) file_get_contents(MPU_TESTS_ROOT . '/ghost/Frieren/prompts.json'),
-            true
-        );
-
-        $this->assertNotEmpty(array_filter(
-            $prompts['give_food'],
-            static fn($line) => strpos($line, '後で食べる') !== false || strpos($line, '取っておく') !== false
-        ));
-        $this->assertNotEmpty(array_filter(
-            $prompts['give_gift'],
-            static fn($line) => strpos($line, '後で調べる') !== false
-        ));
     }
 
     public function test_llm_message_window_drops_orphan_assistants_before_slicing(): void {
