@@ -652,7 +652,7 @@
     "座っている宝箱を叩かれた。中身は今は空っぽだと教えて。"
   ],
 
-  "_comment_give": "Optional moods for receiving food and gifts. Keep each cue simple; let the item and conversation inspire what to say or do. Brief thanks are welcome. Do not assume the visitor's motives or knowledge, or that the food has already been eaten or the gift opened. give_food and give_gift are drawn only for their own kind, but give_favorite is merged into both pools, so every line in it must read naturally for a plate of food and for an object alike -- no handling, gesture, or wording that only fits one of them.",
+  "_comment_give": "Optional moods for receiving food and gifts. Keep each cue simple; let the item and conversation inspire what to say or do. Brief thanks are welcome. Do not assume the visitor's motives or knowledge, or that the food has already been eaten or the gift opened. give_food and give_gift are drawn only for their own kind, but give_favorite is merged into both pools, so every line in it must read naturally for a plate of food and for an object alike -- no handling, gesture, or wording that only fits one of them. Every cue must also be expressible in what she says: the reply is her own speech, 30-150 characters, with third-person description forbidden, so a cue resting on silence, a facial expression, or a hand movement has no way to be rendered and produces stage directions or a row of ellipses instead. Direct tone, word choice, how much she says, and what she admits -- not what her face or hands do.",
 
   "give_food": [
     "嬉しそうに受け取って。",
@@ -664,9 +664,9 @@
     "淡々としているが、関心は隠しきれない様子で応じて。",
     "断る理由もない、という様子で受け取って。",
     "口数は少ないまま、機嫌よく受け取って。",
-    "受け取ってから、しばらく黙っていて。",
+    "言葉少なに、素直に受け取って。",
     "そっけない返事のわりに、態度は素直で。",
-    "手を止めて、まっすぐ受け取って。"
+    "回りくどい言い方をせず、まっすぐ応じて。"
   ],
 
   "give_gift": [
@@ -689,7 +689,7 @@
     "気に入ったことを隠さず、少し得意げに受け取って。",
     "普段より少しだけ饒舌に応じて。",
     "受け取ってから、少し遅れて嬉しさが表に出て。",
-    "うっかり顔がゆるみ、すぐに戻して。",
+    "つい嬉しそうな返事をしてから、照れ隠しにそっけなく応じて。",
     "素っ気なく応じたつもりが、声が少し弾んで。"
   ]
 }
