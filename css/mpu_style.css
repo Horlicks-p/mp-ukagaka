@@ -426,14 +426,29 @@
 #mp_ukagaka #ukagaka-dock ul li a:link,
 #mp_ukagaka #ukagaka-dock ul li a:visited {
   /* Read by the inline SVG; the hover rule below is the whole state change.
-     menu.png's rings were near-white (composited to #FAFAFA on white) and only
-     read at all because the bitmap had a faint dark halo baked into the gap
-     between them. Vector strokes have no such halo, so the rings are a mid grey
-     instead -- #C2C2C2 on white, still lighter than the #A6A6A6 disc, which
-     keeps the original's light-ring/dark-disc hierarchy. */
-  --mpu-internal-dock-ring: rgb(144 144 144 / 55%);
+     Each value is the source bitmap's own colour and alpha, measured off the
+     radial profile of menu.png rather than picked by eye, so the drawing
+     composites to the PNG on any page background instead of only on white:
+     the ring lands on #FCFCFC over white and #AEAEAE over #222, matching the
+     original in both. That is also why they stay translucent -- an opaque
+     mid-grey ring reads on white but inverts the original's light-ring /
+     dark-disc order once the page behind it goes dark.
+     --halo is the faint dark ring the bitmap baked into the gap between the
+     two rings; the near-white rings are only legible because of it, so it has
+     to be drawn, and it is cleared on hover because top/hide/change.png have
+     no such halo.
+     --shadow and --shift are idle-only for the same reason: menu.png carries a
+     soft shadow cast to its left (measured at 178deg, i.e. no vertical drop --
+     only its left edge extends past the disc, the right side is clean) and its
+     circles sit at x=23.5, while all three hover bitmaps have no shadow at all
+     and sit at 22.5. The SVG is drawn at 22.5 so hover needs no correction,
+     and idle makes up the 1px here rather than in the geometry. */
+  --mpu-internal-dock-ring: rgb(250 250 250 / 65%);
   --mpu-internal-dock-disc: rgb(144 144 144 / 80%);
-  --mpu-internal-dock-glyph: #f8f8f8;
+  --mpu-internal-dock-glyph: #fbfbfb;
+  --mpu-internal-dock-halo: rgb(0 0 0 / 7%);
+  --mpu-internal-dock-shadow: drop-shadow(-2px 0 0.5px rgb(0 0 0 / 12%));
+  --mpu-internal-dock-shift: translateX(1px);
 
   display: block;
   width: 45px;
@@ -457,15 +472,20 @@
 }
 
 #mp_ukagaka #ukagaka-dock ul li a:is(:hover, :focus-visible, :active) {
-  --mpu-internal-dock-ring: #feba15;
-  --mpu-internal-dock-disc: #fef8e9;
+  --mpu-internal-dock-ring: rgb(255 186 22 / 96%);
+  --mpu-internal-dock-disc: rgb(255 249 234 / 99%);
   --mpu-internal-dock-glyph: #febd22;
+  --mpu-internal-dock-halo: transparent;
+  --mpu-internal-dock-shadow: none;
+  --mpu-internal-dock-shift: none;
 }
 
 #mp_ukagaka #ukagaka-dock .mpu-dock-icon {
   display: block;
   width: 45px;
   height: 45px;
+  filter: var(--mpu-internal-dock-shadow);
+  transform: var(--mpu-internal-dock-shift);
 }
 
 #mp_ukagaka #ukagaka-dock ul li a:focus-visible,

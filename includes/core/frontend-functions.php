@@ -221,17 +221,28 @@ function mpu_shutdown_callback() {
  * 取得 dock 三顆按鈕的 inline SVG 圖示。
  *
  * 幾何直接描自它取代的 images/{menu,top,hide,change}.png，45px 下與點陣圖等價。
- * 三個顏色走 CSS 自訂屬性而非寫死，這樣同一份圖形就能同時涵蓋 idle 與 hover，
+ * 四個顏色走 CSS 自訂屬性而非寫死，這樣同一份圖形就能同時涵蓋 idle 與 hover，
  * 不必再為每個狀態各準備一張圖。
+ *
+ * 半徑與線寬取自原圖的徑向 alpha 剖面（取半高寬），不是目測：粗環落在 r=12.0..16.7、
+ * 外環 r=18.75..21.05，兩者之間 r=16.6..18.4 是間隙。原圖在該間隙烘了一圈很淡的
+ * 暗色，近白的環正是靠它才讀得出來；向量描邊沒有這種暈，所以得明畫出來，否則環會
+ * 在淺色頁面上整個消失。
+ *
+ * 圓心固定 22.5，那是 top/hide/change.png（hover）量到的值；menu.png（idle）的圓
+ * 實際落在 23.5，兩張原圖本來就差 1px，所以那 1px 由 CSS 只在 idle 位移，不寫進
+ * 這裡的幾何。同理，menu.png 左側那道陰影也交給 CSS 的 drop-shadow，因為 hover
+ * 的三張圖都沒有它。
  *
  * @param string $icon 圖示代號：gotop、hide、change.
  * @return string
  */
 function mpu_get_dock_icon_svg( $icon ) {
-	// 外環 / 粗環 / 圓盤，圓心 (22.5, 22.5).
-	$shell = '<circle cx="22.5" cy="22.5" r="20.1" fill="none" stroke="var(--mpu-internal-dock-ring)" stroke-width="2.5"/>'
-		. '<circle cx="22.5" cy="22.5" r="15" fill="none" stroke="var(--mpu-internal-dock-ring)" stroke-width="4"/>'
-		. '<circle cx="22.5" cy="22.5" r="13" fill="var(--mpu-internal-dock-disc)"/>';
+	// 外環 / 間隙暗暈 / 粗環 / 圓盤，由外而內疊，圓心 (22.5, 22.5).
+	$shell = '<circle cx="22.5" cy="22.5" r="19.9" fill="none" stroke="var(--mpu-internal-dock-ring)" stroke-width="2.3"/>'
+		. '<circle cx="22.5" cy="22.5" r="17.5" fill="none" stroke="var(--mpu-internal-dock-halo)" stroke-width="1.8"/>'
+		. '<circle cx="22.5" cy="22.5" r="14.35" fill="none" stroke="var(--mpu-internal-dock-ring)" stroke-width="4.7"/>'
+		. '<circle cx="22.5" cy="22.5" r="12.8" fill="var(--mpu-internal-dock-disc)"/>';
 
 	$glyphs = array(
 		// 45 度等腰三角形：頂點 (22.5, 18.5)、底邊 y=25.
