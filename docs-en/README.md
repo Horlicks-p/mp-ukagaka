@@ -48,8 +48,8 @@
 
 ## 📋 Version Information
 
-- **Current Version**: 2.32.3
-- **Last Updated**: 2026-09-07
+- **Current Version**: 2.33.0
+- **Last Updated**: 2026-09-08
 - **WordPress Requirement**: 5.0+
 - **PHP Requirement**: 7.4+
 

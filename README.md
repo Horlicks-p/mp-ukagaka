@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.32.3-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.33.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -98,15 +98,15 @@ For detailed information, please refer to:
 - **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.32.3
+## 🎉 What's New in v2.33.0
+
+**Vector dock buttons** (v2.33.0): The three buttons under the character — jump to top, hide her, open chat — were five PNGs: one sprite strip for the resting row and one image per button for its hover state. They are now drawn as vectors traced from that artwork and checked against it pixel by pixel, so they stay sharp on high-resolution screens and the page loads five fewer files. Their resting rings are a little darker than before, because the old images stayed visible on a white page thanks to a soft shadow baked into the bitmap, which a drawn ring does not have. The buttons also carry proper labels for screen readers now, rather than being three links of invisible text. Nothing moves: the row sits exactly where it did.
 
 **Moods, not scripts** (v2.32.3): The reaction prompts had grown into decision trees — weigh whether the conversation was about food, then choose between a taste remark and a mention of eating later — which is the same "make the model adjudicate before it speaks" problem this line of work set out to remove from the item catalogue, rebuilt one file over. They are short mood cues again: pleased, a little surprised, interested, hiding it badly. Whether she has eaten, whether to talk about taste or appearance, whether to read the book now or later all follow from the item and the conversation she can now see. There are more of them so repeats stay varied — food 4→12, gifts 4→10, favourites 4→8 — including a pause before answering, saying a little more than usual, and a reaction that surfaces a beat late. A brief "thanks, I was just getting hungry" is no longer counted as a failure; what matters is that she answers what you actually said.
 
 **Context wins on a tie** (v2.32.2): v2.32.0 gave the reaction lines something to say and let the character discard one that clashed with the conversation. That still treated the suggested angle as the default and the conversation as the exception — hand her a pudding after asking whether she had lunch, and an angle telling her to remark on the pudding contradicts nothing, it is just the worse of two answers. A suggested angle is now an idea she may use, and she can set it aside whenever the moment offers something more natural, clash or no clash. The same assumption sat in the data: two of the favourite-item lines had been made to require a remark about the item, and now ask for one only when there is room. The guarantees that stop her inventing your motives, or ignoring "don't open it" and "don't eat that", are unchanged.
 
-**Gift fixes** (v2.32.1): Three follow-ups to v2.32.0. The ✅ button now sends the gift while the picker is open — only Enter had been bound to it, so writing a note and pressing the button sent the note as ordinary chat and dropped the item, a gap present since v2.29.0. The character also no longer invents a warning you never gave: the prompt named a possible objection to eating even on turns with no message and no prior conversation, and she supplied the missing source herself. Touch and decoration reactions gained the anti-screenplay guard the gift path already had.
-
-**Earlier releases**: gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

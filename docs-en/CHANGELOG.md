@@ -4,6 +4,23 @@
 
 ---
 
+## [2.33.0] - 2026-09-08
+
+### Dock menu
+
+- **The three buttons under the character are inline SVG instead of five PNGs.** The dock was `menu.png` as a background sprite for the idle row, with `top.png` / `hide.png` / `change.png` swapped in as hover backgrounds. Each button now carries one `<svg>` from `mpu_get_dock_icon_svg()`, and the idle and hover states are three custom properties — `--mpu-internal-dock-ring`, `-disc` and `-glyph` — so a single drawing covers both. The buttons are crisp at any pixel density, and the dock stops issuing five image requests.
+- **The artwork was traced from the bitmaps rather than redrawn by eye.** Each glyph was recovered from the source pixels — the 45-degree triangle, the door frame with an arrow leaving through its right edge, the screwdriver crossed with a combination spanner — and the result was rasterised at 1:1 and diffed against the PNGs until only circle-edge antialiasing remained. The idle disc composites to `#A6A6A6` against the original's `#A5A5A5`.
+- **The idle rings are a mid grey rather than the original's near-white.** `menu.png`'s rings were `#F8F8F8` at 65% alpha, which composites to `#FAFAFA` on white; they read at all only because the bitmap carried a faint dark halo in the gap between them, and vector strokes have none. `rgb(144 144 144 / 55%)` gives `#C2C2C2` on white — visible on a white page, and still lighter than the `#A6A6A6` disc, so the original's light-ring/dark-disc hierarchy holds.
+- **Button labels are readable by assistive technology.** They were three anchors whose text was hidden with `color: transparent` and `font-size: 0`. The labels now sit in `.mpu-sr-only` spans and the SVG is `aria-hidden`. The strings themselves are unchanged, so no translation is invalidated.
+- **The layout is deliberately untouched.** The `ul`'s 64px offset and 19px gap read as arbitrary against three buttons, but they are calibrated for the four that exist at runtime — `ukagaka-features.js` unconditionally appends `#toggleAutoTalk` — and that is what puts the visible icons on the sprite circles, at 38.5/102.5/166.5. The values are kept exactly; only `padding-left` becomes `padding-inline-start`, which is safe now that each button owns its icon instead of being aligned against one fixed-orientation bitmap.
+
+### Internal
+
+- **`mpu_setDockLabel()` replaces four `.html()` calls on `#remove`.** `mpu_showrobot()`, `mpu_hiderobot()` and the boot-time state restore retitled the button by replacing its entire contents, which would have discarded the icon now inside it. The helper updates only the label span, falling back to `.text()` when no span is present.
+- **The dock anchor keeps hiding stray text.** `#toggleAutoTalk` is appended as a bare `<a>` with no icon whose label is written with `.text()`, so `color: transparent` / `font-size: 0` / `overflow: hidden` stay on the anchor; `.mpu-sr-only` restores a real font size for the labels that need one.
+- **`images/menu.png`, `menu-hover.png`, `top.png`, `hide.png` and `change.png` are now unreferenced but are kept on purpose**, in case a theme override still points at them.
+
+---
 ## [2.32.3] - 2026-09-07
 
 ### Gift & feeding reactions

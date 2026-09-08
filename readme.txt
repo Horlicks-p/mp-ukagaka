@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.32.3
+Stable tag: 2.33.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,12 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-09-08 =
+* v2.33.0
+* [CHANGE] The three buttons under the character are drawn as vector graphics instead of bitmap images. They stay sharp on high-resolution screens, and the page loads five fewer files.
+* [CHANGE] Their outer rings are a little darker. The old artwork stayed visible on a white page thanks to a soft shadow baked into the image, which a drawn ring does not have, so the grey was deepened to keep the buttons reading the way they used to.
+* [CHANGE] The buttons now carry proper labels for screen readers, instead of being three links of invisible text.
 
 = 2026-09-07 =
 * v2.32.3
