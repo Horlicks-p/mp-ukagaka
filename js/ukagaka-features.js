@@ -472,9 +472,9 @@ jQuery(document).ready(function () {
   const robotState = mpu_getLocal("mpuRobot");
   if (robotState === "hidden") {
     jQuery("#ukagaka").css("display", "none");
-    jQuery("#remove").html(mpuInfo.robot[0]);
+    mpu_setDockLabel("#remove", mpuInfo.robot[0]);
   } else {
-    jQuery("#remove").html(mpuInfo.robot[1]);
+    mpu_setDockLabel("#remove", mpuInfo.robot[1]);
   }
 });
 

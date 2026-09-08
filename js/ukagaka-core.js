@@ -1,10 +1,25 @@
 // ====== 顯示/隱藏春菜與訊息 ======
 /**
+ * 更新 dock 按鈕的標籤文字。
+ *
+ * 按鈕內容是「裝飾用的 inline SVG + .mpu-sr-only 標籤」，所以只能替換標籤，
+ * 不能像以前那樣整個 .html() 換掉 —— 那會把圖示的 SVG 一起洗掉。
+ *
+ * @param {string} selector - 按鈕選擇器
+ * @param {string} text     - 新的標籤文字
+ */
+function mpu_setDockLabel(selector, text) {
+  const $label = jQuery(selector).find(".mpu-sr-only");
+  if ($label.length) $label.text(text);
+  else jQuery(selector).text(text);
+}
+
+/**
  * 顯示春菜人物
  * @param {number} speed - 淡入動畫速度（毫秒），預設 400
  */
 function mpu_showrobot(speed = 400) {
-  jQuery("#remove").html(mpuInfo.robot[1]); // "隱藏春菜 ▼"
+  mpu_setDockLabel("#remove", mpuInfo.robot[1]); // "隱藏春菜 ▼"
   jQuery("#ukagaka").fadeIn(speed);
 }
 
@@ -13,7 +28,7 @@ function mpu_showrobot(speed = 400) {
  * @param {number} speed - 淡出動畫速度（毫秒），預設 400
  */
 function mpu_hiderobot(speed = 400) {
-  jQuery("#remove").html(mpuInfo.robot[0]); // "顯示春菜 ▲"
+  mpu_setDockLabel("#remove", mpuInfo.robot[0]); // "顯示春菜 ▲"
   jQuery("#ukagaka").fadeOut(speed);
 }
 

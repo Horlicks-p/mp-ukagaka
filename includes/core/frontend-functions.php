@@ -218,6 +218,75 @@ function mpu_shutdown_callback() {
 }
 
 /**
+ * 取得 dock 三顆按鈕的 inline SVG 圖示。
+ *
+ * 幾何直接描自它取代的 images/{menu,top,hide,change}.png，45px 下與點陣圖等價。
+ * 三個顏色走 CSS 自訂屬性而非寫死，這樣同一份圖形就能同時涵蓋 idle 與 hover，
+ * 不必再為每個狀態各準備一張圖。
+ *
+ * @param string $icon 圖示代號：gotop、hide、change.
+ * @return string
+ */
+function mpu_get_dock_icon_svg( $icon ) {
+	// 外環 / 粗環 / 圓盤，圓心 (22.5, 22.5).
+	$shell = '<circle cx="22.5" cy="22.5" r="20.1" fill="none" stroke="var(--mpu-internal-dock-ring)" stroke-width="2.5"/>'
+		. '<circle cx="22.5" cy="22.5" r="15" fill="none" stroke="var(--mpu-internal-dock-ring)" stroke-width="4"/>'
+		. '<circle cx="22.5" cy="22.5" r="13" fill="var(--mpu-internal-dock-disc)"/>';
+
+	$glyphs = array(
+		// 45 度等腰三角形：頂點 (22.5, 18.5)、底邊 y=25.
+		'gotop'  => '<path d="M22.5 19.4 27.8 24.1H17.2Z" fill="var(--mpu-internal-dock-glyph)"'
+			. ' stroke="var(--mpu-internal-dock-glyph)" stroke-width="1.8"/>',
+		// 門框，箭頭由右緣穿出.
+		'hide'   => '<g fill="none" stroke="var(--mpu-internal-dock-glyph)">'
+			. '<rect x="18.5" y="17.5" width="9" height="12" rx="1.4" stroke-width="1.4"/>'
+			. '<path d="M22.5 23h5.7" stroke-width="2"/>'
+			. '<path d="m26.4 20.6 2.4 2.4-2.4 2.4" stroke-width="1.4"/>'
+			. '</g>',
+		// 螺絲起子（右上刀口、左下粗手把）交叉扳手（左上開口爪、右下圓環端）.
+		'change' => '<g fill="none" stroke="var(--mpu-internal-dock-glyph)">'
+			. '<path d="M28.6 16.9 22 23.5" stroke-width="1.4"/>'
+			. '<path d="M22.4 23.1 16.9 28.6" stroke-width="2.8"/>'
+			. '<path d="M18.24 16.62A1.4 1.4 0 1 1 16.62 18.24" stroke-width="1.5"/>'
+			. '<path d="m19.6 19.6 6.6 6.6" stroke-width="1.5"/>'
+			. '<circle cx="27.5" cy="28" r="1.9" stroke-width="1.2"/>'
+			. '</g>',
+	);
+
+	if ( ! isset( $glyphs[ $icon ] ) ) {
+		return '';
+	}
+
+	return sprintf(
+		'<svg class="mpu-dock-icon mpu-dock-icon--%1$s" viewBox="0 0 45 45" width="45" height="45"'
+			. ' aria-hidden="true" focusable="false" stroke-linecap="round" stroke-linejoin="round">%2$s%3$s</svg>',
+		esc_attr( $icon ),
+		$shell,
+		$glyphs[ $icon ]
+	);
+}
+
+/**
+ * 組出 dock 單顆按鈕：裝飾用的 SVG 圖示 + 螢幕閱讀器可讀的真實文字。
+ *
+ * @param string $icon  圖示代號，同時也是 li 的 class.
+ * @param string $attrs 放進 <a> 的額外屬性（已自行處理逸出）.
+ * @param string $title title 屬性文字.
+ * @param string $label 按鈕標籤文字.
+ * @return string
+ */
+function mpu_get_dock_button( $icon, $attrs, $title, $label ) {
+	return sprintf(
+		'<li class="%1$s"><a href="#" title="%2$s" %3$s>%4$s<span class="mpu-sr-only">%5$s</span></a></li>',
+		esc_attr( $icon ),
+		esc_attr( $title ),
+		$attrs,
+		mpu_get_dock_icon_svg( $icon ),
+		esc_html( $label )
+	);
+}
+
+/**
  * 生成 HTML
  */
 function mpu_html( $num = false ) {
@@ -296,15 +365,15 @@ function mpu_html( $num = false ) {
         <div class="mpu-clear"></div>
         <div id="ukagaka-dock">
             <ul>
-                <li class="gotop"><a id="toTop" href="#" title="転移" data-spa-ignore>' .
-		__( 'トップへ戻る ▼', 'mp-ukagaka' ) .
-		'</a></li>
-                <li class="hide"><a id="remove" href="#" title="ログアウト？">' .
-		__( 'キャラを隠す ▼', 'mp-ukagaka' ) .
-		'</a></li>
-                <li class="change"><a id="mpu_chat_toggle" href="#" title="チャット">' .
-		__( 'チャット', 'mp-ukagaka' ) .
-		'</a></li>
+                ' .
+		mpu_get_dock_button( 'gotop', 'id="toTop" data-spa-ignore', '転移', __( 'トップへ戻る ▼', 'mp-ukagaka' ) ) .
+		'
+                ' .
+		mpu_get_dock_button( 'hide', 'id="remove"', 'ログアウト？', __( 'キャラを隠す ▼', 'mp-ukagaka' ) ) .
+		'
+                ' .
+		mpu_get_dock_button( 'change', 'id="mpu_chat_toggle"', 'チャット', __( 'チャット', 'mp-ukagaka' ) ) .
+		'
             </ul>
         </div>
     </div>

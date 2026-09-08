@@ -368,23 +368,41 @@
   color: var(--mpu-internal-link-hover);
 }
 
+#mp_ukagaka .mpu-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  font-size: 1rem;
+  color: initial;
+}
+
 #mp_ukagaka #ukagaka-dock {
   width: 250px;
   height: 45px;
-  color: transparent;
   float: right;
   padding: 0 0 30px;
   margin: 0;
-  text-align: center;
-  background: url("../images/menu.png") no-repeat center;
   border: none;
   box-sizing: border-box;
 }
 
+/* The 64px offset and 19px gap are calibrated for the FOUR buttons that exist at
+   runtime -- ukagaka-features.js unconditionally appends #toggleAutoTalk -- which
+   is what put the three visible icons at 38.5/102.5/166.5, on top of menu.png's
+   sprite circles. The numbers are kept exactly so the dock does not move; only
+   the logical property is new, and it is safe now that each button carries its
+   own icon instead of being aligned against one fixed-orientation bitmap. */
 #mp_ukagaka #ukagaka-dock ul {
   list-style: none;
   margin: 0;
-  padding: 0 0 0 64px;
+  padding: 0;
+  padding-inline-start: 64px;
   border: none;
   background: none;
   display: flex;
@@ -397,7 +415,6 @@
 #mp_ukagaka #ukagaka-dock ul li {
   list-style: none;
   float: none;
-  font-size: 0;
   display: block;
   margin: 0;
   padding: 0;
@@ -408,10 +425,19 @@
 #mp_ukagaka #ukagaka-dock ul li a,
 #mp_ukagaka #ukagaka-dock ul li a:link,
 #mp_ukagaka #ukagaka-dock ul li a:visited {
+  /* Read by the inline SVG; the hover rule below is the whole state change.
+     menu.png's rings were near-white (composited to #FAFAFA on white) and only
+     read at all because the bitmap had a faint dark halo baked into the gap
+     between them. Vector strokes have no such halo, so the rings are a mid grey
+     instead -- #C2C2C2 on white, still lighter than the #A6A6A6 disc, which
+     keeps the original's light-ring/dark-disc hierarchy. */
+  --mpu-internal-dock-ring: rgb(144 144 144 / 55%);
+  --mpu-internal-dock-disc: rgb(144 144 144 / 80%);
+  --mpu-internal-dock-glyph: #f8f8f8;
+
   display: block;
   width: 45px;
   height: 45px;
-  color: transparent;
   background: none;
   border: none;
   text-decoration: none;
@@ -421,25 +447,25 @@
   margin: 0;
   transition: none;
   cursor: pointer;
+
+  /* #toggleAutoTalk is appended by ukagaka-features.js as a bare <a> whose label
+     is written with .text() and which has no icon, so stray text nodes must stay
+     hidden here. .mpu-sr-only restores a real font-size for assistive tech. */
+  color: transparent;
   font-size: 0;
   overflow: hidden;
 }
 
 #mp_ukagaka #ukagaka-dock ul li a:is(:hover, :focus-visible, :active) {
-  background-repeat: no-repeat;
-  background-position: center;
+  --mpu-internal-dock-ring: #feba15;
+  --mpu-internal-dock-disc: #fef8e9;
+  --mpu-internal-dock-glyph: #febd22;
 }
 
-#mp_ukagaka #ukagaka-dock ul li.gotop a:is(:hover, :focus-visible, :active) {
-  background-image: url("../images/top.png");
-}
-
-#mp_ukagaka #ukagaka-dock ul li.hide a:is(:hover, :focus-visible, :active) {
-  background-image: url("../images/hide.png");
-}
-
-#mp_ukagaka #ukagaka-dock ul li.change a:is(:hover, :focus-visible, :active) {
-  background-image: url("../images/change.png");
+#mp_ukagaka #ukagaka-dock .mpu-dock-icon {
+  display: block;
+  width: 45px;
+  height: 45px;
 }
 
 #mp_ukagaka #ukagaka-dock ul li a:focus-visible,
