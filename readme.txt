@@ -184,10 +184,11 @@ This plugin uses a modular architecture for better maintainability:
 
 == Changelog ==
 
-= 2026-09-08 =
+= 2026-09-09 =
 * v2.33.0
 * [CHANGE] The three buttons under the character are drawn as vector graphics instead of bitmap images. They stay sharp on high-resolution screens, and the page loads five fewer files.
-* [CHANGE] Their outer rings are a little darker. The old artwork stayed visible on a white page thanks to a soft shadow baked into the image, which a drawn ring does not have, so the grey was deepened to keep the buttons reading the way they used to.
+* [CHANGE] The drawings are measured from the old images rather than redrawn by eye, down to the soft shadow the artwork casts to its left, so the buttons look the way they always did.
+* [CHANGE] They also hold up on dark themes now. The old images only ever suited a light page; the vectors carry the original's own translucency, so the rings stay lighter than the disc whatever colour sits behind them.
 * [CHANGE] The buttons now carry proper labels for screen readers, instead of being three links of invisible text.
 
 = 2026-09-07 =
