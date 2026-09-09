@@ -74,6 +74,14 @@ jQuery(document).ready(function () {
         .then(function (reactionDisplayed) {
           if (!reactionDisplayed) {
             handleOkAction();
+            return;
+          }
+          // 起床台詞已經打在框裡，走 mpu_nextmsg 會被 mpu_typewriter 清掉重打，
+          // 等於白生成。但睡眠期間 startAutoTalk() 對「尚未喚醒」直接 return，
+          // 計時鏈早就斷了，不接回去的話下一句要等使用者再按一次 OK。
+          // 此處只重啟計時器，台詞留在畫面上，下一句照睡眠間隔自己來。
+          if (typeof startAutoTalk === "function") {
+            startAutoTalk();
           }
         })
         .catch(function () {
