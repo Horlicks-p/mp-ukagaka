@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.33.0
+Stable tag: 2.33.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,11 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-09-10 =
+* v2.33.1
+* [FIX] Waking her from sleep no longer leaves her quiet for the rest of your visit. She would say her wake-up line and then stop, and only clicking OK a second time got her talking again.
+* [CHANGE] The thought bubble and its little tail are drawn as vectors instead of images. They stay sharp at any zoom or screen density, and the two files together drop from about 8 KB to under 700 bytes.
 
 = 2026-09-09 =
 * v2.33.0

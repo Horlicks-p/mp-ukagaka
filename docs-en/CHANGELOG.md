@@ -4,6 +4,28 @@
 
 ---
 
+## [2.33.1] - 2026-09-10
+
+### Sleep
+
+- **Waking her no longer leaves her silent for the rest of the visit.** `startAutoTalk()` returns without arming a timer while `mpu_isUnawokenSleepMode()` is true, and the only other place that arms it is `mpu_nextmsg`, which `handleWakeThenOkAction` deliberately skips once a wake reaction has been shown. The chain therefore ended on the wake line, and nothing else was said until the visitor clicked OK a second time. The timer is now restarted directly at that point.
+- **Calling `mpu_nextmsg` there instead would have been worse, which is why it is not what changed.** `mpu_typewriter` clears the running typewriter before it starts, and `mpu_nextmsg` guards only on `mpuMessageBlocking`, which this path never sets — so the generated wake line would have been overwritten mid-type and thrown away. Restarting the timer leaves the line on screen and lets the next one arrive on the usual sleep-adjusted interval.
+- **A ghost with no wake-up images is unaffected.** That path takes the other branch, where `sleepModeAwoken` is never set, so the new call is inert for it. Frieren ships with wake frames and takes the branch that was broken.
+- No new log key. `startAutoTalk` already logs `autoTalkTimerSet` with the interval it picked, so the effect is visible in the console without threading a new msgid through the PHP i18n registry and four `.po` files.
+
+### Thought bubble
+
+- **The bubble and its tail are pixel SVGs instead of PNGs.** `think-bubble.png` (136×40, 4,562 bytes) and `think-tail.png` (19×17, 3,619 bytes) become `think-bubble.svg` (378 bytes) and `think-tail.svg` (298 bytes) at identical dimensions — 8,181 bytes of artwork down to 676. Both carry `shape-rendering="crispEdges"`, so the pixel-art edges stay hard at any zoom or pixel density rather than resampling into a blur.
+- **The 9-slice geometry is untouched.** `border-width: 5px 14px 7px 13px` and `border-image-slice: 5 14 7 13 fill` are the same numbers against the same 136×40 canvas, so the bubble stretches exactly as before. The drawing is two stacked paths — a black outline under a white body — inside a single `opacity: 0.75` group, which is what the old bitmap baked into its pixels.
+- **The PNGs are kept on purpose.** They are still tracked, in case a theme override still points at them.
+
+### Internal
+
+- **`CLAUDE.md` is down from 22,384 characters to 8,347.** Roughly two thirds of it was reconstructible from the repo: the directory tree, the eleven-step module load list, the JS module inventory, the version history table, and a per-file index of `docs-en/`. The repo is CodeGraph-indexed and the load-order section already named `mpu_load_modules()` as the source of truth.
+- **One line in it was wrong, not merely stale.** "There is no automated test suite" sat above `tests/phpunit.xml.dist` and 19 test files. It now gives the runner invocation, verified by running it from the repo root: 123 tests, 1,067 assertions, green.
+- **The release workflow moved to `docs-en/RELEASING.md`** with a pointer left in `CLAUDE.md` and a row added to the `docs-en/README.md` table. It is procedure needed a few times a year and does not belong in a file loaded on every session.
+
+---
 ## [2.33.0] - 2026-09-09
 
 ### Dock menu
