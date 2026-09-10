@@ -22,6 +22,7 @@
 | [API Reference](./API_REFERENCE.md)                            | Detailed reference for functions, hooks, and REST endpoints        | Developers                 |
 | [Canvas Animation &amp; Custom CSS](./CANVAS_CUSTOMIZATION.md) | Canvas animation features and CSS positioning guide                | Developers, Advanced Users |
 | [Slimstat Debugging Guide](./DEBUG_SLIMSTAT.md)                | Guide for debugging Slimstat API integration                       | Developers                 |
+| [Releasing](./RELEASING.md)                                    | Version bump, release notes, and tagging workflow                  | Maintainers                |
 
 ---
 
