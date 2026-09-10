@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="19" height="17" viewBox="0 0 19 17" shape-rendering="crispEdges">
+  <g opacity="0.75">
+    <path fill="#000" d="M10 0H15V2H17V7H15V9H10V7H8V2H10ZM2 9H5V11H7V13H5V15H2V13H0V11H2Z"/>
+    <path fill="#fff" d="M10 2H15V7H10ZM2 11H5V13H2Z"/>
+  </g>
+</svg>

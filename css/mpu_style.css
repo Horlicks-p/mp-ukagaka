@@ -156,8 +156,8 @@
   box-sizing: border-box;
   padding: 4px 6px;
   border-style: solid;
-  border-width: 5px 14px 7px 13px; /* think-bubble.png 9-slice 邊框：上右下左 */
-  border-image-source: url("../images/think-bubble.png");
+  border-width: 5px 14px 7px 13px; /* think-bubble.svg 9-slice 邊框：上右下左 */
+  border-image-source: url("../images/think-bubble.svg");
   border-image-slice: 5 14 7 13 fill; /* fill 保留中心當底；數字＝圖片像素 */
   border-image-repeat: stretch; /* 邊若有紋理/虛線改 round */
   color: var(--mpu-internal-ink);
@@ -168,7 +168,7 @@
   overflow-wrap: anywhere;
   z-index: var(--mpu-internal-z-bubble);
 
-  /* 底色與陰影都烤進 think-bubble.png；元素 opacity 留給淡入動畫 */
+  /* SVG 保留半透明白底與像素輪廓；元素 opacity 留給淡入動畫 */
   opacity: 0;
   transform: translateY(4px);
   transition:
@@ -186,7 +186,7 @@
   overflow-wrap: normal;
 }
 
-/* 尾巴箭頭：固定尺寸的 think-tail.png，釘在靠角色那側（右），不隨氣泡長度變動。
+/* 尾巴箭頭：固定尺寸的 think-tail.svg，釘在靠角色那側（右），不隨氣泡長度變動。
    right / bottom 是對位用、可微調。 */
 .mpu-think-bubble::after {
   content: "";
@@ -195,7 +195,7 @@
   bottom: -25px;
   width: 19px;
   height: 17px;
-  background: url("../images/think-tail.png") no-repeat center / contain;
+  background: url("../images/think-tail.svg") no-repeat center / contain;
 }
 
 .mpu-think-bubble.is-visible {
@@ -210,8 +210,8 @@
    載入時就開始下載（LLM 回應抵達前早已完成）。 */
 #mp_ukagaka::after {
   content: url("../images/msgbox_top.png") url("../images/msgbox_bg.png")
-    url("../images/msgbox_bottom.png") url("../images/think-bubble.png")
-    url("../images/think-tail.png");
+    url("../images/msgbox_bottom.png") url("../images/think-bubble.svg")
+    url("../images/think-tail.svg");
   position: absolute;
   width: 0;
   height: 0;

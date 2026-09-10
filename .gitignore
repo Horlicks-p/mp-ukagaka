@@ -66,7 +66,9 @@ frieren_modelfile.txt
 *_modelfile.txt
 
 # User-generated content
-images/
+images/*
+!images/think-bubble.svg
+!images/think-tail.svg
 dialogs/
 .cursor-config.md
 
