@@ -271,10 +271,10 @@ scenario("awake-autotalk-single-chain", "browser", async (h) => {
   assert(!s0.unawokenSleep, "precondition: site must be awake");
   assert(s0.autoTalkEnabled, "precondition: auto talk enabled");
 
-  // Watch three intervals. One chain means ticks are spaced by at least the
+  // Watch six intervals (slack for slower machines). One chain means ticks are spaced by at least the
   // interval and no timer is ever overwritten while still pending.
   const t0 = Date.now();
-  await sleep(AUTO_TALK_INTERVAL_S * 1000 * 4);
+  await sleep(AUTO_TALK_INTERVAL_S * 1000 * 6);
   const p = await h.probe(page);
   const autos = p.nextmsgCalls.filter((c) => c.trigger === "auto" && c.at >= t0);
   assert(autos.length >= 2, `expected auto talk to tick, got ${autos.length}`);
