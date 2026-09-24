@@ -16,6 +16,7 @@
     "test:chat-transport": "cd ../.. && node tools/node/test-chat-transport-smoke.js",
     "test:gift-message": "cd ../.. && node tools/node/test-gift-message-smoke.js",
     "test:gift-transport": "cd ../.. && node tools/node/test-gift-transport-smoke.js",
+    "test:interaction": "cd ../.. && node tools/e2e/interaction-e2e.js",
     "lint:css": "cd ../.. && stylelint css/mpu_style.css --config-basedir tools/node",
     "lint:css:fix": "cd ../.. && stylelint css/mpu_style.css --config-basedir tools/node --fix",
     "visual:baseline": "cd ../.. && node tools/visual/frontend-css-visual.js baseline",
@@ -44,11 +45,15 @@
   },
   "homepage": "https://github.com/Horlicks-p/mp-ukagaka#readme",
   "devDependencies": {
+    "@wp-playground/cli": "3.1.40",
     "pixelmatch": "^7.2.0",
     "playwright": "^1.62.1",
     "pngjs": "^7.0.0",
     "stylelint": "^17.14.1",
     "stylelint-config-standard": "^40.0.0",
     "terser": "^5.44.1"
+  },
+  "allowScripts": {
+    "fs-ext-extra-prebuilt@2.2.7": true
   }
 }
