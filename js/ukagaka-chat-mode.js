@@ -18,6 +18,11 @@ function mpu_toggleChatMode(enable) {
     // 進入對話模式
     mpuLogger.logL("chatModeEntered", "インタラクティブ会話モードに入りました");
 
+    // 自動台詞送出時會把訊息框淡出（600ms）。淡出途中框仍算可見，下面的
+    // 「隱藏就顯示」判斷會落空，淡出結束後聊天框就看不見了。先讓進行中的
+    // 動畫直接跑完，再依實際狀態顯示。
+    $msgbox.stop(true, true);
+
     // 暫停自動對話
     if (mpuAutoTalkTimer !== null) {
       stopAutoTalk();
