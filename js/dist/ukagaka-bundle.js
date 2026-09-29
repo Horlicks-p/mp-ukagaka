@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-09-29T02:25:11.613Z
+ * Generated: 2026-09-29T04:53:07.491Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -2182,6 +2182,10 @@ function mpu_nextmsg(trigger) {
 
         if (mpuMessageBlocking || mpuAiContextInProgress) {
           mpuLogger.logL("nextMessageLlmResponseSkippedPageAwareInProgress", "mpu_nextmsg: ページ感知 AI が進行中のため、LLM 応答の表示をスキップします");
+          // 不顯示也要釋放請求旗標，否則之後每次自動 tick 都會被當成「忙碌」而略過，
+          // 直到重新載入頁面（頁面感知在自動台詞請求進行中開始時即會發生）
+          mpuSetOllamaRequesting(false);
+          mpu_processOllamaQueue();
           return;
         }
 
