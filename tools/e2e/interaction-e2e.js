@@ -265,7 +265,7 @@ class Harness {
         unawokenSleep: typeof window.mpu_isUnawokenSleepMode === "function" && window.mpu_isUnawokenSleepMode(),
         msg: (document.getElementById("ukagaka_msg") || {}).textContent || "",
         inputDisabled: !!(document.getElementById("mpu_user_input") || {}).disabled,
-        history: (window.mpuChatHistory || []).map((h) => ({ role: h.role, type: h.type || "", content: h.content })),
+        history: (window.mpuChatHistory || []).map((h) => ({ role: h.role, type: h.type || "", content: h.content, at: h.timestamp })),
       };
     });
   }
@@ -556,21 +556,26 @@ for (const transport of ["sse", "json"]) {
     await h.quietAutoTalk(page);
     await useTransport(page, transport);
     await h.enterChat(page);
-    h.fake.setDelay(4000);
+    // Longer than the 5 s exit line, so the reply lands after that line is in
+    // history and only an insert-after-its-turn keeps the pair together.
+    h.fake.setDelay(7000);
     h.fake.queueReply("CLOSED_REPLY");
     await h.send(page, "hello before closing");
     await page.waitForFunction(() => window.mpuChatRequesting === true, null, { timeout: 10000 });
     await h.exitChat(page);
     const tExit = Date.now();
     await page.waitForFunction(() => window.mpuChatRequesting === false, null, { timeout: 60000 });
-    // Past the 5 s exit line too, so its history entries are in place.
-    await sleep(6000);
+    await sleep(500);
     const s = await h.state(page);
     const p = await h.probe(page);
     assert(h.fake.chatRequests().some((r) => r.reply === "CLOSED_REPLY"), "the provider never answered; nothing was tested");
     assert(!shownAfter(p, tExit, "CLOSED_REPLY"), "reply for a closed chat was shown");
     assert(!s.inputDisabled, "chat input stayed disabled");
     assertLateReplyRecorded(s, "hello before closing", "CLOSED_REPLY");
+    const exitLine = s.history.find((m) => m.type === "auto_talk");
+    const reply = s.history.find((m) => m.role === "assistant" && String(m.content).includes("CLOSED_REPLY"));
+    assert(exitLine && exitLine.at < reply.at,
+      "the exit line was not written before the late reply arrived; the ordering was not exercised");
 
     // Next turn: runs on a checksum "block" site, so it only succeeds if the
     // history still matches what the server stored.

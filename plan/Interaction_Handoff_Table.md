@@ -108,10 +108,12 @@
 `npm --prefix tools/node run test:interaction`：22 個情境，22 PASS。新增 `block` 模式站台執行晚到回應的情境：
 
 - `checksum-block-rejects-tampered-history`：竄改歷史後下一輪被拒絕，確認 `block` 模式確實生效，否則以下情境的「下一輪成功」沒有意義。
-- `chat-close-keeps-late-reply-{sse,json}`：關閉後到達的回應不顯示（含 `$msg.html()` 直寫，由 MutationObserver 記錄）、在歷史中恰好一次且緊接它的 user，下一輪在 `block` 模式下成功。
+- `chat-close-keeps-late-reply-{sse,json}`：回應延遲 7 秒，晚於離開 5 秒後寫入的自語（以時間戳確認），所以會實際走到「插在它回答的那一輪之後」。回應不顯示（含 `$msg.html()` 直寫，由 MutationObserver 記錄）、在歷史中恰好一次且緊接它的 user，下一輪在 `block` 模式下成功。
+- `tools/node/test-chat-history-order-smoke.js`（已加入 `verify`）：`vm` 單元測試歷史 helper——參考命中時插入位置、重新載入後以內容比對、找不到時接在最後、按參考撤回且重複撤回不誤刪。
 - `chat-reopen-keeps-late-reply-off-screen-{sse,json}`：重開後舊回應不出現在新畫面，下一輪成功，且把舊回應當作上下文送給 provider。
 
 ### 其他觀察
 
+- 聊天接手路徑（疑點 A 的修正）在記錄後直接返回，不會更新 `#ukagaka_msgnum`。LLM 取代模式下這個編號幾乎不被使用，影響極小。
 - `logs/checksum-mismatch.log` 在 Playground 掛載目錄上寫不進去：`file_put_contents(..., LOCK_EX)` 的檔案鎖在 php-wasm＋Windows 掛載上失敗，錯誤被 `@` 吞掉。測試因此改用 `block` 模式驗證 checksum，不讀這個檔案。實站不受影響。
 - （僅讀程式碼，未重現）`mpu_nextmsg` 的 LLM 回應遇到 `messageBlocking` 或 `aiContextInProgress` 時提前返回，同樣沒有釋放 `ollamaRequesting`。若頁面感知在自動台詞請求進行中開始，之後的自動台詞可能一直被當成「忙碌」而略過，直到重新載入。觸摸、裝飾會先取消請求，不受影響。
