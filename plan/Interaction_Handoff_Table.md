@@ -133,6 +133,8 @@
 - 原因：`/chat/user-stream` 把 provider／傳輸層的 `WP_Error` 訊息原樣以 SSE `error` 事件送到前端，前端直接顯示。同步路徑（`/chat/user`）早已只回通用訊息。
 - 修正：`MPU_REST_Chat::public_stream_error_message()`，串流錯誤與 provider 實例錯誤都改回與同步路徑相同的通用訊息（「不明なエラーが発生しました。ログを確認してください」），原始內容以 `mpu_log_error()` 寫入伺服器 log。
 - 實測：`sse-server-provider-cut` 斷言畫面不含 cURL 字串、狀態為 `error`、該輪不留在歷史。
+- 補正（Codex 審查指出）：Gemini、Claude（以及 Ollama 的 tool loop guard）會在回傳 `WP_Error` 前自行 `emit('error')` 帶原始訊息，controller 原樣轉送，前端收到第一個 error 就結束，所以只在串流收尾換訊息無效。改為在 controller 轉送事件時統一攔截 `error`（`public_stream_event_data()`），provider 已送過就不在收尾重送（`send_stream_error()`），避免 log 重複。
+- 實測：`sse-provider-emitted-error` 讓 fake 每輪要求同一個 tool call，觸發 Ollama 的 loop guard 自行送出 error 事件。修正前畫面顯示「Tool call loop detected: Tool "e2e_loop_tool"…」（已確認失敗），修正後顯示通用訊息。Gemini、Claude 的網址寫死在 provider 裡，fake 接不到，所以以相同的「provider 先 emit error」路徑代測。
 - 備註：這句通用訊息的「請確認 log」是寫給站長的，訪客也會看到；同步路徑原本就是這樣。若要改成角色口吻（如前端既有的「（…通信状況が良くないみたいだ…）」），兩條路徑應一起改。
 
 ### D：自動台詞送出瞬間進入聊天，聊天框看不見（測試中發現，已修正）
@@ -147,3 +149,7 @@
 - `awakePage()` 等頁面載入的 startup 台詞完成後才交給情境。startup 不受自動對話開關控制，原本可能落在情境的計數期間（`gift-rest-unknown-item` 曾因此誤判）。
 - fake Ollama 的延遲在「請求到達 fake」時讀取，而 PHP 處理完才呼叫 provider，所以頁面感知情境改為依請求內容決定回應、依到達時間計數。
 - 失敗證據檔保存完整錯誤與 Playwright 呼叫紀錄。
+
+### 已決定：頁面感知期間的佇列請求維持丟棄（2026-09-29，使用者決定）
+
+Codex 指出：釋放請求旗標後立即 `mpu_processOllamaQueue()`，1.5 秒後先 `shift()` 再呼叫 `mpu_nextmsg()`，而頁面感知仍在 `messageBlocking`，所以排隊的請求會被丟棄。機制屬實；修正前旗標卡住、佇列也從不處理，一樣會遺失。佇列只會有「自動台詞請求進行中時按下的 OK」，頁面感知期間 OK 鈕本來也會被 `messageBlocking` 擋下，所以決定維持丟棄，不延後重送。觸摸、裝飾取消請求時走同一條路，行為相同。
