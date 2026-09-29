@@ -666,6 +666,30 @@ scenario("sse-server-provider-cut", "browser + wp (sse)", async (h) => {
 });
 
 
+scenario("sse-provider-emitted-error", "browser + wp (sse)", async (h) => {
+  // Gemini and Claude emit their own 'error' event (raw text) before returning
+  // WP_Error. Ollama does the same when its tool-loop guard trips, which the fake
+  // can provoke by asking for the same tool call every turn.
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await useTransport(page, "sse");
+  await h.enterChat(page);
+  h.fake.alwaysToolCall({ name: "e2e_loop_tool", arguments: { q: 1 } });
+  const mark = h.fake.chatRequests().length;
+  await h.send(page, "loop me");
+  await page.waitForFunction(() => window.mpuChatRequesting === false, null, { timeout: 90000 });
+  await h.typewriterIdle(page);
+  const s = await h.state(page);
+  const streamState = await page.evaluate(() => jQuery("#ukagaka_msgbox").attr("data-mpu-stream-state") || "");
+  const turns = h.fake.chatRequests().length - mark;
+  assert(turns >= 2, `the tool loop never repeated (${turns} provider call); the guard was not reached`);
+  assert(!/e2e_loop_tool|ツール|tool call/i.test(s.msg), `provider's own error text shown to the visitor: "${s.msg}"`);
+  assert(streamState === "error", `expected error state, got "${streamState}"`);
+  assert(!s.inputDisabled, "chat input stayed disabled");
+  return { msg: s.msg, providerTurns: turns };
+});
+
 // --- SSE terminal paths (frontend half; the stream endpoint is replayed) ------
 
 function sseBody(frames) {

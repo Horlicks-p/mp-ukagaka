@@ -23,6 +23,13 @@ if (!defined('ABSPATH')) {
 
 class MPU_REST_Chat extends MPU_REST_Base {
 
+	/**
+	 * 本次串流是否已送出 error 事件（provider 自行送出，或 controller 收尾時送出）。
+	 *
+	 * @var bool
+	 */
+	private $stream_error_sent = false;
+
     /**
      * 向 WordPress 註冊所有 Chat 端點。
      * 由 bootstrap.php 集中掛載到 rest_api_init。
@@ -1031,6 +1038,37 @@ class MPU_REST_Chat extends MPU_REST_Base {
 		return __( '不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka' );
 	}
 
+	/**
+	 * Provider 轉送來的事件在送出前經過這裡。Gemini、Claude 會在回傳 WP_Error
+	 * 之前先自行 emit('error') 並帶原始訊息；前端收到第一個 error 就結束，所以必須
+	 * 在轉送時就換成通用訊息，不能只靠串流結束後的收尾。
+	 *
+	 * @param string $event SSE event name.
+	 * @param mixed  $data  Event payload.
+	 * @return mixed Payload to send.
+	 */
+	protected function public_stream_event_data( $event, $data ) {
+		if ( 'error' !== $event ) {
+			return $data;
+		}
+		$this->stream_error_sent = true;
+		$raw                     = is_array( $data ) && isset( $data['message'] ) ? (string) $data['message'] : '';
+		return array( 'message' => $this->public_stream_error_message( new WP_Error( 'provider_stream_error', $raw ) ) );
+	}
+
+	/**
+	 * 串流以 WP_Error 結束時送出 error 事件；provider 已送過就不重送（也不重複寫 log）。
+	 *
+	 * @param WP_Error $error Stream result.
+	 */
+	protected function send_stream_error( WP_Error $error ): void {
+		if ( $this->stream_error_sent ) {
+			return;
+		}
+		$this->stream_error_sent = true;
+		mpu_sse_send_event( 'error', array( 'message' => $this->public_stream_error_message( $error ) ) );
+	}
+
     protected function store_debug_mcp_report(array $args, string $report): void {
         MPU_Chat_History_Service::store_after_user_chat(
             $args['chat_session_id'],
@@ -1169,7 +1207,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             } elseif ($event === 'delta') {
                 $this->set_runtime_state_for_args($args, 'speaking');
             }
-            mpu_sse_send_event($event, $data);
+            mpu_sse_send_event($event, $this->public_stream_event_data( $event, $data ));
             $this->exit_if_stream_aborted($args);
 
             if ($event === 'delta' && isset($data['text'])) {
@@ -1197,7 +1235,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         if (is_wp_error($stream_result)) {
             // 如果串流中途出錯且尚未結束，發送錯誤事件
             $this->set_runtime_state_for_args($args, 'error');
-            mpu_sse_send_event('error', ['message' => $this->public_stream_error_message( $stream_result )]);
+            $this->send_stream_error( $stream_result );
             $this->set_runtime_state_for_args($args, 'idle');
             $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
             exit;
