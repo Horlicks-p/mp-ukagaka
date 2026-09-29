@@ -4,7 +4,7 @@
 核對基準：`62e6197`
 對應計畫：`plan/Interaction_Reliability_And_Response_Quality_Plan.md` 第一階段
 
-本表記錄的是**目前程式碼的實際行為**，不是期望行為。標示「疑點」的列已由 `tools/e2e/interaction-e2e.js` 實際執行確認，結果見第六節。
+第一至五節最初記錄第一階段（`62e6197`）的實際行為。第三節中疑點 A、B、C 的列已依第二階段修正更新（2026-09-29），修正前的行為與實測見第六節，修正後見第七節。
 
 ## 一、共享旗標與寫入者
 
@@ -42,15 +42,13 @@
 | 目前互動 | 收到事件 | 目前行為 | 取消進行中的請求？ | 恢復自動對話？ |
 | --- | --- | --- | --- | --- |
 | 自動對話計時器等待中 | 進入聊天 | `stopAutoTalk` 清除計時器 | 無請求 | 離開聊天 5 秒後 |
-| 自動對話 LLM 請求進行中（`mpu_nextmsg_llm`） | 進入聊天 | 只清計時器 | **否**。**疑點 A（已重現）**：回應 `.then` 只檢查 `messageBlocking`／`aiContextInProgress`／`greetInProgress`，沒有檢查 `mpuChatModeActive` | 回應後 `startAutoTalk` 會因聊天模式直接返回 |
+| 自動對話 LLM 請求進行中（`mpu_nextmsg_llm`） | 進入聊天 | 只清計時器。回應到達時（`.then`、畫面就緒後、fallback）檢查聊天模式：**不顯示，照常以 `auto_talk` 記入歷史**，並釋放請求旗標（已修正疑點 A） | 否（伺服器可能已記錄；不取消） | 離開聊天 5 秒後 |
 | 自動對話 LLM 請求進行中 | 觸摸／裝飾 | 設 `messageBlocking`，並 `mpuCancelRequest("mpu_nextmsg_llm")` | 是 | 互動結束後 |
 | 睡眠未喚醒 | 自動計時器觸發 | 略過並重設計時器 | — | — |
 | 睡眠未喚醒 | OK 鈕 | 喚醒請求 → 喚醒台詞 → `startAutoTalk` | — | 是 |
 | 喚醒請求進行中 | 再按 OK／進入聊天 | 共用 `mpuWakeRequestPromise`，不重複送出 | — | 依各自呼叫端 |
 | 聊天 JSON 請求進行中 | 再次送出 | `mpuChatRequesting` 拒絕 | — | — |
-| 聊天 JSON 請求進行中 | 關閉聊天 | 回應到達時丟棄 | **否**（請求繼續跑到完成） | 離開 5 秒後 |
-| 聊天 JSON 請求進行中 | 關閉後在回應前重新開啟 | **疑點 B（已重現，JSON 與 SSE 皆是）**：丟棄條件只看 `mpuChatModeActive`，重開後舊回應會顯示在新畫面並寫入歷史 | 否 | — |
-| 聊天 SSE 進行中 | 關閉聊天 | 串流繼續，`streamFinalize` 無聊天模式檢查。**疑點 C（已重現）**：關閉後的回應仍寫入歷史，並與離開台詞／5 秒後的隨機台詞競爭 | 否 | 離開 5 秒後 |
+| 聊天請求進行中（JSON、SSE） | 關閉聊天，或關閉後在回應前重新開啟 | 以聊天世代（`mpuChatGeneration`，每次開關聊天遞增）判定過期：**不顯示（SSE 不逐字、不動狀態標記），照常記入歷史，插在它回答的那一輪之後**；失敗時按參考撤回那一輪 user（已修正疑點 B、C）。**產品行為變更**：JSON 關閉原本丟棄回應，現在保留在歷史 | 否（請求繼續跑到完成） | 離開 5 秒後 |
 | 送禮進行中 | 送禮、裝飾點擊 | `giveItemInProgress`／`messageBlocking` 拒絕 | — | — |
 | 送禮進行中 | 自動計時器 | 已 `stopAutoTalk`；即使另有呼叫，`mpu_nextmsg` 也會被 `messageBlocking` 擋下 | — | 打字結束後 |
 | 聊天模式中 | 送禮 | 允許（`giveItem` 不檢查聊天模式）；回應入歷史供下一輪聊天使用 | — | `startAutoTalk` 因聊天模式直接返回 |
@@ -92,3 +90,28 @@
 - JSON 路徑關閉聊天後丟棄回應，但使用者那一輪留在歷史（`orphanUserTurnsKept: 1`）。是否要撤回，交由第二階段依歷史規則決定。
 - 伺服器端 SSE 被 provider 中途切斷時，收尾正確（輸入恢復、user 那一輪撤回、狀態為 `error`），但畫面直接顯示 `cURL Error (18): transfer closed with outstanding read data remaining`，是內部錯誤字串。
 - Asuna（佔位角色）的喚醒請求成功，但伺服器沒有回傳喚醒台詞，前端改用內建的 `deep_sleep` 備用台詞。行為符合程式碼，是否需要角色專屬台詞另行決定。
+
+## 七、第二階段修正與實測（2026-09-29）
+
+規則（使用者決定）：聊天關閉、重開，或被自動對話搶先時，晚到的回應**不顯示，但照常寫入歷史**。伺服器在回覆當下已把該輪記入 checksum（只計算 `type` 為 `chat` 的 assistant）；前端丟棄會讓下一輪對不上，`block` 模式下下一輪會被拒絕。
+
+| 問題 | 修正 | 位置 |
+| --- | --- | --- |
+| A | 自動台詞回應到達時檢查聊天模式（外層 `.then`、畫面就緒後、fallback）；聊天中只以 `auto_talk` 記入歷史，並釋放 `ollamaRequesting` | `js/ukagaka-core.js`：`mpu_recordLlmAutoTalk()`、`mpu_recordAutoTalkIfChatTookOver()` |
+| B、C | 聊天世代 `mpuChatGeneration`（`mpu_toggleChatMode` 每次遞增）。送出時記下世代與那一輪 user；過期回應不碰畫面（SSE 的 delta、狀態、思考氣泡、表情、動畫都跳過），只插入歷史 | `js/ukagaka-chat-mode.js`、`js/ukagaka-chat-send.js` |
+| 歷史順序 | 回應插在它回答的 user 之後，不再直接 push；失敗時按參考撤回那一輪 user，不再假設它是最後一筆。重新進入聊天會換成從 storage 讀回的陣列，所以找不到參考時以 role、timestamp、content 比對 | `js/ukagaka-chat-history.js`：`mpu_insertChatReply()`、`mpu_removeChatHistoryEntry()` |
+
+新增除錯 log 鍵：`nextMessageLlmResponseRecordedDuringChat`、`chatStaleReplyRecorded`（含 ja／en_US／zh_TW 翻譯）。`chatModeClosedDiscardAiResponse` 已無呼叫端，登錄與翻譯暫留。
+
+### 實測
+
+`npm --prefix tools/node run test:interaction`：22 個情境，22 PASS。新增 `block` 模式站台執行晚到回應的情境：
+
+- `checksum-block-rejects-tampered-history`：竄改歷史後下一輪被拒絕，確認 `block` 模式確實生效，否則以下情境的「下一輪成功」沒有意義。
+- `chat-close-keeps-late-reply-{sse,json}`：關閉後到達的回應不顯示（含 `$msg.html()` 直寫，由 MutationObserver 記錄）、在歷史中恰好一次且緊接它的 user，下一輪在 `block` 模式下成功。
+- `chat-reopen-keeps-late-reply-off-screen-{sse,json}`：重開後舊回應不出現在新畫面，下一輪成功，且把舊回應當作上下文送給 provider。
+
+### 其他觀察
+
+- `logs/checksum-mismatch.log` 在 Playground 掛載目錄上寫不進去：`file_put_contents(..., LOCK_EX)` 的檔案鎖在 php-wasm＋Windows 掛載上失敗，錯誤被 `@` 吞掉。測試因此改用 `block` 模式驗證 checksum，不讀這個檔案。實站不受影響。
+- （僅讀程式碼，未重現）`mpu_nextmsg` 的 LLM 回應遇到 `messageBlocking` 或 `aiContextInProgress` 時提前返回，同樣沒有釋放 `ollamaRequesting`。若頁面感知在自動台詞請求進行中開始，之後的自動台詞可能一直被當成「忙碌」而略過，直到重新載入。觸摸、裝飾會先取消請求，不受影響。
