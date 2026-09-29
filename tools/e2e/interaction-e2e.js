@@ -1096,14 +1096,17 @@ async function main() {
   const selected = scenarios.filter((s) => !only || s.name === only || s.name.startsWith(only));
   assert(selected.length > 0, `no scenario matches --only=${only}`);
 
-  const fake = await startFakeOllama();
-  console.log(`fake ollama: ${fake.url}`);
-  const browser = await chromium.launch({ channel: "msedge", headless: !headed });
-  const harness = new Harness(null, fake, browser);
   const results = [];
   // One disposable site per ghost; the ghost is fixed in the site's options.
   const profiles = [...new Map(selected.map((s) => [profileKey(siteProfile(s)), siteProfile(s)])).values()];
+  const fake = await startFakeOllama();
+  console.log(`fake ollama: ${fake.url}`);
+  // The fake server keeps Node alive, so it must be stopped even when the
+  // browser fails to launch (Edge missing, launch error).
+  let browser = null;
   try {
+    browser = await chromium.launch({ channel: "msedge", headless: !headed });
+    const harness = new Harness(null, fake, browser);
     for (const [index, profile] of profiles.entries()) {
       console.log(`booting Playground for ${profileKey(profile)} (first run downloads WordPress)...`);
       harness.site = await startPlayground({
@@ -1121,7 +1124,7 @@ async function main() {
       }
     }
   } finally {
-    await browser.close();
+    if (browser) await browser.close();
     await fake.stop();
   }
 
