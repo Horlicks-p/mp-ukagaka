@@ -502,6 +502,68 @@ function mpu_processOllamaQueue() {
 }
 
 /**
+ * 記錄一句 LLM 自發台詞：更新重複檢查用的回應紀錄，並寫入對話歷史。
+ * 顯示與否由呼叫端決定；聊天模式中到達的台詞只記錄、不顯示。
+ * @param {string} rawMsg - 伺服器回傳的台詞
+ * @param {string} out - 實際顯示用的台詞（含 auto_msg）
+ */
+function mpu_recordLlmAutoTalk(rawMsg, out) {
+  mpuSetLastLLMResponse(rawMsg);
+
+  if (mpuLLMResponseHistory.length >= mpuMaxResponseHistory) {
+    mpuLLMResponseHistory.shift();
+  }
+  mpuLLMResponseHistory.push(rawMsg);
+
+  // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
+  if (
+    typeof window.mpuChatHistory !== "undefined" &&
+    Array.isArray(window.mpuChatHistory)
+  ) {
+    // synthetic user 錨點：讓 LLM 能在後續對話中看到自語的完整脈絡
+    window.mpuChatHistory.push({
+      role: "user",
+      content: "（独り言）",
+      type: "synthetic",
+      timestamp: Date.now(),
+    });
+    window.mpuChatHistory.push({
+      role: "assistant",
+      content: out,
+      type: "auto_talk",
+      timestamp: Date.now(),
+    });
+    mpuLogger.logF("nextMessageSpontaneousAddedToHistory", "mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s", window.mpuChatHistory.length);
+    if (typeof mpu_saveChatHistory === "function") {
+      mpu_saveChatHistory();
+      mpuLogger.logL("nextMessageHistorySaved", "mpu_nextmsg: 会話履歴を保存しました");
+    } else {
+      mpuLogger.warnL("nextMessageSaveHistoryMissing", "mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
+    }
+  } else {
+    mpuLogger.warnL("nextMessageHistoryUnavailable", "mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません");
+  }
+}
+
+/**
+ * 自發台詞的請求送出後，使用者已進入聊天模式時：台詞照常記入歷史（角色確實說過，
+ * 聊天的上下文也需要它），但不顯示，避免覆蓋聊天畫面。
+ * @param {Object} res - 伺服器回應
+ * @param {string} out - 顯示用台詞（含 auto_msg）
+ * @returns {boolean} 已被聊天模式接手時為 true，呼叫端應停止顯示
+ */
+function mpu_recordAutoTalkIfChatTookOver(res, out) {
+  if (typeof mpuChatModeActive === "undefined" || !mpuChatModeActive) {
+    return false;
+  }
+  if (res && res.msg) {
+    mpu_recordLlmAutoTalk(res.msg, out);
+    mpuLogger.logL("nextMessageLlmResponseRecordedDuringChat", "mpu_nextmsg: 会話モード中に届いた自発会話を、表示せずに会話履歴へ記録しました");
+  }
+  return true;
+}
+
+/**
  * 顯示下一句對話
  * @param {string} trigger - 觸發方式：'auto'（自動）、'startup'（啟動）、undefined（手動）
  */
@@ -646,9 +708,16 @@ function mpu_nextmsg(trigger) {
           return;
         }
 
+        // 聊天模式接手後，成功或失敗（速率限制等）的回應都不能再寫進聊天畫面
+        const autoMsgSuffix = mpuGetDialogStore()?.auto_msg || "";
+        if (mpu_recordAutoTalkIfChatTookOver(res, res && res.msg ? res.msg + autoMsgSuffix : "")) {
+          mpuSetOllamaRequesting(false);
+          mpu_processOllamaQueue();
+          return;
+        }
+
         if (res && res.msg) {
-          const auto = mpuGetDialogStore()?.auto_msg || "";
-          const out = res.msg + auto;
+          const out = res.msg + autoMsgSuffix;
           const visualReady = typeof mpuWaitForVisualReady === "function"
             ? mpuWaitForVisualReady()
             : Promise.resolve();
@@ -658,6 +727,9 @@ function mpu_nextmsg(trigger) {
             // competing flows after readiness so a later context/greet cannot be overwritten.
             if (mpuMessageBlocking || mpuAiContextInProgress || mpuGreetInProgress) {
               mpuLogger.logL("nextMessageLlmResponseSkippedPageAwareInProgress", "mpu_nextmsg: 視覚初期化の待機中に別の対話が開始されたため、LLM 応答の表示をスキップします");
+              return;
+            }
+            if (mpu_recordAutoTalkIfChatTookOver(res, out)) {
               return;
             }
 
@@ -725,41 +797,7 @@ function mpu_nextmsg(trigger) {
               }
             }
 
-            mpuSetLastLLMResponse(res.msg);
-
-            if (mpuLLMResponseHistory.length >= mpuMaxResponseHistory) {
-              mpuLLMResponseHistory.shift();
-            }
-            mpuLLMResponseHistory.push(res.msg);
-
-            // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
-            if (
-              typeof window.mpuChatHistory !== "undefined" &&
-              Array.isArray(window.mpuChatHistory)
-            ) {
-              // synthetic user 錨點：讓 LLM 能在後續對話中看到自語的完整脈絡
-              window.mpuChatHistory.push({
-                role: "user",
-                content: "（独り言）",
-                type: "synthetic",
-                timestamp: Date.now(),
-              });
-              window.mpuChatHistory.push({
-                role: "assistant",
-                content: out,
-                type: "auto_talk",
-                timestamp: Date.now(),
-              });
-              mpuLogger.logF("nextMessageSpontaneousAddedToHistory", "mpu_nextmsg: 自発会話を会話履歴に追加しました。現在の履歴長: %s", window.mpuChatHistory.length);
-              if (typeof mpu_saveChatHistory === "function") {
-                mpu_saveChatHistory();
-                mpuLogger.logL("nextMessageHistorySaved", "mpu_nextmsg: 会話履歴を保存しました");
-              } else {
-                mpuLogger.warnL("nextMessageSaveHistoryMissing", "mpu_nextmsg: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
-              }
-            } else {
-              mpuLogger.warnL("nextMessageHistoryUnavailable", "mpu_nextmsg: window.mpuChatHistory が未初期化、または配列ではないため、会話履歴に追加できません");
-            }
+            mpu_recordLlmAutoTalk(res.msg, out);
 
             if (res.msgnum !== undefined) {
               jQuery("#ukagaka_msgnum").html(res.msgnum);
@@ -981,6 +1019,10 @@ function mpu_nextmsg(trigger) {
 
 function mpu_nextmsg_fallback() {
   setTimeout(function () {
+    if (typeof mpuChatModeActive !== "undefined" && mpuChatModeActive) {
+      mpuLogger.logL("nextMessageSkippedChatMode", "mpu_nextmsg: 会話モード中のため自動会話をスキップします");
+      return;
+    }
     mpu_showMsgText();
     if (mpuMessageBlocking || mpuAiContextInProgress) {
       mpuLogger.logL("nextMessageFallbackSkippedPageAwareInProgress", "mpu_nextmsg_fallback: ページ感知 AI が進行中のため、表示をスキップします");

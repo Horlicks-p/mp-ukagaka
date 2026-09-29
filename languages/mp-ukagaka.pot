@@ -3733,3 +3733,8 @@ msgstr ""
 #: includes/core/frontend-functions.php:600
 msgid "次のアイテム"
 msgstr ""
+
+#. translators: debug console log. An auto-talk reply arrived after chat mode began; it is stored in history but not shown.
+#: includes/core/frontend-functions.php:822
+msgid "mpu_nextmsg: 会話モード中に届いた自発会話を、表示せずに会話履歴へ記録しました"
+msgstr ""

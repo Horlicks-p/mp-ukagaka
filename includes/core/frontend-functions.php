@@ -818,6 +818,8 @@ function mpu_enqueue_frontend_assets() {
 		$log_i18n->debug( 'nextMessageSkippedMessageBlocking', __( 'mpu_nextmsg: メッセージ表示がブロックされています（mpuMessageBlocking=true）。スキップします', 'mp-ukagaka' ) );
 		/* translators: debug console log. Auto-talk next message is skipped during chat mode. */
 		$log_i18n->debug( 'nextMessageSkippedChatMode', __( 'mpu_nextmsg: 会話モード中のため自動会話をスキップします', 'mp-ukagaka' ) );
+		/* translators: debug console log. An auto-talk reply arrived after chat mode began; it is stored in history but not shown. */
+		$log_i18n->debug( 'nextMessageLlmResponseRecordedDuringChat', __( 'mpu_nextmsg: 会話モード中に届いた自発会話を、表示せずに会話履歴へ記録しました', 'mp-ukagaka' ) );
 		/* translators: debug console log. Auto-talk next message is skipped during decoration or touch dialog. */
 		$log_i18n->debug( 'nextMessageSkippedInteractionDialog', __( 'mpu_nextmsg: 装飾品またはタッチ会話中のため自動会話をスキップします', 'mp-ukagaka' ) );
 		/* translators: debug console log. Next message exits because auto-talk is disabled. */

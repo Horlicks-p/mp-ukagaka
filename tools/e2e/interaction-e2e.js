@@ -115,6 +115,7 @@ const PAGE_PROBE = () => {
     nextmsgCalls: [],   // { at, trigger }
     typewriter: [],     // { at, text }
     requests: [],       // { at, url, status }
+    msgChanges: [],     // { at, text } every text change of #ukagaka_msg, including direct .html() writes
   };
   window.__mpuProbe = probe;
 
@@ -155,6 +156,18 @@ const PAGE_PROBE = () => {
     };
     return true;
   }
+  document.addEventListener("DOMContentLoaded", () => {
+    const box = document.getElementById("ukagaka_msg");
+    if (!box) return;
+    let last = null;
+    new MutationObserver(() => {
+      const text = box.textContent;
+      if (text !== last) {
+        last = text;
+        probe.msgChanges.push({ at: Date.now(), text });
+      }
+    }).observe(box, { childList: true, subtree: true, characterData: true });
+  });
   if (!wrapWhenReady()) {
     document.addEventListener("DOMContentLoaded", function retry() {
       if (!wrapWhenReady()) setTimeout(retry, 0);
@@ -405,6 +418,12 @@ function typedAfter(probe, at, marker) {
   return probe.typewriter.filter((t) => t.at >= at && t.text.includes(marker));
 }
 
+/** Any moment after `at` where the message box showed `marker`, however it got there. */
+function shownAfter(probe, at, marker) {
+  return typedAfter(probe, at, marker).length > 0
+    || probe.msgChanges.some((c) => c.at >= at && c.text.includes(marker));
+}
+
 // --- chat handoff -----------------------------------------------------------
 
 scenario("chat-entered-while-autotalk-waiting", "browser", async (h) => {
@@ -451,13 +470,24 @@ scenario("chat-entered-while-autotalk-llm-in-flight", "browser", async (h) => {
   await h.typewriterIdle(page);
   const s = await h.state(page);
   const p = await h.probe(page);
-  const late = typedAfter(p, tEnter, "AUTO_LINE_LATE");
-  assert(late.length === 0, "an auto-talk reply requested before chat was typed into the chat box");
-  assert(countAssistant(s.history, "AUTO_LINE_LATE") === 0, "an auto-talk reply requested before chat was written to chat history");
-  return { msg: s.msg };
-}, {
-  knownIssue: "疑點 A: mpu_nextmsg LLM .then does not check mpuChatModeActive; entering chat does not cancel mpu_nextmsg_llm",
-  failsWith: "auto-talk reply requested before chat was",
+  assert(h.fake.chatRequests().some((r) => r.reply === "AUTO_LINE_LATE"), "the auto-talk request never got its reply; nothing was tested");
+  assert(!shownAfter(p, tEnter, "AUTO_LINE_LATE"), "an auto-talk reply requested before chat was shown in the chat box");
+  // Rule (phase 2): a late reply is not shown but is still recorded, as the
+  // character did say it and the chat context needs it.
+  const stored = s.history.filter((m) => m.role === "assistant" && String(m.content).includes("AUTO_LINE_LATE"));
+  assert(stored.length === 1 && stored[0].type === "auto_talk",
+    `late auto-talk reply stored as ${JSON.stringify(stored.map((m) => m.type))}, expected one auto_talk`);
+  assert(s.chatMode, "chat mode was left");
+
+  // The request must also be released, or every later auto tick is skipped as "busy".
+  h.fake.setDelay(0);
+  h.fake.setReplyFor((n) => `AFTER_CHAT_${n}`);
+  await h.exitChat(page);
+  const tExit = Date.now();
+  await sleep(5000 + AUTO_TALK_INTERVAL_S * 1000 * 3);
+  const resumed = h.fake.chatRequests().filter((r) => r.at >= tExit && String(r.reply).startsWith("AFTER_CHAT_"));
+  assert(resumed.length >= 1, "auto talk never reached the provider after leaving chat (request flag left set?)");
+  return { msg: s.msg, providerCallsAfterExit: resumed.length };
 });
 
 // Both transports run against the real server: SSE streams through PHP cURL
