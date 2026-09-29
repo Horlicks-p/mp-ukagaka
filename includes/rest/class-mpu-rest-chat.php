@@ -1017,6 +1017,20 @@ class MPU_REST_Chat extends MPU_REST_Base {
             . '</div>';
     }
 
+	/**
+	 * 串流錯誤不把 provider／傳輸層的原始訊息（例如 cURL 錯誤）送到訪客畫面，
+	 * 與同步路徑一致只回通用訊息；原始內容寫入伺服器 log 供排查。
+	 *
+	 * @param WP_Error $error Provider or transport error.
+	 * @return string
+	 */
+	protected function public_stream_error_message( WP_Error $error ): string {
+		if ( function_exists( 'mpu_log_error' ) ) {
+			mpu_log_error( 'Chat stream provider error: ' . $error->get_error_message() );
+		}
+		return __( '不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka' );
+	}
+
     protected function store_debug_mcp_report(array $args, string $report): void {
         MPU_Chat_History_Service::store_after_user_chat(
             $args['chat_session_id'],
@@ -1119,7 +1133,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         if (is_wp_error($provider_instance) || !$provider_instance || !$provider_instance->supports(MPU_AI_Provider_Base::FEATURE_STREAMING)) {
             // Fallback 到同步模式
             mpu_sse_init();
-            $msg = is_wp_error($provider_instance) ? $provider_instance->get_error_message() : __('現在のプロバイダーはストリーミングモードに対応していません', 'mp-ukagaka');
+            $msg = is_wp_error($provider_instance) ? $this->public_stream_error_message( $provider_instance ) : __('現在のプロバイダーはストリーミングモードに対応していません', 'mp-ukagaka');
             $this->set_runtime_state_for_args($args, 'error');
             mpu_sse_send_event('error', ['message' => $msg]);
             $this->set_runtime_state_for_args($args, 'idle');
@@ -1183,7 +1197,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         if (is_wp_error($stream_result)) {
             // 如果串流中途出錯且尚未結束，發送錯誤事件
             $this->set_runtime_state_for_args($args, 'error');
-            mpu_sse_send_event('error', ['message' => $stream_result->get_error_message()]);
+            mpu_sse_send_event('error', ['message' => $this->public_stream_error_message( $stream_result )]);
             $this->set_runtime_state_for_args($args, 'idle');
             $this->release_chat_lock($args['chat_session_id'] ?? '', $args['chat_lock'] ?? null);
             exit;
