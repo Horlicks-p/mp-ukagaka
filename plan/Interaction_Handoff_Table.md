@@ -153,3 +153,61 @@
 ### 已決定：頁面感知期間的佇列請求維持丟棄（2026-09-29，使用者決定）
 
 Codex 指出：釋放請求旗標後立即 `mpu_processOllamaQueue()`，1.5 秒後先 `shift()` 再呼叫 `mpu_nextmsg()`，而頁面感知仍在 `messageBlocking`，所以排隊的請求會被丟棄。機制屬實；修正前旗標卡住、佇列也從不處理，一樣會遺失。佇列只會有「自動台詞請求進行中時按下的 OK」，頁面感知期間 OK 鈕本來也會被 `messageBlocking` 擋下，所以決定維持丟棄，不延後重送。觸摸、裝飾取消請求時走同一條路，行為相同。
+
+## 九、計時器與請求的管理位置（第二階段，2026-09-29）
+
+對應計畫第二階段「明確指定目前互動、計時器與請求的管理者」。行號以 `js/`、`ghost/Frieren/` 原始檔為準。
+
+### 計時器
+
+| 計時器 | 設定處 | 清除／失效處 | 管理方式 |
+| --- | --- | --- | --- |
+| 自動對話 `autoTalk.timer` | `startAutoTalk()`（先 `stopAutoTalk()`） | `stopAutoTalk()`、觸發回呼 | setter＋`MPU_STATE`；全頁只有一個 |
+| 打字機 `typewriter.timer` | `mpu_typewriter()` | `mpu_cancelTypewriter()`、打完 | setter＋`MPU_STATE` |
+| 頁面感知顯示時間 `llm.aiDisplayTimer` | `mpu_chat_context()` 成功路徑 | 重設前先清除 | setter＋`MPU_STATE` |
+| SSE 逐字顯示、watchdog | `mpu_sendUserMessage()` 的閉包 | `streamFinalize()`／`handleStreamFailure()` | 區域變數，隨請求結束 |
+| 離開聊天 5 秒 | `mpu_toggleChatMode(false)` | **本次修正**：記下聊天世代，觸發時世代不同即跳過 | 世代檢查 |
+| 佇列處理 1.5 秒 | `mpu_processOllamaQueue()` | 無；取出後由 `mpu_nextmsg()` 入口判斷 | 受入口守衛；阻擋中丟棄（已決定） |
+| 自動台詞 fallback | `mpu_nextmsg_fallback()` | 無 | 觸發時檢查聊天模式、`messageBlocking`、頁面感知 |
+| startup 延遲 1.5 秒 | `ukagaka-features.js` | 無 | 受 `mpu_nextmsg()` 入口守衛 |
+| SPA 換頁 1 秒 | `ukagaka-features.js` | 無 | 受 `mpu_chat_context()` 入口守衛 |
+| 觸摸／裝飾收尾 2–3 秒 | `frieren-interactions.js` | 無 | `decorationChatInProgress` 防止重疊，同時只有一個 |
+| 喚醒後翻書旗標 8 秒 | `ukagaka-chat-events.js` | token 比對 | token |
+| 聊天輸入框 focus 250ms | `ukagaka-chat-mode.js` | 無 | 無副作用 |
+
+**匿名且沒有守衛（本次只列出，沒有 fixture 能觸發，不修）**
+
+| 計時器 | 位置 | 風險 |
+| --- | --- | --- |
+| 內建台詞顯示 400ms | `mpu_nextmsg()` 非 LLM 分支 | 這 400ms 內進入聊天，內建台詞會打進聊天框（僅限未啟用 LLM 取代時） |
+| 垃圾留言反應 600ms | `mpu_checkSpamEvent()` | 同上，不檢查聊天模式 |
+| LLM 速率限制冷卻 | `mpu_nextmsg()`，`ai_display_duration` 秒 | 結束時無條件解除 `messageBlocking`，可能解除別的互動設下的阻擋 |
+| 頁面感知失敗冷卻 | `ukagaka-context.js` | 同上，並無條件解除 `aiContextInProgress` |
+| 問候顯示冷卻 | `ukagaka-greeting.js` | 同上 |
+
+### 請求
+
+| 請求 | 發起者 | 識別／去重 | 取消／過期判定 |
+| --- | --- | --- | --- |
+| 自動台詞 `nextmsg` | `mpu_nextmsg()` | `requestId: mpu_nextmsg_llm`、`cancelPrevious`；旗標 `ollamaRequesting` | 觸摸／裝飾以 `mpuCancelRequest` 取消；回應時檢查聊天模式、阻擋與頁面感知，所有提前返回都釋放旗標 |
+| 聊天（JSON） | `mpu_sendUserMessage()` | `requestId: mpu_user_chat`；`mpuChatRequesting` 拒絕重送 | 聊天世代：過期回應只插入歷史 |
+| 聊天（SSE） | `mpu_sendUserMessage()` | `mpuChatAbortController`；`mpuChatRequesting` | watchdog 45 秒 abort；聊天世代 |
+| 頁面感知 `chat/context` | `mpu_chat_context()` | `aiContextInProgress` 防重入；60 秒冷卻 | 聊天模式中不發起 |
+| 喚醒 `wake-ghost` | `mpu_send_wake_up_request()` | `mpuWakeRequestPromise` 共用 | 無 |
+| 送禮 `touch/give` | `giveItem()` | `requestId: mpu_give_item_<id>`、`retries: 0`；`giveItemInProgress` | 無 |
+| 觸摸／裝飾 | `frieren-interactions.js` | `decorationChatInProgress` | 無 |
+| 垃圾留言事件 | `mpu_checkSpamEvent()` | `requestId: mpu_check_spam_event`、`cancelPrevious` | 無 |
+
+### 重複旗標
+
+| 旗標 | 狀態 | 處置 |
+| --- | --- | --- |
+| `mpuCanvasManager.decorationChatInProgress`（OK／取消鈕） | 該物件沒有這個屬性，守衛從未生效，實際靠 `messageBlocking` 擋下 | **本次修正**：`startAutoTalk`、`mpu_nextmsg`、OK／取消鈕統一改用 `mpuIsInteractionDialogActive()` |
+| `window.mpuMessageBlocking`（`frieren-interactions.js` 的備援） | `mpuMessageBlocking` 是 bundle 內的 `let`，不是 `window` 屬性；角色腳本依賴核心 bundle，`mpuSetMessageBlocking` 一定存在，備援是死碼 | 依計畫「完成遷移後才移除」，暫留 |
+| 舊全域 `let`（`mpuMessageBlocking`、`mpuOllamaRequesting` 等）與 `MPU_STATE` | 由 setter 同步 | 讀取端尚未遷移，暫留 |
+| `window.mpuChatModeActive`、`mpuChatRequesting`、`mpuChatGeneration` | 不在 `MPU_STATE` | 暫留；遷移時一併處理 |
+
+### 本次實測
+
+- `chat-close-twice-within-exit-delay`：5 秒內開→關→開→關。修正前寫入 2 句離開台詞、最後一次關閉後 3.8 秒就解除阻擋；修正後 1 句、5.0 秒解除。
+- `ok-ignored-during-interaction-dialog`：只設觸摸對話旗標、不設 `messageBlocking`。修正前按 OK 仍前進一句；修正後被擋下。兩者都已確認拿掉修正會失敗。

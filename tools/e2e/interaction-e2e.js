@@ -128,6 +128,7 @@ const PAGE_PROBE = () => {
     typewriter: [],     // { at, text }
     requests: [],       // { at, url, status }
     msgChanges: [],     // { at, text } every text change of #ukagaka_msg, including direct .html() writes
+    blocking: [],       // { at, value } every mpuSetMessageBlocking call
   };
   window.__mpuProbe = probe;
 
@@ -141,7 +142,8 @@ const PAGE_PROBE = () => {
   };
 
   function wrapWhenReady() {
-    if (typeof window.mpuSetAutoTalkTimer !== "function" || typeof window.mpu_nextmsg !== "function") {
+    if (typeof window.mpuSetAutoTalkTimer !== "function" || typeof window.mpu_nextmsg !== "function"
+      || typeof window.mpuSetMessageBlocking !== "function") {
       return false;
     }
     const origSet = window.mpuSetAutoTalkTimer;
@@ -160,6 +162,11 @@ const PAGE_PROBE = () => {
     window.mpu_nextmsg = function (trigger) {
       probe.nextmsgCalls.push({ at: Date.now(), trigger: trigger === undefined ? "" : trigger });
       return origNext.apply(this, arguments);
+    };
+    const origBlocking = window.mpuSetMessageBlocking;
+    window.mpuSetMessageBlocking = function (value) {
+      probe.blocking.push({ at: Date.now(), value: !!value });
+      return origBlocking.apply(this, arguments);
     };
     const origType = window.mpu_typewriter;
     window.mpu_typewriter = function (text) {
@@ -523,6 +530,58 @@ scenario("chat-entered-while-autotalk-llm-in-flight", "browser", async (h) => {
 async function useTransport(page, transport) {
   await page.evaluate((t) => { window.mpuPreSettings.streaming_enabled = t === "sse"; }, transport);
 }
+
+scenario("chat-close-twice-within-exit-delay", "browser", async (h) => {
+  // Leaving chat blocks messages for 5 s, then says one line and resumes auto
+  // talk. Closing, reopening and closing again inside that window must behave
+  // like the last close only: one exit line, blocking held 5 s from that close.
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  const monologues = async () => (await h.state(page)).history.filter((m) => m.content === "（独り言）").length;
+  const before = await monologues();
+
+  await h.enterChat(page);
+  await h.exitChat(page);
+  const tFirstExit = Date.now();
+  await h.enterChat(page);
+  await h.exitChat(page);
+  const tLastExit = Date.now();
+  assert(tLastExit - tFirstExit < 4500, `reopen took ${tLastExit - tFirstExit} ms; the overlap was not exercised`);
+
+  await sleep(5000 + 3000);
+  const p = await h.probe(page);
+  const added = (await monologues()) - before;
+  const released = p.blocking.find((b) => b.at >= tLastExit && b.value === false);
+  const detail = {
+    exitLinesAdded: added,
+    releasedMsAfterLastClose: released ? released.at - tLastExit : null,
+  };
+  assert(added === 1, `${added} exit lines written for one final close: ${JSON.stringify(detail)}`);
+  assert(released && released.at - tLastExit >= 4900,
+    `message blocking released early after the last close: ${JSON.stringify(detail)}`);
+  return detail;
+});
+
+scenario("ok-ignored-during-interaction-dialog", "browser (flag set directly)", async (h) => {
+  // Isolates the guard: the touch/decoration flag is set without messageBlocking,
+  // which used to hide that the OK button read the flag from the wrong object.
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await page.evaluate(() => {
+    window.mpuFrierenManager.decorationChatInProgress = true;
+    window.mpuSetMessageBlocking(false);
+  });
+  const t = Date.now();
+  await h.click(page, "#mpu_ok_btn");
+  await sleep(1500);
+  const p = await h.probe(page);
+  const calls = p.nextmsgCalls.filter((c) => c.at >= t);
+  await page.evaluate(() => { window.mpuFrierenManager.decorationChatInProgress = false; });
+  assert(calls.length === 0, `OK advanced the dialogue during a touch/decoration dialog (${calls.length} call)`);
+  return { nextmsgCalls: calls.length };
+});
 
 /**
  * Rule (phase 2): a reply that arrives after chat was closed or reopened is not
