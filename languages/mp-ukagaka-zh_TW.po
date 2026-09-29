@@ -3736,3 +3736,8 @@ msgstr "下一個物品"
 #: includes/core/frontend-functions.php:822
 msgid "mpu_nextmsg: 会話モード中に届いた自発会話を、表示せずに会話履歴へ記録しました"
 msgstr "mpu_nextmsg: 對話模式中收到的自動對話，已記入對話歷史但不顯示"
+
+#. translators: debug console log. A chat reply arrived after chat was closed or reopened; it is stored in history but not shown.
+#: includes/core/frontend-functions.php:942
+msgid "会話モードを閉じた（または開き直した）後に届いた応答を、表示せずに会話履歴へ記録しました"
+msgstr "聊天關閉（或重新開啟）後才收到的回應，已記入對話歷史但不顯示"

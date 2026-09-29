@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-09-29T02:01:38.700Z
+ * Generated: 2026-09-29T02:25:11.613Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -4691,6 +4691,9 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 // 對話模式狀態
 window.mpuChatModeActive = false;
 window.mpuChatRequesting = false;
+// 每次開關聊天就遞增。請求記下送出時的世代，回應到達時世代不同就是過期回應：
+// 照常記入歷史，但不寫進目前畫面。
+window.mpuChatGeneration = 0;
 const MPU_CHAT_HISTORY_KEY = "mpu_chat_history";
 const MPU_CHAT_SESSION_KEY = "mpu_chat_tab_session_id";
 const MPU_MAX_CHAT_HISTORY = 40; // synthetic+assistant 各佔一則，20 個互動事件 = 40 entries
@@ -4762,6 +4765,56 @@ function mpu_getChatHistoryForRequest() {
 }
 
 /**
+ * 找出某筆歷史在目前陣列中的位置。重新進入聊天時 mpu_loadChatHistory() 會換成
+ * 從 storage 讀回的新陣列，原本的物件參考就找不到了，所以再以內容比對。
+ *
+ * @param {Object} entry
+ * @returns {number} 找不到時為 -1
+ */
+function mpu_findChatHistoryEntry(entry) {
+  const history = window.mpuChatHistory || [];
+  const direct = history.indexOf(entry);
+  if (direct !== -1) return direct;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const m = history[i];
+    if (m && m.role === entry.role && m.timestamp === entry.timestamp && m.content === entry.content) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * 把回應放在它所回答的那一輪之後。請求進行中，離開聊天的自語或送禮可能已先
+ * 寫入歷史；直接 push 會讓回應和它的提問分開。
+ *
+ * @param {Object} userEntry - 送出時寫入的 user 訊息
+ * @param {Object} assistantEntry
+ */
+function mpu_insertChatReply(userEntry, assistantEntry) {
+  const index = mpu_findChatHistoryEntry(userEntry);
+  if (index === -1) {
+    window.mpuChatHistory.push(assistantEntry);
+  } else {
+    window.mpuChatHistory.splice(index + 1, 0, assistantEntry);
+  }
+  mpu_saveChatHistory();
+}
+
+/**
+ * 撤回送出失敗的 user 訊息。最後一筆未必是它（離開聊天後會追加自語）。
+ *
+ * @param {Object} userEntry
+ */
+function mpu_removeChatHistoryEntry(userEntry) {
+  const index = mpu_findChatHistoryEntry(userEntry);
+  if (index !== -1) {
+    window.mpuChatHistory.splice(index, 1);
+    mpu_saveChatHistory();
+  }
+}
+
+/**
  * 清除對話歷史
  */
 function mpu_clearChatHistory() {
@@ -4787,6 +4840,7 @@ function mpu_toggleChatMode(enable) {
   }
 
   window.mpuChatModeActive = enable;
+  window.mpuChatGeneration += 1;
 
   if (enable) {
     // 進入對話模式
@@ -5265,14 +5319,22 @@ function mpu_sendUserMessage() {
   mpuChatAbortController = new AbortController();
 
   // 添加用戶訊息到歷史（用於上下文，但不顯示）
-  window.mpuChatHistory.push({
+  const userEntry = {
     role: "user",
     content: message,
     type: "chat",
     timestamp: Date.now(),
-  });
+  };
+  window.mpuChatHistory.push(userEntry);
   // [Fix] 立即存檔，防止 F5 導致歷史遺失造成 Checksum Mismatch
   mpu_saveChatHistory();
+
+  // 回應到達前聊天被關閉或重新開啟時，這是過期回應：伺服器已把它記入 checksum，
+  // 所以照常寫入歷史（接在它回答的那一輪之後），但不寫進目前的畫面。
+  const chatGeneration = window.mpuChatGeneration;
+  const isStaleReply = function () {
+    return chatGeneration !== window.mpuChatGeneration;
+  };
 
   // 獲取頁面上下文（複用現有函數）
   const pageContext = mpu_get_page_context();
@@ -5389,13 +5451,7 @@ function mpu_sendUserMessage() {
     }
 
     function rollbackLastUserMessage() {
-      if (
-        window.mpuChatHistory.length > 0 &&
-        window.mpuChatHistory[window.mpuChatHistory.length - 1].role === "user"
-      ) {
-        window.mpuChatHistory.pop();
-        mpu_saveChatHistory();
-      }
+      mpu_removeChatHistoryEntry(userEntry);
     }
 
     function releaseStreamInput() {
@@ -5417,8 +5473,12 @@ function mpu_sendUserMessage() {
         error &&
         (error.code === "mpu_chat_lock_busy" ||
           (error.data && error.data.status === 429));
+      // 過期請求的失敗不屬於目前的畫面：只撤回歷史、解鎖輸入
+      const stale = isStaleReply();
 
-      if (isBusy) {
+      if (stale) {
+        clearStreamState();
+      } else if (isBusy) {
         setStreamState("busy");
       } else if (timedOut) {
         setStreamState("timeout");
@@ -5430,7 +5490,9 @@ function mpu_sendUserMessage() {
       stopStreamTypewriter();
       rollbackLastUserMessage();
       releaseStreamInput();
-      if (isBusy) {
+      if (stale) {
+        mpuLogger.warn("SSE failed after chat was closed or reopened:", error);
+      } else if (isBusy) {
         const busyMsg =
           (error && error.message) ||
           (typeof mpuL10n !== "undefined" &&
@@ -5455,6 +5517,10 @@ function mpu_sendUserMessage() {
     }
 
     function streamTickDrain() {
+      if (isStaleReply()) {
+        // 畫面已不屬於這個請求：停止逐字顯示，剩下的只記入歷史
+        streamPendingText = "";
+      }
       if (streamPendingText.length === 0) {
         streamTypewriterTimer = null;
         if (streamDone) streamFinalize(streamDoneData);
@@ -5476,25 +5542,29 @@ function mpu_sendUserMessage() {
       mpuClearSystemPlaceholder($msg);
       mpuChatAbortController = null;
       const finalMsg = data.msg || fullResponse;
-      if (data.think) {
+      const stale = isStaleReply();
+      if (data.think && !stale) {
         mpuShowThinkBubble(data.think, { source: "llm", context: "chat" });
       }
       // [Fix] SSE 端點偶爾會回 JSON（例如 /debug_mcp redirect、非 streaming
       // provider 的同步 fallback）。這條路徑沒有 delta，streamTickDrain
       // 從沒跑過，$msg 還停在「（…えっと…）」placeholder。在這裡補渲染。
-      if (streamDisplayedText === "" && streamPendingText === "" && finalMsg) {
+      if (!stale && streamDisplayedText === "" && streamPendingText === "" && finalMsg) {
         $msg.html(mpu_parseMarkdown(finalMsg));
       }
-      window.mpuChatHistory.push({
+      mpu_insertChatReply(userEntry, {
         role: "assistant",
         content: finalMsg,
         type: "chat",
         timestamp: Date.now(),
       });
-      mpu_saveChatHistory();
       mpuChatRequesting = false;
       $input.prop("disabled", false);
       if (window.mpuChatModeActive) $input.focus();
+      if (stale) {
+        mpuLogger.logL("chatStaleReplyRecorded", "会話モードを閉じた（または開き直した）後に届いた応答を、表示せずに会話履歴へ記録しました");
+        return;
+      }
       if (data.emoji && !streamEmotionApplied && typeof window.mpuEmojiManager !== "undefined") {
         window.mpuEmojiManager.showEmoji(data.emoji);
       }
@@ -5526,13 +5596,18 @@ function mpu_sendUserMessage() {
           armStreamWatchdog();
         },
         onStart: (data) => {
+          if (isStaleReply()) return;
           setStreamState("thinking");
           mpuLogger.log("SSE Started:", data);
         },
         onDelta: (data) => {
-          setStreamState("streaming");
           if (data.text) {
             fullResponse += data.text;
+          }
+          // 過期串流不可碰畫面：第一個 delta 會清空訊息框，重開後的歡迎語會被清掉
+          if (isStaleReply()) return;
+          setStreamState("streaming");
+          if (data.text) {
             if (streamDisplayedText === "" && streamPendingText === "") {
               // §16.3-A：首個正式 delta 抵達，placeholder 退場，清除標記
               mpuClearSystemPlaceholder($msg);
@@ -5543,6 +5618,7 @@ function mpu_sendUserMessage() {
           }
         },
         onStatus: (data) => {
+          if (isStaleReply()) return;
           let statusMsg = "";
 
           if (data.type === "thinking_start") {
@@ -5573,6 +5649,7 @@ function mpu_sendUserMessage() {
           }
         },
         onToolRequest: (data) => {
+          if (isStaleReply()) return;
           const toolName = data.tool || data.name || "";
           let statusMsg = data.message || "";
 
@@ -5591,6 +5668,7 @@ function mpu_sendUserMessage() {
           }
         },
         onEmotion: (data) => {
+          if (isStaleReply()) return;
           if (!data || streamEmotionApplied) {
             if (window.console && console.debug) {
               console.debug("MPU stream ignored extra emotion event", data);
@@ -5604,6 +5682,7 @@ function mpu_sendUserMessage() {
           }
         },
         onThink: (data) => {
+          if (isStaleReply()) return;
           if (data && data.text) {
             streamThinkText = data.text;
             mpuClearSystemPlaceholder($msg);
@@ -5612,6 +5691,7 @@ function mpu_sendUserMessage() {
           }
         },
         onThinkDelta: (data) => {
+          if (isStaleReply()) return;
           if (data && data.text) {
             streamThinkText += data.text;
             mpuClearSystemPlaceholder($msg);
@@ -5650,8 +5730,15 @@ function mpu_sendUserMessage() {
       cancelPrevious: true,
     })
       .then((res) => {
-        if (!window.mpuChatModeActive) {
-          mpuLogger.logL("chatModeClosedDiscardAiResponse", "会話モードが閉じているため、今回の AI 応答を破棄します");
+        if (isStaleReply()) {
+          if (res && res.msg && !res.error) {
+            mpu_insertChatReply(userEntry, {
+              role: "assistant",
+              content: res.msg,
+              timestamp: Date.now(),
+            });
+            mpuLogger.logL("chatStaleReplyRecorded", "会話モードを閉じた（または開き直した）後に届いた応答を、表示せずに会話履歴へ記録しました");
+          }
           return;
         }
 
@@ -5660,12 +5747,11 @@ function mpu_sendUserMessage() {
           if (res.think) {
             mpuShowThinkBubble(res.think, { source: "llm", context: "chat" });
           }
-          window.mpuChatHistory.push({
+          mpu_insertChatReply(userEntry, {
             role: "assistant",
             content: aiResponse,
             timestamp: Date.now(),
           });
-          mpu_saveChatHistory();
           mpu_typewriter(mpu_parseMarkdown(aiResponse), "#ukagaka_msg", null, true);
 
           if (
@@ -5685,15 +5771,9 @@ function mpu_sendUserMessage() {
       })
       .catch((error) => {
         // [Fix 漏洞 4] 錯誤時撤回已 push 的 user 訊息，防止下一輪 checksum mismatch
-        if (
-          window.mpuChatHistory.length > 0 &&
-          window.mpuChatHistory[window.mpuChatHistory.length - 1].role === "user"
-        ) {
-          window.mpuChatHistory.pop();
-          mpu_saveChatHistory();
-        }
+        mpu_removeChatHistoryEntry(userEntry);
 
-        if (!window.mpuChatModeActive) {
+        if (isStaleReply()) {
           mpuLogger.logL("chatModeClosedDiscardError", "会話モードが閉じているため、エラーメッセージを破棄します");
           return;
         }

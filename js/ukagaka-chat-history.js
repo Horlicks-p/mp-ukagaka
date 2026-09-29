@@ -2,6 +2,9 @@
 // 對話模式狀態
 window.mpuChatModeActive = false;
 window.mpuChatRequesting = false;
+// 每次開關聊天就遞增。請求記下送出時的世代，回應到達時世代不同就是過期回應：
+// 照常記入歷史，但不寫進目前畫面。
+window.mpuChatGeneration = 0;
 const MPU_CHAT_HISTORY_KEY = "mpu_chat_history";
 const MPU_CHAT_SESSION_KEY = "mpu_chat_tab_session_id";
 const MPU_MAX_CHAT_HISTORY = 40; // synthetic+assistant 各佔一則，20 個互動事件 = 40 entries
@@ -70,6 +73,56 @@ function mpu_saveChatHistory() {
  */
 function mpu_getChatHistoryForRequest() {
   return (window.mpuChatHistory || []).slice(-MPU_MAX_CHAT_HISTORY);
+}
+
+/**
+ * 找出某筆歷史在目前陣列中的位置。重新進入聊天時 mpu_loadChatHistory() 會換成
+ * 從 storage 讀回的新陣列，原本的物件參考就找不到了，所以再以內容比對。
+ *
+ * @param {Object} entry
+ * @returns {number} 找不到時為 -1
+ */
+function mpu_findChatHistoryEntry(entry) {
+  const history = window.mpuChatHistory || [];
+  const direct = history.indexOf(entry);
+  if (direct !== -1) return direct;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const m = history[i];
+    if (m && m.role === entry.role && m.timestamp === entry.timestamp && m.content === entry.content) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * 把回應放在它所回答的那一輪之後。請求進行中，離開聊天的自語或送禮可能已先
+ * 寫入歷史；直接 push 會讓回應和它的提問分開。
+ *
+ * @param {Object} userEntry - 送出時寫入的 user 訊息
+ * @param {Object} assistantEntry
+ */
+function mpu_insertChatReply(userEntry, assistantEntry) {
+  const index = mpu_findChatHistoryEntry(userEntry);
+  if (index === -1) {
+    window.mpuChatHistory.push(assistantEntry);
+  } else {
+    window.mpuChatHistory.splice(index + 1, 0, assistantEntry);
+  }
+  mpu_saveChatHistory();
+}
+
+/**
+ * 撤回送出失敗的 user 訊息。最後一筆未必是它（離開聊天後會追加自語）。
+ *
+ * @param {Object} userEntry
+ */
+function mpu_removeChatHistoryEntry(userEntry) {
+  const index = mpu_findChatHistoryEntry(userEntry);
+  if (index !== -1) {
+    window.mpuChatHistory.splice(index, 1);
+    mpu_saveChatHistory();
+  }
 }
 
 /**

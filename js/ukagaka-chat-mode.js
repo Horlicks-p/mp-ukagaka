@@ -12,6 +12,7 @@ function mpu_toggleChatMode(enable) {
   }
 
   window.mpuChatModeActive = enable;
+  window.mpuChatGeneration += 1;
 
   if (enable) {
     // 進入對話模式

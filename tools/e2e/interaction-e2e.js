@@ -69,7 +69,18 @@ $o['ukagakas']['default_1'] = array_merge($o['ukagakas']['default_1'], array(
 ));`,
 };
 
-function blueprintFor(fakeUrl, ghost = "Frieren") {
+// Scenarios are grouped by site profile; each profile boots its own disposable
+// site. "block" turns checksum enforcement on, so a history that drifted from the
+// server's copy makes the next chat turn fail instead of only logging.
+function siteProfile(s) {
+  return { ghost: s.ghost || "Frieren", integrity: s.integrity || "audit" };
+}
+
+function profileKey(profile) {
+  return `${profile.ghost}, checksum ${profile.integrity}`;
+}
+
+function blueprintFor(fakeUrl, { ghost, integrity }) {
   const php = `<?php
 require '/wordpress/wp-load.php';
 $o = get_option('mp_ukagaka');
@@ -88,6 +99,7 @@ $o = array_merge($o, array(
   'ai_greet_first_visit' => false,
   'ai_probability' => 0,
   'enable_chat_mode' => true,
+  'chat_integrity_mode' => '${integrity}',
 ));
 ${GHOST_SETUP[ghost]}
 update_option('mp_ukagaka', $o);
@@ -496,8 +508,49 @@ async function useTransport(page, transport) {
   await page.evaluate((t) => { window.mpuPreSettings.streaming_enabled = t === "sse"; }, transport);
 }
 
+/**
+ * Rule (phase 2): a reply that arrives after chat was closed or reopened is not
+ * shown, but it is stored once, right after the user turn it answers. The server
+ * already counted it in the checksum, so dropping it would break the next turn
+ * under block mode.
+ */
+function assertLateReplyRecorded(s, userText, marker) {
+  const at = s.history.findIndex((m) => m.role === "user" && m.content === userText);
+  assert(at !== -1, "the user turn was lost");
+  const stored = countAssistant(s.history, marker);
+  assert(stored === 1, `late reply stored ${stored} times, expected once`);
+  const next = s.history[at + 1];
+  assert(next && next.role === "assistant" && String(next.content).includes(marker),
+    `late reply is not right after its user turn: ${s.history.map((m) => `${m.role}:${m.type}`).join(" ")}`);
+}
+
+// Guards the guard: on the "block" site a tampered history must be rejected,
+// otherwise the late-reply scenarios would pass without proving anything.
+scenario("checksum-block-rejects-tampered-history", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await h.enterChat(page);
+  h.fake.queueReply("BEFORE_TAMPER");
+  await h.send(page, "before tamper");
+  await h.waitChatIdle(page);
+  await page.evaluate(() => {
+    const reply = window.mpuChatHistory.filter((m) => m.role === "assistant").pop();
+    reply.content = "TAMPERED";
+    mpu_saveChatHistory();
+  });
+  const mark = h.fake.chatRequests().length;
+  h.fake.queueReply("AFTER_TAMPER");
+  await h.send(page, "after tamper");
+  await h.waitChatIdle(page);
+  const s = await h.state(page);
+  assert(h.fake.chatRequests().length === mark, "a tampered history still reached the provider; block mode is not active");
+  assert(!s.msg.includes("AFTER_TAMPER"), "a tampered history still got a reply");
+  return { msg: s.msg };
+}, { integrity: "block" });
+
 for (const transport of ["sse", "json"]) {
-  scenario(`chat-close-discards-reply-${transport}`, `browser + wp (${transport})`, async (h) => {
+  scenario(`chat-close-keeps-late-reply-${transport}`, `browser + wp (${transport})`, async (h) => {
     h.fake.reset();
     const page = await h.awakePage();
     await h.quietAutoTalk(page);
@@ -510,23 +563,26 @@ for (const transport of ["sse", "json"]) {
     await h.exitChat(page);
     const tExit = Date.now();
     await page.waitForFunction(() => window.mpuChatRequesting === false, null, { timeout: 60000 });
-    await sleep(1000);
+    // Past the 5 s exit line too, so its history entries are in place.
+    await sleep(6000);
     const s = await h.state(page);
     const p = await h.probe(page);
     assert(h.fake.chatRequests().some((r) => r.reply === "CLOSED_REPLY"), "the provider never answered; nothing was tested");
-    assert(typedAfter(p, tExit, "CLOSED_REPLY").length === 0 && !s.msg.includes("CLOSED_REPLY"), "reply for a closed chat was shown");
-    assert(countAssistant(s.history, "CLOSED_REPLY") === 0, "reply for a closed chat was written to history");
+    assert(!shownAfter(p, tExit, "CLOSED_REPLY"), "reply for a closed chat was shown");
     assert(!s.inputDisabled, "chat input stayed disabled");
-    const userTurns = s.history.filter((m) => m.role === "user" && m.content === "hello before closing").length;
-    return { orphanUserTurnsKept: userTurns };
-  }, transport === "sse"
-    ? {
-      knownIssue: "疑點 C: streamFinalize has no chat-mode check; closing chat does not abort the stream",
-      failsWith: "for a closed chat was",
-    }
-    : {});
+    assertLateReplyRecorded(s, "hello before closing", "CLOSED_REPLY");
 
-  scenario(`chat-close-reopen-before-reply-${transport}`, `browser + wp (${transport})`, async (h) => {
+    // Next turn: runs on a checksum "block" site, so it only succeeds if the
+    // history still matches what the server stored.
+    await h.enterChat(page);
+    h.fake.queueReply("NEXT_TURN_REPLY");
+    await h.send(page, "next turn");
+    await h.waitChatIdle(page);
+    assert((await h.state(page)).msg.includes("NEXT_TURN_REPLY"), "next turn was rejected or not shown (checksum drift?)");
+    return { history: s.history.map((m) => `${m.role}:${m.type}`).join(" ") };
+  }, { integrity: "block" });
+
+  scenario(`chat-reopen-keeps-late-reply-off-screen-${transport}`, `browser + wp (${transport})`, async (h) => {
     h.fake.reset();
     const page = await h.awakePage();
     await h.quietAutoTalk(page);
@@ -545,14 +601,22 @@ for (const transport of ["sse", "json"]) {
     const s = await h.state(page);
     const p = await h.probe(page);
     assert(h.fake.chatRequests().some((r) => r.reply === "STALE_REPLY"), "the provider never answered; nothing was tested");
-    assert(typedAfter(p, tReopen, "STALE_REPLY").length === 0 && !s.msg.includes("STALE_REPLY"),
-      "reply from the previous chat session appeared in the reopened chat");
-    assert(countAssistant(s.history, "STALE_REPLY") <= 1, "stale reply written to history more than once");
-    return { msg: s.msg, staleInHistory: countAssistant(s.history, "STALE_REPLY") };
-  }, {
-    knownIssue: "疑點 B: an in-flight reply is dropped only if chat is closed when it arrives; reopening lets it through",
-    failsWith: "appeared in the reopened chat",
-  });
+    assert(!shownAfter(p, tReopen, "STALE_REPLY"), "reply from the previous chat session appeared in the reopened chat");
+    assert(s.chatMode && !s.inputDisabled, "reopened chat is not usable after the stale reply");
+    assertLateReplyRecorded(s, "hello before reopening", "STALE_REPLY");
+
+    // The reopened chat keeps working and carries the late reply as context.
+    h.fake.setDelay(0);
+    h.fake.queueReply("FRESH_REPLY");
+    const mark = h.fake.chatRequests().length;
+    await h.send(page, "hello after reopening");
+    await h.waitChatIdle(page);
+    const s2 = await h.state(page);
+    assert(s2.msg.includes("FRESH_REPLY"), `next turn was rejected or not shown (checksum drift?): "${s2.msg}"`);
+    const sent = JSON.stringify(h.fake.chatRequests().slice(mark).map((r) => r.body && r.body.messages));
+    assert(sent.includes("STALE_REPLY"), "the late reply was not sent as context on the next turn");
+    return { msg: s2.msg };
+  }, { integrity: "block" });
 }
 
 scenario("sse-server-provider-cut", "browser + wp (sse)", async (h) => {
@@ -911,18 +975,18 @@ async function main() {
   const harness = new Harness(null, fake, browser);
   const results = [];
   // One disposable site per ghost; the ghost is fixed in the site's options.
-  const ghosts = [...new Set(selected.map((s) => s.ghost || "Frieren"))];
+  const profiles = [...new Map(selected.map((s) => [profileKey(siteProfile(s)), siteProfile(s)])).values()];
   try {
-    for (const [index, ghost] of ghosts.entries()) {
-      console.log(`booting Playground for ${ghost} (first run downloads WordPress)...`);
+    for (const [index, profile] of profiles.entries()) {
+      console.log(`booting Playground for ${profileKey(profile)} (first run downloads WordPress)...`);
       harness.site = await startPlayground({
         port: port + index,
-        blueprint: blueprintFor(fake.url, ghost),
+        blueprint: blueprintFor(fake.url, profile),
         log: verbose ? (t) => process.stdout.write(t) : () => {},
       });
       console.log(`playground: ${harness.site.url}`);
       try {
-        for (const s of selected.filter((x) => (x.ghost || "Frieren") === ghost)) {
+        for (const s of selected.filter((x) => profileKey(siteProfile(x)) === profileKey(profile))) {
           results.push(await runScenario(harness, s));
         }
       } finally {

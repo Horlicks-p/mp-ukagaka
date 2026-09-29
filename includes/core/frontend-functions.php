@@ -938,6 +938,8 @@ function mpu_enqueue_frontend_assets() {
 		$log_i18n->debug( 'chatSendingUserMessage', __( 'ユーザーメッセージを送信します：%s', 'mp-ukagaka' ) );
 		/* translators: debug console log. AI response is discarded because chat mode closed. */
 		$log_i18n->debug( 'chatModeClosedDiscardAiResponse', __( '会話モードが閉じているため、今回の AI 応答を破棄します', 'mp-ukagaka' ) );
+		/* translators: debug console log. A chat reply arrived after chat was closed or reopened; it is stored in history but not shown. */
+		$log_i18n->debug( 'chatStaleReplyRecorded', __( '会話モードを閉じた（または開き直した）後に届いた応答を、表示せずに会話履歴へ記録しました', 'mp-ukagaka' ) );
 		/* translators: debug console log. Error message is discarded because chat mode closed. */
 		$log_i18n->debug( 'chatModeClosedDiscardError', __( '会話モードが閉じているため、エラーメッセージを破棄します', 'mp-ukagaka' ) );
 		/* translators: debug console log. %s is the current chat history length. */
