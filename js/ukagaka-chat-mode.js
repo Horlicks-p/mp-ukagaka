@@ -138,10 +138,11 @@ function mpu_toggleChatMode(enable) {
     // 使用 skipAnimation 參數來跳過動畫
     mpu_typewriter(exitMsg, "#ukagaka_msg", null, true); // true = skipCharacterAnimation
 
-    // 延遲 5 秒後恢復正常狀態
+    // 延遲 5 秒後恢復正常狀態。5 秒內又開關過聊天時，只有最後一次離開的計時器有效：
+    // 否則前一次的計時器會提早解除阻擋，並多說一句離開台詞。
+    const exitGeneration = window.mpuChatGeneration;
     setTimeout(() => {
-      // 再次確認還沒重新進入對話模式
-      if (!mpuChatModeActive) {
+      if (exitGeneration === window.mpuChatGeneration) {
         mpuSetMessageBlocking(false);
 
         // 顯示一條隨機對話
