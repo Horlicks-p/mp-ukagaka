@@ -70,7 +70,9 @@ function startFakeOllama({ port = 0 } = {}) {
         }
         seq += 1;
         entry.replySeq = seq;
-        const content = replyQueue.length > 0 ? replyQueue.shift() : replyFor(seq);
+        // replyFor also gets the request body, so a test can answer by what was asked
+        // rather than by arrival order.
+        const content = replyQueue.length > 0 ? replyQueue.shift() : replyFor(seq, json);
         entry.reply = content;
         if (json && json.stream === true) {
           streamReply(res, content);

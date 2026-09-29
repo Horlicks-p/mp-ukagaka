@@ -116,4 +116,34 @@
 
 - 聊天接手路徑（疑點 A 的修正）在記錄後直接返回，不會更新 `#ukagaka_msgnum`。LLM 取代模式下這個編號幾乎不被使用，影響極小。
 - `logs/checksum-mismatch.log` 在 Playground 掛載目錄上寫不進去：`file_put_contents(..., LOCK_EX)` 的檔案鎖在 php-wasm＋Windows 掛載上失敗，錯誤被 `@` 吞掉。測試因此改用 `block` 模式驗證 checksum，不讀這個檔案。實站不受影響。
-- （僅讀程式碼，未重現）`mpu_nextmsg` 的 LLM 回應遇到 `messageBlocking` 或 `aiContextInProgress` 時提前返回，同樣沒有釋放 `ollamaRequesting`。若頁面感知在自動台詞請求進行中開始，之後的自動台詞可能一直被當成「忙碌」而略過，直到重新載入。觸摸、裝飾會先取消請求，不受影響。
+
+## 八、頁面感知與伺服器串流錯誤（2026-09-29）
+
+### 頁面感知後自動對話停擺（已重現、已修正）
+
+使用者實際體驗：頁面感知觸發時會截斷當前的自發台詞，之後的自動對話要等很久才恢復。
+
+- 原因：頁面感知開始時不取消進行中的自動台詞請求（`mpu_nextmsg_llm`）。該回應到達時因 `messageBlocking`／`aiContextInProgress` 提前返回，沒有釋放 `ollamaRequesting`。之後每次自動 tick 都被當成「LLM 忙碌」而略過；計時器照跳，但不會再送出請求。
+- 實測：`page-aware-during-autotalk-llm`（單篇長文、自動台詞請求在 provider 等待中時呼叫 `mpu_chat_context()`，與 SPA 換頁相同的入口）。修正前連續重現，頁面感知結束後 12 秒內 0 次 provider 呼叫、旗標保持 `true`；觀察 90 秒共 21 次 tick 全部落空，不會自行恢復。釋放旗標的地方只在 `mpu_nextmsg` 自己的請求流程，以及頁面載入／SPA 換頁的 startup 分支。所以實站上的「好一陣子才恢復」應該是換頁或重新載入時才恢復。
+- 修正：該提前返回也釋放 `ollamaRequesting` 並處理佇列（`js/ukagaka-core.js`）。修正後頁面感知結束、經過一個間隔後，自動對話即送出請求。
+- 未改變的設計行為：被截斷的那句自發台詞不顯示、也不記入歷史；頁面感知顯示完後再等 `ai_display_duration` 秒才恢復自動對話。這兩點是否要調整另行決定。
+
+### 串流錯誤顯示原始 cURL 字串（已修正）
+
+- 原因：`/chat/user-stream` 把 provider／傳輸層的 `WP_Error` 訊息原樣以 SSE `error` 事件送到前端，前端直接顯示。同步路徑（`/chat/user`）早已只回通用訊息。
+- 修正：`MPU_REST_Chat::public_stream_error_message()`，串流錯誤與 provider 實例錯誤都改回與同步路徑相同的通用訊息（「不明なエラーが発生しました。ログを確認してください」），原始內容以 `mpu_log_error()` 寫入伺服器 log。
+- 實測：`sse-server-provider-cut` 斷言畫面不含 cURL 字串、狀態為 `error`、該輪不留在歷史。
+- 備註：這句通用訊息的「請確認 log」是寫給站長的，訪客也會看到；同步路徑原本就是這樣。若要改成角色口吻（如前端既有的「（…通信状況が良くないみたいだ…）」），兩條路徑應一起改。
+
+### D：自動台詞送出瞬間進入聊天，聊天框看不見（測試中發現，已修正）
+
+- 現象：自動 tick 送出請求時，會先把訊息框淡出（`mpu_hidemsg(600)`）。若在這 600ms 內開啟聊天，進入聊天時的「框隱藏就顯示」判斷，會因為淡出途中框仍算可見而落空；淡出結束後聊天框隱藏，連關閉鈕都點不到。
+- 發現經過：`awakePage()` 改為等頁面載入的 startup 台詞結束後才交給情境，`chat-entered-while-autotalk-llm-in-flight` 因此固定抓到自動 tick（startup 不會淡出訊息框），3 輪都重現。
+- 修正：`mpu_toggleChatMode(true)` 開頭先 `$msgbox.stop(true, true)`，讓進行中的動畫直接跑完，再依實際狀態顯示（`js/ukagaka-chat-mode.js`）。
+- 測試：`enterChat()` 共用斷言「進入聊天後訊息框可見且不在動畫中」，所有進入聊天的情境都會檢查。
+
+### 測試工具的穩定性修正（同日）
+
+- `awakePage()` 等頁面載入的 startup 台詞完成後才交給情境。startup 不受自動對話開關控制，原本可能落在情境的計數期間（`gift-rest-unknown-item` 曾因此誤判）。
+- fake Ollama 的延遲在「請求到達 fake」時讀取，而 PHP 處理完才呼叫 provider，所以頁面感知情境改為依請求內容決定回應、依到達時間計數。
+- 失敗證據檔保存完整錯誤與 Playwright 呼叫紀錄。

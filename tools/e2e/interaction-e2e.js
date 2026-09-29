@@ -237,14 +237,19 @@ class Harness {
       `could not set site timezone to ${zone}: ${JSON.stringify(result).slice(0, 300)}`);
   }
 
-  async captureFailure(name) {
+  async captureFailure(name, error) {
     const page = this.currentPage;
     if (!page || page.isClosed()) return null;
     fs.mkdirSync(outputDir, { recursive: true });
     const base = path.join(outputDir, name);
     try {
       await page.screenshot({ path: base + ".png" });
-      const snapshot = { state: await this.state(page), probe: await this.probe(page), consoleErrors: page.consoleErrors };
+      const snapshot = {
+        error: error ? String(error.stack || error.message) : null,
+        state: await this.state(page),
+        probe: await this.probe(page),
+        consoleErrors: page.consoleErrors,
+      };
       fs.writeFileSync(base + ".json", JSON.stringify(snapshot, null, 2));
     } catch (error) {
       return `capture failed: ${firstLine(error.message)}`;
@@ -385,6 +390,10 @@ Harness.prototype.awakePage = async function () {
   await this.setSiteHourVia(page, AWAKE_HOUR);
   await this.open(page);
   assert(!(await this.state(page)).unawokenSleep, "precondition: site must be awake");
+  // The startup line is requested ~2 s after load and is not gated by auto talk;
+  // hand the page over only after it has finished, so it cannot land mid-scenario.
+  await page.waitForFunction(() => window.__mpuProbe.nextmsgCalls.some((c) => c.trigger === "startup")
+    && window.mpuGetState().llm.ollamaRequesting === false, null, { timeout: 30000 });
   await this.typewriterIdle(page);
   return page;
 };
@@ -405,6 +414,13 @@ Harness.prototype.enterChat = async function (page) {
   await page.waitForFunction(() => window.mpuChatModeActive === true
     && jQuery("#mpu_user_input").is(":visible"), null, { timeout: 30000 });
   await this.typewriterIdle(page);
+  // The chat box must end up visible, not merely have been shown mid-fade.
+  await page.waitForFunction(() => {
+    const $box = jQuery("#ukagaka_msgbox");
+    return $box.is(":visible") && !$box.is(":animated");
+  }, null, { timeout: 5000 }).catch(() => {
+    throw new Error("chat opened but the message box is hidden");
+  });
 };
 
 Harness.prototype.exitChat = async function (page) {
@@ -642,8 +658,11 @@ scenario("sse-server-provider-cut", "browser + wp (sse)", async (h) => {
   assert(!s.inputDisabled, "chat input stayed disabled");
   const stored = s.history.filter((m) => m.role === "assistant" && String(m.content).includes("CUT_REPLY")).length;
   const users = s.history.filter((m) => m.role === "user" && m.content === "cut me").length;
-  // Record rather than presume the partial-reply policy (plan: fix the current rule first).
-  return { streamState, msg: s.msg, partialReplyStored: stored, userTurnKept: users };
+  // Provider and transport diagnostics stay in the server log, never on screen.
+  assert(!/curl|transfer closed/i.test(s.msg), `raw transport error shown to the visitor: "${s.msg}"`);
+  assert(streamState === "error", `expected error state, got "${streamState}"`);
+  assert(stored === 0 && users === 0, "a cut stream left the turn in history");
+  return { streamState, msg: s.msg };
 });
 
 
@@ -751,6 +770,83 @@ scenario("sse-watchdog-timeout", "browser (SSE replayed)", async (h) => {
   return out;
 });
 
+// --- page-aware context vs. auto talk --------------------------------------
+
+/** Create a post long enough for page-aware context (>= 300 chars) and open it. */
+async function openLongPost(h, page) {
+  const link = await page.evaluate(async () => {
+    const base = window.mpuRestUrl.replace(/mp-ukagaka\/v1\/?$/, "");
+    const body = "フリーレンは千年以上生きたエルフの魔法使いで、勇者ヒンメルたちと魔王を倒した。".repeat(12);
+    const res = await fetch(base + "wp/v2/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-WP-Nonce": window.mpuPreSettings.rest_nonce },
+      body: JSON.stringify({ title: "E2E 長文テスト", content: "<p>" + body + "</p>", status: "publish" }),
+    });
+    const json = await res.json();
+    return json.link;
+  });
+  assert(link, "could not create the test post");
+  await page.goto(link, { waitUntil: "load", timeout: 120000 });
+  await page.waitForFunction(() => window.__mpuProbe && typeof window.mpuGetState === "function"
+    && window.mpuGetState().flags.settingsLoaded === true, null, { timeout: 60000 });
+  await page.evaluate(() => (typeof window.mpuWaitForVisualReady === "function" ? window.mpuWaitForVisualReady() : null));
+  await h.typewriterIdle(page);
+}
+
+scenario("page-aware-during-autotalk-llm", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await openLongPost(h, page);
+
+  // An auto-talk request is waiting on the provider when page-aware starts
+  // (as on an SPA page change). mpu_chat_context() is what both triggers call.
+  // Let the startup line finish first, so the request caught below is an auto tick.
+  await page.waitForFunction(() => window.mpuGetState().llm.ollamaRequesting === false
+    && window.__mpuProbe.nextmsgCalls.some((c) => c.trigger === "startup"), null, { timeout: 30000 });
+  await h.typewriterIdle(page);
+  // Both requests wait 6 s at the provider; the auto tick's arrives first, so its
+  // reply lands while page-aware is still running. Replies are chosen by content
+  // because PHP reaches the provider some time after the browser sends.
+  h.fake.setDelay(6000);
+  h.fake.setReplyFor((n, body) => (JSON.stringify(body || {}).includes("E2E 長文テスト") ? "CONTEXT_LINE" : `AUTO_${n}`));
+  const tArm = Date.now();
+  await page.waitForFunction((t) => window.mpuGetState().llm.ollamaRequesting === true
+    && window.__mpuProbe.nextmsgCalls.some((c) => c.trigger === "auto" && c.at >= t), tArm, { timeout: 30000 });
+  const tContext = Date.now();
+  await page.evaluate(() => {
+    try { sessionStorage.removeItem("mpu_context_last_shown"); } catch (e) { /* no storage */ }
+    mpu_chat_context();
+  });
+  await page.waitForFunction(() => window.mpuGetState().llm.aiContextInProgress === true, null, { timeout: 10000 });
+  await page.waitForFunction(() => window.mpuGetState().llm.aiContextInProgress === false, null, { timeout: 90000 });
+  const tContextEnd = Date.now();
+  // Later auto ticks should be answered at once, so a pending request is not
+  // mistaken for a stuck one.
+  h.fake.setDelay(0);
+  const p0 = await h.probe(page);
+  const contextShown = shownAfter(p0, tContext, "CONTEXT_LINE");
+
+  // Expected: auto talk is back within an interval or two after page-aware ends.
+  await sleep(AUTO_TALK_INTERVAL_S * 1000 * 4);
+  const s = await h.state(page);
+  // Counted on arrival at the provider; page-aware requests carry the post title.
+  const autoCalls = h.fake.chatRequests().filter((r) => r.at >= tContextEnd
+    && !JSON.stringify(r.body || {}).includes("E2E 長文テスト"));
+  const p = await h.probe(page);
+  const ticks = p.nextmsgCalls.filter((c) => c.trigger === "auto" && c.at >= tContextEnd).length;
+  const detail = {
+    contextShown,
+    contextMs: tContextEnd - tContext,
+    autoTicksAfterContext: ticks,
+    providerCallsAfterContext: autoCalls.length,
+    ollamaRequestingStuck: s.ollamaRequesting,
+  };
+  assert(contextShown, "page-aware line was not shown");
+  assert(autoCalls.length >= 1,
+    `auto talk did not reach the provider within ${AUTO_TALK_INTERVAL_S * 4}s after page-aware ended: ${JSON.stringify(detail)}`);
+  return detail;
+});
+
 // --- gift handoff (browser + what the provider actually received) -----------
 
 function providerMessages(request) {
@@ -810,6 +906,8 @@ scenario("chat-gift-chat", "browser + wp", async (h) => {
 scenario("gift-rest-unknown-item", "wp", async (h) => {
   h.fake.reset();
   const page = await h.awakePage();
+  // Otherwise the startup line or an auto tick can reach the provider mid-test.
+  await h.quietAutoTalk(page);
   const mark = h.fake.chatRequests().length;
   const res = await page.evaluate(async () => {
     const fd = new FormData();
@@ -958,7 +1056,7 @@ async function runScenario(harness, s) {
     const expected = s.knownIssue && (!s.failsWith || String(error.message).includes(s.failsWith));
     status = expected ? "XFAIL" : "FAIL";
     detail = { error: firstLine(error.message), knownIssue: s.knownIssue };
-    detail.evidence = await harness.captureFailure(s.name);
+    detail.evidence = await harness.captureFailure(s.name, error);
   }
   if (harness.currentPage) {
     await harness.currentPage.context().close().catch(() => {});

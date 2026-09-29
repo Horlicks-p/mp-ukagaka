@@ -98,7 +98,8 @@
 
 - 兩個 commit，可分別回退：A（`ukagaka-core.js`）；B、C（聊天世代＋`ukagaka-chat-send.js`＋歷史插入／撤回 helper）。細節與測試見 `plan/Interaction_Handoff_Table.md` 第七節。
 - 結果：`test:interaction` 22 個情境全部通過（新增 `block` 模式站台與 checksum 竄改檢查）；新增 `test:chat-history-order` `vm` 單元測試並加入 `verify`；`verify` 通過。
-- 尚未處理：清單中其他項目（控制權明確化、統一收尾入口、移除重複旗標）；交接表第七節的 `ollamaRequesting` 未釋放疑點（僅讀程式碼、未重現）；伺服器切斷串流時畫面顯示原始 cURL 錯誤字串。
+- 追加（同日）：頁面感知後自動對話停擺已重現並修正；串流錯誤不再顯示原始 cURL 字串；測試中另外發現並修正「自動台詞送出瞬間進入聊天，聊天框看不見」（D）。見交接表第八節。
+- 尚未處理：清單中其他項目（控制權明確化、統一收尾入口、移除重複旗標）。
 
 ## 第三階段：角色回答評估
 
