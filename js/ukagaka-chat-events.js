@@ -34,10 +34,9 @@ jQuery(document).ready(function () {
     e.preventDefault();
 
     // 檢查是否正在處理裝飾物對話
-    if (
-      typeof window.mpuCanvasManager !== "undefined" &&
-      window.mpuCanvasManager.decorationChatInProgress
-    ) {
+    // 原本讀的是 mpuCanvasManager.decorationChatInProgress，該物件沒有這個屬性，
+    // 守衛從未生效（實際靠 mpuMessageBlocking 擋下）。改用與自動對話相同的判斷。
+    if (mpuIsInteractionDialogActive()) {
       mpuLogger.logL("chatButtonIgnoredDecorationDialogActive", "装飾品会話中のため、ボタンクリックを無視します");
       return;
     }
@@ -138,10 +137,9 @@ jQuery(document).ready(function () {
     }
 
     // 非對話模式：檢查是否正在處理裝飾物對話
-    if (
-      typeof window.mpuCanvasManager !== "undefined" &&
-      window.mpuCanvasManager.decorationChatInProgress
-    ) {
+    // 原本讀的是 mpuCanvasManager.decorationChatInProgress，該物件沒有這個屬性，
+    // 守衛從未生效（實際靠 mpuMessageBlocking 擋下）。改用與自動對話相同的判斷。
+    if (mpuIsInteractionDialogActive()) {
       mpuLogger.logL("chatButtonIgnoredDecorationDialogActive", "装飾品会話中のため、ボタンクリックを無視します");
       return;
     }

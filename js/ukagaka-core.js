@@ -226,6 +226,18 @@ function mpu_isUnawokenSleepMode() {
 }
 
 /**
+ * 角色的觸摸／裝飾對話是否進行中。只有角色管理器（目前是 Frieren）持有這個狀態；
+ * 其他角色沒有觸摸對話，一律為 false。所有判斷都經過這裡，避免各處讀到不同物件。
+ * @returns {boolean}
+ */
+function mpuIsInteractionDialogActive() {
+  return (
+    typeof window.mpuFrierenManager !== "undefined" &&
+    window.mpuFrierenManager.decorationChatInProgress === true
+  );
+}
+
+/**
  * 啟動自動對話計時器
  */
 function startAutoTalk() {
@@ -242,10 +254,7 @@ function startAutoTalk() {
   }
 
   // 裝飾物/觸摸對話進行中不啟動自動對話
-  if (
-    typeof window.mpuFrierenManager !== "undefined" &&
-    window.mpuFrierenManager.decorationChatInProgress
-  ) {
+  if (mpuIsInteractionDialogActive()) {
     mpuLogger.logL("autoTalkSkippedDuringInteractionDialog", "startAutoTalk: 装飾品またはタッチ会話中のため自動会話を開始しません");
     return;
   }
@@ -585,10 +594,7 @@ function mpu_nextmsg(trigger) {
   }
 
   // 裝飾物/觸摸對話進行中不執行自動對話
-  if (
-    typeof window.mpuFrierenManager !== "undefined" &&
-    window.mpuFrierenManager.decorationChatInProgress
-  ) {
+  if (mpuIsInteractionDialogActive()) {
     mpuLogger.logL("nextMessageSkippedInteractionDialog", "mpu_nextmsg: 装飾品またはタッチ会話中のため自動会話をスキップします");
     return;
   }
