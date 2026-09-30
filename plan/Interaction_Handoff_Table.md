@@ -166,7 +166,7 @@ Codex 指出：釋放請求旗標後立即 `mpu_processOllamaQueue()`，1.5 秒�
 | 打字機 `typewriter.timer` | `mpu_typewriter()` | `mpu_cancelTypewriter()`、打完 | setter＋`MPU_STATE` |
 | 頁面感知顯示時間 `llm.aiDisplayTimer` | `mpu_chat_context()` 成功路徑 | 重設前先清除 | setter＋`MPU_STATE` |
 | SSE 逐字顯示、watchdog | `mpu_sendUserMessage()` 的閉包 | `streamFinalize()`／`handleStreamFailure()` | 區域變數，隨請求結束 |
-| 離開聊天 5 秒 | `mpu_toggleChatMode(false)` | **本次修正**：記下聊天世代，觸發時世代不同即跳過 | 世代檢查 |
+| 離開聊天 5 秒 | `mpu_toggleChatMode(false)` | **本次修正**：記下聊天世代，觸發時世代不同即跳過；此時由重新進入聊天的一方釋放離開流程持有的阻擋（`mpuChatExitBlocking`，沒有其他已知持有者時才解除） | 世代檢查＋持有旗標 |
 | 佇列處理 1.5 秒 | `mpu_processOllamaQueue()` | 無；取出後由 `mpu_nextmsg()` 入口判斷 | 受入口守衛；阻擋中丟棄（已決定） |
 | 自動台詞 fallback | `mpu_nextmsg_fallback()` | 無 | 觸發時檢查聊天模式、`messageBlocking`、頁面感知 |
 | startup 延遲 1.5 秒 | `ukagaka-features.js` | 無 | 受 `mpu_nextmsg()` 入口守衛 |
@@ -210,4 +210,5 @@ Codex 指出：釋放請求旗標後立即 `mpu_processOllamaQueue()`，1.5 秒�
 ### 本次實測
 
 - `chat-close-twice-within-exit-delay`：5 秒內開→關→開→關。修正前寫入 2 句離開台詞、最後一次關閉後 3.8 秒就解除阻擋；修正後 1 句、5.0 秒解除。
+- `chat-close-then-reopen-and-stay`（Codex 審查指出的缺口）：關閉後 5 秒內重新開啟並保持開啟。阻擋原本會一直留著，OK 鈕與送禮被擋住（Enter 仍可送出，所以不易察覺）。這不是世代修正造成的回歸：修正前的條件 `!mpuChatModeActive` 在重開後同樣跳過，已用修正前的 `chat-mode.js` 實測確認同樣失敗。修正後阻擋在重新進入時解除，OK 鈕可送出。
 - `ok-ignored-during-interaction-dialog`：只設觸摸對話旗標、不設 `messageBlocking`。修正前按 OK 仍前進一句；修正後被擋下。兩者都已確認拿掉修正會失敗。

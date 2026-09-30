@@ -563,6 +563,31 @@ scenario("chat-close-twice-within-exit-delay", "browser", async (h) => {
   return detail;
 });
 
+scenario("chat-close-then-reopen-and-stay", "browser", async (h) => {
+  // Close chat (blocks messages for 5 s), reopen within those 5 s and stay.
+  // The exit block belongs to the closed chat; the reopened chat must not keep
+  // it, or the OK button and gifts stay disabled for as long as chat is open.
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await h.enterChat(page);
+  await h.exitChat(page);
+  await h.enterChat(page);
+  await sleep(5000 + 2000);
+  const s = await h.state(page);
+  assert(s.chatMode, "chat was left");
+  assert(!s.messageBlocking, "message blocking from the earlier close is still held in the reopened chat");
+
+  // And the reopened chat is usable through the OK button, not only Enter.
+  h.fake.queueReply("REOPEN_OK_REPLY");
+  await page.fill("#mpu_user_input", "sent with OK");
+  await h.click(page, "#mpu_ok_btn");
+  await h.waitChatIdle(page);
+  const s2 = await h.state(page);
+  assert(s2.msg.includes("REOPEN_OK_REPLY"), `OK did not send in the reopened chat: "${s2.msg}"`);
+  return { msg: s2.msg };
+});
+
 scenario("ok-ignored-during-interaction-dialog", "browser (flag set directly)", async (h) => {
   // Isolates the guard: the touch/decoration flag is set without messageBlocking,
   // which used to hide that the OK button read the flag from the wrong object.

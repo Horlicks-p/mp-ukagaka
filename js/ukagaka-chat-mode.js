@@ -23,6 +23,16 @@ function mpu_toggleChatMode(enable) {
     // 動畫直接跑完，再依實際狀態顯示。
     $msgbox.stop(true, true);
 
+    // 離開聊天時設下的阻擋屬於已關閉的那次聊天。5 秒內重新進入時，離開的計時器
+    // 因世代不同而不再動作，所以由這裡釋放；否則阻擋會留到下次離開為止，OK 鈕與
+    // 送禮都會被擋住。只在沒有其他互動持有阻擋時才解除。
+    if (window.mpuChatExitBlocking) {
+      window.mpuChatExitBlocking = false;
+      if (!mpuAiContextInProgress && !mpuGreetInProgress && !mpuIsInteractionDialogActive()) {
+        mpuSetMessageBlocking(false);
+      }
+    }
+
     // 暫停自動對話
     if (mpuAutoTalkTimer !== null) {
       stopAutoTalk();
@@ -129,6 +139,7 @@ function mpu_toggleChatMode(enable) {
 
     // 設置訊息阻擋，防止退出後立即說話
     mpuSetMessageBlocking(true);
+    window.mpuChatExitBlocking = true;
 
     // 顯示「結束對話」的訊息（不觸發動畫，只在回答問題時播放）
     const exitMsg =
@@ -143,6 +154,7 @@ function mpu_toggleChatMode(enable) {
     const exitGeneration = window.mpuChatGeneration;
     setTimeout(() => {
       if (exitGeneration === window.mpuChatGeneration) {
+        window.mpuChatExitBlocking = false;
         mpuSetMessageBlocking(false);
 
         // 顯示一條隨機對話

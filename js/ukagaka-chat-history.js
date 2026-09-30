@@ -5,6 +5,8 @@ window.mpuChatRequesting = false;
 // 每次開關聊天就遞增。請求記下送出時的世代，回應到達時世代不同就是過期回應：
 // 照常記入歷史，但不寫進目前畫面。
 window.mpuChatGeneration = 0;
+// 離開聊天時設下的 5 秒訊息阻擋是否仍由離開流程持有
+window.mpuChatExitBlocking = false;
 const MPU_CHAT_HISTORY_KEY = "mpu_chat_history";
 const MPU_CHAT_SESSION_KEY = "mpu_chat_tab_session_id";
 const MPU_MAX_CHAT_HISTORY = 40; // synthetic+assistant 各佔一則，20 個互動事件 = 40 entries

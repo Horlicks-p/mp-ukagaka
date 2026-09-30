@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-09-29T10:08:08.798Z
+ * Generated: 2026-09-30T10:14:13.474Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -4704,6 +4704,8 @@ window.mpuChatRequesting = false;
 // 每次開關聊天就遞增。請求記下送出時的世代，回應到達時世代不同就是過期回應：
 // 照常記入歷史，但不寫進目前畫面。
 window.mpuChatGeneration = 0;
+// 離開聊天時設下的 5 秒訊息阻擋是否仍由離開流程持有
+window.mpuChatExitBlocking = false;
 const MPU_CHAT_HISTORY_KEY = "mpu_chat_history";
 const MPU_CHAT_SESSION_KEY = "mpu_chat_tab_session_id";
 const MPU_MAX_CHAT_HISTORY = 40; // synthetic+assistant 各佔一則，20 個互動事件 = 40 entries
@@ -4861,6 +4863,16 @@ function mpu_toggleChatMode(enable) {
     // 動畫直接跑完，再依實際狀態顯示。
     $msgbox.stop(true, true);
 
+    // 離開聊天時設下的阻擋屬於已關閉的那次聊天。5 秒內重新進入時，離開的計時器
+    // 因世代不同而不再動作，所以由這裡釋放；否則阻擋會留到下次離開為止，OK 鈕與
+    // 送禮都會被擋住。只在沒有其他互動持有阻擋時才解除。
+    if (window.mpuChatExitBlocking) {
+      window.mpuChatExitBlocking = false;
+      if (!mpuAiContextInProgress && !mpuGreetInProgress && !mpuIsInteractionDialogActive()) {
+        mpuSetMessageBlocking(false);
+      }
+    }
+
     // 暫停自動對話
     if (mpuAutoTalkTimer !== null) {
       stopAutoTalk();
@@ -4967,6 +4979,7 @@ function mpu_toggleChatMode(enable) {
 
     // 設置訊息阻擋，防止退出後立即說話
     mpuSetMessageBlocking(true);
+    window.mpuChatExitBlocking = true;
 
     // 顯示「結束對話」的訊息（不觸發動畫，只在回答問題時播放）
     const exitMsg =
@@ -4981,6 +4994,7 @@ function mpu_toggleChatMode(enable) {
     const exitGeneration = window.mpuChatGeneration;
     setTimeout(() => {
       if (exitGeneration === window.mpuChatGeneration) {
+        window.mpuChatExitBlocking = false;
         mpuSetMessageBlocking(false);
 
         // 顯示一條隨機對話
