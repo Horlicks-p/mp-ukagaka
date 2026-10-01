@@ -588,6 +588,55 @@ scenario("chat-close-then-reopen-and-stay", "browser", async (h) => {
   return { msg: s2.msg };
 });
 
+// A gift holds messageBlocking until its reaction has been typed. Leaving and
+// re-entering chat must not lift a block the exit flow does not own.
+async function startSlowGift(h, page, delayMs) {
+  await h.quietAutoTalk(page);
+  await h.enterChat(page);
+  h.fake.setDelay(delayMs);
+  h.fake.queueReply("SLOW_GIFT_REPLY");
+  await page.click("#mpu_gift_picker_button");
+  await page.click("#mpu_gift_picker .mpu-gift-picker-item");
+  await page.waitForFunction(() => window.mpuFrierenManager.giveItemInProgress === true, null, { timeout: 10000 });
+}
+
+async function assertGiftFinishesOnce(h, page) {
+  await page.waitForFunction(() => window.mpuFrierenManager.giveItemInProgress === false, null, { timeout: 90000 });
+  const s = await h.state(page);
+  assert(s.history.filter((m) => m.type === "give").length === 1, "gift reaction not stored exactly once");
+  // The gift's own finish must lift the block it kept, or nothing ever will.
+  assert(!s.messageBlocking, "message blocking still held after the gift finished");
+}
+
+scenario("gift-in-flight-close-reopen-keeps-block", "browser", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await startSlowGift(h, page, 9000);
+  await h.exitChat(page);
+  await h.enterChat(page);
+  const s = await h.state(page);
+  const giftRunning = await page.evaluate(() => window.mpuFrierenManager.giveItemInProgress);
+  assert(giftRunning, "precondition: the gift must still be in flight");
+  assert(s.messageBlocking, "reopening chat released the block held by the in-flight gift");
+  await assertGiftFinishesOnce(h, page);
+  return { blockingWhileGiftRan: s.messageBlocking };
+});
+
+scenario("gift-in-flight-close-and-stay-keeps-block", "browser", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await startSlowGift(h, page, 9000);
+  await h.exitChat(page);
+  const tExit = Date.now();
+  await sleep(5000 + 1000);
+  const giftRunning = await page.evaluate(() => window.mpuFrierenManager.giveItemInProgress);
+  const s = await h.state(page);
+  assert(giftRunning, `precondition: the gift must still be in flight ${Date.now() - tExit} ms after leaving`);
+  assert(s.messageBlocking, "the exit timer released the block held by the in-flight gift");
+  await assertGiftFinishesOnce(h, page);
+  return { blockingWhileGiftRan: s.messageBlocking };
+});
+
 scenario("ok-ignored-during-interaction-dialog", "browser (flag set directly)", async (h) => {
   // Isolates the guard: the touch/decoration flag is set without messageBlocking,
   // which used to hide that the OK button read the flag from the wrong object.
