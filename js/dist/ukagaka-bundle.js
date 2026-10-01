@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-10-01T02:27:39.685Z
+ * Generated: 2026-10-01T03:48:49.265Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -34,6 +34,7 @@ window.MPU_STATE = window.MPU_STATE || {
         ollamaReplaceDialogue: false,
         aiContextInProgress: false,
         messageBlocking: false,
+        messageBlockOwners: [],
         lastResponse: "",
         responseHistory: [],
         lastUserActionTime: Date.now(),
@@ -252,6 +253,13 @@ if (typeof mpuPreSettings !== 'undefined') {
 }
 let mpuAiContextInProgress = mpuState.llm.aiContextInProgress;     // 頁面感知 AI 是否正在進行中（防止自動對話打斷）
 let mpuMessageBlocking = mpuState.llm.messageBlocking;         // 強制阻擋訊息切換（用於顯示錯誤或重要訊息時防止被打斷）
+const mpuMessageBlockOwners = new Set(
+    Array.isArray(mpuState.llm.messageBlockOwners) ? mpuState.llm.messageBlockOwners : []
+);
+if (mpuMessageBlocking && mpuMessageBlockOwners.size === 0) {
+    mpuMessageBlockOwners.add("legacy");
+}
+window.mpuMessageBlockOwners = mpuMessageBlockOwners;
 let mpuLastLLMResponse = mpuState.llm.lastResponse;            // 上一次 LLM 生成的回應（用於避免重複對話）
 let mpuLLMResponseHistory = mpuState.llm.responseHistory;         // LLM 回應歷史（最近10次，用於更嚴格的重複檢測）
 const mpuMaxResponseHistory = 10;       // 最大歷史記錄數量
@@ -315,10 +323,47 @@ function mpuSetAiContextInProgress(isInProgress) {
     mpuGetState().llm.aiContextInProgress = isInProgress;
 }
 
-function mpuSetMessageBlocking(isBlocking) {
-    mpuMessageBlocking = isBlocking;
-    mpuGetState().llm.messageBlocking = isBlocking;
+function mpuSyncMessageBlocking() {
+    mpuMessageBlocking = mpuMessageBlockOwners.size > 0;
+    mpuGetState().llm.messageBlocking = mpuMessageBlocking;
+    mpuGetState().llm.messageBlockOwners = Array.from(mpuMessageBlockOwners);
 }
+
+/**
+ * 取得訊息阻擋。相同 owner 重複取得只算一份，避免重入造成永遠無法釋放。
+ * @param {string} owner
+ */
+function mpuAcquireMessageBlock(owner) {
+    const key = String(owner || "legacy");
+    mpuMessageBlockOwners.add(key);
+    mpuSyncMessageBlocking();
+}
+
+/**
+ * 釋放指定流程持有的訊息阻擋；其他 owner 仍存在時保持阻擋。
+ * @param {string} owner
+ */
+function mpuReleaseMessageBlock(owner) {
+    const key = String(owner || "legacy");
+    mpuMessageBlockOwners.delete(key);
+    mpuSyncMessageBlocking();
+}
+
+function mpuHasMessageBlock(owner) {
+    return mpuMessageBlockOwners.has(String(owner || "legacy"));
+}
+
+// Backward-compatible boolean setter for extensions. Internal flows use named
+// owners so one flow cannot release another flow's block.
+function mpuSetMessageBlocking(isBlocking) {
+    if (isBlocking) {
+        mpuAcquireMessageBlock("legacy");
+    } else {
+        mpuReleaseMessageBlock("legacy");
+    }
+}
+
+mpuSyncMessageBlocking();
 
 function mpuSetOllamaReplaceDialogue(isEnabled) {
     mpuOllamaReplaceDialogue = isEnabled;
@@ -2329,11 +2374,11 @@ function mpu_nextmsg(trigger) {
             );
             mpu_showmsg(400);
 
-            mpuSetMessageBlocking(true);
+            mpuAcquireMessageBlock("rate-limit-next-message");
             const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
             setTimeout(function () {
-              mpuSetMessageBlocking(false);
+              mpuReleaseMessageBlock("rate-limit-next-message");
 
               // 顯示一條內建對話作為後備，避免角色一直沉默
               mpu_nextmsg_fallback();
@@ -3879,7 +3924,7 @@ function mpu_chat_context() {
   mpuSetAiContextInProgress(true);
 
   // 設置阻擋標誌，完全阻止自發對話
-  mpuSetMessageBlocking(true);
+  mpuAcquireMessageBlock("page-context");
 
   const showMainDialog = function () {
     if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
@@ -3956,13 +4001,13 @@ function mpu_chat_context() {
         return visualReady.then(function () {
           // Re-check ownership after the visual wait. A stale context response
           // must not overwrite a greeting or a flow that already released its locks.
-          if (!mpuAiContextInProgress || !mpuMessageBlocking || mpuGreetInProgress) {
+          if (!mpuAiContextInProgress || !mpuHasMessageBlock("page-context") || mpuGreetInProgress) {
             mpuLogger.logL("contextChatResponseSkippedCompetingFlow", "視覚初期化の待機中に別の対話状態へ移行したため、ページ感知応答の表示をスキップします");
             // If this context flow still owns its in-progress flag, release both
-            // context locks on every skip path. Do not touch messageBlocking when
-            // the context flag is already false; another flow may own that lock.
+            // context locks on every skip path. Releasing the named owner leaves
+            // any competing flow's block intact.
             if (mpuAiContextInProgress) {
-              mpuSetMessageBlocking(false);
+              mpuReleaseMessageBlock("page-context");
               mpuSetAiContextInProgress(false);
             }
             return;
@@ -4029,7 +4074,7 @@ function mpu_chat_context() {
             const displayDurationMs = mpuAiDisplayDuration * 1000;
             mpuSetAiDisplayTimer(setTimeout(function () {
               mpuSetAiDisplayTimer(null);
-              mpuSetMessageBlocking(false);
+              mpuReleaseMessageBlock("page-context");
               mpuSetAiContextInProgress(false);
               // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；startup 被跳過時
               // auto-talk 從未啟動（wasAutoTalkRunning=false），但 mpuAutoTalk 仍為 true，
@@ -4061,11 +4106,11 @@ function mpu_chat_context() {
             "#ukagaka_msg",
           );
 
-          mpuSetMessageBlocking(true);
+          mpuAcquireMessageBlock("page-context");
           const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
           setTimeout(function () {
-            mpuSetMessageBlocking(false);
+            mpuReleaseMessageBlock("page-context");
             mpuSetAiContextInProgress(false);
             const dialogStore = mpuGetDialogStore();
             if (
@@ -4087,7 +4132,7 @@ function mpu_chat_context() {
             }
           }, waitTime);
         } else {
-          mpuSetMessageBlocking(false);
+          mpuReleaseMessageBlock("page-context");
           const dialogStore = mpuGetDialogStore();
           if (
             dialogStore &&
@@ -4118,7 +4163,7 @@ function mpu_chat_context() {
         showToUser: false, // 已經有 fallback 處理，不需要顯示錯誤
       });
 
-      mpuSetMessageBlocking(false);
+      mpuReleaseMessageBlock("page-context");
       const dialogStore = mpuGetDialogStore();
       if (
         dialogStore &&
@@ -4380,11 +4425,11 @@ function mpu_greet_first_visitor(settings) {
               "#ukagaka_msg",
             );
 
-            mpuSetMessageBlocking(true);
+            mpuAcquireMessageBlock("rate-limit-greeting");
             const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
             setTimeout(function () {
-              mpuSetMessageBlocking(false);
+              mpuReleaseMessageBlock("rate-limit-greeting");
 
               const dialogStore = mpuGetDialogStore();
               if (
@@ -4839,22 +4884,6 @@ function mpu_clearChatHistory() {
 
 // ========== ukagaka-chat-mode.js ==========
 /**
- * 離開聊天流程以外，是否還有其他互動持有訊息阻擋。mpuMessageBlocking 只是一個
- * 布林值，記不住持有者，所以把已知的持有者集中列在這裡；新增會設定阻擋的流程時
- * 要一併加入。速率限制冷卻沒有狀態旗標，無法判斷。
- * @returns {boolean}
- */
-function mpu_isMessageBlockHeldByAnotherFlow() {
-  return (
-    mpuAiContextInProgress ||
-    mpuGreetInProgress ||
-    mpuIsInteractionDialogActive() ||
-    (typeof window.mpuFrierenManager !== "undefined" &&
-      window.mpuFrierenManager.giveItemInProgress === true)
-  );
-}
-
-/**
  * 切換對話模式
  * @param {boolean} enable - 是否啟用對話模式
  */
@@ -4884,9 +4913,7 @@ function mpu_toggleChatMode(enable) {
     // 送禮都會被擋住。其他互動（例如送禮）仍持有阻擋時不解除，由該流程收尾。
     if (window.mpuChatExitBlocking) {
       window.mpuChatExitBlocking = false;
-      if (!mpu_isMessageBlockHeldByAnotherFlow()) {
-        mpuSetMessageBlocking(false);
-      }
+      mpuReleaseMessageBlock("chat-exit");
     }
 
     // 暫停自動對話
@@ -4994,7 +5021,7 @@ function mpu_toggleChatMode(enable) {
     $msgbox.removeClass("chat-mode");
 
     // 設置訊息阻擋，防止退出後立即說話
-    mpuSetMessageBlocking(true);
+    mpuAcquireMessageBlock("chat-exit");
     window.mpuChatExitBlocking = true;
 
     // 顯示「結束對話」的訊息（不觸發動畫，只在回答問題時播放）
@@ -5011,12 +5038,11 @@ function mpu_toggleChatMode(enable) {
     setTimeout(() => {
       if (exitGeneration === window.mpuChatGeneration) {
         window.mpuChatExitBlocking = false;
-        // 送禮等互動在離開聊天後仍在進行：阻擋與之後的恢復都交給該流程，
-        // 這裡不解除、不說離開台詞、不恢復自動對話。
-        if (mpu_isMessageBlockHeldByAnotherFlow()) {
+        mpuReleaseMessageBlock("chat-exit");
+        // 送禮、速率限制冷卻等流程仍持有阻擋時，之後的恢復交給該流程。
+        if (mpuMessageBlocking) {
           return;
         }
-        mpuSetMessageBlocking(false);
 
         // 顯示一條隨機對話
         const store = mpuGetDialogStore();

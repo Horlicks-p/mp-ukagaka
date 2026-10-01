@@ -1,20 +1,4 @@
 /**
- * 離開聊天流程以外，是否還有其他互動持有訊息阻擋。mpuMessageBlocking 只是一個
- * 布林值，記不住持有者，所以把已知的持有者集中列在這裡；新增會設定阻擋的流程時
- * 要一併加入。速率限制冷卻沒有狀態旗標，無法判斷。
- * @returns {boolean}
- */
-function mpu_isMessageBlockHeldByAnotherFlow() {
-  return (
-    mpuAiContextInProgress ||
-    mpuGreetInProgress ||
-    mpuIsInteractionDialogActive() ||
-    (typeof window.mpuFrierenManager !== "undefined" &&
-      window.mpuFrierenManager.giveItemInProgress === true)
-  );
-}
-
-/**
  * 切換對話模式
  * @param {boolean} enable - 是否啟用對話模式
  */
@@ -44,9 +28,7 @@ function mpu_toggleChatMode(enable) {
     // 送禮都會被擋住。其他互動（例如送禮）仍持有阻擋時不解除，由該流程收尾。
     if (window.mpuChatExitBlocking) {
       window.mpuChatExitBlocking = false;
-      if (!mpu_isMessageBlockHeldByAnotherFlow()) {
-        mpuSetMessageBlocking(false);
-      }
+      mpuReleaseMessageBlock("chat-exit");
     }
 
     // 暫停自動對話
@@ -154,7 +136,7 @@ function mpu_toggleChatMode(enable) {
     $msgbox.removeClass("chat-mode");
 
     // 設置訊息阻擋，防止退出後立即說話
-    mpuSetMessageBlocking(true);
+    mpuAcquireMessageBlock("chat-exit");
     window.mpuChatExitBlocking = true;
 
     // 顯示「結束對話」的訊息（不觸發動畫，只在回答問題時播放）
@@ -171,12 +153,11 @@ function mpu_toggleChatMode(enable) {
     setTimeout(() => {
       if (exitGeneration === window.mpuChatGeneration) {
         window.mpuChatExitBlocking = false;
-        // 送禮等互動在離開聊天後仍在進行：阻擋與之後的恢復都交給該流程，
-        // 這裡不解除、不說離開台詞、不恢復自動對話。
-        if (mpu_isMessageBlockHeldByAnotherFlow()) {
+        mpuReleaseMessageBlock("chat-exit");
+        // 送禮、速率限制冷卻等流程仍持有阻擋時，之後的恢復交給該流程。
+        if (mpuMessageBlocking) {
           return;
         }
-        mpuSetMessageBlocking(false);
 
         // 顯示一條隨機對話
         const store = mpuGetDialogStore();

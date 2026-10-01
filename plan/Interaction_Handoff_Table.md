@@ -166,7 +166,7 @@ Codex 指出：釋放請求旗標後立即 `mpu_processOllamaQueue()`，1.5 秒�
 | 打字機 `typewriter.timer` | `mpu_typewriter()` | `mpu_cancelTypewriter()`、打完 | setter＋`MPU_STATE` |
 | 頁面感知顯示時間 `llm.aiDisplayTimer` | `mpu_chat_context()` 成功路徑 | 重設前先清除 | setter＋`MPU_STATE` |
 | SSE 逐字顯示、watchdog | `mpu_sendUserMessage()` 的閉包 | `streamFinalize()`／`handleStreamFailure()` | 區域變數，隨請求結束 |
-| 離開聊天 5 秒 | `mpu_toggleChatMode(false)` | **本次修正**：記下聊天世代，觸發時世代不同即跳過；此時由重新進入聊天的一方釋放離開流程持有的阻擋（`mpuChatExitBlocking`）。計時器與重新進入都先問 `mpu_isMessageBlockHeldByAnotherFlow()`（頁面感知、問候、觸摸／裝飾、送禮）；有其他持有者時離開流程只放棄自己的持有，不解除、不說離開台詞、不恢復自動對話，由該流程收尾 | 世代檢查＋持有旗標 |
+| 離開聊天 5 秒 | `mpu_toggleChatMode(false)` | 記下聊天世代，觸發時世代不同即跳過；`chat-exit` owner 由重新進入或有效計時器釋放。其他 owner 仍存在時不說離開台詞、不恢復自動對話 | 世代檢查＋owner 集合 |
 | 佇列處理 1.5 秒 | `mpu_processOllamaQueue()` | 無；取出後由 `mpu_nextmsg()` 入口判斷 | 受入口守衛；阻擋中丟棄（已決定） |
 | 自動台詞 fallback | `mpu_nextmsg_fallback()` | 無 | 觸發時檢查聊天模式、`messageBlocking`、頁面感知 |
 | startup 延遲 1.5 秒 | `ukagaka-features.js` | 無 | 受 `mpu_nextmsg()` 入口守衛 |
@@ -212,10 +212,12 @@ Codex 指出：釋放請求旗標後立即 `mpu_processOllamaQueue()`，1.5 秒�
 - `chat-close-twice-within-exit-delay`：5 秒內開→關→開→關。修正前寫入 2 句離開台詞、最後一次關閉後 3.8 秒就解除阻擋；修正後 1 句、5.0 秒解除。
 - `chat-close-then-reopen-and-stay`（Codex 審查指出的缺口）：關閉後 5 秒內重新開啟並保持開啟。阻擋原本會一直留著，OK 鈕與送禮被擋住（Enter 仍可送出，所以不易察覺）。這不是世代修正造成的回歸：修正前的條件 `!mpuChatModeActive` 在重開後同樣跳過，已用修正前的 `chat-mode.js` 實測確認同樣失敗。修正後阻擋在重新進入時解除，OK 鈕可送出。
 - `gift-in-flight-close-reopen-keeps-block`、`gift-in-flight-close-and-stay-keeps-block`（Codex 審查指出前者）：聊天中送禮、回應未到時離開聊天。修正前重新開啟會解除送禮持有的阻擋（OK 鈕可再送聊天，與送禮重疊）；不重開的話，5 秒計時器同樣會解除，這條在本輪修改前就存在。修正後兩者在送禮完成前都維持阻擋，送禮完成後由送禮流程解除，反應只入歷史一次。
+- `rate-limit-block-survives-chat-close-reopen`：速率限制冷卻與聊天離開重疊時，重新進入只釋放 `chat-exit`，冷卻 owner 保持阻擋。
+- `rate-limit-release-preserves-chat-exit-block`：冷卻先結束時只釋放自己的 owner，聊天離開的 5 秒阻擋保持到期。
 - `ok-ignored-during-interaction-dialog`：只設觸摸對話旗標、不設 `messageBlocking`。修正前按 OK 仍前進一句；修正後被擋下。兩者都已確認拿掉修正會失敗。
 
-### 建議的下一步：訊息阻擋改為記錄持有者
+### 訊息阻擋持有者遷移
 
-`mpuMessageBlocking` 是單一布林值，聊天離開、送禮、觸摸／裝飾、頁面感知、問候、速率限制冷卻都會設定與解除它。每個流程解除時只能猜測是否還有別人持有，所以本輪連續出現兩個「錯誤解鎖」問題（重開聊天、送禮重疊），目前以 `mpu_isMessageBlockHeldByAnotherFlow()` 集中列舉已知持有者暫時處理。
+已改由 `mpuAcquireMessageBlock(owner)`／`mpuReleaseMessageBlock(owner)` 維護持有者集合；任何 owner 存在時 `mpuMessageBlocking` 都保持 `true`。聊天離開、頁面感知、一般速率限制、問候速率限制、Frieren 觸摸／裝飾及送禮都已遷移，釋放流程不再猜測其他旗標。
 
-Codex 建議改成持有者集合或引用計數：`mpuAcquireMessageBlock(owner)`／`mpuReleaseMessageBlock(owner)`，有任何持有者即阻擋。需要把所有 `mpuSetMessageBlocking(true/false)` 呼叫端改成成對的取得／釋放（核心、頁面感知、問候、聊天、Frieren 互動），舊 setter 保留為相容入口；速率限制冷卻也會因此有自己的持有者。這屬於計畫第二階段「完成遷移後才移除重複旗標」的範圍，尚未實作。
+`mpuSetMessageBlocking(true/false)` 保留給外部擴充，以 `legacy` owner 相容；`MPU_STATE.llm.messageBlockOwners` 提供可觀測快照。Frieren 的直接 `window.mpuMessageBlocking` 備援仍依既有計畫暫留。

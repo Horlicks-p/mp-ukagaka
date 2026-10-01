@@ -353,7 +353,7 @@ function mpu_chat_context() {
   mpuSetAiContextInProgress(true);
 
   // 設置阻擋標誌，完全阻止自發對話
-  mpuSetMessageBlocking(true);
+  mpuAcquireMessageBlock("page-context");
 
   const showMainDialog = function () {
     if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
@@ -430,13 +430,13 @@ function mpu_chat_context() {
         return visualReady.then(function () {
           // Re-check ownership after the visual wait. A stale context response
           // must not overwrite a greeting or a flow that already released its locks.
-          if (!mpuAiContextInProgress || !mpuMessageBlocking || mpuGreetInProgress) {
+          if (!mpuAiContextInProgress || !mpuHasMessageBlock("page-context") || mpuGreetInProgress) {
             mpuLogger.logL("contextChatResponseSkippedCompetingFlow", "視覚初期化の待機中に別の対話状態へ移行したため、ページ感知応答の表示をスキップします");
             // If this context flow still owns its in-progress flag, release both
-            // context locks on every skip path. Do not touch messageBlocking when
-            // the context flag is already false; another flow may own that lock.
+            // context locks on every skip path. Releasing the named owner leaves
+            // any competing flow's block intact.
             if (mpuAiContextInProgress) {
-              mpuSetMessageBlocking(false);
+              mpuReleaseMessageBlock("page-context");
               mpuSetAiContextInProgress(false);
             }
             return;
@@ -503,7 +503,7 @@ function mpu_chat_context() {
             const displayDurationMs = mpuAiDisplayDuration * 1000;
             mpuSetAiDisplayTimer(setTimeout(function () {
               mpuSetAiDisplayTimer(null);
-              mpuSetMessageBlocking(false);
+              mpuReleaseMessageBlock("page-context");
               mpuSetAiContextInProgress(false);
               // wasAutoTalkRunning 只記錄頁面感知觸發當下的狀態；startup 被跳過時
               // auto-talk 從未啟動（wasAutoTalkRunning=false），但 mpuAutoTalk 仍為 true，
@@ -535,11 +535,11 @@ function mpu_chat_context() {
             "#ukagaka_msg",
           );
 
-          mpuSetMessageBlocking(true);
+          mpuAcquireMessageBlock("page-context");
           const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
           setTimeout(function () {
-            mpuSetMessageBlocking(false);
+            mpuReleaseMessageBlock("page-context");
             mpuSetAiContextInProgress(false);
             const dialogStore = mpuGetDialogStore();
             if (
@@ -561,7 +561,7 @@ function mpu_chat_context() {
             }
           }, waitTime);
         } else {
-          mpuSetMessageBlocking(false);
+          mpuReleaseMessageBlock("page-context");
           const dialogStore = mpuGetDialogStore();
           if (
             dialogStore &&
@@ -592,7 +592,7 @@ function mpu_chat_context() {
         showToUser: false, // 已經有 fallback 處理，不需要顯示錯誤
       });
 
-      mpuSetMessageBlocking(false);
+      mpuReleaseMessageBlock("page-context");
       const dialogStore = mpuGetDialogStore();
       if (
         dialogStore &&

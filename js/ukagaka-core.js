@@ -852,11 +852,11 @@ function mpu_nextmsg(trigger) {
             );
             mpu_showmsg(400);
 
-            mpuSetMessageBlocking(true);
+            mpuAcquireMessageBlock("rate-limit-next-message");
             const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
             setTimeout(function () {
-              mpuSetMessageBlocking(false);
+              mpuReleaseMessageBlock("rate-limit-next-message");
 
               // 顯示一條內建對話作為後備，避免角色一直沉默
               mpu_nextmsg_fallback();

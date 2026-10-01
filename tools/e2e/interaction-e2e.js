@@ -128,7 +128,7 @@ const PAGE_PROBE = () => {
     typewriter: [],     // { at, text }
     requests: [],       // { at, url, status }
     msgChanges: [],     // { at, text } every text change of #ukagaka_msg, including direct .html() writes
-    blocking: [],       // { at, value } every mpuSetMessageBlocking call
+    blocking: [],       // { at, value } every effective owner-set synchronization
   };
   window.__mpuProbe = probe;
 
@@ -143,7 +143,7 @@ const PAGE_PROBE = () => {
 
   function wrapWhenReady() {
     if (typeof window.mpuSetAutoTalkTimer !== "function" || typeof window.mpu_nextmsg !== "function"
-      || typeof window.mpuSetMessageBlocking !== "function") {
+      || typeof window.mpuSyncMessageBlocking !== "function") {
       return false;
     }
     const origSet = window.mpuSetAutoTalkTimer;
@@ -163,10 +163,11 @@ const PAGE_PROBE = () => {
       probe.nextmsgCalls.push({ at: Date.now(), trigger: trigger === undefined ? "" : trigger });
       return origNext.apply(this, arguments);
     };
-    const origBlocking = window.mpuSetMessageBlocking;
-    window.mpuSetMessageBlocking = function (value) {
-      probe.blocking.push({ at: Date.now(), value: !!value });
-      return origBlocking.apply(this, arguments);
+    const origBlockingSync = window.mpuSyncMessageBlocking;
+    window.mpuSyncMessageBlocking = function () {
+      const result = origBlockingSync.apply(this, arguments);
+      probe.blocking.push({ at: Date.now(), value: window.mpuGetState().llm.messageBlocking });
+      return result;
     };
     const origType = window.mpu_typewriter;
     window.mpu_typewriter = function (text) {
@@ -271,6 +272,7 @@ class Harness {
         autoTalkEnabled: s.autoTalk.enabled,
         autoTalkTimer: s.autoTalk.timer,
         messageBlocking: s.llm.messageBlocking,
+        messageBlockOwners: Array.isArray(s.llm.messageBlockOwners) ? s.llm.messageBlockOwners.slice() : [],
         ollamaRequesting: s.llm.ollamaRequesting,
         chatMode: window.mpuChatModeActive === true,
         chatRequesting: window.mpuChatRequesting === true,
@@ -586,6 +588,46 @@ scenario("chat-close-then-reopen-and-stay", "browser", async (h) => {
   const s2 = await h.state(page);
   assert(s2.msg.includes("REOPEN_OK_REPLY"), `OK did not send in the reopened chat: "${s2.msg}"`);
   return { msg: s2.msg };
+});
+
+scenario("rate-limit-block-survives-chat-close-reopen", "browser", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await page.evaluate(() => window.mpuAcquireMessageBlock("rate-limit-next-message"));
+  await h.enterChat(page);
+  await h.exitChat(page);
+  await h.enterChat(page);
+
+  const held = await h.state(page);
+  assert(held.messageBlocking, "reopening chat released the rate-limit cooldown block");
+  assert(held.messageBlockOwners.includes("rate-limit-next-message"), "rate-limit owner was lost");
+  assert(!held.messageBlockOwners.includes("chat-exit"), "reopening chat did not release its own exit owner");
+
+  await page.evaluate(() => window.mpuReleaseMessageBlock("rate-limit-next-message"));
+  const released = await h.state(page);
+  assert(!released.messageBlocking, "rate-limit cooldown release left message blocking stuck");
+  return { heldOwners: held.messageBlockOwners, releasedOwners: released.messageBlockOwners };
+});
+
+scenario("rate-limit-release-preserves-chat-exit-block", "browser", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await page.evaluate(() => window.mpuAcquireMessageBlock("rate-limit-next-message"));
+  await h.enterChat(page);
+  await h.exitChat(page);
+  await page.evaluate(() => window.mpuReleaseMessageBlock("rate-limit-next-message"));
+
+  const held = await h.state(page);
+  assert(held.messageBlocking, "rate-limit cooldown release cleared the chat-exit block");
+  assert(held.messageBlockOwners.includes("chat-exit"), "chat-exit owner was lost");
+  assert(!held.messageBlockOwners.includes("rate-limit-next-message"), "rate-limit owner was not released");
+
+  await sleep(5000 + 1000);
+  const released = await h.state(page);
+  assert(!released.messageBlocking, "chat-exit block did not release after its delay");
+  return { heldOwners: held.messageBlockOwners, releasedOwners: released.messageBlockOwners };
 });
 
 // A gift holds messageBlocking until its reaction has been typed. Leaving and

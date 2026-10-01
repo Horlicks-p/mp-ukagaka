@@ -76,7 +76,7 @@ async function run() {
   const renderChecks = [
     ["js/ukagaka-core.js", "mpuWaitForVisualReady", "mpuMessageBlocking || mpuAiContextInProgress || mpuGreetInProgress"],
     ["js/ukagaka-greeting.js", "mpuWaitForVisualReady", "mpuAiContextInProgress || mpuMessageBlocking"],
-    ["js/ukagaka-context.js", "mpuWaitForVisualReady", "!mpuAiContextInProgress || !mpuMessageBlocking || mpuGreetInProgress"],
+    ["js/ukagaka-context.js", "mpuWaitForVisualReady", "!mpuAiContextInProgress || !mpuHasMessageBlock(\"page-context\") || mpuGreetInProgress"],
   ];
   for (const [relativePath, waitPattern, guardPattern] of renderChecks) {
     const source = fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
@@ -112,7 +112,7 @@ async function run() {
   );
   assert.ok(
     contextSource.includes("if (mpuAiContextInProgress) {") &&
-      contextSource.includes("mpuSetMessageBlocking(false);") &&
+      contextSource.includes("mpuReleaseMessageBlock(\"page-context\");") &&
       contextSource.includes("mpuSetAiContextInProgress(false);"),
     "context skip path does not defensively release flags it still owns"
   );

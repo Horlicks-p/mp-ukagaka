@@ -26,6 +26,7 @@ window.MPU_STATE = window.MPU_STATE || {
         ollamaReplaceDialogue: false,
         aiContextInProgress: false,
         messageBlocking: false,
+        messageBlockOwners: [],
         lastResponse: "",
         responseHistory: [],
         lastUserActionTime: Date.now(),
@@ -244,6 +245,13 @@ if (typeof mpuPreSettings !== 'undefined') {
 }
 let mpuAiContextInProgress = mpuState.llm.aiContextInProgress;     // 頁面感知 AI 是否正在進行中（防止自動對話打斷）
 let mpuMessageBlocking = mpuState.llm.messageBlocking;         // 強制阻擋訊息切換（用於顯示錯誤或重要訊息時防止被打斷）
+const mpuMessageBlockOwners = new Set(
+    Array.isArray(mpuState.llm.messageBlockOwners) ? mpuState.llm.messageBlockOwners : []
+);
+if (mpuMessageBlocking && mpuMessageBlockOwners.size === 0) {
+    mpuMessageBlockOwners.add("legacy");
+}
+window.mpuMessageBlockOwners = mpuMessageBlockOwners;
 let mpuLastLLMResponse = mpuState.llm.lastResponse;            // 上一次 LLM 生成的回應（用於避免重複對話）
 let mpuLLMResponseHistory = mpuState.llm.responseHistory;         // LLM 回應歷史（最近10次，用於更嚴格的重複檢測）
 const mpuMaxResponseHistory = 10;       // 最大歷史記錄數量
@@ -307,10 +315,47 @@ function mpuSetAiContextInProgress(isInProgress) {
     mpuGetState().llm.aiContextInProgress = isInProgress;
 }
 
-function mpuSetMessageBlocking(isBlocking) {
-    mpuMessageBlocking = isBlocking;
-    mpuGetState().llm.messageBlocking = isBlocking;
+function mpuSyncMessageBlocking() {
+    mpuMessageBlocking = mpuMessageBlockOwners.size > 0;
+    mpuGetState().llm.messageBlocking = mpuMessageBlocking;
+    mpuGetState().llm.messageBlockOwners = Array.from(mpuMessageBlockOwners);
 }
+
+/**
+ * 取得訊息阻擋。相同 owner 重複取得只算一份，避免重入造成永遠無法釋放。
+ * @param {string} owner
+ */
+function mpuAcquireMessageBlock(owner) {
+    const key = String(owner || "legacy");
+    mpuMessageBlockOwners.add(key);
+    mpuSyncMessageBlocking();
+}
+
+/**
+ * 釋放指定流程持有的訊息阻擋；其他 owner 仍存在時保持阻擋。
+ * @param {string} owner
+ */
+function mpuReleaseMessageBlock(owner) {
+    const key = String(owner || "legacy");
+    mpuMessageBlockOwners.delete(key);
+    mpuSyncMessageBlocking();
+}
+
+function mpuHasMessageBlock(owner) {
+    return mpuMessageBlockOwners.has(String(owner || "legacy"));
+}
+
+// Backward-compatible boolean setter for extensions. Internal flows use named
+// owners so one flow cannot release another flow's block.
+function mpuSetMessageBlocking(isBlocking) {
+    if (isBlocking) {
+        mpuAcquireMessageBlock("legacy");
+    } else {
+        mpuReleaseMessageBlock("legacy");
+    }
+}
+
+mpuSyncMessageBlocking();
 
 function mpuSetOllamaReplaceDialogue(isEnabled) {
     mpuOllamaReplaceDialogue = isEnabled;

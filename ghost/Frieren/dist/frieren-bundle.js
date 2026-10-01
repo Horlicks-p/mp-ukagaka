@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Frieren Bundle
- * Generated: 2026-09-04T13:05:59.963Z
+ * Generated: 2026-10-01T03:48:49.569Z
  *
  * 包含: frieren.js, frieren-animation.js, frieren-interactions.js, frieren-decorations.js
  */
@@ -747,7 +747,9 @@
 
       this.decorationChatInProgress = true;
 
-      if (typeof mpuSetMessageBlocking === "function") {
+      if (typeof mpuAcquireMessageBlock === "function") {
+        mpuAcquireMessageBlock("frieren-interaction");
+      } else if (typeof mpuSetMessageBlocking === "function") {
         mpuSetMessageBlocking(true);
       } else if (typeof window !== "undefined") {
         window.mpuMessageBlocking = true;
@@ -952,7 +954,9 @@
         mpuClearSystemPlaceholder("#ukagaka_msg");
       }
 
-      if (typeof mpuSetMessageBlocking === "function") {
+      if (typeof mpuReleaseMessageBlock === "function") {
+        mpuReleaseMessageBlock("frieren-interaction");
+      } else if (typeof mpuSetMessageBlocking === "function") {
         mpuSetMessageBlocking(false);
       } else if (typeof window !== "undefined") {
         window.mpuMessageBlocking = false;
@@ -1064,7 +1068,9 @@
 
       this.decorationChatInProgress = true;
 
-      if (typeof mpuSetMessageBlocking === "function") {
+      if (typeof mpuAcquireMessageBlock === "function") {
+        mpuAcquireMessageBlock("frieren-interaction");
+      } else if (typeof mpuSetMessageBlocking === "function") {
         mpuSetMessageBlocking(true);
       } else if (typeof window !== "undefined") {
         window.mpuMessageBlocking = true;
@@ -1548,7 +1554,9 @@
       const button = document.getElementById("mpu_gift_picker_button");
       const pickerButtons = document.querySelectorAll("#mpu_gift_picker button");
       this.giveItemInProgress = true;
-      if (typeof mpuSetMessageBlocking === "function") {
+      if (typeof mpuAcquireMessageBlock === "function") {
+        mpuAcquireMessageBlock("frieren-gift");
+      } else if (typeof mpuSetMessageBlocking === "function") {
         mpuSetMessageBlocking(true);
       } else {
         window.mpuMessageBlocking = true;
@@ -1675,7 +1683,9 @@
         const self = this;
         const restoreAfterGive = function () {
           self.giveItemInProgress = false;
-          if (typeof mpuSetMessageBlocking === "function") {
+          if (typeof mpuReleaseMessageBlock === "function") {
+            mpuReleaseMessageBlock("frieren-gift");
+          } else if (typeof mpuSetMessageBlocking === "function") {
             mpuSetMessageBlocking(false);
           } else {
             window.mpuMessageBlocking = false;

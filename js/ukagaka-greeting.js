@@ -208,11 +208,11 @@ function mpu_greet_first_visitor(settings) {
               "#ukagaka_msg",
             );
 
-            mpuSetMessageBlocking(true);
+            mpuAcquireMessageBlock("rate-limit-greeting");
             const waitTime = (mpuAiDisplayDuration || 8) * 1000;
 
             setTimeout(function () {
-              mpuSetMessageBlocking(false);
+              mpuReleaseMessageBlock("rate-limit-greeting");
 
               const dialogStore = mpuGetDialogStore();
               if (
