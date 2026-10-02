@@ -4,51 +4,90 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MP Ukagaka — AI 対応の WordPress 伺かプラグイン</title>
-<meta name="description" content="WordPress サイトに伺か（デスクトップマスコット）キャラクターを表示するプラグイン。Gemini / OpenAI / Claude / Ollama に対応した AI 会話、ページ感知、SSE ストリーミング、Canvas アニメーション、多言語対応。">
+<meta name="description" content="WordPress サイトに伺か（デスクトップマスコット）キャラクターを表示するプラグイン。Gemini / OpenAI / Claude / Ollama による AI 会話、ページ感知、SSE ストリーミング対話、贈り物、睡眠と目覚め、Abilities、AI 日記に対応。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='4.5' y='4.5' width='7' height='7' transform='rotate(45 8 8)' fill='%237B68AE'/%3E%3C/svg%3E">
+<meta property="og:title" content="MP Ukagaka — AI 対応の WordPress 伺かプラグイン">
+<meta property="og:description" content="記事を読んで語りかけ、訪問者と会話し、眠り、目を覚ます。WordPress のための伺かキャラクター。">
+<meta property="og:image" content="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot.PNG">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Shippori+Mincho:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Shippori+Mincho:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    /* ─── MP Ukagaka — Light Theme, mirrors admin-style.css palette ─── */
-    /* admin: bg #FDFBF7 · accent #7B68AE · dark #5E4D8B · light #C4B6DE */
-    /* admin: heading #4A3D6B · body #5C5470 · muted #8A7FA0 · border #DED6EE */
-
-    --bg:          #FDFBF7;   /* warm white — matches admin bg    */
-    --bg-alt:      #F5F1FB;   /* pale lavender — alternate section */
-    --bg-muted:    #EDE8F5;   /* admin muted accent               */
+    /* Palette mirrors css/admin-style.css (--mpu-accent #7B68AE etc.) */
+    --bg:          #FDFBF7;
+    --bg-alt:      #F5F1FB;
+    --bg-muted:    #EDE8F5;
     --bg-card:     #FFFFFF;
-    --bg-dark:     #4A3D6B;   /* deep purple — footer / quote bg  */
-    --bg-dark-2:   #3a2f55;
+    --bg-dark:     #4A3D6B;
 
-    --lilac:       #C4B6DE;   /* admin accent-light               */
-    --violet:      #7B68AE;   /* admin accent (main)              */
-    --amethyst:    #5E4D8B;   /* admin accent-dark                */
-    --amethyst-d:  #4A3D6B;   /* admin heading                    */
+    --lilac:       #C4B6DE;
+    --violet:      #7B68AE;
+    --amethyst:    #5E4D8B;
 
-    --text-h:      #4A3D6B;   /* headings                         */
-    --text-body:   #5C5470;   /* body                             */
-    --text-mute:   #8A7FA0;   /* secondary / muted                */
-    --text-on-dark:#F5F1FB;   /* text on dark purple bg           */
-    --text-on-dark-2: #C4B6DE;
+    --text-h:      #4A3D6B;
+    --text-body:   #5C5470;
+    --text-mute:   #7E7396;
+    --text-on-dark:#F5F1FB;
+    --text-on-dark-2: #D3C8E8;
 
-    --border:      #DED6EE;   /* admin border                     */
-    --border-l:    #EAE4F4;   /* admin border light               */
+    --border:      #DED6EE;
+    --border-l:    #EAE4F4;
     --shadow:      rgba(75, 61, 107, 0.08);
     --shadow-h:    rgba(75, 61, 107, 0.16);
 
-    --serif-jp: 'Cormorant Garamond', 'Shippori Mincho', 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', serif;
-    --display:  'Cinzel', 'Shippori Mincho', 'Yu Mincho', serif;
+    --free:        #5E8F50;
+    --paid:        #B5534F;
+
+    /* dock icon tokens, idle state of css/mpu_style.css */
+    --dock-ring:   rgb(250 250 250 / 65%);
+    --dock-disc:   rgb(144 144 144 / 80%);
+    --dock-glyph:  #fbfbfb;
+    --dock-halo:   rgb(0 0 0 / 7%);
+
+    --serif:      'Cormorant Garamond', 'Shippori Mincho', 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', serif;
+    --display:    'Cinzel', 'Shippori Mincho', 'Yu Mincho', serif;
     --display-jp: 'Shippori Mincho', 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', serif;
-    --mono:     'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    --mono:       'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:          #1B1726;
+      --bg-alt:      #221D31;
+      --bg-muted:    #2B2540;
+      --bg-card:     #241F35;
+      --bg-dark:     #130F1D;
+
+      --lilac:       #C4B6DE;
+      --violet:      #A795D6;
+      --amethyst:    #C4B6DE;
+
+      --text-h:      #EDE8F5;
+      --text-body:   #D3CBE3;
+      --text-mute:   #A99FBF;
+      --text-on-dark:#F5F1FB;
+      --text-on-dark-2: #C4B6DE;
+
+      --border:      #3A3352;
+      --border-l:    #2F2945;
+      --shadow:      rgba(0, 0, 0, 0.30);
+      --shadow-h:    rgba(0, 0, 0, 0.45);
+
+      --free:        #8DBF7E;
+      --paid:        #E08A85;
+    }
   }
 
   html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
   body {
-    font-family: var(--serif-jp);
+    font-family: var(--serif);
     font-size: 17px;
     background: var(--bg);
     color: var(--text-body);
@@ -59,54 +98,75 @@
 
   ::selection { background: var(--violet); color: #fff; }
   a { color: inherit; }
+  img { max-width: 100%; }
+  :focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; }
+
+  .skip {
+    position: absolute; left: 1rem; top: -3rem;
+    background: var(--bg-card); color: var(--text-h);
+    padding: .4rem .9rem; border: 1px solid var(--border); z-index: 10;
+  }
+  .skip:focus { top: 1rem; }
+
+  /* ═══════════════ NAV ═══════════════ */
+  .nav {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; justify-content: center; gap: 1.6rem; flex-wrap: wrap;
+    padding: .65rem 1rem;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-l);
+  }
+  .nav a {
+    font-family: var(--display-jp);
+    font-size: .8rem; letter-spacing: .2em;
+    color: var(--text-mute); text-decoration: none;
+    transition: color .18s;
+  }
+  .nav a:hover { color: var(--violet); }
 
   /* ═══════════════ COVER ═══════════════ */
   .cover {
     position: relative;
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    text-align: center;
-    padding: 7rem 1.5rem 6rem;
+    padding: 5.5rem 1.5rem 5rem;
     overflow: hidden;
     isolation: isolate;
-    background: var(--bg);
   }
-  /* Soft lavender radial wash at top */
   .cover::before {
     content: '';
     position: absolute; inset: 0;
     background:
-      radial-gradient(ellipse 70% 60% at 50% -10%, rgba(196, 182, 222, 0.35) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 60% at 50% -10%, rgba(196, 182, 222, 0.32) 0%, transparent 65%),
       radial-gradient(ellipse 40% 30% at 85% 80%,  rgba(123, 104, 174, 0.08) 0%, transparent 60%),
       radial-gradient(ellipse 30% 25% at 8%  70%,  rgba(94, 77, 139, 0.06)  0%, transparent 60%);
     z-index: -1;
   }
-  /* Diamond crosshatch — very subtle */
   .cover::after {
     content: '';
     position: absolute; inset: 0;
     background-image:
-      linear-gradient(45deg,  rgba(123, 104, 174, 0.04) 1px, transparent 1px),
-      linear-gradient(-45deg, rgba(123, 104, 174, 0.04) 1px, transparent 1px);
+      linear-gradient(45deg,  rgba(123, 104, 174, 0.045) 1px, transparent 1px),
+      linear-gradient(-45deg, rgba(123, 104, 174, 0.045) 1px, transparent 1px);
     background-size: 32px 32px;
     z-index: -1;
   }
-  /* Bottom border line */
   .cover-border {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    height: 1px;
+    position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
     background: linear-gradient(90deg, transparent, var(--border) 30%, var(--lilac) 50%, var(--border) 70%, transparent);
   }
-  .cover-inner { position: relative; max-width: 760px; width: 100%; }
+  .cover-grid {
+    max-width: 1080px; margin: 0 auto;
+    display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 3rem; align-items: center;
+  }
+  .cover-text { text-align: left; }
 
-  /* Ornamental divider */
   .ornament {
-    display: flex; align-items: center; justify-content: center;
-    gap: 0.9rem; margin: 0 auto 2.2rem; max-width: 380px;
+    display: flex; align-items: center; gap: 0.9rem;
+    margin: 0 0 2rem; max-width: 380px;
   }
   .ornament-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border) 40%, var(--violet)); }
   .ornament-line.right { background: linear-gradient(270deg, transparent, var(--border) 40%, var(--violet)); }
-  .ornament-mark { width: 8px; height: 8px; background: var(--violet); transform: rotate(45deg); }
   .ornament-eyebrow {
     font-family: var(--display);
     font-size: 0.70rem; font-weight: 600;
@@ -116,115 +176,140 @@
 
   .cover h1 {
     font-family: var(--display);
-    font-size: clamp(2.6rem, 6.4vw, 4.8rem);
+    font-size: clamp(2.5rem, 6vw, 4.4rem);
     font-weight: 600;
-    letter-spacing: 0.14em; line-height: 1.05;
-    color: var(--amethyst-d);
+    letter-spacing: 0.12em; line-height: 1.05;
+    color: var(--text-h);
     text-transform: uppercase;
   }
-
   .cover-sub {
     font-family: var(--display-jp);
     font-size: clamp(0.95rem, 2vw, 1.1rem);
-    letter-spacing: 0.42em; color: var(--violet);
+    letter-spacing: 0.36em; color: var(--violet);
     margin-top: 1rem; font-weight: 500;
   }
-
   .cover-tag {
     font-family: var(--display-jp);
     font-size: clamp(0.98rem, 1.6vw, 1.05rem);
     color: var(--text-mute);
-    max-width: 580px; margin: 2.2rem auto 0;
-    line-height: 2.05; letter-spacing: 0.05em;
+    max-width: 560px; margin-top: 2rem;
+    line-height: 2.05; letter-spacing: 0.04em;
   }
   .cover-tag em { color: var(--amethyst); font-style: normal; font-weight: 600; }
 
-  /* Badges */
-  .badges { display: flex; flex-wrap: wrap; gap: 0.45rem; justify-content: center; margin: 2rem 0 0; }
-  .badges img { height: 19px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 1.8rem; }
+  .badges img { height: 20px; }
 
-  /* CTA buttons */
-  .seal-row { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; margin-top: 2.8rem; }
-
+  .seal-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 2.4rem; }
   .seal {
     display: inline-flex; align-items: center; gap: 0.55rem;
-    padding: 0.7rem 1.6rem;
+    padding: 0.7rem 1.5rem;
     font-family: var(--display-jp);
     font-size: 0.86rem; font-weight: 600;
-    letter-spacing: 0.18em; text-decoration: none; border-radius: 2px;
-    transition: transform .18s ease, box-shadow .2s ease, background .18s;
+    letter-spacing: 0.16em; text-decoration: none; border-radius: 2px;
+    transition: transform .18s ease, box-shadow .2s ease, background .18s, color .18s;
   }
   .seal-primary {
-    background: linear-gradient(180deg, var(--violet), var(--amethyst));
+    background: linear-gradient(180deg, #7B68AE, #5E4D8B);
     color: #fff;
     box-shadow: 0 4px 16px rgba(94, 77, 139, 0.35);
   }
-  .seal-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(94, 77, 139, 0.45);
-  }
-  .seal-outline {
-    background: transparent; color: var(--amethyst);
-    box-shadow: 0 0 0 1.5px var(--amethyst) inset;
-  }
+  .seal-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(94, 77, 139, 0.45); }
+  .seal-outline { background: transparent; color: var(--amethyst); box-shadow: 0 0 0 1.5px var(--amethyst) inset; }
   .seal-outline:hover { background: var(--bg-muted); transform: translateY(-2px); }
-  .seal-ghost {
-    background: transparent; color: var(--text-mute);
-    box-shadow: 0 0 0 1px var(--border) inset;
-  }
+  .seal-ghost { background: transparent; color: var(--text-mute); box-shadow: 0 0 0 1px var(--border) inset; }
   .seal-ghost:hover { color: var(--amethyst); box-shadow: 0 0 0 1px var(--lilac) inset; transform: translateY(-2px); }
-  .seal-glyph { width: 14px; height: 14px; display: inline-block; }
+  .seal-glyph { width: 14px; height: 14px; display: inline-block; flex: none; }
+
+  /* ── Stage: a tiny ukagaka on the cover ── */
+  .stage {
+    position: relative;
+    display: flex; flex-direction: column; align-items: flex-end;
+    min-height: 420px;
+    padding-right: 1rem;
+  }
+  /* 9-slice pixel bubble, same geometry as images/think-bubble.svg in the plugin */
+  .bubble {
+    position: relative;
+    align-self: stretch;
+    margin-right: 5.5rem;
+    min-height: 5.6rem;
+    border-style: solid;
+    border-width: 5px 14px 7px 13px;
+    border-image-source: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='136' height='40' viewBox='0 0 136 40' shape-rendering='crispEdges'%3E%3Cg opacity='0.75'%3E%3Cpath fill='%23000' d='M13 1H121V3H127V6H131V13H134V25H132V32H127V35H121V38H13V35H7V32H3V25H1V13H3V6H7V3H13Z'/%3E%3Cpath fill='%23fff' d='M13.5 3.5H120.5V5.5H124.5V8.5H128.5V15.5H131.5V22.5H129.5V29.5H124.5V32.5H118.5V34.5H15.5V32.5H9.5V29.5H5.5V22.5H3.5V15.5H5.5V8.5H9.5V5.5H13.5Z'/%3E%3C/g%3E%3C/svg%3E");
+    border-image-slice: 5 14 7 13 fill;
+    border-image-repeat: stretch;
+    padding: .55rem .7rem;
+    image-rendering: pixelated;
+  }
+  .bubble-text {
+    font-family: var(--display-jp);
+    font-size: .98rem; line-height: 1.75;
+    color: #1e3a8a; letter-spacing: .03em;
+    min-height: 3.5em;
+  }
+  .bubble-text::after {
+    content: '▍'; margin-left: 1px; color: #7B68AE;
+    animation: caret 1s steps(1) infinite;
+  }
+  .bubble.is-done .bubble-text::after { content: ''; }
+  @keyframes caret { 50% { opacity: 0; } }
+  .bubble-tail {
+    position: absolute; right: 1.6rem; bottom: -19px;
+    width: 19px; height: 17px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='19' height='17' viewBox='0 0 19 17' shape-rendering='crispEdges'%3E%3Cg opacity='0.75'%3E%3Cpath fill='%23000' d='M10 0H15V2H17V7H15V9H10V7H8V2H10ZM2 9H5V11H7V13H5V15H2V13H0V11H2Z'/%3E%3Cpath fill='%23fff' d='M10 2H15V7H10ZM2 11H5V13H2Z'/%3E%3C/g%3E%3C/svg%3E") no-repeat;
+    transform: scaleX(-1);
+  }
+  .ghost {
+    position: relative; margin-top: 1.6rem;
+    width: 134px; height: 249px;
+  }
+  .ghost img { width: 134px; height: 249px; display: block; }
+  .ghost::after {
+    content: ''; position: absolute; left: 50%; bottom: -6px;
+    width: 120px; height: 14px; transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(75, 61, 107, .18), transparent 70%);
+    z-index: -1;
+  }
+  .dock { display: flex; gap: .3rem; margin-top: .5rem; margin-right: -.4rem; }
+  .dock svg { width: 40px; height: 40px; display: block; transition: transform .18s; }
+  .dock svg:hover { transform: translateY(-2px); }
+  .stage-note {
+    margin-top: .9rem; align-self: flex-end;
+    font-family: var(--display-jp); font-size: .78rem;
+    letter-spacing: .14em; color: var(--text-mute);
+  }
 
   /* ═══════════════ FRONTISPIECE ═══════════════ */
-  .frontispiece {
-    padding: 0 1.5rem 5rem;
-    text-align: center;
-    background: var(--bg);
-  }
+  .frontispiece { padding: 4.5rem 1.5rem 5rem; text-align: center; }
   .plate {
     position: relative; display: inline-block;
-    max-width: 880px; width: 100%;
+    max-width: 960px; width: 100%;
     padding: 12px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     box-shadow: 0 8px 40px var(--shadow);
   }
-  /* Corner accent marks */
   .plate-corner { position: absolute; width: 22px; height: 22px; pointer-events: none; }
   .plate-corner::before, .plate-corner::after { content: ''; position: absolute; background: var(--violet); }
   .plate-corner::before { width: 100%; height: 1.5px; top: 50%; left: 0; }
   .plate-corner::after  { height: 100%; width: 1.5px; left: 50%; top: 0; }
-  .plate-corner > span {
-    position: absolute; inset: calc(50% - 3px);
-    width: 6px; height: 6px;
-    background: var(--violet); transform: rotate(45deg);
-  }
+  .plate-corner > span { position: absolute; inset: calc(50% - 3px); width: 6px; height: 6px; background: var(--violet); transform: rotate(45deg); }
   .plate-corner.tl { top: -11px; left: -11px; }
   .plate-corner.tr { top: -11px; right: -11px; }
   .plate-corner.bl { bottom: -11px; left: -11px; }
   .plate-corner.br { bottom: -11px; right: -11px; }
-  .plate img { width: 100%; display: block; }
+  .plate img { width: 100%; height: auto; display: block; }
   .plate-caption {
     margin-top: 1.4rem;
     font-family: var(--display-jp);
-    font-size: 0.92rem; color: var(--text-mute); letter-spacing: 0.18em;
+    font-size: 0.92rem; color: var(--text-mute); letter-spacing: 0.16em;
   }
 
-  /* ═══════════════ EPIGRAPH — two variants ═══════════════ */
-  .epigraph {
-    position: relative; padding: 4.5rem 1.5rem;
-    text-align: center; overflow: hidden;
-  }
-  /* Dark purple quote block */
-  .epigraph.on-dark {
-    background: var(--bg-dark);
-    color: var(--text-on-dark);
-  }
-  /* Pale lavender quote block */
-  .epigraph.on-muted {
-    background: var(--bg-muted);
-    color: var(--text-h);
-  }
+  /* ═══════════════ EPIGRAPH ═══════════════ */
+  .epigraph { position: relative; padding: 4.2rem 1.5rem; text-align: center; overflow: hidden; }
+  .epigraph.on-dark  { background: var(--bg-dark); color: var(--text-on-dark); }
+  .epigraph.on-muted { background: var(--bg-muted); color: var(--text-h); }
   .epigraph-stack {
     position: relative; max-width: 720px; margin: 0 auto;
     min-height: 5em;
@@ -232,50 +317,37 @@
   }
   .epigraph-quote {
     position: absolute; inset: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     opacity: 0; transition: opacity 1.4s ease; pointer-events: none;
   }
   .epigraph-quote.is-active { opacity: 1; }
-  .epigraph-mark {
-    font-family: var(--display);
-    font-size: 2rem; line-height: 1; margin-bottom: 0.6rem;
-  }
+  .epigraph-mark { font-family: var(--display); font-size: 2rem; line-height: 1; margin-bottom: 0.6rem; }
   .epigraph.on-dark  .epigraph-mark { color: var(--lilac); opacity: 0.6; }
   .epigraph.on-muted .epigraph-mark { color: var(--violet); opacity: 0.5; }
   .epigraph-text {
     font-family: var(--display-jp);
-    font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+    font-size: clamp(1.1rem, 2.2vw, 1.45rem);
     line-height: 1.9; letter-spacing: 0.06em; font-weight: 500;
     max-width: 680px; text-wrap: pretty;
   }
-  .epigraph-attrib {
-    font-family: var(--display);
-    font-size: 0.68rem; letter-spacing: 0.4em;
-    margin-top: 1.3rem; text-transform: uppercase; opacity: 0.65;
-  }
-  .epigraph.on-dark  .epigraph-attrib { color: var(--lilac); }
-  .epigraph.on-muted .epigraph-attrib { color: var(--violet); }
-  .epigraph-rule {
-    display: flex; align-items: center; justify-content: center;
-    gap: 0.5rem; margin-top: 2rem; opacity: 0.5;
-  }
+  .epigraph-rule { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 2rem; opacity: 0.5; }
   .epigraph-rule span { width: 5px; height: 5px; transform: rotate(45deg); }
   .epigraph-rule span:nth-child(2) { width: 8px; height: 8px; }
   .epigraph.on-dark  .epigraph-rule span { background: var(--lilac); }
   .epigraph.on-muted .epigraph-rule span { background: var(--violet); }
 
-  /* ═══════════════ SHARED SECTION LAYOUT ═══════════════ */
-  section { position: relative; z-index: 1; }
+  /* ═══════════════ SECTIONS ═══════════════ */
+  section { position: relative; z-index: 1; scroll-margin-top: 3rem; }
   .container { max-width: 1080px; margin: 0 auto; position: relative; }
+  .page     { padding: 6rem 1.5rem; background: var(--bg); }
+  .page-alt { padding: 6rem 1.5rem; background: var(--bg-alt); }
 
   .chapter-heading { text-align: center; margin-bottom: 3.5rem; }
   .chapter-eyebrow {
     font-family: var(--display);
-    font-size: 0.70rem; letter-spacing: 0.45em;
+    font-size: 0.86rem; letter-spacing: 0.3em;
     color: var(--violet); text-transform: uppercase; margin-bottom: 1rem;
   }
-  .chapter-roman { font-size: 0.88rem; letter-spacing: 0.28em; }
   .chapter-title {
     font-family: var(--display-jp);
     font-size: clamp(1.7rem, 3.5vw, 2.3rem);
@@ -284,28 +356,32 @@
   }
   .chapter-rule { display: flex; align-items: center; justify-content: center; gap: 0.7rem; margin-bottom: 1.2rem; }
   .chapter-rule-line { width: 55px; height: 1px; background: var(--border); }
+  .page-alt .chapter-rule-line { background: var(--lilac); }
   .chapter-rule-mark { width: 7px; height: 7px; background: var(--violet); transform: rotate(45deg); }
   .chapter-desc {
     font-family: var(--display-jp);
     font-size: 1.02rem; color: var(--text-mute);
-    max-width: 580px; margin: 0 auto; line-height: 1.95; letter-spacing: 0.04em;
+    max-width: 600px; margin: 0 auto; line-height: 1.95; letter-spacing: 0.04em;
   }
 
-  /* ═══════════════ CHAPTER I — Features (white bg) ═══════════════ */
-  .page { padding: 6rem 1.5rem; background: var(--bg); }
-
+  /* Features */
+  .group-label {
+    font-family: var(--display);
+    font-size: .74rem; letter-spacing: .36em; text-transform: uppercase;
+    color: var(--violet); margin: 2.6rem 0 .9rem;
+    display: flex; align-items: center; gap: .8rem;
+  }
+  .group-label:first-of-type { margin-top: 0; }
+  .group-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
   .grimoire-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1px;
     background: var(--border-l);
     border: 1px solid var(--border);
   }
-  .entry {
-    background: var(--bg-card);
-    padding: 1.9rem 1.8rem;
-    transition: background .18s;
-  }
+  .grimoire-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .entry { background: var(--bg-card); padding: 1.7rem 1.5rem; transition: background .18s; }
   .entry:hover { background: var(--bg-muted); }
   .entry-glyph { width: 26px; height: 26px; margin-bottom: 0.9rem; color: var(--violet); }
   .entry h3 {
@@ -319,15 +395,8 @@
     line-height: 1.85; letter-spacing: 0.02em;
   }
 
-  /* ═══════════════ CHAPTER II — Providers (pale lavender bg) ═══════════════ */
-  .page-alt { padding: 6rem 1.5rem; background: var(--bg-alt); }
-  .page-alt .chapter-rule-line { background: var(--lilac); }
-
-  .codex-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 1rem;
-  }
+  /* Providers */
+  .codex-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
   .codex {
     position: relative;
     background: var(--bg-card);
@@ -337,21 +406,12 @@
     overflow: hidden;
   }
   .codex::after {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
     background: linear-gradient(90deg, var(--violet), var(--lilac));
     opacity: 0; transition: opacity .2s;
   }
   .codex:hover { border-color: var(--lilac); box-shadow: 0 6px 24px var(--shadow); transform: translateY(-2px); }
   .codex:hover::after { opacity: 1; }
-  /* paid / free status dot */
-  .codex::before {
-    content: '';
-    position: absolute; top: 1.2rem; right: 1.2rem;
-    width: 10px; height: 10px; border-radius: 50%;
-    background: #C94F4F;
-  }
-  .codex.is-free::before { background: #6A9F5B; }
   .codex-name {
     font-family: var(--display);
     font-size: 0.98rem; font-weight: 600;
@@ -359,57 +419,51 @@
     color: var(--text-h); margin-bottom: 0.35rem;
   }
   .codex-cost {
+    display: inline-flex; align-items: center; gap: .45rem;
     font-family: var(--display-jp);
-    font-size: 0.78rem; letter-spacing: 0.18em;
-    color: var(--violet); margin-bottom: 0.8rem;
+    font-size: 0.78rem; letter-spacing: 0.16em;
+    color: var(--paid); margin-bottom: 0.8rem;
   }
+  .codex-cost::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .codex.is-free .codex-cost { color: var(--free); }
   .codex-desc {
     font-family: var(--display-jp);
     font-size: 0.92rem; color: var(--text-mute);
     line-height: 1.85; letter-spacing: 0.02em;
   }
-
-  /* ═══════════════ CHAPTER III — Screenshots (white bg) ═══════════════ */
-  .gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-    gap: 1.2rem;
+  .codex-model { margin-top: .8rem; font-size: .8rem; color: var(--text-mute); }
+  .note {
+    margin-top: 1.8rem; text-align: center;
+    font-family: var(--display-jp); font-size: .9rem; color: var(--text-mute);
   }
+
+  /* Gallery */
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem; }
   .gallery-plate {
+    display: block; text-decoration: none;
     background: var(--bg-card);
     border: 1px solid var(--border);
     padding: 10px 10px 0;
     transition: border-color .2s, box-shadow .25s, transform .25s;
   }
-  .gallery-plate:hover {
-    border-color: var(--lilac);
-    box-shadow: 0 8px 28px var(--shadow-h);
-    transform: translateY(-2px);
-  }
-  .gallery-plate img {
-    width: 100%; display: block;
-    aspect-ratio: 16/9; object-fit: cover; object-position: top;
-  }
+  .gallery-plate:hover { border-color: var(--lilac); box-shadow: 0 8px 28px var(--shadow-h); transform: translateY(-2px); }
+  .gallery-plate img { width: 100%; height: auto; display: block; aspect-ratio: 16/9; object-fit: contain; background: var(--bg-muted); }
   .gallery-caption {
     text-align: center; padding: 0.85rem 0.5rem;
     font-family: var(--display-jp); font-size: 0.82rem;
-    letter-spacing: 0.20em; color: var(--text-mute);
+    letter-spacing: 0.18em; color: var(--text-mute);
     border-top: 1px solid var(--border-l); margin-top: 0.5rem;
   }
 
-  /* ═══════════════ CHAPTER IV — Install (pale lavender bg) ═══════════════ */
+  /* Quick start */
   .quest-log {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     border: 1px solid var(--border);
+    background: var(--border);
+    gap: 1px;
   }
-  .quest-step {
-    padding: 2.2rem 1.7rem 1.9rem;
-    border-right: 1px solid var(--border);
-    background: var(--bg-card);
-    transition: background .18s;
-  }
-  .quest-step:last-child { border-right: none; }
+  .quest-step { padding: 2.1rem 1.6rem 1.9rem; background: var(--bg-card); transition: background .18s; }
   .quest-step:hover { background: var(--bg-muted); }
   .quest-numeral {
     font-family: var(--display);
@@ -420,115 +474,170 @@
   .quest-step h3 {
     font-family: var(--display-jp);
     font-size: 1rem; font-weight: 700;
-    letter-spacing: 0.18em; color: var(--text-h); margin-bottom: 0.6rem;
+    letter-spacing: 0.16em; color: var(--text-h); margin-bottom: 0.6rem;
   }
   .quest-step p {
     font-family: var(--display-jp);
-    font-size: 0.92rem; color: var(--text-mute);
+    font-size: 0.9rem; color: var(--text-mute);
     line-height: 1.85; letter-spacing: 0.02em;
   }
+  .quest-step a { color: var(--violet); }
+  .optional { font-size: .78rem; color: var(--text-mute); letter-spacing: .1em; font-weight: 500; }
+
+  /* Documentation */
+  .tome-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .tome {
+    display: block; text-decoration: none;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-left: 3px solid var(--violet);
+    padding: 1.3rem 1.4rem;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+  }
+  .tome:hover { transform: translateY(-2px); box-shadow: 0 6px 22px var(--shadow); border-color: var(--lilac); border-left-color: var(--violet); }
+  .tome-title { font-family: var(--display-jp); font-weight: 700; color: var(--text-h); letter-spacing: .08em; }
+  .tome-title { display: block; }
+  .tome-en { display: block; font-family: var(--display); font-size: .68rem; letter-spacing: .24em; color: var(--violet); text-transform: uppercase; margin-top: .15rem; }
+  .tome p { font-family: var(--display-jp); font-size: .88rem; color: var(--text-mute); margin-top: .35rem; line-height: 1.75; }
 
   code {
-    font-family: var(--mono); font-size: 0.85em;
-    background: rgba(123, 104, 174, 0.08);
+    font-family: var(--mono); font-size: 0.84em;
+    background: rgba(123, 104, 174, 0.09);
     border: 1px solid rgba(123, 104, 174, 0.22);
-    padding: 0.08em 0.4em; border-radius: 2px;
+    padding: 0.06em 0.38em; border-radius: 2px;
+    white-space: nowrap;
     color: var(--amethyst);
   }
   strong { color: var(--text-h); font-weight: 700; }
 
-  /* ═══════════════ COLOPHON / FOOTER ═══════════════ */
-  footer {
-    padding: 4rem 1.5rem 4.5rem;
-    text-align: center;
-    background: var(--bg-dark);
-    position: relative; z-index: 1;
-  }
+  /* ═══════════════ FOOTER ═══════════════ */
+  footer { padding: 4rem 1.5rem 4.5rem; text-align: center; background: var(--bg-dark); position: relative; z-index: 1; }
   .colophon-mark { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.8rem; }
-  .colophon-mark span {
-    width: 5px; height: 5px;
-    background: var(--lilac); transform: rotate(45deg); opacity: 0.55;
-  }
+  .colophon-mark span { width: 5px; height: 5px; background: var(--lilac); transform: rotate(45deg); opacity: 0.55; }
   .colophon-mark span:nth-child(2) { width: 9px; height: 9px; opacity: 0.85; }
-  .colophon-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-bottom: 1.8rem; }
+  .colophon-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.2rem 2rem; margin-bottom: 1.8rem; }
   .colophon-links a {
     font-family: var(--display-jp);
-    font-size: 0.80rem; letter-spacing: 0.26em;
+    font-size: 0.80rem; letter-spacing: 0.24em;
     color: var(--text-on-dark-2); text-decoration: none; transition: color .18s;
   }
   .colophon-links a:hover { color: #fff; }
   .colophon-text {
     font-family: var(--display-jp);
-    font-size: 0.90rem; color: var(--text-on-dark-2);
-    line-height: 2; letter-spacing: 0.04em; opacity: 0.8;
+    font-size: 0.88rem; color: var(--text-on-dark-2);
+    line-height: 2; letter-spacing: 0.04em; opacity: 0.85;
   }
   .colophon-text a { color: var(--lilac); text-decoration: none; border-bottom: 1px solid rgba(196, 182, 222, 0.35); }
   .colophon-text a:hover { color: #fff; border-color: #fff; }
 
   /* ═══════════════ RESPONSIVE ═══════════════ */
+  @media (max-width: 900px) {
+    .cover-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    .cover-text { text-align: center; }
+    .ornament { margin: 0 auto 2rem; }
+    .cover-tag { margin-left: auto; margin-right: auto; }
+    .badges, .seal-row { justify-content: center; }
+    .stage { align-items: center; padding-right: 0; min-height: 0; max-width: 420px; margin: 0 auto; width: 100%; }
+    .bubble { margin-right: 0; }
+    .bubble-tail { right: calc(50% - 40px); }
+    .stage-note { align-self: center; }
+    .quest-log { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grimoire-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grimoire-grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .tome-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
   @media (max-width: 720px) {
     body { font-size: 16px; }
-    .cover { padding: 5.5rem 1rem 4rem; }
-    .frontispiece { padding: 0 1rem 4rem; }
+    .nav { gap: .9rem 1.2rem; }
+    .cover { padding: 3.5rem 1rem 4rem; }
+    .frontispiece { padding: 3.5rem 1rem 4rem; }
     .page, .page-alt { padding: 4.5rem 1rem; }
     .epigraph { padding: 3.5rem 1rem; }
-    .quest-log { grid-template-columns: 1fr 1fr; }
-    .quest-step { border-bottom: 1px solid var(--border); }
-    .quest-step:nth-child(even) { border-right: none; }
-    .quest-step:nth-last-child(-n+2) { border-bottom: none; }
-    .grimoire-grid { grid-template-columns: 1fr; }
+    .grimoire-grid, .grimoire-grid.cols-3 { grid-template-columns: 1fr; }
+    .gallery { grid-template-columns: 1fr; }
+    .tome-grid { grid-template-columns: 1fr; }
+    .cover-sub { letter-spacing: .18em; }
+    .cover-tag br { display: none; }
   }
-  @media (max-width: 460px) {
+  @media (max-width: 480px) {
     .quest-log { grid-template-columns: 1fr; }
-    .quest-step { border-right: none; border-bottom: 1px solid var(--border); }
-    .quest-step:last-child { border-bottom: none; }
+    .seal { padding: .65rem 1.1rem; letter-spacing: .1em; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
   }
 </style>
 </head>
 <body>
+<a class="skip" href="#features">本文へ移動</a>
+
+<nav class="nav" aria-label="ページ内リンク">
+  <a href="#features">機能</a>
+  <a href="#providers">AI</a>
+  <a href="#screenshots">画面</a>
+  <a href="#install">導入</a>
+  <a href="#docs">文書</a>
+</nav>
 
 <!-- ═════════ COVER ═════════ -->
-<section class="cover">
-  <div class="cover-inner">
-    <div class="ornament" aria-hidden="true">
-      <span class="ornament-line"></span>
-      <span class="ornament-eyebrow">Volumen Primum</span>
-      <span class="ornament-line right"></span>
+<header class="cover">
+  <div class="cover-grid">
+    <div class="cover-text">
+      <div class="ornament" aria-hidden="true">
+        <span class="ornament-line"></span>
+        <span class="ornament-eyebrow">Volumen Primum</span>
+        <span class="ornament-line right"></span>
+      </div>
+
+      <h1>MP&nbsp;Ukagaka</h1>
+      <p class="cover-sub">AI 対応 WordPress 伺かプラグイン</p>
+
+      <p class="cover-tag">
+        WordPress サイトに<em>伺かキャラクター</em>を住まわせるプラグイン。<br>
+        記事を読んで感想をこぼし、訪問者と言葉を交わし、<br>
+        夜には眠り、贈り物には少しだけ表情を変える。
+      </p>
+
+      <div class="badges">
+        <img src="https://img.shields.io/github/v/release/Horlicks-p/mp-ukagaka?style=flat-square&label=release&color=7b68ae" alt="最新リリース">
+        <img src="https://img.shields.io/badge/WordPress-5.0%2B-5e4d8b?style=flat-square&logo=wordpress&logoColor=white" alt="WordPress 5.0 以上">
+        <img src="https://img.shields.io/badge/PHP-7.4%2B-555555?style=flat-square&logo=php&logoColor=white" alt="PHP 7.4 以上">
+        <img src="https://img.shields.io/badge/license-GPL%20v2-c4b6de?style=flat-square&labelColor=4a3d6b" alt="GPL v2">
+      </div>
+
+      <div class="seal-row">
+        <a href="https://github.com/Horlicks-p/mp-ukagaka/releases/latest/download/mp-ukagaka.zip" class="seal seal-primary">
+          <svg class="seal-glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M8 2v9m-3-3 3 3 3-3M3 14h10"/></svg>
+          最新版をダウンロード
+        </a>
+        <a href="https://www.moelog.com" class="seal seal-outline" target="_blank" rel="noopener">
+          <svg class="seal-glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg>
+          ライブデモ
+        </a>
+        <a href="https://github.com/Horlicks-p/mp-ukagaka" class="seal seal-ghost" target="_blank" rel="noopener">
+          <svg class="seal-glyph" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 .5C3.86.5.5 3.86.5 8c0 3.31 2.15 6.12 5.13 7.11.38.07.51-.16.51-.36v-1.27c-2.09.45-2.53-1-2.53-1-.34-.87-.83-1.1-.83-1.1-.68-.46.05-.45.05-.45.75.05 1.14.77 1.14.77.67 1.14 1.75.81 2.18.62.07-.48.26-.81.48-1-1.67-.19-3.42-.83-3.42-3.71 0-.82.29-1.49.77-2.02-.08-.19-.34-.95.07-1.99 0 0 .63-.2 2.07.77.6-.17 1.24-.25 1.88-.25.64 0 1.28.08 1.88.25 1.43-.97 2.06-.77 2.06-.77.41 1.04.15 1.8.07 1.99.48.53.77 1.2.77 2.02 0 2.89-1.76 3.52-3.43 3.7.27.23.51.69.51 1.39v2.06c0 .2.13.43.51.36C13.36 14.12 15.5 11.31 15.5 8c0-4.14-3.36-7.5-7.5-7.5z"/></svg>
+          GitHub
+        </a>
+      </div>
     </div>
 
-    <h1>MP&nbsp;Ukagaka</h1>
-    <div class="cover-sub">AI 対応 WordPress 伺かプラグイン</div>
-
-    <p class="cover-tag">
-      WordPress サイトに<em>伺かキャラクター</em>を表示するプラグイン。<br>
-      Gemini・OpenAI・Claude・Ollama を通じて、<br>
-      記事内容に応じた AI 会話やインタラクティブな対話を実現します。
-    </p>
-
-    <div class="badges" aria-hidden="true">
-      <img src="https://img.shields.io/badge/version-2.27.5-7b68ae?style=flat-square" alt="version 2.27.5">
-      <img src="https://img.shields.io/badge/WordPress-5.0%2B-5e4d8b?style=flat-square&logo=wordpress&logoColor=white" alt="WordPress 5.0+">
-      <img src="https://img.shields.io/badge/PHP-7.4%2B-555555?style=flat-square&logo=php&logoColor=white" alt="PHP 7.4+">
-      <img src="https://img.shields.io/badge/license-GPL%20v2-c4b6de?style=flat-square&labelColor=4a3d6b" alt="GPL v2">
-    </div>
-
-    <div class="seal-row">
-      <a href="https://www.moelog.com" class="seal seal-primary" target="_blank" rel="noopener">
-        <svg class="seal-glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 8h11M9 4l4 4-4 4"/></svg>
-        ライブデモ
-      </a>
-      <a href="https://github.com/Horlicks-p/mp-ukagaka" class="seal seal-outline" target="_blank" rel="noopener">
-        <svg class="seal-glyph" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .5C3.86.5.5 3.86.5 8c0 3.31 2.15 6.12 5.13 7.11.38.07.51-.16.51-.36v-1.27c-2.09.45-2.53-1-2.53-1-.34-.87-.83-1.1-.83-1.1-.68-.46.05-.45.05-.45.75.05 1.14.77 1.14.77.67 1.14 1.75.81 2.18.62.07-.48.26-.81.48-1-1.67-.19-3.42-.83-3.42-3.71 0-.82.29-1.49.77-2.02-.08-.19-.34-.95.07-1.99 0 0 .63-.2 2.07.77.6-.17 1.24-.25 1.88-.25.64 0 1.28.08 1.88.25 1.43-.97 2.06-.77 2.06-.77.41 1.04.15 1.8.07 1.99.48.53.77 1.2.77 2.02 0 2.89-1.76 3.52-3.43 3.7.27.23.51.69.51 1.39v2.06c0 .2.13.43.51.36C13.36 14.12 15.5 11.31 15.5 8c0-4.14-3.36-7.5-7.5-7.5z"/></svg>
-        GitHub
-      </a>
-      <a href="https://github.com/Horlicks-p/mp-ukagaka/archive/refs/heads/main.zip" class="seal seal-ghost">
-        <svg class="seal-glyph" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 2v9m-3-3 3 3 3-3M3 14h10"/></svg>
-        ZIP ダウンロード
-      </a>
+    <div class="stage" aria-label="フリーレンのデモ表示">
+      <div class="bubble" id="bubble">
+        <p class="bubble-text" id="bubble-text" aria-live="polite">千年以上生きた魔法使いだよ。</p>
+        <span class="bubble-tail" aria-hidden="true"></span>
+      </div>
+      <div class="ghost">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/frieren%5B0%5D.png" width="134" height="249" alt="同梱キャラクター「フリーレン」">
+      </div>
+      <div class="dock" aria-hidden="true">
+        <svg viewBox="0 0 45 45" stroke-linecap="round" stroke-linejoin="round"><circle cx="22.5" cy="22.5" r="19.9" fill="none" stroke="var(--dock-ring)" stroke-width="2.3"/><circle cx="22.5" cy="22.5" r="17.5" fill="none" stroke="var(--dock-halo)" stroke-width="1.8"/><circle cx="22.5" cy="22.5" r="14.35" fill="none" stroke="var(--dock-ring)" stroke-width="4.7"/><circle cx="22.5" cy="22.5" r="12.8" fill="var(--dock-disc)"/><path d="M22.5 19.4 27.8 24.1H17.2Z" fill="var(--dock-glyph)" stroke="var(--dock-glyph)" stroke-width="1.8"/></svg>
+        <svg viewBox="0 0 45 45" stroke-linecap="round" stroke-linejoin="round"><circle cx="22.5" cy="22.5" r="19.9" fill="none" stroke="var(--dock-ring)" stroke-width="2.3"/><circle cx="22.5" cy="22.5" r="17.5" fill="none" stroke="var(--dock-halo)" stroke-width="1.8"/><circle cx="22.5" cy="22.5" r="14.35" fill="none" stroke="var(--dock-ring)" stroke-width="4.7"/><circle cx="22.5" cy="22.5" r="12.8" fill="var(--dock-disc)"/><g fill="none" stroke="var(--dock-glyph)"><rect x="18.5" y="17.5" width="9" height="12" rx="1.4" stroke-width="1.4"/><path d="M22.5 23h5.7" stroke-width="2"/><path d="m26.4 20.6 2.4 2.4-2.4 2.4" stroke-width="1.4"/></g></svg>
+        <svg viewBox="0 0 45 45" stroke-linecap="round" stroke-linejoin="round"><circle cx="22.5" cy="22.5" r="19.9" fill="none" stroke="var(--dock-ring)" stroke-width="2.3"/><circle cx="22.5" cy="22.5" r="17.5" fill="none" stroke="var(--dock-halo)" stroke-width="1.8"/><circle cx="22.5" cy="22.5" r="14.35" fill="none" stroke="var(--dock-ring)" stroke-width="4.7"/><circle cx="22.5" cy="22.5" r="12.8" fill="var(--dock-disc)"/><g fill="none" stroke="var(--dock-glyph)"><path d="M28.6 16.9 22 23.5" stroke-width="1.4"/><path d="M22.4 23.1 16.9 28.6" stroke-width="2.8"/><path d="M18.24 16.62A1.4 1.4 0 1 1 16.62 18.24" stroke-width="1.5"/><path d="m19.6 19.6 6.6 6.6" stroke-width="1.5"/><circle cx="27.5" cy="28" r="1.9" stroke-width="1.2"/></g></svg>
+      </div>
+      <p class="stage-note">― 吹き出しとドックはプラグインと同じ図形 ―</p>
     </div>
   </div>
   <div class="cover-border" aria-hidden="true"></div>
-</section>
+</header>
 
 <!-- ═════════ FRONTISPIECE ═════════ -->
 <div class="frontispiece">
@@ -537,102 +646,147 @@
     <div class="plate-corner tr"><span></span></div>
     <div class="plate-corner bl"><span></span></div>
     <div class="plate-corner br"><span></span></div>
-    <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot.PNG" alt="MP Ukagaka 伴侶キャラクターが WordPress 記事の傍らで語る様子" loading="lazy">
+    <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot.PNG" width="1959" height="691" alt="WordPress 記事の傍らでフリーレンが記事について語っている画面" loading="lazy">
   </div>
-  <p class="plate-caption">― フリーレンが記事内容に基づいて AI 生成のダイアログを表示 ―</p>
+  <p class="plate-caption">― 記事の内容を読み、フリーレンが AI で感想を語る ―</p>
 </div>
 
-<!-- ═════════ EPIGRAPH α — dark purple ═════════ -->
+<!-- ═════════ EPIGRAPH α ═════════ -->
 <div class="epigraph on-dark" data-epigraph>
   <div class="epigraph-stack">
     <blockquote class="epigraph-quote is-active">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">魔法は探し求めている時が一番楽しいんだよ。</p>
     </blockquote>
     <blockquote class="epigraph-quote">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">正直興味はないよ。だから見て確かめるんだ。</p>
     </blockquote>
     <blockquote class="epigraph-quote">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">千年も前のことなのに、<br>結局私は先生の手のひらの上か…</p>
     </blockquote>
   </div>
   <div class="epigraph-rule" aria-hidden="true"><span></span><span></span><span></span></div>
 </div>
 
+<main>
 <!-- ═════════ CHAPTER I ═════════ -->
 <section class="page" id="features">
   <div class="container">
     <div class="chapter-heading">
-      <div class="chapter-eyebrow"><span class="chapter-roman">·  CAPITULUM&nbsp;I  ·</span></div>
+      <div class="chapter-eyebrow">· Capitulum I ·</div>
       <h2 class="chapter-title">主な機能</h2>
       <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
-      <p class="chapter-desc">ビルドステップやフレームワークは不要。<br>WordPress プラグインとして、すぐに使い始められます。</p>
+      <p class="chapter-desc">ビルドもフレームワークも不要。<br>WordPress プラグインとして入れるだけで、キャラクターが話し始めます。</p>
     </div>
+
+    <h3 class="group-label">Colloquium · 語る</h3>
     <div class="grimoire-grid">
       <div class="entry">
-        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 5h16v12H4z"/><path d="M4 9h16M8 5v12M16 5v12"/><circle cx="12" cy="13" r="1.4" fill="currentColor"/></svg>
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4 5h16v12H4z"/><path d="M4 9h16M8 5v12M16 5v12"/><circle cx="12" cy="13" r="1.4" fill="currentColor"/></svg>
         <h3>AI ページ感知</h3>
-        <p>記事内容を読み込み、選択した LLM プロバイダーが文脈に合わせたコメントを自動生成します。</p>
+        <p>閲覧中の記事を読み取り、選んだ LLM がキャラクターの口調で感想を生成。確率と対象ページを設定できます。</p>
       </div>
       <div class="entry">
-        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 6h16v10H10l-4 4v-4H4z"/><circle cx="9" cy="11" r="1" fill="currentColor"/><circle cx="13" cy="11" r="1" fill="currentColor"/><circle cx="17" cy="11" r="1" fill="currentColor"/></svg>
-        <h3>インタラクティブ対話モード</h3>
-        <p>SSE ストリーミングによるリアルタイム多ターン会話。タイプライター効果と会話履歴の保持に対応。</p>
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4 6h16v10H10l-4 4v-4H4z"/><circle cx="9" cy="11" r="1" fill="currentColor"/><circle cx="13" cy="11" r="1" fill="currentColor"/><circle cx="17" cy="11" r="1" fill="currentColor"/></svg>
+        <h3>対話モード</h3>
+        <p>SSE ストリーミングによる多ターン会話。履歴はブラウザに保存され、チェックサムでサーバー側と整合性を確認します。</p>
       </div>
       <div class="entry">
-        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="5" width="18" height="14"/><path d="m3 14 5-4 4 3 4-5 5 6"/><circle cx="8" cy="9" r="1.4" fill="currentColor"/></svg>
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M5 4h14v4H5z"/><path d="M6 8v8a6 6 0 0 0 12 0V8"/><path d="M10 12h4"/></svg>
+        <h3>自発的なおしゃべり</h3>
+        <p>静的セリフ、または LLM が時間帯・季節・訪問状況からその場で生成するセリフ。来訪の初回には AI の挨拶も。</p>
+      </div>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/><path d="M17 4.5l2-1.5M18.5 8H21"/></svg>
+        <h3>記憶</h3>
+        <p>管理者は <code>/remember</code> で会話から事実を抽出し、キャラクターに覚えさせられます。次の会話から反映されます。</p>
+      </div>
+    </div>
+
+    <h3 class="group-label">Interactio · 触れる</h3>
+    <div class="grimoire-grid">
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="4" y="9" width="16" height="11"/><path d="M3 9h18M12 9v11"/><path d="M12 9c-2-4-6-4-6-1.5S10 9 12 9c2 0 6 0 6-1.5S14 5 12 9z"/></svg>
+        <h3>贈り物・食べ物</h3>
+        <p>対話モードの 🎁 から品物を渡すと、品物と添えた言葉の両方にキャラクターが反応します。品目は <code>items.json</code> で定義。</p>
+      </div>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/><path d="M15 5h3l-3 3h3"/></svg>
+        <h3>睡眠と目覚め</h3>
+        <p>深夜は眠り、朝は寝坊し、昼には昼寝も。話しかけると目覚めのアニメーションと一言のあと、また話し始めます。</p>
+      </div>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M8 13V5a1.5 1.5 0 0 1 3 0v6"/><path d="M11 11V4a1.5 1.5 0 0 1 3 0v7"/><path d="M14 11V5.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6h-.5a6 6 0 0 1-5-2.7L3 14a1.5 1.5 0 0 1 2.5-1.7L8 15"/></svg>
+        <h3>タッチと装飾品</h3>
+        <p>頭や手などのタッチゾーン、周囲の装飾品をクリックすると、それぞれに応じた反応を返します。</p>
+      </div>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3" y="5" width="18" height="14"/><path d="m3 14 5-4 4 3 4-5 5 6"/><circle cx="8" cy="9" r="1.4" fill="currentColor"/></svg>
         <h3>Canvas アニメーション</h3>
-        <p>単一画像から複数フレームのスプライトまで対応。キャラクターごとに表示を細かくカスタマイズできます。</p>
+        <p>1 枚絵から連番フレームまで。フォルダ内の画像を自然順に再生し、絵文字・思考吹き出しも重ねられます。</p>
+      </div>
+    </div>
+
+    <h3 class="group-label">Opera · 働く</h3>
+    <div class="grimoire-grid">
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M14.5 6.5a4 4 0 0 0-5.3 5.3L4 17l3 3 5.2-5.2a4 4 0 0 0 5.3-5.3L15 12l-3-3z"/></svg>
+        <h3>Abilities</h3>
+        <p>WordPress Abilities API と連携し、人気記事の確認・Bot 統計・IP ブロックなどを会話の中で実行します。</p>
       </div>
       <div class="entry">
-        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="9" cy="13" r="4"/><path d="m12 10 8-8M16 6l3 3M14 8l3 3"/></svg>
-        <h3>API キー暗号化</h3>
-        <p>API キーは WordPress の salt から導出した AES-256-CBC で暗号化保存。平文でデータベースに残りません。</p>
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M16 4v3h3M8 11h8M8 14h8M8 17h5"/></svg>
+        <h3>AI 日記</h3>
+        <p>1 日 1 回、設定した確率でキャラクターが日記を書いて投稿。日記用には別の AI プロバイダーを選べます。</p>
       </div>
       <div class="entry">
-        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="9" cy="10" r="3.5"/><path d="M9 3v1.5M3.5 10H2M4.8 5.8l1 1M13.2 5.8l-1 1"/><path d="M10 20h9a3 3 0 0 0 0-6 4.5 4.5 0 0 0-8.5-1"/></svg>
+        <h3>天気とカレンダー</h3>
+        <p>Open-Meteo（キー不要）の天気、<code>calendar.json</code> の季節・祝日、管理人の誕生日を会話に織り込みます。</p>
+      </div>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>
+        <h3>Bot 防護とセキュリティ</h3>
+        <p>Bot 防護を内蔵。API キーは AES-256-GCM で暗号化保存、匿名訪問者の AI 呼び出しはセッショントークンで保護。</p>
+      </div>
+    </div>
+
+    <h3 class="group-label">Fabrica · 作る</h3>
+    <div class="grimoire-grid cols-3">
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
+        <h3>キャラクター作成</h3>
+        <p><code>manifest.json</code> と画像、<code>personality.md</code> などをまとめた ZIP を管理画面からアップロードして追加できます。</p>
+      </div>
+      <div class="entry">
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
         <h3>多言語対応</h3>
-        <p>英語・繁体字中国語・日本語の翻訳を同梱。gettext ベースの i18n / l10n に完全対応しています。</p>
+        <p>管理画面とログは英語・繁体字中国語・日本語に対応。AI の応答言語はキャラクターごと、または全体で設定できます。</p>
       </div>
       <div class="entry">
-        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 3 4 8v8l8 5 8-5V8z"/><path d="M12 3v18M4 8l16 8M20 8 4 16"/></svg>
-        <h3>モジュラー構造</h3>
-        <p>オブジェクト指向 PHP・REST API コントローラ・プロバイダー Factory、そして拡張用の 40 以上のフック。</p>
-      </div>
-      <div class="entry">
-        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="4" y="6" width="16" height="14"/><path d="M4 10h16M9 3v6M15 3v6"/><circle cx="9" cy="14" r="1" fill="currentColor"/><circle cx="15" cy="14" r="1" fill="currentColor"/></svg>
-        <h3>カレンダー &amp; イベント</h3>
-        <p><code>calendar.json</code> による季節・祝祭日対応。管理人の誕生日にも自動でリアクションします。</p>
-      </div>
-      <div class="entry">
-        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>
-        <h3>セキュリティ重視</h3>
-        <p>nonce による CSRF 検証、<code>wp_kses</code> での XSS 防止、Turnstile・Akismet との連携に対応。</p>
-      </div>
-      <div class="entry">
-        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M5 4h11l3 3v13H5z"/><path d="M16 4v3h3M8 11h8M8 14h8M8 17h5"/></svg>
-        <h3>外部ダイアログファイル</h3>
-        <p>外部の <code>.txt</code> や <code>.json</code> からダイアログを読み込み可能。フリーレンの内蔵セリフも同梱。</p>
+        <svg class="entry-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M8 6 3 12l5 6M16 6l5 6-5 6M13.5 4l-3 16"/></svg>
+        <h3>拡張しやすい構造</h3>
+        <p>REST コントローラ、AI プロバイダー Factory、フィルター・アクション、外部 <code>.txt</code> / <code>.json</code> ダイアログ。</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═════════ EPIGRAPH β — pale lavender ═════════ -->
+<!-- ═════════ EPIGRAPH β ═════════ -->
 <div class="epigraph on-muted" data-epigraph>
   <div class="epigraph-stack">
     <blockquote class="epigraph-quote is-active">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">想いっていうのは言葉にしないと伝わらないのに。</p>
     </blockquote>
     <blockquote class="epigraph-quote">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">コミュニケーションはチームワークを高めるんだよ。<br>知らなかったでしょ。</p>
     </blockquote>
     <blockquote class="epigraph-quote">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">私の集めた魔法を褒めてくれた馬鹿がいた。<br>それだけだよ。</p>
     </blockquote>
   </div>
@@ -643,49 +797,53 @@
 <section class="page-alt" id="providers">
   <div class="container">
     <div class="chapter-heading">
-      <div class="chapter-eyebrow"><span class="chapter-roman">·  CAPITULUM&nbsp;II  ·</span></div>
+      <div class="chapter-eyebrow">· Capitulum II ·</div>
       <h2 class="chapter-title">対応する AI プロバイダー</h2>
       <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
-      <p class="chapter-desc">4 つの主要な LLM プロバイダーをサポート。<br>管理画面からいつでも切り替え可能で、API キーは保存時に自動暗号化されます。</p>
+      <p class="chapter-desc">管理画面の「LLM 設定」でいつでも切り替えられます。<br>API キーは保存時に暗号化され、平文では残りません。</p>
     </div>
     <div class="codex-grid">
       <article class="codex is-free">
-        <div class="codex-name">Ollama</div>
+        <h3 class="codex-name">Ollama</h3>
         <div class="codex-cost">無料 ・ ローカル</div>
-        <p class="codex-desc">ローカルまたは自前のリモートサーバーで実行。API 利用料は一切かかりません。</p>
+        <p class="codex-desc">手元または自前のリモートサーバーで実行。Qwen3 などの思考モデルにも対応し、API 利用料はかかりません。</p>
       </article>
       <article class="codex">
-        <div class="codex-name">Gemini</div>
+        <h3 class="codex-name">Gemini</h3>
         <div class="codex-cost">有料 API</div>
-        <p class="codex-desc">Google Gemini 2.5 Flash 推奨。高速・低コストで、SSE ストリーミングにも対応。</p>
+        <p class="codex-desc">高速・低コスト。ストリーミングとツール呼び出しに対応します。</p>
+        <p class="codex-model">既定 <code>gemini-2.5-flash</code></p>
       </article>
       <article class="codex">
-        <div class="codex-name">OpenAI</div>
+        <h3 class="codex-name">OpenAI</h3>
         <div class="codex-cost">有料 API</div>
-        <p class="codex-desc">GPT-4o mini が、生成品質と API コストのバランス面で最もおすすめです。</p>
+        <p class="codex-desc">mini 系モデルが生成品質と API コストのバランスに優れ、普段使いにおすすめです。</p>
+        <p class="codex-model">既定 <code>gpt-4.1-mini</code></p>
       </article>
       <article class="codex">
-        <div class="codex-name">Claude</div>
+        <h3 class="codex-name">Claude</h3>
         <div class="codex-cost">有料 API</div>
-        <p class="codex-desc">Anthropic Claude — 表現力豊かで、ニュアンスのあるキャラクター対話に向いています。</p>
+        <p class="codex-desc">表現力が豊かで、ニュアンスのあるキャラクター対話に向いています。</p>
+        <p class="codex-model">既定 <code>claude-sonnet-4-6</code></p>
       </article>
     </div>
+    <p class="note">日記は別のプロバイダー・キーで動かせます。会話は Ollama、日記はクラウド、といった使い分けも可能です。</p>
   </div>
 </section>
 
-<!-- ═════════ EPIGRAPH γ — dark purple ═════════ -->
+<!-- ═════════ EPIGRAPH γ ═════════ -->
 <div class="epigraph on-dark" data-epigraph>
   <div class="epigraph-stack">
     <blockquote class="epigraph-quote is-active">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">お前の前にいるのは、<br>千年以上生きた魔法使いだよ。</p>
     </blockquote>
     <blockquote class="epigraph-quote">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">勇者ヒンメルが、そうしたってことだよ。</p>
     </blockquote>
     <blockquote class="epigraph-quote">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">みんなとの冒険だって、<br>私の人生の百分の一にも満たない。</p>
     </blockquote>
   </div>
@@ -696,41 +854,53 @@
 <section class="page" id="screenshots">
   <div class="container">
     <div class="chapter-heading">
-      <div class="chapter-eyebrow"><span class="chapter-roman">·  CAPITULUM&nbsp;III  ·</span></div>
+      <div class="chapter-eyebrow">· Capitulum III ·</div>
       <h2 class="chapter-title">スクリーンショット</h2>
       <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
-      <p class="chapter-desc">フロントエンドの表示と、管理画面の様子をいくつかご紹介します。</p>
+      <p class="chapter-desc">フロントエンドと管理画面の様子。クリックで原寸を開きます。</p>
     </div>
     <div class="gallery">
-      <figure class="gallery-plate">
-        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot2.PNG" alt="一般設定および LLM 設定" loading="lazy">
-        <figcaption class="gallery-caption">一般設定 &amp; LLM 設定</figcaption>
-      </figure>
-      <figure class="gallery-plate">
-        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot3.PNG" alt="対話モード" loading="lazy">
-        <figcaption class="gallery-caption">インタラクティブ対話モード</figcaption>
-      </figure>
-      <figure class="gallery-plate">
-        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot4.PNG" alt="キャラクター設定" loading="lazy">
-        <figcaption class="gallery-caption">キャラクター設定</figcaption>
-      </figure>
+      <a class="gallery-plate" href="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot3.PNG" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot3.PNG" width="1081" height="546" alt="対話モードで訪問者とフリーレンが会話している画面" loading="lazy">
+        <div class="gallery-caption">対話モード</div>
+      </a>
+      <a class="gallery-plate" href="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot8.PNG" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot8.PNG" width="844" height="438" alt="贈り物の選択欄を開いた画面" loading="lazy">
+        <div class="gallery-caption">贈り物・食べ物</div>
+      </a>
+      <a class="gallery-plate" href="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot7.PNG" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot7.PNG" width="940" height="402" alt="フリーレンが Bot 防護の統計を報告している画面" loading="lazy">
+        <div class="gallery-caption">Abilities ― Bot 統計の報告</div>
+      </a>
+      <a class="gallery-plate" href="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot5.PNG" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot5.PNG" width="1251" height="572" alt="クローラーの訪問を検知したときの反応" loading="lazy">
+        <div class="gallery-caption">クローラー検知</div>
+      </a>
+      <a class="gallery-plate" href="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot2.PNG" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot2.PNG" width="1251" height="636" alt="一般設定の管理画面" loading="lazy">
+        <div class="gallery-caption">一般設定</div>
+      </a>
+      <a class="gallery-plate" href="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot4.PNG" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/screenshot4.PNG" width="1268" height="548" alt="LLM 設定の管理画面" loading="lazy">
+        <div class="gallery-caption">LLM 設定</div>
+      </a>
     </div>
   </div>
 </section>
 
-<!-- ═════════ EPIGRAPH δ — pale lavender ═════════ -->
+<!-- ═════════ EPIGRAPH δ ═════════ -->
 <div class="epigraph on-muted" data-epigraph>
   <div class="epigraph-stack">
     <blockquote class="epigraph-quote is-active">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">時間の無駄だからね。<br>色々教えてもすぐ死んじゃうでしょ。</p>
     </blockquote>
     <blockquote class="epigraph-quote">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">人間の寿命は短いってわかっていたのに…<br>なんでもっと知ろうと思わなかったんだろう。</p>
     </blockquote>
     <blockquote class="epigraph-quote">
-      <div class="epigraph-mark">❝</div>
+      <div class="epigraph-mark" aria-hidden="true">❝</div>
       <p class="epigraph-text">私は今の話をしているんだよ。</p>
     </blockquote>
   </div>
@@ -741,67 +911,143 @@
 <section class="page-alt" id="install">
   <div class="container">
     <div class="chapter-heading">
-      <div class="chapter-eyebrow"><span class="chapter-roman">·  CAPITULUM&nbsp;IV  ·</span></div>
+      <div class="chapter-eyebrow">· Capitulum IV ·</div>
       <h2 class="chapter-title">クイックスタート</h2>
       <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
-      <p class="chapter-desc">ビルドステップ不要。<br>プラグインフォルダに配置して有効化するだけで使い始められます。</p>
+      <p class="chapter-desc">ZIP をアップロードして有効化するだけ。<br>以降の更新は WordPress の管理画面に通知されます。</p>
     </div>
     <div class="quest-log">
       <div class="quest-step">
         <div class="quest-numeral">I</div>
         <h3>ダウンロード</h3>
-        <p>プラグインを <code>wp-content/plugins/mp-ukagaka/</code> に複製または展開します。</p>
+        <p><a href="https://github.com/Horlicks-p/mp-ukagaka/releases/latest">最新リリース</a>の <code>mp-ukagaka.zip</code> を入手します。GitHub の「Source code」ではなく、こちらを使ってください。</p>
       </div>
       <div class="quest-step">
         <div class="quest-numeral">II</div>
-        <h3>有効化</h3>
-        <p><strong>WordPress 管理画面 → プラグイン</strong> から MP Ukagaka を有効化します。</p>
+        <h3>インストール</h3>
+        <p><strong>プラグイン → 新規追加 → プラグインのアップロード</strong> で ZIP を選び、有効化します。</p>
       </div>
       <div class="quest-step">
         <div class="quest-numeral">III</div>
         <h3>基本設定</h3>
-        <p><strong>設定 → MP Ukagaka</strong> でデフォルトキャラクター・表示位置などを設定します。</p>
+        <p><strong>設定 → MP Ukagaka</strong> の一般設定で表示を確認。フリーレンは内蔵セリフですぐに話し始めます。</p>
       </div>
       <div class="quest-step">
         <div class="quest-numeral">IV</div>
-        <h3>AI キーを登録</h3>
-        <p>Gemini・OpenAI・Claude・Ollama いずれかの API キーを登録すれば、AI 会話が有効になります。<em>（任意）</em></p>
+        <h3>AI を有効化 <span class="optional">（任意）</span></h3>
+        <p><strong>LLM 設定</strong>でプロバイダーとキーを登録し、ページ感知や対話モードを有効にします。</p>
       </div>
+    </div>
+    <p class="note">要件：WordPress 5.0 以上 ・ PHP 7.4 以上。AI 機能には OpenSSL 拡張と <code>wp-config.php</code> の <code>AUTH_KEY</code> が必要です。</p>
+  </div>
+</section>
+
+<!-- ═════════ CHAPTER V ═════════ -->
+<section class="page" id="docs">
+  <div class="container">
+    <div class="chapter-heading">
+      <div class="chapter-eyebrow">· Capitulum V ·</div>
+      <h2 class="chapter-title">ドキュメント</h2>
+      <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
+      <p class="chapter-desc">詳しい資料は英語で一元管理しています。</p>
+    </div>
+    <div class="tome-grid">
+      <a class="tome" href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/USER_GUIDE.md" target="_blank" rel="noopener">
+        <span class="tome-title">ユーザーガイド</span><span class="tome-en">User Guide</span>
+        <p>インストール、各設定画面、対話モード、日記、FAQ。</p>
+      </a>
+      <a class="tome" href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/GHOST_CREATE_GUIDE.md" target="_blank" rel="noopener">
+        <span class="tome-title">キャラクター作成</span><span class="tome-en">Ghost Guide</span>
+        <p>manifest、人格ファイル、画像、ZIP の作り方。</p>
+      </a>
+      <a class="tome" href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/DEVELOPER_GUIDE.md" target="_blank" rel="noopener">
+        <span class="tome-title">開発者ガイド</span><span class="tome-en">Developer Guide</span>
+        <p>構成、モジュール、設定構造、拡張方法、テスト。</p>
+      </a>
+      <a class="tome" href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/API_REFERENCE.md" target="_blank" rel="noopener">
+        <span class="tome-title">API リファレンス</span><span class="tome-en">API Reference</span>
+        <p>関数、フック、REST エンドポイント、SSE 形式。</p>
+      </a>
+      <a class="tome" href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/ABILITIES_API.md" target="_blank" rel="noopener">
+        <span class="tome-title">Abilities</span><span class="tome-en">Abilities API</span>
+        <p>内蔵の能力、権限、新しい能力の追加方法。</p>
+      </a>
+      <a class="tome" href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/CHANGELOG.md" target="_blank" rel="noopener">
+        <span class="tome-title">変更履歴</span><span class="tome-en">Changelog</span>
+        <p>すべてのバージョンの詳しい変更点。</p>
+      </a>
     </div>
   </div>
 </section>
+</main>
 
 <!-- ═════════ COLOPHON ═════════ -->
 <footer>
   <div class="colophon-mark" aria-hidden="true"><span></span><span></span><span></span></div>
   <div class="colophon-links">
     <a href="https://github.com/Horlicks-p/mp-ukagaka" target="_blank" rel="noopener">GitHub</a>
-    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-jp/USER_GUIDE.md" target="_blank" rel="noopener">ユーザーガイド</a>
-    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-jp/DEVELOPER_GUIDE.md" target="_blank" rel="noopener">開発者ガイド</a>
-    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-jp/CHANGELOG.md" target="_blank" rel="noopener">変更履歴</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/releases" target="_blank" rel="noopener">リリース</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/issues" target="_blank" rel="noopener">Issues</a>
     <a href="https://www.moelog.com" target="_blank" rel="noopener">デモサイト</a>
   </div>
   <p class="colophon-text">
-    MP Ukagaka は <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/LICENSE" target="_blank" rel="noopener">GPL v2 以降</a> でライセンスされたオープンソースソフトウェアです。<br>
-    オリジナル作者: Ariagle  ・  メンテナー: Horlicks (<a href="https://www.moelog.com" target="_blank" rel="noopener">moelog.com</a>)<br>
-    <em style="opacity:.65">CODEX / CLAUDE / GEMINIによる支援開発しています</em>
+    MP Ukagaka は <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/LICENSE" target="_blank" rel="noopener">GPL v2</a> のオープンソースソフトウェアです。<br>
+    オリジナル作者: Ariagle ・ メンテナー: Horlicks（<a href="https://www.moelog.com" target="_blank" rel="noopener">moelog.com</a>）<br>
+    <em style="opacity:.7">CODEX / CLAUDE / GEMINI による支援で開発しています</em>
   </p>
 </footer>
 
 <script>
-  document.querySelectorAll('[data-epigraph]').forEach((ep, blockIdx) => {
-    const items = ep.querySelectorAll('.epigraph-quote');
-    if (items.length <= 1) return;
-    let i = 0;
-    setTimeout(() => {
-      setInterval(() => {
-        items[i].classList.remove('is-active');
-        i = (i + 1) % items.length;
-        items[i].classList.add('is-active');
-      }, 7500);
-    }, blockIdx * 1800);
-  });
-</script>
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // Rotating epigraphs
+    document.querySelectorAll('[data-epigraph]').forEach(function (ep, blockIdx) {
+      var items = ep.querySelectorAll('.epigraph-quote');
+      if (items.length <= 1 || reduce) return;
+      var i = 0;
+      setTimeout(function () {
+        setInterval(function () {
+          items[i].classList.remove('is-active');
+          i = (i + 1) % items.length;
+          items[i].classList.add('is-active');
+        }, 7500);
+      }, blockIdx * 1800);
+    });
+
+    // Typewriter lines in the cover bubble, like the plugin's message box
+    var lines = [
+      '千年以上生きた魔法使いだよ。',
+      'この記事、読んでいるの？　……私も少し気になってきた。',
+      'お菓子？　……もらっておくよ。',
+      'もう少し寝かせて。あと五分……いや、一時間。',
+      '集めた魔法の話なら、いくらでもできるよ。'
+    ];
+    var box = document.getElementById('bubble');
+    var out = document.getElementById('bubble-text');
+    if (!box || !out) return;
+    if (reduce) { box.classList.add('is-done'); return; }
+
+    var idx = 0;
+    function type(text, done) {
+      var n = 0;
+      box.classList.remove('is-done');
+      out.textContent = '';
+      (function step() {
+        n += 1;
+        out.textContent = text.slice(0, n);
+        if (n < text.length) { setTimeout(step, 70); }
+        else { box.classList.add('is-done'); done(); }
+      })();
+    }
+    function next() {
+      type(lines[idx], function () {
+        idx = (idx + 1) % lines.length;
+        setTimeout(next, 4200);
+      });
+    }
+    setTimeout(next, 600);
+  })();
+</script>
 </body>
 </html>
