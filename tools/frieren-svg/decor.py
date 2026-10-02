@@ -77,10 +77,17 @@ def to_svg(im, title):
     return "\n".join(lines)
 
 
+# decorations redrawn as pixel art instead of converted (already exact
+# palette and alpha steps): name -> function returning the RGBA array
+REDRAWN = {}
+
+
 def build():
+    import suitcase
+    REDRAWN["suitcase"] = suitcase.draw
     for name in NAMES:
         im = load(name)
-        q = quantize(im)
+        q = REDRAWN[name]() if name in REDRAWN else quantize(im)
         s = to_svg(q, "Frieren decoration: %s" % name)
         path = os.path.join(DECOR, name + ".svg")
         with open(path, "w", encoding="utf8", newline="\n") as fh:
