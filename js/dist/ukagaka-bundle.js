@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-10-02T02:37:34.708Z
+ * Generated: 2026-10-02T04:12:52.014Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -4892,6 +4892,9 @@ function mpu_toggleChatMode(enable) {
   const $chatInput = jQuery("#ukagaka_chat_input");
   const $input = jQuery("#mpu_user_input");
 
+  $msgbox.removeAttr("data-mpu-stream-state");
+  $msgbox.children(".mpu-state-badge").remove();
+
   if (typeof enable === "undefined") {
     enable = !window.mpuChatModeActive;
   }
@@ -5312,6 +5315,10 @@ function mpu_sendUserMessage() {
     return;
   }
 
+  // Accepted input replaces the previous status, including local commands.
+  jQuery("#ukagaka_msgbox").removeAttr("data-mpu-stream-state")
+    .children(".mpu-state-badge").remove();
+
   // 指令攔截：/reset 或 /clear 清除對話歷史（僅管理員）
   if (message === "/reset" || message === "/clear") {
     if (mpuPreSettings && mpuPreSettings.is_admin) {
@@ -5513,7 +5520,7 @@ function mpu_sendUserMessage() {
       streamWatchdogTimer = setTimeout(() => {
         if (streamFinalized || !mpuChatRequesting) return;
         streamTimedOut = true;
-        setStreamState("timeout");
+        if (!isStaleReply()) setStreamState("timeout");
         if (mpuChatAbortController) {
           mpuChatAbortController.abort();
         }

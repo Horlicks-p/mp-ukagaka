@@ -14,6 +14,10 @@ function mpu_sendUserMessage() {
     return;
   }
 
+  // Accepted input replaces the previous status, including local commands.
+  jQuery("#ukagaka_msgbox").removeAttr("data-mpu-stream-state")
+    .children(".mpu-state-badge").remove();
+
   // 指令攔截：/reset 或 /clear 清除對話歷史（僅管理員）
   if (message === "/reset" || message === "/clear") {
     if (mpuPreSettings && mpuPreSettings.is_admin) {
@@ -215,7 +219,7 @@ function mpu_sendUserMessage() {
       streamWatchdogTimer = setTimeout(() => {
         if (streamFinalized || !mpuChatRequesting) return;
         streamTimedOut = true;
-        setStreamState("timeout");
+        if (!isStaleReply()) setStreamState("timeout");
         if (mpuChatAbortController) {
           mpuChatAbortController.abort();
         }

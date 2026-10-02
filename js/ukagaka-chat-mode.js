@@ -7,6 +7,9 @@ function mpu_toggleChatMode(enable) {
   const $chatInput = jQuery("#ukagaka_chat_input");
   const $input = jQuery("#mpu_user_input");
 
+  $msgbox.removeAttr("data-mpu-stream-state");
+  $msgbox.children(".mpu-state-badge").remove();
+
   if (typeof enable === "undefined") {
     enable = !window.mpuChatModeActive;
   }

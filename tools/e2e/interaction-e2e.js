@@ -899,9 +899,10 @@ async function assertStreamCleanup(h, page, { marker, expectReply, userText }) {
     assert(users === 0, "failed stream left the user turn in history (not rolled back)");
   }
   const leftovers = await page.evaluate(() => ({
-    placeholder: document.querySelectorAll("#ukagaka_msg[data-mpu-system-placeholder], #ukagaka_msg .mpu-system-placeholder").length,
+    placeholder: document.querySelectorAll('#ukagaka_msg[data-mpu-placeholder="system"]').length,
     streamState: jQuery("#ukagaka_msgbox").attr("data-mpu-stream-state") || "",
   }));
+  assert(leftovers.placeholder === 0, "stream cleanup left the system placeholder marker on #ukagaka_msg");
   return { msg: s.msg, ...leftovers };
 }
 
@@ -967,6 +968,90 @@ scenario("sse-watchdog-timeout", "browser (SSE replayed)", async (h) => {
   const out = await assertStreamCleanup(h, page, { marker: "__none__", expectReply: false, userText: "slow hello" });
   assert(out.streamState === "timeout", `expected timeout state, got "${out.streamState}"`);
   return out;
+});
+
+async function assertNoStreamBadge(page, context) {
+  const state = await page.evaluate(() => ({
+    badge: document.querySelectorAll("#ukagaka_msgbox > .mpu-state-badge").length,
+    attribute: document.querySelector("#ukagaka_msgbox").hasAttribute("data-mpu-stream-state"),
+  }));
+  assert(state.badge === 0 && !state.attribute, `${context}: stale stream badge ${JSON.stringify(state)}`);
+}
+
+scenario("sse-badge-chat-toggle", "browser (SSE replayed)", async (h) => {
+  const { page } = await withStreamingChat(h, (route) => route.fulfill({
+    status: 200,
+    contentType: "text/event-stream",
+    body: sseBody([["error", { message: "BADGE_ERROR" }]]),
+  }));
+  await h.send(page, "badge toggle");
+  await h.waitChatIdle(page);
+  assert(await page.locator(".mpu-state-badge").count() === 1, "error badge never appeared");
+  await h.exitChat(page);
+  await assertNoStreamBadge(page, "chat closed");
+  await h.enterChat(page);
+  await assertNoStreamBadge(page, "chat reopened");
+});
+
+scenario("sse-badge-new-input", "browser (SSE replayed)", async (h) => {
+  let release;
+  const pending = new Promise((resolve) => { release = resolve; });
+  const { page, calls } = await withStreamingChat(h, async (route, count) => {
+    if (count === 1) {
+      return route.fulfill({ status: 200, contentType: "text/event-stream",
+        body: sseBody([["error", { message: "BADGE_ERROR" }]]) });
+    }
+    await pending;
+    return route.fulfill({ status: 200, contentType: "text/event-stream",
+      body: sseBody([["start", {}], ["done", { msg: "BADGE_RETRY_OK" }]]) });
+  });
+  try {
+    await h.send(page, "badge error");
+    await h.waitChatIdle(page);
+    assert(await page.locator(".mpu-state-badge").count() === 1, "error badge never appeared");
+    await h.send(page, "");
+    assert(await page.locator(".mpu-state-badge").count() === 1, "empty input cleared the badge");
+    await h.send(page, "badge retry");
+    await page.waitForFunction(() => window.mpuChatRequesting === true);
+    await assertNoStreamBadge(page, "new request before first SSE event");
+    assert(await page.locator('#ukagaka_msg[data-mpu-placeholder="system"]').count() === 1,
+      "new request placeholder was not set");
+    release();
+    await assertStreamCleanup(h, page, { marker: "BADGE_RETRY_OK", expectReply: true, userText: "badge retry" });
+    assert(calls.length === 2, `unexpected request count: ${calls.length}`);
+    // Local commands also replace the prior error display.
+    await page.evaluate(() => {
+      jQuery("#ukagaka_msgbox").attr("data-mpu-stream-state", "error")
+        .append('<span class="mpu-state-badge">error</span>');
+    });
+    await h.send(page, "/help");
+    await assertNoStreamBadge(page, "local command");
+  } finally {
+    release();
+  }
+});
+
+scenario("sse-badge-closed-watchdog", "browser (SSE replayed)", async (h) => {
+  const { page } = await withStreamingChat(h, () => new Promise(() => {}));
+  await h.send(page, "closed watchdog");
+  await h.exitChat(page);
+  await assertNoStreamBadge(page, "pending request closed");
+  await page.evaluate(() => {
+    window.__badgeInsertions = 0;
+    new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (node.nodeType === 1 && (node.matches(".mpu-state-badge") || node.querySelector(".mpu-state-badge"))) {
+            window.__badgeInsertions++;
+          }
+        }
+      }
+    }).observe(document.querySelector("#ukagaka_msgbox"), { childList: true, subtree: true });
+  });
+  await assertStreamCleanup(h, page, { marker: "__none__", expectReply: false, userText: "closed watchdog" });
+  await assertNoStreamBadge(page, "watchdog cleanup");
+  const insertions = await page.evaluate(() => window.__badgeInsertions);
+  assert(insertions === 0, `stale watchdog recreated stream badge ${insertions} time(s)`);
 });
 
 // --- page-aware context vs. auto talk --------------------------------------
