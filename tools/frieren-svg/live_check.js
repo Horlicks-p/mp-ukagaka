@@ -57,8 +57,8 @@ fs.mkdirSync(out, { recursive: true });
   await pg.evaluate(() => window.mpuFrierenManager.playFrierenBookFlipAnimation());
   await pg.waitForTimeout(700);
   const flip = await pg.evaluate(() => {
-    const c = window.mpuCanvasManager.canvas; const q = c.getBoundingClientRect();
-    return { canvasShown: c.style.display, backing: [c.width, c.height], css: [Math.round(q.width), Math.round(q.height)], timer: !!window.mpuFrierenManager.frierenAnimationTimer };
+    const c = window.mpuCanvasManager.canvas; const im = window.mpuFrierenManager.frierenIdleImgElement; const q = im.getBoundingClientRect();
+    return { canvasShown: c.style.display, imgShown: im.style.display, frame: im.getAttribute('src').split('/').pop(), css: [Math.round(q.width), Math.round(q.height)], timer: !!window.mpuFrierenManager.frierenAnimationTimer };
   });
   console.log('during flip:', JSON.stringify(flip));
   await shot('flip');

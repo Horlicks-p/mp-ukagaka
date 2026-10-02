@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Frieren Bundle
- * Generated: 2026-10-02T17:28:31.364Z
+ * Generated: 2026-10-02T17:52:56.286Z
  *
  * 包含: frieren.js, frieren-animation.js, frieren-interactions.js, frieren-decorations.js
  */
@@ -89,7 +89,7 @@
  *
  * 擴展 frieren.js 建立的 window.mpuFrierenManager，負責 SVG 幀序列
  * （shell/Frieren/assets.json）的載入、閒置／睡眠循環、翻書動畫、
- * 睡眠判定與喚醒動畫。
+ * 睡眠判定與喚醒動畫。所有序列都在同一個 <img> 上換幀顯示。
  */
 
 (function () {
@@ -310,20 +310,64 @@
     },
 
     /**
-     * 在動畫 Canvas 上畫一幀（以 Canvas 實際像素尺寸繪製 SVG，避免縮放模糊）。
-     * @param {HTMLImageElement} img
+     * 取得（必要時建立）顯示芙莉蓮本體的 <img>。閒置、睡眠、翻書、醒來都以它
+     * 換幀顯示：<img> 會依 SVG 的 crispEdges 在顯示尺寸上點陣化，而 Canvas
+     * drawImage 會忽略它，非整數縮放時每個色塊邊緣都變半透明（淡化與殘像）。
+     * @returns {HTMLImageElement|null}
      */
-    drawFrierenFrame: function (img) {
-      const canvasManager = window.mpuCanvasManager;
-      if (!img || !img.complete || img.naturalWidth === 0 || !canvasManager || !canvasManager.ctx) {
+    ensureFrierenBodyImg: function () {
+      if (this.frierenIdleImgElement) {
+        return this.frierenIdleImgElement;
+      }
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (!imgContainer) {
+        return null;
+      }
+      // 先嘗試從 DOM 中獲取，避免 SPA 重載時建立重複元素
+      const existingImg = document.getElementById("frieren_idle_apng");
+      if (existingImg) {
+        this.frierenIdleImgElement = existingImg;
+      } else {
+        const img = document.createElement("img");
+        img.id = "frieren_idle_apng";
+        img.style.display = "none";
+        img.style.opacity = String(this.frierenIdleOpacity);
+        img.style.cursor = "pointer";
+        if (window.mpuCanvasManager && window.mpuCanvasManager.currentCharacterName) {
+          img.setAttribute("title", window.mpuCanvasManager.currentCharacterName);
+          img.setAttribute("alt", window.mpuCanvasManager.currentCharacterName);
+        }
+        imgContainer.appendChild(img);
+        this.frierenIdleImgElement = img;
+      }
+      this.applyFrierenBodyLayout(this.frierenIdleImgElement);
+      return this.frierenIdleImgElement;
+    },
+
+    /**
+     * 顯示一幀（換 <img> 的 src；幀都已預載並 decode）。
+     * @param {Object} frame - frierenSequences 的幀
+     */
+    setFrierenFrame: function (frame) {
+      const imgElement = this.frierenIdleImgElement;
+      if (imgElement && imgElement.getAttribute("src") !== frame.src) {
+        imgElement.setAttribute("src", frame.src);
+      }
+    },
+
+    /**
+     * 讓 <img> 成為可見的本體（Canvas 隱藏；它只保留給通用 Canvas 管理器）。
+     */
+    showFrierenBodyImg: function () {
+      const imgElement = this.frierenIdleImgElement;
+      if (!imgElement) {
         return;
       }
-      const canvas = canvasManager.canvas;
-      const ctx = canvasManager.ctx;
-      const prevOp = ctx.globalCompositeOperation;
-      ctx.globalCompositeOperation = "copy";
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = prevOp;
+      imgElement.style.display = "block";
+      imgElement.style.opacity = String(this.frierenIdleOpacity);
+      if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
+        window.mpuCanvasManager.canvas.style.display = "none";
+      }
     },
 
     /**
@@ -340,9 +384,7 @@
       let index = 0;
       const step = function () {
         const frame = frames[index];
-        if (imgElement.getAttribute("src") !== frame.src) {
-          imgElement.setAttribute("src", frame.src);
-        }
+        self.setFrierenFrame(frame);
         if (frames.length < 2) {
           return;
         }
@@ -394,46 +436,9 @@
 
       this.stopFrierenAnimation();
 
-      const imgContainer = document.getElementById("ukagaka_img");
-      if (!imgContainer) {
+      if (!this.ensureFrierenBodyImg()) {
         return;
       }
-
-      if (!this.frierenIdleImgElement) {
-        // 先嘗試從 DOM 中獲取，避免 SPA 重載時建立重複元素
-        const existingImg = document.getElementById("frieren_idle_apng");
-
-        if (existingImg) {
-          this.frierenIdleImgElement = existingImg;
-        } else {
-          this.frierenIdleImgElement = document.createElement("img");
-          this.frierenIdleImgElement.id = "frieren_idle_apng";
-          this.frierenIdleImgElement.style.display = "none";
-          this.frierenIdleImgElement.style.opacity = String(
-            this.frierenIdleOpacity
-          );
-          this.frierenIdleImgElement.style.cursor = "pointer";
-
-          // 設置 title 和 alt
-          if (
-            window.mpuCanvasManager &&
-            window.mpuCanvasManager.currentCharacterName
-          ) {
-            this.frierenIdleImgElement.setAttribute(
-              "title",
-              window.mpuCanvasManager.currentCharacterName
-            );
-            this.frierenIdleImgElement.setAttribute(
-              "alt",
-              window.mpuCanvasManager.currentCharacterName
-            );
-          }
-
-          // 如果舊元素不存在，才掛載新元素
-          imgContainer.appendChild(this.frierenIdleImgElement);
-        }
-      }
-      this.applyFrierenBodyLayout(this.frierenIdleImgElement);
 
       const wantSleep = this.isSleepMessage() && !this.sleepModeAwoken && !!this.frierenSequences.sleep;
       const sequence = wantSleep ? "sleep" : "idle";
@@ -452,15 +457,8 @@
         return;
       }
 
-      // 先顯示閒置序列
       this.playFrierenLoop(sequence);
-      this.frierenIdleImgElement.style.display = "block";
-      this.frierenIdleImgElement.style.opacity = String(this.frierenIdleOpacity);
-
-      // 後隱藏畫布，確保視覺無縫過接
-      if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
-        window.mpuCanvasManager.canvas.style.display = "none";
-      }
+      this.showFrierenBodyImg();
 
       this.revealFrierenContainer();
       this.setupDecorationClickThrough();
@@ -487,25 +485,19 @@
     },
 
     /**
-     * 在 Canvas 上依序播放一個非循環序列，結束後呼叫 onDone。
+     * 依序播放一個非循環序列（翻書／醒來），結束後呼叫 onDone。
      * @param {string} name - book_flip | wake
      * @param {Function} onDone
      */
-    playFrierenCanvasSequence: function (name, onDone) {
+    playFrierenOnce: function (name, onDone) {
       const frames = this.frierenSequences[name];
-      const canvasManager = window.mpuCanvasManager;
-      if (!frames || frames.length === 0 || !canvasManager || !canvasManager.canvas || !canvasManager.ctx) {
+      if (!frames || frames.length === 0 || !this.ensureFrierenBodyImg()) {
         if (onDone) onDone();
         return;
       }
 
-      const canvas = canvasManager.canvas;
-      this.applyFrierenBodyLayout(canvas);
-      this.drawFrierenFrame(frames[0].img);
-      if (this.frierenIdleImgElement) {
-        this.frierenIdleImgElement.style.display = "none";
-      }
-      canvas.style.display = "block";
+      this.setFrierenFrame(frames[0]);
+      this.showFrierenBodyImg();
 
       const self = this;
       let index = 0;
@@ -516,7 +508,7 @@
           if (onDone) onDone();
           return;
         }
-        self.drawFrierenFrame(frames[index].img);
+        self.setFrierenFrame(frames[index]);
         self.frierenAnimationTimer = setTimeout(next, frames[index].duration);
       };
       this.frierenAnimationTimer = setTimeout(next, frames[0].duration);
@@ -535,28 +527,9 @@
         return;
       }
 
-      if (
-        !window.mpuCanvasManager ||
-        !window.mpuCanvasManager.canvas ||
-        !window.mpuCanvasManager.ctx
-      ) {
-        mpuLogger.errorL('frierenDrawCanvasManagerMissing', '描画前に Canvas マネージャーが初期化されていません');
-        return;
-      }
-
       this.stopFrierenAnimation();
       this.frierenIsSpeaking = true;
-
-      // 翻書結束時先把閒置第一幀畫到 Canvas，再交棒給 <img>，
-      // 避免最後一幀（翻書中段姿勢）閃一下
-      const self = this;
-      this.playFrierenCanvasSequence("book_flip", function () {
-        const idle = self.frierenSequences.idle;
-        if (idle && idle[0] && idle[0].img) {
-          self.drawFrierenFrame(idle[0].img);
-        }
-        self.showFrierenIdle();
-      });
+      this.playFrierenOnce("book_flip", this.showFrierenIdle.bind(this));
     },
 
     /**
@@ -675,7 +648,7 @@
       const self = this;
       this.loadFrierenSequence("wake").then(
         function () {
-          self.playFrierenCanvasSequence("wake", callback);
+          self.playFrierenOnce("wake", callback);
         },
         function () {
           if (callback) callback();
