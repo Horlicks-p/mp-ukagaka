@@ -17,6 +17,7 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
+const { execFileSync } = require("child_process");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 const ghostDir = path.join(repoRoot, "ghost", "Frieren");
@@ -206,6 +207,8 @@ function testFiles() {
       const svg = fs.readFileSync(file, "utf8");
       checkSafe(frame.src, svg);
       assert.ok(svg.includes(`viewBox="0 0 ${vw} ${vh}" width="${vw}" height="${vh}"`), `${frame.src}: not on the ${vw}x${vh} master grid at intrinsic size`);
+      // layout.frame may stretch the frame horizontally; "meet" would ignore it
+      assert.ok(svg.includes('preserveAspectRatio="none"'), `${frame.src}: must allow non-uniform scaling (preserveAspectRatio="none")`);
       assert.ok(svg.includes(SHADOW), `${frame.src}: drop-shadow filter differs from the master definition`);
       assert.strictEqual((svg.match(/<filter\b/g) || []).length, 1, `${frame.src}: only the drop-shadow filter is allowed`);
       assert.ok(!/<mask\b/i.test(svg), `${frame.src}: masks are not allowed`);
@@ -224,9 +227,15 @@ function testFiles() {
     assert.ok(!/<filter\b|<mask\b/i.test(svg), `${item.image}: decorations take no filter or mask`);
   }
 
-  const leftovers = fs.readdirSync(shellDir).filter((f) => !/^(assets\.json|idle|sleep|book|wake)$/.test(f) && !fs.statSync(path.join(shellDir, f)).isDirectory());
-  assert.deepStrictEqual(leftovers, [], "shell/Frieren must only hold assets.json and the frame folders");
-  assert.deepStrictEqual(fs.readdirSync(path.join(ghostDir, "decorations")).filter((f) => /\.(png|apng|webp|jpe?g|gif)$/i.test(f) && f !== "position.png"), [], "no raster decorations may remain");
+  // what ships: tracked files (local, untracked reference images are ignored)
+  const tracked = execFileSync("git", ["ls-files", "ghost/Frieren/shell/Frieren", "ghost/Frieren/decorations"], { cwd: repoRoot, encoding: "utf8" })
+    .split(/\r?\n/).filter(Boolean);
+  const shellFiles = tracked.filter((f) => f.startsWith("ghost/Frieren/shell/Frieren/"));
+  const stray = shellFiles.filter((f) => !/^ghost\/Frieren\/shell\/Frieren\/(assets\.json|(idle|sleep|book|wake)\/frieren-[a-z]+-\d\d\.svg)$/.test(f));
+  assert.deepStrictEqual(stray, [], "shell/Frieren must only hold assets.json and the frame SVGs");
+  assert.strictEqual(shellFiles.length, 39, "assets.json + 38 frames");
+  const raster = tracked.filter((f) => f.startsWith("ghost/Frieren/decorations/") && /\.(png|apng|webp|jpe?g|gif)$/i.test(f));
+  assert.deepStrictEqual(raster, [], "no raster decorations may remain");
 }
 
 // ------------------------------------------------------------------ renderer

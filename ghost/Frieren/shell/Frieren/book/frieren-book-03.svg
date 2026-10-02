@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 208 328" width="208" height="328" shape-rendering="crispEdges">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 208 328" width="208" height="328" preserveAspectRatio="none" shape-rendering="crispEdges">
 <title>Frieren book-03</title>
 <desc>Pixel art on the shared Frieren master grid, converted from this frame's own reference. Foreground uses grouped SVG paths; no raster image is embedded. A subtle shared drop shadow sits five pixels below the character.</desc>
 <defs>

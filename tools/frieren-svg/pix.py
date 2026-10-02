@@ -93,7 +93,10 @@ def rgba_to_svg(im, title):
     extra = sorted(colors - set(order))
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d" shape-rendering="crispEdges">' % (W, H, W, H),
+        # preserveAspectRatio="none": the runtime may draw the frame wider than
+        # 208:328 (layout.frame, build.STRETCH_X); the default "meet" would keep
+        # the aspect ratio and only pad the sides
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d" preserveAspectRatio="none" shape-rendering="crispEdges">' % (W, H, W, H),
         "<title>%s</title>" % title,
         "<desc>Pixel art on the shared Frieren master grid, converted from this frame's own reference. Foreground uses grouped SVG paths; no raster image is embedded. A subtle shared drop shadow sits five pixels below the character.</desc>",
         FILTER,
