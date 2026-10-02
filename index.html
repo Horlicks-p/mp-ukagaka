@@ -232,7 +232,7 @@
   .bubble {
     position: relative;
     align-self: stretch;
-    margin-right: 5.5rem;
+    margin-right: 7.5rem;
     min-height: 5.6rem;
     border-style: solid;
     border-width: 5px 14px 7px 13px;
@@ -246,7 +246,7 @@
     font-family: var(--display-jp);
     font-size: .98rem; line-height: 1.75;
     color: #1e3a8a; letter-spacing: .03em;
-    min-height: 3.5em;
+    min-height: 5.25em;
   }
   .bubble-text::after {
     content: '▍'; margin-left: 1px; color: #7B68AE;
@@ -260,18 +260,48 @@
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='19' height='17' viewBox='0 0 19 17' shape-rendering='crispEdges'%3E%3Cg opacity='0.75'%3E%3Cpath fill='%23000' d='M10 0H15V2H17V7H15V9H10V7H8V2H10ZM2 9H5V11H7V13H5V15H2V13H0V11H2Z'/%3E%3Cpath fill='%23fff' d='M10 2H15V7H10ZM2 11H5V13H2Z'/%3E%3C/g%3E%3C/svg%3E") no-repeat;
     transform: scaleX(-1);
   }
+  /* Character column: room on both sides for the decorations */
+  .ghost-col {
+    display: flex; flex-direction: column; align-items: center;
+    margin-right: 62px;
+  }
   .ghost {
     position: relative; margin-top: 1.6rem;
     width: 134px; height: 249px;
+    isolation: isolate;
   }
-  .ghost img { width: 134px; height: 249px; display: block; }
+  .ghost-img {
+    position: absolute; inset: 0;
+    width: 134px; height: 249px; display: block;
+    z-index: 99;
+  }
+  .ghost-img.flip { visibility: hidden; }
+  .ghost.is-flipping .ghost-img.flip { visibility: visible; }
+  .ghost.is-flipping .ghost-img.idle { visibility: hidden; }
+  /* Positions and sizes from ghost/Frieren/decorations.json */
+  .deco {
+    position: absolute;
+    transform: translateY(-50%);
+    background: none; border: 0; padding: 0;
+    cursor: pointer;
+    opacity: .9;
+    transition: opacity .2s ease, filter .2s ease;
+  }
+  .deco img { display: block; width: 100%; height: auto; }
+  .deco:hover, .deco:focus-visible { opacity: 1; filter: drop-shadow(0 0 4px rgba(123, 104, 174, .55)); }
+  .deco-suitcase   { top: 82%; right: -62px; width: 90px;  z-index: 100; opacity: 1; }
+  .deco-evil-horns { top: 37%; left: -60px;  width: 140px; z-index: 5; }
+  .deco-dragon     { top: 80%; left: -80px;  width: 100px; z-index: 101; opacity: 1; }
+  .deco-staff      { top: 25%; right: -40px; width: 110px; z-index: 8; }
+  .deco-books      { top: 38%; right: -58px; width: 115px; z-index: 6; }
+  .deco-potion     { top: 50%; right: -42px; width: 25px;  z-index: 7; }
   .ghost::after {
     content: ''; position: absolute; left: 50%; bottom: -6px;
     width: 120px; height: 14px; transform: translateX(-50%);
     background: radial-gradient(ellipse at center, rgba(75, 61, 107, .18), transparent 70%);
     z-index: -1;
   }
-  .dock { display: flex; gap: .3rem; margin-top: .5rem; margin-right: -.4rem; }
+  .dock { display: flex; gap: .3rem; margin-top: .5rem; position: relative; z-index: 102; }
   .dock svg { width: 40px; height: 40px; display: block; transition: transform .18s; }
   .dock svg:hover { transform: translateY(-2px); }
   .stage-note {
@@ -538,6 +568,7 @@
     .badges, .seal-row { justify-content: center; }
     .stage { align-items: center; padding-right: 0; min-height: 0; max-width: 420px; margin: 0 auto; width: 100%; }
     .bubble { margin-right: 0; }
+    .ghost-col { margin-right: 0; }
     .bubble-tail { right: calc(50% - 40px); }
     .stage-note { align-self: center; }
     .quest-log { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -625,15 +656,24 @@
         <p class="bubble-text" id="bubble-text" aria-live="polite">千年以上生きた魔法使いだよ。</p>
         <span class="bubble-tail" aria-hidden="true"></span>
       </div>
-      <div class="ghost">
-        <img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/frieren%5B0%5D.png" width="134" height="249" alt="同梱キャラクター「フリーレン」">
+      <div class="ghost-col">
+      <div class="ghost" id="ghost">
+        <img class="ghost-img idle" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/frieren%5B0%5D.png" width="134" height="249" alt="同梱キャラクター「フリーレン」">
+        <img class="ghost-img flip" id="ghost-flip" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/frieren%5B1%5D.png" width="134" height="249" alt="" aria-hidden="true">
+        <button type="button" class="deco deco-evil-horns" data-deco="evil_horns" aria-label="巨大な頭蓋骨"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/evil_horns.png" width="140" height="155" alt=""></button>
+        <button type="button" class="deco deco-books" data-deco="books" aria-label="魔導書"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/books.png" width="115" height="135" alt=""></button>
+        <button type="button" class="deco deco-potion" data-deco="potion" aria-label="服だけ溶かす薬"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/potion.png" width="25" height="55" alt=""></button>
+        <button type="button" class="deco deco-staff" data-deco="staff" aria-label="魔法杖"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/staff.png" width="110" height="200" alt=""></button>
+        <button type="button" class="deco deco-suitcase" data-deco="suitcase" aria-label="スーツケース"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/suitcase.png" width="90" height="80" alt=""></button>
+        <button type="button" class="deco deco-dragon" data-deco="dark_dragon_horn" aria-label="暗黒竜の角"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/dark_dragon_horn.png" width="100" height="80" alt=""></button>
       </div>
       <div class="dock" aria-hidden="true">
         <svg viewBox="0 0 45 45" stroke-linecap="round" stroke-linejoin="round"><circle cx="22.5" cy="22.5" r="19.9" fill="none" stroke="var(--dock-ring)" stroke-width="2.3"/><circle cx="22.5" cy="22.5" r="17.5" fill="none" stroke="var(--dock-halo)" stroke-width="1.8"/><circle cx="22.5" cy="22.5" r="14.35" fill="none" stroke="var(--dock-ring)" stroke-width="4.7"/><circle cx="22.5" cy="22.5" r="12.8" fill="var(--dock-disc)"/><path d="M22.5 19.4 27.8 24.1H17.2Z" fill="var(--dock-glyph)" stroke="var(--dock-glyph)" stroke-width="1.8"/></svg>
         <svg viewBox="0 0 45 45" stroke-linecap="round" stroke-linejoin="round"><circle cx="22.5" cy="22.5" r="19.9" fill="none" stroke="var(--dock-ring)" stroke-width="2.3"/><circle cx="22.5" cy="22.5" r="17.5" fill="none" stroke="var(--dock-halo)" stroke-width="1.8"/><circle cx="22.5" cy="22.5" r="14.35" fill="none" stroke="var(--dock-ring)" stroke-width="4.7"/><circle cx="22.5" cy="22.5" r="12.8" fill="var(--dock-disc)"/><g fill="none" stroke="var(--dock-glyph)"><rect x="18.5" y="17.5" width="9" height="12" rx="1.4" stroke-width="1.4"/><path d="M22.5 23h5.7" stroke-width="2"/><path d="m26.4 20.6 2.4 2.4-2.4 2.4" stroke-width="1.4"/></g></svg>
         <svg viewBox="0 0 45 45" stroke-linecap="round" stroke-linejoin="round"><circle cx="22.5" cy="22.5" r="19.9" fill="none" stroke="var(--dock-ring)" stroke-width="2.3"/><circle cx="22.5" cy="22.5" r="17.5" fill="none" stroke="var(--dock-halo)" stroke-width="1.8"/><circle cx="22.5" cy="22.5" r="14.35" fill="none" stroke="var(--dock-ring)" stroke-width="4.7"/><circle cx="22.5" cy="22.5" r="12.8" fill="var(--dock-disc)"/><g fill="none" stroke="var(--dock-glyph)"><path d="M28.6 16.9 22 23.5" stroke-width="1.4"/><path d="M22.4 23.1 16.9 28.6" stroke-width="2.8"/><path d="M18.24 16.62A1.4 1.4 0 1 1 16.62 18.24" stroke-width="1.5"/><path d="m19.6 19.6 6.6 6.6" stroke-width="1.5"/><circle cx="27.5" cy="28" r="1.9" stroke-width="1.2"/></g></svg>
       </div>
-      <p class="stage-note">― 吹き出しとドックはプラグインと同じ図形 ―</p>
+      </div>
+      <p class="stage-note">― 周りの持ち物はクリックできます ―</p>
     </div>
   </div>
   <div class="cover-border" aria-hidden="true"></div>
@@ -1023,29 +1063,81 @@
       'もう少し寝かせて。あと五分……いや、一時間。',
       '集めた魔法の話なら、いくらでもできるよ。'
     ];
+    // Short reactions for the decorations, after the prompts in decorations.json
+    var decoLines = {
+      suitcase: '旅の荷物だよ。魔法道具に薬草、旅の記録……ヒンメルにもらった指輪も入ってる。',
+      evil_horns: 'これ？　つい買っちゃったんだ。使い道はまだない。フェルンには怒られた。',
+      dark_dragon_horn: '魔王城で拾った暗黒竜の角。ヒンメルに預けてたけど、召喚魔法を試したくて返してもらった。',
+      staff: '普通の杖だよ。伝説の名杖とかじゃない。でも、あると便利なんだ。',
+      books: '集めた魔導書。失われた古代の魔法が載ってるのもある。まだ解読中だけどね。',
+      potion: '……その薬のことは聞かないで。シュタルクへの贈り物になるはずだったんだ。'
+    };
     var box = document.getElementById('bubble');
     var out = document.getElementById('bubble-text');
+    var ghost = document.getElementById('ghost');
+    var flip = document.getElementById('ghost-flip');
     if (!box || !out) return;
-    if (reduce) { box.classList.add('is-done'); return; }
 
-    var idx = 0;
+    // Page-turn frames frieren[1]..frieren[11], 150 ms each like frieren-animation.js
+    var base = 'https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/';
+    var frames = [];
+    if (!reduce) {
+      for (var f = 1; f <= 11; f++) {
+        var im = new Image();
+        im.src = base + 'frieren%5B' + f + '%5D.png';
+        frames.push(im);
+      }
+    }
+    var flipTimer = null;
+    function pageTurn() {
+      if (reduce || !ghost || !flip || flipTimer) return;
+      var n = 0;
+      flip.src = frames[0].src;
+      ghost.classList.add('is-flipping');
+      flipTimer = setInterval(function () {
+        n += 1;
+        if (n >= frames.length) {
+          clearInterval(flipTimer); flipTimer = null;
+          ghost.classList.remove('is-flipping');
+          return;
+        }
+        flip.src = frames[n].src;
+      }, 150);
+    }
+
+    var typeTimer = null, waitTimer = null, idx = 0;
     function type(text, done) {
+      clearTimeout(typeTimer);
       var n = 0;
       box.classList.remove('is-done');
       out.textContent = '';
+      pageTurn();
       (function step() {
         n += 1;
         out.textContent = text.slice(0, n);
-        if (n < text.length) { setTimeout(step, 70); }
+        if (n < text.length) { typeTimer = setTimeout(step, 70); }
         else { box.classList.add('is-done'); done(); }
       })();
     }
     function next() {
       type(lines[idx], function () {
         idx = (idx + 1) % lines.length;
-        setTimeout(next, 4200);
+        waitTimer = setTimeout(next, 4200);
       });
     }
+    function say(text) {
+      clearTimeout(waitTimer);
+      if (reduce) { out.textContent = text; box.classList.add('is-done'); return; }
+      type(text, function () { waitTimer = setTimeout(next, 6000); });
+    }
+    document.querySelectorAll('.deco').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var t = decoLines[btn.getAttribute('data-deco')];
+        if (t) say(t);
+      });
+    });
+
+    if (reduce) { box.classList.add('is-done'); return; }
     setTimeout(next, 600);
   })();
 </script>
