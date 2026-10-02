@@ -5,7 +5,7 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.33.1
+Stable tag: 2.33.2
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -183,6 +183,16 @@ This plugin uses a modular architecture for better maintainability:
 * `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
 
 == Changelog ==
+
+= 2026-10-02 =
+* v2.33.2
+* [FIX] Opening chat while she was about to say something no longer drops her line into the chat box. It is remembered in the conversation, just not shown.
+* [FIX] A chat reply that arrives after you close or reopen chat no longer appears on the new screen, and no longer breaks the next message when chat history checking is strict.
+* [FIX] Closing and reopening chat quickly no longer leaves the OK button stuck, doubles her goodbye line, or cuts short a gift reaction still in progress.
+* [FIX] Auto talk no longer stays silent for a long time after she has commented on the page you are reading.
+* [FIX] Opening chat just as her message box was fading out no longer hides the chat box.
+* [FIX] Connection errors from the AI provider are no longer shown to visitors as raw technical messages in streamed chat.
+* [CHANGE] The thought bubble's border is slightly thicker.
 
 = 2026-09-10 =
 * v2.33.1

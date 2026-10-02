@@ -4,6 +4,41 @@
 
 ---
 
+## [2.33.2] - 2026-10-02
+
+### Chat handoff
+
+- **An auto-talk reply that was already in flight when chat opened no longer lands in the chat box.** It used to render over the chat welcome text. Chat mode is now checked when the reply arrives, both after the request returns and after visual readiness, and in the fallback line. The reply is still recorded in history as `auto_talk` — she did say it, and the chat context needs it — but it is not shown. The request flag is released on this path, so later auto ticks are not skipped. The recording code moves into `mpu_recordLlmAutoTalk()` so both paths share it.
+- **A chat reply that arrives after chat was closed, or closed and reopened, is stored but not shown.** Before, it was shown on the new screen (JSON and SSE) or kept silently (SSE only), while the JSON close path dropped it. Dropping it was the worse half: the server had already counted that turn in the checksum, so the next turn failed under block mode. `mpuChatGeneration` increments on every chat toggle and each request remembers the generation it was sent in; a stale SSE reply skips every screen update (deltas, state badge, think bubble, emotion, animation).
+- **The late reply goes right after the user turn it answers.** `mpu_insertChatReply()` places it there instead of pushing past exit lines or gifts, and `mpu_removeChatHistoryEntry()` rolls back a failed user turn by reference instead of assuming it is last. Reopening chat reloads history from storage, so both fall back to matching entries by content.
+- **Closing chat twice inside the 5-second exit delay says one exit line, not two.** The exit timer was guarded only by "chat is not active", so close → reopen → close left two timers that both passed: two exit lines, and the block lifted 3.8 s after the final close. The timer now remembers the chat generation and does nothing if chat was toggled since.
+- **Reopening chat inside those 5 seconds and staying no longer leaves the OK button and gifts blocked.** The exit timer skipped its work because chat was open, and nothing else released the block until the next close. This predates the generation check above.
+- **Closing chat during a slow gift reaction no longer lifts the gift's block.** Cancel leaves chat regardless of blocking, and the exit flow then released the block the gift was still holding — on reopen, or 5 s later — so OK could send a chat turn on top of the gift.
+
+### Auto talk
+
+- **Auto talk no longer goes quiet after page-aware context interrupts it.** When page-aware context started while an auto-talk request was waiting on the provider, the reply returned early without clearing `ollamaRequesting`, and every later tick was skipped as "LLM busy" until a reload or SPA navigation. This matches the reported "auto talk takes a long time to come back". The early return now releases the flag and processes the queue; the preempted line is still neither shown nor recorded.
+- **Opening chat during an auto-talk fade keeps the chat box visible.** An auto tick fades the message box out over 600 ms before its request. Chat opened inside that window saw the box as still visible, skipped showing it, and the fade then hid the chat, cancel button included. Entering chat now finishes any running message-box animation first.
+- **The OK and cancel buttons respect a touch/decoration dialog again.** They checked `mpuCanvasManager.decorationChatInProgress`, a property that object never has, so their guard never ran and only `messageBlocking` happened to stop them. `startAutoTalk`, `mpu_nextmsg` and both buttons now share `mpuIsInteractionDialogActive()`, which reads the ghost manager that owns the flag.
+
+### Errors
+
+- **Visitors no longer see raw provider or cURL errors in streamed chat.** `/chat/user-stream` sent the provider's `WP_Error` text as the SSE `error` event, so strings like `cURL Error (18): transfer closed ...` reached the screen. Stream errors now return the same generic message as the synchronous `/chat/user` path; the original text goes to `mpu_log_error()`.
+- **Errors a provider emits mid-stream are replaced too.** Gemini, Claude, and Ollama's tool-loop guard send their own `error` event with the raw message before returning `WP_Error`, and the browser stops at the first error, so the generic closing message never showed. Error events are now rewritten as they are forwarded (`public_stream_event_data()`), and the closing error is not sent again when the provider already sent one, so the log gets one entry.
+
+### Thought bubble
+
+- **The bubble's border is half a pixel thicker.** A one-line change to `images/think-bubble.svg`.
+
+### Internal
+
+- **Message blocking is tracked by owner instead of one boolean.** Every flow that blocked messages set and cleared the same flag, so each release had to guess whether another flow still held it — the source of the early-release bugs above. `mpuAcquireMessageBlock(owner)` / `mpuReleaseMessageBlock(owner)` keep a set; `mpuMessageBlocking` is true while any owner remains, and `MPU_STATE.llm.messageBlockOwners` exposes a snapshot. Owners: `chat-exit`, `page-context`, `rate-limit-next-message`, `rate-limit-greeting`, `frieren-interaction`, `frieren-gift`. `mpuSetMessageBlocking()` stays as a compatible setter under a `legacy` owner. The exit timer releases only its own owner and skips the exit line while any other remains.
+- **New end-to-end interaction suite** in `tools/e2e/`: boots a disposable WordPress Playground (SQLite) with the checkout mounted, points the plugin at a scripted fake Ollama, and drives the real bundle in Edge. 31 scenarios, all passing; each fix above has a scenario that fails without it. Run with `npm --prefix tools/node run test:interaction`; it is not part of `verify`. `@wp-playground/cli` is pinned to 3.1.40 because newer releases fail on Node 24.13.
+- **`test-chat-history-order-smoke.js`** unit-tests `mpu_insertChatReply()` and `mpu_removeChatHistoryEntry()` in `vm` and is part of `verify`.
+- **Two new debug log keys**: `nextMessageLlmResponseRecordedDuringChat` and `chatStaleReplyRecorded`, translated in all `.po` files.
+- **Design notes** in `plan/Interaction_Handoff_Table.md` (flag writers, timer and request ownership, handoff rules) and `plan/Interaction_Reliability_And_Response_Quality_Plan.md`.
+
+---
 ## [2.33.1] - 2026-09-10
 
 ### Sleep
