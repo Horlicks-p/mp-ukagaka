@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Frieren Bundle
- * Generated: 2026-10-02T17:52:56.286Z
+ * Generated: 2026-10-02T17:56:03.469Z
  *
  * 包含: frieren.js, frieren-animation.js, frieren-interactions.js, frieren-decorations.js
  */
@@ -1051,6 +1051,48 @@
     },
 
     /**
+     * 點擊位置是否落在角色本體的不透明像素上（陰影等半透明處不算）。
+     * 以目前顯示的幀繪到原尺寸的隱藏 Canvas 取 alpha；無法判定時視為命中。
+     * @param {MouseEvent} event - 滑鼠事件
+     * @param {HTMLElement} element - 角色元素（<img> 或 Canvas）
+     * @returns {boolean}
+     */
+    isCharacterPixelHit: function (event, element) {
+      if (!element || element.tagName !== "IMG" || !element.naturalWidth) {
+        return true;
+      }
+      const src = element.currentSrc || element.src;
+      if (!this._bodyHitCanvas) {
+        this._bodyHitCanvas = document.createElement("canvas");
+        this._bodyHitCtx = this._bodyHitCanvas.getContext("2d", { willReadFrequently: true });
+        this._bodyHitSrc = "";
+      }
+      const canvas = this._bodyHitCanvas;
+      const ctx = this._bodyHitCtx;
+      if (!ctx) {
+        return true;
+      }
+      if (this._bodyHitSrc !== src) {
+        canvas.width = element.naturalWidth;
+        canvas.height = element.naturalHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(element, 0, 0, canvas.width, canvas.height);
+        this._bodyHitSrc = src;
+      }
+      const rect = element.getBoundingClientRect();
+      const x = Math.floor((event.clientX - rect.left) / rect.width * canvas.width);
+      const y = Math.floor((event.clientY - rect.top) / rect.height * canvas.height);
+      if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) {
+        return false;
+      }
+      try {
+        return ctx.getImageData(x, y, 1, 1).data[3] >= 128;
+      } catch (e) {
+        return true;
+      }
+    },
+
+    /**
      * 檢測觸摸區域
      * @param {MouseEvent} event - 滑鼠事件
      * @param {HTMLElement} element - 被點擊的元素
@@ -1068,6 +1110,20 @@
       const rect = typeof window.mpuGetCharacterRect === "function"
         ? window.mpuGetCharacterRect(element)
         : element.getBoundingClientRect();
+
+      // 角色元素比角色框大（SVG 幀的四周留白與陰影），會蓋住後方的裝飾。
+      // 只有點在角色框內、且點到角色本身的不透明像素才算觸摸；
+      // 其餘交給後方的裝飾判定。
+      if (
+        event.clientX < rect.left ||
+        event.clientX >= rect.right ||
+        event.clientY < rect.top ||
+        event.clientY >= rect.bottom ||
+        !this.isCharacterPixelHit(event, element)
+      ) {
+        return null;
+      }
+
       const clickY = event.clientY - rect.top;
       const relativeY = clickY / rect.height;
 
@@ -1325,7 +1381,8 @@
 
           const zone = self.detectTouchZone(e, target);
           if (zone) {
-            e.stopPropagation();
+            // 同一容器上還有裝飾的點擊穿透判定，觸摸成立時不再交給它
+            e.stopImmediatePropagation();
             e.preventDefault();
             self.handleTouchZone(zone);
           }
