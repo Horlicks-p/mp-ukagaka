@@ -4,6 +4,40 @@
 
 ---
 
+## [2.33.3] - 2026-10-02
+
+### Chat status badge
+
+- **Closing chat no longer leaves a status badge over auto talk.** The thinking / error / timeout / busy badge sits on `#ukagaka_msgbox`, and no CSS rule limits it to chat mode, so a badge left by the last chat turn stayed on screen after chat closed, over the auto-talk lines that followed. `mpu_toggleChatMode()` now removes the badge and `data-mpu-stream-state` on every open and close.
+- **A new message no longer shows the previous error beside its own waiting line.** The old badge was only replaced when the first SSE event arrived. `mpu_sendUserMessage()` now clears it as soon as input passes the empty / busy guard, which also covers local commands such as `/help`; a rejected send leaves the current badge alone.
+- **A request abandoned by closing chat no longer redraws "timeout" when its watchdog fires.** The 45-second watchdog wrote the badge before checking whether its chat view was still current, so it reappeared for a moment until the failure handler removed it again. It now skips the badge for a stale view and still marks the timeout and aborts the request.
+- **Why not a state store.** A proposal to route every interaction's activity through a new front-end store was reviewed and dropped: the input lock (`mpuChatRequesting`), the per-request `streamFinalized` flag and the `mpuChatGeneration` check already keep two requests from competing for the badge. The two symptoms above were fixed where they occur. The decision is recorded in `plan/Activity_State_And_Declarative_Animation_Plan.md`.
+
+### Chat commands
+
+- **`/help` lists `/reset` and `/clear` under the administrator section.** They only clear history for users with `manage_options`; for anyone else the message goes to the model and the character refuses, but `/help` had shown both commands to everyone.
+
+### Documentation
+
+- **`docs-en/` was checked against the code and corrected throughout.** Every route, function signature, setting key, hook, constant, file path and admin label was compared with the source. The fixes that mattered most:
+  - The ghost guide told authors to put images in `shell/{ID}/{ID}.png`. A ZIP install points at `ghost/{id}/shell/` and only reads that folder, so following it produced a character with no images. Images now go directly in `shell/`, and file names carry no meaning to the core.
+  - `RELEASING.md` said pushing the tag ships the release; `release.yml` runs on a published GitHub Release, so a step for `gh release create` was added.
+  - The API reference described bare SSE event names; the stream wraps every event in the session envelope (`stream.delta`, `stream.done`, `nonce.refresh`, ...). The hook list grew from 4 to the 17 that exist.
+  - The developer guide's settings structure used the pre-`llm_*` keys and old defaults; it is rebuilt from `mpu_default_opt()` and the save handlers, with the legacy-key migration explained.
+  - The user guide placed ZIP upload, the chat toggle and the System Prompt field on the wrong pages, and said chat history is lost on reload (it is kept in local storage).
+- **`README.md` and `readme.txt`** install from the release asset, name the right settings pages and default models, and list the features added since the 2.2x series.
+
+### License
+
+- **The plugin header and `readme.txt` declare GPLv2 or later** through WordPress's `License` / `License URI` fields. The header had no license; `README.md` said GPLv2 while the Japanese and Chinese READMEs said GPLv2 or later.
+
+### Internal
+
+- **The end-to-end stream cleanup check was not checking the placeholder.** It queried `data-mpu-system-placeholder`, which nothing sets; the marker is `data-mpu-placeholder="system"`. It now uses the real attribute and asserts that no marker is left after a stream ends.
+- **Three new e2e scenarios** (`sse-badge-chat-toggle`, `sse-badge-new-input`, `sse-badge-closed-watchdog`) fail without the badge fix and pass with it. All 34 scenarios pass.
+- **The project page** (<https://horlicks-p.github.io/mp-ukagaka/>) was refreshed separately on the `gh-pages` branch.
+
+---
 ## [2.33.2] - 2026-10-02
 
 ### Chat handoff

@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.33.2
+Stable tag: 2.33.3
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,15 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-02 =
+* v2.33.3
+* [FIX] Closing chat no longer leaves a "thinking", "error" or "busy" label on screen over the character's ordinary lines.
+* [FIX] Sending a new message clears the previous error label right away instead of showing it next to the new waiting line.
+* [FIX] A chat request you walked away from no longer flashes a "timeout" label later.
+* [CHANGE] /help only lists /reset and /clear for administrators, the only users they work for.
+* [CHANGE] The documentation was checked against the plugin and corrected, including the character-image layout for ZIP uploads.
+* [CHANGE] The plugin now declares its license as GPLv2 or later.
 
 = 2026-10-02 =
 * v2.33.2
