@@ -1268,7 +1268,6 @@ add_action('mpu_chat_lock_released', function($session_id, $existing) {}, 10, 2)
 | `/visitor-info` | GET | Public | — | 30/60s | Returns visitor info such as referrer, search engine, Slimstat country/city, etc. |
 | `/decoration-prompts` | GET / POST | Public | `decoration_type` | 20/60s | Gets prompts for decoration click dialogue |
 | `/wake-ghost` | POST | Public | `personality_id` or `ukagaka_num` (at least one) | 10/60s | Temporarily wakes up a sleeping character; WP_Error codes: `rest_wake_ghost_missing_param`, `rest_wake_ghost_unavailable` |
-| `/check-spam-event` | POST | Public | — | 20/60s | Polled by the frontend with auto talk. When LLM dialogue replacement is on and an Akismet spam or Turnstile block event is pending (and its cooldown has passed), returns `{has_event: true, msg, emoji, ...}`; otherwise `{has_event: false}`. Registered procedurally in `includes/integrations/akismet-integration.php`. |
 
 ### AI Chat
 

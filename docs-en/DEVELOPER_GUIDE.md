@@ -850,7 +850,7 @@ Introduced in v2.9.2. Endpoints are registered by controllers under `includes/re
 | `class-mpu-rest-observation.php` | `MPU_REST_Observation` | `/observation/push` |
 | `class-mpu-rest-test.php` | `MPU_REST_Test` | `/test-connection/{provider}`, `/clear-cache` |
 
-One route predates this structure and is still registered procedurally: `POST /check-spam-event` in `includes/integrations/akismet-integration.php`, which the frontend polls for Akismet / Turnstile reactions. New endpoints must go through a controller.
+One route predates this structure and is still registered procedurally, outside this table: `/check-spam-event` in `includes/integrations/akismet-integration.php` (`mpu_register_akismet_rest_routes()`). Keep it in mind when changing the REST layer; new endpoints must go through a controller.
 
 ### chat-api-handlers.php
 
@@ -1204,7 +1204,6 @@ Currently, frontend and most admin testing processes rely primarily on REST APIs
 | `/session-token` | GET | Issues the IP-bound session token anonymous visitors send as `X-MPU-Session-Token` (empty for logged-in users) |
 | `/memory/extract` | POST | Admin only: extracts owner memory from recent chat history (`/remember`) |
 | `/observation/push` | POST | Buffers visitor activity observations for the session |
-| `/check-spam-event` | POST | Polled by the frontend; returns an Akismet / Turnstile reaction line when one is pending (procedural route) |
 
 ### Touch Interaction
 
