@@ -37,8 +37,8 @@ def frame(name):
 
 
 # ------------------------------------------------------------------ idle / sleep / wake
-# Each frame comes from its own large reference (idle / sleep / awareness
-# sample large, 464x688). The head and cape move rigidly by the reference's
+# Each frame comes from its own large reference (refs/idle, refs/sleep,
+# refs/awareness, 464x688). The head and cape move rigidly by the reference's
 # measured motion rounded to whole master pixels, and only the content that
 # really changes (eyes, hair tips, collar) is converted, phase-locked to that
 # whole-pixel move (layers.py). idle ref [1] is the base (the master's rest
@@ -102,7 +102,7 @@ for _n in range(1, 6):
 
 # ------------------------------------------------------------------ book
 # frieren[1..11]: right hand turns a page. Each frame comes from its own
-# large reference (shell/Frieren/book sample large/frieren[N].png) through
+# large reference (refs/book/frieren[N].png) through
 # the pipeline that reproduces the master from ref [1] (convert.py); pixels
 # the original does not change keep the master's values so static parts do
 # not shimmer between frames.

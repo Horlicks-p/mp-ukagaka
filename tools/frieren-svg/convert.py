@@ -11,11 +11,13 @@ from PIL import Image
 import pix
 
 SETS = {
-    "book": ("book sample large", lambda n: "frieren[%d].png" % n),
-    "idle": ("idle sample large", lambda n: "frieren[%d].png" % n),
-    "sleep": ("sleep sample large", lambda n: "frieren[s%d].png" % n),
-    "wake": ("awareness sample large", lambda n: "frieren[w%d].png" % n),
+    "book": ("book", lambda n: "frieren[%d].png" % n),
+    "idle": ("idle", lambda n: "frieren[%d].png" % n),
+    "sleep": ("sleep", lambda n: "frieren[s%d].png" % n),
+    "wake": ("awareness", lambda n: "frieren[w%d].png" % n),
 }
+# the per-frame large references (development only, not shipped)
+REFS = os.path.join(pix.HERE, "refs")
 _PAL = None
 
 
@@ -28,7 +30,7 @@ def palette():
 
 def ref_path(kind, n):
     folder, name = SETS[kind]
-    return os.path.join(pix.SHELL, folder, name(n))
+    return os.path.join(REFS, folder, name(n))
 
 
 def resize(im):

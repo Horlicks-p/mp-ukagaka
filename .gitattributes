@@ -30,6 +30,3 @@ phpcs.xml.dist  export-ignore
 AGENTS.md       export-ignore
 CLAUDE.md       export-ignore
 GEMINI.md       export-ignore
-# Frieren SVG shell sources: the large per-frame references that
-# tools/frieren-svg/ converts into the runtime SVGs (development only).
-ghost/Frieren/shell/Frieren/*[[:space:]]sample[[:space:]]large/ export-ignore

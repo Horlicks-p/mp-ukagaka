@@ -44,23 +44,77 @@
     },
 
     /**
+     * assets.json 的必要序列與其是否循環。
+     */
+    frierenRequiredSequences: { idle: true, sleep: true, book_flip: false, wake: false },
+
+    /**
+     * 驗證 assets.json。
+     * @param {Object} assets - assets.json 內容
+     * @returns {string|null} 不合格的理由；合格時為 null
+     */
+    validateFrierenAssets: function (assets) {
+      const isNum = function (v) {
+        return typeof v === "number" && isFinite(v);
+      };
+      const isNumArray = function (v, length) {
+        return Array.isArray(v) && v.length === length && v.every(isNum);
+      };
+      if (!assets || typeof assets !== "object") {
+        return "not an object";
+      }
+      if (assets.format_version !== 1) {
+        return "format_version must be 1";
+      }
+      if (!isNumArray(assets.view_box, 4) || !(assets.view_box[2] > 0 && assets.view_box[3] > 0)) {
+        return "view_box must be [x, y, width, height]";
+      }
+      const layout = assets.layout;
+      if (!layout || !isNumArray(layout.box, 2) || !(layout.box[0] > 0 && layout.box[1] > 0)) {
+        return "layout.box must be [width, height]";
+      }
+      if (!isNumArray(layout.frame, 4) || !(layout.frame[2] > 0 && layout.frame[3] > 0)) {
+        return "layout.frame must be [left, top, width, height]";
+      }
+      if (!assets.sequences || typeof assets.sequences !== "object") {
+        return "sequences missing";
+      }
+      const required = this.frierenRequiredSequences;
+      const names = Object.keys(required);
+      for (let i = 0; i < names.length; i++) {
+        const name = names[i];
+        const seq = assets.sequences[name];
+        if (!seq || typeof seq !== "object") {
+          return "sequence " + name + " missing";
+        }
+        if (seq.loop !== required[name]) {
+          return "sequence " + name + " loop must be " + required[name];
+        }
+        if (!Array.isArray(seq.frames) || seq.frames.length === 0) {
+          return "sequence " + name + " has no frames";
+        }
+        for (let j = 0; j < seq.frames.length; j++) {
+          const frame = seq.frames[j];
+          if (!frame || typeof frame.src !== "string" || !/^[a-z_]+\/[A-Za-z0-9_-]+\.svg$/.test(frame.src)) {
+            return "sequence " + name + " frame " + j + " src must be a relative .svg path";
+          }
+          if (!isNum(frame.duration_ms) || frame.duration_ms <= 0) {
+            return "sequence " + name + " frame " + j + " duration_ms must be > 0";
+          }
+        }
+      }
+      return null;
+    },
+
+    /**
      * 驗證 assets.json 並展開為各序列的幀清單與 URL。
      * @param {Object} assets - assets.json 內容
      * @param {string} baseUrl - shell 資料夾 URL
      */
     applyFrierenAssets: function (assets, baseUrl) {
-      if (
-        !assets ||
-        assets.format_version !== 1 ||
-        !assets.layout ||
-        !Array.isArray(assets.layout.box) ||
-        !Array.isArray(assets.layout.frame) ||
-        !assets.sequences ||
-        !assets.sequences.idle ||
-        !Array.isArray(assets.sequences.idle.frames) ||
-        assets.sequences.idle.frames.length === 0
-      ) {
-        throw new Error("invalid assets.json");
+      const problem = this.validateFrierenAssets(assets);
+      if (problem) {
+        throw new Error("invalid assets.json: " + problem);
       }
 
       this.frierenAssets = assets;
