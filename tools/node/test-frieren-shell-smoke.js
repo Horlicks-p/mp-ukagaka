@@ -191,6 +191,51 @@ const SHADOW = '<filter id="character-drop-shadow" x="-10%" y="-10%" width="120%
   + '<feOffset in="shadow-blur" dx="0" dy="5" result="shadow-offset"/>\n'
   + '<feFlood flood-color="#000000" flood-opacity="0.24" result="shadow-color"/>\n';
 
+// opaque cells of a body frame (its paths are 1-cell-aligned rects)
+function rectCells(svg, w, h) {
+  const cells = new Uint8Array(w * h);
+  for (const m of svg.matchAll(/M(\d+) (\d+)h(\d+)v(\d+)h-\d+z/g)) {
+    const [x, y, rw, rh] = m.slice(1).map(Number);
+    for (let j = y; j < y + rh; j++) for (let i = x; i < x + rw; i++) cells[j * w + i] = 1;
+  }
+  return cells;
+}
+
+// transparent cells not reachable from the frame border
+function holes(cells, w, h) {
+  const seen = new Uint8Array(w * h);
+  const stack = [];
+  for (let i = 0; i < w; i++) stack.push(i, (h - 1) * w + i);
+  for (let j = 0; j < h; j++) stack.push(j * w, j * w + w - 1);
+  while (stack.length) {
+    const k = stack.pop();
+    if (seen[k] || cells[k]) continue;
+    seen[k] = 1;
+    const x = k % w, y = (k / w) | 0;
+    if (x > 0) stack.push(k - 1);
+    if (x < w - 1) stack.push(k + 1);
+    if (y > 0) stack.push(k - w);
+    if (y < h - 1) stack.push(k + w);
+  }
+  let n = 0;
+  for (let k = 0; k < w * h; k++) if (!cells[k] && !seen[k]) n++;
+  return n;
+}
+
+// opaque cells with no opaque 8-neighbour
+function specks(cells, w, h) {
+  let n = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (!cells[y * w + x]) continue;
+    let nb = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      if ((dx || dy) && x + dx >= 0 && x + dx < w && y + dy >= 0 && y + dy < h) nb += cells[(y + dy) * w + x + dx];
+    }
+    if (!nb) n++;
+  }
+  return n;
+}
+
 function checkSafe(file, svg) {
   for (const [re, what] of FORBIDDEN) {
     assert.ok(!re.test(svg), `${file}: ${what} is not allowed`);
@@ -213,6 +258,9 @@ function testFiles() {
       assert.strictEqual((svg.match(/<filter\b/g) || []).length, 1, `${frame.src}: only the drop-shadow filter is allowed`);
       assert.ok(!/<mask\b/i.test(svg), `${frame.src}: masks are not allowed`);
       seen.add(frame.src);
+      const cells = rectCells(svg, vw, vh);
+      assert.strictEqual(holes(cells, vw, vh), 0, `${frame.src}: transparent hole inside the character`);
+      assert.strictEqual(specks(cells, vw, vh), 0, `${frame.src}: isolated pixel outside the character`);
     }
   }
   assert.strictEqual(seen.size, 38, "expected 38 distinct body frame files");

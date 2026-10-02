@@ -153,3 +153,43 @@ def frame(kind, n, base, master):
     out = master.copy()
     out[m] = conv[m]
     return out, m
+
+
+def adopt_hair(master, kind="book", n=5, dx=2, dy=0):
+    """Take the hair (lavender-grey strands and their outline) from another
+    frame of the same head: book ref [5] draws the twin tails with a cleaner
+    edge and its head sits exactly 2 px left of the rest pose, so its
+    conversion shifted back by (dx, dy) lines up with the master. Face, eyes,
+    ears and the red hair ties stay the master's."""
+    from scipy import ndimage
+    import layers
+    donor = convert(ref_path(kind, n))
+    donor = layers.shift(donor, dx, dy)
+    head = layers.head_mask(master)
+
+    def hairish(im):
+        c = im[:, :, :3].astype(int)
+        r, b = c[:, :, 0], c[:, :, 2]
+        sat = c.max(-1) - c.min(-1)
+        return (im[:, :, 3] > 0) & (b >= r - 4) & (sat < 50)
+
+    def hairish_any(a, b):
+        return hairish(a) & hairish(b)
+    # the head layer and one cell around it: the edge may move by a cell, but
+    # the cape below the tails (moved differently in that frame) is not hair
+    zone = ndimage.binary_dilation(head, iterations=1) & (layers.YY < 160)
+    zone &= ~(layers.torso_mask(master, head) & ~hairish_any(master, donor))
+    # the face (eyes, lashes, cheeks, mouth) stays the master's
+    zone[78:120, 82:129] = False
+
+    # hair in either image, plus background cells next to it (edge changes)
+    hair = (hairish(master) | hairish(donor)) & zone
+    bg = zone & ((master[:, :, 3] == 0) | (donor[:, :, 3] == 0))
+    take = hair | (bg & ndimage.binary_dilation(hair, iterations=1))
+    # never touch skin / ties / eyes: cells that are warm in either image
+    warm = lambda im: (im[:, :, 3] > 0) & ~hairish(im) & (im[:, :, :3].astype(int).max(-1) > 70)
+    take &= ~warm(master) | ~(donor[:, :, 3] > 0) | hairish(donor)
+    take &= ~(warm(master) & warm(donor))
+    out = master.copy()
+    out[take] = donor[take]
+    return out, int(np.any(out != master, axis=2).sum())

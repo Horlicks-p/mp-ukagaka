@@ -173,12 +173,25 @@ def frame(kind, n, base, master, content_base=None):
     ch_t = shift(changed(al_t, cb_t, torso_b, outline=band_b), *rt)
     ch_h = shift(changed(al_h, cb_h, head_b, outline=band_b), *rh)
     vacated = moving & ~t_mask & ~h_mask
-    # what a moved layer uncovers is cape / collar only within the cape's
-    # reach; beside the ears and hair it is background (a reference sample
-    # there would leave an isolated speck)
+    # What a moved layer uncovers: within the cape's reach it is cape /
+    # collar, taken from the reference. Beside the ears and hair it is
+    # background -- a reference sample there is the ear or hair itself at
+    # another phase and would leave a sliver -- unless the cell ends up
+    # enclosed by the character (neck under the chin): such holes are filled
+    # from the reference, else the content base, else the nearest colour.
     reveal = vacated & ndimage.binary_dilation(t_mask, iterations=1)
     out[vacated & ~reveal] = 0
     out[reveal] = conv_t[reveal]
+    opaque = out[:, :, 3] > 0
+    hole = ndimage.binary_fill_holes(opaque) & ~opaque
+    if hole.any():
+        for source in (conv_t, src):
+            fill = hole & (source[:, :, 3] > 0)
+            out[fill] = source[fill]
+            hole &= ~fill
+        if hole.any():
+            _, (iy, ix) = ndimage.distance_transform_edt(~(out[:, :, 3] > 0), return_indices=True)
+            out[hole] = out[iy[hole], ix[hole]]
     out[ch_t & ~h_mask] = conv_t[ch_t & ~h_mask]
     out[ch_h] = conv_h[ch_h]
     # 4. safety net: wherever the composite disagrees with this frame's own

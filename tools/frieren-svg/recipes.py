@@ -14,11 +14,15 @@ _MASTER = None
 
 
 def M():
-    """The master with its outline recoloured without the white halo
-    (convert.fix_outline) and its eye dots in their original teal (eyes.py)."""
+    """The master with its outline cleaned of the white halo
+    (convert.fix_outline), the hair of book ref [5], which draws the twin
+    tails with a cleaner edge (convert.adopt_hair), and its eye dots in
+    their original teal (eyes.py)."""
     global _MASTER
     if _MASTER is None:
-        _MASTER = eyes.fix(convert.fix_outline(pix.master())[0], "book", 1)[0]
+        m = convert.fix_outline(pix.master())[0]
+        m = convert.adopt_hair(m)[0]
+        _MASTER = eyes.fix(m, "book", 1)[0]
     return _MASTER.copy()
 
 
