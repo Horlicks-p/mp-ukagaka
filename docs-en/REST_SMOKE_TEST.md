@@ -191,7 +191,7 @@ curl.exe -s -D - --max-time 3 -X POST "$BASE/chat/user-stream" `
   2>&1 | Select-String "content-type|HTTP/"
 ```
 
-**Pass:** Response headers contain `Content-Type: text/event-stream`, and any events in the body are named `stream.*` / `nonce.refresh` with the session envelope (see API Reference → SSE Event Format). A bare `event: delta` means the envelope was bypassed.
+**Pass:** Response headers contain `Content-Type: text/event-stream`, and the events in the body carry the session envelope (`stream.status`, `nonce.refresh`, `stream.delta`, ...; see API Reference → SSE Event Format). A bare `event: delta` means the envelope was bypassed.
 If AI is not configured, an `event: error` SSE frame is acceptable — a plain HTTP 4xx/5xx is a regression.
 
 ---

@@ -656,7 +656,7 @@ Character authors can define available items in `ghost/<CharacterID>/items.json`
 
 ### Abilities
 
-Your character can perform site management tasks when the required integrations are available. Abilities need the WordPress Abilities API (`wp_register_ability()`), which is part of WordPress core from 6.9; on older sites the feature is simply inactive.
+Your character can perform site management tasks when the required integrations are available. Abilities need the WordPress Abilities API (`wp_register_ability()` must exist); without it the feature is inactive and `/debug_mcp` reports no tools.
 
 Abilities are server-side functions that the character can automatically invoke during conversations. As an admin, simply make a request in natural language through Chat Mode — the character will execute the appropriate backend tool and report the results. No special commands required — just talk naturally.
 
