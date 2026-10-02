@@ -1,0 +1,184 @@
+{
+  "format_version": 1,
+  "view_box": [
+    0,
+    0,
+    208,
+    328
+  ],
+  "display_height": 249,
+  "sequences": {
+    "idle": {
+      "loop": true,
+      "frames": [
+        {
+          "src": "idle/frieren-idle-00.svg",
+          "duration_ms": 4800
+        },
+        {
+          "src": "idle/frieren-idle-01.svg",
+          "duration_ms": 50
+        },
+        {
+          "src": "idle/frieren-idle-02.svg",
+          "duration_ms": 120
+        },
+        {
+          "src": "idle/frieren-idle-03.svg",
+          "duration_ms": 50
+        },
+        {
+          "src": "idle/frieren-idle-04.svg",
+          "duration_ms": 4800
+        },
+        {
+          "src": "idle/frieren-idle-05.svg",
+          "duration_ms": 120
+        },
+        {
+          "src": "idle/frieren-idle-06.svg",
+          "duration_ms": 50
+        },
+        {
+          "src": "idle/frieren-idle-07.svg",
+          "duration_ms": 50
+        },
+        {
+          "src": "idle/frieren-idle-08.svg",
+          "duration_ms": 50
+        },
+        {
+          "src": "idle/frieren-idle-09.svg",
+          "duration_ms": 50
+        },
+        {
+          "src": "idle/frieren-idle-10.svg",
+          "duration_ms": 4800
+        },
+        {
+          "src": "idle/frieren-idle-11.svg",
+          "duration_ms": 120
+        }
+      ]
+    },
+    "sleep": {
+      "loop": true,
+      "frames": [
+        {
+          "src": "sleep/frieren-sleep-00.svg",
+          "duration_ms": 300
+        },
+        {
+          "src": "sleep/frieren-sleep-01.svg",
+          "duration_ms": 300
+        },
+        {
+          "src": "sleep/frieren-sleep-02.svg",
+          "duration_ms": 600
+        },
+        {
+          "src": "sleep/frieren-sleep-03.svg",
+          "duration_ms": 300
+        },
+        {
+          "src": "sleep/frieren-sleep-04.svg",
+          "duration_ms": 600
+        },
+        {
+          "src": "sleep/frieren-sleep-05.svg",
+          "duration_ms": 300
+        },
+        {
+          "src": "sleep/frieren-sleep-06.svg",
+          "duration_ms": 300
+        },
+        {
+          "src": "sleep/frieren-sleep-07.svg",
+          "duration_ms": 300
+        },
+        {
+          "src": "sleep/frieren-sleep-08.svg",
+          "duration_ms": 300
+        },
+        {
+          "src": "sleep/frieren-sleep-09.svg",
+          "duration_ms": 300
+        }
+      ]
+    },
+    "book_flip": {
+      "loop": false,
+      "frames": [
+        {
+          "src": "book/frieren-book-01.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-02.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-03.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-04.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-05.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-06.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-07.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-08.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-09.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-10.svg",
+          "duration_ms": 150
+        },
+        {
+          "src": "book/frieren-book-11.svg",
+          "duration_ms": 150
+        }
+      ]
+    },
+    "wake": {
+      "loop": false,
+      "frames": [
+        {
+          "src": "wake/frieren-wake-01.svg",
+          "duration_ms": 80
+        },
+        {
+          "src": "wake/frieren-wake-02.svg",
+          "duration_ms": 80
+        },
+        {
+          "src": "wake/frieren-wake-03.svg",
+          "duration_ms": 80
+        },
+        {
+          "src": "wake/frieren-wake-04.svg",
+          "duration_ms": 80
+        },
+        {
+          "src": "wake/frieren-wake-05.svg",
+          "duration_ms": 80
+        }
+      ]
+    }
+  }
+}
