@@ -5,6 +5,8 @@ Description: Create your own ukagakas. Supports reading dialogues from dialogs/*
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 Stable tag: 2.33.2
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/

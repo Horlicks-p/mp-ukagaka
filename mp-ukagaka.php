@@ -6,6 +6,8 @@ Description: Create your own ukagakas. 支援從 dialogs/*.txt 或 *.json 讀取
 Version: 2.33.2
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
 if (!defined("ABSPATH")) {

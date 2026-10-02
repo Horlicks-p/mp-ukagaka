@@ -163,7 +163,7 @@ For detailed information, please refer to:
 
 ## 📄 License
 
-GPLv2 (see [LICENSE](LICENSE)). Based on the original MP Ukagaka plugin by Ariagle.
+GPLv2 or later (see [LICENSE](LICENSE)). Based on the original MP Ukagaka plugin by Ariagle.
 
 ---
 
