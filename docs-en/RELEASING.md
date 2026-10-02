@@ -23,8 +23,23 @@ run verify` runs the check, so an incomplete release fails the pipeline.
 
 3. **Verify** — `npm --prefix tools/node run verify` must be green.
 
-4. **Ship** — commit as `chore(release): X.Y.Z`, then tag `vX.Y.Z` and push the tag.
-   The `release.yml` workflow builds and attaches `mp-ukagaka.zip`; never attach it manually.
+4. **Ship** — commit as `chore(release): X.Y.Z` on `main` and push it, then create and push an
+   annotated tag:
+   ```bash
+   git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z
+   ```
+
+5. **Publish the GitHub Release** — pushing the tag alone does nothing; `release.yml` runs on
+   `release: published`:
+   ```bash
+   gh release create vX.Y.Z --title "vX.Y.Z — Short Title" --notes-file <notes.md>
+   ```
+   Use the version's `docs-en/CHANGELOG.md` section as the notes. The workflow builds
+   `mp-ukagaka.zip` with `git archive` from the tag and attaches it within a minute or so;
+   never attach it manually. The in-plugin updater (`includes/updater/github-updater.php`)
+   downloads that asset, so a release without it cannot be installed by sites.
+   If the workflow failed, re-run it from the Actions tab (it also accepts a manual
+   `workflow_dispatch` with the tag).
 
 `README_ja.md` and `README_zh-TW.md` are intentionally version-free — both state that
 `docs-en/` is the single source of truth, and neither is synced per release.

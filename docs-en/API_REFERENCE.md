@@ -360,7 +360,7 @@ function mpu_call_ai_api(
     $api_key,
     $system_prompt,
     $user_prompt,
-    $language = 'zh-TW',
+    $language,
     $mpu_opt = null,
     $max_tokens = null
 )
@@ -987,10 +987,10 @@ Gets the message array structure of the specified character (includes `msgall`, 
 
 ```php
 /**
- * @param string $num Character key (e.g. 'default_1', 'frieren')
+ * @param string|false $num Character key (e.g. 'default_1'); false = current character
  * @return array Message array
  */
-function mpu_get_msg_arr($num)
+function mpu_get_msg_arr($num = false)
 ```
 
 ---
@@ -1091,8 +1091,12 @@ function mpu_generate_dialog_file($filename, $msg_array, $ext)
 
 Filters the LLM System Prompt (including personality card, WordPress context, behavior rules, etc. in complete XML structure).
 
+Only LLM auto talk (`/nextmsg` → `mpu_generate_llm_dialogue()`) applies this filter. The REST chat, touch and page-aware paths build their prompt through `mpu_resolve_system_prompt()` and do not pass through it. The fourth argument is an information array, not a context string.
+
 ```php
-add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personality_id, $context) {
+add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personality_id, $info) {
+    // $info = ['wp_info' => [...], 'user_info' => [...], 'visitor_info' => [...],
+    //          'time_context' => '...', 'language' => '...']
     return $prompt;
 }, 10, 4);
 ```
@@ -1117,7 +1121,7 @@ add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_
 
 #### mpu_prompt_categories
 
-Filters the category definitions for LLM auto-talk (Greeting, Casual, Time Aware, Statistics Observation, etc. 35+ categories).
+Filters the category definitions for LLM auto-talk (Greeting, Casual, Time Aware, Statistics Observation, etc.; the set comes from the personality's prompt files).
 
 ```php
 add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_info, $time_context) {
@@ -1129,7 +1133,7 @@ add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_inf
 
 #### mpu_category_weights
 
-Filters the weighted random weights of dialogue categories. Higher value means more easily selected; default is 5.
+Filters the weighted random weights of dialogue categories after time, calendar and cooldown adjustments. Higher value means more easily selected.
 
 ```php
 add_filter('mpu_category_weights', function($weights, $time_context, $visitor_info, $context_vars) {
@@ -1171,6 +1175,64 @@ add_filter('mpu_observation_post_visibility', function($visible, $post) {
 }, 10, 2);
 ```
 
+#### mpu_mcp_tools_for_llm
+
+Filters the provider-formatted tool (ability) definitions offered to the LLM. See [Abilities API](ABILITIES_API.md).
+
+```php
+add_filter('mpu_mcp_tools_for_llm', function($tools, $provider, $role, $context) {
+    return $tools; // $role is the resolved MPU_Input_Role value
+}, 10, 4);
+```
+
+#### mpu_chat_integrity_mode
+
+Filters the chat-history checksum enforcement mode. Allowed values: `audit` (log only, the default from the `chat_integrity_mode` option), `warn` (log as warning), `block` (reject the request with a `WP_Error` before the LLM call). Any other value falls back to the option.
+
+```php
+add_filter('mpu_chat_integrity_mode', function($mode) {
+    return 'block';
+});
+```
+
+#### mpu_chat_lock_ttl
+
+Filters the chat lifecycle lock TTL in seconds (default `60`). The lock prevents concurrent LLM requests for one session.
+
+#### mpu_runtime_state_ttl
+
+Filters the runtime-state transient TTL in seconds (default `5 * MINUTE_IN_SECONDS`).
+
+#### mpu_debug_llm_prompts
+
+Filters whether full LLM prompts and history are written to the debug log. Defaults to `defined('MPU_DEBUG_LLM') && MPU_DEBUG_LLM`; it is deliberately independent of `WP_DEBUG` because prompts contain conversation content and administrator profile data.
+
+#### mpu_debug_llm_prompt_message_limit
+
+Filters how many chat messages are included when prompt logging is on (default `12`).
+
+### Actions
+
+#### mpu_chat_integrity_mismatch
+
+Fires when a chat-history checksum does not match, after the diagnostic dump is written to `logs/checksum-mismatch.log`.
+
+```php
+add_action('mpu_chat_integrity_mismatch', function($data) {
+    // $data: session_id, expected, actual, mode, decision, source, history_count
+});
+```
+
+#### mpu_chat_lock_acquired / mpu_chat_lock_conflict / mpu_chat_lock_released
+
+Fire around the chat lifecycle lock.
+
+```php
+add_action('mpu_chat_lock_acquired', function($session_id, $payload) {}, 10, 2);
+add_action('mpu_chat_lock_conflict', function($session_id, $existing, $context) {}, 10, 3);
+add_action('mpu_chat_lock_released', function($session_id, $existing) {}, 10, 2);
+```
+
 ---
 
 ## REST Endpoints
@@ -1180,9 +1242,9 @@ add_filter('mpu_observation_post_visibility', function($visible, $post) {
 ### Basic Info
 
 - **Namespace**: `/wp-json/mp-ukagaka/v1`
-- **Permissions**: Most endpoints are public (`__return_true`), only testing/cache management endpoints are admin-only.
+- **Permissions**: Most endpoints are public (`__return_true`); AI-backed ones additionally require a valid session token from anonymous visitors. `/test-connection/{provider}`, `/clear-cache` and `/memory/extract` are admin-only.
 - **Rate Limit**: Counted independently per endpoint, returns HTTP 429 when exceeded.
-- **Response Format**: Except for `/chat/user-stream` (SSE), all are JSON; structured as `{ success, data, ... }` or `WP_Error`.
+- **Response Format**: Except for `/chat/user-stream` (SSE), all are JSON. Successful responses are the endpoint's own object, returned as-is (no `{ success, data }` wrapper; a few, such as `/init`, include `success: true` in that object). Failures are `WP_Error` objects (`{ code, message, data: { status } }`); a missing session token returns `403` with `code: "missing_session_token"`.
 - **Session Token**: Anonymous visitors should first call `/session-token`, then send the token as the `X-MPU-Session-Token` header or `session_token` parameter for session-bound requests. Logged-in users receive an empty token from `/session-token`; endpoints explicitly marked as requiring a valid session token still require one.
 
 ### Character / Settings
@@ -1206,6 +1268,7 @@ add_filter('mpu_observation_post_visibility', function($visible, $post) {
 | `/visitor-info` | GET | Public | — | 30/60s | Returns visitor info such as referrer, search engine, Slimstat country/city, etc. |
 | `/decoration-prompts` | GET / POST | Public | `decoration_type` | 20/60s | Gets prompts for decoration click dialogue |
 | `/wake-ghost` | POST | Public | `personality_id` or `ukagaka_num` (at least one) | 10/60s | Temporarily wakes up a sleeping character; WP_Error codes: `rest_wake_ghost_missing_param`, `rest_wake_ghost_unavailable` |
+| `/check-spam-event` | POST | Public | — | 20/60s | Polled by the frontend with auto talk. When LLM dialogue replacement is on and an Akismet spam or Turnstile block event is pending (and its cooldown has passed), returns `{has_event: true, msg, emoji, ...}`; otherwise `{has_event: false}`. Registered procedurally in `includes/integrations/akismet-integration.php`. |
 
 ### AI Chat
 
@@ -1213,8 +1276,8 @@ add_filter('mpu_observation_post_visibility', function($visible, $post) {
 | --- | --- | --- | --- | --- | --- |
 | `/chat/context` | POST | Public + valid session token | `page_title`, `page_content`, `publish_date`, `session_id`, `history` | 5/60s | Page aware dialogue, triggers AI comments based on current article content; max 500 chars |
 | `/chat/greet` | POST | Public + valid session token | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `session_id`, `history` | 10/60s | First-time visitor greeting, customized by source country/search engine |
-| `/chat/user` | POST | Public + valid session token | `message` (required), `history`, `page_title`, `page_content`, `session_id` | 30/60s | Multi-turn interactive chat (non-streaming), supports MCP Tool/Abilities calls; returns `{msg, emoji}` |
-| `/chat/user-stream` | POST | Public + valid session token | Same as `/chat/user` | 30/60s | SSE streaming version, outputs token-by-token if supported by Provider |
+| `/chat/user` | POST | Public + valid session token | `message` (required), `history`, `page_title`, `page_content`, `session_id` | 30/60s | Multi-turn interactive chat (non-streaming), supports MCP Tool/Abilities calls; returns the normalized reply `{msg, emoji, emotion_tags, emotion_files, primary_emotion_tag, primary_emotion_file, think}` |
+| `/chat/user-stream` | POST | Public + valid session token | Same as `/chat/user` | 30/60s | SSE streaming version, outputs chunk-by-chunk (see the event format below) |
 | `/session-token` | GET | Public | — | 10/60s | Issues an IP-bound session token for anonymous visitors; returns `{token}` with no-store cache headers |
 
 ### Touch Interactions
@@ -1245,36 +1308,46 @@ add_filter('mpu_observation_post_visibility', function($visible, $post) {
 
 ### `/chat/user-stream` SSE Event Format
 
-Starting from v2.12.x, interactive chat supports Server-Sent Events. The stream sends events in a fixed sequence using the `text/event-stream` format:
-
-| Event | Fired When | Data Content |
-| --- | --- | --- |
-| `start` | Stream starts | `{"provider": "gemini", "model": "gemini-2.5-flash"}` |
-| `nonce` | Immediately after `start` | `{"new_token": "<nonce>", "new_nonce": "<nonce>"}` — Provides a new nonce for the next request |
-| `delta` | When AI generates tokens (multiple triggers) | `{"text": "Yes"}` — Single token/chunk |
-| `done` | Stream ends | `{"msg": "Full message", "emoji": "smile"}` — Final result after length truncation and emoji analysis |
-| `error` | Provider doesn't support streaming, or error occurs | `{"message": "<error_message>"}` |
-
-**Raw Stream Example**:
+The stream uses `text/event-stream`. Every event is sent through `mpu_sse_send_event()`, which wraps it in the transport-neutral envelope built by `MPU_Session_Event`: the `event:` line carries the event **kind**, and `data:` is an envelope whose `payload` holds the actual fields.
 
 ```
-event: start
-data: {"provider":"gemini","model":"gemini-2.5-flash"}
+event: stream.delta
+data: {"eventId":"<uuid>","ts":"2026-10-02T01:37:02+00:00","kind":"stream.delta","payload":{"text":"今日"}}
+```
 
-event: nonce
-data: {"new_token":"a1b2c3","new_nonce":"a1b2c3"}
+Internal event names are mapped to kinds as follows; names without a mapping are sent as-is.
 
-event: delta
-data: {"text":"今日"}
+| Internal name | Wire kind | Payload | When |
+| --- | --- | --- | --- |
+| `start` | `stream.status` | `{provider, model}` | Stream opened |
+| `nonce` | `nonce.refresh` | `{new_token, new_nonce}` | Right after `start`; the frontend replaces `mpuRestNonce` |
+| `status` | `stream.status` | `{type: "executing_tool", tool}` or `{type: "thinking_start" \| "thinking_end"}` | Tool call running; `<think>` block opened / closed |
+| `delta` | `stream.delta` | `{text}` | Each chunk of the visible reply |
+| `emotion` | `emotion` | `{tag, file}` | An inline emotion tag was parsed out of the stream |
+| `think_delta` | `think_delta` | `{text}` | Progressive `<think>` text (only when inner monologue is enabled for the context) |
+| `think` | `think` | `{text, final: true}` | Final `<think>` text |
+| `done` | `stream.done` | `{msg, emoji, emotion_tags, emotion_files, primary_emotion_tag, primary_emotion_file, think}` | Final normalized reply; terminal |
+| `error` | `stream.error` | `{message}` | Terminal. The message is always a generic, translated string; the provider's raw error (cURL text, API body) goes only to `mpu_log_error()`. At most one `error` is sent per stream, including when the provider emitted its own. |
 
-event: delta
-data: {"text":"はいい天気"}
+The client (`js/ukagaka-chat-sse.js`, `mpuFetchSSE()`) unwraps the envelope, still accepts the bare legacy names, and treats a stream that closes without `stream.done` or `stream.error` as an error (`mpu_sse_incomplete`). If the server answers with `application/json` instead (for example admin slash commands such as `/debug_mcp`, or an early `WP_Error`), the body is handed to the done / error handler directly.
 
-event: delta
-data: {"text":"ですね。"}
+**Raw stream example** (envelope fields abbreviated):
 
-event: done
-data: {"msg":"今日はいい天気ですね。","emoji":"happy"}
+```
+event: stream.status
+data: {"kind":"stream.status","payload":{"provider":"gemini","model":"gemini-2.5-flash"}}
+
+event: nonce.refresh
+data: {"kind":"nonce.refresh","payload":{"new_token":"a1b2c3","new_nonce":"a1b2c3"}}
+
+event: stream.delta
+data: {"kind":"stream.delta","payload":{"text":"今日はいい天気"}}
+
+event: stream.delta
+data: {"kind":"stream.delta","payload":{"text":"ですね。"}}
+
+event: stream.done
+data: {"kind":"stream.done","payload":{"msg":"今日はいい天気ですね。","emoji":"happy.png", ...}}
 ```
 
 ---
@@ -1297,54 +1370,43 @@ A few non-chat actions are still executed via `admin-ajax.php`, mainly for inter
 
 #### mpu_nextmsg(trigger)
 
-Displays the next message.
+Displays the next message (sequential or random according to the `next_msg` setting; from the LLM when dialogue replacement is on). It does nothing while a message block is held, while chat mode is active, or while a touch / decoration dialog is open.
 
 ```javascript
 /**
- * @param {string} trigger - 'next' sequential / 'random' random / '' use setting value
+ * @param {string} trigger - "auto" (auto-talk timer), "startup" (first line after load),
+ *                           anything else is treated as a manual click
  */
-mpu_nextmsg("next");
+mpu_nextmsg("");
 ```
 
 ---
 
-#### mpu_hidemsg()
+#### mpu_hidemsg(speed) / mpu_showmsg(speed)
 
-Hides the dialogue box.
+Fades the dialogue box out / in. `speed` is the jQuery fade duration in ms (default `400`); `0` or `""` hides / shows immediately.
 
 ```javascript
 mpu_hidemsg();
+mpu_showmsg(0);
 ```
 
 ---
 
-#### mpu_showmsg()
+#### mpu_hiderobot(speed) / mpu_showrobot(speed)
 
-Shows the dialogue box.
-
-```javascript
-mpu_showmsg();
-```
-
----
-
-#### mpu_hiderobot()
-
-Hides the character.
+Hides / shows the character, with the same `speed` argument (default `400`).
 
 ```javascript
 mpu_hiderobot();
+mpu_showrobot();
 ```
 
 ---
 
-#### mpu_showrobot()
+#### Message blocking
 
-Shows the character.
-
-```javascript
-mpu_showrobot();
-```
+`mpuAcquireMessageBlock(owner)`, `mpuReleaseMessageBlock(owner)` and `mpuHasMessageBlock(owner)` hold and release the block that stops auto talk and the OK button from replacing the current message. Each flow uses its own owner name; `mpuMessageBlocking` is true while any owner remains. `mpuSetMessageBlocking(bool)` is kept for extensions and uses the `legacy` owner. See [Developer Guide → Message Blocking](DEVELOPER_GUIDE.md#message-blocking).
 
 ---
 

@@ -37,8 +37,8 @@ In MP Ukagaka, each character personality is stored under the `ghost/` folder in
 
 To create a new personality, **the following files are required at a minimum**:
 
-1. **`manifest.json`** - Personality metadata and settings
-2. **`shell/{PersonalityID}/{PersonalityID}.png`** - The character's main image (at least one)
+1. **`manifest.json`** - Personality metadata and settings (`id` is mandatory)
+2. **`shell/`** - At least one character image (`.png`, `.jpg`, `.jpeg`, `.gif` or `.webp`) placed **directly** in this folder
 
 ### Minimal Example
 
@@ -47,9 +47,10 @@ ghost/
 └── MyCharacter/
     ├── manifest.json
     └── shell/
-        └── MyCharacter/
-            └── MyCharacter.png
+        └── mycharacter.png
 ```
+
+> ⚠️ Do not put the images in a subfolder such as `shell/MyCharacter/`. A ZIP-installed personality's image path is always `ghost/{PersonalityID}/shell/`, and only that folder's own files are read — images one level deeper are never found.
 
 ---
 
@@ -65,12 +66,10 @@ ghost/
     ├── personality.md      # Recommended: Personality background / Character description
     ├── system_prompt.md    # Legacy compat: Legacy prompt fallback
     │
-    ├── shell/              # Required: Character image folder
-    │   └── {PersonalityID}/       # Image subfolder (usually the same name as the Personality ID)
-    │       ├── {PersonalityID}.png          # Main image (Required)
-    │       ├── {PersonalityID}[0].png       # Animation frame (Optional)
-    │       ├── {PersonalityID}[1].png       # Animation frame (Optional)
-    │       └── ...
+    ├── shell/              # Required: Character images, directly in this folder
+    │   ├── mycharacter1.png        # Played in natural filename order
+    │   ├── mycharacter2.png
+    │   └── ...
     │
     ├── decorations/        # Optional: Decoration image folder
     │   ├── item1.png
@@ -96,9 +95,8 @@ ghost/
 
 ### Required Fields
 
-- `id`: The unique identifier for the personality (alphanumeric, underscores, hyphens; PascalCase is recommended).
-- `name`: Character display name (default language).
-- `shell_folder`: Name of the shell image folder (usually the same as `id`).
+- `id`: The unique identifier for the personality (alphanumeric, underscores, hyphens; PascalCase is recommended). ZIP installation is rejected without it, and it becomes the folder name under `ghost/`.
+- `name`: Character display name (default language). On ZIP installation the new ukagaka's display name is taken from `name_zh` when present, otherwise `name`, otherwise `id`.
 
 ### Complete Field Descriptions
 
@@ -113,14 +111,14 @@ ghost/
   "description": "Character description", // Optional: Character introduction
   "description_en": "Character description",  // Optional: English description
   "language": "ja",                       // Optional: Primary language (ja/zh-TW/en)
-  "shell_folder": "MyCharacter",          // Required: Shell image folder name
+  "shell_folder": "MyCharacter",          // Informational only; the plugin does not read it
   "decorations_folder": "decorations",    // Optional: Decoration folder name (Default "decorations")
   "script": "mycharacter.js",             // Optional: Old format, single JavaScript script
   "scripts": ["mycharacter.js"],          // Optional: New format, supports multiple scripts
   
   "settings": {                           // Optional: Behavior settings
     "max_response_length": 500,           // Response length limit (characters, default 500)
-    "max_tokens": 800,                     // Token limit during API call (default 800)
+    "max_tokens": 800,                     // Token limit during API calls (fallback depends on the path, see below)
     "speech_style": "常体",                // Speech style (metadata, currently not actively used)
     "tone": "淡々とした",                  // Tone (metadata, currently not actively used)
     "emoji_style": "minimal"              // Emoji style (metadata, currently not actively used)
@@ -136,8 +134,41 @@ ghost/
   
   "system_prompt": "You are...",          // Optional: Old format prompt fallback (string or array)
                                            // Recommended to use instructions.md + personality.md instead
+
+  "emoji": {                              // Optional: Emoji system
+    "script": "mycharacter-emoji.js",
+    "folder": "emojis",
+    "supported": ["notice", "thinking", "laugh"]
+  },
+
+  "features": {                           // Optional: Per-context inner-monologue switches
+    "inner_monologue_contexts": { "chat": true, "touch": true, "page_aware": true,
+                                  "decoration": false, "initial": false, "diary": false }
+  },
+
+  "thinking_placeholder": {               // Optional: Text shown while waiting for the AI, per context
+    "default": "...", "chat": "...", "touch": "...", "decoration": "...", "initial": "..."
+  },
+
+  "sleep_settings": {                     // Optional: Overrides the built-in sleep schedule
+    "deep_sleep_start": 0,                //   hour (or [earliest, latest] hours)        default 0
+    "deep_sleep_end": 6,                  //   hour                                      default 6
+    "oversleep_enabled": true,            //                                             default true
+    "oversleep_max_hour": 8,              //                                             default 8
+    "oversleep_probability": 0.5,         //                                             default 0.5
+    "nap": {                              //   Daytime nap, off by default
+      "enabled": false,
+      "window_start": 750,                //   minutes of day (750 = 12:30)
+      "window_end": 810,                  //   minutes of day (810 = 13:30)
+      "probability": 0.4,
+      "min_minutes": 30,
+      "max_minutes": 60
+    }
+  }
 }
 ```
+
+`features.inner_monologue_contexts` overrides the per-context defaults described in the Developer Guide's inner monologue section. `sleep_settings` is merged over the defaults shown, so only the keys you change are needed; Frieren sleeps from 22–23 h to 7 h, may oversleep until 9 h, and naps 12:30–13:30 with probability 0.4.
 
 ### Example
 
@@ -147,22 +178,24 @@ ghost/
   "name": "フリーレン",
   "name_en": "Frieren",
   "name_zh": "芙莉蓮",
-  "version": "1.0.0",
+  "version": "2.5.1",
   "author": "和製ホーリックス",
-  "description": "An elven mage who has lived for over a thousand years. She speaks in a flat tone and enjoys collecting magic.",
+  "description_en": "An elven mage who has lived for over a thousand years. Speaks in a calm, matter-of-fact tone and collects magic as a hobby.",
   "language": "ja",
   "shell_folder": "Frieren",
   "decorations_folder": "decorations",
-  "script": "frieren.js",
+  "scripts": ["frieren.js", "frieren-animation.js", "frieren-interactions.js", "frieren-decorations.js", "frieren-emoji.js"],
   "settings": {
-    "max_response_length": 500,
-    "max_tokens": 800,
+    "max_response_length": 150,
+    "max_tokens": 600,
     "speech_style": "常体",
-    "tone": "淡々とした",
+    "tone": "淡々とした口調",
     "emoji_style": "minimal"
   }
 }
 ```
+
+An excerpt of `ghost/Frieren/manifest.json`; the real file also carries `character_traits`, `emoji`, `features` and more.
 
 ### settings Field Description
 
@@ -175,28 +208,18 @@ The `settings` object contains the behavioral settings of the character, where t
   - Backend truncation limit (character count).
   - When the AI response exceeds this length, the system will automatically truncate it and append `...`.
   - This limit applies to all dialogue types (page-aware, first-time visitor, interactive dialogue, touch zones, decoration clicks, spontaneous dialogues).
-- **`max_tokens`** (Default: 800)
+- **`max_tokens`**
 
-  - Token limit for API calls.
-  - Controls the maximum number of tokens generated by the AI model's response.
-  - Roughly equals 600-800 characters (depending on language and content).
-  - Used for all AI dialogue types.
+  - Token limit for API calls (the model's output budget).
+  - When set, it applies to every AI dialogue type of this personality.
+  - When omitted, interactive chat and page-aware comments fall back to the admin **Max Output Tokens** setting (`ai_max_tokens`, default 1000); auto talk, the first-visit greeting and touch / decoration / gift reactions fall back to 800.
+  - The wake-up reaction always uses a fixed 120.
 
-#### Three-Layer Protection Mechanism
+#### Three Layers of Length Control
 
-The system implements a unified three-layer character limit mechanism:
-
-1. **Prompt Recommendation**: 30-150 words (soft guidance).
-
-   - Instructs the AI in the System Prompt and User Prompt to keep the response within the 30-250 word range.
-2. **API max_tokens**: 800 (Configurable via `max_tokens`).
-
-   - Limits the maximum tokens generated by the AI model.
-   - Read from `settings.max_tokens` in `manifest.json`, default is 800.
-3. **Backend Truncation**: 150 words (Configurable via `max_response_length`).
-
-   - The final safety net.
-   - Read from `settings.max_response_length` in `manifest.json`, default is 500.
+1. **Prompt guidance**: the built-in prompts ask for replies of about 30–150 characters (soft guidance only).
+2. **API `max_tokens`**: caps what the model can generate (see above).
+3. **Backend truncation**: `max_response_length` characters (default 500, minimum 20). Longer replies are cut and `...` is appended. Frieren sets 150.
 
 ### JSON Formatting Rules
 
@@ -629,27 +652,20 @@ Adjusts weights based on the time period. Will be merged with `base_weights`.
 
 ## Shell Image Files
 
-Shell images are the visual representation of the character, stored in the `shell/{PersonalityID}/` folder.
+Shell images are the visual representation of the character. For a ZIP-installed personality they live **directly** in `ghost/{PersonalityID}/shell/`.
 
-### Required Files
+### How They Are Used
 
-- **`{PersonalityID}.png`**: Main image (Required)
+- The plugin reads every `.png`, `.jpg`, `.jpeg`, `.gif` and `.webp` file in the folder (subfolders are ignored) and sorts the names naturally (`char2.png` before `char10.png`).
+- One image: it is shown as a still.
+- Several images: they are played in that order as an animation by the generic canvas manager.
+- File names carry no other meaning to the core plugin. There is no required "main image" name.
 
-### Optional Files (Animations)
-
-- `{PersonalityID}[0].png`, `{PersonalityID}[1].png`, ...: Animation frames
-- `{PersonalityID}[s].png`: Special state image
-- `{PersonalityID}[w1].png`, `{PersonalityID}[w2].png`, ...: Wake-up animation frames
-
-### Naming Conventions
-
-1. **Main image**: `{PersonalityID}.png` (e.g., `Frieren.png`)
-2. **Animation frames**: `{PersonalityID}[Number].png` (e.g., `Frieren[0].png`, `Frieren[1].png`)
-3. **Special states**: `{PersonalityID}[Letter].png` (e.g., `Frieren[s].png`)
+Names such as `frieren[0].png`, `frieren[s].png` (sleeping) and `frieren[w1].png` (waking up) are a convention of Frieren's own script (`ghost/Frieren/frieren-animation.js`), which picks frames by name for its idle, page-turn, sleep and wake animations. A new personality only needs that kind of naming if it ships a script that looks for it.
 
 ### Image Formats
 
-- **Format**: PNG (Recommended) or JPG
+- **Format**: PNG (Recommended), JPG, GIF or WebP
 - **Size**: Recommended 200-400px width, height is custom
 - **Background**: Transparent background is recommended (PNG)
 
@@ -657,16 +673,12 @@ Shell images are the visual representation of the character, stored in the `shel
 
 ```
 shell/
-└── Frieren/
-    ├── Frieren.png        # Main image (Required)
-    ├── Frieren[0].png     # Animation frame 0
-    ├── Frieren[1].png     # Animation frame 1
-    ├── Frieren[2].png     # Animation frame 2
-    ├── Frieren[s].png     # Special state
-    ├── Frieren[w1].png    # Wake-up animation 1
-    ├── Frieren[w2].png    # Wake-up animation 2
-    └── ...
+├── mycharacter1.png
+├── mycharacter2.png
+└── mycharacter3.png
 ```
+
+> The bundled Frieren is configured by the plugin's defaults to use `ghost/Frieren/shell/Frieren/`. That subfolder works only because her ukagaka entry points at it directly; a ZIP install always points at `shell/` itself.
 
 ---
 
@@ -731,13 +743,12 @@ MyCharacter.zip
     ├── instructions.md
     ├── personality.md
     ├── shell/
-    │   └── MyCharacter/
-    │       └── MyCharacter.png
+    │   └── mycharacter.png
     ├── prompts.json
     └── weights.json
 ```
 
-**Note**: The ZIP file must **not** contain the top-level folder name (e.g., `MyCharacter/manifest.json`); it should directly contain the files.
+**Note**: The ZIP file must **not** contain the top-level folder name (e.g., `MyCharacter/manifest.json`); it should directly contain the files. The personality is installed to `ghost/{id}/`; uploading a ZIP whose `id` already exists asks for confirmation before overwriting, and the built-in IDs `Frieren` and `default_1` cannot be overwritten.
 
 ---
 
@@ -752,8 +763,7 @@ ghost/
 └── SimpleCharacter/
     ├── manifest.json
     └── shell/
-        └── SimpleCharacter/
-            └── SimpleCharacter.png
+        └── simplecharacter.png
 ```
 
 ### 2. manifest.json
@@ -761,8 +771,7 @@ ghost/
 ```json
 {
   "id": "SimpleCharacter",
-  "name": "Simple Character",
-  "shell_folder": "SimpleCharacter"
+  "name": "Simple Character"
 }
 ```
 
@@ -825,7 +834,7 @@ You are "Simple Character". Please interact with the visitor in a concise and fr
 Basic steps to create a new personality:
 
 1. ✅ Create `manifest.json` (Required)
-2. ✅ Prepare `shell/{PersonalityID}/{PersonalityID}.png` (Required)
+2. ✅ Put at least one image directly in `shell/` (Required)
 3. ⭐ Create `instructions.md` and `personality.md` (Recommended, used to define character behavior)
 4. 📝 Create `prompts.json` and `weights.json` (Used in LLM mode)
 5. 🎨 Add `decorations.json` and decoration images (Optional)
@@ -835,4 +844,4 @@ Basic steps to create a new personality:
 
 ---
 
-**Last Updated**: 2026-01-15
+**Last Updated**: 2026-10-02

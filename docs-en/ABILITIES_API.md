@@ -39,9 +39,29 @@ Currently, this plugin supports multiple providers with Tool Calling capabilitie
 
 The actually available models depend on the plugin's current settings and the corresponding provider implementation.
 
+## Built-in Abilities
+
+| Ability | Class | What it does |
+| --- | --- | --- |
+| `mp-ukagaka/get-popular-posts` | `Wp_PostViews_Ability` | Most-viewed posts (WP-PostViews) |
+| `mp-ukagaka/get-bot-blocker-stats` | `Wp_Bot_Blocker_Ability` | Bot blocker statistics |
+| `mp-ukagaka/ban-ip` | `Wp_Bot_Blocker_Ability` | Ban an IP address |
+| `mp-ukagaka/clear-bot-blocker-data` | `Wp_Bot_Blocker_Ability` | Clear bot blocker logs |
+| `mp-ukagaka/get-visitor-pulse` | `Visitor_Pulse_Ability` | Recent visitor activity summary |
+| `mp-ukagaka/get-recent-ai-crawlers` | `AI_Crawler_Ability` | Recent AI crawler signals |
+
 ## Permissions and Security
 
-Core abilities involving sensitive operations (such as file operations, deleting posts, etc.) will be automatically intercepted if triggered by non-admin users. The system will return an insufficient permissions prompt to ensure security.
+Who may use an ability is decided by `MPU_Input_Role` (`includes/core/class-mpu-input-role.php`). The role is resolved per request, and tools a role may not use are left out of the tool list sent to the LLM; a call that slips through is refused again at execution time with an insufficient-permissions result.
+
+| Role | Resolved when | Allowed abilities |
+| --- | --- | --- |
+| `admin` | `current_user_can('manage_options')` | All, including abilities registered by other plugins |
+| `system` | Internal calls (`cron`, `system`, `diary`, `auto_talk` sources) | `get-visitor-pulse`, `get-popular-posts`, `get-recent-ai-crawlers` |
+| `subscriber` | Any other logged-in user | `get-popular-posts` |
+| `visitor` | Not logged in | `get-popular-posts` |
+
+To let non-admin roles use a new ability, add it to the whitelist in `MPU_Input_Role::can_use_ability()`. Abilities registered by other plugins (Method 1 below) are admin-only unless added there.
 
 ![Permission Interception Diagram](../screenshot6.PNG)
 
@@ -116,7 +136,9 @@ includes/mcp-tools/
 ├── manager.php                  # Automatically discovers and registers all ability classes
 └── abilities/
     ├── class-wp-postviews-ability.php     # Example: Read-only, no parameters
-    └── class-wp-bot-blocker-ability.php   # Example: Multiple abilities, with parameters and Enums
+    ├── class-wp-bot-blocker-ability.php   # Example: Multiple abilities, with parameters and Enums
+    ├── class-visitor-pulse-ability.php
+    └── class-ai-crawler-ability.php
 ```
 
 **Execution Flow:**
@@ -125,7 +147,7 @@ includes/mcp-tools/
 2. `abilities-integration.php` → `mpu_get_mcp_tools_for_llm()` → Formats the tool schema according to different LLM providers.
 3. LLM request invokes the tool → `mpu_execute_mcp_tool()` → `$ability->execute($args)` → Calls your defined callback.
 
-**Admin Permission Restriction:** The tool definition is **not** sent to non-admin visitors. Only users with `current_user_can('manage_options')` can trigger a tool call. This restriction is enforced at the integration layer, not within the ability itself.
+**Permission Restriction:** Access is enforced at the integration layer by the `MPU_Input_Role` whitelist (see [Permissions and Security](#permissions-and-security)), not within the ability itself. A new ability is admin-only until it is added to that whitelist.
 
 #### 2. Step-by-Step Development Guide (SOP)
 
@@ -187,6 +209,8 @@ Add the full class namespace to the `$abilities` array in `includes/mcp-tools/ma
 protected static $abilities = [
     '\MP_Ukagaka\McpTools\Abilities\Wp_PostViews_Ability',
     '\MP_Ukagaka\McpTools\Abilities\Wp_Bot_Blocker_Ability',
+    '\MP_Ukagaka\McpTools\Abilities\Visitor_Pulse_Ability',
+    '\MP_Ukagaka\McpTools\Abilities\AI_Crawler_Ability',
     '\MP_Ukagaka\McpTools\Abilities\Wp_YourFeature_Ability',  // ← Add here
 ];
 ```
@@ -212,7 +236,7 @@ The following 5 fields are **absolutely required** (missing any of them will res
 | `description`         | **YES**  | The only basis for the LLM to determine when to call this tool.                                      |
 | `category`            | **YES**  | Must be set to `'mp-ukagaka'`.                                                                       |
 | `execute_callback`    | **YES**  | Please use the `[self::class, 'method_name']` array format.                                          |
-| `permission_callback` | **YES**  | Please write `function () { return true; }` (Admin check is verified in the outer call).             |
+| `permission_callback` | **YES**  | Please write `function () { return true; }` (role checks happen in the outer call via `MPU_Input_Role`). |
 
 #### 4. input_schema Rules
 
@@ -286,7 +310,7 @@ If the ability modifies data, please return a validation result so the LLM can r
 ```php
 public static function clear_callback($args)
 {
-    moelog_bot_blocker_clear_logs();
+    mpu_bb_clear_logs();
     return 'Cleared the intercept log table. All records deleted.'; // Let the LLM know it succeeded
 }
 ```
@@ -304,12 +328,12 @@ public static function clear_callback($args)
 
 #### 7. External Plugin Integration Pattern
 
-**Prioritize calling the plugin's public functions**, avoiding direct manipulation of DB or Options:
+**Prioritize calling the owning module's public functions**, avoiding direct manipulation of DB or Options. The bot blocker is built into this plugin (`includes/integrations/bot-blocker-integration.php`); its data still uses the historical `moelog_bot_blocker_*` option names:
 
 ```php
 // ✅ Calling the plugin's own function — Ensures triggering of internal log rotation, Transients, and Action hooks
-moelog_bot_blocker_ban_ip($ip);
-moelog_bot_blocker_log('MANUAL_BAN', ['source' => 'Frieren API', 'ip' => $ip]);
+mpu_bb_ban_ip($ip);
+mpu_bb_log('MANUAL_BAN', ['source' => 'Frieren API', 'ip' => $ip]);
 
 // ❌ Directly modifying option — Bypasses core plugin logic
 $banned = get_option('moelog_bot_blocker_banned_ips', []);
@@ -321,6 +345,7 @@ update_option('moelog_bot_blocker_banned_ips', $banned);
 
 - [ ] Created the class file in `includes/mcp-tools/abilities/`.
 - [ ] Added the class to the `$abilities` array in `manager.php`.
+- [ ] Decided which roles may use it, and updated `MPU_Input_Role::can_use_ability()` if non-admins should.
 - [ ] All 5 required fields are set (`label`, `description`, `category`, `execute_callback`, `permission_callback`).
 - [ ] `input_schema` is defined (even parameterless abilities use `new \stdClass()`).
 - [ ] Ability is named `mp-ukagaka/{kebab-case}` and has no underscores.

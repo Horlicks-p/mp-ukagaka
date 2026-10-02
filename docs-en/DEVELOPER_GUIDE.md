@@ -261,10 +261,18 @@ $admin_modules = [
 
 ### Constants Definition
 
-| Constant        | Description     | Value                |
-| --------------- | --------------- | -------------------- |
-| `MPU_VERSION`   | Plugin version  | `"2.24.0"`  |
-| `MPU_MAIN_FILE` | Main file path  | `__FILE__`           |
+| Constant | Defined in | Description | Value |
+| -------- | ---------- | ----------- | ----- |
+| `MPU_VERSION` | `mp-ukagaka.php` | Plugin version (set by `tools/node/bump-version.js`) | `'X.Y.Z'` |
+| `MPU_MAIN_FILE` | `mp-ukagaka.php` | Main plugin file path | `__FILE__` |
+| `MPU_MAX_TOOL_TURNS` | `core/utility-functions.php` | Max tool-call turns per AI request | `5` |
+| `MPU_MAX_TOOL_REPEAT_SAME_CALL` | `core/utility-functions.php` | Identical tool calls before the loop guard stops | `2` |
+| `MPU_CACHE_DEFAULT` | `core/utility-functions.php` | Default API cache TTL | `HOUR_IN_SECONDS` |
+| `MPU_CACHE_WEATHER` | `core/utility-functions.php` | Weather cache TTL | `30 * MINUTE_IN_SECONDS` |
+| `MPU_CACHE_EXCHANGE` | `core/utility-functions.php` | Exchange-rate cache TTL | `DAY_IN_SECONDS` |
+| `MPU_ITEM_MESSAGE_MAX_LENGTH` | `personality/personality-items.php` | Max length of a message sent with a gift | `500` |
+
+Constants you can define in `wp-config.php`: `MPU_DEBUG_LLM` (log full LLM prompts, see `mpu_debug_llm_prompts`) and `MPU_REST_BOOTSTRAP_DEBUG` (log controller registration when `WP_DEBUG` is on). The utility constants above are wrapped in `if (!defined(...))`, so they can be overridden there too.
 
 ---
 
@@ -556,9 +564,10 @@ AI functions module, handles cloud AI API calls (Gemini, OpenAI, Claude) and Oll
  * @param string $user_prompt User prompt
  * @param string $language Language code
  * @param array|null $mpu_opt Settings array (Optional)
+ * @param int|null $max_tokens Max output tokens (Optional; each provider's default when null)
  * @return string|WP_Error AI response or error
  */
-function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt = null)
+function mpu_call_ai_api($provider, $api_key, $system_prompt, $user_prompt, $language, $mpu_opt = null, $max_tokens = null)
 
 /**
  * Gets language instruction
@@ -574,9 +583,9 @@ All providers are routed through `MPU_AI_Provider_Factory::create($provider_slug
 
 | Provider | Slug | API Endpoint | Model Selection |
 | -------- | ---- | ------------ | --------------- |
-| Gemini | `gemini` | `generativelanguage.googleapis.com` | Supported (gemini-2.5-flash, gemini-2.5-pro, etc.) |
-| OpenAI | `openai` | `api.openai.com` | Supported (gpt-4o-mini, gpt-4o, etc.) |
-| Claude | `claude` | `api.anthropic.com` | Supported (claude-sonnet-4-6, etc.) |
+| Gemini | `gemini` | `generativelanguage.googleapis.com` | Supported (default `gemini-2.5-flash`) |
+| OpenAI | `openai` | `api.openai.com` | Supported (default `gpt-4.1-mini-2025-04-14`) |
+| Claude | `claude` | `api.anthropic.com` | Supported (default `claude-sonnet-4-6`) |
 | Ollama | `ollama` | Local or Remote Ollama Service | Supported (Any Ollama model) |
 
 #### AI Stability & Security
@@ -632,9 +641,12 @@ function mpu_check_ollama_available($endpoint, $model)
 /**
  * Generates random dialog using LLM (replaces built-in dialog)
  * @param string $ukagaka_name Character name
+ * @param string $last_response Previous AI reply (used to avoid repeating it)
+ * @param array $response_history Recent replies (stricter repeat detection)
+ * @param int $last_visit_hours Hours since the visitor's last visit (-1 = first visit)
  * @return string|false Generated dialog content, false on failure
  */
-function mpu_generate_llm_dialogue($ukagaka_name = 'default_1')
+function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response = '', $response_history = [], $last_visit_hours = -1)
 
 /**
  * Checks if LLM replace built-in dialog is enabled
@@ -647,8 +659,8 @@ function mpu_is_llm_replace_dialogue_enabled()
 
 | Operation Type | Local Connection | Remote Connection |
 | -------------- | ---------------- | ----------------- |
-| Service Check (`check`) | 3s | 10s |
-| API Call (`api_call`) | 60s | 90s |
+| Service Check (`check`) | 15s | 15s |
+| API Call (`api_call`, also the default) | 90s | 120s |
 | Connection Test (`test`) | 30s | 45s |
 
 #### Usage Example
@@ -670,42 +682,6 @@ $is_remote = mpu_is_remote_endpoint($endpoint);
 $timeout = mpu_get_ollama_timeout($endpoint, 'api_call');
 ```
 
-### chat-api-handlers.php (Compatibility Layer)
-
-Chat mode API handler, provides an AI call wrapper for the new REST Controllers for multi-turn conversations, isolating complex Provider options handling.
-
-#### Main Functions
-
-```php
-/**
- * Calls AI API (Unified entry for multi-turn conversations, auto-dispatches to factory class)
- * @param string $provider Provider
- * @param string $api_key API Key
- * @param string $system_prompt System prompt
- * @param array $messages Conversation history
- * @param string $language Language
- * @param array $options Options (max_tokens, temperature, etc.)
- * @return string|WP_Error AI response
- */
-function mpu_call_ai_api_with_messages($provider, $api_key, $system_prompt, $messages, $language, $options = [])
-```
-
-### REST API Modules (OO Architecture)
-
-Introduced in v2.10.0, driven uniformly by `bootstrap.php`. All Controllers inherit from `MPU_REST_Base`.
-
-#### Main Class Functions
-
-- **MPU_REST_Chat**: Centralizes all AI chat-related endpoints.
-  - `/chat/context` (Page-aware)
-  - `/chat/greet` (First-time greeting)
-  - `/chat/user` (Synchronous chat)
-  - `/chat/user-stream` (SSE streaming chat)
-- **MPU_REST_Ghost**: Handles personality lists and initial setup.
-- **MPU_REST_Dialog**: Manages static and local dialog loading.
-- **MPU_REST_Touch**: Handles touch zone interactions.
-- **MPU_REST_Test**: Provides admin connection testing functionalities.
-
 ### diary-functions.php (v2.5.0)
 
 AI diary function module, responsible for automatically generating and publishing character diaries.
@@ -715,10 +691,12 @@ AI diary function module, responsible for automatically generating and publishin
 ```php
 /**
  * Gets the diary title prefix
- * @param string|null $personality_id Personality ID
+ * (dynamics.json `diary_title_prefix` → name from manifest.json → generic default)
+ * @param string|null $personality_id Personality ID (null = current personality)
+ * @param bool $with_space Append a trailing space (default true, used for slug generation)
  * @return string Prefix (e.g., "[Frieren's Journal] ")
  */
-function mpu_get_diary_title_prefix($personality_id = null)
+function mpu_get_diary_title_prefix($personality_id = null, $with_space = true)
 
 /**
  * Determines whether the diary should be triggered (based on probability and once-daily limit)
@@ -824,23 +802,6 @@ function mpu_get_ukagaka($num = false)
 function mpu_get_shell($num = false, $echo = false)
 
 /**
- * Gets a specific message
- * @param int $msgnum Message index
- * @param string|false $num Ukagaka key
- * @param bool $echo Whether to output directly
- * @return string Message content
- */
-function mpu_get_msg($msgnum = 0, $num = false, $echo = false)
-
-/**
- * Gets a random message
- * @param string|false $num Ukagaka key
- * @param bool $echo Whether to output directly
- * @return string Message content
- */
-function mpu_get_random_msg($num = false, $echo = false)
-
-/**
  * Gets the common message
  * @return string Common message content
  */
@@ -876,70 +837,20 @@ function mpu_get_msg_from_file($filename_base)
 
 ### REST API Modules (OO Architecture)
 
-Currently, the main endpoints are registered and handled by controllers under `includes/rest/`, with `rest/bootstrap.php` as the entry point.
+Introduced in v2.9.2. Endpoints are registered by controllers under `includes/rest/`, with `rest/bootstrap.php` as the entry point. All controllers extend `MPU_REST_Base`; the namespace is `mp-ukagaka/v1`.
 
-#### bootstrap.php
+| File | Class | Routes |
+| ---- | ----- | ------ |
+| `class-mpu-rest-base.php` | `MPU_REST_Base` | — (namespace, permission, rate-limit, session-token and response helpers) |
+| `class-mpu-rest-chat.php` | `MPU_REST_Chat` | `/chat/context`, `/chat/greet`, `/chat/user`, `/chat/user-stream`, `/session-token` |
+| `class-mpu-rest-ghost.php` | `MPU_REST_Ghost` | `/init`, `/settings`, `/change`, `/extend`, `/shell-info`, `/decoration-config`, `/emoji-config` |
+| `class-mpu-rest-dialog.php` | `MPU_REST_Dialog` | `/nextmsg`, `/dialog`, `/visitor-info`, `/decoration-prompts`, `/wake-ghost` |
+| `class-mpu-rest-touch.php` | `MPU_REST_Touch` | `/touch/decoration`, `/touch/zone`, `/touch/give` |
+| `class-mpu-rest-memory.php` | `MPU_REST_Memory` | `/memory/extract` |
+| `class-mpu-rest-observation.php` | `MPU_REST_Observation` | `/observation/push` |
+| `class-mpu-rest-test.php` | `MPU_REST_Test` | `/test-connection/{provider}`, `/clear-cache` |
 
-Responsible for loading each REST controller and registering routes on the `rest_api_init` action.
-
-#### class-mpu-rest-base.php
-
-Shared base class for all controllers, centralizing the namespace, common helpers, and permission/rate-limiting logic.
-
-#### class-mpu-rest-chat.php
-
-Handles AI chat endpoints:
-
-```php
-/chat/context
-/chat/greet
-/chat/user
-/chat/user-stream
-```
-
-#### class-mpu-rest-ghost.php
-
-Handles character initialization and settings endpoints:
-
-```php
-/init
-/settings
-/change
-/extend
-/shell-info
-/decoration-config
-/emoji-config
-```
-
-#### class-mpu-rest-dialog.php
-
-Handles dialog files and rotation dialog endpoints:
-
-```php
-/nextmsg
-/dialog
-/visitor-info
-/decoration-prompts
-/wake-ghost
-```
-
-#### class-mpu-rest-touch.php
-
-Handles touch zones and decoration interaction endpoints:
-
-```php
-/touch/decoration
-/touch/zone
-```
-
-#### class-mpu-rest-test.php
-
-Handles admin testing and management endpoints:
-
-```php
-/test-connection/{provider}
-/clear-cache
-```
+One route predates this structure and is still registered procedurally: `POST /check-spam-event` in `includes/integrations/akismet-integration.php`, which the frontend polls for Akismet / Turnstile reactions. New endpoints must go through a controller.
 
 ### chat-api-handlers.php
 
@@ -1000,25 +911,18 @@ $stats_keywords = [
 
 #### Thinking Mode Support (Ollama)
 
-Ollama provider automatically detects thinking models (Qwen3, DeepSeek, etc.) and sets `think: true` / `num_ctx: 8192` accordingly. Disable via the `ollama_disable_thinking` option.
+The Ollama provider treats a model as a thinking model when its name contains `qwen3`, `deepseek` or `frieren`. For those models it sends `think: true` with `num_ctx: 8192`, or `think: false` with `num_ctx: 4096` when the `ollama_disable_thinking` option is checked. Other models get neither field.
 
 #### Response Length Limit
 
-All AI providers are uniformly restricted to **300 tokens**:
+Most paths read `settings.max_tokens` from the personality's `manifest.json` first. When it is absent, the fallback depends on the path (the wake-up reaction from `/wake-ghost` is the exception: it always uses a fixed `120`):
 
-```php
-// Ollama
-$request_body['options']['num_predict'] = 300;
+| Path | Fallback |
+| ---- | -------- |
+| Interactive chat (`/chat/user`, `/chat/user-stream`) and page-aware (`/chat/context`) | The **Max Output Tokens** setting, `ai_max_tokens` (default `1000`, clamped to 100–8192 on save) |
+| LLM auto talk, first-visit greeting, touch / decoration / gift reactions | `800`, via `mpu_get_personality_max_tokens()` (minimum `50`) |
 
-// OpenAI
-'max_tokens' => 300,
-
-// Gemini
-'generationConfig' => ['maxOutputTokens' => 300],
-
-// Claude
-'max_tokens' => 300,
-```
+The value is passed to the provider as `max_tokens` and mapped to its own field (`num_predict` for Ollama, `maxOutputTokens` for Gemini, `max_tokens` for OpenAI and Claude). Connection tests use small fixed budgets of their own. The displayed reply is then cut to `settings.max_response_length` characters (default `500`, minimum `20`) by `mpu_get_personality_max_response_length()`.
 
 ### frontend-functions.php
 
@@ -1112,87 +1016,128 @@ function mpu_options()
 
 ### Settings Structure ($mpu_opt)
 
+All settings live in the single `mp_ukagaka` option. Defaults come from `mpu_default_opt()` (`includes/core/core-functions.php`); the admin save handlers in `includes/admin-functions.php` clamp and sanitize each value. Keys without a default are absent until their settings page is saved for the first time.
+
 ```php
 $mpu_opt = [
-    // General Settings
-    'cur_ukagaka' => 'default_1',      // Current ukagaka
-    'show_ukagaka' => true,             // Show ukagaka
-    'show_msg' => true,                 // Show dialog box
-    'default_msg' => 0,                 // 0=Random, 1=First message
-    'next_msg' => 0,                    // 0=Sequential, 1=Random
-    'click_ukagaka' => 0,               // 0=Next message, 1=No action
+    // General
+    'cur_ukagaka' => 'default_1',       // Current ukagaka key
+    'current_personality' => '',       // Personality folder under ghost/ (set from the General page)
+    'show_ukagaka' => true,             // Show the character
+    'show_msg' => true,                 // Show the message box
+    'default_msg' => 0,                 // 0 = random, 1 = first message
+    'next_msg' => 0,                    // 0 = sequential, 1 = random
+    'click_ukagaka' => 0,               // 0 = next message, 1 = no action
     'insert_html' => 0,                 // HTML insert position
-    'no_style' => false,                // Use custom styles
-    'no_page' => '',                    // Exclude pages list
+    'no_style' => false,                // Skip the bundled stylesheet
+    'custom_style_link' => '',          // <link> tag for a custom stylesheet
+    'no_page' => '',                    // Excluded pages, one per line
+    'admin_nickname' => '',             // {{admin_nickname}}
+    'admin_name' => '',                 // {{admin_name}}
+    'admin_birthday' => '',             // Used by calendar events
 
-    // Auto Talk
-    'auto_talk' => true,                // Enable auto talk
-    'auto_talk_interval' => 8,          // Auto talk interval (seconds)
-    'typewriter_speed' => 40,           // Typewriter speed (ms/character)
+    // Auto talk
+    'auto_talk' => true,
+    'auto_talk_interval' => 8,          // Seconds, 3–30
+    'typewriter_speed' => 40,           // ms per character, 10–200
 
-    // External Dialog Files
-    'use_external_file' => true,        // Use external files (System forced to true)
-    'external_file_format' => 'txt',     // File format (txt/json)
-
-    // Conversation Settings
+    // Dialog files
+    'use_external_file' => true,        // Always forced to true
+    'external_file_format' => 'txt',    // txt | json
     'auto_msg' => '',                   // Fixed message
-    'common_msg' => '',                 // Common dialog
+    'common_msg' => '',                 // Common dialog shared by all ukagakas
 
-    // AI Settings (Page-aware feature)
-    'ai_enabled' => false,              // Enable AI
-    'ai_provider' => 'gemini',          // AI Provider (gemini/openai/claude/ollama)
-    'ai_api_key' => '',                 // Gemini API Key (encrypted)
-    'gemini_model' => 'gemini-2.5-flash', // Gemini model
-    'openai_api_key' => '',             // OpenAI API Key (encrypted)
-    'openai_model' => 'gpt-4o-mini',    // OpenAI model
-    'claude_api_key' => '',             // Claude API Key (encrypted)
-    'claude_model' => 'claude-sonnet-4-5-20250929', // Claude model
-    'ai_language' => 'zh-TW',           // AI response language
-    'ai_system_prompt' => '',           // AI personality settings
-    'ai_probability' => 10,             // AI trigger probability (0-100)
-    'ai_trigger_pages' => 'is_single',  // Trigger page condition
-    'ai_text_color' => '#ff6b6b',       // AI text color
-    'ai_display_duration' => 8,         // AI display duration (seconds)
-    'ai_greet_enabled' => false,        // First-time visitor greeting
-    'ai_greet_prompt' => '',            // Greeting prompt
+    // AI settings page (page-aware comments, greeting)
+    'ai_language' => '',                // '' = follow the personality
+    'ai_system_prompt' => '...',        // Fallback system prompt
+    'ai_probability' => 10,             // 1–100
+    'ai_max_tokens' => 1000,            // 100–8192; manifest settings.max_tokens overrides
+    'ai_trigger_pages' => 'is_single',  // Comma-separated conditional tags
+    'ai_text_color' => '#000000',
+    'ai_display_duration' => 8,         // Seconds, 1–60
+    'ai_greet_first_visit' => false,    // First-time visitor greeting
+    'ai_greet_prompt' => '...',
+    'chat_integrity_mode' => 'audit',   // audit | warn | block (no UI; see mpu_chat_integrity_mode filter)
 
-    // LLM Settings (BETA)
-    'ollama_endpoint' => 'http://localhost:11434',  // Ollama endpoint
-    'ollama_model' => 'qwen3:8b',                   // Ollama model
-    'ollama_replace_dialogue' => false,              // Replace built-in dialogs with LLM
-    'ollama_disable_thinking' => true,               // Disable thinking mode
+    // LLM settings page (provider shared by all AI features except the diary)
+    'ai_enabled' => false,
+    'llm_provider' => 'gemini',         // gemini | openai | claude | ollama
+    'llm_gemini_api_key' => '',         // Encrypted
+    'llm_gemini_model' => 'gemini-2.5-flash',
+    'llm_openai_api_key' => '',         // Encrypted
+    'llm_openai_model' => 'gpt-4.1-mini-2025-04-14',
+    'llm_claude_api_key' => '',         // Encrypted
+    'llm_claude_model' => 'claude-sonnet-4-6',
+    'ollama_endpoint' => 'http://localhost:11434', // Read-time fallback when unset
+    'ollama_model' => 'qwen3:8b',       // Read-time fallback when unset
+    'ollama_disable_thinking' => false, // true = send think:false to thinking models
+    'llm_replace_dialogue' => false,    // Replace built-in dialog with LLM output
+    'enable_chat_mode' => false,        // Interactive chat mode
+    'weather_enabled' => false,
+    'weather_latitude' => 25.0330,
+    'weather_longitude' => 121.5654,
+    'api_cache_enabled' => false,
+    'api_cache_ttl' => 3600,            // Seconds, 60–604800
+
+    // Diary page (separate provider and keys)
+    'diary_enabled' => false,
+    'diary_category' => 0,
+    'diary_author' => 0,                // Defaults to the saving user
+    'diary_trigger_rate' => 2,          // 1–10
+    'diary_signature' => '',
+    'diary_provider' => 'gemini',       // gemini | openai | claude | ollama
+    'diary_gemini_api_key' => '', 'diary_gemini_model' => '',
+    'diary_openai_api_key' => '', 'diary_openai_model' => '',
+    'diary_claude_api_key' => '', 'diary_claude_model' => '',
+    'diary_ollama_endpoint' => '', 'diary_ollama_model' => '',
+
+    // Bot blocker page
+    'bot_blocker' => [
+        'enabled' => false,
+        'banned_fingerprints' => [...],
+        'suspicious_resolutions' => [...],
+        'max_log_rows' => 1000,
+        'auto_ban_ip' => true,
+        'block_status' => 403,
+        'hot_transient_ttl' => 600,
+        'rate_limit_threshold' => 40,
+    ],
 
     // Extensions
     'extend' => [
-        'js_area' => '',                // Custom JavaScript
+        'js_area' => '',                // Custom JavaScript (requires unfiltered_html to save)
     ],
 
-    // Ukagaka List
+    // Ukagaka list
     'ukagakas' => [
         'default_1' => [
-            'name' => 'Frieren',
-            'shell' => 'images/shell/Frieren/',
-            'msg' => ['I am Frieren. A mage who has lived for over a thousand years.'],
-            'show' => true,
+            'name' => 'フリーレン',
+            'shell' => '<plugin URL>/ghost/Frieren/shell/Frieren/', // Image URL or folder URL
+            'msg' => ['...'],
             'dialog_filename' => 'Frieren',
+            'show' => true,
+            'show_decorations' => true,
         ],
         // ... more ukagakas
     ],
 ];
 ```
 
+**Legacy keys.** Versions before the `llm_*` split stored `ai_provider`, `ai_api_key`, `gemini_model`, `openai_api_key`, `openai_model`, `claude_api_key`, `claude_model` and `ollama_replace_dialogue`. `mpu_normalize_llm_option_keys()` copies them into the `llm_*` keys when those are empty and removes them on the next save. A few read paths still fall back to `ai_provider`, so do not reuse those names for anything else.
+
 ### Ukagaka Structure
 
 ```php
 $ukagaka = [
-    'name' => 'Frieren',              // Name
-    'shell' => 'https://...png',      // Image URL
+    'name' => 'Frieren',              // Display name
+    'shell' => 'https://.../shell/',  // Single image URL, or a folder URL whose images are played as frames
     'msg' => [                        // Dialog array
         'Dialog 1',
         'Dialog 2',
     ],
     'show' => true,                   // Can be shown
-    'dialog_filename' => 'frieren',   // Dialog file name
+    'dialog_filename' => 'Frieren',   // Dialog file name under dialogs/ (without extension)
+    'show_decorations' => true,       // Show personality decorations
 ];
 ```
 
@@ -1200,56 +1145,25 @@ $ukagaka = [
 
 ## Hooks and Filters
 
-Since the REST refactoring in `v2.9.2`, all plugin-level `do_action()` hooks (`mpu_loaded`, `mpu_before_html`, `mpu_after_html`, `mpu_settings_saved`) and `apply_filters()` hooks (`mpu_options`, `mpu_messages`, `mpu_ai_response`, `mpu_ukagaka_html`) have been removed.
+Since the REST refactoring in `v2.9.2`, the legacy plugin-level hooks (`mpu_loaded`, `mpu_before_html`, `mpu_after_html`, `mpu_settings_saved`, `mpu_options`, `mpu_messages`, `mpu_ai_response`, `mpu_ukagaka_html`) no longer exist. The hooks below are the current set; signatures and examples are in [API Reference → WordPress Hooks](API_REFERENCE.md#wordpress-hooks).
 
-Currently, the 4 remaining functional filters relate to LLM prompt construction:
-
-### mpu_llm_system_prompt
-
-Used to modify the system prompt sent to the LLM, containing the personality card, WordPress context, and behavior rules in its complete structure.
-
-```php
-add_filter('mpu_llm_system_prompt', function($prompt, $ukagaka_name, $personality_id, $context) {
-    return $prompt;
-}, 10, 4);
-```
-
-### mpu_llm_user_prompt
-
-Used to append additional context before the user prompt, such as security alerts, event information, or external system messages.
-
-```php
-add_filter('mpu_llm_user_prompt', function($prompt, $ukagaka_name, $personality_id) {
-    $attack_info = get_transient('mpu_llar_attack_info');
-    if ($attack_info) {
-        return $prompt . "\n【Security Alert】\n" . $attack_info;
-    }
-    return $prompt;
-}, 10, 3);
-```
-
-### mpu_prompt_categories
-
-Used to adjust the category definitions for LLM auto-talk, such as greeting, casual, time aware, statistics observation, etc.
-
-```php
-add_filter('mpu_prompt_categories', function($categories, $wp_info, $visitor_info, $time_context) {
-    return $categories;
-}, 10, 4);
-```
-
-### mpu_category_weights
-
-Used to adjust the weighted random weights of the dialog categories.
-
-```php
-add_filter('mpu_category_weights', function($weights, $time_context, $visitor_info, $context_vars) {
-    if ($time_context === 'Late Night') {
-        $weights['philosophical'] = 15;
-    }
-    return $weights;
-}, 10, 4);
-```
+| Hook | Type | Purpose |
+| ---- | ---- | ------- |
+| `mpu_llm_system_prompt` | filter | System prompt of LLM auto talk (`/nextmsg` → `mpu_generate_llm_dialogue()`) only |
+| `mpu_llm_user_prompt` | filter | User prompt of the same path |
+| `mpu_prompt_categories` | filter | Auto-talk category definitions |
+| `mpu_category_weights` | filter | Auto-talk category weights |
+| `mpu_mcp_tools_for_llm` | filter | Tool (ability) definitions offered to the LLM |
+| `mpu_chat_integrity_mode` | filter | Checksum enforcement: `audit` / `warn` / `block` |
+| `mpu_chat_lock_ttl` | filter | Chat lifecycle lock TTL |
+| `mpu_runtime_state_ttl` | filter | Runtime-state transient TTL |
+| `mpu_observation_buffer_ttl` | filter | Observation buffer TTL |
+| `mpu_observation_post_visibility` | filter | Whether a post title may enter prompt context |
+| `mpu_frontend_debug_mode` | filter | Frontend debug logging |
+| `mpu_debug_llm_prompts` | filter | Full prompt logging |
+| `mpu_debug_llm_prompt_message_limit` | filter | Messages included in prompt logs |
+| `mpu_chat_integrity_mismatch` | action | Checksum mismatch detected |
+| `mpu_chat_lock_acquired` / `_conflict` / `_released` | action | Chat lock lifecycle |
 
 ---
 
@@ -1287,6 +1201,10 @@ Currently, frontend and most admin testing processes rely primarily on REST APIs
 | `/chat/greet` | POST | First-time visitor greeting |
 | `/chat/user` | POST | Multi-turn interactive chat (non-streaming) |
 | `/chat/user-stream` | POST | SSE streaming interactive chat |
+| `/session-token` | GET | Issues the IP-bound session token anonymous visitors send as `X-MPU-Session-Token` (empty for logged-in users) |
+| `/memory/extract` | POST | Admin only: extracts owner memory from recent chat history (`/remember`) |
+| `/observation/push` | POST | Buffers visitor activity observations for the session |
+| `/check-spam-event` | POST | Polled by the frontend; returns an Akismet / Turnstile reaction line when one is pending (procedural route) |
 
 ### Touch Interaction
 
@@ -1294,6 +1212,7 @@ Currently, frontend and most admin testing processes rely primarily on REST APIs
 | --- | --- | --- |
 | `/touch/decoration` | POST | AI reaction when clicking on a decoration |
 | `/touch/zone` | POST | Interaction reaction when clicking on a character zone |
+| `/touch/give` | POST | Gift / feeding reaction for an item from `items.json` |
 
 ### Admin Testing
 
@@ -1364,12 +1283,31 @@ window.mpuSettings = {
 
 ```javascript
 function mpu_nextmsg(trigger)
-function mpu_hidemsg()
-function mpu_showmsg()
-function mpu_hiderobot()
-function mpu_showrobot()
+function mpu_hidemsg(speed = 400)
+function mpu_showmsg(speed = 400)
+function mpu_hiderobot(speed = 400)
+function mpu_showrobot(speed = 400)
 function mpuChange(num)
 ```
+
+### Message Blocking
+
+Several flows need to stop auto talk and the OK button from replacing what is on screen: leaving chat, page-aware comments, rate-limit cooldowns, touch / decoration dialogs and gift reactions. Since v2.33.2 each flow holds the block under its own owner name, so one flow can no longer release a block another flow still needs.
+
+```javascript
+mpuAcquireMessageBlock(owner);   // add an owner; re-acquiring the same owner is a no-op
+mpuReleaseMessageBlock(owner);   // remove only that owner
+mpuHasMessageBlock(owner);       // is this owner holding the block?
+mpuMessageBlocking;              // true while any owner remains (read-only for callers)
+MPU_STATE.llm.messageBlockOwners // snapshot array of the current owners
+mpuSetMessageBlocking(bool);     // compatibility setter for extensions, uses the "legacy" owner
+```
+
+Built-in owners: `chat-exit`, `page-context`, `rate-limit-next-message`, `rate-limit-greeting`, `frieren-interaction`, `frieren-gift`. Extensions should acquire under a name of their own rather than calling `mpuSetMessageBlocking()`. `mpuIsInteractionDialogActive()` reports whether a touch / decoration dialog is open, read from the ghost manager that owns that state.
+
+### Chat History Ordering
+
+`window.mpuChatGeneration` increments on every chat open / close. A request remembers the generation it was sent in; a reply that arrives after chat was toggled is not shown but is still stored. `mpu_insertChatReply(userEntry, assistantEntry)` places such a reply directly after the user turn it answers, and `mpu_removeChatHistoryEntry(userEntry)` rolls back a failed turn by reference (falling back to a content match after history is reloaded from storage). Auto-talk replies that arrive while chat is open are recorded through `mpu_recordLlmAutoTalk()` as `auto_talk` entries without being displayed.
 
 ### AI / Interaction Functions
 
@@ -1384,7 +1322,7 @@ function mpu_toggleChatMode(enable)
 
 ```javascript
 window.mpuCanvasManager = {
-  init: function(shellInfo, name),
+  init: function(shellInfo, name, num),
   playAnimation: function(),
   stopAnimation: function(),
   isAnimationMode: function()
@@ -1427,24 +1365,28 @@ Please prioritize using the controller architecture under `includes/rest/` inste
 class MPU_REST_Custom extends MPU_REST_Base {
     public function register_routes() {
         register_rest_route($this->namespace, '/custom', [
-            [
-                'methods' => 'POST',
-                'callback' => [$this, 'handle_custom'],
-                'permission_callback' => '__return_true',
-            ],
+            'methods'             => WP_REST_Server::CREATABLE,
+            'callback'            => [$this, 'handle_custom'],
+            'permission_callback' => '__return_true',
         ]);
     }
 
     public function handle_custom(WP_REST_Request $request) {
-        return rest_ensure_response([
-            'success' => true,
-            'data' => ['message' => 'ok'],
-        ]);
+        // Per-IP rate limit: 10 requests / 60 s
+        $rl = $this->rate_limit('custom', 10, 60);
+        if ($rl !== null) return $rl;
+
+        // Anonymous visitors must send X-MPU-Session-Token for AI-backed routes
+        $denied = $this->require_session_token($request);
+        if ($denied !== null) return $denied;
+
+        return $this->ok(['msg' => 'ok']);
+        // Errors: return $this->fail('code', __('Message', 'mp-ukagaka'), 400);
     }
 }
 ```
 
-Then register the new controller in `includes/rest/bootstrap.php`.
+Then add the class to `$mpu_oo_rest_controllers` in `includes/rest/bootstrap.php` (`'MPU_REST_Custom' => 'class-mpu-rest-custom.php'`). The bootstrap only instantiates classes that extend `MPU_REST_Base`, and hooks `register_routes()` to `rest_api_init`. Admin-only routes use `'permission_callback' => [$this, 'check_admin']`.
 
 ### Customizing Dialog Category Weights
 
@@ -1517,7 +1459,7 @@ Open and close the tag as a pair, or omit it entirely.
 
 That is enough for the normalizer, SSE parser, and bubble to do the rest on contexts where the gate is enabled. Be aware that this is a prompt-level opt-in, not a runtime per-context hook; if the same prompt is reused by disabled contexts, they may still spend tokens producing `<think>` that gets stripped.
 
-Do **not** use `mpu_llm_system_prompt` as the modern REST wiring point. In current core it only applies to the legacy `mpu_generate_llm_dialogue()` path, not the REST chat / touch / page-aware paths that call `mpu_resolve_system_prompt()`. Its 4th argument is also an information array (`wp_info`, `user_info`, `visitor_info`, `time_context`, `language`), not a request context string. If you need runtime context-aware injection, add a dedicated filter around the `mpu_resolve_system_prompt()` call path or perform the mapping inside your provider integration.
+Do **not** use `mpu_llm_system_prompt` as the modern REST wiring point. In current core it only applies to LLM auto talk (`/nextmsg` → `mpu_generate_llm_dialogue()`), not the REST chat / touch / page-aware paths that call `mpu_resolve_system_prompt()`. Its 4th argument is also an information array (`wp_info`, `user_info`, `visitor_info`, `time_context`, `language`), not a request context string. If you need runtime context-aware injection, add a dedicated filter around the `mpu_resolve_system_prompt()` call path or perform the mapping inside your provider integration.
 
 **Option B — Map a provider's native reasoning field into `<think>`.** For Ollama / reasoning models that expose a separate `thinking` field, wrap it as `<think>{thinking}</think>` and prepend it to the content inside the provider class (this is what the reverted commit `a0e257f` did — see the pitfalls before reusing it).
 
@@ -1636,11 +1578,17 @@ Frontend console logs also use i18n. Production-visible logs must be registered 
 
 ### Testing
 
-1. Test all features in the development environment
-2. Use `WP_DEBUG` to check for errors
-3. Test multiple AI providers
-4. Test multi-language environments
-5. Ensure there are no errors in the browser console
+Install the Node tooling once with `npm --prefix tools/node ci`; PHP tooling lives in `tools/php/` (`composer install` there provides PHPUnit and PHPCS).
+
+| Command | What it checks |
+| ------- | -------------- |
+| `npm --prefix tools/node run verify` | The release gate: version markers, `php -l`, PHPCS against its baseline, stylelint, the Node smoke tests (`tools/node/test-*-smoke.js`), a bundle rebuild, and PHPUnit. Must be green before a release. |
+| `tools/php/vendor/bin/phpunit -c tests/phpunit.xml.dist` | PHPUnit suite in `tests/Unit/` on its own. |
+| `npm --prefix tools/node run test:interaction` | End-to-end interaction suite (`tools/e2e/`). Boots a disposable WordPress Playground with this checkout mounted, points the plugin at a scripted fake Ollama, and drives the real bundle in Edge. Covers handoffs between auto talk, chat, page-aware, touch and gifts. Not part of `verify`; pass `-- --only=<name>` to run one scenario or `-- --headed` to watch. |
+| `npm --prefix tools/node run visual:baseline` / `visual:compare` | Pixel comparison of the frontend CSS against a captured baseline. |
+| `npm --prefix tools/node run build` | Rebuilds `js/dist/` and the Frieren bundle after JS changes. |
+
+Beyond these, check the browser console with debug mode on (`WP_DEBUG` as an administrator, see `mpu_frontend_debug_mode`), `logs/checksum-mismatch.log` for chat integrity issues, and the admin **Test Connection** buttons for provider connectivity. `docs-en/REST_SMOKE_TEST.md` has a `curl` checklist for a live site.
 
 ---
 

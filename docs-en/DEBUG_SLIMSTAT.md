@@ -4,29 +4,30 @@ This document explains how to confirm whether Slimstat data is correctly integra
 
 ## Enabling Debug Mode
 
-### Method 1: Browser Console (Recommended)
+The page sets `window.mpuDebugMode` on every load from `mpu_is_frontend_debug_mode()`, so a value typed into the console does not survive a refresh. The greeting runs during page load, so turn debug mode on server-side:
 
-1. Open your website.
-2. Press `F12` to open the Developer Tools.
-3. Switch to the "Console" tab.
-4. Enter the following command to enable debug mode:
+### Method 1: WordPress Debug Mode as an Administrator (Recommended)
 
-```javascript
-window.mpuDebugMode = true
-```
-
-5. Refresh the page (or clear the first-visit cookie and revisit).
-
-### Method 2: WordPress Debug Mode
-
-Enable WordPress debug mode in `wp-config.php`:
+Enable WordPress debug mode in `wp-config.php` and view the site while logged in as an administrator:
 
 ```php
 define('WP_DEBUG', true);
 define('WP_DEBUG_LOG', true);
 ```
 
-This will write PHP-side errors to `wp-content/debug.log`; frontend details will still primarily rely on the browser console.
+Debug mode is on only when `WP_DEBUG` is true **and** the current user has `manage_options`. PHP-side errors are written to `wp-content/debug.log`.
+
+### Method 2: Filter (for testing as a visitor)
+
+To see the logs while logged out, force it on temporarily from a small plugin or the theme's `functions.php`, and remove it afterwards:
+
+```php
+add_filter('mpu_frontend_debug_mode', '__return_true');
+```
+
+### Method 3: Browser Console (current page only)
+
+`window.mpuDebugMode = true` in the console turns on logging for the rest of the current page view, which is enough for things that happen after you type it (opening chat, clicking the character). Without one of the methods above, non-admin pages lack the translated `mpuL10n.logsDebug` strings, so the messages appear in the Japanese fallback.
 
 ## Items to Check
 
@@ -73,7 +74,7 @@ Related code locations:
 - `includes/rest/class-mpu-rest-dialog.php`
 - `includes/rest/class-mpu-rest-chat.php`
 
-If `window.mpuDebugMode = true` is enabled, you can verify in the Console whether the visitor information and subsequent flows were successfully logged. In normal page output, the backend injects `window.mpuDebugMode` from `WP_DEBUG && current_user_can('manage_options')`; manually setting it to `true` in the Console still enables frontend debug output, but non-admin pages do not receive the `mpuL10n.logsDebug` payload, so debug logs use the Japanese fallback.
+With debug mode on, the Console shows the `訪問者情報` (visitor info) log and the steps that follow it.
 
 If `WP_DEBUG` / `WP_DEBUG_LOG` is enabled, you can observe `wp-content/debug.log` for PHP-side errors; however, the fixed-format full greet prompt output from earlier documentation versions is no longer guaranteed to be present.
 
@@ -93,15 +94,15 @@ POST /wp-json/mp-ukagaka/v1/chat/greet
 2. The Slimstat data table does not exist, or the site has not yet generated readable records.
 3. Environmental restrictions prevent obtaining the corresponding visitor records.
 
-### Q: All Slimstat information is "no_records"
+### Q: `/visitor-info` has no `slimstat_country` / `slimstat_city`
 
-**A:** Possible reasons:
+**A:** These fields are only added when Slimstat has a record for the visitor's IP. Possible reasons:
 1. This is the visitor's first visit, and Slimstat hasn't recorded it yet.
 2. There is no historical record of the IP in Slimstat's database.
 3. Slimstat's geolocation feature is not enabled.
 4. **Local Development Environment**: If it is a local environment (e.g., `localhost`, `.local` domains), Slimstat might not be able to get geolocation info because local IPs (like 127.0.0.1) cannot be resolved geographically.
 
-### Q: Country and City show "None", but Referrer is captured
+### Q: Country and City show "無" (none) in the log, but Referrer is captured
 
 **A:** This is normal, possible reasons:
 1. **Local Environment Limitations**: IP addresses in local development environments (e.g., `wordsworth.wp.local`) cannot be resolved geographically.
@@ -116,9 +117,10 @@ POST /wp-json/mp-ukagaka/v1/chat/greet
 ### Q: The AI greeting does not mention the visitor source
 
 **A:** Check:
-1. Confirm that `referrer` or `search_engine` have values in the `/visitor-info` response.
-2. Check if the AI's `ai_greet_prompt` setting is configured correctly.
-3. Use the browser's Network panel to inspect if the `/chat/greet` request payload contains `referrer`, `referrer_host`, `search_engine`, `country`, and `city`.
+1. The greeting only runs when both "**Enable context awareness**" (LLM Settings) and "**👋 First-time Visitor Greeting**" (AI Settings) are enabled, and only once per browser: it sets the `mpu_first_visit_<domain>` cookie for 365 days after a greeting is shown.
+2. Confirm that `referrer` or `search_engine` have values in the `/visitor-info` response.
+3. Check if the AI's `ai_greet_prompt` setting is configured correctly.
+4. Use the browser's Network panel to inspect if the `/chat/greet` request payload contains `referrer`, `referrer_host`, `search_engine`, `country`, and `city`.
 
 ## Testing Steps
 
@@ -126,7 +128,7 @@ POST /wp-json/mp-ukagaka/v1/chat/greet
    - Enter in the browser console: `document.cookie.split(";").forEach(c => { if(c.includes("mpu_first_visit")) document.cookie = c.split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/"; });`
 
 2. **Enable Debug Mode**:
-   - Enter: `window.mpuDebugMode = true`
+   - Use Method 1 or 2 above (the console flag is reset by the reload in the next step).
 
 3. **Simulate Different Source Visits**:
    - Direct visit: Type the URL directly.

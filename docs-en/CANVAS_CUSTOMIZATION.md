@@ -26,7 +26,7 @@ Starting from version 2.1.6, MP Ukagaka supports Canvas animations, replacing th
 
 ### Animation Characteristics
 
-- **Frame Interval**: 180 milliseconds/frame (fixed)
+- **Frame Interval**: 150 milliseconds/frame (the `frameInterval` property of `mpuCanvasManager`)
 - **Playback Timing**: Plays only when the character is speaking
 - **Supported Formats**: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`
 - **Image Sorting**: Uses natural sort to ensure the correct order
@@ -37,34 +37,32 @@ Starting from version 2.1.6, MP Ukagaka supports Canvas animations, replacing th
 
 ### Single Image Mode
 
-When setting up the character in the admin panel, enter the **image file path** in the `shell` field:
+When setting up the character in the admin panel, enter the **full URL** of one image in the image field (it must start with `http://` or `https://`):
 
 ```
-images/shell/character.png
-```
-
-Or relative to the WordPress uploads directory:
-
-```
-2024/12/character.png
+https://example.com/wp-content/uploads/2024/12/character.png
 ```
 
 ### Multi-Image Animation Mode
 
-When setting up the character in the admin panel, enter the **folder path** in the `shell` field:
+When setting up the character in the admin panel, enter the **full URL of a folder** in the image field:
 
 ```
-images/shell/Frieren/
+https://example.com/wp-content/plugins/mp-ukagaka/ghost/Frieren/shell/Frieren/
+https://example.com/wp-content/uploads/my-character/
 ```
+
+A personality installed from a ZIP is set up this way automatically, pointing at its `ghost/{id}/shell/` folder.
 
 The system will automatically:
-1. Check if the path is a folder.
-2. Scan all supported image files in the folder.
-3. Sort the files using natural sort (e.g., `frame1.png`, `frame2.png`, ..., `frame12.png`).
-4. Load all images and prepare the animation for playback.
+1. Map the URL to a local path. Only URLs inside this plugin's folder or the WordPress uploads folder can be mapped; any other URL is treated as a single image.
+2. Check if the path is a folder.
+3. Scan all supported image files directly in the folder (subfolders are ignored).
+4. Sort the files using natural sort (e.g., `frame1.png`, `frame2.png`, ..., `frame12.png`).
+5. Load all images and prepare the animation for playback.
 
 **Notes:**
-- The folder path must end with a `/`.
+- A trailing `/` is optional.
 - Supported image formats: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`.
 - It is recommended to use numeric sequence names for images to ensure correct sorting.
 
@@ -177,7 +175,7 @@ The system will automatically derive the decoration paths from the following sou
 
 **Method 1: Using the Admin Panel (Recommended)**
 
-1. Go to **Settings** → **MP Ukagaka** → **Ukagaka Management**.
+1. Go to **Settings** → **MP Ukagaka** → **Ukagakas**.
 2. Find the Frieren character (`default_1`).
 3. Check or uncheck `show_decorations` for this character.
 4. Save the settings.
@@ -405,7 +403,7 @@ The animation functionality is managed by the `mpuCanvasManager` object in `ukag
 
 ```javascript
 // Initialize Canvas
-window.mpuCanvasManager.init(shellInfo, name);
+window.mpuCanvasManager.init(shellInfo, name, num); // num = ukagaka key, used to detect Frieren
 
 // shellInfo structure:
 {
@@ -436,6 +434,8 @@ The PHP function `mpu_get_shell_info($num)` is currently located in `includes/co
 
 ## CSS Position Adjustments
 
+The values below are the defaults in `css/mpu_style.css`. Override them from your theme's stylesheet or the **Custom style link** setting; the plugin uses ordinary specificity (only four `!important` declarations remain), so a rule with the same selector loaded later wins. The `--mpu-internal-*` custom properties are implementation details, not a public theming API, and may change between releases.
+
 ### Main CSS Selectors
 
 #### 1. Character Shell Position (Entire Block)
@@ -445,8 +445,8 @@ The PHP function `mpu_get_shell_info($num)` is currently located in `includes/co
     position: fixed;    /* Fixed on the page */
     right: 0;          /* Align to the right */
     bottom: 20px;      /* 20px from the bottom */
-    margin: 0 20px 0 0; /* 20px right margin */
-    z-index: 10000;    /* Layering */
+    margin: 0 50px 0 0; /* 50px right margin */
+    z-index: var(--mpu-internal-z-shell); /* 10000 */
 }
 ```
 
@@ -459,7 +459,8 @@ The PHP function `mpu_get_shell_info($num)` is currently located in `includes/co
 
 ```css
 #ukagaka_img {
-    margin-bottom: -10px; /* Vertical offset */
+    margin-bottom: 0;   /* Vertical offset */
+    position: relative;
     /* margin-left: 30px; You can add this to move the image to the right */
 }
 ```
@@ -473,7 +474,9 @@ The PHP function `mpu_get_shell_info($num)` is currently located in `includes/co
 
 ```css
 #ukagaka_img canvas {
-    opacity: 0.85; /* 85% opacity */
+    opacity: 1;        /* Fully opaque by default */
+    position: relative;
+    z-index: var(--mpu-internal-z-canvas); /* Must stay below the decorations */
 }
 ```
 
@@ -486,8 +489,9 @@ The PHP function `mpu_get_shell_info($num)` is currently located in `includes/co
 #ukagaka_msgbox {
     position: absolute;
     top: 50%;          /* Vertically center */
-    left: -200px;      /* Offset 200px to the left (displays on the left of the character) */
+    left: -220px;      /* Offset 220px to the left (displays on the left of the character) */
     transform: translateY(-50%); /* Vertical centering adjustment */
+    width: 250px;
 }
 ```
 
@@ -499,7 +503,9 @@ The PHP function `mpu_get_shell_info($num)` is currently located in `includes/co
 
 ```css
 #ukagaka {
-    padding-right: 40px; /* Right padding, leaves space for the dialog box */
+    position: relative;
+    float: right;
+    padding-right: 65px; /* Right padding, leaves space for the dialog box */
 }
 ```
 
@@ -528,7 +534,7 @@ The PHP function `mpu_get_shell_info($num)` is currently located in `includes/co
 
 ```css
 #ukagaka_img {
-    margin-bottom: -20px; /* Move further upwards */
+    margin-bottom: -20px; /* Overlap the dock by 20px */
 }
 ```
 
@@ -536,12 +542,12 @@ The PHP function `mpu_get_shell_info($num)` is currently located in `includes/co
 
 ```css
 #ukagaka_msgbox {
-    left: -180px; /* Decrease distance (closer to character) */
+    left: -200px; /* Decrease distance (closer to character) */
 }
 
 /* Simultaneously adjust the main container padding */
 #ukagaka {
-    padding-right: 30px; /* Decrease padding */
+    padding-right: 50px; /* Decrease padding */
 }
 ```
 
@@ -567,14 +573,14 @@ The system will use natural sort, so numbers will be ordered correctly.
 
 ### Q: How do I go back to using the `<img>` tag?
 
-**A:** The Canvas functionality has completely replaced the `<img>` tag, but it still supports single images. If you need to use a single image, just enter the image file path (not a folder) in the `shell` field.
+**A:** The Canvas functionality has completely replaced the `<img>` tag, but it still supports single images. If you need to use a single image, just enter the image URL (not a folder URL) in the image field.
 
 ### Q: Can I adjust the animation playback speed?
 
-**A:** Currently, the animation frame interval is fixed at 180 milliseconds/frame. If you need to adjust it, you can modify the `frameInterval` property in `ukagaka-anime.js`:
+**A:** The animation frame interval is 150 milliseconds/frame. Editing `js/ukagaka-anime.js` has no effect on its own (the site loads the bundle in `js/dist/`) and is lost on update. Set the property at runtime instead, for example from **Extensions → JS Area**:
 
 ```javascript
-frameInterval: 180, // Change to another value (in milliseconds)
+window.mpuCanvasManager.frameInterval = 200; // milliseconds; applies from the next animation start
 ```
 
 ### Q: CSS modifications did not take effect?
@@ -590,8 +596,10 @@ frameInterval: 180, // Change to another value (in milliseconds)
 ## Related Files
 
 - `js/ukagaka-anime.js` - Canvas animation manager
-- `mpu_style.css` - Main stylesheet file
-- `ghost/Frieren/frieren.js` - Frieren's exclusive decoration and interaction logic
+- `css/mpu_style.css` - Main stylesheet file
+- `ghost/Frieren/frieren.js` - Frieren's runtime entry (`mpuFrierenManager`)
+- `ghost/Frieren/frieren-animation.js` - Frieren's frame animations (idle, page turn, sleep, wake)
+- `ghost/Frieren/frieren-decorations.js` - Frieren's decoration rendering and clicks
 - `ghost/Frieren/decorations.json` - Decoration configurations
 - `includes/core/ukagaka-functions.php` - `mpu_get_shell_info()` function
 - `includes/core/frontend-functions.php` - HTML generation and initialization data injection
@@ -603,6 +611,7 @@ frameInterval: 180, // Change to another value (in milliseconds)
 
 - **2.1.6** - Initially implemented Canvas animation functionality
 - **2.12.x+** - Frieren's decorations are now driven by `ghost/Frieren/decorations.json`
+- **2.30.0** - `css/mpu_style.css` rebuilt around internal custom properties; default values above updated
 
 ---
 

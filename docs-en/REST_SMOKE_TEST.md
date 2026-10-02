@@ -26,7 +26,7 @@ These endpoints must work on every page load regardless of AI configuration.
 curl.exe -s "$BASE/init" | python -m json.tool
 ```
 
-**Pass:** HTTP 200, JSON contains `ghost_name` and `personality_id`.
+**Pass:** HTTP 200, JSON contains `success: true`, `ukagaka_name`, `personality_id`, `shell_info` and `settings`.
 
 ---
 
@@ -36,7 +36,7 @@ curl.exe -s "$BASE/init" | python -m json.tool
 curl.exe -s "$BASE/settings" | python -m json.tool
 ```
 
-**Pass:** HTTP 200, JSON contains feature-flag fields (e.g. `ai_enabled`, `chat_mode`).
+**Pass:** HTTP 200, JSON contains feature-flag fields (e.g. `ai_enabled`, `enable_chat_mode`).
 
 ---
 
@@ -46,7 +46,7 @@ curl.exe -s "$BASE/settings" | python -m json.tool
 curl.exe -s "$BASE/visitor-info" | python -m json.tool
 ```
 
-**Pass:** HTTP 200, JSON contains `ip`, `country`, or similar visitor fields.
+**Pass:** HTTP 200, JSON contains `referrer`, `is_direct` and `slimstat_enabled` (plus `slimstat_country` / `slimstat_city` when Slimstat has a record for this IP). The visitor's IP is never returned.
 
 ---
 
@@ -134,7 +134,7 @@ curl.exe -s -X POST "$BASE/chat/user" `
   -d '{"message":"hello","history":[]}'
 ```
 
-**Pass (AI configured):** HTTP 200, JSON response has `"reply"` field.
+**Pass (AI configured):** HTTP 200, JSON response has a `"msg"` field.
 **Pass (AI not configured):** HTTP 400/503 with a WP_Error body (not HTTP 403 — that would be a token regression).
 
 ---
@@ -163,6 +163,16 @@ curl.exe -s -o NUL -w "%{http_code}" -X POST "$BASE/clear-cache"
 
 ---
 
+### 5-C  POST /memory/extract — no auth → 401
+
+```powershell
+curl.exe -s -o NUL -w "%{http_code}" -X POST "$BASE/memory/extract"
+```
+
+**Pass:** HTTP **401**
+
+---
+
 ## Group 6 — SSE Endpoint Headers
 
 Confirm the streaming endpoint returns the correct content-type. AI does not need to be
@@ -181,7 +191,7 @@ curl.exe -s -D - --max-time 3 -X POST "$BASE/chat/user-stream" `
   2>&1 | Select-String "content-type|HTTP/"
 ```
 
-**Pass:** Response headers contain `Content-Type: text/event-stream`.
+**Pass:** Response headers contain `Content-Type: text/event-stream`, and any events in the body are named `stream.*` / `nonce.refresh` with the session envelope (see API Reference → SSE Event Format). A bare `event: delta` means the envelope was bypassed.
 If AI is not configured, an `event: error` SSE frame is acceptable — a plain HTTP 4xx/5xx is a regression.
 
 ---
@@ -192,7 +202,7 @@ Copy this table into your release notes and check off each item:
 
 | # | Endpoint | Check | Pass? |
 |---|----------|-------|-------|
-| 1-A | GET /init | HTTP 200 + ghost_name present | ☐ |
+| 1-A | GET /init | HTTP 200 + ukagaka_name / personality_id present | ☐ |
 | 1-B | GET /settings | HTTP 200 + feature flags present | ☐ |
 | 1-C | GET /visitor-info | HTTP 200 + visitor fields present | ☐ |
 | 2-A | GET /session-token | HTTP 200 + token field + no-store header | ☐ |
@@ -203,6 +213,7 @@ Copy this table into your release notes and check off each item:
 | 4 | POST /chat/user (with token) | 200 or non-403 error | ☐ |
 | 5-A | POST /test-connection/gemini (no auth) | HTTP 401 | ☐ |
 | 5-B | POST /clear-cache (no auth) | HTTP 401 | ☐ |
+| 5-C | POST /memory/extract (no auth) | HTTP 401 | ☐ |
 | 6-A | POST /chat/user-stream (with token) | Content-Type: text/event-stream | ☐ |
 
-All 12 items must pass before tagging a release.
+All 13 items must pass before tagging a release.

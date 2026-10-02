@@ -20,9 +20,11 @@
 | -------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------- |
 | [Developer Guide](./DEVELOPER_GUIDE.md)                        | Architecture overview, module structure, and extension development | Developers                 |
 | [API Reference](./API_REFERENCE.md)                            | Detailed reference for functions, hooks, and REST endpoints        | Developers                 |
+| [Abilities API](./ABILITIES_API.md)                            | Tools the character can call during chat, and how to add one       | Developers                 |
 | [Canvas Animation &amp; Custom CSS](./CANVAS_CUSTOMIZATION.md) | Canvas animation features and CSS positioning guide                | Developers, Advanced Users |
 | [Slimstat Debugging Guide](./DEBUG_SLIMSTAT.md)                | Guide for debugging Slimstat API integration                       | Developers                 |
-| [Releasing](./RELEASING.md)                                    | Version bump, release notes, and tagging workflow                  | Maintainers                |
+| [REST Smoke Test](./REST_SMOKE_TEST.md)                        | `curl` checklist for the REST endpoints on a live site             | Maintainers                |
+| [Releasing](./RELEASING.md)                                    | Version bump, release notes, tagging and GitHub Release workflow   | Maintainers                |
 
 ---
 
@@ -30,13 +32,13 @@
 
 ### Common Tasks
 
-- [How to install the plugin?](./USER_GUIDE.md#installation-and-activation)
+- [How to install the plugin?](./USER_GUIDE.md#installation--activation)
 - [How to create a new Ukagaka?](./USER_GUIDE.md#create-new-ukagaka)
 - [How to create a new personality?](./GHOST_CREATE_GUIDE.md#overview)
 - [How to configure AI features?](./USER_GUIDE.md#llm-settings-ai-dialogue-engine)
 - [How to add external dialogue files?](./USER_GUIDE.md#external-dialogue-files)
 - [How to configure Canvas animations?](./CANVAS_CUSTOMIZATION.md#animation-configuration)
-- [How to adjust Ukagaka position?](./CANVAS_CUSTOMIZATION.md#css-position-adjustment)
+- [How to adjust Ukagaka position?](./CANVAS_CUSTOMIZATION.md#css-position-adjustments)
 
 ### Development Tasks
 
@@ -59,8 +61,8 @@
 ## 🔗 Related Links
 
 - [Moelog.COM](https://www.moelog.com/)
-- [GitHub Repository](#)
-- [Report Issues](#)
+- [GitHub Repository](https://github.com/Horlicks-p/mp-ukagaka)
+- [Report Issues](https://github.com/Horlicks-p/mp-ukagaka/issues)
 
 ---
 
