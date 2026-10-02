@@ -143,6 +143,11 @@ def frame(kind, n, base, master, content_base=None):
     rt = (nt[0] - bnt[0], nt[1] - bnt[1])
     head_b = shift(head, *bnh)
     torso_b = shift(torso, *bnt) & ~head_b
+    # the content base may have its own converted pixels just outside the
+    # master's head outline (hair tips, ear tips); they belong to the head and
+    # must move with it, otherwise they stay behind or get cut between frames
+    edge = ndimage.binary_dilation(head_b, iterations=2) & (src[:, :, 3] > 0) & ~torso_b & ~head_b
+    head_b = head_b | (edge & (YY < 160))
     cb_ref = Image.open(convert.ref_path(cb_kind, cb_n)).convert("RGBA")
 
     # 1-2. rigid moves of the content base's layers
@@ -164,11 +169,16 @@ def frame(kind, n, base, master, content_base=None):
     cb_h = reference_image(translated_ref(cb_kind, cb_n, bnh[0] - cdh[0], bnh[1] - cdh[1]))
     al_t = reference_image(translated_ref(kind, n, bnt[0] - dt[0], bnt[1] - dt[1]))
     al_h = reference_image(translated_ref(kind, n, bnh[0] - dh[0], bnh[1] - dh[1]))
-    band_b = edge_band(src[:, :, 3] > 0)
+    band_b = edge_band(src[:, :, 3] > 0, width=2)
     ch_t = shift(changed(al_t, cb_t, torso_b, outline=band_b), *rt)
     ch_h = shift(changed(al_h, cb_h, head_b, outline=band_b), *rh)
     vacated = moving & ~t_mask & ~h_mask
-    out[vacated] = conv_t[vacated]
+    # what a moved layer uncovers is cape / collar only within the cape's
+    # reach; beside the ears and hair it is background (a reference sample
+    # there would leave an isolated speck)
+    reveal = vacated & ndimage.binary_dilation(t_mask, iterations=1)
+    out[vacated & ~reveal] = 0
+    out[reveal] = conv_t[reveal]
     out[ch_t & ~h_mask] = conv_t[ch_t & ~h_mask]
     out[ch_h] = conv_h[ch_h]
     # 4. safety net: wherever the composite disagrees with this frame's own
@@ -199,7 +209,7 @@ def frame(kind, n, base, master, content_base=None):
     # the outline band of the moved silhouette is left alone (resampling)
     affected = (h_mask ^ head_b) | (t_mask ^ torso_b) | vacated | ch_h | ch_t
     bad &= ndimage.binary_dilation(affected, iterations=2)
-    bad &= ~edge_band(out[:, :, 3] > 0)
+    bad &= ~edge_band(out[:, :, 3] > 0, width=2)
     lab, k = ndimage.label(bad, structure=np.ones((3, 3)))
     if k:
         sizes = ndimage.sum(bad, lab, range(1, k + 1))

@@ -91,14 +91,26 @@ def change_mask(kind, n, base, thr=28, min_blob=12):
 
 
 def fix_outline(master, kind="book", n=1):
-    """Recolour the master's outermost outline ring from its own reference
-    resampled correctly (premultiplied); shape and alpha are unchanged."""
+    """Clean the master's outermost outline ring against its own reference
+    resampled correctly (matte removed, premultiplied): background remnants
+    on the ring are dropped, the rest of the ring is recoloured."""
     from scipy import ndimage
     al = master[:, :, 3] > 0
     ring = al & ~ndimage.binary_erosion(al, structure=np.ones((3, 3)))
+    r = resize(Image.open(ref_path(kind, n)).convert("RGBA"))
+    # The master's silhouette is a little fuller than the reference: some
+    # outline cells are less than half covered and hold only the light grey of
+    # the white background the art was cut from. Recolouring them would leave
+    # a dark bump (e.g. beside the left boot); they are dropped instead.
+    c = master[:, :, :3].astype(int)
+    matte = ((c @ np.array([3, 6, 1])) // 10 > 140) & ((c.max(-1) - c.min(-1)) < 45)
+    remnant = ring & (r[:, :, 3] < 128) & matte
+    master = master.copy()
+    master[remnant] = 0
+    al = al & ~remnant
+    ring = ring & ~remnant
     # true (matte-free) colour of whatever covers each ring cell, even where
     # that coverage is under 50% (the master's silhouette is a little fuller)
-    r = resize(Image.open(ref_path(kind, n)).convert("RGBA"))
     ok = ring & (r[:, :, 3] > 0)
     pal = palette()
     d = ((r[..., None, :3] - pal[None, None]) ** 2).sum(-1)
@@ -118,7 +130,7 @@ def fix_outline(master, kind="book", n=1):
         lighter_than_all = all(lum[y, x] > lum[p] + 60 for p in nb)
         if (r[y, x, 3] < 128 and lum[y, x] > lum[yy, xx] + 80) or (lighter_than_all and lum[y, x] > 170):
             out[y, x, :3] = out[yy, xx, :3]
-    return out, int(ok.sum())
+    return out, int(ok.sum()) + int(remnant.sum())
 
 
 def locked(shape=(328, 208)):
