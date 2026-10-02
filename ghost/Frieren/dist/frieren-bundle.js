@@ -1,6 +1,6 @@
 /**
  * MP Ukagaka Frieren Bundle
- * Generated: 2026-10-02T17:56:03.469Z
+ * Generated: 2026-10-02T18:01:05.432Z
  *
  * 包含: frieren.js, frieren-animation.js, frieren-interactions.js, frieren-decorations.js
  */
@@ -1363,7 +1363,8 @@
           };
           target.style.cursor = cursorMap[zone] || "pointer";
         } else {
-          target.style.cursor = "default";
+          // 角色透明處底下若有裝飾，點擊會交給它，游標也跟著顯示可點
+          target.style.cursor = self.findDecorationAt && self.findDecorationAt(e, true) ? "pointer" : "default";
         }
       });
 
@@ -2063,6 +2064,42 @@
     },
 
     /**
+     * 滑鼠位置底下可點擊的裝飾（由上層往下找，以像素判定透明處）。
+     * 裝飾可能被角色元素的透明留白蓋住，點擊與游標都用它判定。
+     * @param {MouseEvent} e
+     * @param {boolean} quiet - 不寫除錯 log（滑鼠移動時使用）
+     * @returns {string|null} 裝飾類型
+     */
+    findDecorationAt: function (e, quiet) {
+      const ordered = this.frierenDecorations
+        .map((d, idx) => {
+          if (!d || !d.parentNode) return null;
+          const z = parseInt(window.getComputedStyle(d).zIndex || "0", 10);
+          return { d, idx, z: isNaN(z) ? 0 : z };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.z - b.z || a.idx - b.idx);
+
+      for (let i = ordered.length - 1; i >= 0; i--) {
+        const decoration = ordered[i].d;
+        const decRect = decoration.getBoundingClientRect();
+        if (
+          e.clientX >= decRect.left &&
+          e.clientX <= decRect.right &&
+          e.clientY >= decRect.top &&
+          e.clientY <= decRect.bottom
+        ) {
+          const m = decoration.className.match(/frieren-decoration\s+(\w+)/);
+          const type = m && m[1] ? m[1] : null;
+          if (type && this.isPixelHit(type, decoration, e, quiet)) {
+            return type;
+          }
+        }
+      }
+      return null;
+    },
+
+    /**
      * 設置點擊穿透：當點擊 canvas 或 img 時，檢查是否點擊到裝飾物區域
      * 使用事件委派綁定在容器上（capture），避免元素晚建立的問題
      */
@@ -2096,40 +2133,11 @@
           }
         }
 
-        const rect = imgContainer.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const ordered = this.frierenDecorations
-          .map((d, idx) => {
-            if (!d || !d.parentNode) return null;
-            const z = parseInt(window.getComputedStyle(d).zIndex || "0", 10);
-            return { d, idx, z: isNaN(z) ? 0 : z };
-          })
-          .filter(Boolean)
-          .sort((a, b) => a.z - b.z || a.idx - b.idx);
-
-        for (let i = ordered.length - 1; i >= 0; i--) {
-          const decoration = ordered[i].d;
-          const decRect = decoration.getBoundingClientRect();
-          const decX = decRect.left - rect.left;
-          const decY = decRect.top - rect.top;
-
-          if (
-            x >= decX &&
-            x <= decX + decRect.width &&
-            y >= decY &&
-            y <= decY + decRect.height
-          ) {
-            const m = decoration.className.match(/frieren-decoration\s+(\w+)/);
-            const type = m && m[1] ? m[1] : null;
-            if (type && this.isPixelHit(type, decoration, e)) {
-              e.stopPropagation();
-              e.preventDefault();
-              this.handleDecorationClick(type);
-              return;
-            }
-          }
+        const type = this.findDecorationAt(e);
+        if (type) {
+          e.stopPropagation();
+          e.preventDefault();
+          this.handleDecorationClick(type);
         }
       };
 
@@ -2271,9 +2279,10 @@
      * @param {string} type - 裝飾物類型
      * @param {HTMLImageElement} imgElement - 裝飾物圖片元素
      * @param {MouseEvent} event - 滑鼠事件
+     * @param {boolean} quiet - 不寫除錯 log
      * @returns {boolean} - 是否命中不透明像素
      */
-    isPixelHit: function (type, imgElement, event) {
+    isPixelHit: function (type, imgElement, event, quiet) {
       const hitData = this.decorationHitCanvases.get(type);
 
       if (!hitData || !hitData.ctx) {
@@ -2302,7 +2311,7 @@
         const imageData = hitData.ctx.getImageData(pixelX, pixelY, 1, 1);
         const alpha = imageData.data[3];
 
-        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        if (!quiet && typeof mpuLogger !== "undefined" && mpuLogger.log) {
           mpuLogger.logF("frierenPixelDetectionSample", "ピクセル検出：%1$s、x=%2$s、y=%3$s、alpha=%4$s、threshold=%5$s", type, pixelX, pixelY, alpha, this.pixelHitThreshold);
         }
 

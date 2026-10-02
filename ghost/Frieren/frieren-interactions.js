@@ -618,7 +618,8 @@
           };
           target.style.cursor = cursorMap[zone] || "pointer";
         } else {
-          target.style.cursor = "default";
+          // 角色透明處底下若有裝飾，點擊會交給它，游標也跟著顯示可點
+          target.style.cursor = self.findDecorationAt && self.findDecorationAt(e, true) ? "pointer" : "default";
         }
       });
 
