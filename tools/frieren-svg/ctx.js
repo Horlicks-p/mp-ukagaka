@@ -10,10 +10,14 @@ const g = path.join(__dirname, '..', '..', 'ghost', 'Frieren');
 const cfg = JSON.parse(fs.readFileSync(path.join(g, 'decorations.json'), 'utf8'));
 const body = process.argv[3] || 'shell/Frieren/idle/frieren-idle-00.svg';
 const u = p => pathToFileURL(p).href;
-const s = 248 / 290, H = 328 * s, W = 208 * s;
-const left = -30 * s + (134 - 147 * s) / 2, top = 1 - 29 * s;
+// layout.frame from assets.json; SX widens the frame around the box centre
+// (e.g. SX=1.05) to preview a horizontal stretch before changing build.py
+const layout = JSON.parse(fs.readFileSync(path.join(g, 'shell', 'Frieren', 'assets.json'), 'utf8')).layout;
+const sx = Number(process.env.SX || 1);
+const [fl, top, fw, H] = layout.frame;
+const W = fw * sx, left = layout.box[0] / 2 - (layout.box[0] / 2 - fl) * sx;
 const box = () => `<div style="position:relative;width:134px;height:249px;margin:60px 130px 40px;">` +
-  `<img src="${u(path.join(g, body))}" style="position:absolute;left:${left}px;top:${top}px;width:${W}px;height:${H}px;z-index:50">` +
+  `<img src="${u(path.join(g, body))}" style="position:absolute;left:${left}px;top:${top}px;width:${W}px;height:${H}px;z-index:50">` + (process.env.LABEL ? `<div style="position:absolute;top:-50px;left:0;font:12px sans-serif;color:#888">${process.env.LABEL}</div>` : '') +
   cfg.items.map(it => {
     const p = it.position;
     const st = `position:absolute;top:${p.top};left:${p.left};right:${p.right};width:${it.size.width};transform:${it.transform || ''};z-index:${it.z_index}`;

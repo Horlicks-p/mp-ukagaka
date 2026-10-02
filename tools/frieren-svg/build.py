@@ -77,6 +77,11 @@ def qa(seq):
 # character filled rows 1..248 and the full width.
 LEGACY_BOX = (134, 249)
 LEGACY_CHAR_TOP, LEGACY_CHAR_HEIGHT = 1, 248
+# Horizontal stretch of the drawn frame. At equal height the SVG character
+# is ~6% narrower than the old PNG one (125.7 vs 134 px); 1.066 restores
+# the old width. Applied to the display size only, so all 38 frames, the
+# shadow and the hit tests widen together and the SVG files stay as drawn.
+STRETCH_X = 1.066
 
 
 def layout():
@@ -88,12 +93,13 @@ def layout():
     top, bottom = int(ys.min()), int(ys.max()) + 1
     left, right = int(xs.min()), int(xs.max()) + 1
     s = LEGACY_CHAR_HEIGHT / (bottom - top)
+    sx = s * STRETCH_X
     bw, bh = LEGACY_BOX
     return {
         "box": [bw, bh],
-        "frame": [round((bw - (right - left) * s) / 2 - left * s, 2),
+        "frame": [round((bw - (right - left) * sx) / 2 - left * sx, 2),
                   round(LEGACY_CHAR_TOP - top * s, 2),
-                  round(pix.W * s, 2), round(pix.H * s, 2)],
+                  round(pix.W * sx, 2), round(pix.H * s, 2)],
     }
 
 
