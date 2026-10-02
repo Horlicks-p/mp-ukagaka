@@ -320,7 +320,9 @@
         return null;
       }
 
-      const rect = element.getBoundingClientRect();
+      const rect = typeof window.mpuGetCharacterRect === "function"
+        ? window.mpuGetCharacterRect(element)
+        : element.getBoundingClientRect();
       const clickY = event.clientY - rect.top;
       const relativeY = clickY / rect.height;
 

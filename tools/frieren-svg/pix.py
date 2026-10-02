@@ -15,7 +15,7 @@ SHELL = os.path.join(ROOT, "ghost", "Frieren", "shell", "Frieren")
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORK = os.path.join(HERE, "work")
 PREVIEW = os.path.join(HERE, "preview")
-MASTER_SVG = os.path.join(SHELL, "frieren[0].svg")
+MASTER_SVG = os.path.join(HERE, "master.svg")  # master grid source (not shipped)
 W, H = 208, 328
 
 FILTER = """<defs>

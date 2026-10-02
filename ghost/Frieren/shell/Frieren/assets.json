@@ -6,7 +6,18 @@
     208,
     328
   ],
-  "display_height": 249,
+  "layout": {
+    "box": [
+      134,
+      249
+    ],
+    "frame": [
+      -21.51,
+      -23.8,
+      177.88,
+      280.5
+    ]
+  },
   "sequences": {
     "idle": {
       "loop": true,

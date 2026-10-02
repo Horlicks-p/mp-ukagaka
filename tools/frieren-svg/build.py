@@ -72,9 +72,34 @@ def qa(seq):
     return pix.show(c, "qa_" + seq)
 
 
+# The shell box the rest of the runtime is written against (decorations.json
+# positions, touch-zone ratios, emoji offsets): the former 134x249 PNG, whose
+# character filled rows 1..248 and the full width.
+LEGACY_BOX = (134, 249)
+LEGACY_CHAR_TOP, LEGACY_CHAR_HEIGHT = 1, 248
+
+
+def layout():
+    """Where the 208x328 SVG frame is drawn relative to that box: scaled so
+    the character matches the old character's height and centred on it. The
+    frame overhangs the box (margins, drop shadow); the box stays the layout."""
+    m = pix.master()
+    ys, xs = np.nonzero(m[:, :, 3] > 0)
+    top, bottom = int(ys.min()), int(ys.max()) + 1
+    left, right = int(xs.min()), int(xs.max()) + 1
+    s = LEGACY_CHAR_HEIGHT / (bottom - top)
+    bw, bh = LEGACY_BOX
+    return {
+        "box": [bw, bh],
+        "frame": [round((bw - (right - left) * s) / 2 - left * s, 2),
+                  round(LEGACY_CHAR_TOP - top * s, 2),
+                  round(pix.W * s, 2), round(pix.H * s, 2)],
+    }
+
+
 def manifest():
     out = {"format_version": 1, "view_box": [0, 0, pix.W, pix.H],
-           "display_height": 249, "sequences": {}}
+           "layout": layout(), "sequences": {}}
     for seq, (names, loop, durs) in SEQ.items():
         frames = []
         for i, n in enumerate(names):

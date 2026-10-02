@@ -100,33 +100,7 @@ function mpu_get_shell_info($num = false)
         ];
     } elseif (is_dir($shell_path)) {
         // 資料夾，掃描圖片文件
-        $images = [];
-        $allowed_extensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
-
-        if ($handle = opendir($shell_path)) {
-            while (false !== ($entry = readdir($handle))) {
-                if ($entry === '.' || $entry === '..') {
-                    continue;
-                }
-
-                $file_path = $shell_path . '/' . $entry;
-                if (!is_file($file_path)) {
-                    continue;
-                }
-
-                $extension = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
-                if (in_array($extension, $allowed_extensions)) {
-                    $images[] = $entry;
-                }
-            }
-            closedir($handle);
-        }
-
-        // 自然排序圖片文件名
-        if (!empty($images)) {
-            natsort($images);
-            $images = array_values($images); // 重新索引陣列
-        }
+        $images = mpu_list_shell_images($shell_path);
 
         // 取得資料夾的 URL
         $folder_url = '';
@@ -151,6 +125,44 @@ function mpu_get_shell_info($num = false)
         'url' => $shell_url,
         'images' => []
     ];
+}
+
+/**
+ * 列出 shell 資料夾內的圖片（不含子資料夾），依檔名自然排序。
+ * 同一個 basename 同時有點陣圖與 SVG 時只算一張，優先使用 SVG。
+ *
+ * @param string $dir shell 資料夾的本機路徑.
+ * @return string[] 檔名陣列.
+ */
+function mpu_list_shell_images( $dir ) {
+	$allowed_extensions = array( 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp' );
+	$by_base            = array();
+
+	$entries = is_dir( $dir ) ? scandir( $dir ) : false;
+	if ( false === $entries ) {
+		return array();
+	}
+	foreach ( $entries as $entry ) {
+		if ( '.' === $entry || '..' === $entry || ! is_file( $dir . '/' . $entry ) ) {
+			continue;
+		}
+		$extension = strtolower( pathinfo( $entry, PATHINFO_EXTENSION ) );
+		$rank      = array_search( $extension, $allowed_extensions, true );
+		if ( false === $rank ) {
+			continue;
+		}
+		$base = pathinfo( $entry, PATHINFO_FILENAME );
+		if ( ! isset( $by_base[ $base ] ) || $rank < $by_base[ $base ]['rank'] ) {
+			$by_base[ $base ] = array(
+				'file' => $entry,
+				'rank' => $rank,
+			);
+		}
+	}
+
+	$images = array_column( $by_base, 'file' );
+	natsort( $images );
+	return array_values( $images );
 }
 
 function mpu_common_msg()

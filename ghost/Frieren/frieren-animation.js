@@ -1,8 +1,9 @@
 /**
  * MP Ukagaka 芙莉蓮動畫模組
  *
- * 擴展 frieren.js 建立的 window.mpuFrierenManager，負責圖片載入、
- * idle/APNG 顯示、翻書動畫、睡眠判定與喚醒動畫。
+ * 擴展 frieren.js 建立的 window.mpuFrierenManager，負責 SVG 幀序列
+ * （shell/Frieren/assets.json）的載入、閒置／睡眠循環、翻書動畫、
+ * 睡眠判定與喚醒動畫。
  */
 
 (function () {
@@ -15,50 +16,268 @@
 
   Object.assign(manager, {
     /**
-     * 載入芙莉蓮所有圖片
+     * 讀取 shell/Frieren/assets.json，建立 SVG 幀序列後開始預載。
+     * 讀不到或格式不對時記錄錯誤並照常顯示容器，不讓頁面停在隱藏狀態。
+     * @param {string} baseUrl - shell 資料夾 URL（以 / 結尾）
      */
-    loadFrierenImages: function () {
+    loadFrierenAssets: function (baseUrl) {
       if (!window.mpuCanvasManager || !window.mpuCanvasManager.canvas) {
         mpuLogger.errorL('frierenImageCanvasManagerMissing', '画像読み込み前に Canvas マネージャーが初期化されていません');
         return;
       }
 
-      this.frierenImages = [];
-      const allImageUrls = [this.frierenIdleImage].concat(
-        this.frierenBookFlipImages
+      fetch(baseUrl + "assets.json", { credentials: "same-origin" })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        })
+        .then(function (assets) {
+          this.applyFrierenAssets(assets, baseUrl);
+          this.loadFrierenImages();
+        }.bind(this))
+        .catch(function (error) {
+          mpuLogger.errorF('frierenAssetManifestLoadFailed', 'フリーレンの表示資産マニフェストを読み込めません：%s', error && error.message ? error.message : String(error));
+          this.revealFrierenContainer();
+        }.bind(this));
+    },
+
+    /**
+     * 驗證 assets.json 並展開為各序列的幀清單與 URL。
+     * @param {Object} assets - assets.json 內容
+     * @param {string} baseUrl - shell 資料夾 URL
+     */
+    applyFrierenAssets: function (assets, baseUrl) {
+      if (
+        !assets ||
+        assets.format_version !== 1 ||
+        !assets.layout ||
+        !Array.isArray(assets.layout.box) ||
+        !Array.isArray(assets.layout.frame) ||
+        !assets.sequences ||
+        !assets.sequences.idle ||
+        !Array.isArray(assets.sequences.idle.frames) ||
+        assets.sequences.idle.frames.length === 0
+      ) {
+        throw new Error("invalid assets.json");
+      }
+
+      this.frierenAssets = assets;
+      this.frierenLayout = assets.layout;
+      this.frierenSequences = {};
+      this.frierenSequenceLoads = {};
+      this.frierenSequenceState = {};
+
+      Object.keys(assets.sequences).forEach(function (name) {
+        const seq = assets.sequences[name];
+        this.frierenSequences[name] = (seq.frames || []).map(function (frame) {
+          return {
+            src: baseUrl + frame.src,
+            duration: Math.max(16, Number(frame.duration_ms) || 100),
+            img: null,
+          };
+        });
+      }, this);
+
+      const urls = function (name) {
+        return (this.frierenSequences[name] || []).map(function (frame) {
+          return frame.src;
+        });
+      }.bind(this);
+      this.frierenIdleImage = urls("idle")[0] || null;
+      this.frierenSleepImage = urls("sleep")[0] || null;
+      this.frierenWakeUpImages = urls("wake");
+      this.frierenBookFlipImages = urls("book_flip");
+    },
+
+    /**
+     * 預載一個序列的全部幀（含 decode）。任一幀失敗即整個序列視為失敗，
+     * 不以缺幀播放錯誤的動作。
+     * @param {string} name - 序列名稱
+     * @returns {Promise} 成功 resolve、失敗 reject
+     */
+    loadFrierenSequence: function (name) {
+      if (this.frierenSequenceLoads[name]) {
+        return this.frierenSequenceLoads[name];
+      }
+      const frames = this.frierenSequences[name];
+      if (!frames || frames.length === 0) {
+        this.frierenSequenceState[name] = "failed";
+        return Promise.reject(new Error("no frames: " + name));
+      }
+
+      this.frierenSequenceState[name] = "loading";
+      const self = this;
+      const load = Promise.all(
+        frames.map(function (frame) {
+          return new Promise(function (resolve, reject) {
+            const img = new Image();
+            img.onload = function () {
+              const decoded = typeof img.decode === "function" ? img.decode().catch(function () {}) : Promise.resolve();
+              decoded.then(resolve);
+            };
+            img.onerror = function () {
+              mpuLogger.errorF('frierenImageLoadFailed', 'フリーレン画像の読み込みに失敗しました：%s', frame.src);
+              reject(new Error(frame.src));
+            };
+            img.src = frame.src;
+            frame.img = img;
+          });
+        })
+      ).then(
+        function () {
+          self.frierenSequenceState[name] = "ready";
+        },
+        function (error) {
+          self.frierenSequenceState[name] = "failed";
+          mpuLogger.errorF('frierenSequenceLoadFailed', 'フリーレンのアニメーション序列を読み込めません：%s', name);
+          throw error;
+        }
       );
-      let loadedCount = 0;
-      const totalImages = allImageUrls.length;
+      this.frierenSequenceLoads[name] = load;
+      return load;
+    },
 
-      for (let i = 0; i < allImageUrls.length; i++) {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
+    /**
+     * @param {string} name - 序列名稱
+     * @returns {boolean} 序列是否已可播放
+     */
+    isFrierenSequenceReady: function (name) {
+      return this.frierenSequenceState[name] === "ready";
+    },
 
-        img.onload = function (index) {
-          loadedCount++;
-          if (loadedCount === 1) {
-            window.mpuCanvasManager.canvas.width = img.width;
-            window.mpuCanvasManager.canvas.height = img.height;
-          }
-          if (loadedCount === totalImages) {
-            window.mpuCanvasManager.imagesLoaded = true;
-            this.showFrierenIdle();
-          }
-        }.bind(this);
+    /**
+     * 依初始狀態分段預載：先載入第一個要顯示的序列（閒置或睡眠）並顯示，
+     * 之後在背景依序載入其餘序列（睡眠時優先醒來動畫）。
+     */
+    loadFrierenImages: function () {
+      const sleeping = this.isSleepMessage() && !this.sleepModeAwoken;
+      const first = sleeping && this.frierenSequences.sleep ? "sleep" : "idle";
+      const rest = sleeping ? ["wake", "idle", "book_flip"] : ["book_flip"];
 
-        img.onerror = function (url) {
-          mpuLogger.errorF('frierenImageLoadFailed', 'フリーレン画像の読み込みに失敗しました：%s', url);
-          loadedCount++;
-          if (loadedCount === totalImages) {
-            window.mpuCanvasManager.imagesLoaded = true;
-            if (this.frierenImages.length > 0) {
-              this.showFrierenIdle();
-            }
-          }
-        }.bind(this);
+      this.applyFrierenBodyLayout(window.mpuCanvasManager.canvas);
 
-        img.src = allImageUrls[i];
-        this.frierenImages.push(img);
+      const self = this;
+      const showThenLoadRest = function () {
+        window.mpuCanvasManager.imagesLoaded = true;
+        self.showFrierenIdle();
+        rest.reduce(function (chain, name) {
+          return chain.then(function () {
+            return self.loadFrierenSequence(name).catch(function () {});
+          });
+        }, Promise.resolve());
+      };
+
+      this.loadFrierenSequence(first).then(showThenLoadRest, showThenLoadRest);
+    },
+
+    /**
+     * 把人物元素（閒置 <img> 或動畫 Canvas）放到版面上。
+     * 版面只佔 layout.box（原 134x249 人物框；裝飾位置、觸摸區、表情都以它為準），
+     * SVG 幀依 layout.frame 縮放並向外溢出（四周留白與陰影），以負 margin 抵銷。
+     * @param {HTMLElement} element - <img> 或 <canvas>
+     */
+    applyFrierenBodyLayout: function (element) {
+      if (!element || !this.frierenLayout) {
+        return;
+      }
+      const box = this.frierenLayout.box;
+      const frame = this.frierenLayout.frame;
+      const left = frame[0];
+      const top = frame[1];
+      const width = frame[2];
+      const height = frame[3];
+      const set = function (prop, value) {
+        element.style.setProperty(prop, value, "important");
+      };
+      set("width", width + "px");
+      set("height", height + "px");
+      set("max-width", "none");
+      set("margin", top + "px " + (box[0] - left - width) + "px " + (box[1] - top - height) + "px " + left + "px");
+      // 人物框在元素內的位置與大小（mpuGetCharacterRect 用）
+      element.dataset.mpuBodyBox = [-left, -top, box[0], box[1]].join(",");
+
+      if (element.tagName === "CANVAS") {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const backingWidth = Math.round(width * dpr);
+        const backingHeight = Math.round(height * dpr);
+        if (element.width !== backingWidth || element.height !== backingHeight) {
+          element.width = backingWidth;
+          element.height = backingHeight;
+        }
+      }
+    },
+
+    /**
+     * 清除 applyFrierenBodyLayout 加在元素上的版面樣式（切換到其他角色時）。
+     * @param {HTMLElement} element
+     */
+    clearFrierenBodyLayout: function (element) {
+      if (!element) {
+        return;
+      }
+      ["width", "height", "max-width", "margin"].forEach(function (prop) {
+        element.style.removeProperty(prop);
+      });
+      delete element.dataset.mpuBodyBox;
+    },
+
+    /**
+     * 在動畫 Canvas 上畫一幀（以 Canvas 實際像素尺寸繪製 SVG，避免縮放模糊）。
+     * @param {HTMLImageElement} img
+     */
+    drawFrierenFrame: function (img) {
+      const canvasManager = window.mpuCanvasManager;
+      if (!img || !img.complete || img.naturalWidth === 0 || !canvasManager || !canvasManager.ctx) {
+        return;
+      }
+      const canvas = canvasManager.canvas;
+      const ctx = canvasManager.ctx;
+      const prevOp = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = "copy";
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = prevOp;
+    },
+
+    /**
+     * 以 <img> 循環播放閒置或睡眠序列（原 APNG 的時序寫在 assets.json）。
+     * @param {string} name - idle | sleep
+     */
+    playFrierenLoop: function (name) {
+      const frames = this.frierenSequences[name];
+      const imgElement = this.frierenIdleImgElement;
+      if (!frames || frames.length === 0 || !imgElement) {
+        return;
+      }
+      const self = this;
+      let index = 0;
+      const step = function () {
+        const frame = frames[index];
+        if (imgElement.getAttribute("src") !== frame.src) {
+          imgElement.setAttribute("src", frame.src);
+        }
+        if (frames.length < 2) {
+          return;
+        }
+        self.frierenLoopTimer = setTimeout(function () {
+          index = (index + 1) % frames.length;
+          step();
+        }, frame.duration);
+      };
+      step();
+    },
+
+    /**
+     * 顯示芙莉蓮容器（序列無法播放時的安全收尾，避免頁面停在隱藏狀態）。
+     */
+    revealFrierenContainer: function () {
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (imgContainer) imgContainer.style.visibility = "visible";
+      const msgbox = document.getElementById("ukagaka_msgbox");
+      if (msgbox) msgbox.style.visibility = "visible";
+      if (typeof window.mpuMarkVisualReady === "function") {
+        window.mpuMarkVisualReady("frieren");
       }
     },
 
@@ -80,7 +299,7 @@
 
     /**
      * 顯示芙莉蓮閒置狀態
-     * 睡眠模式且未喚醒時顯示 frieren[s].png，否則顯示 frieren[0].png
+     * 睡眠模式且未喚醒時循環播放睡眠序列，否則循環播放閒置序列
      */
     showFrierenIdle: function () {
       if (!this.isFrierenMode || !this.frierenIdleImage) {
@@ -93,8 +312,6 @@
       if (!imgContainer) {
         return;
       }
-
-      const self = this;
 
       if (!this.frierenIdleImgElement) {
         // 先嘗試從 DOM 中獲取，避免 SPA 重載時建立重複元素
@@ -110,22 +327,6 @@
             this.frierenIdleOpacity
           );
           this.frierenIdleImgElement.style.cursor = "pointer";
-          this.frierenIdleImgElement.style.maxWidth = "none";
-          this.frierenIdleImgElement.style.width = "auto";
-          this.frierenIdleImgElement.style.height = "auto";
-
-          if (!this.frierenIdleImgElement.dataset.mpuSizeLocked) {
-            this.frierenIdleImgElement.addEventListener("load", () => {
-              const w = this.frierenIdleImgElement.naturalWidth;
-              const h = this.frierenIdleImgElement.naturalHeight;
-              if (w && h) {
-                this.frierenIdleImgElement.style.width = w + "px";
-                this.frierenIdleImgElement.style.height = h + "px";
-                this.frierenIdleImgElement.style.maxWidth = "none";
-              }
-            });
-            this.frierenIdleImgElement.dataset.mpuSizeLocked = "1";
-          }
 
           // 設置 title 和 alt
           if (
@@ -146,52 +347,42 @@
           imgContainer.appendChild(this.frierenIdleImgElement);
         }
       }
+      this.applyFrierenBodyLayout(this.frierenIdleImgElement);
 
-      const shouldShowSleep = this.isSleepMessage() && !this.sleepModeAwoken;
-      const imageToShow =
-        shouldShowSleep && this.frierenSleepImage
-          ? this.frierenSleepImage
-          : this.frierenIdleImage;
+      const wantSleep = this.isSleepMessage() && !this.sleepModeAwoken && !!this.frierenSequences.sleep;
+      const sequence = wantSleep ? "sleep" : "idle";
 
-      const preloadImg = new Image();
-      const finalizeIdle = function() {
-          // [Fix] 使用 endsWith 比對，避免絕對路徑造成的誤判，減少重複賦值 src。
-          const currentSrc = self.frierenIdleImgElement.src || "";
-          if (!currentSrc.endsWith(imageToShow)) {
-              self.frierenIdleImgElement.src = imageToShow;
-          }
+      if (!this.isFrierenSequenceReady(sequence)) {
+        if (this.frierenSequenceState[sequence] === "failed") {
+          // 序列無法播放：停在目前畫面並確保容器可見，不無限等待
+          this.revealFrierenContainer();
+          this.frierenIsSpeaking = false;
+          return;
+        }
+        this.loadFrierenSequence(sequence).then(
+          this.showFrierenIdle.bind(this),
+          this.showFrierenIdle.bind(this)
+        );
+        return;
+      }
 
-          // 先顯示閒置圖片
-          self.frierenIdleImgElement.style.display = "block";
-          self.frierenIdleImgElement.style.opacity = String(self.frierenIdleOpacity);
+      // 先顯示閒置序列
+      this.playFrierenLoop(sequence);
+      this.frierenIdleImgElement.style.display = "block";
+      this.frierenIdleImgElement.style.opacity = String(this.frierenIdleOpacity);
 
-          // 後隱藏畫布，確保視覺無縫過接
-          if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
-              window.mpuCanvasManager.canvas.style.display = "none";
-          }
+      // 後隱藏畫布，確保視覺無縫過接
+      if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
+        window.mpuCanvasManager.canvas.style.display = "none";
+      }
 
-          const imgContainer = document.getElementById("ukagaka_img");
-          if (imgContainer) imgContainer.style.visibility = "visible";
+      this.revealFrierenContainer();
+      this.setupDecorationClickThrough();
+      this.frierenIsSpeaking = false;
 
-          const msgbox = document.getElementById("ukagaka_msgbox");
-          if (msgbox) msgbox.style.visibility = "visible";
-
-          if (typeof window.mpuMarkVisualReady === "function") {
-            window.mpuMarkVisualReady("frieren");
-          }
-
-          self.setupDecorationClickThrough();
-          self.frierenIsSpeaking = false;
-
-          // [Fix] 加回 Debug Log，方便監測切換時機
-          if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-            mpuLogger.logL("frierenSleepIdleImageSelected", "🌙 睡眠画像 frieren[s].png を表示します / ☀️ ゴースト画像 frieren[0].png を表示します");
-          }
-      };
-
-      preloadImg.onload = finalizeIdle;
-      preloadImg.onerror = finalizeIdle;
-      preloadImg.src = imageToShow;
+      if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        mpuLogger.logF("frierenSleepIdleImageSelected", "🌙 / ☀️ 待機アニメーションを再生します：%s", sequence);
+      }
     },
 
     /**
@@ -210,14 +401,46 @@
     },
 
     /**
-     * 播放芙莉蓮翻書動畫（frieren[1].png ~ frieren[12].png）
+     * 在 Canvas 上依序播放一個非循環序列，結束後呼叫 onDone。
+     * @param {string} name - book_flip | wake
+     * @param {Function} onDone
+     */
+    playFrierenCanvasSequence: function (name, onDone) {
+      const frames = this.frierenSequences[name];
+      const canvasManager = window.mpuCanvasManager;
+      if (!frames || frames.length === 0 || !canvasManager || !canvasManager.canvas || !canvasManager.ctx) {
+        if (onDone) onDone();
+        return;
+      }
+
+      const canvas = canvasManager.canvas;
+      this.applyFrierenBodyLayout(canvas);
+      this.drawFrierenFrame(frames[0].img);
+      if (this.frierenIdleImgElement) {
+        this.frierenIdleImgElement.style.display = "none";
+      }
+      canvas.style.display = "block";
+
+      const self = this;
+      let index = 0;
+      const next = function () {
+        index++;
+        if (index >= frames.length) {
+          self.frierenAnimationTimer = null;
+          if (onDone) onDone();
+          return;
+        }
+        self.drawFrierenFrame(frames[index].img);
+        self.frierenAnimationTimer = setTimeout(next, frames[index].duration);
+      };
+      this.frierenAnimationTimer = setTimeout(next, frames[0].duration);
+    },
+
+    /**
+     * 播放芙莉蓮翻書動畫（assets.json 的 book_flip 序列）
      */
     playFrierenBookFlipAnimation: function () {
-      if (
-        !this.isFrierenMode ||
-        !this.frierenImages ||
-        this.frierenImages.length < 12
-      ) {
+      if (!this.isFrierenMode || !this.isFrierenSequenceReady("book_flip")) {
         return;
       }
 
@@ -235,112 +458,32 @@
         return;
       }
 
+      this.stopFrierenAnimation();
       this.frierenIsSpeaking = true;
 
-      const firstFrameImg = this.frierenImages[1];
-      const canvas = window.mpuCanvasManager.canvas;
-      const ctx = window.mpuCanvasManager.ctx;
-      const frameInterval = window.mpuCanvasManager.frameInterval || 150;
-
-      if (
-        firstFrameImg &&
-        firstFrameImg.complete &&
-        firstFrameImg.naturalWidth > 0
-      ) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(firstFrameImg, 0, 0);
-
-        if (
-          canvas.width !== firstFrameImg.width ||
-          canvas.height !== firstFrameImg.height
-        ) {
-          canvas.width = firstFrameImg.width;
-          canvas.height = firstFrameImg.height;
-          ctx.drawImage(firstFrameImg, 0, 0);
+      // 翻書結束時先把閒置第一幀畫到 Canvas，再交棒給 <img>，
+      // 避免最後一幀（翻書中段姿勢）閃一下
+      const self = this;
+      this.playFrierenCanvasSequence("book_flip", function () {
+        const idle = self.frierenSequences.idle;
+        if (idle && idle[0] && idle[0].img) {
+          self.drawFrierenFrame(idle[0].img);
         }
-
-        if (this.frierenIdleImgElement) {
-          this.frierenIdleImgElement.style.display = "none";
-        }
-        if (canvas) {
-          canvas.style.display = "block";
-        }
-      } else {
-        const checkFirstFrame = function () {
-          if (
-            firstFrameImg &&
-            firstFrameImg.complete &&
-            firstFrameImg.naturalWidth > 0
-          ) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(firstFrameImg, 0, 0);
-
-            if (
-              canvas.width !== firstFrameImg.width ||
-              canvas.height !== firstFrameImg.height
-            ) {
-              canvas.width = firstFrameImg.width;
-              canvas.height = firstFrameImg.height;
-              ctx.drawImage(firstFrameImg, 0, 0);
-            }
-
-            if (this.frierenIdleImgElement) {
-              this.frierenIdleImgElement.style.display = "none";
-            }
-            if (canvas) {
-              canvas.style.display = "block";
-            }
-          } else {
-            setTimeout(checkFirstFrame, 50);
-          }
-        }.bind(this);
-
-        checkFirstFrame();
-      }
-
-      let frameIndex = 2;
-
-      this.frierenAnimationTimer = setInterval(
-        function () {
-          // [Fix] frieren[1..11] 是翻書幀，最後要交棒給原生 <img> 渲染的 idle（frieren[0].png，APNG）。
-          // 直接從翻書末幀 frieren[11]（翻書中段姿勢）跳到 idle <img> 會「閃一下」：
-          //   ① 姿勢落差：11 是翻書中段、0 是 idle 定格；
-          //   ② 亮度落差：半透明 APNG 在 canvas 上以 source-over 繪製會雙重混合偏暗，<img> 原生渲染較亮。
-          // 收尾時先用 'copy' 合成把 idle 姿勢（frieren[0]）畫到 canvas（copy 直接覆蓋像素、不疊 alpha，
-          // 避免偏暗），使最後一張 canvas 幀＝idle 定格且亮度與 <img> 一致，再由 showFrierenIdle 無縫換成 <img>。
-          if (frameIndex >= 12) {
-            this.stopFrierenAnimation();
-            const idleImg = this.frierenImages[0];
-            if (idleImg && idleImg.complete && idleImg.naturalWidth > 0 && ctx) {
-              const prevOp = ctx.globalCompositeOperation;
-              ctx.globalCompositeOperation = "copy";
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              ctx.drawImage(idleImg, 0, 0);
-              ctx.globalCompositeOperation = prevOp;
-            }
-            this.showFrierenIdle();
-            return;
-          }
-
-          const img = this.frierenImages[frameIndex];
-          if (img && img.complete && img.naturalWidth > 0) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-          }
-
-          frameIndex++;
-        }.bind(this),
-        frameInterval
-      );
+        self.showFrierenIdle();
+      });
     },
 
     /**
-     * 停止芙莉蓮動畫
+     * 停止芙莉蓮動畫（翻書／醒來與閒置／睡眠循環）
      */
     stopFrierenAnimation: function () {
       if (this.frierenAnimationTimer) {
-        clearInterval(this.frierenAnimationTimer);
+        clearTimeout(this.frierenAnimationTimer);
         this.frierenAnimationTimer = null;
+      }
+      if (this.frierenLoopTimer) {
+        clearTimeout(this.frierenLoopTimer);
+        this.frierenLoopTimer = null;
       }
     },
 
@@ -349,6 +492,7 @@
      */
     cleanupFrierenElements: function () {
       this.isFrierenMode = false;
+      this.stopFrierenAnimation();
 
       if (this.frierenIdleImgElement && this.frierenIdleImgElement.parentNode) {
         this.frierenIdleImgElement.parentNode.removeChild(
@@ -366,9 +510,15 @@
       });
 
       this.clearFrierenDecorations();
+
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (imgContainer) {
+        imgContainer.style.removeProperty("display");
+      }
       this._decorationsLoaded = false; // 重置標誌，允許重新載入
 
       if (window.mpuCanvasManager && window.mpuCanvasManager.canvas) {
+        this.clearFrierenBodyLayout(window.mpuCanvasManager.canvas);
         window.mpuCanvasManager.canvas.style.display = "block";
       }
     },
@@ -414,106 +564,37 @@
     },
 
     /**
-     * 播放醒來動畫（frieren[w1-w4].png）
+     * @returns {boolean} 此 shell 是否有醒來動畫（manifest 讀取前視為有）
+     */
+    hasWakeUpAnimation: function () {
+      return !this.frierenAssets || (this.frierenSequences.wake || []).length > 0;
+    },
+
+    /**
+     * 播放醒來動畫（assets.json 的 wake 序列）
      * @param {Function} callback - 動畫完成後的回調函數
      */
     playWakeUpAnimation: function (callback) {
-      if (
-        !this.isFrierenMode ||
-        !this.frierenWakeUpImages ||
-        this.frierenWakeUpImages.length === 0
-      ) {
+      if (!this.isFrierenMode || !this.frierenSequences.wake || this.frierenSequences.wake.length === 0) {
         if (callback) callback();
         return;
       }
 
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
-        mpuLogger.logL("frierenWakeAnimationPlaying", "👀 目覚めアニメーション frieren[w1-w5].png を再生します");
+        mpuLogger.logL("frierenWakeAnimationPlaying", "👀 目覚めアニメーションを再生します");
       }
 
       this.stopFrierenAnimation();
 
       const self = this;
-      let frameIndex = 0;
-      const frameInterval = 80;
-
-      const wakeUpImgs = [];
-      let loadedCount = 0;
-
-      for (let i = 0; i < this.frierenWakeUpImages.length; i++) {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = function () {
-          loadedCount++;
-          if (loadedCount === self.frierenWakeUpImages.length) {
-            startAnimation();
-          }
-        };
-        img.onerror = function () {
-          loadedCount++;
-          if (loadedCount === self.frierenWakeUpImages.length) {
-            startAnimation();
-          }
-        };
-        img.src = this.frierenWakeUpImages[i];
-        wakeUpImgs.push(img);
-      }
-
-      function startAnimation() {
-        if (
-          !window.mpuCanvasManager ||
-          !window.mpuCanvasManager.canvas ||
-          !window.mpuCanvasManager.ctx
-        ) {
+      this.loadFrierenSequence("wake").then(
+        function () {
+          self.playFrierenCanvasSequence("wake", callback);
+        },
+        function () {
           if (callback) callback();
-          return;
         }
-
-        const canvas = window.mpuCanvasManager.canvas;
-        const ctx = window.mpuCanvasManager.ctx;
-
-        const firstImg = wakeUpImgs[0];
-        if (firstImg && firstImg.complete && firstImg.naturalWidth > 0) {
-          canvas.width = firstImg.width;
-          canvas.height = firstImg.height;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(firstImg, 0, 0);
-        }
-
-        if (self.frierenIdleImgElement) {
-          self.frierenIdleImgElement.style.display = "none";
-        }
-        canvas.style.display = "block";
-
-        frameIndex = 1;
-        playFrames();
-      }
-
-      function playFrames() {
-        if (frameIndex >= wakeUpImgs.length) {
-          self.frierenAnimationTimer = null;
-          if (callback) callback();
-          return;
-        }
-
-        const img = wakeUpImgs[frameIndex];
-        if (
-          img.complete &&
-          img.naturalWidth > 0 &&
-          window.mpuCanvasManager &&
-          window.mpuCanvasManager.ctx
-        ) {
-          const canvas = window.mpuCanvasManager.canvas;
-          const ctx = window.mpuCanvasManager.ctx;
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0);
-        }
-
-        frameIndex++;
-        self.frierenAnimationTimer = setTimeout(playFrames, frameInterval);
-      }
+      );
     },
 
     /**
@@ -575,18 +656,24 @@
         return false;
       }
 
-      if (
-        !window.mpuCanvasManager ||
-        !window.mpuCanvasManager.imagesLoaded ||
-        !this.frierenImages ||
-        this.frierenImages.length < 12
-      ) {
+      if (!window.mpuCanvasManager || !window.mpuCanvasManager.imagesLoaded) {
         setTimeout(
           function () {
             this.triggerFrierenSpeaking(forceAnimation, onWakeUpComplete);
           }.bind(this),
           100
         );
+        return false;
+      }
+
+      if (!this.isFrierenSequenceReady("book_flip")) {
+        // 尚未載入完成時，載入後再翻書；載入失敗則不播放（不以缺幀播放）
+        if (this.frierenSequences.book_flip && this.frierenSequenceState.book_flip !== "failed") {
+          this.loadFrierenSequence("book_flip").then(
+            this.playFrierenBookFlipAnimation.bind(this),
+            function () {}
+          );
+        }
         return false;
       }
 

@@ -38,7 +38,7 @@ In MP Ukagaka, each character personality is stored under the `ghost/` folder in
 To create a new personality, **the following files are required at a minimum**:
 
 1. **`manifest.json`** - Personality metadata and settings (`id` is mandatory)
-2. **`shell/`** - At least one character image (`.png`, `.jpg`, `.jpeg`, `.gif` or `.webp`) placed **directly** in this folder
+2. **`shell/`** - At least one character image (`.svg`, `.png`, `.jpg`, `.jpeg`, `.gif` or `.webp`) placed **directly** in this folder
 
 ### Minimal Example
 
@@ -656,18 +656,20 @@ Shell images are the visual representation of the character. For a ZIP-installed
 
 ### How They Are Used
 
-- The plugin reads every `.png`, `.jpg`, `.jpeg`, `.gif` and `.webp` file in the folder (subfolders are ignored) and sorts the names naturally (`char2.png` before `char10.png`).
+- The plugin reads every `.svg`, `.png`, `.jpg`, `.jpeg`, `.gif` and `.webp` file in the folder (subfolders are ignored) and sorts the names naturally (`char2.png` before `char10.png`).
+- If one name exists in several formats (`char1.png` and `char1.svg`), it counts as one frame and the SVG is used.
 - One image: it is shown as a still.
 - Several images: they are played in that order as an animation by the generic canvas manager.
 - File names carry no other meaning to the core plugin. There is no required "main image" name.
 
-Names such as `frieren[0].png`, `frieren[s].png` (sleeping) and `frieren[w1].png` (waking up) are a convention of Frieren's own script (`ghost/Frieren/frieren-animation.js`), which picks frames by name for its idle, page-turn, sleep and wake animations. A new personality only needs that kind of naming if it ships a script that looks for it.
+Frieren does not use this folder scan for her animations. Her shell keeps each animation in a subfolder (`idle/`, `sleep/`, `book/`, `wake/`) and lists the frames, their order, per-frame durations and the on-page layout in `shell/Frieren/assets.json`, which her own script (`ghost/Frieren/frieren-animation.js`) reads. A new personality only needs something similar if it ships a script that reads it.
 
 ### Image Formats
 
-- **Format**: PNG (Recommended), JPG, GIF or WebP
+- **Format**: SVG, PNG (Recommended for raster art), JPG, GIF or WebP
 - **Size**: Recommended 200-400px width, height is custom
-- **Background**: Transparent background is recommended (PNG)
+- **Background**: Transparent background is recommended (SVG or PNG)
+- **SVG**: keep it self-contained (no scripts, no external images, fonts or stylesheets) and give the root `<svg>` a `width` and `height`, because the canvas uses the image's natural size
 
 ### Example File Structure
 

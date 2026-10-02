@@ -434,4 +434,27 @@
     // 將管理器暴露到全域
     window.mpuCanvasManager = mpuCanvasManager;
 
+    /**
+     * 角色本體在畫面上的矩形。
+     * 角色元素可能比角色框大（例如 SVG 幀含四周留白與陰影）；元素上的
+     * data-mpu-body-box="x,y,w,h"（CSS px，元素內座標）標出角色框，
+     * 觸摸區與表情位置以它為準。沒有標記時即元素本身的矩形。
+     * @param {HTMLElement} element
+     * @returns {{left:number, top:number, width:number, height:number, right:number, bottom:number}}
+     */
+    window.mpuGetCharacterRect = function(element) {
+        const rect = element.getBoundingClientRect();
+        const box = element.dataset ? element.dataset.mpuBodyBox : '';
+        if (!box || !element.offsetWidth) {
+            return rect;
+        }
+        const parts = box.split(',').map(Number);
+        const scale = rect.width / element.offsetWidth;
+        const left = rect.left + parts[0] * scale;
+        const top = rect.top + parts[1] * scale;
+        const width = parts[2] * scale;
+        const height = parts[3] * scale;
+        return { left: left, top: top, width: width, height: height, right: left + width, bottom: top + height };
+    };
+
 })();

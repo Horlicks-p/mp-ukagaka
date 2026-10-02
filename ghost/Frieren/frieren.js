@@ -15,14 +15,19 @@
   const mpuFrierenManager = {
     // 芙莉蓮專用狀態
     isFrierenMode: false, // 是否為芙莉蓮模式
-    frierenIdleImage: null, // 閒置狀態圖片（frieren[0].png）
-    frierenSleepImage: null, // 睡眠狀態圖片（frieren[s].png）
-    frierenWakeUpImages: [], // 醒來動畫圖片序列（frieren[w1-w5].png）
-    frierenBookFlipImages: [], // 翻書動畫圖片序列（frieren[1-12].png）
-    frierenImages: [], // 芙莉蓮所有圖片對象陣列
-    frierenAnimationTimer: null, // 芙莉蓮動畫定時器
+    frierenAssets: null, // shell/Frieren/assets.json（SVG 幀序列、時序、版面）
+    frierenLayout: null, // assets.json 的 layout：134x249 人物框與 SVG 幀的顯示位置
+    frierenSequences: {}, // { idle|sleep|book_flip|wake: [{ src, duration, img }] }
+    frierenSequenceLoads: {}, // 各序列的預載 Promise
+    frierenSequenceState: {}, // 各序列狀態：loading | ready | failed
+    frierenIdleImage: null, // 閒置序列第一幀 URL
+    frierenSleepImage: null, // 睡眠序列第一幀 URL
+    frierenWakeUpImages: [], // 醒來動畫各幀 URL
+    frierenBookFlipImages: [], // 翻書動畫各幀 URL
+    frierenAnimationTimer: null, // 翻書／醒來動畫定時器
+    frierenLoopTimer: null, // 閒置／睡眠序列的換幀定時器
     frierenIsSpeaking: false, // 是否正在說話
-    frierenIdleImgElement: null, // 用於顯示 APNG 的 <img> 元素
+    frierenIdleImgElement: null, // 顯示閒置／睡眠序列的 <img> 元素
     frierenDecorations: [], // 裝飾元素陣列
     frierenIdleOpacity: 1.0, // 芙莉蓮閒置狀態透明度（0.0 - 1.0）；黑底下 0.95 會壓暗 5%，故設 1.0
     decorationChatInProgress: false, // 裝飾物對話是否正在進行中
@@ -53,25 +58,13 @@
         return;
       }
 
-      const baseUrl = shellInfo.url;
-      this.frierenIdleImage = baseUrl + "frieren[0].png";
-      this.frierenSleepImage = baseUrl + "frieren[s].png";
-
-      this.frierenWakeUpImages = [];
-      for (let i = 1; i <= 5; i++) {
-        this.frierenWakeUpImages.push(baseUrl + "frieren[w" + i + "].png");
-      }
-
-      this.frierenBookFlipImages = [];
-      for (let i = 1; i <= 11; i++) {
-        this.frierenBookFlipImages.push(baseUrl + "frieren[" + i + "].png");
-      }
-
-      this.loadFrierenImages();
+      this.loadFrierenAssets(shellInfo.url);
 
       const imgContainer = document.getElementById("ukagaka_img");
       if (imgContainer) {
         imgContainer.style.position = "relative";
+        // 人物元素以負 margin 讓 SVG 幀溢出人物框；flow-root 防止 margin 與容器合併
+        imgContainer.style.display = "flow-root";
       }
 
       this.loadFrierenDecorations();
