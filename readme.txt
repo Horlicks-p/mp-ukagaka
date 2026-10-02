@@ -25,7 +25,7 @@ This plugin is an extensively expanded version based on the original WordPress p
 
 While this plugin provides the "Create New Character Personality" feature (see docs-en/GHOST_CREATE_GUIDE.md), development efforts have primarily focused on the default character "Frieren". Therefore, this feature has not been fully tested. Your understanding is appreciated.
 
-If you simply want to use the default character "Frieren", basic dialogues are built-in and ready to use out of the box. For richer, more interactive conversations, we recommend configuring an AI model API Key. Additionally, the character memory configuration file (ghost/Frieren/system_prompt.md, containing memories from anime Season 1) is also built-in. However, please remember to replace `{{admin_nickname}}` and `{{admin_name}}` with your preferred nicknames, and update the birthday to match your settings.
+If you simply want to use the default character "Frieren", basic dialogues are built-in and ready to use out of the box. For richer, more interactive conversations, we recommend configuring an AI model API Key. Additionally, the character memory files (ghost/Frieren/personality.md and instructions.md, containing memories from anime Season 1) are also built-in. Set your Admin full nickname, short name and birthday under Settings → MP Ukagaka → General Settings; they fill the `{{admin_nickname}}`, `{{admin_name}}` and `{{admin_birthday}}` placeholders automatically.
 
 = AI Model Recommendations =
 
@@ -60,6 +60,15 @@ This plugin provides comprehensive features to help you create and customize you
   * Multi-language AI responses (Traditional Chinese, Japanese, English)
   * First-time visitor greeting (with Slimstat integration support)
 
+* **Interaction**
+  * Interactive Chat Mode with SSE streaming and persistent history
+  * Gifts and feeding: hand the character an item with a message
+  * Sleep, oversleeping, daytime naps and waking up
+  * Touch zones and clickable decorations
+  * Abilities: popular posts, bot-blocker statistics and IP bans from chat (WordPress Abilities API)
+  * AI diary posts, weather awareness (Open-Meteo) and calendar events
+  * Built-in bot protection
+
 * **Modular Architecture**
   * Clean, modular code structure for better maintainability
   * Separated concerns: core functions, utilities, AI, ukagaka management, AJAX, frontend, admin
@@ -70,8 +79,8 @@ Visit the [Maintainer's Blog](https://www.moelog.com/) for more information.
 
 == Installation ==
 
-1. Unzip archive to the '/wp-content/plugins/' directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
+1. Download mp-ukagaka.zip from the latest GitHub release (https://github.com/Horlicks-p/mp-ukagaka/releases/latest)
+2. Upload it through 'Plugins → Add New → Upload Plugin' (or unzip it into '/wp-content/plugins/') and activate it
 3. Go to 'Settings → MP Ukagaka', then you can:
    * Change general settings
    * Configure AI settings (Context Awareness)
@@ -85,24 +94,23 @@ Visit the [Maintainer's Blog](https://www.moelog.com/) for more information.
 
 = How do I enable AI Context Awareness? =
 
-1. Go to 'Settings → MP Ukagaka → General Settings'
-2. Find the "AI Setting (Context Awareness)" section
-3. Check "Enable context awareness (requires AI API Key)"
-4. Select an AI provider (Gemini, OpenAI, or Claude)
-5. Enter your API key for the selected provider
-6. Configure other AI settings (language, system prompt, probability, etc.)
-7. Click "Save" to save your settings
+1. Go to 'Settings → MP Ukagaka → LLM Settings'
+2. Select an AI provider (Gemini, OpenAI, Claude or Ollama) and enter its API key or endpoint
+3. Check "Enable context awareness" and click "Save"
+4. On 'AI Settings', configure language, probability, trigger pages and the rest, then save
 
 = What AI providers are supported? =
 
 * **Google Gemini**: Requires Gemini API Key (get it from Google AI Studio)
-  * Supported models: gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite, gemini-2.0-flash-001, gemini-1.5-flash
+  * Default model: gemini-2.5-flash
 
 * **OpenAI GPT**: Requires OpenAI API Key
-  * Supported models: gpt-4.1-mini-2025-04-14 (recommended), gpt-4o-mini, gpt-4o
+  * Default model: gpt-4.1-mini-2025-04-14; gpt-4o-mini and gpt-4o are also listed
 
 * **Anthropic Claude**: Requires Claude API Key
-  * Supported model: claude-sonnet-4-5-20250929
+  * Default model: claude-sonnet-4-6; claude-haiku-4-5 and claude-opus-4-7 are also listed
+
+* **Ollama**: Local or remote, no API key; any installed model
 
 = How does the AI probability setting work? =
 
@@ -145,42 +153,9 @@ Visit the [MOELOG.COM](https://www.moelog.com/) for more information.
 
 == Architecture ==
 
-This plugin uses a modular architecture for better maintainability:
+The plugin is split into modules under `includes/` (core, personality, LLM and AI providers, REST controllers, integrations) and `js/` (frontend, bundled into `js/dist/`). Load order is defined in `mpu_load_modules()` in `mp-ukagaka.php`.
 
-**Main Plugin File** (`mp-ukagaka.php`)
-* Plugin header and metadata
-* Module loader and activation hooks
-
-**PHP Modules** (`includes/`)
-* `core-functions.php` - Settings management
-* `utility-functions.php` - Utilities, security functions (file I/O, API key encryption)
-* `personality-loader.php` - Personality system loader (JSON file loading and caching)
-* `ai-functions.php` - AI API calls (Gemini, OpenAI, Claude, Ollama)
-* `prompt-categories.php` - Prompt categories management (integrated with Personality system)
-* `llm-functions.php` - LLM functionality (Ollama integration)
-* `llm-context-builder.php` - LLM context building (System Prompt construction)
-* `llm-slimstat.php` - Slimstat integration for visitor statistics
-* `emoji-mapper.php` - Emoji mapping and emotion analysis
-* `ukagaka-functions.php` - Character management
-* `llm/providers/` - AI Provider Factory (Gemini, OpenAI, Claude, Ollama)
-* `tool-loop-guard.php` - Protection against LLM infinite loops
-* `rest/bootstrap.php` - REST Controller registration entry
-* `rest/class-mpu-rest-base.php` - Base Class (OO Architecture)
-* `rest/class-mpu-rest-chat.php` - LLM Chat Endpoints (SSE Streaming)
-* `rest/class-mpu-rest-ghost.php` - Personality/Init Endpoints
-* `rest/class-mpu-rest-dialog.php` - Dialog Management Endpoints
-* `rest/class-mpu-rest-touch.php` - Touch Interaction Endpoints
-* `rest/class-mpu-rest-test.php` - Connection Test Endpoints
-* `frontend-functions.php` - Frontend HTML and assets
-* `admin-functions.php` - Admin settings pages
-
-**JavaScript Modules (v2.1.7+)**
-* `js/ukagaka-base.js` - Base layer (config + utils + ajax)
-* `js/ukagaka-core.js` - Core functionality (ui + dialogue + character switching)
-* `js/ukagaka-features.js` - Feature modules (ai + external + events)
-* `js/ukagaka-anime.js` - Canvas animation manager (single image & multi-frame animation)
-
-* `js/ukagaka-textarearesizer.js` - Textarea resizer for admin
+See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
 

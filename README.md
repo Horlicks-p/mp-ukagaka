@@ -20,7 +20,7 @@ This plugin is an extensively expanded version based on the original WordPress p
 
 While this plugin provides the **Create New Character Personality** feature (see [GHOST_CREATE_GUIDE.md](docs-en/GHOST_CREATE_GUIDE.md)), development efforts have primarily focused on the default character "Frieren". Therefore, this feature has not been fully tested. Your understanding is appreciated.
 
-If you simply want to use the default character "Frieren", basic dialogues are built-in and ready to use out of the box. For richer, more interactive conversations, we recommend configuring an AI model API Key. Additionally, the character memory configuration files (loading sequence: [personality.md](ghost/Frieren/personality.md), [instructions.md](ghost/Frieren/instructions.md), and then [system_prompt.md](ghost/Frieren/system_prompt.md), containing memories from anime Season 1) are also built-in. You can configure your **Admin full nickname**, **Admin short name**, and **Admin birthday** (MM-DD format, e.g., `10-18`) directly in **Settings → MP Ukagaka → General Settings**. The personality files use `{{admin_nickname}}`, `{{admin_name}}`, and `{{admin_birthday}}` as placeholders — these are automatically filled in from your backend settings at runtime, so you no longer need to manually edit the personality files or `calendar.json`. The character will also celebrate your birthday automatically based on this setting.
+If you simply want to use the default character "Frieren", basic dialogues are built-in and ready to use out of the box. For richer, more interactive conversations, we recommend configuring an AI model API Key. Additionally, the character memory configuration files ([personality.md](ghost/Frieren/personality.md) and [instructions.md](ghost/Frieren/instructions.md), containing memories from anime Season 1) are also built-in. You can configure your **Admin full nickname**, **Admin short name**, and **Admin birthday** (MM-DD format, e.g., `10-18`) directly in **Settings → MP Ukagaka → General Settings**. The personality files use `{{admin_nickname}}`, `{{admin_name}}`, and `{{admin_birthday}}` as placeholders — these are automatically filled in from your backend settings at runtime, so you no longer need to manually edit the personality files or `calendar.json`. The character will also celebrate your birthday automatically based on this setting.
 
 ### AI Model Recommendations
 
@@ -34,14 +34,23 @@ _Frieren character displaying AI-generated dialogue based on article content_
 
 > 💡 **More Screenshots**:
 >
-> - `screenshot2.PNG` - General Settings & LLM Settings pages
-> - `screenshot3.PNG` - Interactive Chat Mode demo (v2.3.0 feature)
+> - `screenshot2.PNG` - General Settings page
+> - `screenshot3.PNG` - Interactive Chat Mode
+> - `screenshot4.PNG` - LLM Settings page
+> - `screenshot7.PNG` - Abilities: reporting bot-blocker statistics
+> - `screenshot8.PNG` - Gift / feeding picker
+>
+> Project page: <https://horlicks-p.github.io/mp-ukagaka/>
 
 ## ✨ Core Features
 
 - **Multiple Characters**: Create and manage multiple ukagaka characters
 - **AI Context Awareness**: Intelligent responses using Gemini, OpenAI, Claude, or Ollama
 - **Interactive Chat Mode**: Real-time conversations with visitors, including SSE streaming responses
+- **Gifts & Feeding**: Visitors can hand the character food or gifts in Chat Mode, with a message attached
+- **Sleep & Waking**: Night sleep, oversleeping and daytime naps, with a wake-up animation when you talk to her
+- **Abilities**: Ask in chat for popular posts or bot-blocker stats, or have the character ban an IP (admin)
+- **AI Diary, Weather & Calendar**: Occasional diary posts, local weather and seasonal events woven into dialogue
 - **External Dialog Files**: Support for TXT and JSON format dialogues
 - **Canvas Animation**: Single image or multi-frame animation support
 - **Multi-Language**: English, Traditional Chinese, and Japanese
@@ -51,9 +60,11 @@ _Frieren character displaying AI-generated dialogue based on article content_
 
 ### Installation
 
-1. Download or clone this repository to `wp-content/plugins/`
-2. Activate the plugin in WordPress Admin → Plugins
+1. Download `mp-ukagaka.zip` from the [latest release](https://github.com/Horlicks-p/mp-ukagaka/releases/latest) (not GitHub's "Source code" archive, whose folder name differs)
+2. In WordPress Admin → **Plugins → Add New → Upload Plugin**, upload the ZIP and activate it
 3. Go to **Settings → MP Ukagaka**
+
+Later versions show up as normal plugin updates in the WordPress admin.
 
 ### Basic Setup
 
@@ -67,18 +78,14 @@ _Frieren character displaying AI-generated dialogue based on article content_
 
 - Choose provider: Ollama (free), Gemini, OpenAI, or Claude
 - Enter API key (automatically encrypted) or configure Ollama endpoint
-- Enable "Replace Built-in Dialogues"
+- Check "Enable context awareness" to turn on AI comments and the first-visit greeting
+- Optionally check "Use LLM to replace built-in dialogues" for AI-generated auto talk
+- Check "Enable interactive chat feature" for Chat Mode — the dock's change-character button becomes a chat button
 
 **AI Settings**:
 
-- Enable "Page Awareness"
-- Set trigger probability (10-30% recommended for cost control)
-- Customize character personality in System Prompt
-
-**Chat Mode**:
-
-- Enable "Interactive Chat Mode" in General Settings
-- "Change Ukagaka" button becomes a chat interface
+- Set trigger probability (10-30% recommended for cost control) and trigger pages
+- The character's personality comes from its own `personality.md` / `instructions.md`; the System Prompt field here is only a fallback for characters without them
 
 ## 🤖 AI Providers
 
@@ -95,7 +102,9 @@ For detailed information, please refer to:
 
 - **[User Guide](docs-en/USER_GUIDE.md)** - Complete setup and configuration guide
 - **[Developer Guide](docs-en/DEVELOPER_GUIDE.md)** - Architecture and development info
-- **[API Reference](docs-en/API_REFERENCE.md)** - Function and hook reference
+- **[API Reference](docs-en/API_REFERENCE.md)** - Function, hook and REST reference
+- **[Ghost Create Guide](docs-en/GHOST_CREATE_GUIDE.md)** - Making your own character
+- **[Abilities API](docs-en/ABILITIES_API.md)** - Tools the character can call, and adding new ones
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
 ## 🎉 What's New in v2.33.2
@@ -122,7 +131,7 @@ For detailed information, please refer to:
 **How to control API costs?**
 
 - Set probability to 10-20%
-- Use cheaper models (gemini-2.5-flash, gpt-4o-mini)
+- Use cheaper models (gemini-2.5-flash, gpt-4.1-mini, gpt-4o-mini)
 - Limit trigger pages to `is_single`
 
 **LLM connection failed?**
@@ -154,7 +163,7 @@ For detailed information, please refer to:
 
 ## 📄 License
 
-Based on the original MP Ukagaka plugin. Please refer to the original plugin's license terms.
+GPLv2 (see [LICENSE](LICENSE)). Based on the original MP Ukagaka plugin by Ariagle.
 
 ---
 
