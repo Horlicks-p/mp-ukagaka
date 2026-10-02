@@ -75,10 +75,10 @@ function mpu_sendUserMessage() {
   if (message === "/help") {
     $input.val("");
     let helpText =
-      "【コマンド一覧】<br>/reset - 会話履歴を消去<br>/clear - 同上<br>/help - このヘルプを表示";
+      "【コマンド一覧】<br>/help - このヘルプを表示";
     if (mpuPreSettings && mpuPreSettings.is_admin) {
       helpText +=
-        "<br>【管理者専用】<br>/visitor-info - 訪客情報を照会<br>/check-spam-event - スパム状況を確認<br>/debug_mcp - MCPツール診断<br>/remember - フリーレンに記憶を保存させる";
+        "<br>【管理者専用】<br>/reset - 会話履歴を消去<br>/clear - 同上<br>/visitor-info - 訪客情報を照会<br>/check-spam-event - スパム状況を確認<br>/debug_mcp - MCPツール診断<br>/remember - フリーレンに記憶を保存させる";
     }
     mpu_typewriter(helpText, "#ukagaka_msg");
     return;
