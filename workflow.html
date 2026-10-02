@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MP Ukagaka の仕組み</title>
+<meta name="description" content="MP Ukagaka がページの読み込みからキャラクターの一言、チャットの往復、バックグラウンド処理までどう動いているかを図で説明します。">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='4.5' y='4.5' width='7' height='7' transform='rotate(45 8 8)' fill='%237B68AE'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Shippori+Mincho:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* Same tokens as index.html (css/admin-style.css palette); --server marks the PHP side in the diagrams */
+  :root {
+    --bg:          #FDFBF7;
+    --bg-alt:      #F5F1FB;
+    --bg-muted:    #EDE8F5;
+    --bg-card:     #FFFFFF;
+    --bg-dark:     #4A3D6B;
+    --lilac:       #C4B6DE;
+    --violet:      #7B68AE;
+    --amethyst:    #5E4D8B;
+    --text-h:      #4A3D6B;
+    --text-body:   #5C5470;
+    --text-mute:   #7E7396;
+    --text-on-dark:#F5F1FB;
+    --text-on-dark-2: #D3C8E8;
+    --border:      #DED6EE;
+    --border-l:    #EAE4F4;
+    --shadow:      rgba(75, 61, 107, 0.08);
+    --server:      #4F7A8A;
+
+    --serif:      'Cormorant Garamond', 'Shippori Mincho', 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', serif;
+    --display:    'Cinzel', 'Shippori Mincho', 'Yu Mincho', serif;
+    --display-jp: 'Shippori Mincho', 'Yu Mincho', 'YuMincho', 'Hiragino Mincho ProN', serif;
+    --mono:       'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:          #1B1726;
+      --bg-alt:      #221D31;
+      --bg-muted:    #2B2540;
+      --bg-card:     #241F35;
+      --bg-dark:     #130F1D;
+      --lilac:       #C4B6DE;
+      --violet:      #A795D6;
+      --amethyst:    #C4B6DE;
+      --text-h:      #EDE8F5;
+      --text-body:   #D3CBE3;
+      --text-mute:   #A99FBF;
+      --text-on-dark:#F5F1FB;
+      --text-on-dark-2: #C4B6DE;
+      --border:      #3A3352;
+      --border-l:    #2F2945;
+      --shadow:      rgba(0, 0, 0, 0.30);
+      --server:      #8FC0CF;
+    }
+  }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    font-family: var(--serif);
+    font-size: 17px;
+    background: var(--bg);
+    color: var(--text-body);
+    line-height: 1.85;
+    overflow-x: hidden;
+    font-feature-settings: "palt" 1;
+  }
+  ::selection { background: var(--violet); color: #fff; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; }
+
+  /* ── nav (as index.html) ── */
+  .nav {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; justify-content: center; gap: 1.6rem; flex-wrap: wrap;
+    padding: .65rem 1rem;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-l);
+  }
+  .nav a { font-family: var(--display-jp); font-size: .8rem; letter-spacing: .2em; color: var(--text-mute); text-decoration: none; transition: color .18s; }
+  .nav a:hover { color: var(--violet); }
+  .nav .home { color: var(--violet); }
+
+  /* ── cover ── */
+  .cover { position: relative; padding: 4.5rem 1.5rem 4rem; text-align: center; overflow: hidden; isolation: isolate; }
+  .cover::before {
+    content: ''; position: absolute; inset: 0; z-index: -1;
+    background:
+      radial-gradient(ellipse 70% 60% at 50% -10%, rgba(196, 182, 222, 0.32) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 30% at 85% 80%,  rgba(123, 104, 174, 0.08) 0%, transparent 60%);
+  }
+  .cover::after {
+    content: ''; position: absolute; inset: 0; z-index: -1;
+    background-image:
+      linear-gradient(45deg,  rgba(123, 104, 174, 0.045) 1px, transparent 1px),
+      linear-gradient(-45deg, rgba(123, 104, 174, 0.045) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .cover-border { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border) 30%, var(--lilac) 50%, var(--border) 70%, transparent); }
+  .ornament { display: flex; align-items: center; justify-content: center; gap: .9rem; margin: 0 auto 1.8rem; max-width: 380px; }
+  .ornament-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border) 40%, var(--violet)); }
+  .ornament-line.right { background: linear-gradient(270deg, transparent, var(--border) 40%, var(--violet)); }
+  .ornament-eyebrow { font-family: var(--display); font-size: .70rem; font-weight: 600; letter-spacing: .42em; color: var(--violet); text-transform: uppercase; padding: 0 .6rem; }
+  .cover h1 { font-family: var(--display-jp); font-size: clamp(2rem, 4.6vw, 3rem); font-weight: 700; letter-spacing: .14em; color: var(--text-h); text-wrap: balance; }
+  .cover-sub { font-family: var(--display); font-size: .86rem; letter-spacing: .32em; color: var(--violet); text-transform: uppercase; margin-top: .6rem; }
+  .cover-tag { font-family: var(--display-jp); font-size: 1rem; color: var(--text-mute); max-width: 620px; margin: 1.8rem auto 0; line-height: 2; letter-spacing: .04em; }
+  .toc { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; margin-top: 2rem; }
+  .toc a {
+    font-family: var(--display-jp); font-size: .84rem; letter-spacing: .12em;
+    padding: .5rem 1.1rem; text-decoration: none; color: var(--amethyst);
+    box-shadow: 0 0 0 1px var(--border) inset; border-radius: 2px; background: var(--bg-card);
+    transition: box-shadow .18s, transform .18s;
+  }
+  .toc a:hover { box-shadow: 0 0 0 1px var(--lilac) inset; transform: translateY(-2px); }
+
+  /* ── chapters ── */
+  section { scroll-margin-top: 3rem; }
+  .page     { padding: 5rem 1.5rem; background: var(--bg); }
+  .page-alt { padding: 5rem 1.5rem; background: var(--bg-alt); }
+  .container { max-width: 1262px; margin: 0 auto; }
+  .chapter-heading { text-align: center; margin-bottom: 2.6rem; }
+  .chapter-eyebrow { font-family: var(--display); font-size: .86rem; letter-spacing: .3em; color: var(--violet); text-transform: uppercase; margin-bottom: 1rem; }
+  .chapter-title { font-family: var(--display-jp); font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-weight: 700; color: var(--text-h); letter-spacing: .12em; margin-bottom: 1rem; text-wrap: balance; }
+  .chapter-rule { display: flex; align-items: center; justify-content: center; gap: .7rem; margin-bottom: 1.2rem; }
+  .chapter-rule-line { width: 55px; height: 1px; background: var(--border); }
+  .page-alt .chapter-rule-line { background: var(--lilac); }
+  .chapter-rule-mark { width: 7px; height: 7px; background: var(--violet); transform: rotate(45deg); }
+  .chapter-desc { font-family: var(--display-jp); font-size: 1rem; color: var(--text-mute); max-width: 640px; margin: 0 auto; line-height: 1.95; letter-spacing: .04em; }
+
+  figure { display: grid; gap: 1rem; }
+  .plate { background: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 8px 40px var(--shadow); padding: 10px; overflow-x: auto; }
+  .plate svg { display: block; min-width: 980px; width: 100%; height: auto; color: var(--text-body); }
+  figcaption { font-family: var(--display-jp); font-size: .9rem; color: var(--text-mute); line-height: 1.9; letter-spacing: .02em; max-width: 860px; margin: 0 auto; text-align: center; }
+  code { font-family: var(--mono); font-size: .84em; background: rgba(123, 104, 174, 0.09); border: 1px solid rgba(123, 104, 174, 0.22); padding: .06em .38em; border-radius: 2px; color: var(--amethyst); white-space: nowrap; }
+
+  /* ── diagram vocabulary ── */
+  .lane-bg   { fill: var(--bg-muted); }
+  .lane-name { fill: var(--text-mute); font: 600 13px var(--display-jp); letter-spacing: .1em; }
+  .box       { fill: var(--bg-card); stroke: var(--border); stroke-width: 1.2; }
+  .box.key   { stroke: var(--violet); stroke-width: 1.8; }
+  .box.srv   { stroke: var(--server); stroke-width: 1.6; }
+  .t1        { fill: var(--text-h); font: 700 12.5px var(--display-jp); }
+  .t2        { fill: var(--text-mute); font: 500 11.5px var(--display-jp); }
+  .mono      { font-family: var(--mono); font-weight: 500; }
+  .edge      { stroke: currentColor; stroke-width: 1.3; fill: none; }
+  .edge.main { stroke: var(--violet); stroke-width: 2; }
+  .edge.srv  { stroke: var(--server); stroke-width: 1.6; }
+  .edge.dash { stroke-dasharray: 5 4; }
+  .elabel    { fill: var(--text-mute); font: 500 11px var(--display-jp); }
+  .elabel.main { fill: var(--violet); }
+  .elabel.srv  { fill: var(--server); }
+  .ah        { fill: currentColor; }
+  .ah.main   { fill: var(--violet); }
+  .ah.srv    { fill: var(--server); }
+  .life      { stroke: var(--border); stroke-width: 1.5; stroke-dasharray: 4 4; }
+  .head      { fill: var(--bg-card); stroke: var(--violet); stroke-width: 1.6; }
+  .act       { fill: var(--bg-muted); stroke: var(--border); }
+  .n         { fill: var(--violet); font: 600 11px var(--display); }
+
+  /* ── background cards ── */
+  .grimoire-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--border-l); border: 1px solid var(--border); }
+  .entry { background: var(--bg-card); padding: 1.7rem 1.6rem; transition: background .18s; display: grid; gap: .5rem; align-content: start; }
+  .entry:hover { background: var(--bg-muted); }
+  .entry h3 { font-family: var(--display-jp); font-size: 1rem; font-weight: 700; letter-spacing: .1em; color: var(--text-h); }
+  .entry .path { font-family: var(--mono); font-size: .76rem; color: var(--server); line-height: 1.7; word-break: break-word; }
+  .entry p { font-family: var(--display-jp); font-size: .92rem; color: var(--text-mute); line-height: 1.85; }
+
+  .back { text-align: center; margin-top: 3rem; }
+  .seal { display: inline-flex; align-items: center; gap: .55rem; padding: .7rem 1.5rem; font-family: var(--display-jp); font-size: .86rem; font-weight: 600; letter-spacing: .16em; text-decoration: none; border-radius: 2px; color: var(--amethyst); box-shadow: 0 0 0 1.5px var(--amethyst) inset; transition: background .18s, transform .18s; }
+  .seal:hover { background: var(--bg-muted); transform: translateY(-2px); }
+
+  /* ── footer (as index.html) ── */
+  footer { padding: 3.5rem 1.5rem 4rem; text-align: center; background: var(--bg-dark); }
+  .colophon-mark { display: flex; justify-content: center; gap: .5rem; margin-bottom: 1.6rem; }
+  .colophon-mark span { width: 5px; height: 5px; background: var(--lilac); transform: rotate(45deg); opacity: .55; }
+  .colophon-mark span:nth-child(2) { width: 9px; height: 9px; opacity: .85; }
+  .colophon-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.2rem 2rem; margin-bottom: 1.6rem; }
+  .colophon-links a { font-family: var(--display-jp); font-size: .80rem; letter-spacing: .24em; color: var(--text-on-dark-2); text-decoration: none; transition: color .18s; }
+  .colophon-links a:hover { color: #fff; }
+  .colophon-text { font-family: var(--display-jp); font-size: .88rem; color: var(--text-on-dark-2); line-height: 2; letter-spacing: .04em; opacity: .85; }
+  .colophon-text a { color: var(--lilac); text-decoration: none; border-bottom: 1px solid rgba(196, 182, 222, 0.35); }
+
+  @media (max-width: 720px) {
+    body { font-size: 16px; }
+    .cover { padding: 3.5rem 1rem 3rem; }
+    .page, .page-alt { padding: 4rem 1rem; }
+    .grimoire-grid { grid-template-columns: 1fr; }
+    .nav { gap: .9rem 1.2rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="ページ内リンク">
+  <a class="home" href="./">← トップ</a>
+  <a href="#boot">読み込み</a>
+  <a href="#sources">話し手</a>
+  <a href="#chat">チャット</a>
+  <a href="#background">裏方</a>
+</nav>
+
+<header class="cover">
+  <div class="ornament" aria-hidden="true">
+    <span class="ornament-line"></span>
+    <span class="ornament-eyebrow">Mechanica</span>
+    <span class="ornament-line right"></span>
+  </div>
+  <h1>MP Ukagaka の仕組み</h1>
+  <p class="cover-sub">How it runs · v2.33.3</p>
+  <p class="cover-tag">訪問者がページを開いてから、キャラクターが一言しゃべるまで。<br>その間にどのプログラムが動いているかを、四枚の図で追います。</p>
+  <nav class="toc" aria-label="章">
+    <a href="#boot">I　ページ読み込み</a>
+    <a href="#sources">II　誰が話すのか</a>
+    <a href="#chat">III　チャットの往復</a>
+    <a href="#background">IV　裏方の処理</a>
+  </nav>
+  <div class="cover-border" aria-hidden="true"></div>
+</header>
+
+<main>
+
+<!-- ═════════ I ═════════ -->
+<section class="page" id="boot">
+  <div class="container">
+    <div class="chapter-heading">
+      <div class="chapter-eyebrow">· Capitulum I ·</div>
+      <h2 class="chapter-title">ページ読み込み</h2>
+      <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
+      <p class="chapter-desc">PHP がキャラクターの外枠と最初のセリフをページに直接書き出し、ブラウザが <code>/init</code> で残りの設定を受け取ってから、最初の一言を誰が話すかを順に判定します。</p>
+    </div>
+    <figure>
+      <div class="plate">
+        <svg viewBox="0 0 1240 452" role="img" aria-label="ページ読み込みの流れ。サーバー側でモジュールを読み込み、キャラクターの HTML と埋め込み設定を出力し、フロントエンドのバンドルを読み込む。ブラウザは /init で外見と設定を受け取り、Canvas を初期化する。続いて、睡眠中なら寝言を残す、初回訪問なら挨拶、ページ感知に当たれば 3 秒後に記事へのコメント、LLM モードなら /nextmsg で最初の一言、それ以外は PHP が出力した最初のセリフ、の順に判定する。どの道もタイピング完了後に自動会話タイマーを開始する。">
+          <defs>
+            <marker id="b-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0 10 5 0 10z"/></marker>
+            <marker id="b-ahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah srv" d="M0 0 10 5 0 10z"/></marker>
+            <marker id="b-ahm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah main" d="M0 0 10 5 0 10z"/></marker>
+          </defs>
+          <rect class="lane-bg" x="0" y="20" width="1240" height="120"/>
+          <text class="lane-name" x="16" y="44">サーバー（PHP）</text>
+          <text class="lane-name" x="16" y="170">ブラウザ</text>
+
+          <g text-anchor="middle">
+            <rect class="box srv" x="90"  y="62" width="220" height="50" rx="4"/>
+            <text class="t1 mono" x="200" y="83">mpu_load_modules()</text><text class="t2" x="200" y="101">モジュールを決まった順に読み込む</text>
+            <rect class="box srv" x="380" y="62" width="220" height="50" rx="4"/>
+            <text class="t1" x="490" y="83">キャラクターの HTML を出力</text><text class="t2" x="490" y="101">最初のセリフ＋埋め込み設定</text>
+            <rect class="box srv" x="670" y="62" width="220" height="50" rx="4"/>
+            <text class="t1" x="780" y="83">フロントの JS を読み込み</text><text class="t2" x="780" y="101">コアのバンドル＋フリーレンのバンドル</text>
+
+            <rect class="box key" x="670" y="186" width="220" height="50" rx="4"/>
+            <text class="t1 mono" x="780" y="207">GET /init</text><text class="t2" x="780" y="225">外見・装飾品・絵文字・設定</text>
+            <rect class="box" x="960" y="186" width="220" height="50" rx="4"/>
+            <text class="t1" x="1070" y="207">Canvas の初期化</text><text class="t2" x="1070" y="225">描画の準備ができるまで待つ</text>
+          </g>
+
+          <line class="edge srv" x1="310" y1="87" x2="379" y2="87" marker-end="url(#b-ahs)"/>
+          <line class="edge srv" x1="600" y1="87" x2="669" y2="87" marker-end="url(#b-ahs)"/>
+          <line class="edge" x1="780" y1="112" x2="780" y2="185" marker-end="url(#b-ah)"/>
+          <text class="elabel" x="787" y="153">DOM 準備完了</text>
+          <line class="edge" x1="890" y1="211" x2="959" y2="211" marker-end="url(#b-ah)"/>
+
+          <polyline class="edge main" points="1070,236 1070,268 130,268"/>
+          <text class="elabel main" x="1060" y="260" text-anchor="end">processSettings()：左から順に判定し、最初に当てはまったものが最初の一言になる</text>
+
+          <g text-anchor="middle">
+            <line class="edge main" x1="130"  y1="268" x2="130"  y2="297" marker-end="url(#b-ahm)"/>
+            <line class="edge main" x1="370"  y1="268" x2="370"  y2="297" marker-end="url(#b-ahm)"/>
+            <line class="edge main" x1="610"  y1="268" x2="610"  y2="297" marker-end="url(#b-ahm)"/>
+            <line class="edge main" x1="850"  y1="268" x2="850"  y2="297" marker-end="url(#b-ahm)"/>
+            <line class="edge main" x1="1090" y1="268" x2="1090" y2="297" marker-end="url(#b-ahm)"/>
+
+            <rect class="box" x="30"  y="298" width="200" height="62" rx="4"/>
+            <text class="t1" x="130" y="320">睡眠の時間帯</text><text class="t2" x="130" y="337">寝言を残し、AI は呼ばない</text><text class="t2" x="130" y="352">起こされるのを待つ</text>
+            <rect class="box" x="270" y="298" width="200" height="62" rx="4"/>
+            <text class="t1" x="370" y="320">初回の訪問者</text><text class="t2 mono" x="370" y="337">/visitor-info → /chat/greet</text><text class="t2" x="370" y="352">来訪元に合わせて一度だけ挨拶</text>
+            <rect class="box" x="510" y="298" width="200" height="62" rx="4"/>
+            <text class="t1" x="610" y="320">ページ感知の確率に当選</text><text class="t2 mono" x="610" y="337">3 秒後に /chat/context</text><text class="t2" x="610" y="352">本文 300 字以上の記事のみ</text>
+            <rect class="box" x="750" y="298" width="200" height="62" rx="4"/>
+            <text class="t1" x="850" y="320">LLM で内蔵セリフを置換</text><text class="t2 mono" x="850" y="337">/nextmsg（startup）</text><text class="t2" x="850" y="352">最初のセリフを打ち終えてから</text>
+            <rect class="box" x="990" y="298" width="200" height="62" rx="4"/>
+            <text class="t1" x="1090" y="320">それ以外</text><text class="t2" x="1090" y="337">PHP が書き出した</text><text class="t2" x="1090" y="352">最初のセリフのまま</text>
+          </g>
+
+          <line class="edge dash" x1="130" y1="396" x2="1110" y2="396" marker-end="url(#b-ah)"/>
+          <text class="elabel" x="130" y="388">どの道も最後は同じ：タイピング演出が終わったら自動会話タイマーを開始（睡眠中は間隔が約 9 倍）</text>
+          <text class="elabel" x="130" y="428">睡眠はブラウザ側で時間帯から判定。初回訪問は Cookie <tspan class="mono">mpu_first_visit_&lt;ドメイン&gt;</tspan> で記録し、365 日は挨拶しない</text>
+        </svg>
+      </div>
+      <figcaption>青緑はサーバーで、それ以外はブラウザで動く処理です。判定の順番は <code>js/ukagaka-features.js</code> の <code>processSettings()</code> にあります。ページ感知に当たったときは起動時のセリフを先に止め、普通のセリフが記事へのコメントより先に出ないようにしています。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═════════ II ═════════ -->
+<section class="page-alt" id="sources">
+  <div class="container">
+    <div class="chapter-heading">
+      <div class="chapter-eyebrow">· Capitulum II ·</div>
+      <h2 class="chapter-title">誰が話すのか</h2>
+      <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
+      <p class="chapter-desc">セリフはすべて同じメッセージ欄に書かれます。そのため表示の直前に「今この流れが話してよいか」を確かめます。AI を使う流れは、どれも同じサーバー側の処理を通ります。</p>
+    </div>
+    <figure>
+      <div class="plate">
+        <svg viewBox="0 0 1240 470" role="img" aria-label="七つの話し手がそれぞれ REST エンドポイントを呼び、すべて同じサーバー側の処理に入る。REST コントローラー、プロンプトの組み立て、AI プロバイダーの Factory、四社のプロバイダーとツールの呼び出し、応答の正規化。ブラウザに戻った応答は表示前チェックを通ってからメッセージ欄に書かれる。AI を使わない内蔵セリフはサーバーを通らず表示前チェックへ進む。">
+          <defs>
+            <marker id="s-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0 10 5 0 10z"/></marker>
+            <marker id="s-ahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah srv" d="M0 0 10 5 0 10z"/></marker>
+            <marker id="s-ahm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah main" d="M0 0 10 5 0 10z"/></marker>
+          </defs>
+          <rect class="lane-bg" x="560" y="20" width="320" height="440" rx="4"/>
+          <text class="lane-name" x="40"  y="40">きっかけ（ブラウザ）</text>
+          <text class="lane-name" x="300" y="40">REST エンドポイント</text>
+          <text class="lane-name" x="580" y="40">サーバー側の処理</text>
+          <text class="lane-name" x="910" y="40">ブラウザでの表示</text>
+
+          <g text-anchor="middle">
+            <rect class="box" x="30" y="62"  width="210" height="36" rx="4"/><text class="t1" x="135" y="85">自動会話タイマー</text>
+            <rect class="box" x="30" y="116" width="210" height="36" rx="4"/><text class="t1" x="135" y="139">ページ感知（記事へのコメント）</text>
+            <rect class="box" x="30" y="170" width="210" height="36" rx="4"/><text class="t1" x="135" y="193">初回訪問の挨拶</text>
+            <rect class="box key" x="30" y="224" width="210" height="36" rx="4"/><text class="t1" x="135" y="247">対話モード（チャット）</text>
+            <rect class="box" x="30" y="278" width="210" height="36" rx="4"/><text class="t1" x="135" y="301">タッチ・装飾品クリック</text>
+            <rect class="box" x="30" y="332" width="210" height="36" rx="4"/><text class="t1" x="135" y="355">贈り物・食べ物</text>
+            <rect class="box" x="30" y="386" width="210" height="36" rx="4"/><text class="t1" x="135" y="409">睡眠中に起こされる</text>
+
+            <text class="t2 mono" x="390" y="78">/nextmsg</text><text class="t2" x="390" y="93">（LLM モードのみ）</text>
+            <text class="t2 mono" x="390" y="139">/chat/context</text>
+            <text class="t2 mono" x="390" y="193">/chat/greet</text>
+            <text class="t2 mono" x="390" y="241">/chat/user-stream</text><text class="t2" x="390" y="256">SSE、図 III を参照</text>
+            <text class="t2 mono" x="390" y="293">/touch/zone</text><text class="t2 mono" x="390" y="308">/touch/decoration</text>
+            <text class="t2 mono" x="390" y="355">/touch/give</text>
+            <text class="t2 mono" x="390" y="409">/wake-ghost</text>
+          </g>
+          <g>
+            <line class="edge" x1="240" y1="80"  x2="300" y2="80"/>
+            <line class="edge" x1="240" y1="134" x2="335" y2="134"/>
+            <line class="edge" x1="240" y1="188" x2="342" y2="188"/>
+            <line class="edge main" x1="240" y1="242" x2="322" y2="242"/>
+            <line class="edge" x1="240" y1="296" x2="322" y2="296"/>
+            <line class="edge" x1="240" y1="350" x2="342" y2="350"/>
+            <line class="edge" x1="240" y1="404" x2="342" y2="404"/>
+            <line class="edge" x1="485" y1="80"  x2="530" y2="80"/>
+            <line class="edge" x1="445" y1="134" x2="530" y2="134"/>
+            <line class="edge" x1="438" y1="188" x2="530" y2="188"/>
+            <line class="edge main" x1="465" y1="242" x2="530" y2="242"/>
+            <line class="edge" x1="460" y1="296" x2="530" y2="296"/>
+            <line class="edge" x1="438" y1="350" x2="530" y2="350"/>
+            <line class="edge" x1="438" y1="404" x2="530" y2="404"/>
+            <line class="edge" x1="530" y1="80" x2="530" y2="404"/>
+            <line class="edge" x1="530" y1="90" x2="579" y2="90" marker-end="url(#s-ah)"/>
+          </g>
+
+          <g text-anchor="middle">
+            <rect class="box srv" x="580" y="64"  width="280" height="52" rx="4"/>
+            <text class="t1" x="720" y="86">REST コントローラー</text><text class="t2" x="720" y="104">セッショントークン・回数制限・履歴チェックサム</text>
+            <rect class="box srv" x="580" y="144" width="280" height="52" rx="4"/>
+            <text class="t1" x="720" y="166">プロンプトの組み立て</text><text class="t2" x="720" y="184">人格ファイル＋管理人の記憶＋時刻・天気・観察</text>
+            <rect class="box srv" x="580" y="224" width="280" height="52" rx="4"/>
+            <text class="t1 mono" x="720" y="246">MPU_AI_Provider_Factory</text><text class="t2" x="720" y="264">設定に応じてプロバイダーを選ぶ</text>
+            <rect class="box srv" x="580" y="304" width="280" height="52" rx="4"/>
+            <text class="t1" x="720" y="326">Gemini・OpenAI・Claude・Ollama</text><text class="t2" x="720" y="344">ツール呼び出しは最大 5 回、ループ検知あり</text>
+            <rect class="box srv" x="580" y="384" width="280" height="52" rx="4"/>
+            <text class="t1" x="720" y="406">応答の正規化</text><text class="t2" x="720" y="424">感情タグの分離・長さの上限・絵文字の選択</text>
+          </g>
+          <line class="edge srv" x1="720" y1="116" x2="720" y2="143" marker-end="url(#s-ahs)"/>
+          <line class="edge srv" x1="720" y1="196" x2="720" y2="223" marker-end="url(#s-ahs)"/>
+          <line class="edge srv" x1="720" y1="276" x2="720" y2="303" marker-end="url(#s-ahs)"/>
+          <line class="edge srv" x1="720" y1="356" x2="720" y2="383" marker-end="url(#s-ahs)"/>
+
+          <g text-anchor="middle">
+            <rect class="box key" x="910" y="250" width="300" height="110" rx="4"/>
+            <text class="t1" x="1060" y="274">表示前チェック</text>
+            <text class="t2" x="1060" y="295">メッセージのブロックを誰かが持っている？</text>
+            <text class="t2" x="1060" y="312">対話モード中？タッチの会話中？</text>
+            <text class="t2" x="1060" y="329">まだ起きていない？画面の世代が変わった？</text>
+            <text class="t2" x="1060" y="346">当たれば出さない（チャットの返事は履歴へ）</text>
+            <rect class="box" x="910" y="390" width="300" height="52" rx="4"/>
+            <text class="t1" x="1060" y="412">メッセージ欄</text><text class="t2" x="1060" y="430">タイピング演出・絵文字・本をめくる動き</text>
+          </g>
+          <polyline class="edge srv" points="860,410 885,410 885,330 909,330" marker-end="url(#s-ahs)"/>
+          <text class="elabel srv" x="890" y="400">JSON / SSE</text>
+          <line class="edge main" x1="1060" y1="360" x2="1060" y2="389" marker-end="url(#s-ahm)"/>
+          <text class="elabel main" x="1067" y="380">通過</text>
+
+          <polyline class="edge dash" points="300,72 300,52 1226,52 1226,305 1212,305" marker-end="url(#s-ah)"/>
+          <text class="elabel" x="1214" y="70" text-anchor="end">LLM を使わないとき：起動時に読み込んだセリフ集から一つ選ぶ（AI は通らない）</text>
+        </svg>
+      </div>
+      <figcaption>チャット・ページ感知・挨拶・贈り物・タッチは、それぞれ自分専用の「メッセージのブロック」を持ち、終わるときは自分の分だけを外します。2.33.2 からの仕組みで、以前は一つのフラグを共有していたため、別の流れが先にブロックを外してしまうことがありました。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═════════ III ═════════ -->
+<section class="page" id="chat">
+  <div class="container">
+    <div class="chapter-heading">
+      <div class="chapter-eyebrow">· Capitulum III ·</div>
+      <h2 class="chapter-title">チャットの往復</h2>
+      <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
+      <p class="chapter-desc">いちばん手順の多い流れです。ブラウザから届いた履歴が書き換えられていないかを確かめ、同じセッションでは一度に一件だけを処理し、返事は少しずつストリーミングで返します。</p>
+    </div>
+    <figure>
+      <div class="plate">
+        <svg viewBox="0 0 1240 610" role="img" aria-label="チャットのシーケンス。ブラウザがメッセージ・履歴・セッション ID を送る。REST がトークンと回数制限を確認し、履歴のチェックサムを照合し、チャットロックを取り、プロンプトを組み立て、プロバイダーのストリーミングを呼ぶ。プロバイダーは必要ならツールを使う。文字の断片は解析されて stream.delta としてブラウザに届き、一文字ずつ表示される。終わりにサーバーはチェックサムを保存し、stream.done を送り、ロックを外す。ブラウザは履歴・絵文字・動きを反映して締めくくる。">
+          <defs>
+            <marker id="c-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0 10 5 0 10z"/></marker>
+            <marker id="c-ahm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah main" d="M0 0 10 5 0 10z"/></marker>
+            <marker id="c-ahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah srv" d="M0 0 10 5 0 10z"/></marker>
+          </defs>
+          <g text-anchor="middle">
+            <rect class="head" x="60"  y="16" width="180" height="40" rx="4"/><text class="t1" x="150" y="41">ブラウザ</text>
+            <rect class="head" x="390" y="16" width="180" height="40" rx="4"/><text class="t1 mono" x="480" y="41">MPU_REST_Chat</text>
+            <rect class="head" x="720" y="16" width="180" height="40" rx="4"/><text class="t1" x="810" y="41">履歴サービス・ロック</text>
+            <rect class="head" x="1020" y="16" width="180" height="40" rx="4"/><text class="t1" x="1110" y="41">AI プロバイダー</text>
+          </g>
+          <line class="life" x1="150"  y1="56" x2="150"  y2="600"/>
+          <line class="life" x1="480"  y1="56" x2="480"  y2="600"/>
+          <line class="life" x1="810"  y1="56" x2="810"  y2="600"/>
+          <line class="life" x1="1110" y1="56" x2="1110" y2="600"/>
+
+          <text class="n" x="36" y="88">1</text>
+          <line class="edge main" x1="150" y1="92" x2="478" y2="92" marker-end="url(#c-ahm)"/>
+          <text class="elabel main" x="160" y="84">POST：メッセージ・直近 40 件の履歴・session_id</text>
+
+          <text class="n" x="36" y="126">2</text>
+          <rect class="act" x="474" y="110" width="12" height="26"/>
+          <text class="elabel" x="494" y="127">セッショントークン（匿名の訪問者）と回数制限（毎分 30 回）を確認</text>
+
+          <text class="n" x="36" y="164">3</text>
+          <line class="edge srv" x1="480" y1="168" x2="808" y2="168" marker-end="url(#c-ahs)"/>
+          <text class="elabel srv" x="490" y="160">履歴のチェックサムを照合（audit は記録のみ、block は拒否）</text>
+
+          <text class="n" x="36" y="202">4</text>
+          <line class="edge srv" x1="480" y1="206" x2="808" y2="206" marker-end="url(#c-ahs)"/>
+          <text class="elabel srv" x="490" y="198">チャットロックを取得（同じセッションは一件ずつ、60 秒）</text>
+
+          <text class="n" x="36" y="240">5</text>
+          <rect class="act" x="474" y="224" width="12" height="26"/>
+          <text class="elabel" x="494" y="241">プロンプトを組み立てる：人格ファイル・管理人の記憶・観察バッファ・サイト統計（聞かれたときだけ）</text>
+
+          <text class="n" x="36" y="278">6</text>
+          <line class="edge" x1="480" y1="282" x2="1108" y2="282" marker-end="url(#c-ah)"/>
+          <text class="elabel" x="490" y="274">generate_chat_stream()、このキャラクターが使えるツールを添えて</text>
+
+          <text class="n" x="36" y="316">7</text>
+          <rect class="act" x="1104" y="300" width="12" height="26"/>
+          <text class="elabel" x="1096" y="317" text-anchor="end">必要ならツールを呼ぶ（最大 5 回、同じ引数が 2 回続けば中止）</text>
+
+          <text class="n" x="36" y="354">8</text>
+          <line class="edge" x1="1110" y1="358" x2="482" y2="358" marker-end="url(#c-ah)"/>
+          <text class="elabel" x="1100" y="350" text-anchor="end">文字の断片（ストリーミング）</text>
+
+          <text class="n" x="36" y="392">9</text>
+          <line class="edge main" x1="480" y1="396" x2="152" y2="396" marker-end="url(#c-ahm)"/>
+          <text class="elabel main" x="470" y="388" text-anchor="end">stream.delta / stream.status（感情タグは先に分離）</text>
+
+          <text class="n" x="36" y="430">10</text>
+          <rect class="act" x="144" y="414" width="12" height="26"/>
+          <text class="elabel" x="164" y="431">一文字ずつ表示するキュー。45 秒音沙汰がなければ中断</text>
+
+          <text class="n" x="36" y="468">11</text>
+          <line class="edge srv" x1="480" y1="472" x2="808" y2="472" marker-end="url(#c-ahs)"/>
+          <text class="elabel srv" x="490" y="464">この往復のチェックサムを保存</text>
+
+          <text class="n" x="36" y="506">12</text>
+          <line class="edge main" x1="480" y1="510" x2="152" y2="510" marker-end="url(#c-ahm)"/>
+          <text class="elabel main" x="470" y="502" text-anchor="end">stream.done：正規化した返事の全文</text>
+
+          <text class="n" x="36" y="544">13</text>
+          <line class="edge srv" x1="480" y1="548" x2="808" y2="548" marker-end="url(#c-ahs)"/>
+          <text class="elabel srv" x="490" y="540">チャットロックを外す</text>
+
+          <text class="n" x="36" y="582">14</text>
+          <rect class="act" x="144" y="566" width="12" height="26"/>
+          <text class="elabel" x="164" y="583">キューが空になったら締めくくり：返事を対応する発言の直後に入れ、絵文字・動きを反映し、入力欄を戻す</text>
+        </svg>
+      </div>
+      <figcaption>手順 3 と 11 は対になっています。サーバーは前回の終わりの履歴を覚えていて、次に届いた履歴と照らし合わせます。待っている間にチャットを閉じたり開き直したりしても 9〜14 は最後まで進みますが、履歴に書くだけで画面には出さないので、次の往復のチェックサムもずれません。ストリーミングを使わない <code>/chat/user</code> も順番は同じで、返事を一度に返します。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ═════════ IV ═════════ -->
+<section class="page-alt" id="background">
+  <div class="container">
+    <div class="chapter-heading">
+      <div class="chapter-eyebrow">· Capitulum IV ·</div>
+      <h2 class="chapter-title">裏方の処理</h2>
+      <div class="chapter-rule" aria-hidden="true"><span class="chapter-rule-line"></span><span class="chapter-rule-mark"></span><span class="chapter-rule-line"></span></div>
+      <p class="chapter-desc">その場では話しませんが、データをどこかに残しておき、次にセリフを作るときに使われる処理です。</p>
+    </div>
+    <div class="grimoire-grid">
+      <article class="entry">
+        <h3>観察バッファ</h3>
+        <div class="path">記事の閲覧・滞在時間 → POST /observation/push → transient（1 時間）</div>
+        <p>訪問者がどの記事をどれくらい読んだかを一時的に残し、次のチャットでプロンプトを組むときに取り出して空にします。「さっき読んでいた記事」に触れられるのはこのためです。非公開やパスワード付きの記事は「非公開」とだけ記録し、タイトルは書きません。</p>
+      </article>
+      <article class="entry">
+        <h3>管理人の記憶</h3>
+        <div class="path">管理者が /remember と入力 → POST /memory/extract → usermeta</div>
+        <p>最近の会話から管理人についての事実を抜き出して保存し、以降のシステムプロンプトに毎回添えます。</p>
+      </article>
+      <article class="entry">
+        <h3>AI 日記</h3>
+        <div class="path">WP-Cron 毎日 21:00 ごろ → 確率で判定 → 記事を投稿</div>
+        <p>設定した確率（1〜10%）でその日に書くかを決め、一日に一本までです。チャットとは別の AI プロバイダーを使えます。</p>
+      </article>
+      <article class="entry">
+        <h3>Bot 防護</h3>
+        <div class="path">Slimstat の計測リクエスト → 指紋・解像度・頻度で判定 → ブロックまたは記録</div>
+        <p>怪しいリクエストを止めて記録します。集まった統計は、チャットで彼女に報告してもらうこともできます。</p>
+      </article>
+    </div>
+    <div class="back"><a class="seal" href="./">← プロジェクトページへ戻る</a></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="colophon-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="colophon-links">
+    <a href="./">トップ</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/DEVELOPER_GUIDE.md" target="_blank" rel="noopener">開発者ガイド</a>
+    <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/API_REFERENCE.md" target="_blank" rel="noopener">API リファレンス</a>
+  </div>
+  <p class="colophon-text">
+    MP Ukagaka は <a href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/LICENSE" target="_blank" rel="noopener">GPL v2 以降</a> のオープンソースソフトウェアです。<br>
+    この図は v2.33.3 のソースコードに基づいています。
+  </p>
+</footer>
+</body>
+</html>

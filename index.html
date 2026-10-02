@@ -526,6 +526,7 @@
   .tome:hover { transform: translateY(-2px); box-shadow: 0 6px 22px var(--shadow); border-color: var(--lilac); border-left-color: var(--violet); }
   .tome-title { font-family: var(--display-jp); font-weight: 700; color: var(--text-h); letter-spacing: .08em; }
   .tome-title { display: block; }
+  .tome-wide { grid-column: 1 / -1; background: var(--bg-muted); }
   .tome-en { display: block; font-family: var(--display); font-size: .68rem; letter-spacing: .24em; color: var(--violet); text-transform: uppercase; margin-top: .15rem; }
   .tome p { font-family: var(--display-jp); font-size: .88rem; color: var(--text-mute); margin-top: .35rem; line-height: 1.75; }
 
@@ -607,6 +608,7 @@
   <a href="#screenshots">画面</a>
   <a href="#install">導入</a>
   <a href="#docs">文書</a>
+  <a href="workflow.html">仕組み</a>
 </nav>
 
 <!-- ═════════ COVER ═════════ -->
@@ -992,6 +994,10 @@
       <p class="chapter-desc">詳しい資料は英語で一元管理しています。</p>
     </div>
     <div class="tome-grid">
+      <a class="tome tome-wide" href="workflow.html">
+        <span class="tome-title">MP Ukagaka の仕組み</span><span class="tome-en">How it runs · 図解</span>
+        <p>ページの読み込みから最初の一言、七つの話し手、チャットの往復、裏方の処理までを四枚の図で。ほかの資料と違い、日本語で読めます。</p>
+      </a>
       <a class="tome" href="https://github.com/Horlicks-p/mp-ukagaka/blob/main/docs-en/USER_GUIDE.md" target="_blank" rel="noopener">
         <span class="tome-title">ユーザーガイド</span><span class="tome-en">User Guide</span>
         <p>インストール、各設定画面、対話モード、日記、FAQ。</p>
@@ -1027,6 +1033,7 @@
   <div class="colophon-links">
     <a href="https://github.com/Horlicks-p/mp-ukagaka" target="_blank" rel="noopener">GitHub</a>
     <a href="https://github.com/Horlicks-p/mp-ukagaka/releases" target="_blank" rel="noopener">リリース</a>
+    <a href="workflow.html">仕組み</a>
     <a href="https://github.com/Horlicks-p/mp-ukagaka/issues" target="_blank" rel="noopener">Issues</a>
     <a href="https://www.moelog.com" target="_blank" rel="noopener">デモサイト</a>
   </div>
