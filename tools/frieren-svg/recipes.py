@@ -38,7 +38,9 @@ def _clean_chest_edge_noise(image):
     return out
 
 
-# (x0, y0, x1, y1) on the master grid
+# (x0, y0, x1, y1) on the master grid.  These are the previously approved
+# hair repairs.  Idle supplies their interior shading; the crown's outer
+# contour is restored from the matching book reference immediately after it.
 HAIR_TOUCHUPS = (
     (124, 20, 160, 62),   # right tuft top
     (50, 20, 85, 47),     # left tuft top
@@ -47,6 +49,30 @@ HAIR_TOUCHUPS = (
     (141, 79, 168, 116),  # right side hair, outer edge
     (52, 81, 70, 100),    # left side hair beside the ear
 )
+
+
+def _restore_book_crown(image):
+    """Restore the four marked crown sections from the matching large ref.
+
+    Using idle ref [1] here left uneven one-cell steps along the top of the
+    book pose.  Copying the outer four-pixel contour from book ref [1]'s
+    direct, palette-snapped conversion keeps both hair and transparent edge
+    cells faithful to the source, while retaining the approved interior
+    shading and leaving the ponytail roots below it untouched.
+    """
+    out = image.copy()
+    donor = convert.convert(convert.ref_path("book", 1))
+    y0, y1 = 20, 62
+    for x in range(50, 166):
+        current = np.flatnonzero(out[y0:y1, x, 3] > 0)
+        reference = np.flatnonzero(donor[y0:y1, x, 3] > 0)
+        if not len(current) and not len(reference):
+            continue
+        current_top = y0 + int(current[0]) if len(current) else y1
+        reference_top = y0 + int(reference[0]) if len(reference) else y1
+        edge_bottom = min(y1, max(current_top, reference_top) + 4)
+        out[y0:edge_bottom, x] = donor[y0:edge_bottom, x]
+    return out
 
 
 def M():
@@ -58,10 +84,10 @@ def M():
     if _MASTER is None:
         m = convert.fix_outline(pix.master())[0]
         m = convert.adopt_hair(m)[0]
-        # six hair-outline spots the user marked (tuft tops, left tuft root,
-        # left ear's hair, right side hair) take idle ref [1]'s cleaner
-        # outline; that reference is the rest pose at the master's position
+        # The approved root/side spots take idle ref [1]'s cleaner outline;
+        # that reference is the rest pose at the master's position.
         m = convert.adopt_hair(m, "idle", 1, dx=0, boxes=HAIR_TOUCHUPS)[0]
+        m = _restore_book_crown(m)
         m = _clean_chest_edge_noise(m)
         _MASTER = eyes.fix(m, "book", 1)[0]
     return _MASTER.copy()
