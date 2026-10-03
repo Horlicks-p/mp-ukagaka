@@ -69,6 +69,8 @@ def resample(a, size):
 STEEL = {"hi": "#d0d3db", "light": "#b3b9c5", "mid": "#989dab", "low": "#6b738c"}
 # where the handle sits in the canvas (its brown is not lid)
 HANDLE_CANVAS = (39, 0, 65, 19)
+# side face seam: the clean upper-half row and the columns / rows it fills
+SEAM_ROW, SEAM_END, SEAM_X0, SEAM_X1 = 40, 74, 7, 15
 
 
 def steel_rails(im):
@@ -110,15 +112,12 @@ def steel_rails(im):
                 im[y, x, :3] = rgb(STEEL["mid"])
             elif c == "#6b738c":
                 im[y, x, :3] = rgb(STEEL["light"])
-    # in its lower half the seam is a single grey cell between two outline
-    # cells; widen it to the upper half's two cells (grey + light)
-    outline = rgb(OUTLINE)
-    for y in range(22, 78):
-        for x in range(6, 12):
-            if (pix.hexc(im[y, x]) == STEEL["mid"]
-                    and (im[y, x - 1, :3] == outline).all()
-                    and (im[y, x + 1, :3] == outline).all()):
-                im[y, x + 1, :3] = rgb(STEEL["light"])
+    # the side face is a flat vertical panel, but the resampled sample
+    # shifts the seam one cell right below row 48; continue the upper
+    # half's columns (outline, grey, light, outline, brown) straight down
+    seam = im[SEAM_ROW, SEAM_X0:SEAM_X1].copy()
+    for y in range(SEAM_ROW + 1, SEAM_END):
+        im[y, SEAM_X0:SEAM_X1] = seam
 
 
 def draw():
