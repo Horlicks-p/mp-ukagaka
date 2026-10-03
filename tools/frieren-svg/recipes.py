@@ -5,6 +5,8 @@ pipeline that reproduces the master from book ref [1]); see the mapping
 notes per sequence below. A recipe returns (image, converted-pixel mask);
 the mask is None when the frame is the master itself.
 """
+import numpy as np
+
 import pix
 import convert
 import layers
@@ -13,19 +15,39 @@ import eyes
 _MASTER = None
 
 
+def _clean_chest_edge_noise(image):
+    """Drop twelve resampling outliers around the shared treasure chest.
+
+    The large references have smooth edges at these four spots.  Direct
+    downsampling left small one- or two-cell protrusions in every SVG, so the
+    shared master removes only those verified cells.
+    """
+    out = image.copy()
+    cells = (
+        # Left upper edge.
+        (37, 177), (38, 177), (36, 178), (36, 179), (36, 182), (36, 189),
+        # Right upper edge.
+        (168, 164), (168, 165), (168, 166),
+        # Right middle edge.
+        (171, 180), (172, 180),
+        # Left lower corner.
+        (36, 233),
+    )
+    for x, y in cells:
+        out[y, x] = 0
+    return out
+
+
 def M():
     """The master with its outline cleaned of the white halo
     (convert.fix_outline), the hair of book ref [5], which draws the twin
-    tails with a cleaner edge, the tail roots of book ref [4]
-    (convert.adopt_hair), and its eye dots in
+    tails with a cleaner edge (convert.adopt_hair), and its eye dots in
     their original teal (eyes.py)."""
     global _MASTER
     if _MASTER is None:
         m = convert.fix_outline(pix.master())[0]
         m = convert.adopt_hair(m)[0]
-        # the tail roots and crown from book ref [4] (head 1 px left there),
-        # whose roots are drawn without the master's dark grey blotches
-        m = convert.adopt_hair(m, "book", 4, dx=1, rows=(0, 70))[0]
+        m = _clean_chest_edge_noise(m)
         _MASTER = eyes.fix(m, "book", 1)[0]
     return _MASTER.copy()
 
@@ -61,6 +83,34 @@ def frame(name):
 REST = ("idle", 1)
 SLEEP_REF = [0, 2, 4, 5, 6, 8, 9, 10, 11, 12]
 
+_SIDE_LOCK_REFERENCE = None
+
+
+def _clean_side_locks(image, head_offset):
+    """Use book-04's clean shoulder-length hair locks in selected frames.
+
+    The large idle, sleep and awareness references show the same two pointed
+    locks moving rigidly with the head.  Per-frame resampling leaves stray
+    grey pixels through their lower halves where they overlap the white cape,
+    so finish only those two narrow areas from the approved book-04 SVG.
+    """
+    global _SIDE_LOCK_REFERENCE
+    if _SIDE_LOCK_REFERENCE is None:
+        # built in memory, not read from book/frieren-book-04.svg: idle and
+        # sleep are built before the book frames, so the file on disk could
+        # still be the previous build's
+        _SIDE_LOCK_REFERENCE = _book(4)[0]
+
+    lock_mask = np.zeros((pix.H, pix.W), dtype=bool)
+    lock_mask[121:149, 72:90] = True
+    lock_mask[121:149, 120:140] = True
+    dx, dy = head_offset
+    donor = layers.shift(_SIDE_LOCK_REFERENCE, dx, dy)
+    take = layers.shift(lock_mask, dx, dy)
+    out = image.copy()
+    out[take] = donor[take]
+    return out
+
 # content bases: frames that share one drawing reuse it (moved), so the
 # unchanged parts cannot shimmer -- the blinks share idle [3]'s closed eyes,
 # every sleep / waking frame shares the sleeping face of sleep [s0].
@@ -71,6 +121,7 @@ def _idle(n):
     if n in IDLE_CB:
         layers.frame(*IDLE_CB[n], REST, M())
     out, info = layers.frame("idle", n, REST, M(), IDLE_CB.get(n))
+    out = _clean_side_locks(out, info["nh"])
     return out, info["converted"]
 
 
@@ -88,6 +139,7 @@ def _sleepish(kind, n):
     else:
         cb = WAKE_CB[n] if kind == "wake" else ("sleep", 0)
         out, info = layers.frame(kind, n, REST, M(), cb)
+    out = _clean_side_locks(out, info["nh"])
     return out, info["converted"]
 
 
@@ -117,7 +169,14 @@ for _n in range(1, 6):
 
 @frame("book-01")
 def _():  # rest pose: the master is ref [1] itself
-    return M(), None
+    return _clean_side_locks(M(), (0, 0)), None
+
+
+def _book(n):
+    out, converted = convert.frame("book", n, ("book", 1), M())
+    if n <= 3:
+        out = _clean_side_locks(out, (0, 0))
+    return out, converted
 
 for _n in range(2, 12):
-    R["book-%02d" % _n] = (lambda n: lambda: convert.frame("book", n, ("book", 1), M()))(_n)
+    R["book-%02d" % _n] = (lambda n: lambda: _book(n))(_n)

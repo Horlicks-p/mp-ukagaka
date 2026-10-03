@@ -152,21 +152,15 @@ def frame(kind, n, base, master):
     m = change_mask(kind, n, base) & ~locked()
     out = master.copy()
     out[m] = conv[m]
-    # a master pixel left on its own beside a part that moved in this frame
-    from scipy import ndimage
-    opaque = out[:, :, 3] > 0
-    nb = ndimage.convolve(opaque.astype(int), np.ones((3, 3), int), mode="constant") - opaque
-    out[opaque & (nb == 0)] = 0
     return out, m
 
 
-def adopt_hair(master, kind="book", n=5, dx=2, dy=0, rows=None):
+def adopt_hair(master, kind="book", n=5, dx=2, dy=0):
     """Take the hair (lavender-grey strands and their outline) from another
     frame of the same head: book ref [5] draws the twin tails with a cleaner
     edge and its head sits exactly 2 px left of the rest pose, so its
     conversion shifted back by (dx, dy) lines up with the master. Face, eyes,
-    ears and the red hair ties stay the master's. `rows` limits the change
-    to a band of rows (e.g. the crown and tail roots)."""
+    ears and the red hair ties stay the master's."""
     from scipy import ndimage
     import layers
     donor = convert(ref_path(kind, n))
@@ -187,10 +181,6 @@ def adopt_hair(master, kind="book", n=5, dx=2, dy=0, rows=None):
     zone &= ~(layers.torso_mask(master, head) & ~hairish_any(master, donor))
     # the face (eyes, lashes, cheeks, mouth) stays the master's
     zone[78:120, 82:129] = False
-    if rows is not None:
-        keep = np.zeros_like(zone)
-        keep[rows[0]:rows[1]] = True
-        zone &= keep
 
     # hair in either image, plus background cells next to it (edge changes)
     hair = (hairish(master) | hairish(donor)) & zone
