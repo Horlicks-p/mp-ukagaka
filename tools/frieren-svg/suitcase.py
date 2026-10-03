@@ -29,6 +29,7 @@ BOX_LEFT, BOX_RIGHT, BOX_BOTTOM = 1, W - 1, H - 7
 BODY = ["#a27a50", "#9a7349", "#936d46", "#84623e", "#82613d", "#735437",
         "#62492e", "#5e452d", "#574229", "#483725"]
 SHADOW = "#3a3430"
+SHADOW_FROM_ROW = 15
 BODY_TONES = 6
 OUTLINE = "#2a1c14"       # warm dark brown, between the sample's near-black and the staff / books outlines
 STEEL_DARK = "#575a66"
@@ -193,6 +194,137 @@ def steel_rails(im):
         im[y1 + 1:, x0:x1 + 1] = 0
 
 
+# the lid, drawn rather than converted: the sample's pixel blocks are about
+# 2 canvas cells and fall between them, so its slanted top edges come out
+# as broken staircases. Each edge is a straight line (y or x per column)
+LID_BACK = (3, 16.5, -0.1717)    # back edge: x0, y at x0, slope
+LID_FRONT = (33, 24, -0.196)     # front edge (top of its rail)
+LID_LEFT = (2, 17, 0.62)         # left edge, over the side face
+LID_RIGHT = (84, 3, 0.54)        # right edge
+LID_BR_X, LID_FL_X = 84, 15      # where the back / front edges turn
+LID_TOP = "#a27a50"
+FACE = "#936d46"
+FACE_SHADE = "#483725"
+HANDLE = {"hi": "#844f26", "mid": "#6e462b", "dark": "#512e20"}
+# clean rows below the redrawn part: side face, front-left rail, right rail
+SIDE_CLEAN_ROW, FRONT_LEFT_CLEAN_ROW, RIGHT_CLEAN_ROW = 30, 33, 18
+# top corner protectors (x0, x1, y0, y1, outer side)
+TOP_CAPS = ((1, 5, 15, 21, "left"), (15, 21, 24, 31, "left"), (93, 98, 8, 15, "right"))
+HANDLE_X = (42, 60)              # handle span; posts are 5 wide
+HANDLE_RISE = 13                 # grip top above the post feet
+LATCHES = ((21, 12), (71, 12))   # (x0, width) of the two clasps
+
+
+def line(x, spec):
+    x0, y0, k = spec
+    return int(np.floor(y0 + k * (x - x0) + 0.5))
+
+
+def refine_top(im):
+    """Redraw the upper part (lid, its four edge rails, the top corners,
+    handle and clasps) on straight perspective lines; the converted body
+    below is kept and its clean rows continue up to the new edges."""
+    def put(y, x, c):
+        if 0 <= y < H:
+            im[y, x] = list(rgb(c)) + [255]
+
+    side = im[SIDE_CLEAN_ROW].copy()
+    front_left = im[FRONT_LEFT_CLEAN_ROW].copy()
+    right = im[RIGHT_CLEAN_ROW].copy()
+    for x in range(1, W):
+        front = line(x, LID_FRONT)
+        # clear exactly what is redrawn below
+        if x < LID_FL_X:
+            im[:SIDE_CLEAN_ROW, x] = 0
+        elif x <= CORNER_X1:
+            im[:FRONT_LEFT_CLEAN_ROW, x] = 0
+        elif x >= 93:
+            im[:RIGHT_CLEAN_ROW, x] = 0
+        else:
+            im[:front + 15, x] = 0
+        if x <= 1:
+            continue
+        top = line(x, LID_BACK) if x <= LID_BR_X else line(x, LID_RIGHT)
+        put(top, x, OUTLINE)
+        put(top + 1, x, STEEL["light"])
+        put(top + 2, x, STEEL["low"] if x <= LID_BR_X else STEEL["mid"])
+        if x < LID_FL_X:
+            e = line(x, LID_LEFT)
+            for y in range(top + 3, e):
+                put(y, x, LID_TOP)
+            for y, c in zip(range(e, e + 4), (OUTLINE, STEEL["hi"], STEEL["mid"], OUTLINE)):
+                put(y, x, c)
+            # the side face (and its seam, which joins the rail) runs up to it
+            if x in (SEAM_X0 + 1, SEAM_X0 + 2):
+                im[e + 3, x] = side[x]
+            im[e + 4:SIDE_CLEAN_ROW, x] = side[x]
+            continue
+        for y in range(top + 3, front):
+            put(y, x, LID_TOP)
+        for y, c in zip(range(front, front + 5),
+                        (OUTLINE, STEEL["hi"], STEEL["light"], STEEL["mid"], OUTLINE)):
+            put(y, x, c)
+        if x <= CORNER_X1:
+            im[front + 5:FRONT_LEFT_CLEAN_ROW, x] = front_left[x]
+        elif x >= 93:
+            im[front + 5:RIGHT_CLEAN_ROW, x] = right[x]
+        else:
+            put(front + 5, x, FACE_SHADE)
+            for y in range(front + 6, front + 15):
+                put(y, x, FACE)
+    im[:, 0] = np.where(np.arange(H)[:, None] < SIDE_CLEAN_ROW, 0, im[:, 0])
+
+    # clasps: a bevelled steel plate standing on the front rail with a slot
+    for x0, w in LATCHES:
+        for x in range(x0, x0 + w):
+            f = line(x, LID_FRONT)
+            if x in (x0, x0 + w - 1):
+                for y in range(f - 5, f):
+                    put(y, x, OUTLINE)
+                continue
+            for y, c in zip(range(f - 5, f), (OUTLINE, STEEL["hi"], STEEL["light"],
+                                               STEEL["mid"], STEEL["low"])):
+                put(y, x, c)
+            if abs(x - (x0 + w / 2 - 0.5)) < 1:
+                put(f - 3, x, OUTLINE)
+                put(f - 2, x, OUTLINE)
+
+    # handle: two posts on steel feet and the grip across them
+    hx0, hx1 = HANDLE_X
+    posts = (range(hx0, hx0 + 5), range(hx1 - 4, hx1 + 1))
+    for x in range(hx0, hx1 + 1):
+        base = line(x, LID_FRONT) - 5
+        g = base - HANDLE_RISE
+        if x in (hx0, hx1):
+            for y in range(g, base - 2):
+                put(y, x, OUTLINE)
+            continue
+        for y, c in zip(range(g, g + 4), (OUTLINE, HANDLE["hi"], HANDLE["dark"], OUTLINE)):
+            put(y, x, c)
+        post = next((p for p in posts if x in p), None)
+        if post is None:
+            if pix.hexc(im[g + 4, x]) == LID_TOP:
+                put(g + 4, x, FACE_SHADE)     # the grip's shadow on the lid
+            continue
+        c = HANDLE["mid"] if x - post[0] == 1 else (OUTLINE if x - post[0] == 4 else HANDLE["dark"])
+        for y in range(g + 4, base - 2):
+            put(y, x, c)
+    for p in posts:
+        for x in range(p[0] - 1, p[-1] + 2):
+            base = line(x, LID_FRONT) - 5
+            end = x in (p[0] - 1, p[-1] + 1)
+            put(base - 2, x, OUTLINE if end else STEEL["light"])
+            put(base - 1, x, OUTLINE if end else STEEL["mid"])
+            put(base, x, OUTLINE)
+
+    for x0, x1, y0, y1, outer in TOP_CAPS:
+        im[y0:y1 + 1, x0:x1 + 1] = list(rgb(OUTLINE)) + [255]
+        im[y0 + 1:y1, x0 + 1:x1] = list(rgb(STEEL["mid"])) + [255]
+        im[y0 + 1, x0 + 1:x1] = list(rgb(STEEL["light"])) + [255]
+        dark_x = x0 + 1 if outer == "left" else x1 - 1
+        im[y0 + 2:y1, dark_x] = list(rgb(STEEL_DARK)) + [255]
+
+
 def draw():
     a, handle_src = load_sample()
     h_src, w_src = a.shape[:2]
@@ -255,6 +387,7 @@ def draw():
     top = BOX_BOTTOM + 1 - bh
     im[top:top + bh, BOX_LEFT:BOX_LEFT + bw] = out
     steel_rails(im)
+    refine_top(im)
 
     # ground shadow parallel to the bottom edges, below/right of the case
     case = im[:, :, 3] > 0
@@ -262,6 +395,7 @@ def draw():
         moved = np.zeros_like(case)
         moved[dy:, dx:] = case[:H - dy, :W - dx]
         m = moved & ~case & (im[:, :, 3] == 0)
+        m[:SHADOW_FROM_ROW] = False       # not inside the handle's arch
         im[m, :3] = rgb(SHADOW)
         im[m, 3] = a_
     return im
