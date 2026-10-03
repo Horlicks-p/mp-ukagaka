@@ -186,10 +186,26 @@ def adopt_hair(master, kind="book", n=5, dx=2, dy=0):
     hair = (hairish(master) | hairish(donor)) & zone
     bg = zone & ((master[:, :, 3] == 0) | (donor[:, :, 3] == 0))
     take = hair | (bg & ndimage.binary_dilation(hair, iterations=1))
-    # never touch skin / ties / eyes: cells that are warm in either image
+    # only hair (or background) is taken from the donor: an opaque donor cell
+    # that is not hair is its cape / trim / skin at that frame's position and
+    # would leave brown specks in the master's cape; the master's own skin,
+    # ties and cape are never overwritten
     warm = lambda im: (im[:, :, 3] > 0) & ~hairish(im) & (im[:, :, :3].astype(int).max(-1) > 70)
-    take &= ~warm(master) | ~(donor[:, :, 3] > 0) | hairish(donor)
-    take &= ~(warm(master) & warm(donor))
+    take &= hairish(donor) | (donor[:, :, 3] == 0)
+    take &= ~warm(master)
     out = master.copy()
     out[take] = donor[take]
+    # a transparent donor cell must not punch a hole inside the head
+    hole = ndimage.binary_fill_holes(out[:, :, 3] > 0) & (out[:, :, 3] == 0)
+    if hole.any():
+        _, (iy, ix) = ndimage.distance_transform_edt(out[:, :, 3] == 0, return_indices=True)
+        out[hole] = out[iy[hole], ix[hole]]
+    # lone grey hair cells left on the white cape below the tails
+    c = out[:, :, :3].astype(int)
+    lum = c @ np.array([3, 6, 1]) // 10
+    white = (out[:, :, 3] > 0) & (lum > 228)
+    around = ndimage.convolve(white.astype(int), np.ones((3, 3), int), mode="constant") - white
+    speck = (out[:, :, 3] > 0) & ~white & (around == 8) & (layers.YY > 110)
+    for y, x in zip(*np.nonzero(speck)):
+        out[y, x] = out[y, x - 1]
     return out, int(np.any(out != master, axis=2).sum())
