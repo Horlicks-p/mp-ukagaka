@@ -71,6 +71,9 @@ STEEL = {"hi": "#d0d3db", "light": "#b3b9c5", "mid": "#989dab", "low": "#6b738c"
 HANDLE_CANVAS = (39, 0, 65, 19)
 # side face seam: the clean upper-half row and the columns / rows it fills
 SEAM_ROW, SEAM_END, SEAM_X0, SEAM_X1 = 40, 74, 7, 15
+# side face bottom edge: bottom outline row at x 2 and its slope per column
+SIDE_BOTTOM_Y0, SIDE_BOTTOM_SLOPE = 73, 0.7
+SIDE_PANEL_ROW = 66   # a clean row of the side panel above the ragged bottom
 
 
 def steel_rails(im):
@@ -118,6 +121,20 @@ def steel_rails(im):
     seam = im[SEAM_ROW, SEAM_X0:SEAM_X1].copy()
     for y in range(SEAM_ROW + 1, SEAM_END):
         im[y, SEAM_X0:SEAM_X1] = seam
+
+    # side face bottom edge: a steel rail like the front's bottom frame. The
+    # resampled outline there is ragged, so the edge is drawn on the side
+    # face's perspective line, from the back corner (x 2) down to the front
+    # corner (x 14): outline, light, mid, outline from the top, nothing below
+    for x in range(2, 15):
+        yo = round(SIDE_BOTTOM_Y0 + (x - 2) * SIDE_BOTTOM_SLOPE)
+        # the panel above (back rail, brown, seam) runs straight down to it
+        im[SIDE_PANEL_ROW + 1:yo - 3, x] = im[SIDE_PANEL_ROW, x]
+        im[yo - 3, x] = list(rgb(OUTLINE)) + [255]
+        im[yo - 2, x] = list(rgb(STEEL["light"])) + [255]
+        im[yo - 1, x] = list(rgb(STEEL["mid"])) + [255]
+        im[yo, x] = list(rgb(OUTLINE)) + [255]
+        im[yo + 1:, x] = 0
 
 
 def draw():
