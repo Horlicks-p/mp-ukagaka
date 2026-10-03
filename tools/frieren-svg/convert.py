@@ -155,12 +155,13 @@ def frame(kind, n, base, master):
     return out, m
 
 
-def adopt_hair(master, kind="book", n=5, dx=2, dy=0):
+def adopt_hair(master, kind="book", n=5, dx=2, dy=0, boxes=None):
     """Take the hair (lavender-grey strands and their outline) from another
     frame of the same head: book ref [5] draws the twin tails with a cleaner
     edge and its head sits exactly 2 px left of the rest pose, so its
     conversion shifted back by (dx, dy) lines up with the master. Face, eyes,
-    ears and the red hair ties stay the master's."""
+    ears and the red hair ties stay the master's. `boxes` limits the change
+    to a few (x0, y0, x1, y1) areas."""
     from scipy import ndimage
     import layers
     donor = convert(ref_path(kind, n))
@@ -181,6 +182,12 @@ def adopt_hair(master, kind="book", n=5, dx=2, dy=0):
     zone &= ~(layers.torso_mask(master, head) & ~hairish_any(master, donor))
     # the face (eyes, lashes, cheeks, mouth) stays the master's
     zone[78:120, 82:129] = False
+    if boxes is not None:
+        # limit the change to the given (x0, y0, x1, y1) boxes
+        keep = np.zeros_like(zone)
+        for x0, y0, x1, y1 in boxes:
+            keep[y0:y1, x0:x1] = True
+        zone &= keep
 
     # hair in either image, plus background cells next to it (edge changes)
     hair = (hairish(master) | hairish(donor)) & zone
@@ -195,6 +202,13 @@ def adopt_hair(master, kind="book", n=5, dx=2, dy=0):
     take &= ~warm(master)
     out = master.copy()
     out[take] = donor[take]
+    if boxes is not None:
+        # in touch-up areas, a very light cell on the outer ring is a
+        # background remnant (the hair outline is dark), not hair
+        opaque = out[:, :, 3] > 0
+        ring = opaque & ~ndimage.binary_erosion(opaque)
+        light = (out[:, :, :3].astype(int) @ np.array([3, 6, 1])) // 10 > 200
+        out[ring & light & zone] = 0
     # a transparent donor cell must not punch a hole inside the head
     hole = ndimage.binary_fill_holes(out[:, :, 3] > 0) & (out[:, :, 3] == 0)
     if hole.any():

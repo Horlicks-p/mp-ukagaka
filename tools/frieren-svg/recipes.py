@@ -38,6 +38,17 @@ def _clean_chest_edge_noise(image):
     return out
 
 
+# (x0, y0, x1, y1) on the master grid
+HAIR_TOUCHUPS = (
+    (124, 20, 160, 62),   # right tuft top
+    (50, 20, 85, 47),     # left tuft top
+    (83, 20, 109, 47),    # crown, left of centre
+    (53, 46, 74, 68),     # left tuft root
+    (141, 79, 168, 116),  # right side hair, outer edge
+    (52, 81, 70, 100),    # left side hair beside the ear
+)
+
+
 def M():
     """The master with its outline cleaned of the white halo
     (convert.fix_outline), the hair of book ref [5], which draws the twin
@@ -47,6 +58,10 @@ def M():
     if _MASTER is None:
         m = convert.fix_outline(pix.master())[0]
         m = convert.adopt_hair(m)[0]
+        # six hair-outline spots the user marked (tuft tops, left tuft root,
+        # left ear's hair, right side hair) take idle ref [1]'s cleaner
+        # outline; that reference is the rest pose at the master's position
+        m = convert.adopt_hair(m, "idle", 1, dx=0, boxes=HAIR_TOUCHUPS)[0]
         m = _clean_chest_edge_noise(m)
         _MASTER = eyes.fix(m, "book", 1)[0]
     return _MASTER.copy()

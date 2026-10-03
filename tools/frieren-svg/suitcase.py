@@ -29,6 +29,8 @@ BODY = ["#a27a50", "#9a7349", "#936d46", "#84623e", "#82613d", "#735437",
         "#62492e", "#5e452d", "#574229", "#483725"]
 SHADOW = "#3a3430"
 BODY_TONES = 6
+OUTLINE = "#3a2a20"       # warm dark brown, like the staff / books outlines
+STEEL_DARK = "#575a66"
 
 # the handle in sample pixels (so its dark brown is not taken for body)
 HANDLE_BOX = (700, 150, 905, 275)
@@ -105,6 +107,17 @@ def draw():
     target = pl.min() + t * (pl.max() - pl.min())
     out[body, :3] = pal[np.abs(target[:, None] - pl[None, :]).argmin(1)]
     out[alpha, 3] = 255
+
+    # the sample's near-black, cool outline and the navy shade of the steel
+    # read much harder than the other decorations' warm dark outlines:
+    # soften them toward the case's own dark browns / greys
+    k = out[:, :, :3].astype(int)
+    kl = lum(k)
+    ksat = k.max(-1) - k.min(-1)
+    outline = alpha & ~body & (kl < 30)
+    out[outline, :3] = rgb(OUTLINE)
+    steel_dark = alpha & ~body & ~outline & (kl < 70) & (ksat < 45) & (k[:, :, 2] > k[:, :, 0])
+    out[steel_dark, :3] = rgb(STEEL_DARK)
 
     # lone pixels left by resampling
     nb = ndimage.convolve(alpha.astype(int), np.ones((3, 3), int), mode="constant") - alpha
