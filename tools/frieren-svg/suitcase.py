@@ -66,6 +66,52 @@ def resample(a, size):
     return r
 
 
+STEEL = {"hi": "#d0d3db", "light": "#b3b9c5", "mid": "#989dab", "low": "#6b738c"}
+# where the handle sits in the canvas (its brown is not lid)
+HANDLE_CANVAS = (39, 0, 65, 19)
+
+
+def steel_rails(im):
+    """The sample shows these as brown / dark, but the case design (refs/
+    suitcase sample.png, the original look) has a steel rail on every edge:
+    the lid's back edge, the side face's back edge and the side face's
+    middle seam. Paint 2 px steel just inside the outline there; latches,
+    handle and the existing front / bottom frame are left as they are."""
+    a = im[:, :, 3] == 255
+    hx0, hy0, hx1, hy1 = HANDLE_CANVAS
+
+    def is_steel(px):
+        r, g, b = (int(v) for v in px[:3])
+        return b > r and (max(r, g, b) - min(r, g, b)) < 45 and r > 70
+
+    def paint(y, x, colour):
+        if a[y, x] and not is_steel(im[y, x]) and not (hx0 <= x < hx1 and hy0 <= y < hy1):
+            im[y, x, :3] = rgb(STEEL[colour])
+
+    # lid back edge: the first two cells under the top outline
+    for x in range(6, W - 4):
+        ys = np.nonzero(a[:, x])[0]
+        if len(ys):
+            y0 = ys[0]
+            paint(y0 + 1, x, "light")
+            paint(y0 + 2, x, "low")
+    # side face back edge: the first two cells inside the left outline
+    for y in range(20, 72):
+        xs = np.nonzero(a[y, :20])[0]
+        if len(xs):
+            x0 = xs[0]
+            paint(y, x0 + 1, "mid")
+            paint(y, x0 + 2, "low")
+    # side face middle seam: brighten the thin grey line into a rail
+    for y in range(22, 78):
+        for x in range(6, 12):
+            c = pix.hexc(im[y, x])
+            if c in ("#575a66", "#565867"):
+                im[y, x, :3] = rgb(STEEL["mid"])
+            elif c == "#6b738c":
+                im[y, x, :3] = rgb(STEEL["light"])
+
+
 def draw():
     a, handle_src = load_sample()
     h_src, w_src = a.shape[:2]
@@ -127,6 +173,7 @@ def draw():
     im = np.zeros((H, W, 4), np.uint8)
     top = BOX_BOTTOM + 1 - bh
     im[top:top + bh, BOX_LEFT:BOX_LEFT + bw] = out
+    steel_rails(im)
 
     # ground shadow parallel to the bottom edges, below/right of the case
     case = im[:, :, 3] > 0
