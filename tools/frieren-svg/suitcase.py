@@ -110,6 +110,15 @@ def steel_rails(im):
                 im[y, x, :3] = rgb(STEEL["mid"])
             elif c == "#6b738c":
                 im[y, x, :3] = rgb(STEEL["light"])
+    # in its lower half the seam is a single grey cell between two outline
+    # cells; widen it to the upper half's two cells (grey + light)
+    outline = rgb(OUTLINE)
+    for y in range(22, 78):
+        for x in range(6, 12):
+            if (pix.hexc(im[y, x]) == STEEL["mid"]
+                    and (im[y, x - 1, :3] == outline).all()
+                    and (im[y, x + 1, :3] == outline).all()):
+                im[y, x + 1, :3] = rgb(STEEL["light"])
 
 
 def draw():
