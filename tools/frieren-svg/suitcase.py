@@ -80,6 +80,9 @@ FRONT_BOTTOM_X0, FRONT_BOTTOM_X1, FRONT_FACE_ABOVE = 24, 93, 9
 # front-left corner: the vertical corner rail's columns (outline + steel)
 # and a clean row of it above the ragged bottom
 CORNER_X0, CORNER_X1, CORNER_ROW = 15, 21, 70
+# steel corner protectors at the two left bottom corners, like the one the
+# sample shows at the right: (x0, x1, y0, y1) of each, outline included
+CORNER_CAPS = ((1, 5, 69, 75), (15, 21, 76, 83))
 
 
 def steel_rails(im):
@@ -178,6 +181,16 @@ def steel_rails(im):
             im[yo - 1, x] = list(rgb(STEEL["mid"])) + [255]
         im[yo, x] = list(rgb(OUTLINE)) + [255]
         im[yo + 1:, x] = 0
+
+    # corner protectors: a steel plate over each left bottom corner, drawn
+    # like the right one (outline, mid steel, the outer column dark, the
+    # bottom row low), nothing below it
+    for x0, x1, y0, y1 in CORNER_CAPS:
+        im[y0:y1 + 1, x0:x1 + 1] = list(rgb(OUTLINE)) + [255]
+        im[y0 + 1:y1, x0 + 1:x1] = list(rgb(STEEL["mid"])) + [255]
+        im[y0 + 1:y1, x0 + 1] = list(rgb(STEEL_DARK)) + [255]
+        im[y1 - 1, x0 + 1:x1] = list(rgb(STEEL["low"])) + [255]
+        im[y1 + 1:, x0:x1 + 1] = 0
 
 
 def draw():
