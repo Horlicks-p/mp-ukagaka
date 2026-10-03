@@ -74,6 +74,12 @@ SEAM_ROW, SEAM_END, SEAM_X0, SEAM_X1 = 40, 74, 7, 15
 # side face bottom edge: bottom outline row at x 2 and its slope per column
 SIDE_BOTTOM_Y0, SIDE_BOTTOM_SLOPE = 73, 0.7
 SIDE_PANEL_ROW = 66   # a clean row of the side panel above the ragged bottom
+# front bottom edge: columns redrawn, and how far above the edge the front
+# panel colour is sampled (above the old dark staircase)
+FRONT_BOTTOM_X0, FRONT_BOTTOM_X1, FRONT_FACE_ABOVE = 24, 93, 9
+# front-left corner: the vertical corner rail's columns (outline + steel)
+# and a clean row of it above the ragged bottom
+CORNER_X0, CORNER_X1, CORNER_ROW = 15, 21, 70
 
 
 def steel_rails(im):
@@ -133,6 +139,43 @@ def steel_rails(im):
         im[yo - 3, x] = list(rgb(OUTLINE)) + [255]
         im[yo - 2, x] = list(rgb(STEEL["light"])) + [255]
         im[yo - 1, x] = list(rgb(STEEL["mid"])) + [255]
+        im[yo, x] = list(rgb(OUTLINE)) + [255]
+        im[yo + 1:, x] = 0
+        # where the seam meets the rail it joins it: no outline across it
+        if x in (SEAM_X0 + 1, SEAM_X0 + 2):
+            im[yo - 3, x] = im[SIDE_PANEL_ROW, x]
+
+    # front face bottom edge (where the case stands): the converted sample
+    # leaves a ragged dark staircase there; redraw it like the side's edge,
+    # on the straight line fitted to the current bottom, with the front
+    # panel's own colour continued down to it
+    xs = np.arange(FRONT_BOTTOM_X0, FRONT_BOTTOM_X1)
+    yb = np.array([np.nonzero(im[:, x, 3] == 255)[0][-1] for x in xs])
+    slope, icpt = np.polyfit(xs, yb, 1)
+    for x in xs:
+        yo = int(round(icpt + slope * x))
+        face = im[yo - FRONT_FACE_ABOVE, x].copy()
+        im[yo - FRONT_FACE_ABOVE + 1:yo - 3, x] = face
+        im[yo - 3, x] = list(rgb(OUTLINE)) + [255]
+        im[yo - 2, x] = list(rgb(STEEL["light"])) + [255]
+        im[yo - 1, x] = list(rgb(STEEL["mid"])) + [255]
+        im[yo, x] = list(rgb(OUTLINE)) + [255]
+        im[yo + 1:, x] = 0
+
+    # front-left bottom corner: the two bottom rails meet under the vertical
+    # corner rail, whose steel runs straight down to the bottom outline; the
+    # few columns between it and the front rail get the front rail's layers
+    # (the corner's bottom is flat at the front rail's level there, not a
+    # spike where the two lines would cross)
+    floor_y = int(round(icpt + slope * CORNER_X1))
+    for x in range(CORNER_X0, FRONT_BOTTOM_X0):
+        yo = min(int(round(SIDE_BOTTOM_Y0 + (x - 2) * SIDE_BOTTOM_SLOPE)),
+                 int(round(icpt + slope * x)), floor_y)
+        im[CORNER_ROW + 1:yo, x] = im[CORNER_ROW, x]
+        if x >= CORNER_X1:
+            im[yo - 3, x] = list(rgb(OUTLINE)) + [255]
+            im[yo - 2, x] = list(rgb(STEEL["light"])) + [255]
+            im[yo - 1, x] = list(rgb(STEEL["mid"])) + [255]
         im[yo, x] = list(rgb(OUTLINE)) + [255]
         im[yo + 1:, x] = 0
 
