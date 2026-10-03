@@ -1,4 +1,4 @@
-"""Frieren's travel case for the decoration layer (90x80, development only).
+"""Frieren's travel case for the decoration layer (100x90, development only).
 
 Converted from refs/suitcase_sample.png (the case
 design the user approved): the sample is cropped to the case, resampled to
@@ -9,20 +9,21 @@ the previous suitcase.svg, each body pixel taking the body colour closest
 in lightness. A soft ground shadow parallel to the bottom edges is added
 as before (alpha steps 64 / 128).
 
-The canvas stays 90x80 so decorations.json position and size, and the
-pixel hit test (alpha > 10), keep their meaning."""
+The canvas is 100x90 (was 90x80; enlarged so the small latches read).
+decorations.json shows it at 100 px wide with its centre where the 90x80
+case's was, and the pixel hit test (alpha > 10) follows the drawing."""
 import os
 import numpy as np
 from PIL import Image
 from scipy import ndimage
 import pix
 
-W, H = 90, 80
+W, H = 100, 90
 SAMPLE = os.path.join(pix.HERE, "refs", "suitcase_sample.png")
 
-# footprint of the case in the 90x80 canvas (the previous case spanned
-# x 1..89, y 0..76; leave room below for the ground shadow)
-BOX_LEFT, BOX_RIGHT, BOX_BOTTOM = 1, 89, 74
+# footprint of the case in the canvas: the full width less a 1 px margin,
+# with room below for the ground shadow
+BOX_LEFT, BOX_RIGHT, BOX_BOTTOM = 1, W - 1, H - 7
 
 # body colours of the previous suitcase.svg (front, side, lid)
 BODY = ["#a27a50", "#9a7349", "#936d46", "#84623e", "#82613d", "#735437",

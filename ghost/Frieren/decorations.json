@@ -11,11 +11,11 @@
       "image": "suitcase.svg",
       "position": {
         "top": "82%",
-        "right": "-62px",
+        "right": "-67px",
         "left": "auto"
       },
       "size": {
-        "width": "90px",
+        "width": "100px",
         "height": "auto"
       },
       "transform": "translateY(-50%)",
