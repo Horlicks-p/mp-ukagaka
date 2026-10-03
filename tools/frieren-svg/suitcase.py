@@ -30,7 +30,7 @@ BODY = ["#a27a50", "#9a7349", "#936d46", "#84623e", "#82613d", "#735437",
         "#62492e", "#5e452d", "#574229", "#483725"]
 SHADOW = "#3a3430"
 BODY_TONES = 6
-OUTLINE = "#3a2a20"       # warm dark brown, like the staff / books outlines
+OUTLINE = "#2a1c14"       # warm dark brown, between the sample's near-black and the staff / books outlines
 STEEL_DARK = "#575a66"
 
 # the handle in sample pixels (so its dark brown is not taken for body)
