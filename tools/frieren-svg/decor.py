@@ -6,6 +6,7 @@ viewBox and intrinsic size: position, size and the pixel hit test stay as
 they are. Colours are reduced per decoration (octree) and identical
 colours are merged into one path of rects, like the body frames."""
 import os
+import sys
 import numpy as np
 from PIL import Image
 import pix
@@ -82,19 +83,22 @@ def to_svg(im, title):
 REDRAWN = {}
 
 
-def build():
+def build(names=None):
     import suitcase
     REDRAWN["suitcase"] = suitcase.draw
-    for name in NAMES:
-        im = load(name)
-        q = REDRAWN[name]() if name in REDRAWN else quantize(im)
+    for name in names or NAMES:
+        if name in REDRAWN:
+            q = REDRAWN[name]()
+        else:
+            q = quantize(load(name))
         s = to_svg(q, "Frieren decoration: %s" % name)
         path = os.path.join(DECOR, name + ".svg")
         with open(path, "w", encoding="utf8", newline="\n") as fh:
             fh.write(s)
         cols = len(np.unique(q[q[:, :, 3] > 0][:, :3], axis=0))
-        print("%-17s %dx%d  colors=%3d paths=%3d bytes=%6d" % (name, im.width, im.height, cols, s.count("<path"), len(s)))
+        print("%-17s %dx%d  colors=%3d paths=%3d bytes=%6d" %
+              (name, q.shape[1], q.shape[0], cols, s.count("<path"), len(s)))
 
 
 if __name__ == "__main__":
-    build()
+    build(sys.argv[1:] or None)
