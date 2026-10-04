@@ -789,18 +789,19 @@
 
       this.stopFrierenAnimation();
 
+      // 角色已切換時連 callback 一起放棄：它接續的是舊芙莉蓮的對話流程
       const self = this;
       const generation = this.frierenLoadGeneration;
       this.loadFrierenSequence("wake").then(
         function () {
-          if (!self.isFrierenLoadCurrent(generation)) {
-            if (callback) callback();
-            return;
+          if (self.isFrierenLoadCurrent(generation)) {
+            self.playFrierenOnce("wake", callback);
           }
-          self.playFrierenOnce("wake", callback);
         },
         function () {
-          if (callback) callback();
+          if (self.isFrierenLoadCurrent(generation) && callback) {
+            callback();
+          }
         }
       );
     },
@@ -865,9 +866,12 @@
       }
 
       if (!window.mpuCanvasManager || !window.mpuCanvasManager.imagesLoaded) {
+        const generation = this.frierenLoadGeneration;
         setTimeout(
           function () {
-            this.triggerFrierenSpeaking(forceAnimation, onWakeUpComplete);
+            if (this.isFrierenLoadCurrent(generation)) {
+              this.triggerFrierenSpeaking(forceAnimation, onWakeUpComplete, skipBookFlip);
+            }
           }.bind(this),
           100
         );
@@ -2431,7 +2435,10 @@
       decoration.style.cssText = styleString;
 
       decoration.addEventListener("load", () => {
-        this.createHitCanvas(config.type, decoration);
+        // 載入完成前已被 cleanup 移除的裝飾不再建立命中判定
+        if (this.frierenDecorations.indexOf(decoration) !== -1) {
+          this.createHitCanvas(config.type, decoration);
+        }
       });
 
       decoration.addEventListener("click", (e) => {

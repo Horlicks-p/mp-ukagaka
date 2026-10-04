@@ -343,7 +343,10 @@
       decoration.style.cssText = styleString;
 
       decoration.addEventListener("load", () => {
-        this.createHitCanvas(config.type, decoration);
+        // 載入完成前已被 cleanup 移除的裝飾不再建立命中判定
+        if (this.frierenDecorations.indexOf(decoration) !== -1) {
+          this.createHitCanvas(config.type, decoration);
+        }
       });
 
       decoration.addEventListener("click", (e) => {

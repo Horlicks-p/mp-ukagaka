@@ -13,10 +13,13 @@
  * - loads still in flight when the character is switched away do not touch
  *   the next character's canvas, state or DOM;
  * - container listeners are not duplicated and are removed on cleanup;
- * - back decorations do not take clicks on the body's opaque pixels.
+ * - back decorations do not take clicks on the body's opaque pixels;
+ * - wake callbacks, speaking retries, deferred generic animations and late
+ *   decoration loads from a switched-away character do nothing.
  *
  * Runs the Frieren runtime modules (frieren.js, -animation, -interactions,
- * -decorations) in a vm with DOM stubs and a fake clock.
+ * -decorations) and js/ukagaka-anime.js in a vm with DOM stubs and a fake
+ * clock.
  */
 const assert = require("assert");
 const fs = require("fs");
@@ -93,6 +96,8 @@ function makeElement(tagName) {
       if (i >= 0) listeners.splice(i, 1);
     },
     getBoundingClientRect: () => ({ left: 0, top: 0, right: 208, bottom: 328, width: 208, height: 328 }),
+    querySelector: () => null,
+    getContext: () => ({ drawImage() {}, clearRect() {}, getImageData: () => ({ data: [0, 0, 0, 255] }) }),
   };
 }
 
@@ -397,6 +402,106 @@ async function testFailedSequence() {
   assert.ok(logs.some((l) => l[1] === "frierenSequenceLoadFailed"), "failure is logged");
 }
 
+async function testStaleWake() {
+  const { m, clock, window } = loadRuntime({ delay: () => 20 });
+  m.applyFrierenAssets(assets, "base/");
+  let calls = 0;
+  m.playWakeUpAnimation(() => { calls++; });
+  await flush(clock, 5);
+  switchAway(m, window);
+  await flush(clock, 2000);
+  assert.strictEqual(calls, 0, "a switched-away wake must not continue the old dialogue flow");
+
+  // a failed wake of the current character still hands control back
+  const failSrc = assets.sequences.wake.frames[1].src;
+  const live = loadRuntime({ failSrc });
+  live.m.applyFrierenAssets(assets, "base/");
+  let fallback = 0;
+  live.m.playWakeUpAnimation(() => { fallback++; });
+  await flush(live.clock, 20);
+  assert.strictEqual(fallback, 1, "current-generation wake failure calls back");
+}
+
+async function testStaleSpeakingRetry() {
+  const { m, clock, window } = loadRuntime();
+  let flips = 0;
+  m.playFrierenBookFlipAnimation = () => { flips++; };
+  window.mpuCanvasManager.imagesLoaded = false;
+  m.triggerFrierenSpeaking(false); // waits for imagesLoaded, retrying every 100 ms
+  // Frieren A -> generic -> Frieren B, and B is fully loaded
+  switchAway(m, window);
+  window.mpuCanvasManager.loadGeneration++;
+  m.isFrierenMode = true;
+  m.frierenLoadGeneration = window.mpuCanvasManager.loadGeneration;
+  m.applyFrierenAssets(assets, "base/");
+  await Promise.all([m.loadFrierenSequence("book_flip"), flush(clock)]);
+  window.mpuCanvasManager.imagesLoaded = true;
+  clock.advance(500);
+  assert.strictEqual(flips, 0, "A's retry must not flip B's book");
+
+  // the same retry within one generation still fires
+  window.mpuCanvasManager.imagesLoaded = false;
+  m.triggerFrierenSpeaking(false);
+  window.mpuCanvasManager.imagesLoaded = true;
+  clock.advance(150);
+  assert.strictEqual(flips, 1, "retry fires once the current character has loaded");
+}
+
+function testStaleGenericAnimation() {
+  const clock = makeClock();
+  function Image() {
+    const img = { complete: false, naturalWidth: 0, width: 100, height: 100 };
+    Object.defineProperty(img, "src", {
+      set(v) {
+        this._src = v;
+        clock.setTimeout(() => { this.complete = true; this.naturalWidth = 100; this.onload && this.onload(); }, 1);
+      },
+      get() { return this._src; },
+    });
+    return img;
+  }
+  const window = {};
+  const context = {
+    window, document: { getElementById: () => null }, Image, mpuLogger: { log: false },
+    setTimeout: clock.setTimeout, clearTimeout: clock.clearTimeout,
+  };
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(repoRoot, "js", "ukagaka-anime.js"), "utf8"), context, { filename: "ukagaka-anime.js" });
+  const cm = window.mpuCanvasManager;
+  let plays = 0;
+  const run = (switchMidway) => {
+    plays = 0;
+    cm.canvas = makeElement("CANVAS");
+    cm.ctx = { clearRect() {}, drawImage() {} };
+    cm.imageUrls = ["a.png", "b.png"];
+    cm.isAnimated = true;
+    cm.pendingAnimation = true;
+    cm.playAnimation = () => { plays++; };
+    cm.loadImages();
+    clock.advance(2); // frames loaded; the deferred play is 50 ms out
+    if (switchMidway) cm.loadGeneration++;
+    clock.advance(100);
+    return plays;
+  };
+  assert.strictEqual(run(false), 1, "deferred animation plays for the current character");
+  assert.strictEqual(run(true), 0, "a switched-away character's deferred animation must not play");
+}
+
+function testStaleDecorationLoad() {
+  const { m, window, container } = loadRuntime();
+  m.addFrierenDecoration({ type: "staff", src: "staff.svg", zIndex: 8 });
+  const decoration = m.frierenDecorations[0];
+  assert.ok(decoration, "decoration added");
+  decoration.complete = true;
+  decoration.naturalWidth = 110;
+  decoration.naturalHeight = 300;
+  const onLoad = decoration.listeners.find((l) => l.type === "load").fn;
+  switchAway(m, window);
+  onLoad();
+  assert.strictEqual(m.decorationHitCanvases.size, 0, "a removed decoration must not refill the hit cache");
+  assert.strictEqual(container.listeners.length, 0);
+}
+
 async function testFirstFrameFirst() {
   const idle = assets.sequences.idle.frames;
   const { m, clock, window, container } = loadRuntime({
@@ -540,6 +645,10 @@ function testClickArbitration() {
   await testReentry();
   testListeners();
   testClickArbitration();
+  await testStaleWake();
+  await testStaleSpeakingRetry();
+  testStaleGenericAnimation();
+  testStaleDecorationLoad();
   console.log("frieren shell smoke tests passed");
 })().catch((e) => {
   console.error(e);

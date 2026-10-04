@@ -3027,7 +3027,9 @@ jQuery(function () {
                         if (this.pendingAnimation) {
                             // 延遲一小段時間確保繪製完成
                             setTimeout((function() {
-                                this.playAnimation();
+                                if (this.isCurrentLoad(generation)) {
+                                    this.playAnimation();
+                                }
                             }).bind(this), 50);
                         }
                         this.markInitialVisualReady('generic-multi');
@@ -3052,7 +3054,9 @@ jQuery(function () {
                             if (this.pendingAnimation) {
                                 // 延遲一小段時間確保繪製完成
                                 setTimeout((function() {
-                                    this.playAnimation();
+                                    if (this.isCurrentLoad(generation)) {
+                                        this.playAnimation();
+                                    }
                                 }).bind(this), 50);
                             }
                         }
