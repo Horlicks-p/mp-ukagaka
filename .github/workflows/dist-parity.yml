@@ -1,0 +1,46 @@
+name: Dist Parity
+
+# release.yml zips the tag as committed (git archive, no build step), so the
+# committed js/dist and ghost/Frieren/dist bundles are what ships. Fail when
+# they were not rebuilt after a source change.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dist-parity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: tools/node/package-lock.json
+
+      - name: Install build tools
+        run: npm ci --ignore-scripts
+        working-directory: tools/node
+
+      - name: Frieren shell smoke test
+        run: npm run test:frieren-shell
+        working-directory: tools/node
+
+      - name: Rebuild bundles
+        run: npm run build
+        working-directory: tools/node
+
+      - name: Committed bundles match the sources
+        run: |
+          if ! git diff --exit-code --stat -- js/dist ghost/Frieren/dist; then
+            echo "::error::js/dist or ghost/Frieren/dist is stale. Run 'npm --prefix tools/node run build' and commit the result."
+            exit 1
+          fi

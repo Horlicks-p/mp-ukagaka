@@ -60,8 +60,13 @@
         return;
       }
 
+      const generation = this.frierenLoadGeneration;
+
       if (typeof jQuery !== "undefined") {
         jQuery(document).one("mpuInitComplete", function(event, response) {
+          if (!self.isFrierenLoadCurrent(generation)) {
+            return;
+          }
           if (response && response.show_decorations && response.decoration_config) {
             self._decorationsLoaded = true; // 標記為已載入
             self._loadDecorationsFromConfig(
@@ -89,7 +94,7 @@
               window.mpuTouchZones = response.touchzones;
               window.mpuShowDecorations = response.show_decorations;
 
-              if (!response.show_decorations) {
+              if (!response.show_decorations || !self.isFrierenLoadCurrent(generation)) {
                 return;
               }
 
@@ -167,6 +172,7 @@
      * @returns {string|null} 裝飾類型
      */
     findDecorationAt: function (e, quiet) {
+      const bodyZ = this.getOpaqueBodyZAt(e);
       const ordered = this.frierenDecorations
         .map((d, idx) => {
           if (!d || !d.parentNode) return null;
@@ -177,6 +183,10 @@
         .sort((a, b) => a.z - b.z || a.idx - b.idx);
 
       for (let i = ordered.length - 1; i >= 0; i--) {
+        if (bodyZ !== null && ordered[i].z < bodyZ) {
+          // 其餘裝飾都在本體後方，而這一點本體是不透明的：點擊屬於本體
+          break;
+        }
         const decoration = ordered[i].d;
         const decRect = decoration.getBoundingClientRect();
         if (
@@ -193,6 +203,38 @@
         }
       }
       return null;
+    },
+
+    /**
+     * 滑鼠位置上本體是否為不透明像素；是的話回傳本體的 z-index。
+     * 無法判定（幀尚未載入等）時視為透明，不擋住後方裝飾。
+     * @param {MouseEvent} e
+     * @returns {number|null}
+     */
+    getOpaqueBodyZAt: function (e) {
+      const body = this.frierenIdleImgElement;
+      if (
+        !body ||
+        !body.parentNode ||
+        body.style.display === "none" ||
+        body.tagName !== "IMG" ||
+        !body.naturalWidth ||
+        typeof this.isCharacterPixelHit !== "function"
+      ) {
+        return null;
+      }
+      const rect = body.getBoundingClientRect();
+      if (
+        e.clientX < rect.left ||
+        e.clientX >= rect.right ||
+        e.clientY < rect.top ||
+        e.clientY >= rect.bottom ||
+        !this.isCharacterPixelHit(e, body)
+      ) {
+        return null;
+      }
+      const z = parseInt(window.getComputedStyle(body).zIndex || "0", 10);
+      return isNaN(z) ? 0 : z;
     },
 
     /**

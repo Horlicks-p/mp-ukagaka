@@ -1,6 +1,5 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-10-02T17:28:30.898Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -2827,6 +2826,15 @@ jQuery(function () {
         pendingAnimation: false, // 是否有待執行的動畫
         currentCharacterNum: null, // 當前角色 num
         currentCharacterName: null, // 當前角色 name
+        loadGeneration: 0, // 角色載入世代；每次 init 遞增，非同步載入完成時比對以丟棄過期結果
+
+        /**
+         * @param {number} generation - 開始載入時的 loadGeneration
+         * @returns {boolean} 該次載入是否仍屬目前的角色
+         */
+        isCurrentLoad: function(generation) {
+            return generation === this.loadGeneration;
+        },
 
         markInitialVisualReady: function(source) {
             const imgContainer = document.getElementById('ukagaka_img');
@@ -2861,9 +2869,12 @@ jQuery(function () {
                 return;
             }
             
+            // 之前角色尚未完成的非同步載入從此作廢
+            this.loadGeneration++;
+
             // 清除之前的動畫
             this.stopAnimation();
-            
+
             // 停止芙莉蓮動畫（如果存在）
             if (window.mpuFrierenManager) {
                 window.mpuFrierenManager.stopFrierenAnimation();
@@ -2949,10 +2960,14 @@ jQuery(function () {
                 return;
             }
 
+            const generation = this.loadGeneration;
             const img = new Image();
             img.crossOrigin = 'anonymous';
             
             img.onload = (function() {
+                if (!this.isCurrentLoad(generation)) {
+                    return;
+                }
                 // 設置 Canvas 尺寸
                 this.canvas.width = img.width;
                 this.canvas.height = img.height;
@@ -2979,6 +2994,7 @@ jQuery(function () {
                 return;
             }
 
+            const generation = this.loadGeneration;
             this.images = [];
             let loadedCount = 0;
             const totalImages = this.imageUrls.length;
@@ -2990,6 +3006,9 @@ jQuery(function () {
                 img.crossOrigin = 'anonymous';
                 
                 img.onload = (function(index) {
+                    if (!this.isCurrentLoad(generation)) {
+                        return;
+                    }
                     loadedCount++;
                     
                     // 第一張圖片載入完成時，設置 Canvas 尺寸
@@ -3016,6 +3035,9 @@ jQuery(function () {
                 }).bind(this);
 
                 img.onerror = (function(url) {
+                    if (!this.isCurrentLoad(generation)) {
+                        return;
+                    }
                     mpuLogger.errorF('animeFrameImageLoadFailed', 'フレーム画像の読み込みに失敗しました：%s', url);
                     loadedCount++;
                     

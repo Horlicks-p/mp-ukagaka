@@ -17,9 +17,11 @@
     isFrierenMode: false, // 是否為芙莉蓮模式
     frierenAssets: null, // shell/Frieren/assets.json（SVG 幀序列、時序、版面）
     frierenLayout: null, // assets.json 的 layout：134x249 人物框與 SVG 幀的顯示位置
-    frierenSequences: {}, // { idle|sleep|book_flip|wake: [{ src, duration, img }] }
+    frierenSequences: {}, // { idle|sleep|book_flip|wake: [{ src, duration, img, load }] }
     frierenSequenceLoads: {}, // 各序列的預載 Promise
     frierenSequenceState: {}, // 各序列狀態：loading | ready | failed
+    frierenLoadGeneration: -1, // 本次芙莉蓮載入對應的 mpuCanvasManager.loadGeneration；離開芙莉蓮後為 -1
+    _frierenAssetAbort: null, // assets.json 讀取的 AbortController
     frierenIdleImage: null, // 閒置序列第一幀 URL
     frierenSleepImage: null, // 睡眠序列第一幀 URL
     frierenWakeUpImages: [], // 醒來動畫各幀 URL
@@ -34,6 +36,8 @@
     decorationHitCanvases: new Map(), // 裝飾物像素檢測用的隱藏 Canvas
     pixelHitThreshold: 10, // 像素透明度閾值（0-255），大於此值才視為可點擊
     _decorationClickThroughHandler: null, // 點擊穿透事件處理器（綁定在容器上，避免 img 尚未建立時漏綁）
+    _touchMoveHandler: null, // 角色觸摸的游標處理器（綁定在容器上）
+    _touchClickHandler: null, // 角色觸摸的點擊處理器（綁定在容器上）
     sleepModeAwoken: false, // 睡眠模式是否已被用戶喚醒（刷新頁面重置）
 
     // 觸摸區域點擊計數和冷卻機制
@@ -52,6 +56,7 @@
     initFrierenMode: function (shellInfo, name) {
       this.isFrierenMode = true;
       this.frierenIsSpeaking = false;
+      this.frierenLoadGeneration = window.mpuCanvasManager ? window.mpuCanvasManager.loadGeneration : 0;
 
       if (!shellInfo || !shellInfo.url) {
         mpuLogger.errorL('frierenShellInfoInvalid', 'フリーレンモード：shellInfo が無効です');

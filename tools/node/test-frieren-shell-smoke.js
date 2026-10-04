@@ -8,10 +8,15 @@
  *   approved drop-shadow filter (plan rule 8);
  * - the sequence renderer plays loops and one-shot sequences in manifest
  *   order with manifest durations, and does not play a sequence that failed
- *   to load.
+ *   to load;
+ * - the first frame shows before the rest of its sequence has loaded;
+ * - loads still in flight when the character is switched away do not touch
+ *   the next character's canvas, state or DOM;
+ * - container listeners are not duplicated and are removed on cleanup;
+ * - back decorations do not take clicks on the body's opaque pixels.
  *
- * Runs ghost/Frieren/frieren.js + frieren-animation.js in a vm with DOM stubs
- * and a fake clock.
+ * Runs the Frieren runtime modules (frieren.js, -animation, -interactions,
+ * -decorations) in a vm with DOM stubs and a fake clock.
  */
 const assert = require("assert");
 const fs = require("fs");
@@ -60,34 +65,57 @@ function makeClock() {
 function makeElement(tagName) {
   const attrs = {};
   const props = {};
+  const listeners = [];
   return {
     tagName,
     id: "",
     dataset: {},
     width: 0,
     height: 0,
+    parentNode: null,
     style: {
       setProperty: (k, v) => { props[k] = v; },
       removeProperty: (k) => { delete props[k]; },
       props,
     },
     attrLog: [],
+    listeners,
     getAttribute: (k) => (k in attrs ? attrs[k] : null),
     setAttribute(k, v) {
       attrs[k] = v;
       if (k === "src") this.attrLog.push(v);
     },
-    appendChild() {},
+    appendChild(child) { child.parentNode = this; },
+    removeChild(child) { child.parentNode = null; },
+    addEventListener(type, fn, capture) { listeners.push({ type, fn, capture: !!capture }); },
+    removeEventListener(type, fn, capture) {
+      const i = listeners.findIndex((l) => l.type === type && l.fn === fn && l.capture === !!capture);
+      if (i >= 0) listeners.splice(i, 1);
+    },
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 208, bottom: 328, width: 208, height: 328 }),
   };
 }
 
-function loadRuntime({ failSrc } = {}) {
+// fetch stub whose responses the test releases by hand
+function makeFetch() {
+  const pending = [];
+  const fetch = (url) => new Promise((resolve) => pending.push({ url, resolve }));
+  fetch.respond = (body) => {
+    const p = pending.shift();
+    p.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
+  };
+  fetch.pending = pending;
+  return fetch;
+}
+
+function loadRuntime({ failSrc, delay } = {}) {
   const clock = makeClock();
   const container = makeElement("DIV");
   const canvas = makeElement("CANVAS");
   const created = [];
   const document = {
     getElementById: (id) => (id === "ukagaka_img" ? container : null),
+    querySelectorAll: () => [],
     createElement: (tag) => {
       const el = makeElement(tag.toUpperCase());
       created.push(el);
@@ -107,7 +135,7 @@ function loadRuntime({ failSrc } = {}) {
             this.naturalWidth = 208;
             this.onload && this.onload();
           }
-        }, 1);
+        }, delay ? delay(v) : 1);
       },
       get() { return this._src; },
     });
@@ -118,22 +146,32 @@ function loadRuntime({ failSrc } = {}) {
     get: (_, name) => (name === "log" ? false : (...args) => logs.push([name, ...args])),
   });
   const window = {
-    mpuCanvasManager: { canvas, ctx: {}, imagesLoaded: false, currentCharacterName: "Frieren" },
+    mpuCanvasManager: { canvas, ctx: {}, imagesLoaded: false, currentCharacterName: "Frieren", loadGeneration: 0 },
     devicePixelRatio: 1,
+    getComputedStyle: (el) => ({ zIndex: String(el.zIndex || 0) }),
   };
+  const fetch = makeFetch();
   const context = {
-    window, document, Image, mpuLogger, Promise, Object, Array, Number, String, Math, Error, isFinite,
+    window, document, Image, mpuLogger, fetch, Promise, Object, Array, Number, String, Math, Error, isFinite, parseInt, isNaN,
     setTimeout: clock.setTimeout, clearTimeout: clock.clearTimeout,
   };
   vm.createContext(context);
-  for (const file of ["frieren.js", "frieren-animation.js"]) {
+  for (const file of ["frieren.js", "frieren-animation.js", "frieren-interactions.js", "frieren-decorations.js"]) {
     vm.runInContext(fs.readFileSync(path.join(ghostDir, file), "utf8"), context, { filename: file });
   }
   const m = window.mpuFrierenManager;
   m.isFrierenMode = true;
+  m.frierenLoadGeneration = 0;
   m.isSleepMessage = () => false;
+  m.realSetupDecorationClickThrough = m.setupDecorationClickThrough;
   m.setupDecorationClickThrough = () => {};
-  return { m, clock, logs, created, window };
+  return { m, clock, logs, created, window, container, canvas, fetch };
+}
+
+// what the canvas manager does when the visitor switches to another character
+function switchAway(m, window) {
+  window.mpuCanvasManager.loadGeneration++;
+  m.cleanupFrierenElements();
 }
 
 async function flush(clock, ms = 5) {
@@ -359,11 +397,149 @@ async function testFailedSequence() {
   assert.ok(logs.some((l) => l[1] === "frierenSequenceLoadFailed"), "failure is logged");
 }
 
+async function testFirstFrameFirst() {
+  const idle = assets.sequences.idle.frames;
+  const { m, clock, window, container } = loadRuntime({
+    delay: (src) => (src.endsWith(idle[0].src) ? 1 : 50),
+  });
+  m.applyFrierenAssets(assets, "base/");
+  m.loadFrierenImages();
+  await flush(clock, 5);
+  const img = m.frierenIdleImgElement;
+  assert.ok(img, "body <img> exists once frame 00 has loaded");
+  assert.strictEqual(img.getAttribute("src"), "base/" + idle[0].src, "frame 00 is on screen");
+  assert.strictEqual(img.style.display, "block");
+  assert.strictEqual(container.style.visibility, "visible", "container revealed before the sequence is ready");
+  assert.strictEqual(m.frierenSequenceState.idle, "loading");
+  assert.strictEqual(m.frierenLoopTimer, null, "the loop waits for the whole sequence");
+  assert.strictEqual(window.mpuCanvasManager.imagesLoaded, false);
+
+  await flush(clock, 60);
+  assert.strictEqual(m.frierenSequenceState.idle, "ready");
+  assert.strictEqual(window.mpuCanvasManager.imagesLoaded, true);
+  assert.ok(m.frierenLoopTimer, "loop starts once every frame is ready");
+}
+
+async function testStaleManifest() {
+  const { m, clock, window, canvas, created, fetch } = loadRuntime();
+  m.loadFrierenAssets("base/");
+  assert.strictEqual(fetch.pending.length, 1);
+  switchAway(m, window);
+  fetch.respond(assets);
+  await flush(clock, 100);
+  assert.deepStrictEqual(canvas.style.props, {}, "stale manifest must not lay out the next character's canvas");
+  assert.strictEqual(canvas.dataset.mpuBodyBox, undefined);
+  assert.strictEqual(window.mpuCanvasManager.imagesLoaded, false, "stale load must not flag the next character as loaded");
+  assert.ok(!created.some((el) => el.tagName === "IMG"), "stale load must not create a body <img>");
+  assert.deepStrictEqual(Object.keys(m.frierenSequences), []);
+}
+
+async function testStaleSequence() {
+  const { m, clock, window, canvas, created } = loadRuntime({ delay: () => 20 });
+  m.applyFrierenAssets(assets, "base/");
+  m.loadFrierenImages();
+  await flush(clock, 5);
+  switchAway(m, window);
+  const imgsBefore = created.filter((el) => el.tagName === "IMG").length;
+  await flush(clock, 200);
+  assert.deepStrictEqual(canvas.style.props, {}, "cleanup cleared the layout and nothing re-applied it");
+  assert.strictEqual(window.mpuCanvasManager.imagesLoaded, false);
+  assert.strictEqual(created.filter((el) => el.tagName === "IMG").length, imgsBefore, "no body <img> after switching away");
+  assert.strictEqual(m.frierenIdleImgElement, null);
+  assert.strictEqual(m.frierenLoopTimer, null);
+}
+
+async function testReentry() {
+  let slow = false;
+  const { m, clock, window } = loadRuntime({ delay: () => (slow ? 100 : 5) });
+  m.applyFrierenAssets(assets, "base/");
+  m.loadFrierenSequence("idle");
+  await flush(clock, 1);
+  switchAway(m, window);
+  // back to Frieren before the first load finished
+  window.mpuCanvasManager.loadGeneration++;
+  m.isFrierenMode = true;
+  m.frierenLoadGeneration = window.mpuCanvasManager.loadGeneration;
+  slow = true;
+  m.applyFrierenAssets(assets, "base/");
+  m.loadFrierenSequence("idle");
+  await flush(clock, 20);
+  assert.strictEqual(m.frierenSequenceState.idle, "loading", "the old load must not mark the new sequence ready");
+  await flush(clock, 120);
+  assert.strictEqual(m.frierenSequenceState.idle, "ready");
+}
+
+function testListeners() {
+  const { m, window, container } = loadRuntime();
+  m.setupDecorationClickThrough = m.realSetupDecorationClickThrough;
+  const count = (type) => container.listeners.filter((l) => l.type === type).length;
+  m.setupCharacterTouchEvents();
+  m.setupDecorationClickThrough();
+  m.setupCharacterTouchEvents();
+  m.setupDecorationClickThrough();
+  assert.strictEqual(count("mousemove"), 1, "touch cursor handler bound once");
+  assert.strictEqual(count("click"), 2, "touch + decoration click handlers bound once each");
+  switchAway(m, window);
+  assert.strictEqual(container.listeners.length, 0, "cleanup removes every container handler");
+  assert.strictEqual(m.detectTouchZone({ clientX: 50, clientY: 50 }, makeElement("CANVAS")), null, "no Frieren touch zones outside Frieren mode");
+}
+
+function testClickArbitration() {
+  const { m, container } = loadRuntime();
+  m.setupDecorationClickThrough = m.realSetupDecorationClickThrough;
+  const decoration = (type, zIndex) => {
+    const el = makeElement("IMG");
+    el.className = "frieren-decoration " + type;
+    el.zIndex = zIndex;
+    el.parentNode = container;
+    return el;
+  };
+  const back = decoration("staff", 8);
+  const front = decoration("dark_dragon_horn", 101);
+  const body = makeElement("IMG");
+  body.id = "frieren_idle_apng";
+  body.zIndex = 99;
+  body.naturalWidth = 208;
+  body.style.display = "block";
+  body.parentNode = container;
+  m.frierenIdleImgElement = body;
+  m.isPixelHit = () => true;
+  let opaque = true;
+  m.isCharacterPixelHit = () => opaque;
+  const at = { clientX: 60, clientY: 100 };
+
+  m.frierenDecorations = [back, front];
+  assert.strictEqual(m.findDecorationAt(at, true), "dark_dragon_horn", "front decorations still win over the body");
+  m.frierenDecorations = [back];
+  assert.strictEqual(m.findDecorationAt(at, true), null, "an opaque body pixel hides the back decoration");
+  opaque = false;
+  assert.strictEqual(m.findDecorationAt(at, true), "staff", "a transparent body pixel clicks through to it");
+
+  // the container click handler follows the same rule
+  const clicked = [];
+  m.handleDecorationClick = (type) => clicked.push(type);
+  m.setupDecorationClickThrough();
+  const handler = container.listeners.find((l) => l.type === "click").fn;
+  const event = { target: body, clientX: at.clientX, clientY: at.clientY, stopPropagation() {}, preventDefault() {} };
+  opaque = true;
+  handler(event);
+  assert.deepStrictEqual(clicked, [], "click on opaque body does not reach the back decoration");
+  opaque = false;
+  handler(event);
+  assert.deepStrictEqual(clicked, ["staff"]);
+}
+
 (async () => {
   testValidator();
   testFiles();
   await testRenderer();
   await testFailedSequence();
+  await testFirstFrameFirst();
+  await testStaleManifest();
+  await testStaleSequence();
+  await testReentry();
+  testListeners();
+  testClickArbitration();
   console.log("frieren shell smoke tests passed");
 })().catch((e) => {
   console.error(e);

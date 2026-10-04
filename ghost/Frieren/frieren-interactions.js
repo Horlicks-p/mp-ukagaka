@@ -355,6 +355,7 @@
      */
     detectTouchZone: function (event, element) {
       if (
+        !this.isFrierenMode ||
         !element ||
         typeof mpuTouchZones === "undefined" ||
         !mpuTouchZones.zones
@@ -600,7 +601,15 @@
 
       const self = this;
 
-      imgContainer.addEventListener("mousemove", function (e) {
+      // 重新進入芙莉蓮模式時先拆掉上一次的處理器，避免重複綁定
+      if (this._touchMoveHandler) {
+        imgContainer.removeEventListener("mousemove", this._touchMoveHandler);
+      }
+      if (this._touchClickHandler) {
+        imgContainer.removeEventListener("click", this._touchClickHandler, true);
+      }
+
+      this._touchMoveHandler = function (e) {
         const target = e.target;
 
         if (target.id !== "frieren_idle_apng" && target.id !== "cur_ukagaka") {
@@ -621,36 +630,57 @@
           // 角色透明處底下若有裝飾，點擊會交給它，游標也跟著顯示可點
           target.style.cursor = self.findDecorationAt && self.findDecorationAt(e, true) ? "pointer" : "default";
         }
-      });
+      };
 
-      imgContainer.addEventListener(
-        "click",
-        function (e) {
-          const target = e.target;
+      this._touchClickHandler = function (e) {
+        const target = e.target;
 
-          if (
-            target.id !== "frieren_idle_apng" &&
-            target.id !== "cur_ukagaka"
-          ) {
-            return;
-          }
+        if (
+          target.id !== "frieren_idle_apng" &&
+          target.id !== "cur_ukagaka"
+        ) {
+          return;
+        }
 
-          const zone = self.detectTouchZone(e, target);
-          if (zone) {
-            // 同一容器上還有裝飾的點擊穿透判定，觸摸成立時不再交給它
-            e.stopImmediatePropagation();
-            e.preventDefault();
-            self.handleTouchZone(zone);
-          }
-        },
-        true
-      );
+        const zone = self.detectTouchZone(e, target);
+        if (zone) {
+          // 同一容器上還有裝飾的點擊穿透判定，觸摸成立時不再交給它
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          self.handleTouchZone(zone);
+        }
+      };
+
+      imgContainer.addEventListener("mousemove", this._touchMoveHandler);
+      imgContainer.addEventListener("click", this._touchClickHandler, true);
 
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
         mpuLogger.logL("frierenTouchEventsBound", "キャラクターのタッチイベントを設定しました");
       }
 
       this.setupGiftPicker();
+    },
+
+    /**
+     * 拆掉綁在 #ukagaka_img 上的觸摸與裝飾點擊處理器（角色切換時）。
+     * 容器在切換後仍會留給下一個角色，處理器不拆會繼續作用在它身上。
+     */
+    unbindFrierenContainerEvents: function () {
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (imgContainer) {
+        if (this._touchMoveHandler) {
+          imgContainer.removeEventListener("mousemove", this._touchMoveHandler);
+        }
+        if (this._touchClickHandler) {
+          imgContainer.removeEventListener("click", this._touchClickHandler, true);
+        }
+        if (this._decorationClickThroughHandler) {
+          imgContainer.removeEventListener("click", this._decorationClickThroughHandler, true);
+        }
+      }
+      this._touchMoveHandler = null;
+      this._touchClickHandler = null;
+      this._decorationClickThroughHandler = null;
     },
 
     /**

@@ -26,7 +26,14 @@
         return;
       }
 
-      fetch(baseUrl + "assets.json", { credentials: "same-origin" })
+      const generation = this.frierenLoadGeneration;
+      if (this._frierenAssetAbort) {
+        this._frierenAssetAbort.abort();
+      }
+      const abort = typeof AbortController === "function" ? new AbortController() : null;
+      this._frierenAssetAbort = abort;
+
+      fetch(baseUrl + "assets.json", { credentials: "same-origin", signal: abort ? abort.signal : undefined })
         .then(function (response) {
           if (!response.ok) {
             throw new Error("HTTP " + response.status);
@@ -34,13 +41,33 @@
           return response.json();
         })
         .then(function (assets) {
+          if (!this.isFrierenLoadCurrent(generation)) {
+            return;
+          }
+          this._frierenAssetAbort = null;
           this.applyFrierenAssets(assets, baseUrl);
           this.loadFrierenImages();
         }.bind(this))
         .catch(function (error) {
+          if (!this.isFrierenLoadCurrent(generation)) {
+            return;
+          }
           mpuLogger.errorF('frierenAssetManifestLoadFailed', 'フリーレンの表示資産マニフェストを読み込めません：%s', error && error.message ? error.message : String(error));
           this.revealFrierenContainer();
         }.bind(this));
+    },
+
+    /**
+     * 角色切換後，之前開始的非同步載入完成時不可再動到頁面。
+     * @param {number} generation - 開始載入時的 frierenLoadGeneration
+     * @returns {boolean} 該次載入是否仍屬目前的芙莉蓮
+     */
+    isFrierenLoadCurrent: function (generation) {
+      if (!this.isFrierenMode || generation !== this.frierenLoadGeneration) {
+        return false;
+      }
+      const canvasManager = window.mpuCanvasManager;
+      return !canvasManager || typeof canvasManager.loadGeneration !== "number" || canvasManager.loadGeneration === generation;
     },
 
     /**
@@ -146,6 +173,31 @@
     },
 
     /**
+     * 預載一幀（含 decode）。同一幀只載入一次。
+     * @param {Object} frame - frierenSequences 的幀
+     * @returns {Promise} 成功 resolve、失敗 reject
+     */
+    loadFrierenFrame: function (frame) {
+      if (frame.load) {
+        return frame.load;
+      }
+      frame.load = new Promise(function (resolve, reject) {
+        const img = new Image();
+        img.onload = function () {
+          const decoded = typeof img.decode === "function" ? img.decode().catch(function () {}) : Promise.resolve();
+          decoded.then(resolve);
+        };
+        img.onerror = function () {
+          mpuLogger.errorF('frierenImageLoadFailed', 'フリーレン画像の読み込みに失敗しました：%s', frame.src);
+          reject(new Error(frame.src));
+        };
+        img.src = frame.src;
+        frame.img = img;
+      });
+      return frame.load;
+    },
+
+    /**
      * 預載一個序列的全部幀（含 decode）。任一幀失敗即整個序列視為失敗，
      * 不以缺幀播放錯誤的動作。
      * @param {string} name - 序列名稱
@@ -162,29 +214,14 @@
       }
 
       this.frierenSequenceState[name] = "loading";
-      const self = this;
-      const load = Promise.all(
-        frames.map(function (frame) {
-          return new Promise(function (resolve, reject) {
-            const img = new Image();
-            img.onload = function () {
-              const decoded = typeof img.decode === "function" ? img.decode().catch(function () {}) : Promise.resolve();
-              decoded.then(resolve);
-            };
-            img.onerror = function () {
-              mpuLogger.errorF('frierenImageLoadFailed', 'フリーレン画像の読み込みに失敗しました：%s', frame.src);
-              reject(new Error(frame.src));
-            };
-            img.src = frame.src;
-            frame.img = img;
-          });
-        })
-      ).then(
+      // 角色切換會換掉這個物件；過期的載入只寫回它自己那一代的狀態
+      const state = this.frierenSequenceState;
+      const load = Promise.all(frames.map(this.loadFrierenFrame, this)).then(
         function () {
-          self.frierenSequenceState[name] = "ready";
+          state[name] = "ready";
         },
         function (error) {
-          self.frierenSequenceState[name] = "failed";
+          state[name] = "failed";
           mpuLogger.errorF('frierenSequenceLoadFailed', 'フリーレンのアニメーション序列を読み込めません：%s', name);
           throw error;
         }
@@ -202,28 +239,53 @@
     },
 
     /**
-     * 依初始狀態分段預載：先載入第一個要顯示的序列（閒置或睡眠）並顯示，
-     * 之後在背景依序載入其餘序列（睡眠時優先醒來動畫）。
+     * 依初始狀態分段預載：第一個要顯示的序列（閒置或睡眠）的第 0 幀一到就先顯示，
+     * 整個序列載完才開始循環；之後在背景依序載入其餘序列（睡眠時優先醒來動畫）。
      */
     loadFrierenImages: function () {
       const sleeping = this.isSleepMessage() && !this.sleepModeAwoken;
       const first = sleeping && this.frierenSequences.sleep ? "sleep" : "idle";
       const rest = sleeping ? ["wake", "idle", "book_flip"] : ["book_flip"];
+      const generation = this.frierenLoadGeneration;
 
       this.applyFrierenBodyLayout(window.mpuCanvasManager.canvas);
 
       const self = this;
       const showThenLoadRest = function () {
+        if (!self.isFrierenLoadCurrent(generation)) {
+          return;
+        }
         window.mpuCanvasManager.imagesLoaded = true;
         self.showFrierenIdle();
         rest.reduce(function (chain, name) {
           return chain.then(function () {
+            if (!self.isFrierenLoadCurrent(generation)) {
+              return null;
+            }
             return self.loadFrierenSequence(name).catch(function () {});
           });
         }, Promise.resolve());
       };
 
+      this.loadFrierenFrame(this.frierenSequences[first][0]).then(function () {
+        if (self.isFrierenLoadCurrent(generation)) {
+          self.showFrierenFirstFrame(first);
+        }
+      }, function () {});
       this.loadFrierenSequence(first).then(showThenLoadRest, showThenLoadRest);
+    },
+
+    /**
+     * 序列其餘幀還在載入時，先以第 0 幀靜止顯示並讓容器可見。
+     * @param {string} name - idle | sleep
+     */
+    showFrierenFirstFrame: function (name) {
+      if (this.isFrierenSequenceReady(name) || !this.ensureFrierenBodyImg()) {
+        return;
+      }
+      this.setFrierenFrame(this.frierenSequences[name][0]);
+      this.showFrierenBodyImg();
+      this.revealFrierenContainer();
     },
 
     /**
@@ -418,10 +480,13 @@
           this.frierenIsSpeaking = false;
           return;
         }
-        this.loadFrierenSequence(sequence).then(
-          this.showFrierenIdle.bind(this),
-          this.showFrierenIdle.bind(this)
-        );
+        const generation = this.frierenLoadGeneration;
+        const retry = function () {
+          if (this.isFrierenLoadCurrent(generation)) {
+            this.showFrierenIdle();
+          }
+        }.bind(this);
+        this.loadFrierenSequence(sequence).then(retry, retry);
         return;
       }
 
@@ -548,6 +613,27 @@
         this.clearFrierenBodyLayout(window.mpuCanvasManager.canvas);
         window.mpuCanvasManager.canvas.style.display = "block";
       }
+
+      this.unbindFrierenContainerEvents();
+
+      // 尚未完成的載入作廢，並放掉已解碼的幀與命中判定用的 Canvas
+      this.frierenLoadGeneration = -1;
+      if (this._frierenAssetAbort) {
+        this._frierenAssetAbort.abort();
+        this._frierenAssetAbort = null;
+      }
+      this.frierenAssets = null;
+      this.frierenLayout = null;
+      this.frierenSequences = {};
+      this.frierenSequenceLoads = {};
+      this.frierenSequenceState = {};
+      this.frierenIdleImage = null;
+      this.frierenSleepImage = null;
+      this.frierenWakeUpImages = [];
+      this.frierenBookFlipImages = [];
+      this._bodyHitCanvas = null;
+      this._bodyHitCtx = null;
+      this._bodyHitSrc = "";
     },
 
     /**
@@ -614,8 +700,13 @@
       this.stopFrierenAnimation();
 
       const self = this;
+      const generation = this.frierenLoadGeneration;
       this.loadFrierenSequence("wake").then(
         function () {
+          if (!self.isFrierenLoadCurrent(generation)) {
+            if (callback) callback();
+            return;
+          }
           self.playFrierenOnce("wake", callback);
         },
         function () {
@@ -696,8 +787,13 @@
       if (!this.isFrierenSequenceReady("book_flip")) {
         // 尚未載入完成時，載入後再翻書；載入失敗則不播放（不以缺幀播放）
         if (this.frierenSequences.book_flip && this.frierenSequenceState.book_flip !== "failed") {
+          const generation = this.frierenLoadGeneration;
           this.loadFrierenSequence("book_flip").then(
-            this.playFrierenBookFlipAnimation.bind(this),
+            function () {
+              if (this.isFrierenLoadCurrent(generation)) {
+                this.playFrierenBookFlipAnimation();
+              }
+            }.bind(this),
             function () {}
           );
         }
