@@ -270,10 +270,15 @@
     width: 134px; height: 249px;
     isolation: isolate;
   }
+  /* SVG frames from shell/Frieren/assets.json: layout.frame is drawn around the
+     134x249 character box and spills past it (margins and drop shadow).
+     pointer-events: none keeps the transparent margin off the decorations behind. */
   .ghost-img {
-    position: absolute; inset: 0;
-    width: 134px; height: 249px; display: block;
+    position: absolute; left: -27.35px; top: -23.8px;
+    width: 189.62px; height: 280.5px; display: block;
+    max-width: none;
     z-index: 99;
+    pointer-events: none;
   }
   .ghost-img.flip { visibility: hidden; }
   .ghost.is-flipping .ghost-img.flip { visibility: visible; }
@@ -289,7 +294,7 @@
   }
   .deco img { display: block; width: 100%; height: auto; }
   .deco:hover, .deco:focus-visible { opacity: 1; filter: drop-shadow(0 0 4px rgba(123, 104, 174, .55)); }
-  .deco-suitcase   { top: 82%; right: -62px; width: 90px;  z-index: 100; opacity: 1; }
+  .deco-suitcase   { top: 82%; right: -70px; width: 100px; z-index: 100; opacity: 1; }
   .deco-evil-horns { top: 37%; left: -60px;  width: 140px; z-index: 5; }
   .deco-dragon     { top: 80%; left: -80px;  width: 100px; z-index: 101; opacity: 1; }
   .deco-staff      { top: 25%; right: -40px; width: 110px; z-index: 8; }
@@ -660,14 +665,14 @@
       </div>
       <div class="ghost-col">
       <div class="ghost" id="ghost">
-        <img class="ghost-img idle" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/frieren%5B0%5D.png" width="134" height="249" alt="同梱キャラクター「フリーレン」">
-        <img class="ghost-img flip" id="ghost-flip" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/frieren%5B1%5D.png" width="134" height="249" alt="" aria-hidden="true">
-        <button type="button" class="deco deco-evil-horns" data-deco="evil_horns" aria-label="巨大な頭蓋骨"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/evil_horns.png" width="140" height="155" alt=""></button>
-        <button type="button" class="deco deco-books" data-deco="books" aria-label="魔導書"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/books.png" width="115" height="135" alt=""></button>
-        <button type="button" class="deco deco-potion" data-deco="potion" aria-label="服だけ溶かす薬"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/potion.png" width="25" height="55" alt=""></button>
-        <button type="button" class="deco deco-staff" data-deco="staff" aria-label="魔法杖"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/staff.png" width="110" height="200" alt=""></button>
-        <button type="button" class="deco deco-suitcase" data-deco="suitcase" aria-label="スーツケース"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/suitcase.png" width="90" height="80" alt=""></button>
-        <button type="button" class="deco deco-dragon" data-deco="dark_dragon_horn" aria-label="暗黒竜の角"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/dark_dragon_horn.png" width="100" height="80" alt=""></button>
+        <img class="ghost-img idle" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/idle/frieren-idle-00.svg" width="190" height="281" alt="同梱キャラクター「フリーレン」">
+        <img class="ghost-img flip" id="ghost-flip" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/book/frieren-book-01.svg" width="190" height="281" alt="" aria-hidden="true">
+        <button type="button" class="deco deco-evil-horns" data-deco="evil_horns" aria-label="巨大な頭蓋骨"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/evil_horns.svg" width="140" height="155" alt=""></button>
+        <button type="button" class="deco deco-books" data-deco="books" aria-label="魔導書"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/books.svg" width="115" height="135" alt=""></button>
+        <button type="button" class="deco deco-potion" data-deco="potion" aria-label="服だけ溶かす薬"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/potion.svg" width="25" height="55" alt=""></button>
+        <button type="button" class="deco deco-staff" data-deco="staff" aria-label="魔法杖"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/staff.svg" width="110" height="200" alt=""></button>
+        <button type="button" class="deco deco-suitcase" data-deco="suitcase" aria-label="スーツケース"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/suitcase.svg" width="100" height="90" alt=""></button>
+        <button type="button" class="deco deco-dragon" data-deco="dark_dragon_horn" aria-label="暗黒竜の角"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/dark_dragon_horn.svg" width="100" height="80" alt=""></button>
       </div>
       <div class="dock" aria-hidden="true">
         <svg viewBox="0 0 45 45" stroke-linecap="round" stroke-linejoin="round"><circle cx="22.5" cy="22.5" r="19.9" fill="none" stroke="var(--dock-ring)" stroke-width="2.3"/><circle cx="22.5" cy="22.5" r="17.5" fill="none" stroke="var(--dock-halo)" stroke-width="1.8"/><circle cx="22.5" cy="22.5" r="14.35" fill="none" stroke="var(--dock-ring)" stroke-width="4.7"/><circle cx="22.5" cy="22.5" r="12.8" fill="var(--dock-disc)"/><path d="M22.5 19.4 27.8 24.1H17.2Z" fill="var(--dock-glyph)" stroke="var(--dock-glyph)" stroke-width="1.8"/></svg>
@@ -1085,31 +1090,69 @@
     var flip = document.getElementById('ghost-flip');
     if (!box || !out) return;
 
-    // Page-turn frames frieren[1]..frieren[11], 150 ms each like frieren-animation.js
+    // Frames and per-frame durations come from the plugin's shell/Frieren/assets.json,
+    // like frieren-animation.js. The page shows idle-00 until it loads; the book flip
+    // falls back to book-01..11 at 150 ms.
     var base = 'https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/';
+    var idleImg = ghost ? ghost.querySelector('.ghost-img.idle') : null;
     var frames = [];
-    if (!reduce) {
-      for (var f = 1; f <= 11; f++) {
+    function preload(list) {
+      return list.map(function (fr) {
         var im = new Image();
-        im.src = base + 'frieren%5B' + f + '%5D.png';
-        frames.push(im);
+        im.src = base + fr.src;
+        return { src: im.src, img: im, duration: fr.duration_ms };
+      });
+    }
+    function decoded(list) {
+      return Promise.all(list.map(function (fr) {
+        return fr.img.decode ? fr.img.decode().catch(function () {}) : null;
+      }));
+    }
+    if (!reduce) {
+      var fallback = [];
+      for (var f = 1; f <= 11; f++) {
+        fallback.push({ src: 'book/frieren-book-' + (f < 10 ? '0' : '') + f + '.svg', duration_ms: 150 });
       }
+      frames = preload(fallback);
+      fetch(base + 'assets.json').then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(function (assets) {
+        var seq = assets && assets.sequences;
+        if (!seq) return;
+        if (seq.book_flip && seq.book_flip.frames && !flipTimer) frames = preload(seq.book_flip.frames);
+        if (!idleImg || !seq.idle || !seq.idle.frames || seq.idle.frames.length < 2) return;
+        var idle = preload(seq.idle.frames);
+        decoded(idle).then(function () {
+          var i = 0;
+          (function step() {
+            idleImg.src = idle[i].src;
+            var wait = idle[i].duration;
+            i = (i + 1) % idle.length;
+            setTimeout(step, wait);
+          })();
+        });
+      }).catch(function () {});
     }
     var flipTimer = null;
     function pageTurn() {
       if (reduce || !ghost || !flip || flipTimer) return;
       var n = 0;
-      flip.src = frames[0].src;
+      var seq = frames;
+      flip.src = seq[0].src;
       ghost.classList.add('is-flipping');
-      flipTimer = setInterval(function () {
-        n += 1;
-        if (n >= frames.length) {
-          clearInterval(flipTimer); flipTimer = null;
-          ghost.classList.remove('is-flipping');
-          return;
-        }
-        flip.src = frames[n].src;
-      }, 150);
+      (function next() {
+        flipTimer = setTimeout(function () {
+          n += 1;
+          if (n >= seq.length) {
+            flipTimer = null;
+            ghost.classList.remove('is-flipping');
+            return;
+          }
+          flip.src = seq[n].src;
+          next();
+        }, seq[n].duration);
+      })();
     }
 
     var typeTimer = null, waitTimer = null, idx = 0;
