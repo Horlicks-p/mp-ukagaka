@@ -4,6 +4,27 @@
 
 ---
 
+## [2.34.1] - 2026-10-05
+
+### User-created characters
+
+- **A character whose name contains "Frieren" or "フリーレン" no longer turns into a blank Frieren.** `mpuCanvasManager.isFrieren()` also matched the display name, so such a character entered the Frieren runtime, which needs `assets.json` and her SVG sequences, and drew nothing. Only the built-in `default_1` key selects that runtime now. A `default_1` whose shell URL was changed to other images still enters it, as before 2.34.0.
+- **Shell images that share a name in different raster formats are separate frames again.** 2.34.0 listed one file per name, so `frame1.png` and `frame1.webp` became one frame. Only an SVG replaces files with its name; raster files are listed one by one, in natural order, as before 2.34.0.
+
+### Cleanup
+
+- **Seven unused images were removed**: `images/menu.png`, `menu-hover.png`, `top.png`, `hide.png` and `change.png` (the dock buttons have been drawn by CSS since 2.33.0), and `images/think-bubble.png` and `think-tail.png` (SVG since 2.33.1).
+
+### Documentation
+
+- `GHOST_CREATE_GUIDE.md` states the same-name rule, and `CANVAS_CUSTOMIZATION.md` documents `isFrieren(num)`.
+
+### Internal
+
+- `ShellImageListTest` gains tests for same-name raster files, SVG replacing every same-name raster, and natural order across formats. The Frieren smoke test gains renderer selection by key and name. Each fails without its fix.
+
+---
+
 ## [2.34.0] - 2026-10-05
 
 ### Frieren in SVG

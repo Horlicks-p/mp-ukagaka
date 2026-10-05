@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.34.0
+Stable tag: 2.34.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,12 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-05 =
+* v2.34.1
+* [FIX] A character you created whose name contains "Frieren" no longer shows up blank.
+* [FIX] Character images with the same name in different formats (for example PNG and WebP) are shown as separate frames again.
+* [CHANGE] Removed seven image files the plugin no longer uses.
 
 = 2026-10-05 =
 * v2.34.0
