@@ -143,6 +143,9 @@
             return;
           }
           mpuLogger.errorF('frierenAssetManifestLoadFailed', 'フリーレンの表示資産マニフェストを読み込めません：%s', error && error.message ? error.message : String(error));
+          // 載入流程已終止（非成功）：不設的話 triggerFrierenSpeaking 會每 100ms 無限重試；
+          // 沒有序列可播，翻書自然不會發生
+          window.mpuCanvasManager.imagesLoaded = true;
           this.revealFrierenContainer();
         }.bind(this));
     },

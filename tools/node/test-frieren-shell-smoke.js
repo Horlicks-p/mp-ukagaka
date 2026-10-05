@@ -48,6 +48,7 @@ function makeClock() {
       timers.delete(id);
     },
     now: () => now,
+    pending: () => timers.size,
     advance(ms) {
       const end = now + ms;
       for (;;) {
@@ -108,6 +109,10 @@ function makeFetch() {
   fetch.respond = (body) => {
     const p = pending.shift();
     p.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) });
+  };
+  fetch.fail = (status = 404) => {
+    const p = pending.shift();
+    p.resolve({ ok: false, status, json: () => Promise.reject(new Error("no body")) });
   };
   fetch.pending = pending;
   return fetch;
@@ -539,6 +544,29 @@ async function testStaleManifest() {
   assert.deepStrictEqual(Object.keys(m.frierenSequences), []);
 }
 
+async function testManifestFailure() {
+  const { m, clock, window, fetch } = loadRuntime();
+  let flips = 0;
+  m.playFrierenBookFlipAnimation = () => { flips++; };
+  m.loadFrierenAssets("base/");
+  fetch.fail();
+  await flush(clock, 100);
+  assert.strictEqual(window.mpuCanvasManager.imagesLoaded, true, "a failed manifest ends the load, so speaking stops waiting");
+  m.triggerFrierenSpeaking(false);
+  m.triggerFrierenSpeaking(false);
+  clock.advance(1000);
+  assert.strictEqual(clock.pending(), 0, "no 100 ms retry chain is left behind");
+  assert.strictEqual(flips, 0, "nothing to flip without a manifest");
+
+  // a manifest that fails after switching away must not touch the next character
+  const stale = loadRuntime();
+  stale.m.loadFrierenAssets("base/");
+  switchAway(stale.m, stale.window);
+  stale.fetch.fail();
+  await flush(stale.clock, 100);
+  assert.strictEqual(stale.window.mpuCanvasManager.imagesLoaded, false, "stale failure must not flag the next character as loaded");
+}
+
 async function testStaleSequence() {
   const { m, clock, window, canvas, created } = loadRuntime({ delay: () => 20 });
   m.applyFrierenAssets(assets, "base/");
@@ -641,6 +669,7 @@ function testClickArbitration() {
   await testFailedSequence();
   await testFirstFrameFirst();
   await testStaleManifest();
+  await testManifestFailure();
   await testStaleSequence();
   await testReentry();
   testListeners();
