@@ -42,6 +42,24 @@ final class ShellImageListTest extends TestCase {
         $this->assertSame(['a1.svg', 'a2.svg', 'a10.webp'], mpu_list_shell_images($this->dir));
     }
 
+    public function test_same_basename_raster_formats_are_preserved(): void {
+        $this->touch(['a1.png', 'a1.webp', 'a1.gif', 'a2.png']);
+
+        $this->assertSame(['a1.gif', 'a1.png', 'a1.webp', 'a2.png'], mpu_list_shell_images($this->dir));
+    }
+
+    public function test_svg_replaces_same_basename_rasters(): void {
+        $this->touch(['a1.png', 'a1.webp', 'a1.jpg', 'a1.svg', 'a2.png']);
+
+        $this->assertSame(['a1.svg', 'a2.png'], mpu_list_shell_images($this->dir));
+    }
+
+    public function test_natural_order_across_formats(): void {
+        $this->touch(['frame10.png', 'frame2.png', 'frame1.webp']);
+
+        $this->assertSame(['frame1.webp', 'frame2.png', 'frame10.png'], mpu_list_shell_images($this->dir));
+    }
+
     public function test_subfolders_and_missing_dir_are_ignored(): void {
         mkdir($this->dir . '/idle');
         $this->touch(['assets.json']);

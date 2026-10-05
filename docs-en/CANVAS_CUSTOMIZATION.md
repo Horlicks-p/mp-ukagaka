@@ -254,9 +254,9 @@ The system will automatically derive the decoration paths from the following sou
 
 #### Decoration Loading Flow
 
-1. **Check Character**: `mpuCanvasManager.isFrieren(num, name)`
-   - Prioritizes checking if `num === 'default_1'`.
-   - Also checks if the name contains `フリーレン` or `Frieren`.
+1. **Check Character**: `mpuCanvasManager.isFrieren(num)`
+   - True only when the ukagaka key is `default_1`, the built-in Frieren.
+   - The display name is not checked: a user-created character named "Frieren …" has no `assets.json` and stays on the generic renderer.
 
 2. **Initialize Frieren Mode**: `initFrierenMode()`
    - Sets the container to relative positioning.
@@ -298,8 +298,8 @@ The system will automatically derive the decoration paths from the following sou
 #### JavaScript API
 
 ```javascript
-// Check if it is Frieren
-mpuCanvasManager.isFrieren(num, name);
+// Check if it is the built-in Frieren (ukagaka key 'default_1')
+mpuCanvasManager.isFrieren(num);
 
 // Manually add a decoration (advanced usage)
 mpuCanvasManager.addFrierenDecoration({

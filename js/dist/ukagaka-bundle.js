@@ -2860,7 +2860,7 @@ jQuery(function () {
          */
         init: function(shellInfo, name, num) {
             // 🔧 早期檢查：如果已經是芙莉蓮模式且角色沒變，直接跳過（必須在狀態重置之前）
-            if (this.isFrieren(num, name) && 
+            if (this.isFrieren(num) && 
                 window.mpuFrierenManager && 
                 window.mpuFrierenManager.isFrierenMode) {
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
@@ -2909,7 +2909,7 @@ jQuery(function () {
             }
 
             // 檢查是否為芙莉蓮
-            if (this.isFrieren(num, name)) {
+            if (this.isFrieren(num)) {
                 // 使用芙莉蓮管理器處理
                 if (window.mpuFrierenManager) {
                     // 芙莉蓮模式 - 首次初始化（重複初始化已在函數開頭被阻擋）
@@ -3171,31 +3171,15 @@ jQuery(function () {
         },
         
         /**
-         * 檢查當前角色是否為芙莉蓮
-         * @param {string} num - 角色編號（可選）
-         * @param {string} name - 角色名稱（可選）
+         * 檢查當前角色是否為內建芙莉蓮（設定 key 為 default_1）。
+         * 不看顯示名稱：名字含「Frieren」的自建角色沒有 assets.json 等專用資產，
+         * 誤進芙莉蓮渲染器只會畫不出來。
+         * @param {string} num - 角色設定 key（可選，預設為目前角色）
          * @returns {boolean}
          */
-        isFrieren: function(num, name) {
-            // 使用傳入的參數，如果沒有則使用保存的值
+        isFrieren: function(num) {
             const checkNum = num !== undefined ? num : this.currentCharacterNum;
-            const checkName = name !== undefined ? name : this.currentCharacterName;
-            
-            // 檢查 num 是否為 'default_1'（預設芙莉蓮）
-            if (checkNum === 'default_1') {
-                return true;
-            }
-            
-            // 檢查 name 是否包含 'フリーレン' 或 'Frieren'
-            if (checkName && (
-                checkName.indexOf('フリーレン') !== -1 || 
-                checkName.indexOf('Frieren') !== -1 ||
-                checkName.indexOf('frieren') !== -1
-            )) {
-                return true;
-            }
-            
-            return false;
+            return checkNum === 'default_1';
         },
         
         /**

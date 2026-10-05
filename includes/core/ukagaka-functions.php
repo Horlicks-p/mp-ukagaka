@@ -129,14 +129,16 @@ function mpu_get_shell_info($num = false)
 
 /**
  * 列出 shell 資料夾內的圖片（不含子資料夾），依檔名自然排序。
- * 同一個 basename 同時有點陣圖與 SVG 時只算一張，優先使用 SVG。
+ * 點陣圖各自算一張（同 basename 不同格式也是，與 SVG 化之前相同）；
+ * 同 basename 有 SVG 時，SVG 取代該 basename 的所有點陣圖。
  *
  * @param string $dir shell 資料夾的本機路徑.
  * @return string[] 檔名陣列.
  */
 function mpu_list_shell_images( $dir ) {
-	$allowed_extensions = array( 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp' );
-	$by_base            = array();
+	$raster_extensions = array( 'png', 'jpg', 'jpeg', 'gif', 'webp' );
+	$svg_by_base       = array();
+	$rasters           = array();
 
 	$entries = is_dir( $dir ) ? scandir( $dir ) : false;
 	if ( false === $entries ) {
@@ -147,20 +149,19 @@ function mpu_list_shell_images( $dir ) {
 			continue;
 		}
 		$extension = strtolower( pathinfo( $entry, PATHINFO_EXTENSION ) );
-		$rank      = array_search( $extension, $allowed_extensions, true );
-		if ( false === $rank ) {
-			continue;
-		}
-		$base = pathinfo( $entry, PATHINFO_FILENAME );
-		if ( ! isset( $by_base[ $base ] ) || $rank < $by_base[ $base ]['rank'] ) {
-			$by_base[ $base ] = array(
-				'file' => $entry,
-				'rank' => $rank,
-			);
+		if ( 'svg' === $extension ) {
+			$svg_by_base[ pathinfo( $entry, PATHINFO_FILENAME ) ] = $entry;
+		} elseif ( in_array( $extension, $raster_extensions, true ) ) {
+			$rasters[] = $entry;
 		}
 	}
 
-	$images = array_column( $by_base, 'file' );
+	$images = array_values( $svg_by_base );
+	foreach ( $rasters as $entry ) {
+		if ( ! isset( $svg_by_base[ pathinfo( $entry, PATHINFO_FILENAME ) ] ) ) {
+			$images[] = $entry;
+		}
+	}
 	natsort( $images );
 	return array_values( $images );
 }

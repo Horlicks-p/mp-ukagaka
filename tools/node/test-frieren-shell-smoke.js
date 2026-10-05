@@ -492,6 +492,38 @@ function testStaleGenericAnimation() {
   assert.strictEqual(run(true), 0, "a switched-away character's deferred animation must not play");
 }
 
+function testRendererSelection() {
+  const canvas = makeElement("CANVAS");
+  const window = {};
+  const context = {
+    window,
+    document: { getElementById: (id) => (id === "cur_ukagaka" ? canvas : null) },
+    Image: function () {}, mpuLogger: { log: false, warnAlways() {}, errorL() {} },
+    setTimeout, clearTimeout,
+  };
+  vm.createContext(context);
+  vm.runInContext(fs.readFileSync(path.join(repoRoot, "js", "ukagaka-anime.js"), "utf8"), context, { filename: "ukagaka-anime.js" });
+  const cm = window.mpuCanvasManager;
+  const route = (num, name) => {
+    const calls = [];
+    window.mpuFrierenManager = {
+      isFrierenMode: false,
+      initFrierenMode() { calls.push("frieren"); },
+      stopFrierenAnimation() {},
+      cleanupFrierenElements() {},
+    };
+    cm.initGenericMode = () => { calls.push("generic"); };
+    cm.init({ type: "folder", url: "base/", images: ["a.png"] }, name, num);
+    return calls.join(",");
+  };
+  assert.strictEqual(route("default_1", "フリーレン"), "frieren", "the built-in character uses the Frieren renderer");
+  assert.strictEqual(route("default_1", "Someone Else"), "frieren", "renamed built-in character still uses it");
+  assert.strictEqual(route("custom_2", "Frieren Test"), "generic", "a DIY character named Frieren stays generic");
+  assert.strictEqual(route("custom_3", "フリーレン風キャラ"), "generic", "a DIY character named フリーレン stays generic");
+  assert.strictEqual(route("custom_4", "my frieren"), "generic");
+  assert.strictEqual(cm.isFrieren("custom_2"), false);
+}
+
 function testStaleDecorationLoad() {
   const { m, window, container } = loadRuntime();
   m.addFrierenDecoration({ type: "staff", src: "staff.svg", zIndex: 8 });
@@ -677,6 +709,7 @@ function testClickArbitration() {
   await testStaleWake();
   await testStaleSpeakingRetry();
   testStaleGenericAnimation();
+  testRendererSelection();
   testStaleDecorationLoad();
   console.log("frieren shell smoke tests passed");
 })().catch((e) => {
