@@ -38,7 +38,7 @@ In MP Ukagaka, each character personality is stored under the `ghost/` folder in
 To create a new personality, **the following files are required at a minimum**:
 
 1. **`manifest.json`** - Personality metadata and settings (`id` is mandatory)
-2. **`shell/`** - At least one character image (`.svg`, `.png`, `.jpg`, `.jpeg`, `.gif` or `.webp`) placed **directly** in this folder
+2. **`shell/`** - At least one character image (`.png`, `.jpg`, `.jpeg`, `.gif` or `.webp`) placed **directly** in this folder. SVG works only for a shell copied onto the server by a trusted administrator; ZIP upload rejects `.svg` (see [Image Formats](#image-formats))
 
 ### Minimal Example
 
@@ -656,7 +656,7 @@ Shell images are the visual representation of the character. For a ZIP-installed
 
 ### How They Are Used
 
-- The plugin reads every `.svg`, `.png`, `.jpg`, `.jpeg`, `.gif` and `.webp` file in the folder (subfolders are ignored) and sorts the names naturally (`char2.png` before `char10.png`).
+- The plugin reads every `.png`, `.jpg`, `.jpeg`, `.gif` and `.webp` file in the folder (subfolders are ignored) and sorts the names naturally (`char2.png` before `char10.png`). `.svg` files are read too, but only a shell placed on the server directly can contain them, because ZIP upload rejects `.svg`.
 - If one name exists in several formats (`char1.png` and `char1.svg`), it counts as one frame and the SVG is used.
 - One image: it is shown as a still.
 - Several images: they are played in that order as an animation by the generic canvas manager.
@@ -666,10 +666,11 @@ Frieren does not use this folder scan for her animations. Her shell keeps each a
 
 ### Image Formats
 
-- **Format**: SVG, PNG (Recommended for raster art), JPG, GIF or WebP
+- **Format**: PNG (Recommended), JPG, GIF or WebP. SVG is also supported, but only for a shell shipped with the plugin or copied onto the server by a trusted administrator
 - **Size**: Recommended 200-400px width, height is custom
-- **Background**: Transparent background is recommended (SVG or PNG)
-- **SVG**: keep it self-contained (no scripts, no external images, fonts or stylesheets) and give the root `<svg>` a `width` and `height`, because the canvas uses the image's natural size
+- **Background**: Transparent background is recommended (PNG, or SVG where allowed)
+- **SVG and ZIP upload**: ZIP upload rejects `.svg` files. An SVG opened directly in the browser runs on your site's origin, so an uploaded one could carry stored XSS; the plugin does not sanitize SVG and therefore does not accept it from uploads
+- **SVG (server-placed shells only)**: keep it self-contained (no scripts, no external images, fonts or stylesheets) and give the root `<svg>` a `width` and `height`, because the canvas uses the image's natural size
 
 ### Example File Structure
 
