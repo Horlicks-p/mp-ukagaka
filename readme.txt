@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.33.3
+Stable tag: 2.34.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,14 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-05 =
+* v2.34.0
+* [CHANGE] Frieren and her decorations are now drawn in SVG, so she stays sharp at any zoom or screen density.
+* [FIX] Frieren's animations no longer leave a faint ghost of the previous frame.
+* [FIX] Decorations behind Frieren can be clicked again where only her transparent margin covers them.
+* [FIX] Switching away from Frieren no longer leaves her touch zones or late-loading images on the next character.
+* [CHANGE] A character's shell folder may contain SVG images. ZIP upload still accepts only PNG, JPG, GIF and WebP.
 
 = 2026-10-02 =
 * v2.33.3

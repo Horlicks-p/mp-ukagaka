@@ -4,6 +4,38 @@
 
 ---
 
+## [2.34.0] - 2026-10-05
+
+### Frieren in SVG
+
+- **Every Frieren image is now SVG.** The 38 body frames (idle 12, sleep 10, book flip 11, wake 5) were redrawn as pixel-art SVG on one shared 208×328 grid, and the six decorations were converted too; the suitcase was redrawn after a reference case and then hand-tuned. The PNG/APNG shell images and the raster decorations are removed. The PNG version stays available on the `archive/png-shell` branch.
+- **`shell/Frieren/assets.json` describes her animations.** It lists each sequence's frames, per-frame `duration_ms`, whether it loops, and the on-page layout. The runtime validates the whole file before using it; a malformed or missing manifest is logged and the character is not drawn.
+- **One renderer for every sequence.** Idle, sleep, book flip and wake all change frames in the same body `<img>`, which removes the frame ghosting the old canvas path left behind. A sequence with a missing frame is not played rather than played with a gap. The first frame of idle or sleep shows as soon as it loads; the loop starts once the whole sequence is ready.
+- **The display was widened by 6.6%** so the SVG character matches the old PNG character's width. Decorations, touch zones and emoji positions still use the original 134×249 character box.
+
+### Touches and decorations
+
+- **Touches only count on Frieren's opaque pixels.** The SVG frame is larger than her body (margins and a drop shadow), so a decoration behind that transparent margin is clickable again, and the cursor shows it.
+- **Decorations behind her no longer take clicks where she is opaque.** The click and the pointer cursor go to the character there.
+
+### Switching characters
+
+- **A character switch cancels Frieren's unfinished loads.** A shared `mpuCanvasManager.loadGeneration` changes on every switch. Manifest, frame, sequence, wake, book flip, retry and decoration callbacks from the previous Frieren are dropped, and so are the generic single- and multi-image loaders, so a late load can no longer lay out, flag or add elements to the next character, or continue the old dialogue. The `assets.json` request is aborted on cleanup.
+- **Frieren's touch, cursor and decoration-click handlers are removed on switch** and are no longer bound twice on re-entry. Before, they kept applying Frieren's touch zones to the next character. Cleanup also releases decoded frames and hit-test canvases.
+- **A failed `assets.json` no longer leaves a 100 ms retry running.** The speaking trigger waited for a load flag that a failed manifest never set.
+
+### Core
+
+- **Shell folders may contain SVG.** `mpu_list_shell_images()` lists `.svg` with the raster formats, in natural order, and when one name exists in several formats it is listed once, as the SVG. ZIP upload still rejects `.svg` on purpose; SVG is for shells shipped with the plugin or placed on the server by an administrator. The ghost guide says so.
+- **`mpuGetCharacterRect()`** returns the character box inside a larger character element (`data-mpu-body-box`), and the emoji managers use it.
+
+### Internal
+
+- **`build.js` no longer stamps the build time**, so the bundles are reproducible. A new `Dist Parity` workflow runs the Frieren smoke test, rebuilds, and fails when `js/dist` or `ghost/Frieren/dist` is stale. `release.yml` zips the tag as committed, so this check keeps the shipped bundles in step with the source.
+- **New `test-frieren-shell-smoke.js`** covers manifest validation, SVG safety, sequence timing, missing frames, a failed manifest, and the character-switch cases above; each lifecycle case fails without its fix. `ShellImageListTest` covers SVG preference and ordering. Both are part of `verify`.
+- **`tools/frieren-svg/`** holds the scripts and references that build the SVG frames. It is export-ignored and not in the release ZIP.
+
+---
 ## [2.33.3] - 2026-10-02
 
 ### Chat status badge
