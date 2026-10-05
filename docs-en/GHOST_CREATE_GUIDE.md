@@ -657,7 +657,7 @@ Shell images are the visual representation of the character. For a ZIP-installed
 ### How They Are Used
 
 - The plugin reads every `.png`, `.jpg`, `.jpeg`, `.gif` and `.webp` file in the folder (subfolders are ignored) and sorts the names naturally (`char2.png` before `char10.png`). `.svg` files are read too, but only a shell placed on the server directly can contain them, because ZIP upload rejects `.svg`.
-- If one name exists in several formats (`char1.png` and `char1.svg`), it counts as one frame and the SVG is used.
+- Raster files stay separate frames even when they share a name (`char1.png` and `char1.webp` are two frames). If an SVG exists for that name (`char1.svg`), it replaces every raster file with the same name.
 - One image: it is shown as a still.
 - Several images: they are played in that order as an animation by the generic canvas manager.
 - File names carry no other meaning to the core plugin. There is no required "main image" name.
