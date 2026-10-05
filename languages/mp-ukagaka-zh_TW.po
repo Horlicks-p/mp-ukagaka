@@ -2701,10 +2701,11 @@ msgstr "mpuEmojiManager: 顯示表情:%s"
 msgid "mpuEmojiManager: 表情を削除します"
 msgstr "mpuEmojiManager: 移除表情"
 
-#. translators: debug console log. Shows which Frieren base image was selected.
+#. translators: debug console log. %s is the looping sequence that starts (idle or sleep).
 #: includes/core/frontend-functions.php:877
-msgid "🌙 睡眠画像 frieren[s].png を表示します / ☀️ アイドル画像 frieren[0].png を表示します"
-msgstr "🌙 顯示睡眠圖片 frieren[s].png / ☀️ 顯示閒置圖片 frieren[0].png"
+#, php-format
+msgid "🌙 / ☀️ 待機アニメーションを再生します：%s"
+msgstr "🌙 / ☀️ 播放待機動畫：%s"
 
 #. translators: debug console log. Decoration loading is skipped because it already completed.
 #: includes/core/frontend-functions.php:879
@@ -2748,8 +2749,8 @@ msgstr "☀️ 芙莉蓮被喚醒了！"
 
 #. translators: debug console log. Wake animation frames are being played.
 #: includes/core/frontend-functions.php:893
-msgid "👀 目覚めアニメーション frieren[w1-w5].png を再生します"
-msgstr "👀 播放醒來動畫 frieren[w1-w5].png"
+msgid "👀 目覚めアニメーションを再生します"
+msgstr "👀 播放醒來動畫"
 
 #. translators: debug console log. %s is whether the book-flip animation should be skipped.
 #: includes/core/frontend-functions.php:895
@@ -3741,3 +3742,13 @@ msgstr "mpu_nextmsg: 對話模式中收到的自動對話，已記入對話歷�
 #: includes/core/frontend-functions.php:942
 msgid "会話モードを閉じた（または開き直した）後に届いた応答を、表示せずに会話履歴へ記録しました"
 msgstr "聊天關閉（或重新開啟）後才收到的回應，已記入對話歷史但不顯示"
+
+#. translators: console log. %s is the reason shell/Frieren/assets.json (the SVG frame list) could not be loaded.
+#, php-format
+msgid "フリーレンの表示資産マニフェストを読み込めません：%s"
+msgstr "無法載入芙莉蓮的顯示資產清單：%s"
+
+#. translators: console log. %s is the animation sequence (idle, sleep, book_flip or wake) that could not be loaded.
+#, php-format
+msgid "フリーレンのアニメーション序列を読み込めません：%s"
+msgstr "無法載入芙莉蓮的動畫序列：%s"

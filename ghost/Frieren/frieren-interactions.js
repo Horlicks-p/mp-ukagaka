@@ -306,6 +306,48 @@
     },
 
     /**
+     * 點擊位置是否落在角色本體的不透明像素上（陰影等半透明處不算）。
+     * 以目前顯示的幀繪到原尺寸的隱藏 Canvas 取 alpha；無法判定時視為命中。
+     * @param {MouseEvent} event - 滑鼠事件
+     * @param {HTMLElement} element - 角色元素（<img> 或 Canvas）
+     * @returns {boolean}
+     */
+    isCharacterPixelHit: function (event, element) {
+      if (!element || element.tagName !== "IMG" || !element.naturalWidth) {
+        return true;
+      }
+      const src = element.currentSrc || element.src;
+      if (!this._bodyHitCanvas) {
+        this._bodyHitCanvas = document.createElement("canvas");
+        this._bodyHitCtx = this._bodyHitCanvas.getContext("2d", { willReadFrequently: true });
+        this._bodyHitSrc = "";
+      }
+      const canvas = this._bodyHitCanvas;
+      const ctx = this._bodyHitCtx;
+      if (!ctx) {
+        return true;
+      }
+      if (this._bodyHitSrc !== src) {
+        canvas.width = element.naturalWidth;
+        canvas.height = element.naturalHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(element, 0, 0, canvas.width, canvas.height);
+        this._bodyHitSrc = src;
+      }
+      const rect = element.getBoundingClientRect();
+      const x = Math.floor((event.clientX - rect.left) / rect.width * canvas.width);
+      const y = Math.floor((event.clientY - rect.top) / rect.height * canvas.height);
+      if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) {
+        return false;
+      }
+      try {
+        return ctx.getImageData(x, y, 1, 1).data[3] >= 128;
+      } catch (e) {
+        return true;
+      }
+    },
+
+    /**
      * 檢測觸摸區域
      * @param {MouseEvent} event - 滑鼠事件
      * @param {HTMLElement} element - 被點擊的元素
@@ -313,6 +355,7 @@
      */
     detectTouchZone: function (event, element) {
       if (
+        !this.isFrierenMode ||
         !element ||
         typeof mpuTouchZones === "undefined" ||
         !mpuTouchZones.zones
@@ -320,7 +363,23 @@
         return null;
       }
 
-      const rect = element.getBoundingClientRect();
+      const rect = typeof window.mpuGetCharacterRect === "function"
+        ? window.mpuGetCharacterRect(element)
+        : element.getBoundingClientRect();
+
+      // 角色元素比角色框大（SVG 幀的四周留白與陰影），會蓋住後方的裝飾。
+      // 只有點在角色框內、且點到角色本身的不透明像素才算觸摸；
+      // 其餘交給後方的裝飾判定。
+      if (
+        event.clientX < rect.left ||
+        event.clientX >= rect.right ||
+        event.clientY < rect.top ||
+        event.clientY >= rect.bottom ||
+        !this.isCharacterPixelHit(event, element)
+      ) {
+        return null;
+      }
+
       const clickY = event.clientY - rect.top;
       const relativeY = clickY / rect.height;
 
@@ -542,7 +601,15 @@
 
       const self = this;
 
-      imgContainer.addEventListener("mousemove", function (e) {
+      // 重新進入芙莉蓮模式時先拆掉上一次的處理器，避免重複綁定
+      if (this._touchMoveHandler) {
+        imgContainer.removeEventListener("mousemove", this._touchMoveHandler);
+      }
+      if (this._touchClickHandler) {
+        imgContainer.removeEventListener("click", this._touchClickHandler, true);
+      }
+
+      this._touchMoveHandler = function (e) {
         const target = e.target;
 
         if (target.id !== "frieren_idle_apng" && target.id !== "cur_ukagaka") {
@@ -560,37 +627,60 @@
           };
           target.style.cursor = cursorMap[zone] || "pointer";
         } else {
-          target.style.cursor = "default";
+          // 角色透明處底下若有裝飾，點擊會交給它，游標也跟著顯示可點
+          target.style.cursor = self.findDecorationAt && self.findDecorationAt(e, true) ? "pointer" : "default";
         }
-      });
+      };
 
-      imgContainer.addEventListener(
-        "click",
-        function (e) {
-          const target = e.target;
+      this._touchClickHandler = function (e) {
+        const target = e.target;
 
-          if (
-            target.id !== "frieren_idle_apng" &&
-            target.id !== "cur_ukagaka"
-          ) {
-            return;
-          }
+        if (
+          target.id !== "frieren_idle_apng" &&
+          target.id !== "cur_ukagaka"
+        ) {
+          return;
+        }
 
-          const zone = self.detectTouchZone(e, target);
-          if (zone) {
-            e.stopPropagation();
-            e.preventDefault();
-            self.handleTouchZone(zone);
-          }
-        },
-        true
-      );
+        const zone = self.detectTouchZone(e, target);
+        if (zone) {
+          // 同一容器上還有裝飾的點擊穿透判定，觸摸成立時不再交給它
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          self.handleTouchZone(zone);
+        }
+      };
+
+      imgContainer.addEventListener("mousemove", this._touchMoveHandler);
+      imgContainer.addEventListener("click", this._touchClickHandler, true);
 
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
         mpuLogger.logL("frierenTouchEventsBound", "キャラクターのタッチイベントを設定しました");
       }
 
       this.setupGiftPicker();
+    },
+
+    /**
+     * 拆掉綁在 #ukagaka_img 上的觸摸與裝飾點擊處理器（角色切換時）。
+     * 容器在切換後仍會留給下一個角色，處理器不拆會繼續作用在它身上。
+     */
+    unbindFrierenContainerEvents: function () {
+      const imgContainer = document.getElementById("ukagaka_img");
+      if (imgContainer) {
+        if (this._touchMoveHandler) {
+          imgContainer.removeEventListener("mousemove", this._touchMoveHandler);
+        }
+        if (this._touchClickHandler) {
+          imgContainer.removeEventListener("click", this._touchClickHandler, true);
+        }
+        if (this._decorationClickThroughHandler) {
+          imgContainer.removeEventListener("click", this._decorationClickThroughHandler, true);
+        }
+      }
+      this._touchMoveHandler = null;
+      this._touchClickHandler = null;
+      this._decorationClickThroughHandler = null;
     },
 
     /**

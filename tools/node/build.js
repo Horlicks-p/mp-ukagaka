@@ -97,7 +97,6 @@ async function build() {
     
     let bundleContent = `/**
  * MP Ukagaka Core Bundle
- * Generated: ${new Date().toISOString()}
  * 
  * 包含: ${coreFiles.join(', ')}
  */
@@ -178,7 +177,6 @@ async function build() {
 
         let frierenBundleContent = `/**
  * MP Ukagaka Frieren Bundle
- * Generated: ${new Date().toISOString()}
  *
  * 包含: ${frierenFiles.join(', ')}
  */

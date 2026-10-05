@@ -101,3 +101,6 @@ avatar-ui/
 
 # CodeGraph MCP local index (SQLite knowledge graph, machine-generated)
 .codegraph/
+
+# Local backup of the pre-redraw suitcase decoration
+ghost/Frieren/decorations/suitcase(old).svg

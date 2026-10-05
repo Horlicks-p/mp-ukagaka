@@ -758,6 +758,10 @@ function mpu_enqueue_frontend_assets() {
 		$log_i18n->always( 'frierenImageCanvasManagerMissing', __( '画像読み込み前に Canvas マネージャーが初期化されていません', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
 		/* translators: console log. %s is the Frieren image URL that failed to load. */
 		$log_i18n->always( 'frierenImageLoadFailed', __( 'フリーレン画像の読み込みに失敗しました：%s', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
+		/* translators: console log. %s is the reason shell/Frieren/assets.json (the SVG frame list) could not be loaded. */
+		$log_i18n->always( 'frierenAssetManifestLoadFailed', __( 'フリーレンの表示資産マニフェストを読み込めません：%s', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
+		/* translators: console log. %s is the animation sequence (idle, sleep, book_flip or wake) that could not be loaded. */
+		$log_i18n->always( 'frierenSequenceLoadFailed', __( 'フリーレンのアニメーション序列を読み込めません：%s', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
 		/* translators: console log. Canvas manager is missing before drawing Frieren. */
 		$log_i18n->always( 'frierenDrawCanvasManagerMissing', __( '描画前に Canvas マネージャーが初期化されていません', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
 		/* translators: console log. %s is the decoration type for which pixel-hit Canvas creation failed. */
@@ -1068,8 +1072,8 @@ function mpu_enqueue_frontend_assets() {
 		$log_i18n->debug( 'frierenEmojiShown', __( 'mpuEmojiManager: 表情を表示します：%s', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
 		/* translators: debug console log. Emoji display is removed. */
 		$log_i18n->debug( 'frierenEmojiRemoved', __( 'mpuEmojiManager: 表情を削除します', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
-		/* translators: debug console log. Shows which Frieren base image was selected. */
-		$log_i18n->debug( 'frierenSleepIdleImageSelected', __( '🌙 睡眠画像 frieren[s].png を表示します / ☀️ ゴースト画像 frieren[0].png を表示します', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
+		/* translators: debug console log. %s is the looping sequence that starts (idle or sleep). */
+		$log_i18n->debug( 'frierenSleepIdleImageSelected', __( '🌙 / ☀️ 待機アニメーションを再生します：%s', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
 		/* translators: debug console log. Decoration loading is skipped because it already completed. */
 		$log_i18n->debug( 'frierenDecorationsAlreadyLoaded', __( '装飾品は読み込み済みのため、重複読み込みをスキップします', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
 		/* translators: debug console log. %s is the number of decorations loaded from JSON config. */
@@ -1085,7 +1089,7 @@ function mpu_enqueue_frontend_assets() {
 		/* translators: debug console log. Frieren has awakened; forceWakeUp may be appended as a separate suffix. */
 		$log_i18n->debug( 'frierenAwakened', __( '☀️ フリーレンが目を覚ましました！', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
 		/* translators: debug console log. Wake animation frames are being played. */
-		$log_i18n->debug( 'frierenWakeAnimationPlaying', __( '👀 目覚めアニメーション frieren[w1-w5].png を再生します', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
+		$log_i18n->debug( 'frierenWakeAnimationPlaying', __( '👀 目覚めアニメーションを再生します', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
 		/* translators: debug console log. %s is whether the book-flip animation should be skipped. */
 		$log_i18n->debug( 'frierenWakeAnimationStarted', __( '🌅 目覚めアニメーションを開始します。skipBookFlip = %s', 'mp-ukagaka' ), array( 'scope' => 'frieren' ) );
 		/* translators: debug console log. Book-flip animation plays after wake. */

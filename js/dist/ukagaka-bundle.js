@@ -1,6 +1,5 @@
 /**
  * MP Ukagaka Core Bundle
- * Generated: 2026-10-02T04:12:52.014Z
  * 
  * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
@@ -2827,6 +2826,15 @@ jQuery(function () {
         pendingAnimation: false, // 是否有待執行的動畫
         currentCharacterNum: null, // 當前角色 num
         currentCharacterName: null, // 當前角色 name
+        loadGeneration: 0, // 角色載入世代；每次 init 遞增，非同步載入完成時比對以丟棄過期結果
+
+        /**
+         * @param {number} generation - 開始載入時的 loadGeneration
+         * @returns {boolean} 該次載入是否仍屬目前的角色
+         */
+        isCurrentLoad: function(generation) {
+            return generation === this.loadGeneration;
+        },
 
         markInitialVisualReady: function(source) {
             const imgContainer = document.getElementById('ukagaka_img');
@@ -2861,9 +2869,12 @@ jQuery(function () {
                 return;
             }
             
+            // 之前角色尚未完成的非同步載入從此作廢
+            this.loadGeneration++;
+
             // 清除之前的動畫
             this.stopAnimation();
-            
+
             // 停止芙莉蓮動畫（如果存在）
             if (window.mpuFrierenManager) {
                 window.mpuFrierenManager.stopFrierenAnimation();
@@ -2949,10 +2960,14 @@ jQuery(function () {
                 return;
             }
 
+            const generation = this.loadGeneration;
             const img = new Image();
             img.crossOrigin = 'anonymous';
             
             img.onload = (function() {
+                if (!this.isCurrentLoad(generation)) {
+                    return;
+                }
                 // 設置 Canvas 尺寸
                 this.canvas.width = img.width;
                 this.canvas.height = img.height;
@@ -2979,6 +2994,7 @@ jQuery(function () {
                 return;
             }
 
+            const generation = this.loadGeneration;
             this.images = [];
             let loadedCount = 0;
             const totalImages = this.imageUrls.length;
@@ -2990,6 +3006,9 @@ jQuery(function () {
                 img.crossOrigin = 'anonymous';
                 
                 img.onload = (function(index) {
+                    if (!this.isCurrentLoad(generation)) {
+                        return;
+                    }
                     loadedCount++;
                     
                     // 第一張圖片載入完成時，設置 Canvas 尺寸
@@ -3008,7 +3027,9 @@ jQuery(function () {
                         if (this.pendingAnimation) {
                             // 延遲一小段時間確保繪製完成
                             setTimeout((function() {
-                                this.playAnimation();
+                                if (this.isCurrentLoad(generation)) {
+                                    this.playAnimation();
+                                }
                             }).bind(this), 50);
                         }
                         this.markInitialVisualReady('generic-multi');
@@ -3016,6 +3037,9 @@ jQuery(function () {
                 }).bind(this);
 
                 img.onerror = (function(url) {
+                    if (!this.isCurrentLoad(generation)) {
+                        return;
+                    }
                     mpuLogger.errorF('animeFrameImageLoadFailed', 'フレーム画像の読み込みに失敗しました：%s', url);
                     loadedCount++;
                     
@@ -3030,7 +3054,9 @@ jQuery(function () {
                             if (this.pendingAnimation) {
                                 // 延遲一小段時間確保繪製完成
                                 setTimeout((function() {
-                                    this.playAnimation();
+                                    if (this.isCurrentLoad(generation)) {
+                                        this.playAnimation();
+                                    }
                                 }).bind(this), 50);
                             }
                         }
@@ -3236,6 +3262,29 @@ jQuery(function () {
     // 將管理器暴露到全域
     window.mpuCanvasManager = mpuCanvasManager;
 
+    /**
+     * 角色本體在畫面上的矩形。
+     * 角色元素可能比角色框大（例如 SVG 幀含四周留白與陰影）；元素上的
+     * data-mpu-body-box="x,y,w,h"（CSS px，元素內座標）標出角色框，
+     * 觸摸區與表情位置以它為準。沒有標記時即元素本身的矩形。
+     * @param {HTMLElement} element
+     * @returns {{left:number, top:number, width:number, height:number, right:number, bottom:number}}
+     */
+    window.mpuGetCharacterRect = function(element) {
+        const rect = element.getBoundingClientRect();
+        const box = element.dataset ? element.dataset.mpuBodyBox : '';
+        if (!box || !element.offsetWidth) {
+            return rect;
+        }
+        const parts = box.split(',').map(Number);
+        const scale = rect.width / element.offsetWidth;
+        const left = rect.left + parts[0] * scale;
+        const top = rect.top + parts[1] * scale;
+        const width = parts[2] * scale;
+        const height = parts[3] * scale;
+        return { left: left, top: top, width: width, height: height, right: left + width, bottom: top + height };
+    };
+
 })();
 
 // ========== ukagaka-emoji.js ==========
@@ -3360,7 +3409,7 @@ jQuery(function () {
             if (canvas && canvas.style.display !== 'none') {
                 frierenImg = canvas;
             } else {
-                // 如果 Canvas 不可見，檢查 APNG
+                // 如果 Canvas 不可見，檢查閒置 <img>
                 const apngImg = document.getElementById('frieren_idle_apng');
                 if (apngImg && apngImg.style.display !== 'none') {
                     frierenImg = apngImg;
@@ -3384,7 +3433,9 @@ jQuery(function () {
 
             // 獲取容器和圖片的邊界矩形
             const containerRect = imgContainer.getBoundingClientRect();
-            const imgRect = frierenImg.getBoundingClientRect();
+            const imgRect = typeof window.mpuGetCharacterRect === 'function'
+                ? window.mpuGetCharacterRect(frierenImg)
+                : frierenImg.getBoundingClientRect();
 
             // 獲取當前表情的位置配置（從 JSON 讀取，若無則使用預設值）
             const emojiKey = emojiElement.dataset.emojiKey;
@@ -6227,7 +6278,7 @@ function mpuIsCharacterVisible() {
 
 function mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg) {
   const startedAt = Date.now();
-  // First-time visitors may need several seconds for shell/APNG/decoration assets.
+  // First-time visitors may need several seconds for shell/decoration assets.
   // Do not show the initial system bubble before the character itself is visible.
   const timeout = 12000;
 

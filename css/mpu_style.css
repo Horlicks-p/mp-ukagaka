@@ -115,14 +115,13 @@
   z-index: var(--mpu-internal-z-canvas); /* Must stay below decoration z-index 100. */
 }
 
+/* The Frieren body (SVG frames) is sized and placed by frieren-animation.js
+   from shell/Frieren/assets.json (inline !important size and margins). */
 #ukagaka_img #frieren_idle_apng {
   position: relative;
   z-index: var(--mpu-internal-z-canvas);
-  /* stylelint-disable declaration-no-important -- Preserve intrinsic APNG dimensions against host-theme image resets. */
-  width: auto !important;
-  height: auto !important;
+  /* stylelint-disable-next-line declaration-no-important -- Defend the frame size against host-theme image resets. */
   max-width: none !important;
-  /* stylelint-enable declaration-no-important */
 }
 
 #ukagaka_img canvas:hover {

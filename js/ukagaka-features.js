@@ -24,7 +24,7 @@ function mpuIsCharacterVisible() {
 
 function mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg) {
   const startedAt = Date.now();
-  // First-time visitors may need several seconds for shell/APNG/decoration assets.
+  // First-time visitors may need several seconds for shell/decoration assets.
   // Do not show the initial system bubble before the character itself is visible.
   const timeout = 12000;
 

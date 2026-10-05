@@ -119,7 +119,7 @@
             if (canvas && canvas.style.display !== 'none') {
                 frierenImg = canvas;
             } else {
-                // 如果 Canvas 不可見，檢查 APNG
+                // 如果 Canvas 不可見，檢查閒置 <img>
                 const apngImg = document.getElementById('frieren_idle_apng');
                 if (apngImg && apngImg.style.display !== 'none') {
                     frierenImg = apngImg;
@@ -143,7 +143,9 @@
 
             // 獲取容器和圖片的邊界矩形
             const containerRect = imgContainer.getBoundingClientRect();
-            const imgRect = frierenImg.getBoundingClientRect();
+            const imgRect = typeof window.mpuGetCharacterRect === 'function'
+                ? window.mpuGetCharacterRect(frierenImg)
+                : frierenImg.getBoundingClientRect();
 
             // 獲取當前表情的位置配置（從 JSON 讀取，若無則使用預設值）
             const emojiKey = emojiElement.dataset.emojiKey;

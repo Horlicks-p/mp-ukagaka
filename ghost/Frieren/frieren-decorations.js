@@ -60,8 +60,13 @@
         return;
       }
 
+      const generation = this.frierenLoadGeneration;
+
       if (typeof jQuery !== "undefined") {
         jQuery(document).one("mpuInitComplete", function(event, response) {
+          if (!self.isFrierenLoadCurrent(generation)) {
+            return;
+          }
           if (response && response.show_decorations && response.decoration_config) {
             self._decorationsLoaded = true; // 標記為已載入
             self._loadDecorationsFromConfig(
@@ -89,7 +94,7 @@
               window.mpuTouchZones = response.touchzones;
               window.mpuShowDecorations = response.show_decorations;
 
-              if (!response.show_decorations) {
+              if (!response.show_decorations || !self.isFrierenLoadCurrent(generation)) {
                 return;
               }
 
@@ -160,6 +165,79 @@
     },
 
     /**
+     * 滑鼠位置底下可點擊的裝飾（由上層往下找，以像素判定透明處）。
+     * 裝飾可能被角色元素的透明留白蓋住，點擊與游標都用它判定。
+     * @param {MouseEvent} e
+     * @param {boolean} quiet - 不寫除錯 log（滑鼠移動時使用）
+     * @returns {string|null} 裝飾類型
+     */
+    findDecorationAt: function (e, quiet) {
+      const bodyZ = this.getOpaqueBodyZAt(e);
+      const ordered = this.frierenDecorations
+        .map((d, idx) => {
+          if (!d || !d.parentNode) return null;
+          const z = parseInt(window.getComputedStyle(d).zIndex || "0", 10);
+          return { d, idx, z: isNaN(z) ? 0 : z };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.z - b.z || a.idx - b.idx);
+
+      for (let i = ordered.length - 1; i >= 0; i--) {
+        if (bodyZ !== null && ordered[i].z < bodyZ) {
+          // 其餘裝飾都在本體後方，而這一點本體是不透明的：點擊屬於本體
+          break;
+        }
+        const decoration = ordered[i].d;
+        const decRect = decoration.getBoundingClientRect();
+        if (
+          e.clientX >= decRect.left &&
+          e.clientX <= decRect.right &&
+          e.clientY >= decRect.top &&
+          e.clientY <= decRect.bottom
+        ) {
+          const m = decoration.className.match(/frieren-decoration\s+(\w+)/);
+          const type = m && m[1] ? m[1] : null;
+          if (type && this.isPixelHit(type, decoration, e, quiet)) {
+            return type;
+          }
+        }
+      }
+      return null;
+    },
+
+    /**
+     * 滑鼠位置上本體是否為不透明像素；是的話回傳本體的 z-index。
+     * 無法判定（幀尚未載入等）時視為透明，不擋住後方裝飾。
+     * @param {MouseEvent} e
+     * @returns {number|null}
+     */
+    getOpaqueBodyZAt: function (e) {
+      const body = this.frierenIdleImgElement;
+      if (
+        !body ||
+        !body.parentNode ||
+        body.style.display === "none" ||
+        body.tagName !== "IMG" ||
+        !body.naturalWidth ||
+        typeof this.isCharacterPixelHit !== "function"
+      ) {
+        return null;
+      }
+      const rect = body.getBoundingClientRect();
+      if (
+        e.clientX < rect.left ||
+        e.clientX >= rect.right ||
+        e.clientY < rect.top ||
+        e.clientY >= rect.bottom ||
+        !this.isCharacterPixelHit(e, body)
+      ) {
+        return null;
+      }
+      const z = parseInt(window.getComputedStyle(body).zIndex || "0", 10);
+      return isNaN(z) ? 0 : z;
+    },
+
+    /**
      * 設置點擊穿透：當點擊 canvas 或 img 時，檢查是否點擊到裝飾物區域
      * 使用事件委派綁定在容器上（capture），避免元素晚建立的問題
      */
@@ -193,40 +271,11 @@
           }
         }
 
-        const rect = imgContainer.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const ordered = this.frierenDecorations
-          .map((d, idx) => {
-            if (!d || !d.parentNode) return null;
-            const z = parseInt(window.getComputedStyle(d).zIndex || "0", 10);
-            return { d, idx, z: isNaN(z) ? 0 : z };
-          })
-          .filter(Boolean)
-          .sort((a, b) => a.z - b.z || a.idx - b.idx);
-
-        for (let i = ordered.length - 1; i >= 0; i--) {
-          const decoration = ordered[i].d;
-          const decRect = decoration.getBoundingClientRect();
-          const decX = decRect.left - rect.left;
-          const decY = decRect.top - rect.top;
-
-          if (
-            x >= decX &&
-            x <= decX + decRect.width &&
-            y >= decY &&
-            y <= decY + decRect.height
-          ) {
-            const m = decoration.className.match(/frieren-decoration\s+(\w+)/);
-            const type = m && m[1] ? m[1] : null;
-            if (type && this.isPixelHit(type, decoration, e)) {
-              e.stopPropagation();
-              e.preventDefault();
-              this.handleDecorationClick(type);
-              return;
-            }
-          }
+        const type = this.findDecorationAt(e);
+        if (type) {
+          e.stopPropagation();
+          e.preventDefault();
+          this.handleDecorationClick(type);
         }
       };
 
@@ -294,7 +343,10 @@
       decoration.style.cssText = styleString;
 
       decoration.addEventListener("load", () => {
-        this.createHitCanvas(config.type, decoration);
+        // 載入完成前已被 cleanup 移除的裝飾不再建立命中判定
+        if (this.frierenDecorations.indexOf(decoration) !== -1) {
+          this.createHitCanvas(config.type, decoration);
+        }
       });
 
       decoration.addEventListener("click", (e) => {
@@ -368,9 +420,10 @@
      * @param {string} type - 裝飾物類型
      * @param {HTMLImageElement} imgElement - 裝飾物圖片元素
      * @param {MouseEvent} event - 滑鼠事件
+     * @param {boolean} quiet - 不寫除錯 log
      * @returns {boolean} - 是否命中不透明像素
      */
-    isPixelHit: function (type, imgElement, event) {
+    isPixelHit: function (type, imgElement, event, quiet) {
       const hitData = this.decorationHitCanvases.get(type);
 
       if (!hitData || !hitData.ctx) {
@@ -399,7 +452,7 @@
         const imageData = hitData.ctx.getImageData(pixelX, pixelY, 1, 1);
         const alpha = imageData.data[3];
 
-        if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
+        if (!quiet && typeof mpuLogger !== "undefined" && mpuLogger.log) {
           mpuLogger.logF("frierenPixelDetectionSample", "ピクセル検出：%1$s、x=%2$s、y=%3$s、alpha=%4$s、threshold=%5$s", type, pixelX, pixelY, alpha, this.pixelHitThreshold);
         }
 
