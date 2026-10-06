@@ -351,8 +351,8 @@ function mpu_html( $num = false ) {
 		esc_attr( $data_file ) .
 		'" data-load-external="true"></div>
                 <div class="ukagaka-msgbox-border">
-                    <a id="mpu_ok_btn" class="mpu-dialog-btn mpu-dialog-ok" href="javascript:void(0);" aria-label="' . esc_attr__( '次へ', 'mp-ukagaka' ) . '" title="' . esc_attr__( '次へ', 'mp-ukagaka' ) . '">' . $ok_icon . '</a>
                     <a id="mpu_cancel_btn" class="mpu-dialog-btn mpu-dialog-cancel" href="javascript:void(0);" aria-label="' . esc_attr__( 'キャンセル', 'mp-ukagaka' ) . '" title="' . esc_attr__( 'キャンセル', 'mp-ukagaka' ) . '">' . $cancel_icon . '</a>
+                    <a id="mpu_ok_btn" class="mpu-dialog-btn mpu-dialog-ok" href="javascript:void(0);" aria-label="' . esc_attr__( '次へ', 'mp-ukagaka' ) . '" title="' . esc_attr__( '次へ', 'mp-ukagaka' ) . '">' . $ok_icon . '</a>
                 </div>
             </div>
             <div id="ukagaka_img"><canvas id="cur_ukagaka" data-title="' .
