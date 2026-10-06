@@ -2739,6 +2739,10 @@ function mpuChange(num) {
       if (payload.name && $canvas.length) {
         $canvas.attr({ "data-alt": payload.name, title: payload.name });
       }
+      if (payload.num) {
+        // 名牌只顯示名字；空字串時 CSS :empty 會隱藏它
+        jQuery("#ukagaka_msgbox .mpu-dialog-name").text(payload.name || "");
+      }
 
       const msgListElem = document.getElementById("ukagaka_msglist");
       const useExternalDialog =

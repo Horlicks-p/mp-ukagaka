@@ -515,15 +515,27 @@ The values below are the defaults in `css/mpu_style.css`. Override them from you
 #ukagaka_msgbox {
     position: absolute;
     top: 50%;          /* Vertically center */
-    left: -220px;      /* Offset 220px to the left (displays on the left of the character) */
+    left: -240px;      /* Offset 240px to the left (displays on the left of the character) */
     transform: translateY(-50%); /* Vertical centering adjustment */
-    width: 250px;
+    width: 250px;      /* Includes the frame and its 5px shadow */
 }
 ```
 
 **Adjustment methods:**
-- `left`: Adjust the distance between the dialog box and the character (Negative values move left, positive values move right).
+- `left`: Adjust the distance between the dialog box and the character (Negative values move left, positive values move right). The parchment is opaque, so the default keeps it clear of the character's body.
 - `top`: Adjust the vertical position.
+
+#### Dialog Box Appearance ("Traveler's Grimoire")
+
+The dialog is drawn without raster images:
+
+- **Frame**: `images/msgbox-frame.svg`, a 9-slice `border-image` like the think bubble. It carries the stepped pixel corners, the leather band, the brass line and the 5px hard shadow, which is why the border is wider on the right and bottom (`border-width: 8px 13px 13px 8px`).
+- **Parchment**: the element's own `background`, clipped to the padding box.
+- **Name plate**: `.mpu-dialog-name` inside `.ukagaka-msgbox-top`, filled with the character's display name and updated on character switch. It is hidden when the name is empty.
+- **Buttons**: `#mpu_ok_btn` (○, next / send) and `#mpu_cancel_btn` (×, hide / leave chat) are `.mpu-dialog-btn` links with inline pixel SVG icons in `.ukagaka-msgbox-border`.
+- **Stream state**: `data-mpu-stream-state` on `#ukagaka_msgbox` tints a thin line inside the frame and the `.mpu-state-badge` label.
+
+The colours are internal `--mpu-internal-dialog-*` custom properties, not a public theming API. To restyle the dialog, override the selectors above in your theme; the frame's colours are baked into the SVG, so recolouring the frame means replacing `border-image-source` on `#ukagaka_msgbox`.
 
 #### 5. Main Container Padding
 

@@ -22,6 +22,21 @@
   --mpu-internal-z-msgbox: 10001;
   --mpu-internal-z-bubble: 10002;
   --mpu-internal-z-picker: 10030;
+
+  /* "Traveler's Grimoire" dialog: parchment, worn leather, muted brass. Text and
+     badge colours keep at least 4.5:1 against the paper they sit on. */
+  --mpu-internal-dialog-frame-dark: #40362f;
+  --mpu-internal-dialog-frame-mid: #756554;
+  --mpu-internal-dialog-accent: #b29a6e;
+  --mpu-internal-dialog-paper: #eee7d6;
+  --mpu-internal-dialog-paper-light: #f7f1e4;
+  --mpu-internal-dialog-paper-dark: #d7ceba;
+  --mpu-internal-dialog-text: #403a34;
+  --mpu-internal-dialog-muted: #6a6257;
+  --mpu-internal-dialog-link: #3d6680;
+  --mpu-internal-dialog-link-hover: #6b4f2e;
+  --mpu-internal-dialog-shadow: rgb(28 23 19 / 22%);
+  --mpu-internal-dialog-state-accent: transparent;
 }
 
 @supports (color: color-mix(in srgb, red, transparent)) {
@@ -208,8 +223,7 @@
    對話框圖片出現。掛在恆常渲染的 #mp_ukagaka 上讓這些小圖在頁面
    載入時就開始下載（LLM 回應抵達前早已完成）。 */
 #mp_ukagaka::after {
-  content: url("../images/msgbox_top.png") url("../images/msgbox_bg.png")
-    url("../images/msgbox_bottom.png") url("../images/think-bubble.svg")
+  content: url("../images/msgbox-frame.svg") url("../images/think-bubble.svg")
     url("../images/think-tail.svg");
   position: absolute;
   width: 0;
@@ -223,63 +237,145 @@
   transition: opacity var(--mpu-internal-duration-fast) ease;
 }
 
+/* Header: holds the character's name plate. Empty name -> the plate is hidden
+   and the header shrinks to a thin top margin. */
 .ukagaka-msgbox-top {
-  height: 51px;
-  background: transparent url("../images/msgbox_top.png") no-repeat scroll right 0;
+  display: flex;
+  align-items: flex-start;
   margin: 0;
-  padding: 0;
-  display: block;
-  line-height: 0;
-  font-size: 0;
+  padding: 6px 8px 0;
+  min-height: 4px;
+  box-sizing: border-box;
+
+  /* hard pixel shadow that follows the plate's stepped corners */
+  filter: drop-shadow(2px 2px 0 var(--mpu-internal-dialog-shadow));
 }
 
+.mpu-dialog-name {
+  display: block;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 2px 10px 3px;
+  overflow: hidden;
+  color: var(--mpu-internal-dialog-paper-light);
+  background: var(--mpu-internal-dialog-frame-dark);
+  box-shadow:
+    inset 0 0 0 1px var(--mpu-internal-dialog-accent),
+    inset 0 0 0 2px var(--mpu-internal-dialog-frame-dark);
+  clip-path: polygon(
+    2px 0,
+    calc(100% - 2px) 0,
+    calc(100% - 2px) 1px,
+    calc(100% - 1px) 1px,
+    calc(100% - 1px) 2px,
+    100% 2px,
+    100% calc(100% - 2px),
+    calc(100% - 1px) calc(100% - 2px),
+    calc(100% - 1px) calc(100% - 1px),
+    calc(100% - 2px) calc(100% - 1px),
+    calc(100% - 2px) 100%,
+    2px 100%,
+    2px calc(100% - 1px),
+    1px calc(100% - 1px),
+    1px calc(100% - 2px),
+    0 calc(100% - 2px),
+    0 2px,
+    1px 2px,
+    1px 1px,
+    2px 1px
+  );
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mpu-dialog-name:empty {
+  display: none;
+}
+
+/* The frame (stepped pixel corners, leather band, brass line, 5px hard shadow)
+   is a 9-slice SVG like the think bubble; the parchment is the background. The
+   right and bottom border widths include the 5px shadow. */
 #ukagaka_msgbox {
   position: absolute;
   font-family: var(--mpu-internal-font-family);
-  color: var(--mpu-internal-ink);
+  color: var(--mpu-internal-dialog-text);
   top: 50%;
-  left: -220px;
+  left: -240px; /* opaque parchment: keep clear of the character's arm (was -220px over a translucent box) */
   transform: translateY(-50%);
   width: 250px;
   min-height: 50px;
   max-height: 80vh;
   z-index: var(--mpu-internal-z-msgbox);
   box-sizing: border-box;
+  border-style: solid;
+  border-width: 8px 13px 13px 8px;
+  border-image-source: url("../images/msgbox-frame.svg");
+  border-image-slice: 8 13 13 8;
+  border-image-repeat: stretch;
+  background: var(--mpu-internal-dialog-paper);
+  background-clip: padding-box;
+
+  /* stream state: a thin accent line just inside the frame (transparent when idle) */
+  box-shadow: inset 0 0 0 2px var(--mpu-internal-dialog-state-accent);
   visibility: hidden; /* 初始隱藏，等人物載入完成後再顯示，避免定位錯誤 */
 }
 
+/* Footer: the OK (next / send) and Cancel (hide / leave chat) buttons. */
 .ukagaka-msgbox-border {
-  height: 54px;
-  background: transparent url("../images/msgbox_bottom.png") no-repeat scroll
-    right 0;
+  display: flex;
+  justify-content: center;
+  gap: 48px;
   margin: 0;
-  padding: 0;
-  display: block;
-  line-height: 0;
-  font-size: 0;
+  padding: 4px 0 7px;
 }
 
-#mp_ukagaka .ukagaka-msgbox-border a,
-#mp_ukagaka .ukagaka-msgbox-border a:link,
-#mp_ukagaka .ukagaka-msgbox-border a:visited,
-#mp_ukagaka .ukagaka-msgbox-border a:hover,
-#mp_ukagaka .ukagaka-msgbox-border a:focus,
-#mp_ukagaka .ukagaka-msgbox-border a:active {
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn,
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:link,
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:visited {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 22px;
+  box-sizing: border-box;
+  color: var(--mpu-internal-dialog-frame-dark);
+  background: var(--mpu-internal-dialog-paper-light);
+  border: 2px solid var(--mpu-internal-dialog-frame-mid);
+  border-radius: 0;
+  box-shadow: 2px 2px 0 var(--mpu-internal-dialog-shadow);
   outline: none;
-  border: none;
-  box-shadow: none;
+  text-decoration: none;
+  transition: background var(--mpu-internal-duration-fast) ease;
+}
+
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:hover {
+  color: var(--mpu-internal-dialog-frame-dark);
+  background: var(--mpu-internal-dialog-paper-dark);
+  border-color: var(--mpu-internal-dialog-frame-dark);
+  box-shadow: 2px 2px 0 var(--mpu-internal-dialog-shadow);
   text-decoration: none;
 }
 
-#mp_ukagaka .ukagaka-msgbox-border a img {
-  outline: none;
-  border: none;
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:active {
+  box-shadow: none;
+  transform: translate(1px, 1px);
+}
+
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+  shape-rendering: crispedges;
 }
 
 #ukagaka_msg {
-  background: transparent url("../images/msgbox_bg.png") repeat-y scroll right 0;
+  background: transparent;
   border: 0;
-  padding: 10px 15px;
+  padding: 6px 12px 8px;
   max-height: 400px; /* 超過 400px 時出現滾動條 */
   overflow: hidden auto;
   overscroll-behavior: contain;
@@ -287,30 +383,32 @@
   box-sizing: border-box;
   margin: 0;
   display: block;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
 
   /* 自訂滾動條樣式（Firefox） */
   scrollbar-width: thin;
-  scrollbar-color: var(--mpu-internal-scrollbar-thumb)
-    var(--mpu-internal-scrollbar-track);
+  scrollbar-color: var(--mpu-internal-dialog-frame-mid) var(--mpu-internal-dialog-paper-dark);
 }
 
-/* 自訂滾動條樣式（Chrome/Safari/Edge） */
+/* 自訂滾動條樣式（Chrome/Safari/Edge）：square pixel bar */
 #ukagaka_msg::-webkit-scrollbar {
-  width: var(--mpu-internal-scrollbar-size);
+  width: 8px;
 }
 
 #ukagaka_msg::-webkit-scrollbar-track {
-  background: var(--mpu-internal-scrollbar-track);
-  border-radius: var(--mpu-internal-scrollbar-radius);
+  background: var(--mpu-internal-dialog-paper-dark);
+  border-radius: 0;
 }
 
 #ukagaka_msg::-webkit-scrollbar-thumb {
-  background: var(--mpu-internal-scrollbar-thumb);
-  border-radius: var(--mpu-internal-scrollbar-radius);
+  background: var(--mpu-internal-dialog-frame-mid);
+  border: 2px solid var(--mpu-internal-dialog-paper-dark);
+  border-radius: 0;
 }
 
 #ukagaka_msg::-webkit-scrollbar-thumb:hover {
-  background: var(--mpu-internal-scrollbar-thumb-hover);
+  background: var(--mpu-internal-dialog-frame-dark);
 }
 
 #ukagaka_msgbox.chat-mode {
@@ -330,27 +428,6 @@
   height: 0;
   min-height: 200px;
   overflow: hidden auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--mpu-internal-scrollbar-thumb)
-    var(--mpu-internal-scrollbar-track);
-}
-
-#ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar {
-  width: var(--mpu-internal-scrollbar-size-chat);
-}
-
-#ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar-track {
-  background: var(--mpu-internal-scrollbar-track);
-  border-radius: var(--mpu-internal-scrollbar-radius-chat);
-}
-
-#ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar-thumb {
-  background: var(--mpu-internal-scrollbar-thumb);
-  border-radius: var(--mpu-internal-scrollbar-radius-chat);
-}
-
-#ukagaka_msgbox.chat-mode #ukagaka_msg::-webkit-scrollbar-thumb:hover {
-  background: var(--mpu-internal-scrollbar-thumb-hover);
 }
 
 #ukagaka_msgbox.chat-mode #ukagaka_chat_input {
@@ -358,13 +435,15 @@
 }
 
 #ukagaka_msg a {
-  color: var(--mpu-internal-link);
-  text-decoration: none;
+  color: var(--mpu-internal-dialog-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 
 #ukagaka_msg a:hover {
-  text-decoration: none;
-  color: var(--mpu-internal-link-hover);
+  text-decoration: underline;
+  color: var(--mpu-internal-dialog-link-hover);
 }
 
 #mp_ukagaka .mpu-sr-only {
@@ -487,17 +566,21 @@
   transform: var(--mpu-internal-dock-shift);
 }
 
-#mp_ukagaka #ukagaka-dock ul li a:focus-visible,
-#mp_ukagaka .ukagaka-msgbox-border a:focus-visible {
+#mp_ukagaka #ukagaka-dock ul li a:focus-visible {
   outline: 2px solid var(--mpu-internal-link);
   outline-offset: 2px;
 }
 
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:focus-visible {
+  outline: 2px solid var(--mpu-internal-dialog-frame-dark);
+  outline-offset: 2px;
+}
+
 #ukagaka_chat_input {
-  background: transparent url("../images/msgbox_bg.png") repeat-y scroll right 0;
-  padding: 8px 12px;
+  background: transparent;
+  padding: 6px 12px 4px;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   position: relative;
   width: 100%;
@@ -509,47 +592,53 @@
   min-width: 0;
   width: auto;
   box-sizing: border-box;
-  padding: 8px 12px;
-  border: 1px solid var(--mpu-internal-control-border);
-  border-radius: 16px;
+  height: 32px;
+  padding: 5px 8px;
+  border: 2px solid var(--mpu-internal-dialog-frame-mid);
+  border-radius: 0;
   font-size: 13px;
   font-family: var(--mpu-internal-font-family);
-  background: rgb(255 255 255 / 90%);
-  color: var(--mpu-internal-ink);
+  background: var(--mpu-internal-dialog-paper-light);
+  color: var(--mpu-internal-dialog-text);
   outline: none;
+  box-shadow: inset 2px 2px 0 var(--mpu-internal-dialog-paper-dark);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 #mpu_user_input:focus {
-  border-color: var(--mpu-internal-link);
-  box-shadow: 0 0 0 2px var(--mpu-internal-focus-ring);
+  border-color: var(--mpu-internal-dialog-frame-dark);
+  box-shadow:
+    inset 2px 2px 0 var(--mpu-internal-dialog-paper-dark),
+    0 0 0 1px var(--mpu-internal-dialog-accent);
 }
 
 #mpu_user_input::placeholder {
-  color: #9ca3af;
+  color: var(--mpu-internal-dialog-muted);
+  opacity: 1;
 }
 
 .mpu-gift-picker-button {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border: 1px solid var(--mpu-internal-control-border);
-  border-radius: 50%;
-  background: rgb(255 255 255 / 92%);
+  border: 2px solid var(--mpu-internal-dialog-frame-mid);
+  border-radius: 0;
+  background: var(--mpu-internal-dialog-paper-light);
+  box-shadow: 2px 2px 0 var(--mpu-internal-dialog-shadow);
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
   transition: background 0.16s ease, border-color 0.16s ease;
 }
 
 .mpu-gift-picker-button:hover:not(:disabled) {
-  border-color: var(--mpu-internal-control-border-strong);
-  background: rgb(219 234 254 / 98%);
+  border-color: var(--mpu-internal-dialog-frame-dark);
+  background: var(--mpu-internal-dialog-paper-dark);
 }
 
 .mpu-gift-picker-button:focus-visible {
-  outline: 2px solid var(--mpu-internal-link);
+  outline: 2px solid var(--mpu-internal-dialog-frame-dark);
   outline-offset: 2px;
 }
 
@@ -567,11 +656,15 @@
   display: block;
   width: auto;
   box-sizing: border-box;
-  padding: 10px;
-  border: 1px solid rgb(30 58 138 / 25%);
-  border-radius: 14px;
-  background: rgb(255 255 255 / 98%);
-  box-shadow: 0 8px 24px rgb(30 58 138 / 22%);
+  padding: 8px;
+  border: 2px solid var(--mpu-internal-dialog-frame-dark);
+  border-radius: 0;
+  background: var(--mpu-internal-dialog-paper);
+  box-shadow:
+    inset 0 0 0 1px var(--mpu-internal-dialog-accent),
+    inset 0 0 0 3px var(--mpu-internal-dialog-paper),
+    inset 0 0 0 4px var(--mpu-internal-dialog-paper-dark),
+    4px 4px 0 var(--mpu-internal-dialog-shadow);
 }
 
 .mpu-gift-picker[hidden] {
@@ -605,7 +698,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--mpu-internal-ink);
+  color: var(--mpu-internal-dialog-frame-mid);
   cursor: pointer;
   font-size: 28px;
   line-height: 1;
@@ -613,12 +706,12 @@
 
 .mpu-gift-picker-nav:hover:not(:disabled) {
   background: transparent;
-  color: var(--mpu-internal-ink);
+  color: var(--mpu-internal-dialog-frame-dark);
   transform: scale(1.12);
 }
 
 .mpu-gift-picker-nav:focus-visible {
-  outline: 2px dashed var(--mpu-internal-control-border-strong);
+  outline: 2px solid var(--mpu-internal-dialog-frame-dark);
   outline-offset: 2px;
 }
 
@@ -629,7 +722,7 @@
 
 .mpu-gift-picker-counter {
   margin-top: 2px;
-  color: #64748b;
+  color: var(--mpu-internal-dialog-muted);
   font-size: 11px;
   line-height: 1.2;
   text-align: center;
@@ -640,9 +733,9 @@
   min-width: 0;
   padding: 6px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 0;
   background: transparent;
-  color: var(--mpu-internal-ink);
+  color: var(--mpu-internal-dialog-text);
   cursor: pointer;
   font-family: var(--mpu-internal-font-family);
   transition: transform 0.16s ease;
@@ -651,15 +744,15 @@
 .mpu-gift-picker-item:hover {
   border: 0;
   background: transparent;
-  color: var(--mpu-internal-ink);
+  color: var(--mpu-internal-dialog-text);
   transform: scale(1.08);
   z-index: 1;
 }
 
 .mpu-gift-picker-item:focus-visible {
   background: transparent;
-  color: var(--mpu-internal-ink);
-  outline: 2px dashed var(--mpu-internal-control-border-strong);
+  color: var(--mpu-internal-dialog-text);
+  outline: 2px solid var(--mpu-internal-dialog-frame-dark);
   outline-offset: 2px;
 }
 
@@ -740,47 +833,56 @@
   }
 }
 
-/* ===== Stream State Badge (v2.18 #4：runtime 驗收工具) ===== */
+/* ===== Stream State Badge (v2.18 #4：runtime 驗收工具) =====
+   A square pixel label in the top-right of the parchment; each state also tints
+   the thin accent line inside the frame. Label colours keep 4.5:1 or better
+   against the light paper text. */
+#ukagaka_msgbox[data-mpu-stream-state] {
+  --mpu-internal-dialog-state-accent: var(--mpu-internal-dialog-frame-mid);
+}
+
+#ukagaka_msgbox[data-mpu-stream-state="thinking"] {
+  --mpu-internal-dialog-state-accent: #46606e;
+}
+
+#ukagaka_msgbox[data-mpu-stream-state="streaming"],
+#ukagaka_msgbox[data-mpu-stream-state="status"] {
+  --mpu-internal-dialog-state-accent: #3f6248;
+}
+
+#ukagaka_msgbox[data-mpu-stream-state="tool"] {
+  --mpu-internal-dialog-state-accent: #6a5224;
+}
+
+#ukagaka_msgbox[data-mpu-stream-state="error"] {
+  --mpu-internal-dialog-state-accent: #8a3a31;
+}
+
+#ukagaka_msgbox[data-mpu-stream-state="timeout"] {
+  --mpu-internal-dialog-state-accent: #76472a;
+}
+
+#ukagaka_msgbox[data-mpu-stream-state="busy"] {
+  --mpu-internal-dialog-state-accent: #7a561c;
+}
+
 .mpu-state-badge {
   position: absolute;
-  top: 15px;
-  right: 20px;
+  top: 6px;
+  right: 8px;
   z-index: var(--mpu-internal-z-bubble);
-  padding: 2px 8px;
+  padding: 1px 6px;
   font-size: 11px;
   font-weight: 600;
   line-height: 1.5;
-  color: #fff;
-  background: rgb(0 0 0 / 65%);
-  border-radius: 10px;
+  color: var(--mpu-internal-dialog-paper-light);
+  background: var(--mpu-internal-dialog-state-accent);
+  border: 1px solid var(--mpu-internal-dialog-frame-dark);
+  border-radius: 0;
+  box-shadow: 2px 2px 0 var(--mpu-internal-dialog-shadow);
   pointer-events: none;
   font-family: "Noto Sans TC", "Noto Sans JP", sans-serif;
   white-space: nowrap;
   letter-spacing: 0;
   user-select: none;
-}
-
-#ukagaka_msgbox[data-mpu-stream-state="thinking"] .mpu-state-badge {
-  background: rgb(30 58 138 / 85%);
-}
-
-#ukagaka_msgbox[data-mpu-stream-state="streaming"] .mpu-state-badge,
-#ukagaka_msgbox[data-mpu-stream-state="status"] .mpu-state-badge {
-  background: rgb(16 122 56 / 85%);
-}
-
-#ukagaka_msgbox[data-mpu-stream-state="tool"] .mpu-state-badge {
-  background: rgb(126 87 14 / 85%);
-}
-
-#ukagaka_msgbox[data-mpu-stream-state="error"] .mpu-state-badge {
-  background: rgb(176 32 32 / 85%);
-}
-
-#ukagaka_msgbox[data-mpu-stream-state="timeout"] .mpu-state-badge {
-  background: rgb(120 60 30 / 85%);
-}
-
-#ukagaka_msgbox[data-mpu-stream-state="busy"] .mpu-state-badge {
-  background: rgb(176 100 20 / 85%);
 }

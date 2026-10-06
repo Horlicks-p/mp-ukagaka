@@ -1552,6 +1552,11 @@ msgstr "…等一下，API 魔力不足"
 msgid "メッセージを入力..."
 msgstr "輸入訊息..."
 
+#. translators: aria-label of the dialog button that shows the next line (or sends in chat mode).
+#: includes/core/frontend-functions.php
+msgid "次へ"
+msgstr "下一則"
+
 #: includes/core/frontend-functions.php:993
 msgid "何か話したいことはありますか？"
 msgstr "有什麼想聊的嗎？"

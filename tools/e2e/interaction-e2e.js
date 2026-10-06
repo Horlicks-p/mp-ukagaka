@@ -345,7 +345,7 @@ scenario("sleep-ok-wake-resumes-autotalk", "browser", async (h) => {
 
   h.fake.queueReply("……起きた。WAKE_LINE_MARKER");
   const tClick = Date.now();
-  await page.click("#mpu_ok_btn img");
+  await page.click("#mpu_ok_btn");
   await page.waitForFunction(() => (window.mpuChatHistory || []).some((m) => m.type === "wake_reaction"), null, { timeout: 90000 });
   await h.typewriterIdle(page);
   const s1 = await h.state(page);
@@ -1219,8 +1219,8 @@ scenario("rapid-chat-send", "browser", async (h) => {
   h.fake.setDelay(2000);
   const mark = h.fake.chatRequests().length;
   await page.fill("#mpu_user_input", "double send");
-  await page.locator("#mpu_ok_btn img").dblclick();
-  await page.locator("#mpu_ok_btn img").click();
+  await page.locator("#mpu_ok_btn").dblclick();
+  await page.locator("#mpu_ok_btn").click();
   await h.waitChatIdle(page);
   const p = await h.probe(page);
   const posts = p.requests.filter((r) => r.url.includes("chat/user") || r.url.includes("chat%2Fuser"));
@@ -1268,7 +1268,7 @@ scenario("sleep-ok-wake-no-animation-stub", "browser (stubbed branch)", async (h
   assert((await h.state(page)).unawokenSleep, "precondition: site must be asleep");
   await page.evaluate(() => { window.mpuCanvasManager.hasWakeUpAnimation = () => false; });
   h.fake.queueReply("……起きた。NOANIM_WAKE_MARK");
-  await page.locator("#mpu_ok_btn img").dblclick();
+  await page.locator("#mpu_ok_btn").dblclick();
   await page.waitForFunction(() => (window.mpuChatHistory || []).some((m) => m.type === "wake_reaction"), null, { timeout: 90000 });
   await h.typewriterIdle(page);
   const s = await h.state(page);

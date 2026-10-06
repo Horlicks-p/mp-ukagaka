@@ -320,9 +320,10 @@ function mpu_html( $num = false ) {
 		return '';
 	}
 
-	$main_file  = defined( 'MPU_MAIN_FILE' ) ? MPU_MAIN_FILE : dirname( dirname( __DIR__ ) ) . '/mp-ukagaka.php';
-	$ok_png     = esc_url( plugins_url( 'images/ok_hover.png', $main_file ) );
-	$cancel_png = esc_url( plugins_url( 'images/cancel_hover.png', $main_file ) );
+	// Pixel icons for the dialog buttons (○ next / send, × hide / leave chat). The
+	// width/height attributes keep them small when the stylesheet is off (no_style).
+	$ok_icon     = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4 0h4v2H4zM2 2h2v2H2zM8 2h2v2H8zM0 4h2v4H0zM10 4h2v4h-2zM2 8h2v2H2zM8 8h2v2H8zM4 10h4v2H4z"/></svg>';
+	$cancel_icon = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path fill="currentColor" d="M0 0h2v2H0zM2 2h2v2H2zM4 4h4v4H4zM8 8h2v2H8zM10 10h2v2h-2zM10 0h2v2h-2zM8 2h2v2H8zM2 8h2v2H2zM0 10h2v2H0z"/></svg>';
 
 	$html = '';
 
@@ -338,7 +339,7 @@ function mpu_html( $num = false ) {
         <div id="ukagaka">
             <div id="ukagaka_think" class="mpu-think-bubble" hidden></div>
             <div id="ukagaka_msgbox"' . ( $initial_msg_is_system ? ' style="display:none;"' : '' ) . '>
-                <div class="ukagaka-msgbox-top"></div>
+                <div class="ukagaka-msgbox-top"><span class="mpu-dialog-name">' . esc_html( $ukagaka['name'] ?? '' ) . '</span></div>
                 <div id="ukagaka_msg" data-initial-msg="' .
 		esc_attr( $initial_message ) .
 		'"' . ( $initial_msg_is_system ? ' data-initial-msg-system="1"' : '' ) . '></div>
@@ -350,16 +351,8 @@ function mpu_html( $num = false ) {
 		esc_attr( $data_file ) .
 		'" data-load-external="true"></div>
                 <div class="ukagaka-msgbox-border">
-                    <a id="mpu_ok_btn" href="javascript:void(0);" alt="Next">
-                        <img style="margin-top:14px;margin-left:65px" src="' .
-		$ok_png .
-		'" width="28" height="28" />
-                    </a>
-                    <a id="mpu_cancel_btn" href="javascript:void(0);" alt="Cancel">
-                        <img style="float:right;margin-top:14px;margin-right:65px" src="' .
-		$cancel_png .
-		'" width="28" height="28" />
-                    </a>
+                    <a id="mpu_ok_btn" class="mpu-dialog-btn mpu-dialog-ok" href="javascript:void(0);" aria-label="' . esc_attr__( '次へ', 'mp-ukagaka' ) . '" title="' . esc_attr__( '次へ', 'mp-ukagaka' ) . '">' . $ok_icon . '</a>
+                    <a id="mpu_cancel_btn" class="mpu-dialog-btn mpu-dialog-cancel" href="javascript:void(0);" aria-label="' . esc_attr__( 'キャンセル', 'mp-ukagaka' ) . '" title="' . esc_attr__( 'キャンセル', 'mp-ukagaka' ) . '">' . $cancel_icon . '</a>
                 </div>
             </div>
             <div id="ukagaka_img"><canvas id="cur_ukagaka" data-title="' .
