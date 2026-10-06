@@ -15,23 +15,25 @@ import eyes
 _MASTER = None
 
 
-def _clean_chest_edge_noise(image):
-    """Drop twelve resampling outliers around the shared treasure chest.
+def _clean_edge_noise(image):
+    """Drop verified resampling outliers on the shared master's outline.
 
-    The large references have smooth edges at these four spots.  Direct
+    The large references have smooth edges at these spots.  Direct
     downsampling left small one- or two-cell protrusions in every SVG, so the
     shared master removes only those verified cells.
     """
     out = image.copy()
     cells = (
-        # Left upper edge.
+        # Treasure chest, left upper edge.
         (37, 177), (38, 177), (36, 178), (36, 179), (36, 182), (36, 189),
-        # Right upper edge.
+        # Treasure chest, right upper edge.
         (168, 164), (168, 165), (168, 166),
-        # Right middle edge.
+        # Treasure chest, right middle edge.
         (171, 180), (172, 180),
-        # Left lower corner.
+        # Treasure chest, left lower corner.
         (36, 233),
+        # Left tuft: two loose cells (a gap between them) outside the edge.
+        (63, 44), (63, 46),
     )
     for x, y in cells:
         out[y, x] = 0
@@ -75,6 +77,91 @@ def _restore_book_crown(image):
     return out
 
 
+def _restore_right_tuft_edge(image):
+    """Restore the right tuft's outer edge from book ref [1].
+
+    The approved touch-ups left that edge one or two cells thinner than the
+    source, with a bitten-off corner at (145, 40).  Each row takes the
+    palette-snapped conversion's outermost cells, three deep from the inner
+    of the two edges, so the hair interior keeps its approved shading.
+    """
+    out = image.copy()
+    donor = convert.convert(convert.ref_path("book", 1))
+    x0, x1 = 136, 160
+    for y in range(33, 67):
+        current = np.flatnonzero(out[y, x0:x1, 3] > 0)
+        reference = np.flatnonzero(donor[y, x0:x1, 3] > 0)
+        if not len(current) and not len(reference):
+            continue
+        current_right = x0 + int(current[-1]) if len(current) else x0 - 1
+        reference_right = x0 + int(reference[-1]) if len(reference) else x0 - 1
+        edge_left = max(x0, min(current_right, reference_right) - 2)
+        out[y, edge_left:x1] = donor[y, edge_left:x1]
+    return out
+
+
+def _mirror_left_shoulder(image):
+    """Give the left shoulder the right one's ochre trim.
+
+    On the right, the white cape meets the dark outline through an ochre
+    band; on the left the white ran straight into the outline, with stray
+    grey cells beside the clasp.  The source draws it that way too, but the
+    user asked for the two sides to match, so these rows take the right
+    shoulder mirrored.  Row by row the outline is symmetric about x = 103.5
+    here (left + right edge = 207).
+    """
+    out = image.copy()
+    for y in SHOULDER_ROWS:
+        for x in range(48, SHOULDER_X[1]):
+            out[y, x] = image[y, 207 - x]
+    return out
+
+
+SHOULDER_ROWS = range(133, 148)
+SHOULDER_X = (44, 67)
+
+
+def _left_edge(row, x0, x1):
+    """First cell of the left outline: the first opaque cell whose right
+    neighbour is opaque too, so a loose single cell does not count."""
+    for x in range(x0, x1 - 1):
+        if row[x, 3] and row[x + 1, 3]:
+            return x
+    return None
+
+
+def _is_cape_white(px):
+    r, g, b = (int(v) for v in px[:3])
+    return min(r, g, b) >= 0xcc and max(r, g, b) - min(r, g, b) <= 0x20
+
+
+def _trim_left_shoulder(image):
+    """Carry the master's left-shoulder trim into a frame that redraws it.
+
+    The book frames from [5] on lean while turning the page, so that
+    shoulder is converted from each frame's own reference and loses the
+    mirrored trim.  Mirroring there would copy the turning hand, so each row
+    instead takes the master's outline and ochre band (the cells from its
+    left edge up to the white cape) at the same offset from the frame's own
+    left edge; the trim follows the lean.  Loose cells left of that edge
+    are cleared.
+    """
+    master = M()
+    out = image.copy()
+    x0, x1 = SHOULDER_X
+    for y in SHOULDER_ROWS:
+        me = _left_edge(master[y], x0, x1)
+        fe = _left_edge(out[y], x0, x1)
+        if me is None or fe is None:
+            continue
+        out[y, x0:fe] = 0
+        k = 0
+        while me + k < x1 and not _is_cape_white(master[y, me + k]):
+            k += 1
+        out[y, fe:fe + k] = master[y, me:me + k]
+    return out
+
+
 def M():
     """The master with its outline cleaned of the white halo
     (convert.fix_outline), the hair of book ref [5], which draws the twin
@@ -88,7 +175,9 @@ def M():
         # that reference is the rest pose at the master's position.
         m = convert.adopt_hair(m, "idle", 1, dx=0, boxes=HAIR_TOUCHUPS)[0]
         m = _restore_book_crown(m)
-        m = _clean_chest_edge_noise(m)
+        m = _restore_right_tuft_edge(m)
+        m = _clean_edge_noise(m)
+        m = _mirror_left_shoulder(m)
         _MASTER = eyes.fix(m, "book", 1)[0]
     return _MASTER.copy()
 
@@ -217,6 +306,7 @@ def _book(n):
     out, converted = convert.frame("book", n, ("book", 1), M())
     if n <= 3:
         out = _clean_side_locks(out, (0, 0))
+    out = _trim_left_shoulder(out)
     return out, converted
 
 for _n in range(2, 12):
