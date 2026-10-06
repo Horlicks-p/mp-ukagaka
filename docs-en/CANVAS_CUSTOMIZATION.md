@@ -530,10 +530,10 @@ The values below are the defaults in `css/mpu_style.css`. Override them from you
 The dialog is drawn without raster images:
 
 - **Frame**: `images/msgbox-frame.svg`, a 9-slice `border-image` like the think bubble. It carries the stepped pixel corners, the dark edge, the brass band (light outside, dark inside), the 2px inner line, stepped corners inside and out, and the 3px hard shadow, which is why the border is wider on the right and bottom (`border-width: 10px 13px 13px 10px`).
-- **Parchment**: the element's own `background` at 82% opacity, clipped to the padding box, with a faint hexagram magic circle (`images/msgbox-hexagram.svg`) and two brass sparkles (`images/msgbox-sparkle.svg`).
+- **Parchment**: the element's own `background` at 82% opacity, clipped to the padding box, with two brass sparkles (`images/msgbox-sparkle.svg`). The hexagram magic circle (`images/msgbox-hexagram.svg`, black lines) is `#ukagaka_msgbox::before` in the bottom-right corner, with a dark purple `drop-shadow` glow (`--mpu-internal-dialog-glow`), turning once every 30s (`mpu-hexagram-spin`; stopped under `prefers-reduced-motion`).
 - **Name plate**: `.mpu-dialog-name` inside `.ukagaka-msgbox-top`, sitting on the frame's top line with its own 9-slice frame (`images/msgbox-nameplate.svg`), filled with the character's display name and updated on character switch. It is hidden when the name is empty.
 - **Buttons**: `#mpu_ok_btn` (○, next / send) and `#mpu_cancel_btn` (×, hide / leave chat) are `.mpu-dialog-btn` links with inline pixel SVG icons in `.ukagaka-msgbox-border`.
-- **Stream state**: `data-mpu-stream-state` on `#ukagaka_msgbox` tints a thin line inside the frame and the `.mpu-state-badge` label.
+- **Stream state**: `data-mpu-stream-state` on `#ukagaka_msgbox` tints a thin line inside the frame and the `.mpu-state-badge` label, which sits on the frame's top line at the right, mirroring the name plate, so it never covers the text.
 
 The colours are internal `--mpu-internal-dialog-*` custom properties, not a public theming API. To restyle the dialog, override the selectors above in your theme; the frame's colours are baked into the SVG, so recolouring the frame means replacing `border-image-source` on `#ukagaka_msgbox`.
 
