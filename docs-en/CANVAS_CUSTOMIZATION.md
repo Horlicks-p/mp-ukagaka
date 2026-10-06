@@ -529,7 +529,7 @@ The values below are the defaults in `css/mpu_style.css`. Override them from you
 
 The dialog is drawn without raster images:
 
-- **Frame**: `images/msgbox-frame.svg`, a 9-slice `border-image` like the think bubble. It carries the stepped pixel corners, the dark edge, the brass band (light outside, dark inside), the thin inner line and the 5px hard shadow, which is why the border is wider on the right and bottom (`border-width: 9px 14px 14px 9px`).
+- **Frame**: `images/msgbox-frame.svg`, a 9-slice `border-image` like the think bubble. It carries the stepped pixel corners, the dark edge, the brass band (light outside, dark inside), the 2px inner line, stepped corners inside and out, and the 5px hard shadow, which is why the border is wider on the right and bottom (`border-width: 10px 15px 15px 10px`).
 - **Parchment**: the element's own `background` at 82% opacity, clipped to the padding box, with a faint hexagram magic circle (`images/msgbox-hexagram.svg`) and two brass sparkles (`images/msgbox-sparkle.svg`).
 - **Name plate**: `.mpu-dialog-name` inside `.ukagaka-msgbox-top`, sitting on the frame's top line with its own 9-slice frame (`images/msgbox-nameplate.svg`), filled with the character's display name and updated on character switch. It is hidden when the name is empty.
 - **Buttons**: `#mpu_ok_btn` (○, next / send) and `#mpu_cancel_btn` (×, hide / leave chat) are `.mpu-dialog-btn` links with inline pixel SVG icons in `.ukagaka-msgbox-border`.
