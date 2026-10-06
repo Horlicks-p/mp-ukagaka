@@ -229,10 +229,16 @@
     padding-right: 1rem;
   }
   /* 9-slice pixel bubble, same geometry as images/think-bubble.svg in the plugin */
+  /* Holds the bubble at the height of its longest line (set by the script), with the
+     bubble at the bottom: a longer line grows the bubble upward instead of pushing
+     Frieren down. */
+  .bubble-slot {
+    align-self: stretch;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    margin-right: 7.5rem;
+  }
   .bubble {
     position: relative;
-    align-self: stretch;
-    margin-right: 7.5rem;
     min-height: 5.6rem;
     border-style: solid;
     border-width: 5px 14px 7px 13px;
@@ -574,7 +580,7 @@
     .cover-tag { margin-left: auto; margin-right: auto; }
     .badges, .seal-row { justify-content: center; }
     .stage { align-items: center; padding-right: 0; min-height: 0; max-width: 420px; margin: 0 auto; width: 100%; }
-    .bubble { margin-right: 0; }
+    .bubble-slot { margin-right: 0; }
     .ghost-col { margin-right: 0; }
     .bubble-tail { right: calc(50% - 40px); }
     .stage-note { align-self: center; }
@@ -660,9 +666,11 @@
     </div>
 
     <div class="stage" aria-label="フリーレンのデモ表示">
-      <div class="bubble" id="bubble">
-        <p class="bubble-text" id="bubble-text" aria-live="polite">千年以上生きた魔法使いだよ。</p>
-        <span class="bubble-tail" aria-hidden="true"></span>
+      <div class="bubble-slot" id="bubble-slot">
+        <div class="bubble" id="bubble">
+          <p class="bubble-text" id="bubble-text" aria-live="polite">千年以上生きた魔法使いだよ。</p>
+          <span class="bubble-tail" aria-hidden="true"></span>
+        </div>
       </div>
       <div class="ghost-col">
       <div class="ghost" id="ghost">
@@ -1090,6 +1098,36 @@
     var ghost = document.getElementById('ghost');
     var flip = document.getElementById('ghost-flip');
     if (!box || !out) return;
+
+    // Size the slot for the longest line at the current width, caret included
+    var slot = document.getElementById('bubble-slot');
+    function fitSlot() {
+      if (!slot) return;
+      var probe = box.cloneNode(true);
+      probe.removeAttribute('id');
+      probe.classList.remove('is-done');
+      probe.setAttribute('aria-hidden', 'true');
+      probe.style.cssText = 'position:absolute;visibility:hidden;left:0;top:0;width:' + box.offsetWidth + 'px';
+      var text = probe.querySelector('.bubble-text');
+      text.removeAttribute('id');
+      text.removeAttribute('aria-live');
+      slot.appendChild(probe);
+      var all = lines.concat(Object.keys(decoLines).map(function (k) { return decoLines[k]; }));
+      var max = 0;
+      all.forEach(function (t) {
+        text.textContent = t;
+        max = Math.max(max, probe.offsetHeight);
+      });
+      slot.removeChild(probe);
+      slot.style.minHeight = max + 'px';
+    }
+    fitSlot();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitSlot);
+    var fitTimer = null;
+    window.addEventListener('resize', function () {
+      clearTimeout(fitTimer);
+      fitTimer = setTimeout(fitSlot, 150);
+    });
 
     // Frames and per-frame durations come from the plugin's shell/Frieren/assets.json,
     // like frieren-animation.js. The page shows idle-00 until it loads; the book flip
