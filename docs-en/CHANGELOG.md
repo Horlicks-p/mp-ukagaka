@@ -4,6 +4,34 @@
 
 ---
 
+## [2.35.0] - 2026-10-06
+
+### The "Traveler's Grimoire" message box
+
+- **The message box is redrawn as a parchment pixel-art frame** that matches the SVG characters, for every character (there is no theme switch). The frame is a 9-slice `border-image` (`images/msgbox-frame.svg`) with stepped corners, a brass band, a light inner line and a 3px hard shadow; the parchment is the element's own background at 82% opacity, with a brass sparkle in two corners. The box sits 10px further from the character (`left: -230px`, was `-220px`) and 15px higher (`translateY(calc(-50% - 15px))`).
+- **A name plate on the frame's top line** (`.mpu-dialog-name`) shows the character's display name, escaped in PHP and updated by `mpuChange()`; it is hidden when the name is empty.
+- **OK and Cancel are two plates on the frame's bottom line**, made from the name plate's 9-slice (`images/msgbox-nameplate.svg`) and out of the flow, so the box has no button row: Cancel 20px from the left, OK 20px from the right, where a game controller puts confirm. The ids, classes and handlers (including the gift picker's capture on `#mpu_ok_btn`) are unchanged; the markup order is now Cancel, OK, so Tab follows the screen. The icons are inline pixel SVGs with `aria-label`s, and the new label `次へ` is translated (en: Next, zh_TW: 下一則). Hover turns the icon brass, and the focus outline is brass.
+- **The stream state label sits on the frame's top line at the right**, mirroring the name plate. Before, it sat inside the top right of the text area and covered the first line while thinking or streaming. `data-mpu-stream-state` also tints a thin line inside the frame.
+- **A hexagram magic circle turns in the bottom-right corner**, once every 30s while the box is shown (`#ukagaka_msgbox::before`); it stops under `prefers-reduced-motion`. It is a native 31px pixel-art SVG in the frame's light inner line colour, `#c9aa7c`, so text stays readable over it.
+- **Message text is justified.** CJK lines break between any two characters, so a ragged right edge left up to one character of extra space there (12px left, about 18px right); both margins are 12px now. The last line stays left-aligned.
+- **The chat input, gift button and picker, scrollbar and state label** use the same square, hard-shadow style. Body text contrast is 9.1:1, labels 5.9–6.9:1.
+- **Removed images**: `msgbox_top.png`, `msgbox_bg.png`, `msgbox_bottom.png`, `ok_hover.png` and `cancel_hover.png`. The preload list now names the new SVGs.
+
+If your theme restyles the message box, check it against the new structure in `CANVAS_CUSTOMIZATION.md`: the old PNG backgrounds are gone, the header holds the name plate, and the footer is positioned on the frame line. Sites using `no_style` see the new markup unstyled; the icons keep a 12px size from their `width`/`height`.
+
+### Frieren
+
+- **The right tuft's outer edge is whole again.** The earlier approved hair touch-ups bit a corner off its top and left the edge one or two pixels thinner than the source drawing; the edge comes from the source again.
+- **A loose speck outside the left tuft is gone.**
+- **The left shoulder has the same ochre trim as the right one.** The white cape ran straight into the dark outline there, with stray grey pixels by the clasp. In the page-turning frames, where she leans, the trim follows the lean.
+
+### Internal
+
+- `tools/frieren-svg/recipes.py` makes the three fixes part of the master build (`_restore_right_tuft_edge`, `_mirror_left_shoulder`, `_trim_left_shoulder`; `_clean_chest_edge_noise` is renamed `_clean_edge_noise`), so a rebuild keeps them. All 38 body SVGs were rebuilt; the changes stay inside those three areas.
+- Dialog custom properties are `--mpu-internal-dialog-*`, including `--mpu-internal-dialog-glow` for the magic circle.
+
+---
+
 ## [2.34.1] - 2026-10-05
 
 ### User-created characters

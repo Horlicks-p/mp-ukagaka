@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.34.1
+Stable tag: 2.35.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,16 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-06 =
+* v2.35.0
+* [CHANGE] The message box is redrawn as a parchment pixel-art frame, with the character's name on a plate along its top edge.
+* [CHANGE] OK and Cancel are small plates on the box's bottom edge: Cancel on the left, OK on the right.
+* [CHANGE] A faint magic circle turns slowly in the corner of the message box. It stays still if your system asks for reduced motion.
+* [FIX] The "thinking" and "responding" label no longer covers the first line of text.
+* [FIX] Japanese and Chinese text now has the same margin on both sides.
+* [FIX] Frieren: the top of her right hair tuft is no longer cut off, a stray dot beside her left tuft is gone, and her left shoulder has the same trim as her right.
+* [CHANGE] Removed the message box's old PNG images.
 
 = 2026-10-05 =
 * v2.34.1

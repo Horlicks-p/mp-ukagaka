@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.34.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.35.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -107,15 +107,15 @@ For detailed information, please refer to:
 - **[Abilities API](docs-en/ABILITIES_API.md)** - Tools the character can call, and adding new ones
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.34.1
+## 🎉 What's New in v2.35.0
+
+**A message box from a traveler's grimoire** (v2.35.0): The message box is redrawn as a pixel-art parchment page that matches the characters: a leather-and-brass frame, the character's name on a plate along the top, and OK and Cancel as two small plates on the bottom edge (Cancel on the left, OK on the right, like a game controller). A faint magic circle turns slowly in the corner and stays still if you ask your system for reduced motion. The "thinking" label no longer covers the first line of text, and Japanese and Chinese lines now keep the same margin on both sides. Frieren gets three small touch-ups too: the top of her right hair tuft is whole again, a stray dot beside her left tuft is gone, and her left shoulder now has the same trim as her right.
 
 **Your own characters stay your own** (v2.34.1): Two small issues are fixed. A character you created whose name happens to contain "Frieren" was mistaken for the built-in Frieren and showed up blank; only the built-in character is treated that way now. And a character folder that holds the same frame name in two formats, such as PNG and WebP, shows both frames again instead of one. Seven image files the plugin stopped using in earlier releases are also gone from the download.
 
 **Frieren, redrawn in SVG** (v2.34.0): Every frame of Frieren — idle, sleep, page-turning and waking — and all six of her decorations are now pixel-art SVG instead of PNG, so she stays crisp at any zoom or screen density. All her animations now play in a single image, which also gets rid of the faint ghost of the previous frame that the old animations sometimes left. Clicks are fairer too: touching her only counts where she is actually drawn, so a decoration peeking out from behind her is clickable again, and her touch zones no longer follow you to another character after you switch. Behind the scenes, the bundled scripts are checked against their sources on every change, so a release can no longer ship stale code.
 
-**Tidier status labels, and documentation that matches the plugin** (v2.33.3): The small label on the message box — thinking, error, busy — now goes away when you close chat, instead of lingering over her ordinary lines, and a new message clears the last error straight away. A request you left behind by closing chat no longer flashes a timeout label later on. `/help` only offers `/reset` and `/clear` to administrators, since they are the only ones it works for. Behind that, every page of the documentation was checked against the code: most importantly, the character guide now describes the image layout a ZIP upload actually reads, where following the old instructions installed a character with no images. The plugin also declares its license, GPLv2 or later, in its header.
-
-**Earlier releases**: chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: tidier status labels and documentation that matches the plugin (v2.33.3), chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
