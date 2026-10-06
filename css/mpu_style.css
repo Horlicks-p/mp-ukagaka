@@ -29,6 +29,7 @@
   --mpu-internal-dialog-frame-mid: #756554;
   --mpu-internal-dialog-accent: #b29a6e;
   --mpu-internal-dialog-paper: #eee7d6;
+  --mpu-internal-dialog-paper-translucent: rgb(238 231 214 / 70%);
   --mpu-internal-dialog-paper-light: #f7f1e4;
   --mpu-internal-dialog-paper-dark: #d7ceba;
   --mpu-internal-dialog-text: #403a34;
@@ -223,7 +224,9 @@
    對話框圖片出現。掛在恆常渲染的 #mp_ukagaka 上讓這些小圖在頁面
    載入時就開始下載（LLM 回應抵達前早已完成）。 */
 #mp_ukagaka::after {
-  content: url("../images/msgbox-frame.svg") url("../images/think-bubble.svg")
+  content: url("../images/msgbox-frame.svg") url("../images/msgbox-nameplate.svg")
+    url("../images/msgbox-compass.svg") url("../images/msgbox-sparkle.svg")
+    url("../images/think-bubble.svg")
     url("../images/think-tail.svg");
   position: absolute;
   width: 0;
@@ -237,56 +240,35 @@
   transition: opacity var(--mpu-internal-duration-fast) ease;
 }
 
-/* Header: holds the character's name plate. Empty name -> the plate is hidden
-   and the header shrinks to a thin top margin. */
+/* Header: the name plate sits on the frame's top line, like a book label. The
+   negative margin centres the 26px plate on the 8px top border. Empty name ->
+   the plate is hidden and the header keeps only a small gap. */
 .ukagaka-msgbox-top {
   display: flex;
   align-items: flex-start;
-  margin: 0;
-  padding: 6px 8px 0;
-  min-height: 4px;
+  margin: -17px 0 0;
+  padding: 0 10px;
+  min-height: 17px;
   box-sizing: border-box;
 
-  /* hard pixel shadow that follows the plate's stepped corners */
+  /* hard pixel shadow that follows the plate's notched corners */
   filter: drop-shadow(2px 2px 0 var(--mpu-internal-dialog-shadow));
 }
 
+/* Plate frame: 9-slice msgbox-nameplate.svg (dark edge, brass band, notched
+   corners); its centre slice is the plate's fill. */
 .mpu-dialog-name {
   display: block;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 2px 10px 3px;
+  padding: 0 7px;
   overflow: hidden;
   color: var(--mpu-internal-dialog-paper-light);
-  background: var(--mpu-internal-dialog-frame-dark);
-  box-shadow:
-    inset 0 0 0 1px var(--mpu-internal-dialog-accent),
-    inset 0 0 0 2px var(--mpu-internal-dialog-frame-dark);
-  clip-path: polygon(
-    2px 0,
-    calc(100% - 2px) 0,
-    calc(100% - 2px) 1px,
-    calc(100% - 1px) 1px,
-    calc(100% - 1px) 2px,
-    100% 2px,
-    100% calc(100% - 2px),
-    calc(100% - 1px) calc(100% - 2px),
-    calc(100% - 1px) calc(100% - 1px),
-    calc(100% - 2px) calc(100% - 1px),
-    calc(100% - 2px) 100%,
-    2px 100%,
-    2px calc(100% - 1px),
-    1px calc(100% - 1px),
-    1px calc(100% - 2px),
-    0 calc(100% - 2px),
-    0 2px,
-    1px 2px,
-    1px 1px,
-    2px 1px
-  );
+  border: 5px solid transparent;
+  border-image: url("../images/msgbox-nameplate.svg") 5 fill stretch;
   font-size: 12px;
   font-weight: 600;
-  line-height: 1.5;
+  line-height: 16px;
   letter-spacing: 0.08em;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -294,6 +276,11 @@
 
 .mpu-dialog-name:empty {
   display: none;
+}
+
+.ukagaka-msgbox-top:has(.mpu-dialog-name:empty) {
+  margin-top: 0;
+  min-height: 4px;
 }
 
 /* The frame (stepped pixel corners, leather band, brass line, 5px hard shadow)
@@ -316,7 +303,14 @@
   border-image-source: url("../images/msgbox-frame.svg");
   border-image-slice: 8 13 13 8;
   border-image-repeat: stretch;
-  background: var(--mpu-internal-dialog-paper);
+
+  /* Parchment at about the old box's opacity (~70%), with a faint compass rose
+     and two brass sparkles in the corners. */
+  background:
+    url("../images/msgbox-sparkle.svg") no-repeat right 4px top 4px,
+    url("../images/msgbox-sparkle.svg") no-repeat left 4px bottom 4px,
+    url("../images/msgbox-compass.svg") no-repeat right 6px bottom 6px,
+    var(--mpu-internal-dialog-paper-translucent);
   background-clip: padding-box;
 
   /* stream state: a thin accent line just inside the frame (transparent when idle) */
@@ -415,7 +409,10 @@
   display: flex;
   flex-direction: column;
   max-height: 70vh;
-  overflow: hidden;
+
+  /* visible, not hidden: the name plate sits on the frame line above the
+     padding box. #ukagaka_msg still scrolls on its own. */
+  overflow: visible;
 }
 
 #ukagaka_msgbox.chat-mode .ukagaka-msgbox-top,
