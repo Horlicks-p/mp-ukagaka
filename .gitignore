@@ -71,7 +71,7 @@ images/*
 !images/think-tail.svg
 !images/msgbox-frame.svg
 !images/msgbox-nameplate.svg
-!images/msgbox-compass.svg
+!images/msgbox-hexagram.svg
 !images/msgbox-sparkle.svg
 dialogs/
 .cursor-config.md

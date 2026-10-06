@@ -25,16 +25,16 @@
 
   /* "Traveler's Grimoire" dialog: parchment, worn leather, muted brass. Text and
      badge colours keep at least 4.5:1 against the paper they sit on. */
-  --mpu-internal-dialog-frame-dark: #40362f;
-  --mpu-internal-dialog-frame-mid: #756554;
-  --mpu-internal-dialog-accent: #b29a6e;
-  --mpu-internal-dialog-paper: #eee7d6;
-  --mpu-internal-dialog-paper-translucent: rgb(238 231 214 / 70%);
-  --mpu-internal-dialog-paper-light: #f7f1e4;
-  --mpu-internal-dialog-paper-dark: #d7ceba;
+  --mpu-internal-dialog-frame-dark: #3d2d20;
+  --mpu-internal-dialog-frame-mid: #8d6a44;
+  --mpu-internal-dialog-accent: #c69d63;
+  --mpu-internal-dialog-paper: #ecdabe;
+  --mpu-internal-dialog-paper-translucent: rgb(236 218 190 / 82%);
+  --mpu-internal-dialog-paper-light: #f5ead6;
+  --mpu-internal-dialog-paper-dark: #dcc7a4;
   --mpu-internal-dialog-text: #403a34;
-  --mpu-internal-dialog-muted: #6a6257;
-  --mpu-internal-dialog-link: #3d6680;
+  --mpu-internal-dialog-muted: #5f574d;
+  --mpu-internal-dialog-link: #335a72;
   --mpu-internal-dialog-link-hover: #6b4f2e;
   --mpu-internal-dialog-shadow: rgb(28 23 19 / 22%);
   --mpu-internal-dialog-state-accent: transparent;
@@ -225,7 +225,7 @@
    載入時就開始下載（LLM 回應抵達前早已完成）。 */
 #mp_ukagaka::after {
   content: url("../images/msgbox-frame.svg") url("../images/msgbox-nameplate.svg")
-    url("../images/msgbox-compass.svg") url("../images/msgbox-sparkle.svg")
+    url("../images/msgbox-hexagram.svg") url("../images/msgbox-sparkle.svg")
     url("../images/think-bubble.svg")
     url("../images/think-tail.svg");
   position: absolute;
@@ -241,14 +241,14 @@
 }
 
 /* Header: the name plate sits on the frame's top line, like a book label. The
-   negative margin centres the 26px plate on the 8px top border. Empty name ->
+   negative margin centres the 26px plate on the dark/brass band of the 9px top border. Empty name ->
    the plate is hidden and the header keeps only a small gap. */
 .ukagaka-msgbox-top {
   display: flex;
   align-items: flex-start;
-  margin: -17px 0 0;
+  margin: -19px 0 0;
   padding: 0 10px;
-  min-height: 17px;
+  min-height: 19px;
   box-sizing: border-box;
 
   /* hard pixel shadow that follows the plate's notched corners */
@@ -291,7 +291,7 @@
   font-family: var(--mpu-internal-font-family);
   color: var(--mpu-internal-dialog-text);
   top: 50%;
-  left: -240px; /* opaque parchment: keep clear of the character's arm (was -220px over a translucent box) */
+  left: -220px;
   transform: translateY(-50%);
   width: 250px;
   min-height: 50px;
@@ -299,17 +299,18 @@
   z-index: var(--mpu-internal-z-msgbox);
   box-sizing: border-box;
   border-style: solid;
-  border-width: 8px 13px 13px 8px;
+  border-width: 9px 14px 14px 9px;
   border-image-source: url("../images/msgbox-frame.svg");
-  border-image-slice: 8 13 13 8;
+  border-image-slice: 9 14 14 9;
   border-image-repeat: stretch;
 
-  /* Parchment at about the old box's opacity (~70%), with a faint compass rose
-     and two brass sparkles in the corners. */
+  /* Parchment, slightly translucent (82%; the frame's inner gap uses the same
+     colour and alpha), with a faint hexagram magic circle and two brass
+     sparkles in the corners. */
   background:
     url("../images/msgbox-sparkle.svg") no-repeat right 4px top 4px,
     url("../images/msgbox-sparkle.svg") no-repeat left 4px bottom 4px,
-    url("../images/msgbox-compass.svg") no-repeat right 6px bottom 6px,
+    url("../images/msgbox-hexagram.svg") no-repeat right 6px bottom 6px,
     var(--mpu-internal-dialog-paper-translucent);
   background-clip: padding-box;
 
@@ -835,7 +836,7 @@
    the thin accent line inside the frame. Label colours keep 4.5:1 or better
    against the light paper text. */
 #ukagaka_msgbox[data-mpu-stream-state] {
-  --mpu-internal-dialog-state-accent: var(--mpu-internal-dialog-frame-mid);
+  --mpu-internal-dialog-state-accent: var(--mpu-internal-dialog-frame-dark);
 }
 
 #ukagaka_msgbox[data-mpu-stream-state="thinking"] {
