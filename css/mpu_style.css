@@ -38,7 +38,7 @@
   --mpu-internal-dialog-link-hover: #6b4f2e;
   --mpu-internal-dialog-shadow: rgb(28 23 19 / 22%);
   --mpu-internal-dialog-state-accent: transparent;
-  --mpu-internal-dialog-glow: #5b2a86;
+  --mpu-internal-dialog-glow: #f5ead6;
 }
 
 @supports (color: color-mix(in srgb, red, transparent)) {
@@ -293,7 +293,7 @@
   color: var(--mpu-internal-dialog-text);
   top: 50%;
   left: -230px; /* 10px clear of the character */
-  transform: translateY(-50%);
+  transform: translateY(calc(-50% - 15px)); /* centred, then 15px up */
   width: 250px;
   min-height: 50px;
   max-height: 80vh;
@@ -319,20 +319,20 @@
   visibility: hidden; /* 初始隱藏，等人物載入完成後再顯示，避免定位錯誤 */
 }
 
-/* Hexagram magic circle in the bottom-right corner: black lines with a dark
-   purple glow, turning once every 30s while the box is shown. The box is a
-   stacking context, so z-index -1 puts it above the parchment and below the
-   text. The art is a circle, so the rotated square never reaches the frame. */
+/* Hexagram magic circle in the bottom-right corner, turning once every 30s
+   while the box is shown. Text runs over it, so its lines take the frame's
+   light inner line colour (#c9aa7c), with a soft light-paper glow. The box is a stacking
+   context, so z-index -1 puts it above the parchment and below the text. The
+   art is a circle, so the rotated square never reaches the frame. */
 #ukagaka_msgbox::before {
   content: "";
   position: absolute;
   right: 6px;
-  bottom: 6px;
-  width: 39px; /* the art's native size */
-  height: 39px;
+  bottom: 12px;
+  width: 31px; /* the art's native size */
+  height: 31px;
   z-index: -1;
   background: url("../images/msgbox-hexagram.svg") no-repeat center;
-  opacity: 0.6; /* faint, so it doesn't jump out when the box opens */
   filter:
     drop-shadow(0 0 1px var(--mpu-internal-dialog-glow))
     drop-shadow(0 0 2px var(--mpu-internal-dialog-glow));
@@ -346,44 +346,56 @@
   }
 }
 
-/* Footer: the OK (next / send) and Cancel (hide / leave chat) buttons. */
+/* Footer: the OK (next / send) and Cancel (hide / leave chat) buttons, as two
+   small plates on the frame's bottom line, mirroring the name plate on the top
+   line: Cancel at the left, clear of the corner sparkle, OK at the right,
+   where a game controller puts confirm.
+   Out of the flow, so the box has no button row; the plates reach 5px into
+   the padding box, which #ukagaka_msg and the chat input leave free. */
 .ukagaka-msgbox-border {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: -19px; /* 2px below the band's centre, as the name plate is above it */
   display: flex;
-  justify-content: center;
-  gap: 48px;
+  justify-content: space-between;
   margin: 0;
-  padding: 4px 0 7px;
+  padding: 0;
+
+  /* hard pixel shadow that follows the plates' notched corners */
+  filter: drop-shadow(2px 2px 0 var(--mpu-internal-dialog-shadow));
 }
 
+/* Plate frame: the name plate's 9-slice msgbox-nameplate.svg. */
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn,
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:link,
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:visited {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 22px;
+  width: 34px;
+  height: 24px;
   box-sizing: border-box;
-  color: var(--mpu-internal-dialog-frame-dark);
-  background: var(--mpu-internal-dialog-paper-light);
-  border: 2px solid var(--mpu-internal-dialog-frame-mid);
+  color: var(--mpu-internal-dialog-paper-light);
+  background: transparent;
+  border: 5px solid transparent;
+  border-image: url("../images/msgbox-nameplate.svg") 5 fill stretch;
   border-radius: 0;
-  box-shadow: 2px 2px 0 var(--mpu-internal-dialog-shadow);
+  box-shadow: none;
   outline: none;
   text-decoration: none;
-  transition: background var(--mpu-internal-duration-fast) ease;
+  transition: color var(--mpu-internal-duration-fast) ease;
 }
 
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:hover {
-  color: var(--mpu-internal-dialog-frame-dark);
-  background: var(--mpu-internal-dialog-paper-dark);
-  border-color: var(--mpu-internal-dialog-frame-dark);
-  box-shadow: 2px 2px 0 var(--mpu-internal-dialog-shadow);
+  color: var(--mpu-internal-dialog-accent);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
   text-decoration: none;
 }
 
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:active {
-  box-shadow: none;
   transform: translate(1px, 1px);
 }
 
@@ -397,7 +409,7 @@
 #ukagaka_msg {
   background: transparent;
   border: 0;
-  padding: 6px 12px 8px;
+  padding: 6px 12px 14px; /* bottom: clear of the button plates */
   max-height: 400px; /* 超過 400px 時出現滾動條 */
   overflow: hidden auto;
   overscroll-behavior: contain;
@@ -462,6 +474,7 @@
 
 #ukagaka_msgbox.chat-mode #ukagaka_chat_input {
   flex-shrink: 0;
+  padding-bottom: 12px; /* clear of the button plates */
 }
 
 #ukagaka_msg a {
@@ -601,9 +614,10 @@
   outline-offset: 2px;
 }
 
+/* brass, not dark: the plates sit on the dark frame line */
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:focus-visible {
-  outline: 2px solid var(--mpu-internal-dialog-frame-dark);
-  outline-offset: 2px;
+  outline: 2px solid var(--mpu-internal-dialog-accent);
+  outline-offset: 1px;
 }
 
 #ukagaka_chat_input {

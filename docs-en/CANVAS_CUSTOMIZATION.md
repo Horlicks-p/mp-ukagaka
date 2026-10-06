@@ -516,7 +516,7 @@ The values below are the defaults in `css/mpu_style.css`. Override them from you
     position: absolute;
     top: 50%;          /* Vertically center */
     left: -230px;      /* Offset 230px to the left (displays on the left of the character) */
-    transform: translateY(-50%); /* Vertical centering adjustment */
+    transform: translateY(calc(-50% - 15px)); /* Vertically centred, then 15px up */
     width: 250px;      /* Includes the frame and its 3px shadow */
 }
 ```
@@ -530,9 +530,9 @@ The values below are the defaults in `css/mpu_style.css`. Override them from you
 The dialog is drawn without raster images:
 
 - **Frame**: `images/msgbox-frame.svg`, a 9-slice `border-image` like the think bubble. It carries the stepped pixel corners, the dark edge, the brass band (light outside, dark inside), the 2px inner line, stepped corners inside and out, and the 3px hard shadow, which is why the border is wider on the right and bottom (`border-width: 10px 13px 13px 10px`).
-- **Parchment**: the element's own `background` at 82% opacity, clipped to the padding box, with two brass sparkles (`images/msgbox-sparkle.svg`). The hexagram magic circle (`images/msgbox-hexagram.svg`, black lines) is `#ukagaka_msgbox::before` in the bottom-right corner, with a dark purple `drop-shadow` glow (`--mpu-internal-dialog-glow`), turning once every 30s (`mpu-hexagram-spin`; stopped under `prefers-reduced-motion`).
+- **Parchment**: the element's own `background` at 82% opacity, clipped to the padding box, with two brass sparkles (`images/msgbox-sparkle.svg`). The hexagram magic circle (`images/msgbox-hexagram.svg`, 31px, lines in the frame's light inner line colour `#c9aa7c` so text stays readable over it) is `#ukagaka_msgbox::before` in the bottom-right corner, with a soft `drop-shadow` glow (`--mpu-internal-dialog-glow`), turning once every 30s (`mpu-hexagram-spin`; stopped under `prefers-reduced-motion`).
 - **Name plate**: `.mpu-dialog-name` inside `.ukagaka-msgbox-top`, sitting on the frame's top line with its own 9-slice frame (`images/msgbox-nameplate.svg`), filled with the character's display name and updated on character switch. It is hidden when the name is empty.
-- **Buttons**: `#mpu_ok_btn` (○, next / send) and `#mpu_cancel_btn` (×, hide / leave chat) are `.mpu-dialog-btn` links with inline pixel SVG icons in `.ukagaka-msgbox-border`.
+- **Buttons**: `#mpu_ok_btn` (○, next / send) and `#mpu_cancel_btn` (×, hide / leave chat) are `.mpu-dialog-btn` links with inline pixel SVG icons in `.ukagaka-msgbox-border`. They are two small plates (the name plate's `msgbox-nameplate.svg` 9-slice) on the frame's bottom line, out of the flow: Cancel 20px from the left (clear of the corner sparkle) and OK 20px from the right, where a game controller puts confirm; `#ukagaka_msg` and, in chat mode, `#ukagaka_chat_input` keep extra bottom padding so the plates never cover content.
 - **Stream state**: `data-mpu-stream-state` on `#ukagaka_msgbox` tints a thin line inside the frame and the `.mpu-state-badge` label, which sits on the frame's top line at the right, mirroring the name plate, so it never covers the text.
 
 The colours are internal `--mpu-internal-dialog-*` custom properties, not a public theming API. To restyle the dialog, override the selectors above in your theme; the frame's colours are baked into the SVG, so recolouring the frame means replacing `border-image-source` on `#ukagaka_msgbox`.
