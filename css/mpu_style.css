@@ -283,15 +283,15 @@
   min-height: 4px;
 }
 
-/* The frame (stepped pixel corners, leather band, brass line, 5px hard shadow)
+/* The frame (stepped pixel corners inside and out, brass band, inner line, 3px hard shadow)
    is a 9-slice SVG like the think bubble; the parchment is the background. The
-   right and bottom border widths include the 5px shadow. */
+   right and bottom border widths include the 3px shadow. */
 #ukagaka_msgbox {
   position: absolute;
   font-family: var(--mpu-internal-font-family);
   color: var(--mpu-internal-dialog-text);
   top: 50%;
-  left: -220px;
+  left: -230px; /* 10px clear of the character */
   transform: translateY(-50%);
   width: 250px;
   min-height: 50px;
@@ -299,9 +299,9 @@
   z-index: var(--mpu-internal-z-msgbox);
   box-sizing: border-box;
   border-style: solid;
-  border-width: 10px 15px 15px 10px;
+  border-width: 10px 13px 13px 10px;
   border-image-source: url("../images/msgbox-frame.svg");
-  border-image-slice: 10 15 15 10;
+  border-image-slice: 10 13 13 10;
   border-image-repeat: stretch;
 
   /* Parchment, slightly translucent (82%; the frame's inner gap uses the same
