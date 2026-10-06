@@ -293,7 +293,8 @@
     transition: opacity .2s ease, filter .2s ease;
   }
   .deco img { display: block; width: 100%; height: auto; }
-  .deco:hover, .deco:focus-visible { opacity: 1; filter: drop-shadow(0 0 4px rgba(123, 104, 174, .55)); }
+  /* .is-hot is set by the pixel hit test below: the button boxes overlap, so :hover would light the wrong one */
+  .deco.is-hot, .deco:focus-visible { opacity: 1; filter: drop-shadow(0 0 4px rgba(123, 104, 174, .55)); }
   .deco-suitcase   { top: 82%; right: -70px; width: 100px; z-index: 100; opacity: 1; }
   .deco-evil-horns { top: 37%; left: -60px;  width: 140px; z-index: 5; }
   .deco-dragon     { top: 80%; left: -80px;  width: 100px; z-index: 101; opacity: 1; }
@@ -665,14 +666,14 @@
       </div>
       <div class="ghost-col">
       <div class="ghost" id="ghost">
-        <img class="ghost-img idle" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/idle/frieren-idle-00.svg" width="190" height="281" alt="同梱キャラクター「フリーレン」">
-        <img class="ghost-img flip" id="ghost-flip" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/book/frieren-book-01.svg" width="190" height="281" alt="" aria-hidden="true">
-        <button type="button" class="deco deco-evil-horns" data-deco="evil_horns" aria-label="巨大な頭蓋骨"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/evil_horns.svg" width="140" height="155" alt=""></button>
-        <button type="button" class="deco deco-books" data-deco="books" aria-label="魔導書"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/books.svg" width="115" height="135" alt=""></button>
-        <button type="button" class="deco deco-potion" data-deco="potion" aria-label="服だけ溶かす薬"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/potion.svg" width="25" height="55" alt=""></button>
-        <button type="button" class="deco deco-staff" data-deco="staff" aria-label="魔法杖"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/staff.svg" width="110" height="200" alt=""></button>
-        <button type="button" class="deco deco-suitcase" data-deco="suitcase" aria-label="スーツケース"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/suitcase.svg" width="100" height="90" alt=""></button>
-        <button type="button" class="deco deco-dragon" data-deco="dark_dragon_horn" aria-label="暗黒竜の角"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/dark_dragon_horn.svg" width="100" height="80" alt=""></button>
+        <img class="ghost-img idle" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/idle/frieren-idle-00.svg" crossorigin="anonymous" width="190" height="281" alt="同梱キャラクター「フリーレン」">
+        <img class="ghost-img flip" id="ghost-flip" src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/shell/Frieren/book/frieren-book-01.svg" crossorigin="anonymous" width="190" height="281" alt="" aria-hidden="true">
+        <button type="button" class="deco deco-evil-horns" data-deco="evil_horns" aria-label="巨大な頭蓋骨"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/evil_horns.svg" crossorigin="anonymous" width="140" height="155" alt=""></button>
+        <button type="button" class="deco deco-books" data-deco="books" aria-label="魔導書"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/books.svg" crossorigin="anonymous" width="115" height="135" alt=""></button>
+        <button type="button" class="deco deco-potion" data-deco="potion" aria-label="服だけ溶かす薬"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/potion.svg" crossorigin="anonymous" width="25" height="55" alt=""></button>
+        <button type="button" class="deco deco-staff" data-deco="staff" aria-label="魔法杖"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/staff.svg" crossorigin="anonymous" width="110" height="200" alt=""></button>
+        <button type="button" class="deco deco-suitcase" data-deco="suitcase" aria-label="スーツケース"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/suitcase.svg" crossorigin="anonymous" width="100" height="90" alt=""></button>
+        <button type="button" class="deco deco-dragon" data-deco="dark_dragon_horn" aria-label="暗黒竜の角"><img src="https://raw.githubusercontent.com/Horlicks-p/mp-ukagaka/main/ghost/Frieren/decorations/dark_dragon_horn.svg" crossorigin="anonymous" width="100" height="80" alt=""></button>
       </div>
       <div class="dock" aria-hidden="true">
         <svg viewBox="0 0 45 45" stroke-linecap="round" stroke-linejoin="round"><circle cx="22.5" cy="22.5" r="19.9" fill="none" stroke="var(--dock-ring)" stroke-width="2.3"/><circle cx="22.5" cy="22.5" r="17.5" fill="none" stroke="var(--dock-halo)" stroke-width="1.8"/><circle cx="22.5" cy="22.5" r="14.35" fill="none" stroke="var(--dock-ring)" stroke-width="4.7"/><circle cx="22.5" cy="22.5" r="12.8" fill="var(--dock-disc)"/><path d="M22.5 19.4 27.8 24.1H17.2Z" fill="var(--dock-glyph)" stroke="var(--dock-glyph)" stroke-width="1.8"/></svg>
@@ -1180,11 +1181,61 @@
       if (reduce) { out.textContent = text; box.classList.add('is-done'); return; }
       type(text, function () { waitTimer = setTimeout(next, 6000); });
     }
-    document.querySelectorAll('.deco').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var t = decoLines[btn.getAttribute('data-deco')];
+    // The decoration buttons are rectangles that overlap (the staff's box covers most of
+    // the books and the potion), so a click or hover goes to the topmost decoration whose
+    // own pixel is opaque, like the plugin's pixel hit test. Where Frieren's body is
+    // opaque, decorations behind her do not take it.
+    var decos = [].slice.call(document.querySelectorAll('.deco'));
+    var bodyImg = ghost ? ghost.querySelector('.ghost-img.idle') : null;
+    var alphaCache = {};
+    function alphaAt(img, x, y) {
+      var r = img.getBoundingClientRect();
+      if (x < r.left || x >= r.right || y < r.top || y >= r.bottom) return 0;
+      if (!img.naturalWidth) return 255;
+      var key = img.currentSrc || img.src;
+      var hit = alphaCache[key];
+      if (!hit) {
+        var c = document.createElement('canvas');
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        var ctx = c.getContext('2d', { willReadFrequently: true });
+        var data = null;
+        try { ctx.drawImage(img, 0, 0); data = ctx.getImageData(0, 0, c.width, c.height).data; } catch (e) {}
+        hit = alphaCache[key] = { w: c.width, h: c.height, data: data };
+      }
+      if (!hit.data) return 255; // cannot read pixels: fall back to the box
+      var px = Math.floor((x - r.left) / r.width * hit.w);
+      var py = Math.floor((y - r.top) / r.height * hit.h);
+      return hit.data[(py * hit.w + px) * 4 + 3];
+    }
+    function zOf(el) { return parseInt(getComputedStyle(el).zIndex, 10) || 0; }
+    function decoAt(x, y) {
+      var bodyZ = bodyImg && alphaAt(bodyImg, x, y) > 127 ? zOf(bodyImg) : null;
+      var stack = document.elementsFromPoint(x, y);
+      for (var i = 0; i < stack.length; i++) {
+        var btn = stack[i].closest ? stack[i].closest('.deco') : null;
+        if (!btn || stack.indexOf(btn) !== i) continue;
+        if (bodyZ !== null && zOf(btn) < bodyZ) return null;
+        if (alphaAt(btn.querySelector('img'), x, y) > 10) return btn;
+      }
+      return null;
+    }
+    function setHot(hot) {
+      decos.forEach(function (d) { d.classList.toggle('is-hot', d === hot); });
+    }
+    decos.forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        // keyboard activation has no pointer position: use the focused button
+        var target = e.detail === 0 ? btn : decoAt(e.clientX, e.clientY);
+        if (!target) return;
+        var t = decoLines[target.getAttribute('data-deco')];
         if (t) say(t);
       });
+      btn.addEventListener('mousemove', function (e) {
+        var hot = decoAt(e.clientX, e.clientY);
+        setHot(hot);
+        btn.style.cursor = hot ? 'pointer' : 'default';
+      });
+      btn.addEventListener('mouseleave', function () { setHot(null); });
     });
 
     if (reduce) { box.classList.add('is-done'); return; }
