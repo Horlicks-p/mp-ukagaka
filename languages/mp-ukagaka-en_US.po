@@ -1674,6 +1674,11 @@ msgstr ""
 msgid "メッセージを入力..."
 msgstr ""
 
+#. translators: aria-label of the dialog button that shows the next line (or sends in chat mode).
+#: includes/core/frontend-functions.php
+msgid "次へ"
+msgstr "Next"
+
 #: includes/core/frontend-functions.php:287
 msgid "トップへ戻る ▼"
 msgstr ""

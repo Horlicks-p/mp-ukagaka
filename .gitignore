@@ -69,6 +69,10 @@ frieren_modelfile.txt
 images/*
 !images/think-bubble.svg
 !images/think-tail.svg
+!images/msgbox-frame.svg
+!images/msgbox-nameplate.svg
+!images/msgbox-hexagram.svg
+!images/msgbox-sparkle.svg
 dialogs/
 .cursor-config.md
 
