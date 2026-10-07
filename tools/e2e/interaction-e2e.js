@@ -1383,13 +1383,22 @@ scenario("dialog-theme-switch", "browser", async (h) => {
   const save = async (value) => {
     const admin = await h.newPage();
     await admin.goto(h.site.url + "/wp-admin/options-general.php?page=mp-ukagaka/options.php&cur_page=0", { waitUntil: "load", timeout: 120000 });
-    // Set the value even when it is not one of the options, to test the sanitizer.
-    await admin.evaluate((v) => {
-      const select = document.getElementById("dialog_theme");
-      if (![...select.options].some((o) => o.value === v)) select.add(new Option(v, v));
-      select.value = v;
-      select.form.noValidate = true;
-    }, value);
+    if (THEMES.includes(value)) {
+      // Choosing a theme swaps the preview beside the menu.
+      await admin.selectOption("#dialog_theme", value);
+      await admin.waitForFunction((v) => {
+        const img = document.getElementById("dialog_theme_preview");
+        return img.complete && img.naturalWidth > 0 && img.currentSrc.endsWith(`/previews/${v}.png`);
+      }, value, { timeout: 10000 });
+    } else {
+      // Post a value that is not one of the options, to test the sanitizer.
+      await admin.evaluate((v) => {
+        const select = document.getElementById("dialog_theme");
+        select.add(new Option(v, v));
+        select.value = v;
+      }, value);
+    }
+    await admin.evaluate(() => { document.getElementById("dialog_theme").form.noValidate = true; });
     await Promise.all([admin.waitForNavigation({ waitUntil: "load" }), admin.click('input[name="submit1"]')]);
     await admin.context().close();
   };

@@ -3793,3 +3793,7 @@ msgstr ""
 #: options/options_general.php
 msgid "只改變對話框的顏色，版面與操作不變。勾選「使用自訂樣式」時不套用內建配色（選擇仍會保留）。"
 msgstr ""
+
+#: options/options_general.php
+msgid "對話框配色預覽"
+msgstr ""

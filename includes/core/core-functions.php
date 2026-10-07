@@ -153,28 +153,24 @@ function mpu_get_option()
  *
  * The key is the value of `data-mpu-dialog-theme` and the folder name under
  * images/dialog-themes/ ("default" keeps the original images/msgbox-*.svg).
- * The swatches (frame, brass, paper, link) are for the settings page only;
- * keep them in step with the theme blocks in css/mpu_style.css.
+ * The settings page shows images/dialog-themes/previews/<slug>.png for each
+ * (tools/node/capture-dialog-theme-previews.js).
  *
- * @return array<string, array{label: string, swatches: string[]}>
+ * @return array<string, array{label: string}>
  */
 function mpu_get_dialog_themes(): array {
 	return array(
 		'default'  => array(
-			'label'    => __( '旅之魔導書（預設）', 'mp-ukagaka' ),
-			'swatches' => array( '#3d2d20', '#c69d63', '#ecdabe', '#224961' ),
+			'label' => __( '旅之魔導書（預設）', 'mp-ukagaka' ),
 		),
 		'sapphire' => array(
-			'label'    => __( '蒼藍魔導書', 'mp-ukagaka' ),
-			'swatches' => array( '#263643', '#8faebe', '#dfe6e4', '#254e68' ),
+			'label' => __( '蒼藍魔導書', 'mp-ukagaka' ),
 		),
 		'crimson'  => array(
-			'label'    => __( '深紅魔導書', 'mp-ukagaka' ),
-			'swatches' => array( '#472b29', '#b37868', '#ead9cf', '#64393f' ),
+			'label' => __( '深紅魔導書', 'mp-ukagaka' ),
 		),
 		'forest'   => array(
-			'label'    => __( '翠綠魔導書', 'mp-ukagaka' ),
-			'swatches' => array( '#29372f', '#91a478', '#e2e2ce', '#2e4e47' ),
+			'label' => __( '翠綠魔導書', 'mp-ukagaka' ),
 		),
 	);
 }

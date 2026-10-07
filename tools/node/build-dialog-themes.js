@@ -13,7 +13,8 @@
  * --check also confirms that every source colour has a mapping in every theme,
  * that a theme image differs from its source only in fill/stroke colours and
  * opacity, that no image carries scripts, raster data or external references,
- * and that css/mpu_style.css points each theme at its own four images.
+ * that css/mpu_style.css points each theme at its own four images, and that
+ * every theme has a settings-page preview.
  *
  * The theme colours were derived once from the default palette by role (dark
  * leather, brass, paper, inner line): each keeps its offset in OKLCH lightness,
@@ -165,6 +166,14 @@ function check(outputs) {
   for (const theme of Object.keys(PALETTES)) {
     const unused = Object.keys(PALETTES[theme]).filter((c) => !sourceColors.has(c));
     if (unused.length) errors.push(`${theme}: mapping for colours no source uses: ${unused.join(", ")}`);
+  }
+
+  // Settings-page previews (capture-dialog-theme-previews.js).
+  for (const theme of ["default", ...Object.keys(PALETTES)]) {
+    const preview = path.join(outRoot, "previews", theme + ".png");
+    if (!fs.existsSync(preview)) {
+      errors.push(`images/dialog-themes/previews/${theme}.png: missing (run capture-dialog-theme-previews.js)`);
+    }
   }
 
   const css = fs.readFileSync(cssFile, "utf8");

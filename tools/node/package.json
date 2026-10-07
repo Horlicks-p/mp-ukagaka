@@ -19,6 +19,7 @@
     "test:gift-transport": "cd ../.. && node tools/node/test-gift-transport-smoke.js",
     "test:frieren-shell": "cd ../.. && node tools/node/test-frieren-shell-smoke.js",
     "build:dialog-themes": "cd ../.. && node tools/node/build-dialog-themes.js",
+    "capture:dialog-themes": "cd ../.. && node tools/node/capture-dialog-theme-previews.js",
     "test:dialog-themes": "cd ../.. && node tools/node/build-dialog-themes.js --check",
     "test:interaction": "cd ../.. && node tools/e2e/interaction-e2e.js",
     "lint:css": "cd ../.. && stylelint css/mpu_style.css --config-basedir tools/node",
