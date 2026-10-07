@@ -4,6 +4,28 @@
 
 ---
 
+## [2.36.0] - 2026-10-07
+
+### Dialogue colour themes
+
+- **The grimoire message box comes in four colours.** Settings → General → Style Settings → **Dialogue color theme** (`dialog_theme`) picks Traveler's Grimoire (`default`), Sapphire (`sapphire`), Crimson (`crimson`) or Forest (`forest`). A theme changes colours and images only; size, position, buttons and behaviour are the same in every theme. The settings page shows a screenshot of the selected theme beside the menu.
+- **The theme is rendered server-side** as `data-mpu-dialog-theme` on `#mp_ukagaka`, so the page never flashes the default colours first, and only the selected theme's four images are downloaded. There is no change to the frontend JavaScript.
+- **One allowlist** decides the value everywhere: `mpu_get_dialog_themes()`, `mpu_get_dialog_theme_slugs()`, `mpu_sanitize_dialog_theme()` and `mpu_get_dialog_theme()`. Old installs without the setting, and any unknown value, render as `default`.
+- **The ▼ cursor's outline follows the theme.** It was hard-coded `#3d2d20`; it now has the class `mpu-dialog-ok-outline` and takes the theme's frame colour. The `fill` attribute stays as the `no_style` fallback.
+- With **Use custom styles** on, the built-in stylesheet is not loaded, so the theme has no effect; the choice is kept for when custom styles are turned off.
+
+### Default appearance
+
+- **Links are darker in every theme, including the default**, so they keep at least 4.5:1 against the 82% parchment even over a black page. Default links go from `#335a72` to `#224961` (4.6:1 over black, 7.4:1 over white) and hover from `#6b4f2e` to `#5b401f`. Nothing else in the default theme changes.
+
+### Internal
+
+- The theme SVGs in `images/dialog-themes/<theme>/` are generated from `images/msgbox-*.svg` by `tools/node/build-dialog-themes.js` through an explicit palette table; do not edit them by hand. `test:dialog-themes` (part of `verify`) fails on stale output, any geometry change, an unmapped colour, unsafe SVG content, a theme pointing at another theme's images, or a missing preview.
+- `npm --prefix tools/node run capture:dialog-themes` regenerates the settings-page previews in `images/dialog-themes/previews/`.
+- New PHPUnit test `DialogThemeTest` (sanitizer, old installs, reset, general-page save, and keeping the theme when the AI page is saved) and a `dialog-theme-switch` e2e scenario.
+
+---
+
 ## [2.35.1] - 2026-10-07
 
 ### Message box

@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.35.1
+Stable tag: 2.36.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,11 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-07 =
+* v2.36.0
+* [NEW] Dialogue color theme setting (Settings → General → Style Settings): Traveler's Grimoire (default), Sapphire, Crimson or Forest. Only colours change; layout and controls stay the same.
+* [CHANGE] Links in the message box are a little darker in every theme so they stay readable over dark pages.
 
 = 2026-10-07 =
 * v2.35.1
