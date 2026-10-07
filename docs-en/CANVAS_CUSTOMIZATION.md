@@ -515,9 +515,9 @@ The values below are the defaults in `css/mpu_style.css`. Override them from you
 #ukagaka_msgbox {
     position: absolute;
     top: 50%;          /* Vertically center */
-    left: -230px;      /* Offset 230px to the left (displays on the left of the character) */
+    left: -224px;      /* Offset 224px to the left (displays on the left of the character) */
     transform: translateY(calc(-50% - 15px)); /* Vertically centred, then 15px up */
-    width: 250px;      /* Includes the frame and its 3px shadow */
+    width: 244px;      /* 241px visible frame + its 3px shadow */
 }
 ```
 

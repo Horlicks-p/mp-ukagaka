@@ -292,9 +292,9 @@
   font-family: var(--mpu-internal-font-family);
   color: var(--mpu-internal-dialog-text);
   top: 50%;
-  left: -230px; /* 10px clear of the character */
+  left: -224px; /* right edge 10px clear of the character */
   transform: translateY(calc(-50% - 15px)); /* centred, then 15px up */
-  width: 250px;
+  width: 244px; /* 241px visible frame (as the old box) + 3px shadow */
   min-height: 50px;
   max-height: 80vh;
   z-index: var(--mpu-internal-z-msgbox);
@@ -328,7 +328,7 @@
   content: "";
   position: absolute;
   right: 6px;
-  bottom: 12px;
+  bottom: 8px; /* one-line box: (47px padding box - 31px) / 2, equal gaps above and below */
   width: 31px; /* the art's native size */
   height: 31px;
   z-index: -1;
