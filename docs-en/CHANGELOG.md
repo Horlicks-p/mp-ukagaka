@@ -4,6 +4,21 @@
 
 ---
 
+## [2.35.1] - 2026-10-07
+
+### Message box
+
+- **The box is as wide as the old one again.** The old PNG box was 250px wide but only 241px of it was visible; the grimoire frame drew 247px plus its shadow, so it looked wider. It is now 244px (a 241px frame and the 3px shadow), and `left` moves from `-230px` to `-224px` so the right edge stays 10px clear of the character.
+- **OK and Cancel are an RPG page cursor and a close mark.** The two plates on the bottom line stood out on the frame. OK (`#mpu_ok_btn`) is now a ▼ cursor across the bottom line that bobs like a game's "more text" cursor (it stays still under `prefers-reduced-motion`); Cancel (`#mpu_cancel_btn`) is a small × plate on the top line at the right, with the stream state label to its left. The cursor and the × share a centre line. IDs, classes, handlers and Tab order are unchanged; `.ukagaka-msgbox-border` is now `display: contents`.
+- **The hexagram is centred in a one-line box.** It sat closer to the top than the bottom, which showed most on Frieren's sleep line. Its bottom offset now follows the one-line height, so the gaps above and below match.
+- **English text is no longer justified.** Justification now applies only on Japanese and Chinese pages (`:lang(ja)`, `:lang(zh)`); in a box this narrow, justified English stretched the gaps between words.
+
+### Documentation
+
+- The 2.35.0 entry quoted contrast figures from an earlier palette; it now gives the shipped values (body text 8.2:1, state labels 5.6–6.5:1).
+
+---
+
 ## [2.35.0] - 2026-10-06
 
 ### The "Traveler's Grimoire" message box

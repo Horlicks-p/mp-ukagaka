@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.35.0
+Stable tag: 2.35.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,13 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-07 =
+* v2.35.1
+* [CHANGE] The message box is back to the old box's width.
+* [CHANGE] The OK button is now a small bobbing ▼ cursor on the box's bottom edge, and Cancel a small × on its top edge.
+* [FIX] The magic circle sits evenly between the top and bottom edges when the line is short.
+* [FIX] English lines are no longer stretched to fill the box.
 
 = 2026-10-06 =
 * v2.35.0
