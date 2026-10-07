@@ -3769,3 +3769,31 @@ msgstr ""
 #, php-format
 msgid "フリーレンのアニメーション序列を読み込めません：%s"
 msgstr ""
+
+#: options/options_general.php
+msgid "對話框配色"
+msgstr ""
+
+#: options/options_general.php
+msgid "旅之魔導書（預設）"
+msgstr ""
+
+#: options/options_general.php
+msgid "蒼藍魔導書"
+msgstr ""
+
+#: options/options_general.php
+msgid "深紅魔導書"
+msgstr ""
+
+#: options/options_general.php
+msgid "翠綠魔導書"
+msgstr ""
+
+#: options/options_general.php
+msgid "只改變對話框的顏色，版面與操作不變。勾選「使用自訂樣式」時不套用內建配色（選擇仍會保留）。"
+msgstr ""
+
+#: options/options_general.php
+msgid "對話框配色預覽"
+msgstr ""

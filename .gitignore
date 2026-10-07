@@ -73,6 +73,7 @@ images/*
 !images/msgbox-nameplate.svg
 !images/msgbox-hexagram.svg
 !images/msgbox-sparkle.svg
+!images/dialog-themes/
 dialogs/
 .cursor-config.md
 

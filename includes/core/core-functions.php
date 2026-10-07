@@ -27,6 +27,7 @@ function mpu_default_opt()
         "click_ukagaka" => 0,
         "no_style" => false,
         "custom_style_link" => "",
+		'dialog_theme' => 'default',
         "insert_html" => 0,
         "auto_msg" => "",
         "common_msg" => "",
@@ -145,6 +146,69 @@ function mpu_get_option()
     }
 
     return $mpu_opt;
+}
+
+/**
+ * Dialogue colour themes, in the order the settings page lists them.
+ *
+ * The key is the value of `data-mpu-dialog-theme` and the folder name under
+ * images/dialog-themes/ ("default" keeps the original images/msgbox-*.svg).
+ * The settings page shows images/dialog-themes/previews/<slug>.png for each
+ * (tools/node/capture-dialog-theme-previews.js).
+ *
+ * @return array<string, array{label: string}>
+ */
+function mpu_get_dialog_themes(): array {
+	return array(
+		'default'  => array(
+			'label' => __( '旅之魔導書（預設）', 'mp-ukagaka' ),
+		),
+		'sapphire' => array(
+			'label' => __( '蒼藍魔導書', 'mp-ukagaka' ),
+		),
+		'crimson'  => array(
+			'label' => __( '深紅魔導書', 'mp-ukagaka' ),
+		),
+		'forest'   => array(
+			'label' => __( '翠綠魔導書', 'mp-ukagaka' ),
+		),
+	);
+}
+
+/**
+ * Dialogue colour theme slugs.
+ *
+ * @return string[]
+ */
+function mpu_get_dialog_theme_slugs(): array {
+	return array_keys( mpu_get_dialog_themes() );
+}
+
+/**
+ * Reduce any value to a known dialogue theme slug, falling back to "default".
+ *
+ * @param mixed $value Raw value (option or posted form field).
+ * @return string
+ */
+function mpu_sanitize_dialog_theme( $value ): string {
+	$value = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+
+	return in_array( $value, mpu_get_dialog_theme_slugs(), true ) ? $value : 'default';
+}
+
+/**
+ * The dialogue theme to render. A per-character override, if one is ever
+ * added, belongs in a second parameter so $options keeps its meaning.
+ *
+ * @param array|null $options Plugin options; read from the database when null.
+ * @return string
+ */
+function mpu_get_dialog_theme( ?array $options = null ): string {
+	if ( null === $options ) {
+		$options = mpu_get_option();
+	}
+
+	return mpu_sanitize_dialog_theme( $options['dialog_theme'] ?? 'default' );
 }
 
 /**

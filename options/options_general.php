@@ -161,6 +161,26 @@
         <!-- 樣式設定 -->
         <div class="mpu-settings-card">
             <h4><?php _e('🎨 樣式設定', 'mp-ukagaka'); ?></h4>
+			<?php
+			$mpu_current_theme = mpu_get_dialog_theme( $mpu_opt );
+			$mpu_main_file     = defined( 'MPU_MAIN_FILE' ) ? MPU_MAIN_FILE : dirname( __DIR__ ) . '/mp-ukagaka.php';
+			$mpu_theme_preview = static function ( $slug ) use ( $mpu_main_file ) {
+				return plugins_url( 'images/dialog-themes/previews/' . $slug . '.png', $mpu_main_file );
+			};
+			$mpu_themes        = mpu_get_dialog_themes();
+			?>
+			<div class="mpu-field-group" style="display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: flex-start;">
+				<div style="flex: 1 1 220px; min-width: 0;">
+					<label for="dialog_theme"><?php esc_html_e( '對話框配色', 'mp-ukagaka' ); ?></label>
+					<select id="dialog_theme" name="dialog_theme">
+						<?php foreach ( $mpu_themes as $mpu_slug => $mpu_theme ) : ?>
+							<option value="<?php echo esc_attr( $mpu_slug ); ?>" data-preview="<?php echo esc_url( $mpu_theme_preview( $mpu_slug ) ); ?>" <?php selected( $mpu_current_theme, $mpu_slug ); ?>><?php echo esc_html( $mpu_theme['label'] ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<small><?php esc_html_e( '只改變對話框的顏色，版面與操作不變。勾選「使用自訂樣式」時不套用內建配色（選擇仍會保留）。', 'mp-ukagaka' ); ?></small>
+				</div>
+				<img id="dialog_theme_preview" src="<?php echo esc_url( $mpu_theme_preview( $mpu_current_theme ) ); ?>" width="452" height="312" alt="<?php esc_attr_e( '對話框配色預覽', 'mp-ukagaka' ); ?>" style="flex: 0 1 452px; max-width: 100%; height: auto; border: 1px solid #dcdcde; border-radius: 4px; background: #fff;" />
+			</div>
             <div class="mpu-field-group">
                 <label><input type="checkbox" id="no_style" name="no_style" value="true" <?php if ($mpu_opt['no_style']) {
                                                                                                 echo ' checked="checked"';
@@ -175,6 +195,9 @@
         </div>
         <script>
         jQuery(document).ready(function($) {
+			$('#dialog_theme').on('change', function() {
+				$('#dialog_theme_preview').attr('src', $(this).find('option:selected').data('preview'));
+			});
             $('#no_style').on('change', function() {
                 if ($(this).is(':checked')) {
                     $('#custom_style_link_container').slideDown(200);
