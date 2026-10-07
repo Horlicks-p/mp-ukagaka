@@ -386,7 +386,7 @@
 }
 
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-ok {
-  right: 13px; /* under the hexagram's centre */
+  right: 9px; /* cursor centred under the × icon: both at 19px from the right */
   bottom: -15px; /* centred on the bottom band */
   width: 20px; /* hit area larger than the 12x7 cursor */
   height: 16px;
@@ -445,11 +445,6 @@
   line-height: 1.65;
   letter-spacing: 0.01em;
 
-  /* CJK lines break between any two characters, so a ragged right edge leaves
-     up to one character of extra space there; justify spreads it out so the
-     right margin matches the left. */
-  text-align: justify;
-
   /* 自訂滾動條樣式（Firefox） */
   scrollbar-width: thin;
   scrollbar-color: var(--mpu-internal-dialog-frame-mid) var(--mpu-internal-dialog-paper-dark);
@@ -473,6 +468,15 @@
 
 #ukagaka_msg::-webkit-scrollbar-thumb:hover {
   background: var(--mpu-internal-dialog-frame-dark);
+}
+
+/* CJK lines break between any two characters, so a ragged right edge leaves
+   up to one character of extra space there; justify spreads it out so the
+   right margin matches the left. Only for Japanese / Chinese pages: in a box
+   this narrow, justified Latin text stretches the gaps between words. */
+#ukagaka_msg:lang(ja),
+#ukagaka_msg:lang(zh) {
+  text-align: justify;
 }
 
 #ukagaka_msgbox.chat-mode {
