@@ -19,6 +19,17 @@ function mpuSyncOkButtonLabel() {
 }
 
 /**
+ * 清除主對話框的串流狀態：屬性、標籤，以及名牌讓位用的標籤寬度。
+ */
+function mpuClearStreamBadge() {
+  const msgbox = document.getElementById("ukagaka_msgbox");
+  if (!msgbox) return;
+  msgbox.removeAttribute("data-mpu-stream-state");
+  msgbox.style.removeProperty("--mpu-internal-dialog-badge-width");
+  jQuery(msgbox).children(".mpu-state-badge").remove();
+}
+
+/**
  * 切換對話模式
  * @param {boolean} enable - 是否啟用對話模式
  */
@@ -27,8 +38,7 @@ function mpu_toggleChatMode(enable) {
   const $chatInput = jQuery("#ukagaka_chat_input");
   const $input = jQuery("#mpu_user_input");
 
-  $msgbox.removeAttr("data-mpu-stream-state");
-  $msgbox.children(".mpu-state-badge").remove();
+  mpuClearStreamBadge();
 
   if (typeof enable === "undefined") {
     enable = !window.mpuChatModeActive;

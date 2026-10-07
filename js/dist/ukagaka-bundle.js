@@ -4943,6 +4943,17 @@ function mpuSyncOkButtonLabel() {
 }
 
 /**
+ * 清除主對話框的串流狀態：屬性、標籤，以及名牌讓位用的標籤寬度。
+ */
+function mpuClearStreamBadge() {
+  const msgbox = document.getElementById("ukagaka_msgbox");
+  if (!msgbox) return;
+  msgbox.removeAttribute("data-mpu-stream-state");
+  msgbox.style.removeProperty("--mpu-internal-dialog-badge-width");
+  jQuery(msgbox).children(".mpu-state-badge").remove();
+}
+
+/**
  * 切換對話模式
  * @param {boolean} enable - 是否啟用對話模式
  */
@@ -4951,8 +4962,7 @@ function mpu_toggleChatMode(enable) {
   const $chatInput = jQuery("#ukagaka_chat_input");
   const $input = jQuery("#mpu_user_input");
 
-  $msgbox.removeAttr("data-mpu-stream-state");
-  $msgbox.children(".mpu-state-badge").remove();
+  mpuClearStreamBadge();
 
   if (typeof enable === "undefined") {
     enable = !window.mpuChatModeActive;
@@ -5376,8 +5386,7 @@ function mpu_sendUserMessage() {
   }
 
   // Accepted input replaces the previous status, including local commands.
-  jQuery("#ukagaka_msgbox").removeAttr("data-mpu-stream-state")
-    .children(".mpu-state-badge").remove();
+  mpuClearStreamBadge();
 
   // 指令攔截：/reset 或 /clear 清除對話歷史（僅管理員）
   if (message === "/reset" || message === "/clear") {
@@ -5565,9 +5574,7 @@ function mpu_sendUserMessage() {
     }
 
     function clearStreamState() {
-      $msgbox[0].style.removeProperty("--mpu-internal-dialog-badge-width");
-      $msgbox.removeAttr("data-mpu-stream-state");
-      $msgbox.children(".mpu-state-badge").remove();
+      mpuClearStreamBadge();
     }
 
     function clearStreamWatchdog() {
