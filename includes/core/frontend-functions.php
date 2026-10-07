@@ -323,8 +323,9 @@ function mpu_html( $num = false ) {
 	// Pixel icons for the dialog buttons: an RPG page cursor (▼, next / send) and a
 	// close mark (×, hide / leave chat). The width/height attributes keep them
 	// small when the stylesheet is off (no_style). The cursor's fill is
-	// currentColor so hover can recolour it; its outline stays dark.
-	$ok_icon     = '<svg width="12" height="7" viewBox="0 0 12 7" aria-hidden="true" focusable="false"><path fill="#3d2d20" d="M0 0h12v1H0zM0 1h1v1H0zM11 1h1v1h-1zM1 2h1v1H1zM10 2h1v1h-1zM2 3h1v1H2zM9 3h1v1H9zM3 4h1v1H3zM8 4h1v1H8zM4 5h1v1H4zM7 5h1v1H7zM5 6h2v1H5z"/><path fill="currentColor" d="M1 1h10v1H1zM2 2h8v1H2zM3 3h6v1H3zM4 4h4v1H4zM5 5h2v1H5z"/></svg>';
+	// currentColor so hover can recolour it; the stylesheet sets the outline from
+	// the dialogue theme (the fill attribute is the no_style fallback).
+	$ok_icon     = '<svg width="12" height="7" viewBox="0 0 12 7" aria-hidden="true" focusable="false"><path class="mpu-dialog-ok-outline" fill="#3d2d20" d="M0 0h12v1H0zM0 1h1v1H0zM11 1h1v1h-1zM1 2h1v1H1zM10 2h1v1h-1zM2 3h1v1H2zM9 3h1v1H9zM3 4h1v1H3zM8 4h1v1H8zM4 5h1v1H4zM7 5h1v1H7zM5 6h2v1H5z"/><path fill="currentColor" d="M1 1h10v1H1zM2 2h8v1H2zM3 3h6v1H3zM4 4h4v1H4zM5 5h2v1H5z"/></svg>';
 	$cancel_icon = '<svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true" focusable="false"><path fill="currentColor" d="M0 0h2v1h-2zM6 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM3 3h2v1h-2zM3 4h2v1h-2zM2 5h4v1h-4zM1 6h2v1h-2zM5 6h2v1h-2zM0 7h2v1h-2zM6 7h2v1h-2z"/></svg>';
 
 	$html = '';
@@ -336,7 +337,7 @@ function mpu_html( $num = false ) {
 
 	$html .=
 		'
-<div id="mp_ukagaka">
+<div id="mp_ukagaka" data-mpu-dialog-theme="' . esc_attr( mpu_get_dialog_theme( $mpu_opt ) ) . '">
     <div id="ukagaka_shell">
         <div id="ukagaka">
             <div id="ukagaka_think" class="mpu-think-bubble" hidden></div>

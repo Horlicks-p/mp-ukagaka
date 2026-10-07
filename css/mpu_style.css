@@ -23,8 +23,10 @@
   --mpu-internal-z-bubble: 10002;
   --mpu-internal-z-picker: 10030;
 
-  /* "Traveler's Grimoire" dialog: parchment, worn leather, muted brass. Text and
-     badge colours keep at least 4.5:1 against the paper they sit on. */
+  /* Dialogue colour theme "default" (Traveler's Grimoire): parchment, worn
+     leather, muted brass. Text, link and badge colours keep at least 4.5:1
+     against the 82% paper even over a black page. The other themes below
+     override only these colours and image URLs, never layout. */
   --mpu-internal-dialog-frame-dark: #3d2d20;
   --mpu-internal-dialog-frame-mid: #8d6a44;
   --mpu-internal-dialog-accent: #c69d63;
@@ -34,11 +36,82 @@
   --mpu-internal-dialog-paper-dark: #dcc7a4;
   --mpu-internal-dialog-text: #403a34;
   --mpu-internal-dialog-muted: #5f574d;
-  --mpu-internal-dialog-link: #335a72;
-  --mpu-internal-dialog-link-hover: #6b4f2e;
+  --mpu-internal-dialog-link: #224961;
+  --mpu-internal-dialog-link-hover: #5b401f;
   --mpu-internal-dialog-shadow: rgb(28 23 19 / 22%);
   --mpu-internal-dialog-state-accent: transparent;
   --mpu-internal-dialog-glow: #f5ead6;
+
+  /* Theme images. The colours live inside the SVGs, so each theme has its own
+     set, recoloured from these by tools/node/build-dialog-themes.js. */
+  --mpu-internal-dialog-frame-image: url("../images/msgbox-frame.svg");
+  --mpu-internal-dialog-nameplate-image: url("../images/msgbox-nameplate.svg");
+  --mpu-internal-dialog-sparkle-image: url("../images/msgbox-sparkle.svg");
+  --mpu-internal-dialog-hexagram-image: url("../images/msgbox-hexagram.svg");
+}
+
+/* Sapphire Grimoire: blue-grey leather, silver-blue metal, cold parchment. */
+#mp_ukagaka[data-mpu-dialog-theme="sapphire"] {
+  --mpu-internal-dialog-frame-dark: #263643;
+  --mpu-internal-dialog-frame-mid: #536f82;
+  --mpu-internal-dialog-accent: #8faebe;
+  --mpu-internal-dialog-paper: #dfe6e4;
+  --mpu-internal-dialog-paper-translucent: rgb(223 230 228 / 82%);
+  --mpu-internal-dialog-paper-light: #edf2ef;
+  --mpu-internal-dialog-paper-dark: #becdce;
+  --mpu-internal-dialog-text: #29363c;
+  --mpu-internal-dialog-muted: #52636b;
+  --mpu-internal-dialog-link: #254e68;
+  --mpu-internal-dialog-link-hover: #4a3a5c;
+  --mpu-internal-dialog-shadow: rgb(20 29 35 / 22%);
+  --mpu-internal-dialog-glow: #edf5f5;
+  --mpu-internal-dialog-frame-image: url("../images/dialog-themes/sapphire/frame.svg");
+  --mpu-internal-dialog-nameplate-image: url("../images/dialog-themes/sapphire/nameplate.svg");
+  --mpu-internal-dialog-sparkle-image: url("../images/dialog-themes/sapphire/sparkle.svg");
+  --mpu-internal-dialog-hexagram-image: url("../images/dialog-themes/sapphire/hexagram.svg");
+}
+
+/* Crimson Grimoire: old red leather, copper, rose parchment. Muted enough
+   that the normal box never reads as the error state. */
+#mp_ukagaka[data-mpu-dialog-theme="crimson"] {
+  --mpu-internal-dialog-frame-dark: #472b29;
+  --mpu-internal-dialog-frame-mid: #7a4b45;
+  --mpu-internal-dialog-accent: #b37868;
+  --mpu-internal-dialog-paper: #ead9cf;
+  --mpu-internal-dialog-paper-translucent: rgb(234 217 207 / 82%);
+  --mpu-internal-dialog-paper-light: #f4e7de;
+  --mpu-internal-dialog-paper-dark: #ceb6a9;
+  --mpu-internal-dialog-text: #40302d;
+  --mpu-internal-dialog-muted: #69504a;
+  --mpu-internal-dialog-link: #64393f;
+  --mpu-internal-dialog-link-hover: #782e28;
+  --mpu-internal-dialog-shadow: rgb(35 20 19 / 22%);
+  --mpu-internal-dialog-glow: #f3ddd3;
+  --mpu-internal-dialog-frame-image: url("../images/dialog-themes/crimson/frame.svg");
+  --mpu-internal-dialog-nameplate-image: url("../images/dialog-themes/crimson/nameplate.svg");
+  --mpu-internal-dialog-sparkle-image: url("../images/dialog-themes/crimson/sparkle.svg");
+  --mpu-internal-dialog-hexagram-image: url("../images/dialog-themes/crimson/hexagram.svg");
+}
+
+/* Forest Grimoire: moss, herbal magic, an old botanical book. */
+#mp_ukagaka[data-mpu-dialog-theme="forest"] {
+  --mpu-internal-dialog-frame-dark: #29372f;
+  --mpu-internal-dialog-frame-mid: #566b58;
+  --mpu-internal-dialog-accent: #91a478;
+  --mpu-internal-dialog-paper: #e2e2ce;
+  --mpu-internal-dialog-paper-translucent: rgb(226 226 206 / 82%);
+  --mpu-internal-dialog-paper-light: #eeeedc;
+  --mpu-internal-dialog-paper-dark: #c4c7aa;
+  --mpu-internal-dialog-text: #303930;
+  --mpu-internal-dialog-muted: #586257;
+  --mpu-internal-dialog-link: #2e4e47;
+  --mpu-internal-dialog-link-hover: #5a4322;
+  --mpu-internal-dialog-shadow: rgb(22 29 24 / 22%);
+  --mpu-internal-dialog-glow: #eeefdc;
+  --mpu-internal-dialog-frame-image: url("../images/dialog-themes/forest/frame.svg");
+  --mpu-internal-dialog-nameplate-image: url("../images/dialog-themes/forest/nameplate.svg");
+  --mpu-internal-dialog-sparkle-image: url("../images/dialog-themes/forest/sparkle.svg");
+  --mpu-internal-dialog-hexagram-image: url("../images/dialog-themes/forest/hexagram.svg");
 }
 
 @supports (color: color-mix(in srgb, red, transparent)) {
@@ -225,8 +298,8 @@
    對話框圖片出現。掛在恆常渲染的 #mp_ukagaka 上讓這些小圖在頁面
    載入時就開始下載（LLM 回應抵達前早已完成）。 */
 #mp_ukagaka::after {
-  content: url("../images/msgbox-frame.svg") url("../images/msgbox-nameplate.svg")
-    url("../images/msgbox-hexagram.svg") url("../images/msgbox-sparkle.svg")
+  content: var(--mpu-internal-dialog-frame-image) var(--mpu-internal-dialog-nameplate-image)
+    var(--mpu-internal-dialog-hexagram-image) var(--mpu-internal-dialog-sparkle-image)
     url("../images/think-bubble.svg")
     url("../images/think-tail.svg");
   position: absolute;
@@ -269,7 +342,7 @@
   overflow: hidden;
   color: var(--mpu-internal-dialog-paper-light);
   border: 5px solid transparent;
-  border-image: url("../images/msgbox-nameplate.svg") 5 fill stretch;
+  border-image: var(--mpu-internal-dialog-nameplate-image) 5 fill stretch;
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
@@ -311,7 +384,7 @@
   box-sizing: border-box;
   border-style: solid;
   border-width: 10px 13px 13px 10px;
-  border-image-source: url("../images/msgbox-frame.svg");
+  border-image-source: var(--mpu-internal-dialog-frame-image);
   border-image-slice: 10 13 13 10;
   border-image-repeat: stretch;
 
@@ -319,8 +392,8 @@
      colour and alpha), with two brass sparkles in the corners. The hexagram
      magic circle is the ::before below so it can rotate. */
   background:
-    url("../images/msgbox-sparkle.svg") no-repeat right 4px top 4px,
-    url("../images/msgbox-sparkle.svg") no-repeat left 4px bottom 4px,
+    var(--mpu-internal-dialog-sparkle-image) no-repeat right 4px top 4px,
+    var(--mpu-internal-dialog-sparkle-image) no-repeat left 4px bottom 4px,
     var(--mpu-internal-dialog-paper-translucent);
   background-clip: padding-box;
 
@@ -331,7 +404,7 @@
 
 /* Hexagram magic circle in the bottom-right corner, turning once every 30s
    while the box is shown. Text runs over it, so its lines take the frame's
-   light inner line colour (#c9aa7c), with a soft light-paper glow. The box is a stacking
+   light inner line colour, with a soft light-paper glow. The box is a stacking
    context, so z-index -1 puts it above the parchment and below the text. The
    art is a circle, so the rotated square never reaches the frame. */
 #ukagaka_msgbox::before {
@@ -342,7 +415,7 @@
   width: 31px; /* the art's native size */
   height: 31px;
   z-index: -1;
-  background: url("../images/msgbox-hexagram.svg") no-repeat center;
+  background: var(--mpu-internal-dialog-hexagram-image) no-repeat center;
   filter:
     drop-shadow(0 0 1px var(--mpu-internal-dialog-glow))
     drop-shadow(0 0 2px var(--mpu-internal-dialog-glow));
@@ -391,7 +464,7 @@
   width: 22px;
   height: 20px;
   border: 5px solid transparent;
-  border-image: url("../images/msgbox-nameplate.svg") 5 fill stretch;
+  border-image: var(--mpu-internal-dialog-nameplate-image) 5 fill stretch;
   filter: drop-shadow(2px 2px 0 var(--mpu-internal-dialog-shadow));
 }
 
@@ -426,6 +499,10 @@
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-cancel svg {
   width: 8px;
   height: 8px;
+}
+
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-ok-outline {
+  fill: var(--mpu-internal-dialog-frame-dark);
 }
 
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-ok svg {

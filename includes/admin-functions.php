@@ -146,6 +146,8 @@ function mpu_save_general_settings(array &$mpu_opt): string {
         $mpu_opt['insert_html'] = (int) $_POST['insert_html'][0];
     }
 
+	$mpu_opt['dialog_theme'] = mpu_sanitize_dialog_theme( wp_unslash( $_POST['dialog_theme'] ?? 'default' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- nonce checked by the caller; the value is reduced to an allowlisted slug.
+
     // 保留 AI 設定（不在此處處理）
     $current_opt = mpu_get_option();
     $mpu_opt['ai_enabled']        = $current_opt['ai_enabled'] ?? false;

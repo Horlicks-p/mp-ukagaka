@@ -161,6 +161,26 @@
         <!-- 樣式設定 -->
         <div class="mpu-settings-card">
             <h4><?php _e('🎨 樣式設定', 'mp-ukagaka'); ?></h4>
+			<?php $mpu_current_theme = mpu_get_dialog_theme( $mpu_opt ); ?>
+			<div class="mpu-field-group">
+				<label for="dialog_theme"><?php esc_html_e( '對話框配色', 'mp-ukagaka' ); ?></label>
+				<select id="dialog_theme" name="dialog_theme">
+					<?php foreach ( mpu_get_dialog_themes() as $mpu_slug => $mpu_theme ) : ?>
+						<option value="<?php echo esc_attr( $mpu_slug ); ?>" <?php selected( $mpu_current_theme, $mpu_slug ); ?>><?php echo esc_html( $mpu_theme['label'] ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<div class="mpu-theme-swatches" style="margin-top: 8px;">
+					<?php foreach ( mpu_get_dialog_themes() as $mpu_theme ) : ?>
+						<div style="display: flex; align-items: center; gap: 6px; margin: 2px 0;">
+							<?php foreach ( $mpu_theme['swatches'] as $mpu_color ) : ?>
+								<span style="display: inline-block; width: 14px; height: 14px; border: 1px solid rgba(0, 0, 0, 0.25); background: <?php echo esc_attr( $mpu_color ); ?>;"></span>
+							<?php endforeach; ?>
+							<span><?php echo esc_html( $mpu_theme['label'] ); ?></span>
+						</div>
+					<?php endforeach; ?>
+				</div>
+				<small><?php esc_html_e( '只改變對話框的顏色，版面與操作不變。勾選「使用自訂樣式」時不套用內建配色（選擇仍會保留）。', 'mp-ukagaka' ); ?></small>
+			</div>
             <div class="mpu-field-group">
                 <label><input type="checkbox" id="no_style" name="no_style" value="true" <?php if ($mpu_opt['no_style']) {
                                                                                                 echo ' checked="checked"';

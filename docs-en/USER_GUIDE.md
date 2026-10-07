@@ -148,6 +148,7 @@ Supports wildcard matching: add `(*)` at the end of the URL to match all subpage
 
 | Setting | Description |
 | --- | --- |
+| Dialogue color theme | Colour palette of the dialogue box: Traveler's Grimoire (default), Sapphire, Crimson or Forest. Only colours change; layout and controls stay the same. Not applied while Use Custom Style is on, but the choice is kept |
 | Use Custom Style | When enabled, the plugin will not load built-in CSS — you control the appearance |
 | Custom Style Link | Enter `<link>` tags to load your own custom CSS stylesheet |
 

@@ -3768,3 +3768,27 @@ msgstr "Could not load the Frieren display asset manifest: %s"
 #, php-format
 msgid "フリーレンのアニメーション序列を読み込めません：%s"
 msgstr "Could not load the Frieren animation sequence: %s"
+
+#: options/options_general.php
+msgid "對話框配色"
+msgstr "Dialogue color theme"
+
+#: options/options_general.php
+msgid "旅之魔導書（預設）"
+msgstr "Traveler's Grimoire (Default)"
+
+#: options/options_general.php
+msgid "蒼藍魔導書"
+msgstr "Sapphire Grimoire"
+
+#: options/options_general.php
+msgid "深紅魔導書"
+msgstr "Crimson Grimoire"
+
+#: options/options_general.php
+msgid "翠綠魔導書"
+msgstr "Forest Grimoire"
+
+#: options/options_general.php
+msgid "只改變對話框的顏色，版面與操作不變。勾選「使用自訂樣式」時不套用內建配色（選擇仍會保留）。"
+msgstr "Changes only the dialogue box colors; layout and controls stay the same. Not applied while \"Use custom styles\" is on (your choice is kept)."

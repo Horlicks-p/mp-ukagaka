@@ -1374,6 +1374,101 @@ scenario("sleep-ok-wake-non-frieren", "browser", async (h) => {
   return { ghost: ghost.title, wakeReactionStored: s1.history.filter((m) => m.type === "wake_reaction").length, msg: s1.msg, autoTicksAfterWake: autos.length };
 }, { ghost: "Asuna" });
 
+// Saves the theme through the real settings form (nonce, sanitizer, option)
+// and loads the front page in a fresh context, so the cache is cold. Last in
+// the file: saving the general form also normalises the e2e-only settings
+// (typewriter speed below the form's minimum), which later scenarios rely on.
+scenario("dialog-theme-switch", "browser", async (h) => {
+  const THEMES = ["default", "sapphire", "crimson", "forest"];
+  const save = async (value) => {
+    const admin = await h.newPage();
+    await admin.goto(h.site.url + "/wp-admin/options-general.php?page=mp-ukagaka/options.php&cur_page=0", { waitUntil: "load", timeout: 120000 });
+    // Set the value even when it is not one of the options, to test the sanitizer.
+    await admin.evaluate((v) => {
+      const select = document.getElementById("dialog_theme");
+      if (![...select.options].some((o) => o.value === v)) select.add(new Option(v, v));
+      select.value = v;
+      select.form.noValidate = true;
+    }, value);
+    await Promise.all([admin.waitForNavigation({ waitUntil: "load" }), admin.click('input[name="submit1"]')]);
+    await admin.context().close();
+  };
+  const load = async () => {
+    const page = await h.newPage();
+    const images = [];
+    page.on("request", (r) => {
+      const m = r.url().match(/\/images\/(msgbox-[a-z]+\.svg|dialog-themes\/[a-z]+\/[a-z]+\.svg)/);
+      if (m) images.push(m[1]);
+    });
+    await h.open(page);
+    await h.quietAutoTalk(page);
+    // Images are counted before the box is shown, so they came from the preload.
+    await page.waitForTimeout(500);
+    const preloaded = [...new Set(images)].sort();
+    await page.evaluate(() => {
+      jQuery("#ukagaka_msgbox").css({ display: "", visibility: "visible" });
+      jQuery("#ukagaka_msg").stop(true, true).text("そうだね。もう少しだけ、ここにいようか。魔導書の続きは、また後で読めばいいし。");
+    });
+    await page.waitForFunction(() => document.getElementById("ukagaka_msgbox").getBoundingClientRect().width > 0);
+    await page.waitForTimeout(300);
+    const look = await page.evaluate(() => {
+      const box = document.getElementById("ukagaka_msgbox");
+      const rect = (s) => {
+        const r = document.querySelector(s).getBoundingClientRect();
+        return [r.left, r.top, r.width, r.height].map(Math.round).join(",");
+      };
+      const before = getComputedStyle(box, "::before");
+      return {
+        theme: document.getElementById("mp_ukagaka").dataset.mpuDialogTheme,
+        frame: getComputedStyle(box).borderImageSource,
+        plate: getComputedStyle(document.querySelector(".mpu-dialog-name")).borderImageSource,
+        cancel: getComputedStyle(document.getElementById("mpu_cancel_btn")).borderImageSource,
+        outline: getComputedStyle(document.querySelector(".mpu-dialog-ok-outline")).fill,
+        frameDark: getComputedStyle(document.getElementById("mp_ukagaka")).getPropertyValue("--mpu-internal-dialog-frame-dark").trim(),
+        geometry: {
+          box: rect("#ukagaka_msgbox"), msg: rect("#ukagaka_msg"), plate: rect(".mpu-dialog-name"),
+          cancel: rect("#mpu_cancel_btn"), ok: rect("#mpu_ok_btn"),
+          hexagram: [before.right, before.bottom, before.width, before.height].join(","),
+        },
+      };
+    });
+    await page.context().close();
+    return { ...look, preloaded, images: [...new Set(images)].sort() };
+  };
+  const hex = (c) => "#" + c.match(/\d+/g).slice(0, 3).map((n) => (+n).toString(16).padStart(2, "0")).join("");
+
+  const seen = {};
+  try {
+    for (const theme of THEMES) {
+      await save(theme);
+      const look = await load();
+      assert(look.theme === theme, `${theme}: page rendered data-mpu-dialog-theme="${look.theme}"`);
+      const want = theme === "default"
+        ? ["msgbox-frame.svg", "msgbox-hexagram.svg", "msgbox-nameplate.svg", "msgbox-sparkle.svg"]
+        : ["frame", "hexagram", "nameplate", "sparkle"].map((n) => `dialog-themes/${theme}/${n}.svg`);
+      assert(JSON.stringify(look.images) === JSON.stringify(want),
+        `${theme}: downloaded ${JSON.stringify(look.images)}, expected only ${JSON.stringify(want)}`);
+      const frameFile = theme === "default" ? "msgbox-frame.svg" : `dialog-themes/${theme}/frame.svg`;
+      const plateFile = theme === "default" ? "msgbox-nameplate.svg" : `dialog-themes/${theme}/nameplate.svg`;
+      assert(look.frame.includes(frameFile), `${theme}: frame is ${look.frame}`);
+      assert(look.plate.includes(plateFile) && look.cancel.includes(plateFile), `${theme}: plates are ${look.plate} / ${look.cancel}`);
+      assert(hex(look.outline) === look.frameDark, `${theme}: ▼ outline ${look.outline}, frame-dark ${look.frameDark}`);
+      assert(JSON.stringify(look.preloaded) === JSON.stringify(want), `${theme}: preloaded ${JSON.stringify(look.preloaded)}`);
+      seen[theme] = look;
+    }
+    for (const theme of THEMES.slice(1)) {
+      assert(JSON.stringify(seen[theme].geometry) === JSON.stringify(seen.default.geometry),
+        `${theme} moved something: ${JSON.stringify(seen[theme].geometry)} vs default ${JSON.stringify(seen.default.geometry)}`);
+    }
+    await save("../../x");
+    const bad = await load();
+    assert(bad.theme === "default", `invalid posted theme rendered as "${bad.theme}"`);
+  } finally {
+    await save("default");
+  }
+  return { geometry: seen.default.geometry };
+});
+
 // ---------------------------------------------------------------------------
 async function runScenario(harness, s) {
   const started = Date.now();
