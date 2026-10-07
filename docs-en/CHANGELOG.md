@@ -14,7 +14,7 @@
 - **The stream state label sits on the frame's top line at the right**, mirroring the name plate. Before, it sat inside the top right of the text area and covered the first line while thinking or streaming. `data-mpu-stream-state` also tints a thin line inside the frame.
 - **A hexagram magic circle turns in the bottom-right corner**, once every 30s while the box is shown (`#ukagaka_msgbox::before`); it stops under `prefers-reduced-motion`. It is a native 31px pixel-art SVG in the frame's light inner line colour, `#c9aa7c`, so text stays readable over it.
 - **Message text is justified.** CJK lines break between any two characters, so a ragged right edge left up to one character of extra space there (12px left, about 18px right); both margins are 12px now. The last line stays left-aligned.
-- **The chat input, gift button and picker, scrollbar and state label** use the same square, hard-shadow style. Body text contrast is 9.1:1, labels 5.9–6.9:1.
+- **The chat input, gift button and picker, scrollbar and state label** use the same square, hard-shadow style. Body text contrast is 8.2:1, labels 5.6–6.5:1.
 - **Removed images**: `msgbox_top.png`, `msgbox_bg.png`, `msgbox_bottom.png`, `ok_hover.png` and `cancel_hover.png`. The preload list now names the new SVGs.
 
 If your theme restyles the message box, check it against the new structure in `CANVAS_CUSTOMIZATION.md`: the old PNG backgrounds are gone, the header holds the name plate, and the footer is positioned on the frame line. Sites using `no_style` see the new markup unstyled; the icons keep a 12px size from their `width`/`height`.
