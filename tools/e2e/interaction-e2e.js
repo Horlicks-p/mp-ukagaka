@@ -1402,7 +1402,8 @@ scenario("dialog-theme-switch", "browser", async (h) => {
     });
     await h.open(page);
     await h.quietAutoTalk(page);
-    // Images are counted before the box is shown, so they came from the preload.
+    // Counted before this test forces the box visible: whether the box was shown
+    // yet or not, only the selected theme's four images may have loaded.
     await page.waitForTimeout(500);
     const preloaded = [...new Set(images)].sort();
     await page.evaluate(() => {
