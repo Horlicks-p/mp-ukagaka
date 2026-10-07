@@ -4923,6 +4923,26 @@ function mpu_clearChatHistory() {
 
 // ========== ukagaka-chat-mode.js ==========
 /**
+ * OK 鈕（#mpu_ok_btn）的動作隨狀態改變：一般是下一句、對話模式是送出、
+ * 禮物選單打開時是送出禮物（與附言）。讓 aria-label / title 跟著說實話。
+ */
+function mpuSyncOkButtonLabel() {
+  const btn = document.getElementById("mpu_ok_btn");
+  const labels = (typeof mpuL10n !== "undefined" && mpuL10n.okButtonLabels) || null;
+  if (!btn || !labels) return;
+  const picker = document.querySelector("#ukagaka_chat_input .mpu-gift-picker");
+  let key = "next";
+  if (window.mpuChatModeActive) {
+    key = picker && !picker.hidden ? "gift" : "send";
+  }
+  const label = labels[key];
+  if (label) {
+    btn.setAttribute("aria-label", label);
+    btn.setAttribute("title", label);
+  }
+}
+
+/**
  * 切換對話模式
  * @param {boolean} enable - 是否啟用對話模式
  */
@@ -4940,6 +4960,7 @@ function mpu_toggleChatMode(enable) {
 
   window.mpuChatModeActive = enable;
   window.mpuChatGeneration += 1;
+  mpuSyncOkButtonLabel();
 
   if (enable) {
     // 進入對話模式
@@ -5539,9 +5560,12 @@ function mpu_sendUserMessage() {
         $msgbox.append(badge);
       }
       badge.text(label);
+      // 名牌與標籤同在上框線：把標籤實際寬度交給 CSS，名牌據此讓出空間
+      $msgbox[0].style.setProperty("--mpu-internal-dialog-badge-width", badge.outerWidth() + "px");
     }
 
     function clearStreamState() {
+      $msgbox[0].style.removeProperty("--mpu-internal-dialog-badge-width");
       $msgbox.removeAttr("data-mpu-stream-state");
       $msgbox.children(".mpu-state-badge").remove();
     }

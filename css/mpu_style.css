@@ -260,7 +260,10 @@
    corners); its centre slice is the plate's fill. */
 .mpu-dialog-name {
   display: block;
-  max-width: 100%;
+
+  /* leave room for the × plate on the same line (it ends 30px from the right,
+     the header is inset 10px, plus a 4px gap) */
+  max-width: calc(100% - 24px);
   box-sizing: border-box;
   padding: 0 7px;
   overflow: hidden;
@@ -273,6 +276,13 @@
   letter-spacing: 0.08em;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* While a stream state label shows, it sits left of the × at right: 36px; the
+   script sets its measured width, so a long name gives way only when they would
+   actually meet (with a 4px gap). */
+#ukagaka_msgbox[data-mpu-stream-state] .mpu-dialog-name {
+  max-width: calc(100% - 30px - var(--mpu-internal-dialog-badge-width, 96px));
 }
 
 .mpu-dialog-name:empty {
@@ -964,6 +974,9 @@
   box-shadow: 2px 2px 0 var(--mpu-internal-dialog-shadow);
   pointer-events: none;
   font-family: "Noto Sans TC", "Noto Sans JP", sans-serif;
+  max-width: 96px; /* longest shipped label is ~89px ("Responding...") */
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   letter-spacing: 0;
   user-select: none;

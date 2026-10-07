@@ -199,9 +199,12 @@ function mpu_sendUserMessage() {
         $msgbox.append(badge);
       }
       badge.text(label);
+      // 名牌與標籤同在上框線：把標籤實際寬度交給 CSS，名牌據此讓出空間
+      $msgbox[0].style.setProperty("--mpu-internal-dialog-badge-width", badge.outerWidth() + "px");
     }
 
     function clearStreamState() {
+      $msgbox[0].style.removeProperty("--mpu-internal-dialog-badge-width");
       $msgbox.removeAttr("data-mpu-stream-state");
       $msgbox.children(".mpu-state-badge").remove();
     }

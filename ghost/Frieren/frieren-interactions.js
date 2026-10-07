@@ -822,6 +822,12 @@
 
       container.append(button, picker);
 
+      // 選單在好幾處開關（按鈕、Esc、送出、點外面）；統一由屬性變化同步 OK 鈕的標籤
+      if (typeof window.mpuSyncOkButtonLabel === "function" && typeof MutationObserver === "function") {
+        new MutationObserver(window.mpuSyncOkButtonLabel)
+          .observe(picker, { attributes: true, attributeFilter: ["hidden"] });
+      }
+
       // ピッカーは「🎁 を開く → 入力欄に台詞を書く → アイテムを押して贈る」順で使う。
       // button / picker / 入力欄はいずれも #ukagaka_chat_input の子なので、
       // コンテナ内のクリックでは閉じない（台詞を書くために入力欄を押しても開いたまま）.
