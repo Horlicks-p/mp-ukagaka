@@ -328,7 +328,7 @@
   content: "";
   position: absolute;
   right: 6px;
-  bottom: 8px; /* one-line box: (47px padding box - 31px) / 2, equal gaps above and below */
+  bottom: 6px; /* one-line box: (43px padding box - 31px) / 2, equal gaps above and below */
   width: 31px; /* the art's native size */
   height: 31px;
   z-index: -1;
@@ -346,40 +346,28 @@
   }
 }
 
-/* Footer: the OK (next / send) and Cancel (hide / leave chat) buttons, as two
-   small plates on the frame's bottom line, mirroring the name plate on the top
-   line: Cancel at the left, clear of the corner sparkle, OK at the right,
-   where a game controller puts confirm.
-   Out of the flow, so the box has no button row; the plates reach 5px into
-   the padding box, which #ukagaka_msg and the chat input leave free. */
+/* Dialog buttons, RPG style, both out of the flow:
+   - Cancel (hide / leave chat): a small × plate on the frame's top line at the
+     right, the same 9-slice as the name plate.
+   - OK (next / send): a ▼ page cursor across the frame's bottom line, under
+     the hexagram, bobbing like a game's "more text" cursor. Light fill with a
+     dark outline, so it reads on both the parchment and the frame band.
+   The wrapper takes no box (display: contents), so both buttons position
+   against #ukagaka_msgbox. */
 .ukagaka-msgbox-border {
-  position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: -19px; /* 2px below the band's centre, as the name plate is above it */
-  display: flex;
-  justify-content: space-between;
-  margin: 0;
-  padding: 0;
-
-  /* hard pixel shadow that follows the plates' notched corners */
-  filter: drop-shadow(2px 2px 0 var(--mpu-internal-dialog-shadow));
+  display: contents;
 }
 
-/* Plate frame: the name plate's 9-slice msgbox-nameplate.svg. */
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn,
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:link,
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:visited {
+  position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 24px;
   box-sizing: border-box;
   color: var(--mpu-internal-dialog-paper-light);
   background: transparent;
-  border: 5px solid transparent;
-  border-image: url("../images/msgbox-nameplate.svg") 5 fill stretch;
   border-radius: 0;
   box-shadow: none;
   outline: none;
@@ -387,12 +375,33 @@
   transition: color var(--mpu-internal-duration-fast) ease;
 }
 
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-cancel {
+  top: -17px; /* centred on the top band, like the name plate */
+  right: 8px;
+  width: 22px;
+  height: 20px;
+  border: 5px solid transparent;
+  border-image: url("../images/msgbox-nameplate.svg") 5 fill stretch;
+  filter: drop-shadow(2px 2px 0 var(--mpu-internal-dialog-shadow));
+}
+
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-ok {
+  right: 13px; /* under the hexagram's centre */
+  bottom: -15px; /* centred on the bottom band */
+  width: 20px; /* hit area larger than the 12x7 cursor */
+  height: 16px;
+  border: 0;
+}
+
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:hover {
   color: var(--mpu-internal-dialog-accent);
   background: transparent;
-  border-color: transparent;
   box-shadow: none;
   text-decoration: none;
+}
+
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-cancel:hover {
+  border-color: transparent;
 }
 
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn:active {
@@ -401,15 +410,31 @@
 
 #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-btn svg {
   display: block;
-  width: 12px;
-  height: 12px;
   shape-rendering: crispedges;
+}
+
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-cancel svg {
+  width: 8px;
+  height: 8px;
+}
+
+#mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-ok svg {
+  width: 12px;
+  height: 7px;
+  filter: drop-shadow(1px 1px 0 var(--mpu-internal-dialog-shadow));
+  animation: mpu-page-cursor 0.9s steps(1) infinite;
+}
+
+@keyframes mpu-page-cursor {
+  50% {
+    transform: translateY(2px);
+  }
 }
 
 #ukagaka_msg {
   background: transparent;
   border: 0;
-  padding: 6px 12px 14px; /* bottom: clear of the button plates */
+  padding: 6px 12px 10px; /* bottom: clear of the ▼ cursor */
   max-height: 400px; /* 超過 400px 時出現滾動條 */
   overflow: hidden auto;
   overscroll-behavior: contain;
@@ -474,7 +499,7 @@
 
 #ukagaka_msgbox.chat-mode #ukagaka_chat_input {
   flex-shrink: 0;
-  padding-bottom: 12px; /* clear of the button plates */
+  padding-bottom: 8px; /* clear of the ▼ cursor */
 }
 
 #ukagaka_msg a {
@@ -879,6 +904,10 @@
   #ukagaka_msgbox::before {
     animation: none;
   }
+
+  #mp_ukagaka .ukagaka-msgbox-border .mpu-dialog-ok svg {
+    animation: none;
+  }
 }
 
 /* ===== Stream State Badge (v2.18 #4：runtime 驗收工具) =====
@@ -918,7 +947,7 @@
 .mpu-state-badge {
   position: absolute;
   top: -17px; /* centred on the name plate's line, like the plate */
-  right: 10px;
+  right: 36px; /* left of the × button */
   z-index: var(--mpu-internal-z-bubble);
   padding: 1px 6px;
   font-size: 11px;
