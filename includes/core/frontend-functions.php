@@ -1196,6 +1196,13 @@ function mpu_enqueue_frontend_assets() {
 			'timeout'   => __( 'タイムアウト', 'mp-ukagaka' ),
 			'busy'      => __( '混雑中…', 'mp-ukagaka' ),
 		),
+		'okButtonLabels'             => array(
+			'next' => __( '次へ', 'mp-ukagaka' ),
+			/* translators: aria-label of the dialog's OK button in chat mode, where it sends the typed message. */
+			'send' => __( '送信', 'mp-ukagaka' ),
+			/* translators: aria-label of the dialog's OK button while the gift picker is open, where it gives the gift with the typed note. */
+			'gift' => __( '贈り物を渡す', 'mp-ukagaka' ),
+		),
 		'logs'                       => $log_i18n ? $log_i18n->logs() : array(),
 	);
 

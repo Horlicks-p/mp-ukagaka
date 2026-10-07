@@ -305,6 +305,16 @@ msgstr ""
 msgid "次へ"
 msgstr ""
 
+#. translators: aria-label of the dialog's OK button in chat mode, where it sends the typed message.
+#: includes/core/frontend-functions.php
+msgid "送信"
+msgstr ""
+
+#. translators: aria-label of the dialog's OK button while the gift picker is open, where it gives the gift with the typed note.
+#: includes/core/frontend-functions.php
+msgid "贈り物を渡す"
+msgstr ""
+
 #: includes/core/frontend-functions.php:287
 msgid "トップへ戻る ▼"
 msgstr ""

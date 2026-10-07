@@ -15,8 +15,7 @@ function mpu_sendUserMessage() {
   }
 
   // Accepted input replaces the previous status, including local commands.
-  jQuery("#ukagaka_msgbox").removeAttr("data-mpu-stream-state")
-    .children(".mpu-state-badge").remove();
+  mpuClearStreamBadge();
 
   // 指令攔截：/reset 或 /clear 清除對話歷史（僅管理員）
   if (message === "/reset" || message === "/clear") {
@@ -199,11 +198,12 @@ function mpu_sendUserMessage() {
         $msgbox.append(badge);
       }
       badge.text(label);
+      // 名牌與標籤同在上框線：把標籤實際寬度交給 CSS，名牌據此讓出空間
+      $msgbox[0].style.setProperty("--mpu-internal-dialog-badge-width", badge.outerWidth() + "px");
     }
 
     function clearStreamState() {
-      $msgbox.removeAttr("data-mpu-stream-state");
-      $msgbox.children(".mpu-state-badge").remove();
+      mpuClearStreamBadge();
     }
 
     function clearStreamWatchdog() {

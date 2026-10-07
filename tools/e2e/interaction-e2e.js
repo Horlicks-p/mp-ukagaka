@@ -978,6 +978,57 @@ async function assertNoStreamBadge(page, context) {
   assert(state.badge === 0 && !state.attribute, `${context}: stale stream badge ${JSON.stringify(state)}`);
 }
 
+// The OK button's label follows what it does, and a long name plate stops
+// before the × and the stream state label on the same frame line.
+scenario("dialog-ok-label-and-plate-room", "browser (SSE replayed)", async (h) => {
+  const { page } = await withStreamingChat(h, (route) => route.fulfill({
+    status: 200,
+    contentType: "text/event-stream",
+    body: sseBody([["error", { message: "PLATE_ROOM" }]]),
+  }));
+  const labels = await page.evaluate(() => mpuL10n.okButtonLabels);
+  const okLabel = () => page.evaluate(() => {
+    const b = document.getElementById("mpu_ok_btn");
+    return { aria: b.getAttribute("aria-label"), title: b.getAttribute("title") };
+  });
+  const expectLabel = async (key, context) => {
+    const l = await okLabel();
+    assert(l.aria === labels[key] && l.title === labels[key], `${context}: OK label ${JSON.stringify(l)}, expected "${labels[key]}"`);
+  };
+  await expectLabel("send", "chat open");
+  await page.click(".mpu-gift-picker-button");
+  await expectLabel("gift", "picker open");
+  await page.keyboard.press("Escape");
+  await expectLabel("send", "picker closed");
+
+  // A DIY-length name; the plate must stop 4px before whatever is to its right.
+  await page.evaluate(() => {
+    document.querySelector(".mpu-dialog-name").textContent = "フリーレン・ザ・グレート・マジシャン・オブ・ザ・ノース";
+  });
+  const gaps = () => page.evaluate(() => {
+    const r = (s) => { const e = document.querySelector(s); return e ? e.getBoundingClientRect() : null; };
+    const plate = r(".mpu-dialog-name"), badge = r("#ukagaka_msgbox > .mpu-state-badge"), x = r("#mpu_cancel_btn");
+    return {
+      toX: Math.round(x.left - plate.right),
+      toBadge: badge ? Math.round(badge.left - plate.right) : null,
+      badgeToX: badge ? Math.round(x.left - badge.right) : null,
+      badgeWidthVar: document.getElementById("ukagaka_msgbox").style.getPropertyValue("--mpu-internal-dialog-badge-width"),
+    };
+  });
+  const idle = await gaps();
+  assert(idle.toX >= 4, `name plate runs into the ×: ${JSON.stringify(idle)}`);
+  await h.send(page, "plate room");
+  await h.waitChatIdle(page);
+  const busy = await gaps();
+  assert(busy.toBadge !== null, "error badge never appeared");
+  assert(busy.toBadge >= 4 && busy.badgeToX >= 0, `name plate or badge overlaps: ${JSON.stringify(busy)}`);
+  await h.exitChat(page);
+  const after = await gaps();
+  assert(after.badgeWidthVar === "", `badge width left on the box after the badge was cleared: ${JSON.stringify(after)}`);
+  await expectLabel("next", "chat closed");
+  return { idle, busy };
+});
+
 scenario("sse-badge-chat-toggle", "browser (SSE replayed)", async (h) => {
   const { page } = await withStreamingChat(h, (route) => route.fulfill({
     status: 200,
