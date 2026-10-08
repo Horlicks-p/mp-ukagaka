@@ -1813,7 +1813,13 @@ function startAutoTalk() {
     mpuLogger.logF("autoTalkSleepModeIntervalAdjusted", "🌙 睡眠モードが有効です（00:00〜06:00）。間隔を %1$s ms に調整しました（元: %2$s ms）", currentInterval, mpuGetBaseAutoTalkInterval());
   }
 
-  if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(400);
+  // 不使用 LLM 時，初始思考氣泡（system placeholder）還在、第一句台詞還沒出來前，
+  // 不要先打開空的對話框：loadExternalDialog 的 showFirstMessage 會清掉氣泡再淡入。
+  // （LLM 模式下 startAutoTalk 要等 startup 回應後才呼叫，不受影響。）
+  const initialPlaceholderPending =
+    !mpuOllamaReplaceDialogue &&
+    jQuery("#ukagaka_msg").attr("data-initial-msg-system") === "1";
+  if (jQuery("#ukagaka_msgbox").is(":hidden") && !initialPlaceholderPending) mpu_showmsg(400);
 
   mpuLogger.logF("autoTalkTimerSet", "startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s", currentInterval, mpuAutoTalk);
   mpuSetAutoTalkTimer(setTimeout(function () {
@@ -2449,7 +2455,7 @@ function mpu_nextmsg(trigger) {
     return;
   }
 
-  setTimeout(function () {
+  const showBuiltInMessage = function () {
     const store = mpuGetDialogStore();
 
     if (!store) {
@@ -2545,6 +2551,12 @@ function mpu_nextmsg(trigger) {
         }
       });
     }
+  };
+
+  // 上一句以 mpu_hidemsg(600) 淡出，只等 400ms 就換字的話，舊對話框還看得見時
+  // 文字就被清空、開始打新的一句，看起來像閃一下。等淡出真正結束再換。
+  setTimeout(function () {
+    jQuery("#ukagaka_msgbox").promise().done(showBuiltInMessage);
   }, 400);
 }
 
