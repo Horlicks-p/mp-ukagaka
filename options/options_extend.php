@@ -28,7 +28,7 @@
             <div class="mpu-field-group">
                 <p><?php _e('您可以在偽春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。', 'mp-ukagaka'); ?></p>
                 <p><?php _e('更多擴展代碼資訊請參閱：', 'mp-ukagaka'); ?>
-                    <a href="https://github.com/Horlicks-p/mp-ukagaka/tree/main/docs" target="_blank" title="<?php _e('MP Ukagaka 文檔中心', 'mp-ukagaka'); ?>"><?php _e('MP Ukagaka 文檔中心', 'mp-ukagaka'); ?></a>
+                    <a href="https://github.com/Horlicks-p/mp-ukagaka/tree/main/docs-en" target="_blank" title="<?php _e('MP Ukagaka 文檔中心', 'mp-ukagaka'); ?>"><?php _e('MP Ukagaka 文檔中心', 'mp-ukagaka'); ?></a>
                 </p>
             </div>
         </div>

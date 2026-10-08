@@ -3796,3 +3796,37 @@ msgstr "Changes only the dialogue box colors; layout and controls stay the same.
 #: options/options_general.php
 msgid "對話框配色預覽"
 msgstr "Dialogue color theme preview"
+
+#: options/options_page_bot_blocker.php
+msgid "已達上限，之後每封鎖一個新 IP，就會擠掉最早封鎖的一筆。"
+msgstr "The list is full: each newly blocked IP now pushes out the oldest one."
+
+#: options/options_page_bot_blocker.php
+msgid "自動封鎖的 IP 會記在這裡；達到上限後，新封鎖的 IP 會擠掉最早的一筆。"
+msgstr "Automatically blocked IPs are kept here; once the limit is reached, each new one pushes out the oldest."
+
+#: options/options_page_bot_blocker.php
+msgid "查詢 IP"
+msgstr "Search IP"
+
+#: options/options_page_bot_blocker.php
+msgid "輸入 IP 查詢…"
+msgstr "Type an IP to search…"
+
+#: options/options_page_bot_blocker.php
+#, php-format
+msgid "%d 筆符合"
+msgstr "%d matching"
+
+#: options/options_page_bot_blocker.php
+msgid "不在黑名單中"
+msgstr "Not in the blacklist"
+
+#: options/options_page_bot_blocker.php
+msgid "最近封鎖"
+msgstr "Recently blocked"
+
+#: options/options_page_bot_blocker.php
+#, php-format
+msgid "顯示全部 %s 筆（由新到舊）"
+msgstr "Show all %s (newest first)"
