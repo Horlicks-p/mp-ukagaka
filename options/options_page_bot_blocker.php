@@ -303,14 +303,14 @@ $mpu_bb_ip_chip   = static function ( $ip_addr ) {
 		var openBeforeSearch = all.open;
 		var searching = false;
 		input.addEventListener( 'input', function () {
-			var query = input.value.trim();
+			var query = input.value.trim().toLowerCase(); // IPv6 hex digits are case-insensitive.
 			var found = 0;
 			if ( query && ! searching ) {
 				openBeforeSearch = all.open;
 			}
 			searching = query !== '';
 			chips.forEach( function ( chip ) {
-				var match = ! query || chip.getAttribute( 'data-ip' ).indexOf( query ) !== -1;
+				var match = ! query || chip.getAttribute( 'data-ip' ).toLowerCase().indexOf( query ) !== -1;
 				chip.style.display = match ? 'inline-flex' : 'none';
 				found += match ? 1 : 0;
 			} );
