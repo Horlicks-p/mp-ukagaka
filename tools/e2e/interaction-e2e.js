@@ -72,20 +72,17 @@ $o['ukagakas']['default_1'] = array_merge($o['ukagakas']['default_1'], array(
 // Scenarios are grouped by site profile; each profile boots its own disposable
 // site. "block" turns checksum enforcement on, so a history that drifted from the
 // server's copy makes the next chat turn fail instead of only logging.
+// ai: "off" keeps a fresh install's defaults (no LLM, built-in dialogue only).
 function siteProfile(s) {
-  return { ghost: s.ghost || "Frieren", integrity: s.integrity || "audit" };
+  return { ghost: s.ghost || "Frieren", integrity: s.integrity || "audit", ai: s.ai || "fake" };
 }
 
 function profileKey(profile) {
-  return `${profile.ghost}, checksum ${profile.integrity}`;
+  return `${profile.ghost}, checksum ${profile.integrity}` + (profile.ai === "off" ? ", no AI" : "");
 }
 
-function blueprintFor(fakeUrl, { ghost, integrity }) {
-  const php = `<?php
-require '/wordpress/wp-load.php';
-$o = get_option('mp_ukagaka');
-if (!is_array($o) || empty($o)) { $o = mpu_default_opt(); }
-$o = array_merge($o, array(
+function blueprintFor(fakeUrl, { ghost, integrity, ai }) {
+  const aiSettings = ai === "off" ? "" : `$o = array_merge($o, array(
   'ai_enabled' => true,
   'llm_provider' => 'ollama',
   'ollama_endpoint' => '${fakeUrl}',
@@ -100,7 +97,12 @@ $o = array_merge($o, array(
   'ai_probability' => 0,
   'enable_chat_mode' => true,
   'chat_integrity_mode' => '${integrity}',
-));
+));`;
+  const php = `<?php
+require '/wordpress/wp-load.php';
+$o = get_option('mp_ukagaka');
+if (!is_array($o) || empty($o)) { $o = mpu_default_opt(); }
+${aiSettings}
 ${GHOST_SETUP[ghost]}
 update_option('mp_ukagaka', $o);
 update_option('timezone_string', '${zoneForLocalHour(AWAKE_HOUR)}');
@@ -1373,6 +1375,74 @@ scenario("sleep-ok-wake-non-frieren", "browser", async (h) => {
   assert(p2.autoTalkLeaks === 0, `${p2.autoTalkLeaks} auto-talk timer(s) overwritten while pending`);
   return { ghost: ghost.title, wakeReactionStored: s1.history.filter((m) => m.type === "wake_reaction").length, msg: s1.msg, autoTicksAfterWake: autos.length };
 }, { ghost: "Asuna" });
+
+// Records the message box every frame from before the bundle runs: whether it
+// shows, how opaque it is, the dialogue text and whether the think bubble is up.
+const BOX_PROBE = () => {
+  window.__mpuBox = [];
+  let last = "";
+  const sample = () => {
+    const box = document.getElementById("ukagaka_msgbox");
+    const msg = document.getElementById("ukagaka_msg");
+    const think = document.getElementById("ukagaka_think");
+    if (box && msg) {
+      const cs = getComputedStyle(box);
+      const row = {
+        at: Date.now(),
+        opacity: cs.display === "none" || cs.visibility === "hidden" ? 0 : Number(cs.opacity),
+        text: msg.textContent,
+        think: !!(think && think.classList.contains("is-visible")),
+      };
+      const key = `${row.opacity}|${row.text}|${row.think}`;
+      if (key !== last) {
+        window.__mpuBox.push(row);
+        last = key;
+      }
+    }
+    requestAnimationFrame(sample);
+  };
+  requestAnimationFrame(sample);
+};
+
+// Without an LLM (a fresh install's defaults) the box must stay closed under
+// the initial think bubble until the first line arrives, and on OK it must
+// finish fading out before the next line replaces the text. Before 2.36.2 the
+// box opened empty for about two seconds on load, and on OK the text changed
+// while the old box was still a third visible.
+scenario("builtin-msgbox-fade-timing", "browser", async (h) => {
+  const page = await h.newPage();
+  await page.addInitScript(BOX_PROBE);
+  await h.open(page);
+  assert(!(await page.evaluate(() => window.mpuOllamaReplaceDialogue === true)), "precondition: no LLM");
+  assert(!(await h.state(page)).unawokenSleep, "precondition: site must be awake");
+
+  await page.waitForFunction(() => window.__mpuBox.some((r) => r.text !== "" && r.opacity > 0.9), null, { timeout: 30000 });
+  await h.typewriterIdle(page);
+  const load = await page.evaluate(() => window.__mpuBox.slice());
+  assert(load.some((r) => r.think), "precondition: the initial think bubble never showed");
+  const openEmpty = load.filter((r) => r.opacity >= 0.1 && r.text.trim() === "");
+  assert(openEmpty.length === 0,
+    `box was open with no text on load (up to opacity ${Math.max(...openEmpty.map((r) => r.opacity)).toFixed(2)})`);
+
+  // Keep auto talk from changing the line while OK is observed.
+  await page.evaluate(() => { window.mpuSetAutoTalkEnabled(false); window.stopAutoTalk(); });
+  const before = (await h.state(page)).msg;
+  await page.evaluate(() => { window.__mpuBox.length = 0; });
+  await h.click(page, "#mpu_ok_btn");
+  await page.waitForFunction((old) => {
+    const text = document.getElementById("ukagaka_msg").textContent;
+    return text !== "" && text !== old;
+  }, before, { timeout: 15000 });
+  await h.typewriterIdle(page);
+  await page.waitForFunction(() => !jQuery("#ukagaka_msgbox").is(":animated"), null, { timeout: 5000 });
+  const ok = await page.evaluate(() => window.__mpuBox.slice());
+  const firstChange = ok.find((r) => r.text !== before);
+  assert(firstChange, "the text never changed after OK");
+  assert(firstChange.opacity <= 0.05,
+    `text changed while the old box was still visible (opacity ${firstChange.opacity.toFixed(2)})`);
+  assert(ok[ok.length - 1].opacity > 0.99, "the box did not fade back in after OK");
+  return { loadSamples: load.length, okTextChangedAtOpacity: firstChange.opacity };
+}, { ai: "off" });
 
 // Saves the theme through the real settings form (nonce, sanitizer, option)
 // and loads the front page in a fresh context, so the cache is cold. Last in
