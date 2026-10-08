@@ -224,13 +224,20 @@ Magic requires time to study slowly.
 
 Give each character their own set of emojis.
 
-The emoji system automatically displays emoji images next to the character based on keywords detected in the dialogue text. **Both static dialogue and AI-generated dialogue support the emoji feature.**
+The emoji system displays an emoji image next to the character while a line is shown. **Both built-in dialogue and AI-generated dialogue support emojis**, but they choose the image differently:
+
+| Dialogue | How the emoji is chosen |
+| --- | --- |
+| AI-generated | The emotion tag in the reply, such as `[laugh]`; if the reply has none, keywords from `emoji-keywords.json` |
+| Built-in (TXT / JSON files) | Only an explicit tag written in the line, such as `[laugh]`. Keywords are never used. See [Expression Tags in Built-in Dialogue](#expression-tags-in-built-in-dialogue). |
+
+No AI provider is needed for built-in dialogue emojis.
 
 ### File Structure
 
 Create the following structure in the character's folder (`ghost/CharacterID/`):
 
-- `emojis/`: Stores emoji images (supports PNG, APNG, GIF)
+- `emojis/`: Stores emoji images. Tags always load `<tag>.png`, so name tag images with a `.png` extension (animated PNG content is fine).
 - `CharacterID-emoji.js`: Emoji control script (copy `Frieren-emoji.js` and modify)
 - `emoji-keywords.json`: Emoji trigger keyword settings (optional — uses built-in mappings if absent)
 

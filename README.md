@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.36.2-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.37.0-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -107,15 +107,15 @@ For detailed information, please refer to:
 - **[Abilities API](docs-en/ABILITIES_API.md)** - Tools the character can call, and adding new ones
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.36.2
+## 🎉 What's New in v2.37.0
+
+**Expressions in your own dialogue** (v2.37.0): Dialogue files can now show the character's expressions without any AI. End a line with a tag such as `[laugh]` or `[sad]`, and the character makes that face while saying it; the tag itself never appears in the text. It works in both TXT and JSON dialogue files and uses the expressions the character already has. When you switch characters, each character uses only their own expressions, and a tag they don't have is quietly hidden.
 
 **Smoother message box without AI** (v2.36.2): On sites that use the built-in dialogue only, the message box no longer opens empty under the thinking bubble when a page loads; it now appears together with the first line. Pressing OK fades the old line out completely before the next one, instead of flashing.
 
 **A tidier IP blocklist** (v2.36.1): The Bot Protection page no longer lays out hundreds of blocked IP addresses. It shows how many are blocked out of the 500 kept, the ten most recent, and a search box to check one address and unblock it; the full list is still a click away. The Extend page's documentation link works again, and its JavaScript area now says plainly what it does.
 
-**A grimoire in your colours** (v2.36.0): The message box now comes in four colours: the original Traveler's Grimoire, plus Sapphire, Crimson and Forest. Pick one under Settings → General → Style Settings and see a preview right beside the menu. Only the colours change, so the box looks and works the same otherwise, and visitors download just the theme you chose. Links in the box are also a shade darker so they stay easy to read over dark pages.
-
-**Earlier releases**: small touches to the grimoire page (v2.35.1), a message box from a traveler's grimoire (v2.35.0), your own characters stay your own (v2.34.1), Frieren redrawn in SVG (v2.34.0), tidier status labels and documentation that matches the plugin (v2.33.3), chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: a grimoire in your colours (v2.36.0), small touches to the grimoire page (v2.35.1), a message box from a traveler's grimoire (v2.35.0), your own characters stay your own (v2.34.1), Frieren redrawn in SVG (v2.34.0), tidier status labels and documentation that matches the plugin (v2.33.3), chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

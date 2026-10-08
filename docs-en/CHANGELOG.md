@@ -4,7 +4,7 @@
 
 ---
 
-## [Unreleased]
+## [2.37.0] - 2026-10-09
 
 ### Built-in dialogue expressions
 

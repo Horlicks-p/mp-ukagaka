@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.36.2
+Stable tag: 2.37.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,13 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-09 =
+* v2.37.0
+* [NEW] Built-in TXT and JSON dialogue can show the character's expression without AI: end a line with a tag such as [laugh]. The tag is hidden from the text.
+* [CHANGE] After switching characters, expressions come from the character on screen, and a previous character's expression can no longer appear late.
+* [CHANGE] The previous expression is cleared when the next line appears, even if the new line has no tag.
+* [CHANGE] Built-in lines no longer get an expression guessed from their words; only an explicit tag shows one.
 
 = 2026-10-08 =
 * v2.36.2
