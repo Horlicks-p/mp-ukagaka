@@ -371,8 +371,12 @@ msgid "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
 msgstr "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
 
 #: options/options_extend.php:13
-msgid "不需要 &lt;script&gt; 標籤。可監聽 <code>mpuInitComplete</code>（角色初始化完成）或 <code>mpuVisualReady</code>（角色與對話框已顯示）事件；其他外掛內部的函式與元素可能隨版本變動。"
-msgstr "不需要 &lt;script&gt; 標籤。可監聽 <code>mpuInitComplete</code>（角色初始化完成）或 <code>mpuVisualReady</code>（角色與對話框已顯示）事件；其他外掛內部的函式與元素可能隨版本變動。"
+msgid "不需要 &lt;script&gt; 標籤。可監聽 <code>mpuInitComplete</code>（角色初始化完成）或 <code>mpuVisualReady</code>（角色與對話框已顯示）事件。"
+msgstr "不需要 &lt;script&gt; 標籤。可監聽 <code>mpuInitComplete</code>（角色初始化完成）或 <code>mpuVisualReady</code>（角色與對話框已顯示）事件。"
+
+#: options/options_extend.php
+msgid "其他外掛內部的函式與元素可能隨版本變動。"
+msgstr "其他外掛內部的函式與元素可能隨版本變動。"
 
 #: options/options_extend.php:30
 msgid "更多擴展代碼資訊請參閱："

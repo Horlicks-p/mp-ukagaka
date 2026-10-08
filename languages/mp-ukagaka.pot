@@ -2471,7 +2471,11 @@ msgid "進階用途：這裡的 JavaScript 會在網站每個頁面、外掛本�
 msgstr ""
 
 #: options/options_extend.php:13
-msgid "不需要 &lt;script&gt; 標籤。可監聽 <code>mpuInitComplete</code>（角色初始化完成）或 <code>mpuVisualReady</code>（角色與對話框已顯示）事件；其他外掛內部的函式與元素可能隨版本變動。"
+msgid "不需要 &lt;script&gt; 標籤。可監聽 <code>mpuInitComplete</code>（角色初始化完成）或 <code>mpuVisualReady</code>（角色與對話框已顯示）事件。"
+msgstr ""
+
+#: options/options_extend.php
+msgid "其他外掛內部的函式與元素可能隨版本變動。"
 msgstr ""
 
 #: options/options_extend.php:16
