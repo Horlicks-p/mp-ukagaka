@@ -447,6 +447,7 @@ function mpu_chat_context() {
           try {
             sessionStorage.setItem("mpu_context_last_shown", String(Date.now()));
           } catch (e) {}
+          mpuDisplayDialogueEmoji(res.emoji || null);
           mpu_typewriter(
             `<span style="color: ${mpuAiTextColor};">${aiResponse}</span>`,
             "#ukagaka_msg",
@@ -458,11 +459,6 @@ function mpu_chat_context() {
             window.mpuCanvasManager.isCharacterMode
           ) {
             window.mpuCanvasManager.triggerCharacterAnimation(true);
-          }
-
-          // 顯示表情（如果有的話）
-          if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-            window.mpuEmojiManager.showEmoji(res.emoji);
           }
 
           // 記憶功能：將頁面感知對話存入對話歷史
@@ -547,14 +543,9 @@ function mpu_chat_context() {
               Array.isArray(dialogStore.msg) &&
               dialogStore.msg.length > 0
             ) {
-              const msgArr = dialogStore.msg;
-              const auto = dialogStore.auto_msg || "";
-              const randomIdx = Math.floor(Math.random() * msgArr.length);
+              const randomIdx = mpuRandomBuiltInIndex(dialogStore);
               showMainDialog();
-              mpu_typewriter(
-                mpu_unescapeHTML(msgArr[randomIdx] + auto),
-                "#ukagaka_msg",
-              );
+              mpuDisplayBuiltInMessage(dialogStore, randomIdx);
             }
             if (wasAutoTalkRunning && mpuAutoTalk) {
               startAutoTalk();
@@ -568,14 +559,9 @@ function mpu_chat_context() {
             Array.isArray(dialogStore.msg) &&
             dialogStore.msg.length > 0
           ) {
-            const msgArr = dialogStore.msg;
-            const auto = dialogStore.auto_msg || "";
-            const randomIdx = Math.floor(Math.random() * msgArr.length);
+            const randomIdx = mpuRandomBuiltInIndex(dialogStore);
             showMainDialog();
-            mpu_typewriter(
-              mpu_unescapeHTML(msgArr[randomIdx] + auto),
-              "#ukagaka_msg",
-            );
+            mpuDisplayBuiltInMessage(dialogStore, randomIdx);
           } else if (typeof mpuClearSystemPlaceholder === "function") {
             // 無內建對話可 fallback：清掉思考氣泡，避免 placeholder 懸空（角色保持沉默）
             mpuClearSystemPlaceholder("#ukagaka_msg");
@@ -599,14 +585,9 @@ function mpu_chat_context() {
         Array.isArray(dialogStore.msg) &&
         dialogStore.msg.length > 0
       ) {
-        const msgArr = dialogStore.msg;
-        const auto = dialogStore.auto_msg || "";
-        const randomIdx = Math.floor(Math.random() * msgArr.length);
+        const randomIdx = mpuRandomBuiltInIndex(dialogStore);
         showMainDialog();
-        mpu_typewriter(
-          mpu_unescapeHTML(msgArr[randomIdx] + auto),
-          "#ukagaka_msg",
-        );
+        mpuDisplayBuiltInMessage(dialogStore, randomIdx);
       } else if (typeof mpuClearSystemPlaceholder === "function") {
         // 無內建對話可 fallback：清掉思考氣泡，避免 placeholder 懸空（角色保持沉默）
         mpuClearSystemPlaceholder("#ukagaka_msg");

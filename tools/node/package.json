@@ -17,6 +17,7 @@
     "test:chat-history-order": "cd ../.. && node tools/node/test-chat-history-order-smoke.js",
     "test:gift-message": "cd ../.. && node tools/node/test-gift-message-smoke.js",
     "test:gift-transport": "cd ../.. && node tools/node/test-gift-transport-smoke.js",
+    "test:dialog-emotion": "cd ../.. && node tools/node/test-dialog-emotion-smoke.js",
     "test:frieren-shell": "cd ../.. && node tools/node/test-frieren-shell-smoke.js",
     "build:dialog-themes": "cd ../.. && node tools/node/build-dialog-themes.js",
     "capture:dialog-themes": "cd ../.. && node tools/node/capture-dialog-theme-previews.js",
@@ -33,7 +34,7 @@
     "lint:phpcs:baseline": "cd ../.. && php tools/php/phpcs-baseline.php generate",
     "lint:phpcs:summary": "cd ../.. && php tools/php/phpcs-baseline.php summary",
     "test:php": "cd ../../tests && php ../tools/php/vendor/bin/phpunit --colors=always",
-    "verify": "npm run version:check && npm run lint:php && npm run lint:phpcs && npm run lint:css && npm run test:logger && npm run test:visual-ready && npm run test:chat-integrity-window && npm run test:chat-transport && npm run test:chat-history-order && npm run test:gift-message && npm run test:gift-transport && npm run test:frieren-shell && npm run test:dialog-themes && npm run build && npm run test:php",
+    "verify": "npm run version:check && npm run lint:php && npm run lint:phpcs && npm run lint:css && npm run test:logger && npm run test:visual-ready && npm run test:chat-integrity-window && npm run test:chat-transport && npm run test:chat-history-order && npm run test:gift-message && npm run test:gift-transport && npm run test:dialog-emotion && npm run test:frieren-shell && npm run test:dialog-themes && npm run build && npm run test:php",
     "translate:en": "cd ../.. && node tools/node/translate-po.js",
     "test": "npm run test:php"
   },

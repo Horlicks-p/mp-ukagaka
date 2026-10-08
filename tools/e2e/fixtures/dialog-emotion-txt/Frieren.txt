@@ -1,0 +1,4 @@
+E2E_TXT_EMOTION [laugh]
+E2E_TXT_PLAIN
+E2E_TXT_UNKNOWN [unknown_tag]
+E2E_TXT_CROSS [calm]

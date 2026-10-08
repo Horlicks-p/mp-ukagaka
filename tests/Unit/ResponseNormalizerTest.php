@@ -34,6 +34,9 @@ if (!function_exists('mpu_filter_thinking_content')) {
 
 if (!function_exists('mpu_load_personality_emoji_config')) {
     function mpu_load_personality_emoji_config($personality_id = null) {
+        if (isset($GLOBALS['_mpu_test_emoji_supported_by_personality'][$personality_id])) {
+            return ['supported' => $GLOBALS['_mpu_test_emoji_supported_by_personality'][$personality_id]];
+        }
         return ['supported' => $GLOBALS['_mpu_test_emoji_supported'] ?? ['laugh', 'angry', 'happy', 'sad', 'surprised']];
     }
 }

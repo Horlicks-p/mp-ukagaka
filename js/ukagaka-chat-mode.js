@@ -200,11 +200,8 @@ function mpu_toggleChatMode(enable) {
           Array.isArray(store.msg) &&
           store.msg.length > 0
         ) {
-          const msgArr = store.msg;
-          const auto = store.auto_msg || "";
-          const randomIdx = Math.floor(Math.random() * msgArr.length);
-          const exitContent = mpu_unescapeHTML(msgArr[randomIdx] + auto);
-          mpu_typewriter(exitContent, "#ukagaka_msg");
+          const randomIdx = mpuRandomBuiltInIndex(store);
+          const exitContent = mpuDisplayBuiltInMessage(store, randomIdx);
           // 將隨機對話加入歷史，確保下次開啟互動對話模式有完整脈絡
           if (exitContent && Array.isArray(window.mpuChatHistory)) {
             window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });

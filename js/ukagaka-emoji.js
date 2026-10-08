@@ -10,6 +10,7 @@
     const mpuEmojiManager = {
         // 當前顯示的表情元素
         currentEmoji: null,
+        displayGeneration: 0,
 
         // 表情顯示持續時間（毫秒），APNG 動畫完成後自動移除
         displayDuration: 3000, // 3 秒
@@ -23,81 +24,95 @@
                 return;
             }
 
+            const generation = ++this.displayGeneration;
+            const curNum = typeof window.mpuGetCurrentUkagakaNum === 'function'
+                ? window.mpuGetCurrentUkagakaNum()
+                : '';
+
             // 如果已經有表情在顯示，先移除
             if (this.currentEmoji) {
                 this.hideEmoji(this.currentEmoji);
             }
 
-            // 獲取表情基礎路徑
-            const baseUrl = (typeof mpuEmojiConfig !== 'undefined' && mpuEmojiConfig.baseUrl)
-                ? mpuEmojiConfig.baseUrl
-                : '';
+            const render = (config) => {
+                if (generation !== this.displayGeneration) return;
+                if (!config || config.curNum !== curNum || !config.baseUrl) return;
+                if (typeof window.mpuGetCurrentUkagakaNum === 'function' && window.mpuGetCurrentUkagakaNum() !== curNum) return;
 
-            if (!baseUrl) {
-                if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                    mpuLogger.logL("emojiBasePathMissing", "mpuEmojiManager: 表情のベースパスが設定されていません");
+                // 構建完整路徑
+                const emojiUrl = config.baseUrl + emojiName;
+
+                // 獲取容器
+                const imgContainer = document.getElementById('ukagaka_img');
+                if (!imgContainer) {
+                    if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
+                        mpuLogger.logL("emojiContainerMissing", "mpuEmojiManager: #ukagaka_img コンテナが見つかりません");
+                    }
+                    return;
                 }
-                return;
-            }
 
-            // 構建完整路徑
-            const emojiUrl = baseUrl + emojiName;
+                // 創建表情元素
+                const emojiImg = document.createElement('img');
+                emojiImg.className = 'frieren-emoji';
+                emojiImg.alt = 'emoji';
+                emojiImg.style.display = 'none';
 
-            // 獲取容器
-            const imgContainer = document.getElementById('ukagaka_img');
-            if (!imgContainer) {
+                // 儲存表情 key（用於讀取位置/縮放配置）
+                emojiImg.dataset.emojiKey = emojiName.replace(/\.[^.]+$/, '');
+
+                // 應用縮放配置
+                this.applyEmojiScale(emojiImg);
+
+                // 添加到容器後再開始載入，onload 才顯示
+                imgContainer.appendChild(emojiImg);
+                this.currentEmoji = emojiImg;
+
+                emojiImg.onload = () => {
+                    if (generation !== this.displayGeneration || this.currentEmoji !== emojiImg) {
+                        this.hideEmoji(emojiImg);
+                        return;
+                    }
+                    if (typeof window.mpuGetCurrentUkagakaNum === 'function' && window.mpuGetCurrentUkagakaNum() !== curNum) {
+                        this.hideEmoji(emojiImg);
+                        return;
+                    }
+                    emojiImg.style.display = 'block';
+                    this.updateEmojiPosition(emojiImg);
+                };
+
+                emojiImg.onerror = () => {
+                    if (typeof mpuLogger !== 'undefined' && mpuLogger.warn) {
+                        mpuLogger.warnF("emojiImageLoadFailed", "mpuEmojiManager: 表情画像の読み込みに失敗しました：%s", emojiUrl);
+                    }
+                    this.hideEmoji(emojiImg);
+                };
+
+                const self = this;
+                setTimeout(() => {
+                    if (generation === self.displayGeneration && self.currentEmoji === emojiImg) {
+                        self.hideEmoji(emojiImg);
+                    }
+                }, this.displayDuration);
+
+                emojiImg.src = emojiUrl;
+
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                    mpuLogger.logL("emojiContainerMissing", "mpuEmojiManager: #ukagaka_img コンテナが見つかりません");
+                    mpuLogger.logF("emojiShown", "mpuEmojiManager: 表情を表示します：%s", emojiName);
                 }
-                return;
-            }
-
-            // 創建表情元素
-            const emojiImg = document.createElement('img');
-            emojiImg.className = 'frieren-emoji';
-            emojiImg.src = emojiUrl;
-            emojiImg.alt = 'emoji';
-            emojiImg.style.display = 'block';
-
-            // 儲存表情 key（用於讀取位置/縮放配置）
-            emojiImg.dataset.emojiKey = emojiName.replace(/\.[^.]+$/, '');
-
-            // 應用縮放配置
-            this.applyEmojiScale(emojiImg);
-
-            // 計算位置
-            this.updateEmojiPosition(emojiImg);
-
-            // 添加到容器
-            imgContainer.appendChild(emojiImg);
-            this.currentEmoji = emojiImg;
-
-            // 監聽圖片載入完成
-            emojiImg.onload = () => {
-                // 重新計算位置（確保圖片尺寸正確）
-                this.updateEmojiPosition(emojiImg);
             };
 
-            // 監聽錯誤
-            emojiImg.onerror = () => {
+            const config = window.mpuEmojiConfig;
+            if (config && config.curNum === curNum) {
+                render(config);
+                return;
+            }
+
+            if (typeof window.loadEmojiConfig !== 'function') return;
+            window.loadEmojiConfig(curNum).then(render).catch(error => {
                 if (typeof mpuLogger !== 'undefined' && mpuLogger.warn) {
-                    mpuLogger.warnF("emojiImageLoadFailed", "mpuEmojiManager: 表情画像の読み込みに失敗しました：%s", emojiUrl);
+                    mpuLogger.warnF("emojiConfigLoadFailed", "mpuEmojiManager: 表情設定を読み込めませんでした：%s", error);
                 }
-                this.hideEmoji(emojiImg);
-            };
-
-            // 設定自動移除（APNG 動畫完成後）
-            // 注意：APNG 動畫結束事件可能不可靠，使用 setTimeout 作為後備
-            const self = this;
-            setTimeout(() => {
-                if (self.currentEmoji === emojiImg) {
-                    self.hideEmoji(emojiImg);
-                }
-            }, this.displayDuration);
-
-            if (typeof mpuLogger !== 'undefined' && mpuLogger.log) {
-                mpuLogger.logF("emojiShown", "mpuEmojiManager: 表情を表示します：%s", emojiName);
-            }
+            });
         },
 
         /**
@@ -233,6 +248,7 @@
          * 清理所有表情元素
          */
         cleanup: function() {
+            this.displayGeneration++;
             if (this.currentEmoji) {
                 this.hideEmoji(this.currentEmoji);
             }
@@ -256,53 +272,72 @@
     /**
      * 載入表情配置（延遲載入，避免在網頁原始碼中暴露路徑）
      */
-    function loadEmojiConfig() {
-        // 如果已經載入過，直接返回
-        if (typeof window.mpuEmojiConfig !== 'undefined' && window.mpuEmojiConfig.baseUrl) {
-            return Promise.resolve(window.mpuEmojiConfig);
+    let emojiConfigGeneration = 0;
+    let pendingEmojiConfig = null;
+
+    function invalidateEmojiConfig() {
+        emojiConfigGeneration++;
+        pendingEmojiConfig = null;
+        window.mpuEmojiConfig = undefined;
+    }
+
+    function loadEmojiConfig(requestedCurNum) {
+        const curNum = requestedCurNum || (
+            typeof window.mpuGetCurrentUkagakaNum === 'function'
+                ? window.mpuGetCurrentUkagakaNum()
+                : ''
+        );
+        const generation = emojiConfigGeneration;
+        const cached = window.mpuEmojiConfig;
+
+        if (cached && cached.curNum === curNum && cached.configGeneration === generation) {
+            return Promise.resolve(cached);
+        }
+        if (pendingEmojiConfig && pendingEmojiConfig.curNum === curNum && pendingEmojiConfig.generation === generation) {
+            return pendingEmojiConfig.promise;
+        }
+        if (typeof mpuRestUrl === 'undefined') {
+            return Promise.reject(new Error('mpuRestUrl is not defined'));
         }
 
-        return new Promise((resolve, reject) => {
-            if (typeof mpuRestUrl === 'undefined') {
-                reject(new Error('mpuRestUrl is not defined'));
-                return;
-            }
+        const params = new URLSearchParams();
+        if (curNum) params.set('cur_num', curNum);
+        const query = params.toString();
+        const url = `${mpuRestUrl}emoji-config${query ? `?${query}` : ''}`;
+        const headers = { 'Content-Type': 'application/json' };
+        if (typeof mpuRestNonce !== 'undefined') headers['X-WP-Nonce'] = mpuRestNonce;
 
-            const url = `${mpuRestUrl}emoji-config`;
-
-            const headers = {
-                'Content-Type': 'application/json',
-            };
-            if (typeof mpuRestNonce !== 'undefined') {
-                headers['X-WP-Nonce'] = mpuRestNonce;
-            }
-
-            fetch(url, {
-                method: 'GET',
-                headers: headers,
+        const promise = fetch(url, { method: 'GET', headers: headers })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        window.mpuEmojiConfig = {
-                            baseUrl: data.baseUrl || '',
-                            supportedEmojis: data.supportedEmojis || [],
-                            mappings: data.mappings || {},
-                        };
-                        resolve(window.mpuEmojiConfig);
-                    } else {
-                        reject(new Error(data.error || 'Failed to load emoji config'));
-                    }
-                })
-                .catch(error => {
-                    reject(error);
-                });
-        });
+            .then(data => {
+                if (!data.success) throw new Error(data.error || 'Failed to load emoji config');
+                const config = {
+                    baseUrl: data.baseUrl || '',
+                    supportedEmojis: data.supportedEmojis || [],
+                    mappings: data.mappings || {},
+                    curNum: curNum,
+                    personalityId: data.personalityId || null,
+                    configGeneration: generation,
+                };
+                const currentCurNum = typeof window.mpuGetCurrentUkagakaNum === 'function'
+                    ? window.mpuGetCurrentUkagakaNum()
+                    : curNum;
+                if (generation === emojiConfigGeneration && currentCurNum === curNum) {
+                    window.mpuEmojiConfig = config;
+                }
+                return config;
+            })
+            .finally(() => {
+                if (pendingEmojiConfig && pendingEmojiConfig.promise === promise) {
+                    pendingEmojiConfig = null;
+                }
+            });
+
+        pendingEmojiConfig = { curNum: curNum, generation: generation, promise: promise };
+        return promise;
     }
 
     // 在頁面載入完成後自動載入配置
@@ -325,6 +360,6 @@
 
     // 暴露載入函數供外部調用
     window.loadEmojiConfig = loadEmojiConfig;
+    window.invalidateEmojiConfig = invalidateEmojiConfig;
 
 })();
-

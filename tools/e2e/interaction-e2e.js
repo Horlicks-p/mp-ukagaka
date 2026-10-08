@@ -74,14 +74,21 @@ $o['ukagakas']['default_1'] = array_merge($o['ukagakas']['default_1'], array(
 // server's copy makes the next chat turn fail instead of only logging.
 // ai: "off" keeps a fresh install's defaults (no LLM, built-in dialogue only).
 function siteProfile(s) {
-  return { ghost: s.ghost || "Frieren", integrity: s.integrity || "audit", ai: s.ai || "fake" };
+  return {
+    ghost: s.ghost || "Frieren",
+    integrity: s.integrity || "audit",
+    ai: s.ai || "fake",
+    dialogFixture: s.dialogFixture || "",
+  };
 }
 
 function profileKey(profile) {
-  return `${profile.ghost}, checksum ${profile.integrity}` + (profile.ai === "off" ? ", no AI" : "");
+  return `${profile.ghost}, checksum ${profile.integrity}`
+    + (profile.ai === "off" ? ", no AI" : "")
+    + (profile.dialogFixture ? `, ${profile.dialogFixture} dialogue fixture` : "");
 }
 
-function blueprintFor(fakeUrl, { ghost, integrity, ai }) {
+function blueprintFor(fakeUrl, { ghost, integrity, ai, dialogFixture }) {
   const aiSettings = ai === "off" ? "" : `$o = array_merge($o, array(
   'ai_enabled' => true,
   'llm_provider' => 'ollama',
@@ -104,6 +111,7 @@ $o = get_option('mp_ukagaka');
 if (!is_array($o) || empty($o)) { $o = mpu_default_opt(); }
 ${aiSettings}
 ${GHOST_SETUP[ghost]}
+${dialogFixture ? `$o['external_file_format'] = '${dialogFixture}';` : ""}
 update_option('mp_ukagaka', $o);
 update_option('timezone_string', '${zoneForLocalHour(AWAKE_HOUR)}');
 update_option('gmt_offset', '');
@@ -1444,6 +1452,57 @@ scenario("builtin-msgbox-fade-timing", "browser", async (h) => {
   return { loadSamples: load.length, okTextChangedAtOpacity: firstChange.opacity };
 }, { ai: "off" });
 
+for (const format of ["txt", "json"]) {
+  scenario(`builtin-dialog-emotion-${format}`, "browser + wp", async (h) => {
+    const page = await h.newPage();
+    await h.open(page);
+    await page.waitForFunction((marker) => document.getElementById("ukagaka_msg").textContent.includes(marker),
+      `E2E_${format.toUpperCase()}_EMOTION`, { timeout: 30000 });
+    await h.typewriterIdle(page);
+    await page.waitForFunction(() => {
+      const emoji = document.querySelector("#ukagaka_img img.frieren-emoji");
+      return emoji && emoji.complete && emoji.style.display !== "none" && /\/ghost\/Frieren\/emojis\/laugh\.png(?:\?|$)/.test(emoji.src);
+    }, null, { timeout: 15000 });
+
+    const result = await page.evaluate(() => {
+      const emoji = document.querySelector("#ukagaka_img img.frieren-emoji");
+      return {
+        text: document.getElementById("ukagaka_msg").textContent,
+        emoji: emoji ? emoji.src : "",
+        dialogRequests: window.__mpuProbe.requests.filter((request) => request.url.includes("/dialog?")).length,
+      };
+    });
+    assert(!result.text.includes("[laugh]"), `${format}: emotion tag leaked into visible text`);
+    assert(result.emoji.includes("/ghost/Frieren/emojis/laugh.png"), `${format}: wrong emoji URL ${result.emoji}`);
+    assert(result.dialogRequests >= 1, `${format}: frontend did not load the real /dialog endpoint`);
+
+    await page.evaluate(() => { window.mpuSetAutoTalkEnabled(false); window.stopAutoTalk(); });
+    const advance = async (marker) => {
+      await h.click(page, "#mpu_ok_btn");
+      await page.waitForFunction((expected) => document.getElementById("ukagaka_msg").textContent.includes(expected),
+        marker, { timeout: 15000 });
+      await h.typewriterIdle(page);
+      return page.evaluate(() => ({
+        text: document.getElementById("ukagaka_msg").textContent,
+        emoji: !!document.querySelector("#ukagaka_img img.frieren-emoji"),
+      }));
+    };
+
+    const plain = await advance(`E2E_${format.toUpperCase()}_PLAIN`);
+    assert(!plain.emoji, `${format}: untagged next line did not clear the previous emoji`);
+
+    const unknown = await advance(`E2E_${format.toUpperCase()}_UNKNOWN`);
+    assert(unknown.text.includes("[unknown_tag]"), `${format}: unknown tag was removed`);
+    assert(!unknown.emoji, `${format}: unknown tag displayed an emoji`);
+
+    const cross = await advance(`E2E_${format.toUpperCase()}_CROSS`);
+    assert(!cross.text.includes("[calm]"), `${format}: installed cross-personality tag leaked into text`);
+    assert(!cross.emoji, `${format}: cross-personality tag displayed another personality's emoji`);
+    result.followups = { plain, unknown, cross };
+    return result;
+  }, { ai: "off", dialogFixture: format });
+}
+
 // Saves the theme through the real settings form (nonce, sanitizer, option)
 // and loads the front page in a fresh context, so the cache is cold. Last in
 // the file: saving the general form also normalises the e2e-only settings
@@ -1598,6 +1657,16 @@ async function main() {
       harness.site = await startPlayground({
         port: port + index,
         blueprint: blueprintFor(fake.url, profile),
+        mounts: [
+          ...(profile.dialogFixture ? [{
+            source: path.join(root, "tools", "e2e", "fixtures", `dialog-emotion-${profile.dialogFixture}`),
+            target: "/wordpress/wp-content/plugins/mp-ukagaka/dialogs",
+          }] : []),
+          ...(profile.ghost === "Asuna" || profile.dialogFixture ? [{
+            source: path.join(root, "tools", "e2e", "fixtures", "personality-asuna"),
+            target: "/wordpress/wp-content/plugins/mp-ukagaka/ghost/Asuna",
+          }] : []),
+        ],
         log: verbose ? (t) => process.stdout.write(t) : () => {},
       });
       console.log(`playground: ${harness.site.url}`);

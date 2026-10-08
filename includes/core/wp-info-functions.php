@@ -266,19 +266,34 @@ function mpu_country_code_to_name($code, $locale = 'ja')
  * 1. 優先從 ukagaka_name 查找
  * 2. fallback 至當前 personality
  *
- * @param string|null $ukagaka_name 角色 config key，null 則直接使用當前 personality
+ * @param string|null $ukagaka_name       角色 config key，null 則直接使用當前 personality.
+ * @param bool        $fallback_to_current 有效角色無法對應人格時，是否回退目前人格.
  * @return string|null Personality ID，無法解析時返回 null
  */
-function mpu_resolve_personality_id($ukagaka_name = null): ?string
-{
-    if ($ukagaka_name !== null && function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-        $id = mpu_get_personality_id_from_ukagaka_name($ukagaka_name);
-        if ($id !== null) {
-            return $id;
-        }
-    }
-    if (function_exists('mpu_get_current_personality_id')) {
-        return mpu_get_current_personality_id();
-    }
-    return null;
+function mpu_resolve_personality_id( $ukagaka_name = null, $fallback_to_current = true ): ?string {
+	$has_valid_ukagaka = false;
+
+	if ( is_string( $ukagaka_name ) && '' !== $ukagaka_name && function_exists( 'mpu_get_option' ) ) {
+		$mpu_opt           = mpu_get_option();
+		$has_valid_ukagaka = isset( $mpu_opt['ukagakas'] )
+			&& is_array( $mpu_opt['ukagakas'] )
+			&& array_key_exists( $ukagaka_name, $mpu_opt['ukagakas'] );
+	}
+
+	if ( $has_valid_ukagaka && function_exists( 'mpu_get_personality_id_from_ukagaka_name' ) ) {
+		$id = mpu_get_personality_id_from_ukagaka_name( $ukagaka_name );
+		if ( null !== $id ) {
+			return $id;
+		}
+
+		if ( ! $fallback_to_current ) {
+			return null;
+		}
+	}
+
+	if ( function_exists( 'mpu_get_current_personality_id' ) ) {
+		return mpu_get_current_personality_id();
+	}
+
+	return null;
 }

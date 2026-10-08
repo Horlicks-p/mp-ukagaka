@@ -122,7 +122,7 @@
                 }
 
                 if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-                  window.mpuEmojiManager.showEmoji(res.emoji);
+                  mpuDisplayDialogueEmoji(res.emoji);
                 }
 
                 // 記錄裝飾物對話到歷史，讓互動對話模式能記得此次觸摸反應
@@ -502,7 +502,7 @@
                 }
 
                 if (res.emoji && typeof mpuEmojiManager !== "undefined") {
-                  mpuEmojiManager.showEmoji(res.emoji);
+                  mpuDisplayDialogueEmoji(res.emoji);
                 }
 
                 // 記錄身體觸摸對話到歷史，讓互動對話模式能記得此次觸摸反應
@@ -1035,7 +1035,7 @@
           this.triggerFrierenSpeaking(true);
         }
         if (res.emoji && window.mpuEmojiManager) {
-          window.mpuEmojiManager.showEmoji(res.emoji);
+          mpuDisplayDialogueEmoji(res.emoji);
         }
         if (Array.isArray(window.mpuChatHistory) && res.user_anchor) {
           window.mpuChatHistory.push({
