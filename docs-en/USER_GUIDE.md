@@ -892,13 +892,22 @@ Go to **Settings** → **MP Ukagaka** → **Extensions**
 
 ### JS Area
 
-Add custom JavaScript code to add more interactive features for the Ukagaka.
+An advanced escape hatch: JavaScript entered here is printed on every frontend page, after MP Ukagaka's own scripts, without `<script>` tags. Saving it requires the `unfiltered_html` capability. There is no event API for customising individual replies; the plugin exposes two lifecycle events you can rely on:
+
+| Event | Fires | Listen with |
+| --- | --- | --- |
+| `mpuInitComplete` | Once, when the character's init request succeeds. The handler's second argument is the init response. Not fired on pages without the character. | `jQuery(document).on(...)` — it is a jQuery event, so `addEventListener` does not see it |
+| `mpuVisualReady` | Once, when the character and dialogue box are visible (or after a 12-second fallback). | `window.mpuVisualReadyPromise.then(...)`, which also works if it has already fired; or `document.addEventListener('mpuVisualReady', ...)` |
+
+Everything else — global `mpu*` functions, element IDs such as `#ukagaka_msg`, CSS classes — is internal and may change between versions. Code that touches it can also collide with built-in behaviour: clicking the character already starts a touch reaction, and the typewriter can overwrite text written into the dialogue box.
 
 **Example: Double-click Ukagaka to navigate to a specific page**
 
 ```javascript
-document.getElementById('cur_ukagaka').addEventListener('dblclick', function() {
-  window.location.href = '/about/';
+jQuery(document).on('mpuInitComplete', function () {
+  document.getElementById('cur_ukagaka').addEventListener('dblclick', function () {
+    window.location.href = '/about/';
+  });
 });
 ```
 

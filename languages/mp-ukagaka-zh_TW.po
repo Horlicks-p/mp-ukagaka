@@ -371,8 +371,12 @@ msgid "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
 msgstr "如果您不懂如何操作或編寫代碼，請勿更改此頁。"
 
 #: options/options_extend.php:13
-msgid "無需使用 &lt;script&gt; 標籤，代碼將寫入到 &lt;head&gt; 部分。"
-msgstr "無需使用 &lt;script&gt; 標籤，代碼將寫入到 &lt;head&gt; 部分。"
+msgid "不需要 &lt;script&gt; 標籤。可監聽 <code>mpuInitComplete</code>（角色初始化完成）或 <code>mpuVisualReady</code>（角色與對話框已顯示）事件。"
+msgstr "不需要 &lt;script&gt; 標籤。可監聽 <code>mpuInitComplete</code>（角色初始化完成）或 <code>mpuVisualReady</code>（角色與對話框已顯示）事件。"
+
+#: options/options_extend.php
+msgid "其他外掛內部的函式與元素可能隨版本變動。"
+msgstr "其他外掛內部的函式與元素可能隨版本變動。"
 
 #: options/options_extend.php:30
 msgid "更多擴展代碼資訊請參閱："
@@ -642,8 +646,8 @@ msgid "⚠️ 重要提示："
 msgstr "⚠️ 重要提示："
 
 #: options/options_extend.php:12
-msgid "可在此填寫 JavaScript 代碼，為偽春菜自訂更多的回應事件。"
-msgstr "可在此填寫 JavaScript 代碼，為偽春菜自訂更多的回應事件。"
+msgid "進階用途：這裡的 JavaScript 會在網站每個頁面、外掛本身的腳本之後執行。"
+msgstr "進階用途：這裡的 JavaScript 會在網站每個頁面、外掛本身的腳本之後執行。"
 
 #: options/options_extend.php:29
 msgid "您可以在偽春菜的資訊框中使用特殊代碼來顯示特定的資訊，例如日誌列表。"

@@ -9,8 +9,8 @@
         <div class="mpu-settings-card">
             <h4><?php _e('📜 JS 區', 'mp-ukagaka'); ?></h4>
             <div class="mpu-field-group">
-                <p><?php _e('可在此填寫 JavaScript 代碼，為偽春菜自訂更多的回應事件。', 'mp-ukagaka'); ?></p>
-                <p><small><?php _e('無需使用 &lt;script&gt; 標籤，代碼將寫入到 &lt;head&gt; 部分。', 'mp-ukagaka'); ?></small></p>
+                <p><?php _e('進階用途：這裡的 JavaScript 會在網站每個頁面、外掛本身的腳本之後執行。', 'mp-ukagaka'); ?></p>
+                <p><small><?php _e('不需要 &lt;script&gt; 標籤。可監聽 <code>mpuInitComplete</code>（角色初始化完成）或 <code>mpuVisualReady</code>（角色與對話框已顯示）事件。', 'mp-ukagaka'); ?><br /><?php esc_html_e( '其他外掛內部的函式與元素可能隨版本變動。', 'mp-ukagaka' ); ?></small></p>
                 <?php if (!current_user_can('unfiltered_html')): ?>
                 <div class="notice notice-warning inline" style="margin:8px 0;">
                     <p><?php _e('⚠️ 您的帳號不具備 <code>unfiltered_html</code> 權限，無法儲存自訂 JS。此欄位在多站點或受限角色環境下為唯讀。', 'mp-ukagaka'); ?></p>
