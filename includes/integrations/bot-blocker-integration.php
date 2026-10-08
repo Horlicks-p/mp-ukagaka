@@ -496,12 +496,17 @@ function mpu_bb_set_hot_transient($ip) {
     set_transient('mbb_hot_' . md5($ip), 1, $ttl);
 }
 
+// IP 黑名單最多保留的筆數；超過時擠掉最早的一筆（管理頁面也用它顯示上限）.
+if ( ! defined( 'MPU_BB_MAX_BANNED_IPS' ) ) {
+	define( 'MPU_BB_MAX_BANNED_IPS', 500 );
+}
+
 function mpu_bb_ban_ip($ip) {
     $banned = get_option('moelog_bot_blocker_banned_ips', []);
     if (!in_array($ip, $banned, true)) {
         $banned[] = $ip;
-        if (count($banned) > 500) {
-            $banned = array_slice($banned, -500);
+        if (count($banned) > MPU_BB_MAX_BANNED_IPS) {
+            $banned = array_slice($banned, -MPU_BB_MAX_BANNED_IPS);
         }
         update_option('moelog_bot_blocker_banned_ips', $banned, false);
     }

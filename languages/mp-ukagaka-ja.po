@@ -3795,3 +3795,37 @@ msgstr "ダイアログの色だけを変更し、レイアウトや操作は変
 #: options/options_general.php
 msgid "對話框配色預覽"
 msgstr "ダイアログ配色のプレビュー"
+
+#: options/options_page_bot_blocker.php
+msgid "已達上限，之後每封鎖一個新 IP，就會擠掉最早封鎖的一筆。"
+msgstr "上限に達しています。新しくIPをブロックするたびに、最も古い1件が押し出されます。"
+
+#: options/options_page_bot_blocker.php
+msgid "自動封鎖的 IP 會記在這裡；達到上限後，新封鎖的 IP 會擠掉最早的一筆。"
+msgstr "自動でブロックされたIPはここに記録されます。上限に達すると、新しいIPが最も古い1件を押し出します。"
+
+#: options/options_page_bot_blocker.php
+msgid "查詢 IP"
+msgstr "IPを検索"
+
+#: options/options_page_bot_blocker.php
+msgid "輸入 IP 查詢…"
+msgstr "IPを入力して検索…"
+
+#: options/options_page_bot_blocker.php
+#, php-format
+msgid "%d 筆符合"
+msgstr "%d 件一致"
+
+#: options/options_page_bot_blocker.php
+msgid "不在黑名單中"
+msgstr "ブラックリストにありません"
+
+#: options/options_page_bot_blocker.php
+msgid "最近封鎖"
+msgstr "最近のブロック"
+
+#: options/options_page_bot_blocker.php
+#, php-format
+msgid "顯示全部 %s 筆（由新到舊）"
+msgstr "全 %s 件を表示（新しい順）"

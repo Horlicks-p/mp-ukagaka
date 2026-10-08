@@ -237,24 +237,89 @@ $entries = $parsed['entries'];
 <?php endif; ?>
 
 <!-- ===== IP 黑名單管理 ===== -->
-<h3 style="margin-top:28px;">🚫 <?php esc_html_e('IP 黑名單', 'mp-ukagaka'); ?> <span style="font-weight:400;font-size:14px;color:#9B8EC4;">(<?php echo count($banned_ips); ?>)</span></h3>
+<?php
+// 逐一列出幾百個 IP 沒什麼用：平常只看數量，有人反映連不上時查單一 IP 解除。
+// 所以預設只顯示最近封鎖的幾筆，完整清單收在 <details> 裡，查詢框即時篩選.
+$mpu_bb_ip_count  = count( $banned_ips );
+$mpu_bb_ip_newest = array_reverse( $banned_ips ); // 新封鎖的附加在尾端.
+$mpu_bb_ip_chip   = static function ( $ip_addr ) {
+	?>
+	<span data-ip="<?php echo esc_attr( $ip_addr ); ?>" style="display:inline-flex;align-items:center;gap:4px;background:#EDE8F5;color:#5E4D8B;font-family:monospace;font-size:11px;font-weight:500;padding:4px 8px;border-radius:6px;border:1px solid #CCC;">
+		<?php echo esc_html( $ip_addr ); ?>
+		<button type="submit" name="remove_ip" value="<?php echo esc_attr( $ip_addr ); ?>" style="background:none;border:none;color:#7B68AE;cursor:pointer;font-size:14px;line-height:1;padding:0 0 0 2px;opacity:0.55;" title="<?php esc_attr_e( '移除此 IP', 'mp-ukagaka' ); ?>">&times;</button>
+	</span>
+	<?php
+};
+?>
+<h3 style="margin-top:28px;">🚫 <?php esc_html_e( 'IP 黑名單', 'mp-ukagaka' ); ?> <span style="font-weight:400;font-size:14px;color:#9B8EC4;"><?php echo esc_html( number_format_i18n( $mpu_bb_ip_count ) . ' / ' . number_format_i18n( MPU_BB_MAX_BANNED_IPS ) ); ?></span></h3>
+<p class="description">
+	<?php if ( $mpu_bb_ip_count >= MPU_BB_MAX_BANNED_IPS ) : ?>
+		<?php esc_html_e( '已達上限，之後每封鎖一個新 IP，就會擠掉最早封鎖的一筆。', 'mp-ukagaka' ); ?>
+	<?php else : ?>
+		<?php esc_html_e( '自動封鎖的 IP 會記在這裡；達到上限後，新封鎖的 IP 會擠掉最早的一筆。', 'mp-ukagaka' ); ?>
+	<?php endif; ?>
+</p>
 
-<?php if (empty($banned_ips)): ?>
-    <p style="color:#9B8EC4;"><?php esc_html_e('目前沒有被封鎖的 IP。', 'mp-ukagaka'); ?></p>
-<?php else: ?>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;max-height:200px;overflow-y:auto;padding:2px;">
-        <?php foreach ($banned_ips as $ip_addr): ?>
-            <span style="display:inline-flex;align-items:center;gap:4px;background:#EDE8F5;color:#5E4D8B;font-family:monospace;font-size:11px;font-weight:500;padding:4px 8px;border-radius:6px;border:1px solid #CCC;">
-                <?php echo esc_html($ip_addr); ?>
-                <form method="post" style="display:inline;margin:0;padding:0;">
-                    <?php wp_nonce_field('mpu_bb_admin_action', 'mpu_bb_nonce'); ?>
-                    <input type="hidden" name="mpu_bb_action" value="remove_ip" />
-                    <input type="hidden" name="remove_ip" value="<?php echo esc_attr($ip_addr); ?>" />
-                    <button type="submit" style="background:none;border:none;color:#7B68AE;cursor:pointer;font-size:14px;line-height:1;padding:0 0 0 2px;opacity:0.55;" title="<?php esc_attr_e('移除此 IP', 'mp-ukagaka'); ?>">&times;</button>
-                </form>
-            </span>
-        <?php endforeach; ?>
-    </div>
+<?php if ( empty( $banned_ips ) ) : ?>
+	<p style="color:#9B8EC4;"><?php esc_html_e( '目前沒有被封鎖的 IP。', 'mp-ukagaka' ); ?></p>
+<?php else : ?>
+	<?php // 查詢框放在表單外：在框內按 Enter 不會送出第一個 × 按鈕. ?>
+	<p style="margin:10px 0;">
+		<label for="mpu-bb-ip-search" class="screen-reader-text"><?php esc_html_e( '查詢 IP', 'mp-ukagaka' ); ?></label>
+		<input type="search" id="mpu-bb-ip-search" class="regular-text" autocomplete="off" style="font-family:monospace;" placeholder="<?php esc_attr_e( '輸入 IP 查詢…', 'mp-ukagaka' ); ?>" />
+		<?php /* translators: %d: number of matching IPs */ ?>
+		<span id="mpu-bb-ip-search-result" aria-live="polite" style="margin-left:8px;color:#5E4D8B;" data-found="<?php esc_attr_e( '%d 筆符合', 'mp-ukagaka' ); ?>" data-none="<?php esc_attr_e( '不在黑名單中', 'mp-ukagaka' ); ?>"></span>
+	</p>
+	<form method="post" style="margin:0 0 14px;">
+		<?php wp_nonce_field( 'mpu_bb_admin_action', 'mpu_bb_nonce' ); ?>
+		<input type="hidden" name="mpu_bb_action" value="remove_ip" />
+		<div id="mpu-bb-ip-recent" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
+			<span style="font-size:12px;color:#9B8EC4;margin-right:4px;"><?php esc_html_e( '最近封鎖', 'mp-ukagaka' ); ?></span>
+			<?php
+			foreach ( array_slice( $mpu_bb_ip_newest, 0, 10 ) as $mpu_bb_ip ) {
+				$mpu_bb_ip_chip( $mpu_bb_ip );
+			}
+			?>
+		</div>
+		<details id="mpu-bb-ip-all" style="margin-top:12px;">
+			<?php /* translators: %s: number of blocked IPs */ ?>
+			<summary style="cursor:pointer;color:#7B68AE;"><?php echo esc_html( sprintf( __( '顯示全部 %s 筆（由新到舊）', 'mp-ukagaka' ), number_format_i18n( $mpu_bb_ip_count ) ) ); ?></summary>
+			<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:240px;overflow-y:auto;padding:2px;">
+				<?php
+				foreach ( $mpu_bb_ip_newest as $mpu_bb_ip ) {
+					$mpu_bb_ip_chip( $mpu_bb_ip );
+				}
+				?>
+			</div>
+		</details>
+	</form>
+	<script>
+	( function () {
+		var input = document.getElementById( 'mpu-bb-ip-search' );
+		var result = document.getElementById( 'mpu-bb-ip-search-result' );
+		var recent = document.getElementById( 'mpu-bb-ip-recent' );
+		var all = document.getElementById( 'mpu-bb-ip-all' );
+		var chips = all.querySelectorAll( '[data-ip]' );
+		var openBeforeSearch = all.open;
+		var searching = false;
+		input.addEventListener( 'input', function () {
+			var query = input.value.trim();
+			var found = 0;
+			if ( query && ! searching ) {
+				openBeforeSearch = all.open;
+			}
+			searching = query !== '';
+			chips.forEach( function ( chip ) {
+				var match = ! query || chip.getAttribute( 'data-ip' ).indexOf( query ) !== -1;
+				chip.style.display = match ? 'inline-flex' : 'none';
+				found += match ? 1 : 0;
+			} );
+			recent.style.display = query ? 'none' : 'flex';
+			all.open = query ? true : openBeforeSearch;
+			result.textContent = ! query ? '' : ( found ? result.getAttribute( 'data-found' ).replace( '%d', found ) : result.getAttribute( 'data-none' ) );
+		} );
+	}() );
+	</script>
 <?php endif; ?>
 
 <!-- 維護操作按鈕 -->
