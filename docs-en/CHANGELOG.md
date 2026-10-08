@@ -4,6 +4,20 @@
 
 ---
 
+## [2.36.2] - 2026-10-08
+
+### Message box (without an LLM)
+
+- **No empty box on load.** With built-in dialogue only — a fresh install's default — the message box faded in empty under the initial think bubble and stayed empty for about two seconds before the first line. `processSettings()` called `startAutoTalk()`, which opened any hidden box while the initial placeholder was still up; with an LLM, `startAutoTalk()` waits for the startup reply, so only the built-in path showed it. The box now stays closed until the first line arrives and fades in with it, as it does with an LLM.
+- **No flash on OK.** `mpu_nextmsg()` fades the box out over 600ms but swapped the text after 400ms, so the old box was still about a third visible when it emptied and the next line started typing; it then finished fading out and faded back in. The built-in path now waits for the fade-out to finish before the text changes.
+- The LLM path of `mpu_nextmsg()` is unchanged.
+
+### Internal
+
+- The interaction e2e suite gains a site profile with `ai: "off"` that keeps a fresh install's defaults, and a `builtin-msgbox-fade-timing` scenario that records the box every frame on load and on OK. It fails against the 2.36.1 bundle on both counts.
+
+---
+
 ## [2.36.1] - 2026-10-08
 
 ### Bot Protection

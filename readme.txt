@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.36.1
+Stable tag: 2.36.2
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,11 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-08 =
+* v2.36.2
+* [FIX] Without AI, the message box no longer opens empty under the thinking bubble on page load; it appears together with the first line.
+* [FIX] Without AI, pressing OK no longer makes the message box flash; it fades out fully before the next line.
 
 = 2026-10-08 =
 * v2.36.1
