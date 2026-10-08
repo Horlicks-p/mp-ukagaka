@@ -178,6 +178,139 @@ function mpu_common_msg()
     }
 }
 
+/**
+ * Return the request-cached union of resolved emotion tags from installed personalities.
+ *
+ * @return string[]
+ */
+function mpu_get_builtin_dialog_emotion_tags() {
+	static $tags = null;
+
+	if ( null !== $tags ) {
+		return $tags;
+	}
+
+	$tags = array();
+	if ( ! function_exists( 'mpu_get_available_personalities' ) || ! function_exists( 'mpu_normalize_get_supported_tags' ) ) {
+		return $tags;
+	}
+
+	$seen = array();
+	foreach ( array_keys( mpu_get_available_personalities( false ) ) as $personality_id ) {
+		foreach ( mpu_normalize_get_supported_tags( $personality_id ) as $tag ) {
+			if ( ! is_string( $tag ) || '' === $tag ) {
+				continue;
+			}
+
+			$key = strtolower( $tag );
+			if ( isset( $seen[ $key ] ) ) {
+				continue;
+			}
+
+			$seen[ $key ] = true;
+			$tags[]       = $tag;
+		}
+	}
+
+	return $tags;
+}
+
+/**
+ * Expand built-in dialogue while preserving personality-scoped emoji metadata.
+ *
+ * @param array       $source_messages Unexpanded dialogue strings.
+ * @param string|null $personality_id  Resolved active personality, or null for no emoji.
+ * @param array|null  $installed_tags  Optional installed-tag registry for tests/callers.
+ * @return array{msg:string[],msg_emojis:array}
+ */
+function mpu_build_builtin_dialog_messages( $source_messages, $personality_id, $installed_tags = null ) {
+	$messages = array();
+	$emojis   = array();
+	$seen     = array();
+
+	if ( ! is_array( $source_messages ) ) {
+		return array(
+			'msg'        => $messages,
+			'msg_emojis' => $emojis,
+		);
+	}
+
+	if ( ! is_array( $installed_tags ) ) {
+		$installed_tags = mpu_get_builtin_dialog_emotion_tags();
+	}
+
+	$active_tags = is_string( $personality_id ) && '' !== $personality_id
+		? mpu_normalize_get_supported_tags( $personality_id )
+		: array();
+
+	foreach ( $source_messages as $source_message ) {
+		if ( ! is_string( $source_message ) ) {
+			continue;
+		}
+
+		$emotion = mpu_normalize_extract_emotions( $source_message, $installed_tags, false );
+		$clean   = $emotion['text'];
+		if ( ! empty( $emotion['tags'] ) ) {
+			preg_match( '/^\s*/u', $source_message, $leading_whitespace );
+			preg_match( '/\s*$/u', $source_message, $trailing_whitespace );
+			$clean = ( $leading_whitespace[0] ?? '' )
+				. trim( $clean )
+				. ( $trailing_whitespace[0] ?? '' );
+		}
+		$emoji = null;
+
+		foreach ( $emotion['tags'] as $tag ) {
+			$canonical = mpu_normalize_resolve_emotion_tag( $tag, $active_tags );
+			if ( null !== $canonical ) {
+				$emoji = $canonical . '.png';
+				break;
+			}
+		}
+
+		foreach ( mpu_msg_code( array( $clean ) ) as $expanded_message ) {
+			if ( ! is_string( $expanded_message ) || array_key_exists( $expanded_message, $seen ) ) {
+				continue;
+			}
+
+			$seen[ $expanded_message ] = true;
+			$messages[]                = $expanded_message;
+			$emojis[]                  = $emoji;
+		}
+	}
+
+	return array(
+		'msg'        => array_values( $messages ),
+		'msg_emojis' => array_values( $emojis ),
+	);
+}
+
+/**
+ * Build the REST-normalized shape for an already parsed built-in line.
+ *
+ * @param string      $message Visible dialogue text.
+ * @param string|null $emoji  Selected PNG filename.
+ * @return array
+ */
+function mpu_normalize_builtin_dialog_for_rest( $message, $emoji = null ) {
+	$message = (string) $message;
+	$emoji   = is_string( $emoji ) && '' !== $emoji ? $emoji : null;
+	$tag     = null !== $emoji ? pathinfo( $emoji, PATHINFO_FILENAME ) : null;
+
+	return array(
+		'display_text'         => $message,
+		'tts_text'             => $message,
+		'history_text'         => $message,
+		'checksum_text'        => $message,
+		'think'                => '',
+		'emotion_tags'         => null !== $tag ? array( $tag ) : array(),
+		'emotion_files'        => null !== $emoji ? array( $emoji ) : array(),
+		'primary_emotion_tag'  => $tag,
+		'primary_emotion_file' => $emoji,
+		'emoji'                => $emoji,
+	);
+}
+
+// phpcs:disable Generic.Formatting.MultipleStatementAlignment, WordPress.Arrays.MultipleStatementAlignment, Squiz.Strings.DoubleQuoteUsage, Universal.Arrays.DisallowShortArraySyntax, NormalizedArrays.Arrays.ArrayBraceSpacing -- Legacy function style.
 function mpu_get_msg_arr($num = false)
 {
     static $depth = 0;
@@ -189,6 +322,7 @@ function mpu_get_msg_arr($num = false)
             "msgall" => 0,
             "auto_msg" => "",
             "msg" => [__("読み込み失敗：再帰制限", "mp-ukagaka")],
+            "msg_emojis" => [null],
         ];
     }
 
@@ -197,6 +331,7 @@ function mpu_get_msg_arr($num = false)
     try {
         $mpu_opt = mpu_get_option();
         $name = $num === false ? $mpu_opt["cur_ukagaka"] ?? "default_1" : $num;
+        $requested_name = $num === false ? null : $num;
 
         if (empty($mpu_opt["ukagakas"][$name])) {
             $name = "default_1";
@@ -209,29 +344,42 @@ function mpu_get_msg_arr($num = false)
         $ukagaka = $mpu_opt["ukagakas"][$name];
 
         // ★★★ 修改：一律從外部檔案讀取對話，不再使用內部對話 ★★★
+        $is_file_error = false;
         if (isset($ukagaka["dialog_filename"])) {
             $ukagaka["msg"] = mpu_get_msg_from_file(
-                $ukagaka["dialog_filename"]
+                $ukagaka["dialog_filename"],
+                $is_file_error
             );
         } else {
             // 如果沒有設定對話檔案名稱，使用偽春菜名稱作為檔案名
-            $ukagaka["msg"] = mpu_get_msg_from_file($name);
+            $ukagaka["msg"] = mpu_get_msg_from_file($name, $is_file_error);
         }
 
         if (empty($ukagaka["msg"]) || !is_array($ukagaka["msg"])) {
+            $is_file_error = true;
             $ukagaka["msg"] = [__("ダイアログファイルが見つかりません", "mp-ukagaka")];
         }
 
         $msgall = max(0, count($ukagaka["msg"]) - 1);
 
+        if ($is_file_error) {
+            $built = [
+                'msg'        => array_values($ukagaka["msg"]),
+                'msg_emojis' => array_fill(0, count($ukagaka["msg"]), null),
+            ];
+        } else {
+            $personality_id = function_exists('mpu_resolve_personality_id')
+                ? mpu_resolve_personality_id($requested_name, false)
+                : null;
+            $built = mpu_build_builtin_dialog_messages($ukagaka["msg"], $personality_id);
+        }
+
         $arr = [
             "msgall" => $msgall,
             "auto_msg" => $mpu_opt["auto_msg"] ?? "",
-            "msg" => $ukagaka["msg"],
+            "msg" => $built["msg"],
+            "msg_emojis" => $built["msg_emojis"],
         ];
-
-        // 處理訊息代碼
-        $arr["msg"] = mpu_msg_code($arr["msg"]);
 
         // 確保 auto_msg 處理
         $auto_msg_array = mpu_msg_code([$arr["auto_msg"]]);
@@ -246,9 +394,11 @@ function mpu_get_msg_arr($num = false)
             "msgall" => 0,
             "auto_msg" => "",
             "msg" => [__("読み込みエラー", "mp-ukagaka") . ': ' . $e->getMessage()],
+            "msg_emojis" => [null],
         ];
     }
 }
+// phpcs:enable Generic.Formatting.MultipleStatementAlignment, WordPress.Arrays.MultipleStatementAlignment, Squiz.Strings.DoubleQuoteUsage, Universal.Arrays.DisallowShortArraySyntax, NormalizedArrays.Arrays.ArrayBraceSpacing
 
 function mpu_msg_code($msglist = [])
 {
@@ -422,9 +572,15 @@ function mpu_count_total_msg()
 /**
  * 從文件讀取訊息
  * 【安全性強化】使用 mpu_secure_file_read 替代 file_get_contents
+ *
+ * @param string $filename_base Dialogue filename without its extension.
+ * @param bool   $is_error      Set to true when the returned line is an error message.
+ * @return string[]
  */
-function mpu_get_msg_from_file($filename_base)
+function mpu_get_msg_from_file($filename_base, &$is_error = null)
 {
+    $is_error = false;
+
     // 單次請求內快取（避免同一請求重複讀取相同對話檔案）
     static $cache = [];
     if (isset($cache[$filename_base])) {
@@ -436,6 +592,7 @@ function mpu_get_msg_from_file($filename_base)
 
     // 驗證文件名（只允許字母、數字、下劃線、連字符）
     if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $filename_base)) {
+        $is_error = true;
         mpu_log_error('不合法的對話文件名: ' . $filename_base);
         return [__("不正なダイアログファイル名です", "mp-ukagaka")];
     }
@@ -446,6 +603,7 @@ function mpu_get_msg_from_file($filename_base)
     $content = mpu_secure_file_read($file_path);
 
     if (is_wp_error($content)) {
+        $is_error   = true;
         $error_code = $content->get_error_code();
         if ($error_code === 'file_not_found') {
             return [__("ダイアログファイルが見つかりません", "mp-ukagaka")];
@@ -465,6 +623,7 @@ function mpu_get_msg_from_file($filename_base)
             $cache[$filename_base] = $json["messages"];
             return $cache[$filename_base];
         }
+        $is_error = true;
         return [__("JSONファイルの形式が正しくありません", "mp-ukagaka")];
     }
 

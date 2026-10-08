@@ -1,0 +1,23 @@
+{
+  "id": "Asuna",
+  "name": "Asuna",
+  "name_en": "Asuna",
+  "name_zh": "Asuna",
+  "version": "1.0.0",
+  "language": "ja",
+  "shell_folder": "Asuna",
+  "scripts": [],
+  "emoji": {
+    "supported": ["calm"]
+  },
+  "features": {
+    "inner_monologue_contexts": {
+      "chat": true,
+      "initial": false
+    }
+  },
+  "sleep_settings": {
+    "deep_sleep_start": [22, 23],
+    "deep_sleep_end": 7
+  }
+}

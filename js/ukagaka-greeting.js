@@ -135,7 +135,7 @@ function mpu_greet_first_visitor(settings) {
 
             // 顯示表情（如果有的話）
             if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-              window.mpuEmojiManager.showEmoji(res.emoji);
+              mpuDisplayDialogueEmoji(res.emoji);
             }
 
             // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
@@ -220,14 +220,9 @@ function mpu_greet_first_visitor(settings) {
                 Array.isArray(dialogStore.msg) &&
                 dialogStore.msg.length > 0
               ) {
-                const msgArr = dialogStore.msg;
-                const auto = dialogStore.auto_msg || "";
-                const randomIdx = Math.floor(Math.random() * msgArr.length);
+                const randomIdx = mpuRandomBuiltInIndex(dialogStore);
                 showMainDialog();
-                mpu_typewriter(
-                  mpu_unescapeHTML(msgArr[randomIdx] + auto),
-                  "#ukagaka_msg",
-                );
+                mpuDisplayBuiltInMessage(dialogStore, randomIdx);
               }
               if (
                 wasAutoTalkRunning &&
@@ -245,14 +240,9 @@ function mpu_greet_first_visitor(settings) {
               Array.isArray(dialogStore.msg) &&
               dialogStore.msg.length > 0
             ) {
-              const msgArr = dialogStore.msg;
-              const auto = dialogStore.auto_msg || "";
-              const randomIdx = Math.floor(Math.random() * msgArr.length);
+              const randomIdx = mpuRandomBuiltInIndex(dialogStore);
               showMainDialog();
-              mpu_typewriter(
-                mpu_unescapeHTML(msgArr[randomIdx] + auto),
-                "#ukagaka_msg",
-              );
+              mpuDisplayBuiltInMessage(dialogStore, randomIdx);
             } else if (typeof mpuClearSystemPlaceholder === "function") {
               // 無內建對話可 fallback：清掉思考氣泡，避免 placeholder 懸空（角色保持沉默）
               mpuClearSystemPlaceholder("#ukagaka_msg");
@@ -279,14 +269,9 @@ function mpu_greet_first_visitor(settings) {
           Array.isArray(dialogStore.msg) &&
           dialogStore.msg.length > 0
         ) {
-          const msgArr = dialogStore.msg;
-          const auto = dialogStore.auto_msg || "";
-          const randomIdx = Math.floor(Math.random() * msgArr.length);
+          const randomIdx = mpuRandomBuiltInIndex(dialogStore);
           showMainDialog();
-          mpu_typewriter(
-            mpu_unescapeHTML(msgArr[randomIdx] + auto),
-            "#ukagaka_msg",
-          );
+          mpuDisplayBuiltInMessage(dialogStore, randomIdx);
         } else if (typeof mpuClearSystemPlaceholder === "function") {
           // 無內建對話可 fallback：清掉思考氣泡，避免 placeholder 懸空（角色保持沉默）
           mpuClearSystemPlaceholder("#ukagaka_msg");

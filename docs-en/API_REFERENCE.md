@@ -104,7 +104,7 @@ $str = mpu_array2str($messages);
 
 #### mpu_str2array()
 
-Converts a string to an array (separated by empty lines).
+Converts a string to an array, with one entry per non-empty line.
 
 ```php
 /**
@@ -1256,15 +1256,15 @@ add_action('mpu_chat_lock_released', function($session_id, $existing) {}, 10, 2)
 | `/change` | POST | Public | `mpu_num` | 10/60s | If empty, returns list of available characters; if provided, switches character (and Set-Cookie) |
 | `/shell-info` | GET / POST | Public | `ukagaka_num` | 30/60s | Gets appearance info for specified character |
 | `/decoration-config` | GET / POST | Public | — | 30/60s | Gets decoration base URL, settings, touchzones, visibility flags |
-| `/emoji-config` | GET / POST | Public | — | 30/60s | Gets emoji base URL, support list, and keyword mapping |
+| `/emoji-config` | GET / POST | Public | `cur_num` | 30/60s | Gets the selected character's emoji base URL, support list, and keyword mapping |
 | `/extend` | GET / POST | Public | — | 10/60s | Character extension tag locations (Reserved endpoint) |
 
 ### Dialogue
 
 | Endpoint | Method | Permission | Parameters | Rate Limit | Description |
 | --- | --- | --- | --- | --- | --- |
-| `/nextmsg` | POST | Public | `cur_num`, `cur_msgnum`, `last_response`, `response_history`, `last_visit_hours`, `session_id`, `history` | 20/60s | Auto-talk rotation: Calls AI generation if LLM replace mode is on, else draws from built-in dialogues |
-| `/dialog` | GET / POST | Public | `file` (required) | 30/60s | Reads dialogue file under `dialogs/`; returns `{msgall, auto_msg, msg, next_msg, default_msg}` |
+| `/nextmsg` | POST | Public | `cur_num`, `cur_msgnum`, `last_response`, `response_history`, `last_visit_hours`, `session_id`, `history` | 20/60s | Auto-talk rotation: calls AI generation if LLM replace mode is on, else draws from built-in dialogues. Built-in lines return their aligned tag expression without keyword guessing. |
+| `/dialog` | GET / POST | Public | `file` (required), `cur_num` | 30/60s | Reads dialogue under `dialogs/`; returns `{msgall, auto_msg, msg, msg_emojis, next_msg, default_msg}`. `msg_emojis` is an optional aligned array of PNG filenames or `null`. |
 | `/visitor-info` | GET | Public | — | 30/60s | Returns visitor info such as referrer, search engine, Slimstat country/city, etc. |
 | `/decoration-prompts` | GET / POST | Public | `decoration_type` | 20/60s | Gets prompts for decoration click dialogue |
 | `/wake-ghost` | POST | Public | `personality_id` or `ukagaka_num` (at least one) | 10/60s | Temporarily wakes up a sleeping character; WP_Error codes: `rest_wake_ghost_missing_param`, `rest_wake_ghost_unavailable` |

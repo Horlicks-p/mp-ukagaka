@@ -55,6 +55,56 @@ function mpu_hidemsg(speed = 400) {
   }
 }
 
+function mpuGetCurrentUkagakaNum() {
+  const element = document.getElementById("ukagaka_num");
+  const elementValue = element ? String(element.textContent || "").trim() : "";
+  if (elementValue) return elementValue;
+  if (window.mpuInfo && window.mpuInfo.num) return String(window.mpuInfo.num);
+  if (window.mpuInitData && window.mpuInitData.ukagaka_num) {
+    return String(window.mpuInitData.ukagaka_num);
+  }
+  if (window.mpuInitParams && window.mpuInitParams.ukagaka_num) {
+    return String(window.mpuInitParams.ukagaka_num);
+  }
+  return "";
+}
+
+function mpuDisplayDialogueEmoji(emoji) {
+  const manager = window.mpuEmojiManager;
+  if (!manager) return;
+
+  if (typeof manager.cleanup === "function") manager.cleanup();
+  if (emoji && typeof manager.showEmoji === "function") manager.showEmoji(emoji);
+}
+
+function mpuDisplayBuiltInMessage(store, index, options = {}) {
+  const target = options.target || "#ukagaka_msg";
+
+  if (!store || !Array.isArray(store.msg) || !Object.prototype.hasOwnProperty.call(store.msg, index)) {
+    mpuDisplayDialogueEmoji(null);
+    mpu_typewriter("", target, options.callback || null, options.typewriterOptions);
+    return "";
+  }
+
+  const emoji = Array.isArray(store.msg_emojis) ? (store.msg_emojis[index] || null) : null;
+  const output = mpu_unescapeHTML(String(store.msg[index] || "") + String(store.auto_msg || ""));
+
+  mpuDisplayDialogueEmoji(emoji);
+  mpu_typewriter(output, target, options.callback || null, options.typewriterOptions);
+  return output;
+}
+
+function mpuRandomBuiltInIndex(store) {
+  return store && Array.isArray(store.msg) && store.msg.length > 0
+    ? Math.floor(Math.random() * store.msg.length)
+    : -1;
+}
+
+window.mpuGetCurrentUkagakaNum = mpuGetCurrentUkagakaNum;
+window.mpuDisplayDialogueEmoji = mpuDisplayDialogueEmoji;
+window.mpuDisplayBuiltInMessage = mpuDisplayBuiltInMessage;
+window.mpuRandomBuiltInIndex = mpuRandomBuiltInIndex;
+
 async function mpuObservationPush(type, content) {
   if (!window.mpuPageContext || !window.mpuPageContext.postId) return;
   if (typeof window.mpuRestUrl === "undefined") return;
@@ -441,7 +491,7 @@ function mpu_checkSpamEvent(callback) {
                 window
                   .loadEmojiConfig()
                   .then(function () {
-                    window.mpuEmojiManager.showEmoji(res.emoji);
+                    mpuDisplayDialogueEmoji(res.emoji);
                   })
                   .catch(function (error) {
                     mpuLogger.warn(
@@ -451,7 +501,7 @@ function mpu_checkSpamEvent(callback) {
                   });
               }
             } else {
-              window.mpuEmojiManager.showEmoji(res.emoji);
+              mpuDisplayDialogueEmoji(res.emoji);
             }
           }
 
@@ -770,6 +820,7 @@ function mpu_nextmsg(trigger) {
                     mpu_cancelTypewriter();
                     jQuery("#ukagaka_msg").html("");
                     mpu_showMsgText();
+                    mpuDisplayDialogueEmoji(res.emoji || null);
                     mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
                     mpu_showmsg(400);
                   },
@@ -778,39 +829,15 @@ function mpu_nextmsg(trigger) {
 
               if (!isWakingUp) {
                 mpu_showMsgText();
+                mpuDisplayDialogueEmoji(res.emoji || null);
                 mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
                 mpu_showmsg(400);
               }
             } else {
               mpu_showMsgText();
+              mpuDisplayDialogueEmoji(res.emoji || null);
               mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
               mpu_showmsg(400);
-            }
-
-            // 顯示表情（如果有的話）
-            if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-              // 確保配置已載入
-              if (
-                typeof window.mpuEmojiConfig === "undefined" ||
-                !window.mpuEmojiConfig.baseUrl
-              ) {
-                if (typeof window.loadEmojiConfig === "function") {
-                  window
-                    .loadEmojiConfig()
-                    .then(() => {
-                      window.mpuEmojiManager.showEmoji(res.emoji);
-                    })
-                    .catch((error) => {
-                      if (typeof mpuLogger !== "undefined" && mpuLogger.warn) {
-                        mpuLogger.warn("Failed to load emoji config:", error);
-                      }
-                    });
-                } else {
-                  window.mpuEmojiManager.showEmoji(res.emoji);
-                }
-              } else {
-                window.mpuEmojiManager.showEmoji(res.emoji);
-              }
             }
 
             mpu_recordLlmAutoTalk(res.msg, out);
@@ -972,8 +999,12 @@ function mpu_nextmsg(trigger) {
     let msgNum = parseInt($msgnum.html(), 10) || 0;
     msgNum = mpu_selectNextMessage(store, msgNum);
 
-    const auto = store.auto_msg || "";
-    const out = store.msg[msgNum] ? store.msg[msgNum] + auto : "";
+    const recordBuiltInHistory = function (text) {
+      if (!text || !Array.isArray(window.mpuChatHistory)) return;
+      window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
+      window.mpuChatHistory.push({ role: "assistant", content: text, type: "auto_talk", timestamp: Date.now() });
+      if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
+    };
 
     // 觸發角色動畫（手動觸發時強制播放）
     if (
@@ -994,7 +1025,7 @@ function mpu_nextmsg(trigger) {
           mpu_cancelTypewriter();
           jQuery("#ukagaka_msg").html("");
           mpu_showMsgText();
-          mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+          recordBuiltInHistory(mpuDisplayBuiltInMessage(store, msgNum));
           $msgnum.html(msgNum);
           mpu_showmsg(400);
         },
@@ -1003,22 +1034,15 @@ function mpu_nextmsg(trigger) {
 
       if (!isWakingUp) {
         mpu_showMsgText();
-        mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+        recordBuiltInHistory(mpuDisplayBuiltInMessage(store, msgNum));
         $msgnum.html(msgNum);
         mpu_showmsg(400);
       }
     } else {
       mpu_showMsgText();
-      mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+      recordBuiltInHistory(mpuDisplayBuiltInMessage(store, msgNum));
       $msgnum.html(msgNum);
       mpu_showmsg(400);
-    }
-
-    // 將傳統對話加入歷史，確保互動對話模式有完整脈絡
-    if (out && typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
-      window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
-      window.mpuChatHistory.push({ role: "assistant", content: mpu_unescapeHTML(out), type: "auto_talk", timestamp: Date.now() });
-      if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
     }
 
     // ⚠️ 傳統對話流程：等待打字完成後重啟自動對話計時器
@@ -1088,10 +1112,8 @@ function mpu_nextmsg_fallback() {
     let msgNum = parseInt($msgnum.html(), 10) || 0;
     msgNum = mpu_selectNextMessage(store, msgNum);
 
-    const auto = store.auto_msg || "";
-    const out = store.msg[msgNum] ? store.msg[msgNum] + auto : "";
     mpu_showMsgText();
-    mpu_typewriter(mpu_unescapeHTML(out), "#ukagaka_msg");
+    const out = mpuDisplayBuiltInMessage(store, msgNum);
 
     // 觸發角色動畫
     if (
@@ -1107,7 +1129,7 @@ function mpu_nextmsg_fallback() {
     // 將 fallback 對話加入歷史，確保互動對話模式有完整脈絡
     if (out && typeof window.mpuChatHistory !== "undefined" && Array.isArray(window.mpuChatHistory)) {
       window.mpuChatHistory.push({ role: "user", content: "（独り言）", type: "synthetic", timestamp: Date.now() });
-      window.mpuChatHistory.push({ role: "assistant", content: mpu_unescapeHTML(out), type: "auto_talk", timestamp: Date.now() });
+      window.mpuChatHistory.push({ role: "assistant", content: out, type: "auto_talk", timestamp: Date.now() });
       if (typeof mpu_saveChatHistory === "function") mpu_saveChatHistory();
     }
   }, 400);
@@ -1183,6 +1205,17 @@ function mpuChange(num) {
       const $canvas = jQuery("#cur_ukagaka");
       const $wrap = jQuery("#ukagaka");
 
+      if (payload.num) {
+        jQuery("#ukagaka_num").html(payload.num);
+        if (window.mpuInfo) window.mpuInfo.num = payload.num;
+      }
+      if (typeof window.invalidateEmojiConfig === "function") {
+        window.invalidateEmojiConfig();
+      }
+      if (window.mpuEmojiManager && typeof window.mpuEmojiManager.cleanup === "function") {
+        window.mpuEmojiManager.cleanup();
+      }
+
       if (
         payload.shell_info &&
         typeof window.mpuCanvasManager !== "undefined"
@@ -1224,7 +1257,6 @@ function mpuChange(num) {
         }
       }
 
-      if (payload.num) jQuery("#ukagaka_num").html(payload.num);
       if (payload.msg)
         mpu_typewriter(mpu_unescapeHTML(payload.msg), "#ukagaka_msg");
       if (payload.name && $canvas.length) {

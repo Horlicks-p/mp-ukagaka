@@ -1,0 +1,8 @@
+{
+  "messages": [
+    "E2E_JSON_EMOTION [laugh]",
+    "E2E_JSON_PLAIN",
+    "E2E_JSON_UNKNOWN [unknown_tag]",
+    "E2E_JSON_CROSS [calm]"
+  ]
+}

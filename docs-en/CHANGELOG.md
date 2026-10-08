@@ -4,6 +4,17 @@
 
 ---
 
+## [Unreleased]
+
+### Built-in dialogue expressions
+
+- Built-in TXT and JSON dialogue can attach a personality-scoped expression with a tag such as `[laugh]`. Recognized metadata is removed from the displayed line and the aligned PNG expression is shown; unknown tags remain ordinary text.
+- Character switching now reloads expression configuration for the selected character, and stale configuration or image requests cannot display the previous character's expression.
+- The previous expression is cleared when the next line is swapped in, including untagged lines and built-in greeting, page-context, and chat-exit fallbacks.
+- Built-in `/nextmsg` replies use their stored tag expression and no longer guess an expression from words in the reply. The dialogue list is consistently returned as an array, with an aligned `msg_emojis` array where applicable.
+
+---
+
 ## [2.36.2] - 2026-10-08
 
 ### Message box (without an LLM)

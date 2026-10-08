@@ -10,6 +10,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
   const params = new URLSearchParams({
     file: pure,
+    cur_num: typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "",
   });
 
   const url = `${mpuRestUrl}dialog?${params.toString()}`;
@@ -151,10 +152,7 @@ function loadExternalDialog(file, skipFirstMessage = false) {
               msgElement.removeAttr("data-initial-msg-system");
               if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
             }
-            mpu_typewriter(
-              mpu_unescapeHTML(resp.msg[first] + (resp.auto_msg || "")),
-              "#ukagaka_msg",
-            );
+            mpuDisplayBuiltInMessage(resp, first);
             jQuery("#ukagaka_msgnum").html(first);
 
             // 等待第一句對話打字完成後啟動自動對話

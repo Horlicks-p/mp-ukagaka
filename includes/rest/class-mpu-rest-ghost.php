@@ -365,21 +365,29 @@ class MPU_REST_Ghost extends MPU_REST_Base {
     // GET,POST /emoji-config — Rate limit: 30 次 / 60 秒
     // =========================================================================
 
+    // phpcs:disable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, Universal.Operators.DisallowShortTernary, WordPress.PHP.YodaConditions -- Legacy controller style.
+    /**
+     * Return emoji configuration for the selected character.
+     *
+     * @param WP_REST_Request $request REST request.
+     * @return WP_REST_Response|WP_Error
+     */
     public function get_emoji_config(WP_REST_Request $request) {
         $rl = $this->rate_limit('get_emoji_config', 30, 60);
         if ($rl !== null) return $rl;
 
-        $personality_id = function_exists('mpu_get_current_personality_id')
-            ? mpu_get_current_personality_id()
-            : 'Frieren';
+        $cur_num = sanitize_text_field($request->get_param('cur_num') ?: '');
+        $personality_id = function_exists('mpu_resolve_personality_id')
+            ? mpu_resolve_personality_id($cur_num, false)
+            : null;
 
-        $emoji_base_url = function_exists('mpu_get_personality_emoji_url')
+        $emoji_base_url = $personality_id !== null && function_exists('mpu_get_personality_emoji_url')
             ? mpu_get_personality_emoji_url($personality_id)
             : '';
-        $emoji_config = function_exists('mpu_load_personality_emoji_config')
+        $emoji_config = $personality_id !== null && function_exists('mpu_load_personality_emoji_config')
             ? mpu_load_personality_emoji_config($personality_id)
             : [];
-        $emoji_mappings = function_exists('mpu_load_personality_emoji_keywords')
+        $emoji_mappings = $personality_id !== null && function_exists('mpu_load_personality_emoji_keywords')
             ? mpu_load_personality_emoji_keywords($personality_id)
             : [];
 
@@ -388,6 +396,9 @@ class MPU_REST_Ghost extends MPU_REST_Base {
             'baseUrl'         => $emoji_base_url,
             'supportedEmojis' => $emoji_config['supported'] ?? [],
             'mappings'        => $emoji_mappings,
+            'curNum'          => $cur_num,
+            'personalityId'   => $personality_id,
         ]);
     }
+    // phpcs:enable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, Universal.Operators.DisallowShortTernary, WordPress.PHP.YodaConditions
 }

@@ -829,14 +829,12 @@ Ukagaka can load dialogue from external files, supporting TXT and JSON formats.
 **File Location:** `wp-content/plugins/mp-ukagaka/dialogs/CharacterName.txt`
 
 ```
-First dialogue
-
-Second dialogue
-
-Third dialogue
+Welcome back. [calm]
+That was unexpected! [surprise]
+This line has no expression.
 ```
 
-> ⚠️ Separate each dialogue entry with an **empty line**.
+Each non-empty line is one dialogue entry. Empty lines are ignored.
 
 ### JSON Format
 
@@ -844,9 +842,58 @@ Third dialogue
 
 ```json
 {
-  "messages": ["First dialogue", "Second dialogue", "Third dialogue"]
+  "messages": [
+    "Welcome back. [calm]",
+    "That was unexpected! [surprise]",
+    "This line has no expression."
+  ]
 }
 ```
+
+### Expression Tags in Built-in Dialogue
+
+Put one expression tag in a dialogue entry to show a personality emoji while
+that line is displayed. Tags are case-insensitive and may appear anywhere in
+the entry. For example, Frieren supports the tags listed in
+`ghost/Frieren/manifest.json`; use those actual tags rather than a generic tag
+such as `[smile]`.
+
+The personality owns its tags. Declare the recommended explicit list in its
+manifest and provide a PNG file for each tag:
+
+```json
+{
+  "emoji": {
+    "supported": ["calm", "surprise", "laugh"]
+  }
+}
+```
+
+```text
+ghost/MyCharacter/
+|-- manifest.json
+`-- emojis/
+    |-- calm.png
+    |-- surprise.png
+    `-- laugh.png
+```
+
+When a manifest has no `emoji` block, the plugin instead detects supported tags
+from filenames in that personality's `emojis/` directory. Explicit manifest
+configuration is recommended. Tag images must use a `.png` filename; animated
+PNG content is allowed, but `.gif` and `.apng` filenames are not displayed in
+this version.
+
+Only the active personality may display its own supported tag. A tag known to
+another installed personality is hidden as metadata but does not display that
+other personality's image. A tag unknown to every installed personality remains
+visible as ordinary text. Expressions also require the character's dialogue
+filename to match a personality folder under `ghost/`.
+
+Use at most one tag per entry. If more than one recognized tag is present, the
+first tag supported by the active personality supplies the expression and all
+recognized tags are hidden. Duplicate visible lines collapse to one entry; the
+first occurrence and its expression win.
 
 ---
 
@@ -933,7 +980,7 @@ jQuery(document).on('mpuInitComplete', function () {
 ### Dialogue Not Displaying Correctly
 
 1. Check that the dialogue file format is correct
-2. TXT Format: Separate each dialogue with an **empty line**
+2. TXT Format: Put one dialogue entry on each non-empty line
 3. JSON Format: Confirm it is valid JSON
 
 ### AI Response Too Slow

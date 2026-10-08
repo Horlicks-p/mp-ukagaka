@@ -69,19 +69,31 @@ class MPU_REST_Dialog extends MPU_REST_Base {
     // POST /nextmsg — Rate limit: 20 次 / 60 秒
     // =========================================================================
 
+    // phpcs:disable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, Universal.Arrays.DisallowShortArraySyntax, Universal.Operators.DisallowShortTernary, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.WhiteSpace.OperatorSpacing -- Legacy controller style.
+    /**
+     * Return the next automatic dialogue line.
+     *
+     * @param WP_REST_Request $request REST request.
+     * @return WP_REST_Response|WP_Error
+     */
     public function nextmsg(WP_REST_Request $request) {
         $rl = $this->rate_limit('nextmsg', 20, 60);
         if ($rl !== null) return $rl;
 
         $mpu_opt = mpu_get_option();
 
-        $cur_num = $request->get_param('cur_num');
-        if (empty($cur_num)) {
+        $requested_cur_num = $request->get_param('cur_num');
+        $has_cur_num       = is_string($requested_cur_num) && '' !== $requested_cur_num;
+        $cur_num           = $requested_cur_num;
+        if (!$has_cur_num) {
             $cur_num = $mpu_opt['cur_ukagaka'] ?? 'default_1';
         }
 
         $cur_msgnum     = intval($request->get_param('cur_msgnum') ?: 0);
         $is_llm_enabled = mpu_is_llm_replace_dialogue_enabled();
+        $use_fallback   = false;
+        $is_builtin     = false;
+        $built_in_emoji = null;
 
         if ($is_llm_enabled) {
             $last_response = sanitize_text_field($request->get_param('last_response') ?: '');
@@ -114,13 +126,16 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                     mpu_record_conversation('auto_talk');
                 }
             } elseif ($use_fallback || $llm_msg === false) {
-                $msg_array = mpu_get_msg_arr($cur_num);
+                $msg_array = mpu_get_msg_arr($has_cur_num ? $cur_num : false);
                 $msgs      = $msg_array['msg'] ?? [];
+                $emojis    = $msg_array['msg_emojis'] ?? [];
                 $total     = count($msgs);
+                $is_builtin = true;
 
                 if ($total > 0) {
-                    $msgnum = wp_rand(0, $total - 1);
-                    $msg    = $msgs[$msgnum];
+                    $msgnum        = wp_rand(0, $total - 1);
+                    $msg           = $msgs[$msgnum];
+                    $built_in_emoji = $emojis[$msgnum] ?? null;
                     if (defined('WP_DEBUG') && WP_DEBUG) {
                         $reason = $llm_msg === 'MPU_USE_FALLBACK' ? '重複検知' : ($llm_msg === 'MPU_OLLAMA_BUSY' ? 'Ollama 混雑' : '生成失敗');
                         if (function_exists('mpu_debug_log')) {
@@ -145,23 +160,28 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                 }
             }
         } else {
-            $msg_array = mpu_get_msg_arr($cur_num);
+            $msg_array = mpu_get_msg_arr($has_cur_num ? $cur_num : false);
             $msgs      = $msg_array['msg'] ?? [];
+            $emojis    = $msg_array['msg_emojis'] ?? [];
             $total     = count($msgs);
+            $is_builtin = true;
 
             if (($mpu_opt['next_msg'] ?? 0) == 0) {
                 $next = $cur_msgnum + 1;
                 if (isset($msgs[$next])) {
-                    $msg    = $msgs[$next];
-                    $msgnum = $next;
+                    $msg            = $msgs[$next];
+                    $msgnum         = $next;
+                    $built_in_emoji = $emojis[$next] ?? null;
                 } else {
-                    $msg    = $msgs[0] ?? __('ダイアログ内容がありません', 'mp-ukagaka');
-                    $msgnum = 0;
+                    $msg            = $msgs[0] ?? __('ダイアログ内容がありません', 'mp-ukagaka');
+                    $msgnum         = 0;
+                    $built_in_emoji = $emojis[0] ?? null;
                 }
             } else {
                 if ($total > 0) {
-                    $msgnum = wp_rand(0, $total - 1);
-                    $msg    = $msgs[$msgnum];
+                    $msgnum         = wp_rand(0, $total - 1);
+                    $msg            = $msgs[$msgnum];
+                    $built_in_emoji = $emojis[$msgnum] ?? null;
                 } else {
                     $msg    = __('ダイアログ内容がありません', 'mp-ukagaka');
                     $msgnum = 0;
@@ -169,11 +189,14 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             }
         }
 
-        $personality_id = null;
-        if (function_exists('mpu_get_personality_id_from_ukagaka_name')) {
-            $personality_id = mpu_get_personality_id_from_ukagaka_name($cur_num);
+        if ($is_builtin) {
+            $normalized = mpu_normalize_builtin_dialog_for_rest($msg, $built_in_emoji);
+        } else {
+            $personality_id = function_exists('mpu_resolve_personality_id')
+                ? mpu_resolve_personality_id($cur_num)
+                : null;
+            $normalized = mpu_normalize_ai_response_for_rest($msg, $personality_id, array( 'context' => 'chat' ));
         }
-        $normalized = mpu_normalize_ai_response_for_rest($msg, $personality_id, array( 'context' => 'chat' ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
             $max_length = mpu_get_personality_max_response_length(null, $cur_num);
@@ -183,7 +206,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
 
         // [Fix] LLM 自發對話也會 push 到前端 mpuChatHistory，但後端未寫 checksum，
         // 導致下一輪 chat/user verify 400。僅在 LLM 成功回應時寫入。
-        if ($is_llm_enabled && !$use_fallback && isset($msg) && $msg !== '' &&
+        if ($is_llm_enabled && !$is_builtin && !$use_fallback && isset($msg) && $msg !== '' &&
             $msg !== __('ローカルの Ollama が起動していません。Ollama サービスが起動しているか確認してください。', 'mp-ukagaka')) {
             $chat_session_id_param = $request->get_param('session_id') ?: $request->get_param('chat_session_id');
             $chat_session_id = mpu_chat_integrity_normalize_session_id($chat_session_id_param);
@@ -225,6 +248,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         $mpu_opt    = mpu_get_option();
         $file_param = $request->get_param('file');
         $file       = !empty($file_param) ? basename(sanitize_text_field($file_param)) : '';
+        $cur_num    = sanitize_text_field($request->get_param('cur_num') ?: '');
 
         if ($file === '' || !preg_match('/^[a-zA-Z0-9_\-]+\.(json|txt)$/', $file)) {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
@@ -254,10 +278,16 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             }
         }
 
+        $personality_id = function_exists('mpu_resolve_personality_id')
+            ? mpu_resolve_personality_id($cur_num, false)
+            : null;
+        $built = mpu_build_builtin_dialog_messages($msg_array, $personality_id);
+
         $arr = [
             'msgall'      => max(0, count($msg_array) - 1),
             'auto_msg'    => $mpu_opt['auto_msg'] ?? '',
-            'msg'         => mpu_msg_code($msg_array),
+            'msg'         => $built['msg'],
+            'msg_emojis'  => $built['msg_emojis'],
             'next_msg'    => intval($mpu_opt['next_msg'] ?? 0),
             'default_msg' => intval($mpu_opt['default_msg'] ?? 0),
         ];
@@ -273,6 +303,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
     // =========================================================================
 
     public function get_visitor_info(WP_REST_Request $request) {
+        // phpcs:enable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, Universal.Arrays.DisallowShortArraySyntax, Universal.Operators.DisallowShortTernary, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.WhiteSpace.OperatorSpacing
         $rl = $this->rate_limit('get_visitor_info', 30, 60);
         if ($rl !== null) return $rl;
 

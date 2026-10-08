@@ -349,7 +349,7 @@ function mpu_sendUserMessage() {
         return;
       }
       if (data.emoji && !streamEmotionApplied && typeof window.mpuEmojiManager !== "undefined") {
-        window.mpuEmojiManager.showEmoji(data.emoji);
+        mpuDisplayDialogueEmoji(data.emoji);
       }
       if (
         typeof window.mpuCanvasManager !== "undefined" &&
@@ -460,7 +460,7 @@ function mpu_sendUserMessage() {
           }
           const emoji = data.file || (data.tag ? `${data.tag}.png` : "");
           if (emoji && typeof window.mpuEmojiManager !== "undefined") {
-            window.mpuEmojiManager.showEmoji(emoji);
+            mpuDisplayDialogueEmoji(emoji);
             streamEmotionApplied = true;
           }
         },
@@ -545,7 +545,7 @@ function mpu_sendUserMessage() {
           }
 
           if (res.emoji && typeof window.mpuEmojiManager !== "undefined") {
-            window.mpuEmojiManager.showEmoji(res.emoji);
+            mpuDisplayDialogueEmoji(res.emoji);
           }
         } else {
           const errorMsg = res && res.error ? res.error : "抱歉，無法取得回應";
