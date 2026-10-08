@@ -4,6 +4,31 @@
 
 ---
 
+## [2.36.1] - 2026-10-08
+
+### Bot Protection
+
+- **The IP blocklist is a summary, not a wall of addresses.** The page used to list every blocked IP as a chip with its own remove form, up to 500 of them. It now shows the count against the limit (`500 / 500`), with a note once each new block starts pushing out the oldest entry; a search box that filters as you type and says how many IPs match or that the IP is not listed; and the ten most recently blocked IPs. The full list, newest first, is still there inside a collapsed **Show all** section.
+- Search ignores case, so `abcd` finds an IPv6 address stored as `ABCD`.
+- All remove buttons share one form instead of one form per IP. The search box sits outside that form, so pressing Enter in it cannot remove an entry.
+- The limit itself is unchanged: 500 entries, oldest dropped first. It is now the constant `MPU_BB_MAX_BANNED_IPS`, read by both the page and `mpu_bb_ban_ip()`. The stored list and the ban logic are untouched.
+
+### Extend page
+
+- **The documentation link works again.** It pointed at `tree/main/docs`, removed when the docs were consolidated, and now points at `tree/main/docs-en`.
+- **The JS area describes what it does.** It said it lets you customise the character's response events and that the code goes into `<head>`; neither was true. It now says the code runs on every page after the plugin's own scripts, names the two events you can listen for (`mpuInitComplete` and `mpuVisualReady`), and warns that other plugin internals may change between versions.
+
+### Documentation
+
+- `USER_GUIDE.md` lists both events, when each fires and how to listen. `mpuInitComplete` is a jQuery event, so `addEventListener` does not see it; the example uses jQuery.
+- The 2.x changelog note about "the init-complete event" now gives its name.
+
+### Internal
+
+- `tools/node/trace-pixel-svg.js`, which traces pixel-art PNGs into crisp-edged SVG, is kept as a standalone tool. Nothing in the build runs it.
+
+---
+
 ## [2.36.0] - 2026-10-07
 
 ### Dialogue colour themes

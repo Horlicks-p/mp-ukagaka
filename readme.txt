@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.36.0
+Stable tag: 2.36.1
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,12 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-08 =
+* v2.36.1
+* [CHANGE] The IP blocklist on the Bot Protection page shows a count, a search box and the ten most recent blocks instead of every address; the full list is under "Show all".
+* [FIX] The documentation link on the Extend page no longer leads to a missing page.
+* [CHANGE] The Extend page's JavaScript area now describes accurately what it does and which events it can use.
 
 = 2026-10-07 =
 * v2.36.0
