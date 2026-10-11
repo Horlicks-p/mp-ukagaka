@@ -4,6 +4,15 @@
 
 ---
 
+## [2.37.1] - 2026-10-11
+
+### Auto talk
+
+- **Auto talk resumes after the first-visit greeting.** With LLM replace-dialogue on, `mpu_get_settings()` holds `startAutoTalk()` back until the startup reply, but the startup request is skipped while the greeting is in progress. `mpu_greet_first_visitor()` only restarted auto talk if its timer had been running when the greeting began, which in this mode it never was, so after greeting a first-time visitor the character stayed silent until the visitor clicked something. The greeting now resumes auto talk on every exit path (shown, built-in fallback, rate limit, error) whenever auto talk is enabled; `startAutoTalk()` still declines during chat mode, interaction dialogue and unawoken sleep.
+- Sites without LLM replace-dialogue were not affected: there the timer is already running when the greeting starts.
+
+---
+
 ## [2.37.0] - 2026-10-09
 
 ### Built-in dialogue expressions
