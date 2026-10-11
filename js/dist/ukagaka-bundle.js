@@ -4331,10 +4331,17 @@ function mpu_greet_first_visitor(settings) {
     }
 
     // 立即暫停自動對話，防止被打岔
-    const wasAutoTalkRunning = mpuAutoTalkTimer !== null;
-    if (wasAutoTalkRunning) {
-      stopAutoTalk();
-    }
+    stopAutoTalk();
+
+    // 打招呼結束後一律依設定恢復自動對話，不看進來時計時器是否在跑：
+    // LLM 取代對話模式下 mpu_get_settings 把 startAutoTalk 延到 startup 回應後，
+    // 而 startup 又因 mpuGreetInProgress 被跳過，進來時計時器本來就是 null，
+    // 若以「原本有在跑」為條件，自發對話會永遠不再啟動。
+    const resumeAutoTalk = function () {
+      if (settings.auto_talk === true && mpuAutoTalk) {
+        startAutoTalk();
+      }
+    };
 
     const showMainDialog = function () {
       if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
@@ -4494,13 +4501,7 @@ function mpu_greet_first_visitor(settings) {
               const displayDurationMs = mpuAiDisplayDuration * 1000;
               mpuSetAiDisplayTimer(setTimeout(function () {
                 mpuSetAiDisplayTimer(null);
-                if (
-                  wasAutoTalkRunning &&
-                  settings.auto_talk === true &&
-                  mpuAutoTalk
-                ) {
-                  startAutoTalk();
-                }
+                resumeAutoTalk();
                 resolve();
               }, displayDurationMs));
             });
@@ -4540,13 +4541,7 @@ function mpu_greet_first_visitor(settings) {
                 showMainDialog();
                 mpuDisplayBuiltInMessage(dialogStore, randomIdx);
               }
-              if (
-                wasAutoTalkRunning &&
-                settings.auto_talk === true &&
-                mpuAutoTalk
-              ) {
-                startAutoTalk();
-              }
+              resumeAutoTalk();
               resolve();
             }, waitTime);
           } else {
@@ -4563,13 +4558,7 @@ function mpu_greet_first_visitor(settings) {
               // 無內建對話可 fallback：清掉思考氣泡，避免 placeholder 懸空（角色保持沉默）
               mpuClearSystemPlaceholder("#ukagaka_msg");
             }
-            if (
-              wasAutoTalkRunning &&
-              settings.auto_talk === true &&
-              mpuAutoTalk
-            ) {
-              startAutoTalk();
-            }
+            resumeAutoTalk();
             resolve();
           }
         }
@@ -4593,9 +4582,7 @@ function mpu_greet_first_visitor(settings) {
           mpuClearSystemPlaceholder("#ukagaka_msg");
         }
 
-        if (wasAutoTalkRunning && settings.auto_talk === true && mpuAutoTalk) {
-          startAutoTalk();
-        }
+        resumeAutoTalk();
         resolve();
       });
   });
