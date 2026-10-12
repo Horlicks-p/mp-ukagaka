@@ -1264,7 +1264,7 @@ add_action('mpu_chat_lock_released', function($session_id, $existing) {}, 10, 2)
 | Endpoint | Method | Permission | Parameters | Rate Limit | Description |
 | --- | --- | --- | --- | --- | --- |
 | `/nextmsg` | POST | Public | `cur_num`, `cur_msgnum`, `last_response`, `response_history`, `last_visit_hours`, `session_id`, `history` | 20/60s | Auto-talk rotation: calls AI generation if LLM replace mode is on, else draws from built-in dialogues. Built-in lines return their aligned tag expression without keyword guessing. |
-| `/dialog` | GET / POST | Public | `file` (required), `cur_num` | 30/60s | Reads dialogue under `dialogs/`; returns `{msgall, auto_msg, msg, msg_emojis, next_msg, default_msg}`. `msg_emojis` is an optional aligned array of PNG filenames or `null`. |
+| `/dialog` | GET / POST | Public | `file` (required), `cur_num` | 30/60s | Reads dialogue under `dialogs/`; returns `{msgall, auto_msg, msg, msg_emojis, next_msg, default_msg}`. `msg_emojis` is an optional aligned array of PNG filenames or `null`. `msgall` is the last index of `msg`, counted after duplicates are dropped and dynamic lines are expanded. |
 | `/visitor-info` | GET | Public | — | 30/60s | Returns visitor info such as referrer, search engine, Slimstat country/city, etc. |
 | `/decoration-prompts` | GET / POST | Public | `decoration_type` | 20/60s | Gets prompts for decoration click dialogue |
 | `/wake-ghost` | POST | Public | `personality_id` or `ukagaka_num` (at least one) | 10/60s | Temporarily wakes up a sleeping character; WP_Error codes: `rest_wake_ghost_missing_param`, `rest_wake_ghost_unavailable` |

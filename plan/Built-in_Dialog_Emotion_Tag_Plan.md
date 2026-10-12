@@ -156,7 +156,7 @@ Rules:
 - Both arrays are always JSON arrays (sequential keys from `array_values()`), never objects.
 - Existing response fields (`msgall`, `auto_msg`, `next_msg`, `default_msg`) remain unchanged.
 - Older clients that ignore `msg_emojis` continue to work.
-- `msg_emojis` must have the same length as the final expanded `msg` array, not the legacy `msgall` value. `msgall` is currently calculated from the pre-expansion source count; this task must document but not silently change that existing behavior.
+- `msg_emojis` must have the same length as the final expanded `msg` array, not the legacy `msgall` value. `msgall` is currently calculated from the pre-expansion source count; this task must document but not silently change that existing behavior. (Later changed on purpose: `msgall` is now the last index of the built `msg`.)
 - `mpu_get_msg_arr()` returns the same `msg` / `msg_emojis` pair, built by the same helper. For the same file and personality, `/dialog` and `/nextmsg` therefore agree on every index. The frontend's `#ukagaka_msgnum` is shared between them.
 - The contract holds on **every** return path, not just success. `mpu_get_msg_arr()`'s recursion-limit return and its "file not found" substitution return a one-element `msg` with `msg_emojis: [null]`. `mpu_get_msg_from_file()` keeps its existing plain `string[]` contract and never returns `msg_emojis`. Its error strings (invalid name, missing, too large, unreadable) gain the aligned `msg_emojis: [null]` only when the built-in builder or `mpu_get_msg_arr()` wraps them. Likewise every `/dialog` response that carries `msg` carries an aligned `msg_emojis`. Error text never goes through tag parsing.
 

@@ -284,7 +284,8 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         $built = mpu_build_builtin_dialog_messages($msg_array, $personality_id);
 
         $arr = [
-            'msgall'      => max(0, count($msg_array) - 1),
+            // msgall: last index of msg after duplicates are dropped and dynamic lines expanded.
+            'msgall'      => max(0, count($built['msg']) - 1),
             'auto_msg'    => $mpu_opt['auto_msg'] ?? '',
             'msg'         => $built['msg'],
             'msg_emojis'  => $built['msg_emojis'],
