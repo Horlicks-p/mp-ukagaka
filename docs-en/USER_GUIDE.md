@@ -886,10 +886,9 @@ ghost/MyCharacter/
 ```
 
 When a manifest has no `emoji` block, the plugin instead detects supported tags
-from filenames in that personality's `emojis/` directory. Explicit manifest
-configuration is recommended. Tag images must use a `.png` filename; animated
-PNG content is allowed, but `.gif` and `.apng` filenames are not displayed in
-this version.
+from the `.png` filenames in that personality's `emojis/` directory. Explicit
+manifest configuration is recommended. Tag images must use a `.png` filename;
+animated PNG content is allowed. `.gif` and `.apng` files are not used as tags.
 
 Only the active personality may display its own supported tag. A tag known to
 another installed personality is hidden as metadata but does not display that
@@ -899,8 +898,12 @@ filename to match a personality folder under `ghost/`.
 
 Use at most one tag per entry. If more than one recognized tag is present, the
 first tag supported by the active personality supplies the expression and all
-recognized tags are hidden. Duplicate visible lines collapse to one entry; the
-first occurrence and its expression win.
+recognized tags are hidden. Lines with the same visible text and the same
+expression collapse to one entry; the same text with a different expression,
+such as `Hello [laugh]` and `Hello [sad]`, stays as two entries.
+
+When a tag sits between words, the space it leaves is closed up:
+`Hello [laugh] world` shows as `Hello world`, and `Nice [laugh]!` as `Nice!`.
 
 ---
 

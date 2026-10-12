@@ -191,14 +191,10 @@ function mpu_load_personality_emoji_config($personality_id = null)
     if (is_dir($dir . '/emojis')) {
         $config['folder'] = 'emojis';
 
-        $emoji_files = [];
-        $extensions = ['png', 'apng', 'gif'];
-        foreach ($extensions as $ext) {
-            $pattern = $dir . '/emojis/*.' . $ext;
-            $files = glob($pattern);
-            if ($files !== false) {
-                $emoji_files = array_merge($emoji_files, $files);
-            }
+        // Tags always load "<tag>.png", so only PNG files (animated or not) become tags.
+        $emoji_files = glob($dir . '/emojis/*.png');
+        if ($emoji_files === false) {
+            $emoji_files = [];
         }
         if (!empty($emoji_files)) {
             $config['supported'] = array_map(function ($file) {
