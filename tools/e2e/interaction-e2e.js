@@ -1655,6 +1655,39 @@ scenario("autotalk-fallback-skipped-after-switch", "browser + wp", async (h) => 
   return { typedAfterRelease: typed.length };
 }, { ghost: "FrierenAndAsuna" });
 
+// A fallback waiting for the dialogue to load retries twice. A chain that a
+// switch made stale must not use up those retries for the next fallback.
+scenario("fallback-retries-survive-a-stale-chain", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await routeAsunaDialog(page);
+  await page.evaluate(() => {
+    window.__fallbackCalls = 0;
+    const orig = window.mpu_nextmsg_fallback;
+    window.mpu_nextmsg_fallback = function () {
+      window.__fallbackCalls += 1;
+      return orig.apply(this, arguments);
+    };
+  });
+
+  // Stale chain: no dialogue yet, so it schedules a retry; then the visitor switches.
+  await page.evaluate(() => { mpuSetDialogStore(null); window.mpu_nextmsg_fallback(); });
+  await sleep(450);
+  await page.evaluate(() => window.mpuChange("asuna_e2e"));
+  await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+  await sleep(3000);
+  await h.typewriterIdle(page);
+  assert(await page.evaluate(() => window.__fallbackCalls) === 2, "precondition: the stale chain did not retry once");
+
+  // A fresh fallback while the dialogue is missing gets both of its retries.
+  await page.evaluate(() => { window.__fallbackCalls = 0; mpuSetDialogStore(null); window.mpu_nextmsg_fallback(); });
+  await sleep(6500);
+  const calls = await page.evaluate(() => window.__fallbackCalls);
+  assert(calls === 3, `the fallback ran ${calls} times, expected 3 (first try and two retries)`);
+  return { calls };
+}, { ghost: "FrierenAndAsuna" });
+
 // Records the message box every frame from before the bundle runs: whether it
 // shows, how opaque it is, the dialogue text and whether the think bubble is up.
 const BOX_PROBE = () => {

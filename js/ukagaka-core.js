@@ -1116,8 +1116,10 @@ function mpu_nextmsg(trigger) {
 /**
  * 顯示一句內建台詞作為 LLM 失敗時的後備
  * @param {number} expectedGeneration - 請求送出時的角色切換次數。延遲期間換了角色就不顯示。
+ * @param {number} retryCount - 這次後備已等對話載入重試了幾次。每次呼叫各自計數，
+ *     過期而中途放棄的後備不會留下計數，影響之後的後備。
  */
-function mpu_nextmsg_fallback(expectedGeneration = window.mpuCharacterGeneration) {
+function mpu_nextmsg_fallback(expectedGeneration = window.mpuCharacterGeneration, retryCount = 0) {
   setTimeout(function () {
     if (expectedGeneration !== window.mpuCharacterGeneration) {
       mpuLogger.logL("nextMessageFallbackSkippedCharacterSwitch", "mpu_nextmsg_fallback: 待機中にキャラクターが切り替わったため、フォールバック会話を表示しません");
@@ -1137,14 +1139,11 @@ function mpu_nextmsg_fallback(expectedGeneration = window.mpuCharacterGeneration
 
     if (!store) {
       mpuLogger.warnL("nextMessageFallbackWaitingForDialogLoad", "mpu_nextmsg_fallback: 会話がまだ読み込まれていません。読み込み完了を待機します...");
-      const retryCount = mpuGetState().retry.fallbackMessage || 0;
       if (retryCount < 2) {
-        mpuGetState().retry.fallbackMessage = retryCount + 1;
         setTimeout(() => {
-          mpu_nextmsg_fallback(expectedGeneration);
+          mpu_nextmsg_fallback(expectedGeneration, retryCount + 1);
         }, 1500);
       } else {
-        mpuGetState().retry.fallbackMessage = 0;
         mpu_showMsgText();
         mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
@@ -1153,7 +1152,6 @@ function mpu_nextmsg_fallback(expectedGeneration = window.mpuCharacterGeneration
       return;
     }
 
-    mpuGetState().retry.fallbackMessage = 0;
 
     if (!Array.isArray(store.msg) || store.msg.length === 0) {
       const errorMsg =

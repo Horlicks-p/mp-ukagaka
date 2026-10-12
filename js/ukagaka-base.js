@@ -47,7 +47,6 @@ window.MPU_STATE = window.MPU_STATE || {
     },
     retry: {
         nextMessage: 0,
-        fallbackMessage: 0,
     },
     storage: {},
 };
