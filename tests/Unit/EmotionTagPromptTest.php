@@ -104,6 +104,8 @@ final class EmotionTagPromptTest extends TestCase {
         }
 
         $this->assertSame([], $taken);
+        $this->assertNotSame('stun.png', mpu_analyze_emoji_from_text('請放心，我沒事。', 'Frieren'));
+        $this->assertNotSame('vomit.png', mpu_analyze_emoji_from_text('系統廢了，等一下再試。', 'Frieren'));
     }
 
     /**
@@ -131,6 +133,8 @@ final class EmotionTagPromptTest extends TestCase {
         }
 
         $this->assertSame([], $taken);
+        $this->assertNotSame('stun.png', mpu_analyze_emoji_from_text('請放心，我沒事。', 'NoKeywordFile'));
+        $this->assertNotSame('vomit.png', mpu_analyze_emoji_from_text('系統廢了，等一下再試。', 'NoKeywordFile'));
     }
 
     public function test_expression_tag_instruction_source_removed_legacy_tail_prompt(): void {
