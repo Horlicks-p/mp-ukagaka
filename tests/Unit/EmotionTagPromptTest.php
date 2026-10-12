@@ -106,6 +106,33 @@ final class EmotionTagPromptTest extends TestCase {
         $this->assertSame([], $taken);
     }
 
+    /**
+     * The generic fallback for characters without emoji-keywords.json follows the same rule.
+     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_default_keywords_are_not_taken_by_other_expressions(): void {
+        if (!function_exists('mpu_load_personality_emoji_keywords')) {
+            function mpu_load_personality_emoji_keywords($personality_id = null) {
+                return [];
+            }
+        }
+        require_once MPU_TESTS_ROOT . '/includes/personality/emoji-mapper.php';
+
+        $taken = [];
+        foreach (mpu_get_default_emoji_mappings() as $tag => $mapping) {
+            foreach ($mapping['keywords'] as $keyword) {
+                $winner = mpu_analyze_emoji_from_text($keyword, 'NoKeywordFile');
+                if ($winner !== $mapping['file']) {
+                    $taken[] = "{$tag}: {$keyword} -> {$winner}";
+                }
+            }
+        }
+
+        $this->assertSame([], $taken);
+    }
+
     public function test_expression_tag_instruction_source_removed_legacy_tail_prompt(): void {
         $source = file_get_contents(MPU_TESTS_ROOT . '/includes/personality/personality-loader.php');
 
