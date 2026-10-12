@@ -4089,6 +4089,8 @@ function mpu_chat_context() {
   formData.append("page_title", context.title);
   formData.append("page_content", context.content);
   formData.append("publish_date", context.publishDate || "");
+  // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
+  formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
 
   // [Fix] 傳送 session_id + history，讓後端在頁面感知 AI 成功後也能更新 checksum，
   // 防止下一輪 chat/user 驗證 400（裝飾品/身體點擊場景）。
@@ -4403,6 +4405,8 @@ function mpu_greet_first_visitor(settings) {
           "city",
           visitorInfo.slimstat_city || visitorInfo.city || "",
         );
+        // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
+        formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
 
         // [Fix] 傳送 session_id + history，讓後端記錄問候的 checksum
         const greetSessionId = typeof mpu_getOrCreateChatSessionId === "function"
@@ -5523,6 +5527,8 @@ function mpu_sendUserMessage() {
   const formData = new FormData();
   formData.append("message", message);
   formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
+  // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
+  formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
   if (chatSessionId) {
     formData.append("session_id", chatSessionId);
   }

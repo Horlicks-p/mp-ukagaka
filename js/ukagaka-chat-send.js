@@ -125,6 +125,8 @@ function mpu_sendUserMessage() {
   const formData = new FormData();
   formData.append("message", message);
   formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
+  // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
+  formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
   if (chatSessionId) {
     formData.append("session_id", chatSessionId);
   }

@@ -87,6 +87,8 @@ function mpu_greet_first_visitor(settings) {
           "city",
           visitorInfo.slimstat_city || visitorInfo.city || "",
         );
+        // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
+        formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
 
         // [Fix] 傳送 session_id + history，讓後端記錄問候的 checksum
         const greetSessionId = typeof mpu_getOrCreateChatSessionId === "function"

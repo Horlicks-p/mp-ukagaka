@@ -88,7 +88,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         }
 
         $wp_info              = mpu_get_wordpress_info();
-        $ukagaka_name         = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+        $ukagaka_name         = mpu_resolve_request_ukagaka_num( $request->get_param( 'cur_num' ), $mpu_opt );
         $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
         $language             = $mpu_opt['ai_language'] ?? '';
 
@@ -691,7 +691,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
-        $ukagaka_name         = $mpu_opt['cur_ukagaka'] ?? 'default_1';
+        $ukagaka_name         = mpu_resolve_request_ukagaka_num( $request->get_param( 'cur_num' ), $mpu_opt );
         $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
         $language             = $mpu_opt['ai_language'] ?? '';
 
