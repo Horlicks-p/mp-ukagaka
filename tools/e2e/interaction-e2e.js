@@ -1691,8 +1691,9 @@ scenario("fallback-retries-survive-a-stale-chain", "browser + wp", async (h) => 
 // A built-in line waiting for the dialogue to load retries every second. A
 // retry scheduled before a switch belongs to the old character: it must stop,
 // not carry on as new-character work and type a line (or the "not loaded"
-// notice) on the new character. Asuna's dialogue is held back so the old
-// retries run while the switch has already happened and the store is empty.
+// notice) on the new character, and must not hide her message box or stop her
+// auto-talk timer first. Asuna's dialogue is held back so the old retries run
+// while the switch has already happened and the store is empty.
 scenario("nextmsg-retry-stops-after-switch", "browser + wp", async (h) => {
   h.fake.reset();
   const page = await h.awakePage();
@@ -1715,10 +1716,23 @@ scenario("nextmsg-retry-stops-after-switch", "browser + wp", async (h) => {
   const tSwitch = Date.now();
   await page.evaluate(() => window.mpuChange("asuna_e2e"));
   await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+  // From here on, count what mpu_nextmsg itself does to the screen and timer.
+  await page.evaluate(() => {
+    window.__nextmsgSideEffects = [];
+    for (const name of ["mpu_hidemsg", "stopAutoTalk"]) {
+      const orig = window[name];
+      window[name] = function () {
+        if (String(new Error().stack).includes("mpu_nextmsg")) window.__nextmsgSideEffects.push(name);
+        return orig.apply(this, arguments);
+      };
+    }
+  });
   await page.waitForFunction(() => document.getElementById("ukagaka_msg").textContent.includes("ASUNA_"), null, { timeout: 30000 });
   await sleep(3000);
   await h.typewriterIdle(page);
 
+  const sideEffects = await page.evaluate(() => window.__nextmsgSideEffects);
+  assert(sideEffects.length === 0, `the old retry chain touched the new character: ${JSON.stringify(sideEffects)}`);
   const p = await h.probe(page);
   const notLoaded = await page.evaluate(() => (window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません");
   const typed = p.typewriter.filter((t) => t.at >= tSwitch).map((t) => t.text);

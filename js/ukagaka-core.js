@@ -645,6 +645,15 @@ function mpu_nextmsg(trigger, retry = null) {
   const isAuto = trigger === "auto";
   const isStartup = trigger === "startup";
   const isManual = !isAuto && !isStartup; // 手動觸發（使用者點擊按鈕）
+  // 等待期間訪客切換了角色：這句屬於原本的角色，不能出現在新角色身上。
+  const characterGeneration = retry ? retry.generation : window.mpuCharacterGeneration;
+  // 切換前排定的重試屬於舊角色：在停計時器、淡出對話框等任何狀態變更之前就停下，
+  // 不能動到新角色的畫面與自動對話。
+  if (retry && characterGeneration !== window.mpuCharacterGeneration) {
+    mpuLogger.logL("nextMessageRetrySkippedCharacterSwitch", "mpu_nextmsg: キャラクター切り替え前に予約された再試行のため、何もせずに終了します");
+    return;
+  }
+
   mpuLogger.logF("nextMessageCalled", "mpu_nextmsg が呼び出されました。trigger=%1$s、isAuto=%2$s、isStartup=%3$s、isManual=%4$s、mpuOllamaReplaceDialogue=%5$s", trigger, isAuto, isStartup, isManual, mpuOllamaReplaceDialogue);
 
   if (mpuMessageBlocking) {
@@ -715,8 +724,6 @@ function mpu_nextmsg(trigger, retry = null) {
 
   // 手動點擊時不再立即重置計時器，改由打字完成後統一啟動
 
-  // 等待期間訪客切換了角色：這句屬於原本的角色，不能出現在新角色身上。
-  const characterGeneration = retry ? retry.generation : window.mpuCharacterGeneration;
   const isStaleForCharacter = function () {
     return characterGeneration !== window.mpuCharacterGeneration;
   };
