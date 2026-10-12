@@ -1273,11 +1273,13 @@ add_action('mpu_chat_lock_released', function($session_id, $existing) {}, 10, 2)
 
 | Endpoint | Method | Permission | Parameters | Rate Limit | Description |
 | --- | --- | --- | --- | --- | --- |
-| `/chat/context` | POST | Public + valid session token | `page_title`, `page_content`, `publish_date`, `session_id`, `history` | 5/60s | Page aware dialogue, triggers AI comments based on current article content; max 500 chars |
-| `/chat/greet` | POST | Public + valid session token | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `session_id`, `history` | 10/60s | First-time visitor greeting, customized by source country/search engine |
-| `/chat/user` | POST | Public + valid session token | `message` (required), `history`, `page_title`, `page_content`, `session_id` | 30/60s | Multi-turn interactive chat (non-streaming), supports MCP Tool/Abilities calls; returns the normalized reply `{msg, emoji, emotion_tags, emotion_files, primary_emotion_tag, primary_emotion_file, think}` |
+| `/chat/context` | POST | Public + valid session token | `page_title`, `page_content`, `publish_date`, `cur_num`, `session_id`, `history` | 5/60s | Page aware dialogue, triggers AI comments based on current article content; max 500 chars |
+| `/chat/greet` | POST | Public + valid session token | `referrer`, `referrer_host`, `search_engine`, `is_direct`, `country`, `city`, `cur_num`, `session_id`, `history` | 10/60s | First-time visitor greeting, customized by source country/search engine |
+| `/chat/user` | POST | Public + valid session token | `message` (required), `history`, `page_title`, `page_content`, `cur_num`, `session_id` | 30/60s | Multi-turn interactive chat (non-streaming), supports MCP Tool/Abilities calls; returns the normalized reply `{msg, emoji, emotion_tags, emotion_files, primary_emotion_tag, primary_emotion_file, think}` |
 | `/chat/user-stream` | POST | Public + valid session token | Same as `/chat/user` | 30/60s | SSE streaming version, outputs chunk-by-chunk (see the event format below) |
 | `/session-token` | GET | Public | — | 10/60s | Issues an IP-bound session token for anonymous visitors; returns `{token}` with no-store cache headers |
+
+The four `/chat/*` endpoints answer as the character the visitor is looking at. They use `cur_num` when it names a configured character, otherwise the character the visitor switched to (the `mpu_ukagaka_<COOKIEHASH>` cookie set by `/change`), otherwise the admin's current character.
 
 ### Touch Interactions
 

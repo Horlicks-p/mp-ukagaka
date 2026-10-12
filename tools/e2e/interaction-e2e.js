@@ -67,6 +67,13 @@ $o['ukagakas']['default_1'] = array_merge($o['ukagakas']['default_1'], array(
   'shell' => plugins_url('mp-ukagaka/ghost/Asuna/shell/'),
   'dialog_filename' => 'Frieren',
 ));`,
+  // Frieren stays the admin's character; Asuna is a second one visitors can switch to.
+  FrierenAndAsuna: `$o['ukagakas']['asuna_e2e'] = array_merge($o['ukagakas']['default_1'], array(
+  'name' => 'アスナ',
+  'shell' => plugins_url('mp-ukagaka/ghost/Asuna/shell/'),
+  'dialog_filename' => 'Asuna',
+  'show' => true,
+));`,
 };
 
 // Scenarios are grouped by site profile; each profile boots its own disposable
@@ -1383,6 +1390,35 @@ scenario("sleep-ok-wake-non-frieren", "browser", async (h) => {
   assert(p2.autoTalkLeaks === 0, `${p2.autoTalkLeaks} auto-talk timer(s) overwritten while pending`);
   return { ghost: ghost.title, wakeReactionStored: s1.history.filter((m) => m.type === "wake_reaction").length, msg: s1.msg, autoTicksAfterWake: autos.length };
 }, { ghost: "Asuna" });
+
+// A visitor who switches to another character must chat with that character,
+// not the admin's. The switch lives in a cookie and in #ukagaka_num.
+scenario("chat-follows-switched-character", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await page.evaluate(() => window.mpuChange("asuna_e2e"));
+  await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+  await h.enterChat(page);
+
+  h.fake.queueReply("ASUNA_REPLY_MARK");
+  const mark = h.fake.chatRequests().length;
+  await h.send(page, "WHO_ARE_YOU");
+  await h.waitChatIdle(page);
+  const calls = h.fake.chatRequests().slice(mark);
+  assert(calls.length === 1, `chat made ${calls.length} provider calls`);
+  const system = providerMessages(calls[0]).filter((m) => m.role === "system").map((m) => String(m.content)).join("\n");
+  assert(system.includes("アスナ"), "the system prompt does not speak as the switched-to character");
+  assert(!system.includes("フリーレン"), "the system prompt still speaks as the admin's character");
+
+  const emoji = await page.evaluate(async () => {
+    const res = await fetch(`${window.mpuRestUrl}emoji-config?cur_num=${encodeURIComponent(window.mpuGetCurrentUkagakaNum())}`);
+    return res.json();
+  });
+  assert(emoji.personalityId === "Asuna", `emoji-config resolved ${emoji.personalityId}`);
+  assert((await h.state(page)).msg.includes("ASUNA_REPLY_MARK"), "reply not shown");
+  return { systemPromptChars: system.length, emojiPersonality: emoji.personalityId };
+}, { ghost: "FrierenAndAsuna" });
 
 // Records the message box every frame from before the bundle runs: whether it
 // shows, how opaque it is, the dialogue text and whether the think bubble is up.

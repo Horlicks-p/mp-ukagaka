@@ -297,3 +297,41 @@ function mpu_resolve_personality_id( $ukagaka_name = null, $fallback_to_current 
 
 	return null;
 }
+
+/**
+ * Resolve which character a visitor's request is about.
+ *
+ * Visitors can switch characters with mpuChange(); the switch is kept in the
+ * mpu_ukagaka_<COOKIEHASH> cookie, which mpu_html() also reads to render the
+ * page. Order: the request's cur_num, then that cookie, then the admin's
+ * current character. A value counts only when it names a configured character.
+ *
+ * @param mixed      $requested_num The request's cur_num parameter, if any.
+ * @param array|null $mpu_opt       Plugin options, or null to load them.
+ * @return string Character config key.
+ */
+function mpu_resolve_request_ukagaka_num( $requested_num = '', $mpu_opt = null ) {
+	if ( ! is_array( $mpu_opt ) ) {
+		$mpu_opt = function_exists( 'mpu_get_option' ) ? mpu_get_option() : array();
+	}
+	$ukagakas = isset( $mpu_opt['ukagakas'] ) && is_array( $mpu_opt['ukagakas'] ) ? $mpu_opt['ukagakas'] : array();
+
+	$candidates = array();
+	if ( is_string( $requested_num ) ) {
+		$candidates[] = sanitize_text_field( $requested_num );
+	}
+	$cookie_name = defined( 'COOKIEHASH' ) ? 'mpu_ukagaka_' . COOKIEHASH : '';
+	if ( '' !== $cookie_name && isset( $_COOKIE[ $cookie_name ] ) && is_string( $_COOKIE[ $cookie_name ] ) ) {
+		$candidates[] = sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) );
+	}
+
+	foreach ( $candidates as $candidate ) {
+		if ( '' !== $candidate && ! empty( $ukagakas[ $candidate ] ) ) {
+			return $candidate;
+		}
+	}
+
+	$default = isset( $mpu_opt['cur_ukagaka'] ) && is_string( $mpu_opt['cur_ukagaka'] ) ? $mpu_opt['cur_ukagaka'] : 'default_1';
+
+	return '' !== $default ? $default : 'default_1';
+}
