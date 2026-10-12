@@ -216,12 +216,12 @@ final class BuiltInDialogEmotionTest extends TestCase {
 
     public function test_tag_gap_between_words_is_closed(): void {
         $result = mpu_build_builtin_dialog_messages(
-            ['Hello [laugh] world', 'Nice [laugh]!', '[laugh] Hi there', 'こんにちは[laugh]世界', 'Two  spaces stay'],
+            ['Hello [laugh] world', 'Nice [laugh]!', '[laugh] Hi there', 'こんにちは[laugh]世界', 'Two  spaces stay', 'Nice [laugh]！', 'Really [laugh]？', 'すごい [laugh]。'],
             'Frieren',
             ['laugh']
         );
 
-        $this->assertSame(['Hello world', 'Nice!', 'Hi there', 'こんにちは世界', 'Two  spaces stay'], $result['msg']);
+        $this->assertSame(['Hello world', 'Nice!', 'Hi there', 'こんにちは世界', 'Two  spaces stay', 'Nice！', 'Really？', 'すごい。'], $result['msg']);
     }
 
     public function test_get_msg_arr_error_keeps_emoji_array_aligned(): void {

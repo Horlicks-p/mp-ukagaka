@@ -903,7 +903,8 @@ expression collapse to one entry; the same text with a different expression,
 such as `Hello [laugh]` and `Hello [sad]`, stays as two entries.
 
 When a tag sits between words, the space it leaves is closed up:
-`Hello [laugh] world` shows as `Hello world`, and `Nice [laugh]!` as `Nice!`.
+`Hello [laugh] world` shows as `Hello world`, `Nice [laugh]!` as `Nice!`, and
+`すごい [laugh]。` as `すごい。`.
 
 ---
 
