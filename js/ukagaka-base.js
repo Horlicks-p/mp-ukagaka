@@ -45,9 +45,6 @@ window.MPU_STATE = window.MPU_STATE || {
         settingsLoaded: false,
         enableChatMode: false,
     },
-    retry: {
-        nextMessage: 0,
-    },
     storage: {},
 };
 

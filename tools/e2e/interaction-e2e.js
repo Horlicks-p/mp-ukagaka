@@ -1688,6 +1688,46 @@ scenario("fallback-retries-survive-a-stale-chain", "browser + wp", async (h) => 
   return { calls };
 }, { ghost: "FrierenAndAsuna" });
 
+// A built-in line waiting for the dialogue to load retries every second. A
+// retry scheduled before a switch belongs to the old character: it must stop,
+// not carry on as new-character work and type a line (or the "not loaded"
+// notice) on the new character. Asuna's dialogue is held back so the old
+// retries run while the switch has already happened and the store is empty.
+scenario("nextmsg-retry-stops-after-switch", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await page.route(/\/dialog\?.*file=Asuna/, async (route) => {
+    await sleep(4000);
+    try {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ msgall: 1, auto_msg: "", msg: ["ASUNA_FIRST_LINE", "ASUNA_SECOND_LINE"], msg_emojis: [null, null], next_msg: 0, default_msg: 1 }),
+      });
+    } catch (e) { /* page closed */ }
+  });
+  await page.evaluate(() => {
+    mpuSetOllamaReplaceDialogue(false);
+    mpuSetDialogStore(null);
+    window.mpu_nextmsg();
+  });
+  await sleep(300);
+  const tSwitch = Date.now();
+  await page.evaluate(() => window.mpuChange("asuna_e2e"));
+  await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+  await page.waitForFunction(() => document.getElementById("ukagaka_msg").textContent.includes("ASUNA_"), null, { timeout: 30000 });
+  await sleep(3000);
+  await h.typewriterIdle(page);
+
+  const p = await h.probe(page);
+  const notLoaded = await page.evaluate(() => (window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません");
+  const typed = p.typewriter.filter((t) => t.at >= tSwitch).map((t) => t.text);
+  const asunaLines = typed.filter((t) => t.includes("ASUNA_"));
+  assert(asunaLines.length === 1, `Asuna spoke ${asunaLines.length} lines after the switch, expected only her own first line: ${JSON.stringify(asunaLines)}`);
+  assert(!typed.some((t) => t.includes(notLoaded.slice(0, 10))), "the old retry chain typed its \"not loaded\" notice on the new character");
+  return { typed };
+}, { ghost: "FrierenAndAsuna" });
+
 // Records the message box every frame from before the bundle runs: whether it
 // shows, how opaque it is, the dialogue text and whether the think bubble is up.
 const BOX_PROBE = () => {

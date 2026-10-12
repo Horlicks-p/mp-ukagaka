@@ -637,8 +637,11 @@ function mpu_recordAutoTalkIfChatTookOver(res, out) {
 /**
  * 顯示下一句對話
  * @param {string} trigger - 觸發方式：'auto'（自動）、'startup'（啟動）、undefined（手動）
+ * @param {{generation: number, count: number}|null} retry - 只在等對話載入的重試時傳入：
+ *     最初那次呼叫的角色切換次數與已重試次數。重試沿用最初的角色，切換後就停下，
+ *     不會被當成新角色的新工作接著跑。
  */
-function mpu_nextmsg(trigger) {
+function mpu_nextmsg(trigger, retry = null) {
   const isAuto = trigger === "auto";
   const isStartup = trigger === "startup";
   const isManual = !isAuto && !isStartup; // 手動觸發（使用者點擊按鈕）
@@ -713,7 +716,7 @@ function mpu_nextmsg(trigger) {
   // 手動點擊時不再立即重置計時器，改由打字完成後統一啟動
 
   // 等待期間訪客切換了角色：這句屬於原本的角色，不能出現在新角色身上。
-  const characterGeneration = window.mpuCharacterGeneration;
+  const characterGeneration = retry ? retry.generation : window.mpuCharacterGeneration;
   const isStaleForCharacter = function () {
     return characterGeneration !== window.mpuCharacterGeneration;
   };
@@ -1012,14 +1015,12 @@ function mpu_nextmsg(trigger) {
 
     if (!store) {
       mpuLogger.warnL("nextMessageWaitingForDialogLoad", "mpu_nextmsg: 会話がまだ読み込まれていません。読み込み完了を待機します...");
-      const retryCount = mpuGetState().retry.nextMessage || 0;
+      const retryCount = retry ? retry.count : 0;
       if (retryCount < 3) {
-        mpuGetState().retry.nextMessage = retryCount + 1;
         setTimeout(() => {
-          mpu_nextmsg(trigger);
+          mpu_nextmsg(trigger, { generation: characterGeneration, count: retryCount + 1 });
         }, 1000);
       } else {
-        mpuGetState().retry.nextMessage = 0;
         mpu_showMsgText();
         mpu_typewriter((window.mpuL10n && window.mpuL10n.dialogNotLoaded) || "ダイアログがまだ読み込まれていません。お待ちください...", "#ukagaka_msg");
         mpu_showmsg(400);
@@ -1027,8 +1028,6 @@ function mpu_nextmsg(trigger) {
       }
       return;
     }
-
-    mpuGetState().retry.nextMessage = 0;
 
     if (!Array.isArray(store.msg) || store.msg.length === 0) {
       const errorMsg =
