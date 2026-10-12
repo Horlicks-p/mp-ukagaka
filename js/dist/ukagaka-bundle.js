@@ -2452,7 +2452,7 @@ function mpu_nextmsg(trigger) {
               mpuReleaseMessageBlock("rate-limit-next-message");
 
               // 顯示一條內建對話作為後備，避免角色一直沉默（冷卻期間換了角色就交給新角色）
-              if (!isStaleForCharacter()) mpu_nextmsg_fallback();
+              mpu_nextmsg_fallback(characterGeneration);
 
               // 若原本有自動對話，則在冷卻後恢復
               if (mpuAutoTalk && !mpuAutoTalkTimer) {
@@ -2463,7 +2463,7 @@ function mpu_nextmsg(trigger) {
             mpuLogger.warnL("nextMessageLlmMissingMessageUsingFallback", "mpu_nextmsg: LLM 応答に msg がないため、フォールバック会話を使用します");
             mpuSetLastLLMResponse("");
             mpuResetLLMResponseHistory();
-            mpu_nextmsg_fallback();
+            mpu_nextmsg_fallback(characterGeneration);
 
             // ⚠️ 即使 fallback，也等待打字完成再啟動自動對話
             if (mpuAutoTalk && !mpuAutoTalkTimer) {
@@ -2513,11 +2513,11 @@ function mpu_nextmsg(trigger) {
           mpu_showmsg(400);
           setTimeout(() => {
             mpuSetLastLLMResponse("");
-            if (!isStaleForCharacter()) mpu_nextmsg_fallback();
+            mpu_nextmsg_fallback(characterGeneration);
           }, 2000);
         } else {
           mpuSetLastLLMResponse("");
-          mpu_nextmsg_fallback();
+          mpu_nextmsg_fallback(characterGeneration);
         }
       });
     return;
@@ -2634,8 +2634,16 @@ function mpu_nextmsg(trigger) {
   }, 400);
 }
 
-function mpu_nextmsg_fallback() {
+/**
+ * 顯示一句內建台詞作為 LLM 失敗時的後備
+ * @param {number} expectedGeneration - 請求送出時的角色切換次數。延遲期間換了角色就不顯示。
+ */
+function mpu_nextmsg_fallback(expectedGeneration = window.mpuCharacterGeneration) {
   setTimeout(function () {
+    if (expectedGeneration !== window.mpuCharacterGeneration) {
+      mpuLogger.logL("nextMessageFallbackSkippedCharacterSwitch", "mpu_nextmsg_fallback: 待機中にキャラクターが切り替わったため、フォールバック会話を表示しません");
+      return;
+    }
     if (typeof mpuChatModeActive !== "undefined" && mpuChatModeActive) {
       mpuLogger.logL("nextMessageSkippedChatMode", "mpu_nextmsg: 会話モード中のため自動会話をスキップします");
       return;
@@ -2654,7 +2662,7 @@ function mpu_nextmsg_fallback() {
       if (retryCount < 2) {
         mpuGetState().retry.fallbackMessage = retryCount + 1;
         setTimeout(() => {
-          mpu_nextmsg_fallback();
+          mpu_nextmsg_fallback(expectedGeneration);
         }, 1500);
       } else {
         mpuGetState().retry.fallbackMessage = 0;

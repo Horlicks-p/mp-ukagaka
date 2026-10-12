@@ -1610,6 +1610,51 @@ scenario("rapid-switch-keeps-last-choice", "browser + wp", async (h) => {
   return { shown };
 }, { ghost: "FrierenAndAsuna" });
 
+// A failed autonomous line falls back to a built-in line after a short delay.
+// If the visitor switches characters inside that delay, the fallback belongs
+// to the old request and must not speak on the new character. The fallback
+// call is held until the switch has finished, then released with its own
+// arguments, so the switch lands inside the delay every time.
+scenario("autotalk-fallback-skipped-after-switch", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await routeAsunaDialog(page);
+  await page.evaluate(() => {
+    window.__heldFallbacks = [];
+    const orig = window.mpu_nextmsg_fallback;
+    window.mpu_nextmsg_fallback = function () {
+      const args = arguments;
+      window.__heldFallbacks.push(() => orig.apply(this, args));
+    };
+  });
+  // The server answers a provider failure with a built-in line itself; the
+  // client fallback runs only when the /nextmsg request fails.
+  await page.route((url) => /v1\/nextmsg|v1%2Fnextmsg/.test(url.toString()), (route) => route.fulfill({
+    status: 500, contentType: "application/json", body: JSON.stringify({ code: "e2e_failure", message: "E2E failure" }),
+  }));
+  await page.evaluate(() => window.mpu_nextmsg());
+  await page.waitForFunction(() => window.__heldFallbacks.length > 0, null, { timeout: 30000 });
+  await page.evaluate(() => window.mpuChange("asuna_e2e"));
+  await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+  await page.waitForFunction(() => document.getElementById("ukagaka_msg").textContent.includes("ASUNA_FIRST_LINE"), null, { timeout: 30000 });
+  await h.typewriterIdle(page);
+  await sleep(500);
+
+  const historyBefore = (await h.state(page)).history.length;
+  const tRelease = Date.now();
+  await page.evaluate(() => window.__heldFallbacks.forEach((run) => run()));
+  await sleep(1500);
+  await h.typewriterIdle(page);
+
+  const s = await h.state(page);
+  const p = await h.probe(page);
+  const typed = p.typewriter.filter((t) => t.at >= tRelease && t.text.trim() !== "");
+  assert(typed.length === 0, `the old request's fallback spoke on the new character: ${JSON.stringify(typed.map((t) => t.text))}`);
+  assert(s.history.length === historyBefore, "the old request's fallback was written to history");
+  return { typedAfterRelease: typed.length };
+}, { ghost: "FrierenAndAsuna" });
+
 // Records the message box every frame from before the bundle runs: whether it
 // shows, how opaque it is, the dialogue text and whether the think bubble is up.
 const BOX_PROBE = () => {
