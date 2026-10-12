@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.37.1
+Stable tag: 2.37.2
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,14 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-12 =
+* v2.37.2
+* [FIX] On sites with several characters, AI chat now answers as the character the visitor switched to, not the admin's character.
+* [FIX] A reply that arrives after the visitor switched characters is no longer shown on the new character.
+* [CHANGE] The AI is told what each of the character's expressions looks like, so rarely used expressions show up more often.
+* [FIX] Built-in dialogue: the same line with different expression tags is kept, and no stray space is left before punctuation where a tag was removed.
+* [CHANGE] Frieren's dialogue has more expression tags and fewer typos.
 
 = 2026-10-11 =
 * v2.37.1

@@ -4,6 +4,23 @@
 
 ---
 
+## [2.37.2] - 2026-10-12
+
+### Multi-character sites
+
+- **AI chat answers as the character on screen.** The `/chat/*` endpoints used the admin's current character (`cur_ukagaka`) for the personality, so after a visitor switched characters the AI still replied as the admin's character. Requests now send `cur_num`; the server resolves the character from that parameter, then the visitor's switch cookie (`mpu_ukagaka_<COOKIEHASH>`), then `cur_ukagaka`, and accepts only configured characters (`mpu_resolve_request_ukagaka_num()`).
+- **A pending reply stays off the character the visitor switched to.** `mpuChange()` bumps `window.mpuCharacterGeneration` on every successful switch. A chat reply (JSON or SSE), page-aware line or first-visit greeting that arrives after a switch, including a switch away and back mid-stream, is written to history (the server already counted it) but not shown. The page-context locks are released, the thinking placeholder is cleared, and a greeting that was not shown can run again on a later page load.
+- Touch, decoration and gift reactions still use the admin's character, because `/init` builds their catalog from it.
+
+### Expressions
+
+- **Expression-tag prompt describes each expression.** A personality's `emoji-keywords.json` mapping may carry a `description`; the tag instruction lists described tags with their description, and its placement examples rotate daily through the supported tags instead of always showing the same few. Frieren's 31 expressions are described.
+- **Keyword fallback no longer lets short words steal matches.** One-character and overly generic keywords (for example 氣, 累, 想, 愛, 金) were removed from Frieren's `emoji-keywords.json` and the default mappings, and the rarely seen expressions (dizzy, exhausted, scared, shy, sigh, smug_nod, speechless, stun, vomit) gained keywords. Keywords only apply to AI replies without a tag.
+- **Built-in dialogue tags.** The same line with different expression tags is no longer deduplicated into one; the space a tag leaves before punctuation, including full-width `！？，。、；：…`, is closed; and expression auto-detection reads only `emojis/*.png`.
+- Frieren's bundled dialogue gains expression tags on 24 lines, `[shy.png]` / `[smirk.png]` were corrected to `[shy]` / `[smirk]`, several typos were fixed, and `Frieren.txt` now matches `Frieren.json`.
+
+---
+
 ## [2.37.1] - 2026-10-11
 
 ### Auto talk
