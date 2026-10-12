@@ -16,6 +16,7 @@ function startFakeOllama({ port = 0 } = {}) {
   const requests = [];
   let seq = 0;
   let delayMs = 0;
+  let chunkGapMs = 150;
   let failStatus = 0;
   let cutStreamAfter = 0; // >0: drop the connection after this many streamed chunks
   let toolCall = null;    // when set, every streamed reply asks for this tool call
@@ -36,7 +37,7 @@ function startFakeOllama({ port = 0 } = {}) {
       if (sent < chunks.length) {
         res.write(ndjson({ model: "fake:latest", message: { role: "assistant", content: chunks[sent] }, done: false }));
         sent += 1;
-        setTimeout(next, 150);
+        setTimeout(next, chunkGapMs);
         return;
       }
       const message = { role: "assistant", content: "" };
@@ -111,12 +112,15 @@ function startFakeOllama({ port = 0 } = {}) {
           requests.length = 0;
           replyQueue.length = 0;
           delayMs = 0;
+          chunkGapMs = 150;
           failStatus = 0;
           cutStreamAfter = 0;
           toolCall = null;
           replyFor = (n) => `FAKE_REPLY_${n}`;
         },
         setDelay(ms) { delayMs = ms; },
+        // pause between the two streamed halves of a reply
+        setChunkGap(ms) { chunkGapMs = ms; },
         setFailure(status) { failStatus = status; },
         cutStreamAfter(chunks) { cutStreamAfter = chunks; },
         // e.g. { name: "x", arguments: { q: 1 } }; repeating it trips the tool-loop guard

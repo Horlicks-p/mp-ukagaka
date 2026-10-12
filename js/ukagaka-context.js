@@ -401,8 +401,8 @@ function mpu_chat_context() {
   formData.append("page_content", context.content);
   formData.append("publish_date", context.publishDate || "");
   // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
-  const requestUkagakaNum = mpuGetCurrentUkagakaNum();
-  formData.append("cur_num", requestUkagakaNum);
+  formData.append("cur_num", mpuGetCurrentUkagakaNum());
+  const characterGeneration = window.mpuCharacterGeneration;
 
   // [Fix] 傳送 session_id + history，讓後端在頁面感知 AI 成功後也能更新 checksum，
   // 防止下一輪 chat/user 驗證 400（裝飾品/身體點擊場景）。
@@ -476,7 +476,7 @@ function mpu_chat_context() {
           }
 
           // 等待期間訪客切換了角色：這句屬於原本的角色，只記入歷史、不顯示。
-          if (mpuGetCurrentUkagakaNum() !== requestUkagakaNum) {
+          if (characterGeneration !== window.mpuCharacterGeneration) {
             mpuLogger.logL("contextChatResponseSkippedCharacterSwitch", "応答待ちの間にキャラクターが切り替わったため、ページ感知応答は履歴にのみ記録します");
             recordContextHistory(res.msg);
             mpuClearSystemPlaceholder("#ukagaka_msg");

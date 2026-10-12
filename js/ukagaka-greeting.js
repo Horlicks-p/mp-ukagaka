@@ -27,8 +27,8 @@ function mpu_greet_first_visitor(settings) {
       }
     };
 
-    // 送出時畫面上的角色。回應到達前訪客切換了角色，這句就只記入歷史。
-    let requestUkagakaNum = "";
+    // 送出時的角色切換世代。回應到達前訪客切換過角色，這句就只記入歷史。
+    let characterGeneration = 0;
 
     // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼。
     // 伺服器已把這句記入 checksum，所以沒有顯示時也要寫入。
@@ -123,8 +123,8 @@ function mpu_greet_first_visitor(settings) {
           visitorInfo.slimstat_city || visitorInfo.city || "",
         );
         // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
-        requestUkagakaNum = mpuGetCurrentUkagakaNum();
-        formData.append("cur_num", requestUkagakaNum);
+        formData.append("cur_num", mpuGetCurrentUkagakaNum());
+        characterGeneration = window.mpuCharacterGeneration;
 
         // [Fix] 傳送 session_id + history，讓後端記錄問候的 checksum
         const greetSessionId = typeof mpu_getOrCreateChatSessionId === "function"
@@ -166,7 +166,7 @@ function mpu_greet_first_visitor(settings) {
 
             // 等待期間訪客切換了角色：問候屬於原本的角色，只記入歷史、不顯示。
             // 回傳 false 讓呼叫端不寫入首訪 cookie，下次載入頁面時再打招呼。
-            if (mpuGetCurrentUkagakaNum() !== requestUkagakaNum) {
+            if (characterGeneration !== window.mpuCharacterGeneration) {
               mpuLogger.logL("greetingSkippedCharacterSwitch", "応答待ちの間にキャラクターが切り替わったため、初回挨拶は履歴にのみ記録します");
               recordGreetingHistory(res.msg);
               mpuClearSystemPlaceholder("#ukagaka_msg");
