@@ -37,6 +37,7 @@ function mpu_get_emoji_mappings($personality_id = null)
     return mpu_get_default_emoji_mappings();
 }
 
+// phpcs:disable WordPress.Arrays.ArrayDeclarationSpacing.ArrayItemNoNewLine -- Keyword lists are kept compact, several per line.
 /**
  * 獲取內建預設表情映射表
  * 
@@ -59,7 +60,7 @@ function mpu_get_default_emoji_mappings()
         'thinking' => [
             'keywords' => [
                 '思考中', '考え中', '考えている', '檢討中', '考慮', '構思', 'thinking',
-                '沉思', '深思', '思索', '琢磨', '想', '思う', '悩む', 'ponder', 'contemplate',
+                '沉思', '深思', '思索', '琢磨', '思う', '悩む', 'ponder', 'contemplate',
             ],
             'file' => 'thinking.png',
             'weight' => 9,
@@ -83,16 +84,16 @@ function mpu_get_default_emoji_mappings()
         ],
         'shy' => [
             'keywords' => [
-                '害羞', '不好意思', '臉紅', '恥ずかしい', '恥ずかしい顔', 'shy',
+                '害羞', '臉紅', '恥ずかしい', '恥ずかしい顔', 'shy',
                 '心跳', '心動', 'ドキドキ', '羞澀', '靦腆', '赤面', '照れる', '照れ',
-                'blush', 'bashful', 'flustered', 'わくわく', '緊張',
+                'blush', 'bashful', 'flustered', 'わくわく', '緊張', '照れくさい', 'もじもじ', '顔が赤',
             ],
             'file' => 'shy.png',
             'weight' => 8,
         ],
         'angry' => [
             'keywords' => [
-                '生氣', '憤怒', '氣', '怒', '惱火', '煩', '不爽', '不悅',
+                '生氣', '憤怒', '惱火', '不爽', '不悅',
                 '怒る', '怒り', 'ムカつく', 'イライラ', 'うざい', 'やめて',
                 'angry', 'mad', 'annoyed', 'get_angry',
             ],
@@ -109,8 +110,8 @@ function mpu_get_default_emoji_mappings()
         ],
         'amazed' => [
             'keywords' => [
-                '驚訝', '驚', '嚇', '意外', '沒想到',
-                '驚き', '驚いた', 'びっくり', 'まさか', 'えっ', 'え？', 'おお',
+                '驚訝', '驚', '意外',
+                '驚き', '驚いた', 'びっくり', 'まさか', 'えっ！', 'えっ？', 'え？', 'おお',
                 'surprised', 'startled', 'wow', 'whoa', 'discovery',
             ],
             'file' => 'amazed.png',
@@ -118,9 +119,9 @@ function mpu_get_default_emoji_mappings()
         ],
         'sigh' => [
             'keywords' => [
-                '嘆氣', '嘆息', '吐氣', '無奈', '沒想到', 'sigh',
+                '嘆氣', '嘆息', '吐氣', '無奈', 'sigh',
                 'ため息をつく', '溜息', '深く嘆く', 'はぁ', 'ふぅ', 'やれやれ',
-                '算了', '沒辦法', '仕方ない', 'helpless', 'exasperated',
+                '沒辦法', '仕方ない', 'helpless', 'exasperated', 'ため息', 'ためいき', 'しょうがない', '唉',
             ],
             'file' => 'sigh.png',
             'weight' => 8,
@@ -128,7 +129,7 @@ function mpu_get_default_emoji_mappings()
         'stun' => [
             'keywords' => [
                 'stunned', '昏倒', '暈倒', '驚倒', '動彈不得', '嚇死了', '靈魂出竅',
-                '呆住', '傻住', '石化', '固まる', '呆然', '茫然', 'frozen', 'petrified', 'shocked',
+                '呆住', '傻住', '石化', '固まる', '呆然', '茫然', 'frozen', 'petrified', 'shocked', '絶句', '唖然', '頭が真っ白', '魂が抜け', '放心状態', '失神', '信じられない',
             ],
             'file' => 'stun.png',
             'weight' => 9,
@@ -144,39 +145,39 @@ function mpu_get_default_emoji_mappings()
         ],
         'scared' => [
             'keywords' => [
-                '害怕', '恐懼', '恐怖', '可怕', '嚇人', 'フェルンの怒り顔',
+                '害怕', '恐懼', '恐怖', '可怕', '嚇人',
                 '怖い', 'こわい', '恐ろしい', 'やばい', 'ひぃ',
-                'scared', 'frightened', 'scary', 'scared_to_death',
+                'scared', 'frightened', 'scary', 'scared_to_death', 'ぞっと', 'ゾッと', '震え', '怯え', '鳥肌', 'おっかない', '好可怕',
             ],
             'file' => 'scared.png',
             'weight' => 8,
         ],
         'love' => [
             'keywords' => [
-                '愛', '喜歡', '愛心', '心動', '愛情', '戀愛', '感情',
+                '喜歡', '愛心', '愛情', '戀愛', '感情',
                 '好き', '大好き', '愛してる', 'すき', '可愛い', 'かわいい', '恋',
-                'love', 'like', 'heart', 'adore', 'cute', 'affection', 'fond', 'cherish',
+                'love', 'heart', 'adore', 'cute', 'affection', 'fond', 'cherish',
             ],
             'file' => 'love.png',
             'weight' => 9,
         ],
         'kiss' => [
-            'keywords' => ['kiss', '投げキス', '親', '吻', 'キス', 'チュー', 'ちゅ'],
+            'keywords' => ['kiss', '投げキス', '吻', 'キス', 'チュー', 'ちゅ'],
             'file' => 'kiss.png',
             'weight' => 8,
         ],
         'sleepy' => [
             'keywords' => [
-                '困', '睏', '想睡', '累', '疲',
+                '睏', '想睡',
                 '眠い', 'ねむい', '眠たい', 'うとうと', 'zzz', 'むにゃ', 'すぅ',
-                'sleepy', 'tired', 'drowsy', 'exhausted',
+                'sleepy', 'tired', 'drowsy',
             ],
             'file' => 'sleepy.png',
             'weight' => 9,
         ],
         'embarrass' => [
             'keywords' => [
-                '尷尬', '窘', '為難', '冷たい', '無言以對', '冷笑話', '冷たい顔',
+                '尷尬', '窘', '為難', '冷たい', '冷笑話', '冷たい顔',
                 '困る', 'こまる', '微妙', 'うーん', 'えーと', 'あの',
                 'awkward', 'embarrassed', 'hmm',
             ],
@@ -185,7 +186,7 @@ function mpu_get_default_emoji_mappings()
         ],
         'smirk' => [
             'keywords' => [
-                '驕傲', '自豪', '厲害', '得意な顔', '服だけ溶かす薬',
+                '驕傲', '自豪', '厲害', '得意な顔',
                 '誇り', 'すごい', 'やった', 'できた', '自慢する',
                 'proud', 'pride', 'amazing', 'accomplished',
             ],
@@ -197,23 +198,23 @@ function mpu_get_default_emoji_mappings()
                 '求誇獎', '點頭', '厲害吧', '好喔', 'OK', '當然', 'of course',
                 'どや', 'どや顔', 'ほめて', '褒めて', 'ふふん', 'えっへん',
                 '了解した', '当然でしょ', 'もちろん',
-                'smug', 'smug_nod', 'praise me', 'right?', 'of course',
+                'smug', 'smug_nod', 'praise me', 'right?', 'of course', '当たり前', '任せて', 'さすが私', '得意げ',
             ],
             'file' => 'smug_nod.png',
-            'weight' => 6,
+            'weight' => 8,
         ],
         'what' => [
             'keywords' => [
                 '懷疑', '可疑', '奇怪', 'わからない', '不確定', '黑人問號',
                 '怪しい', 'あやしい', '疑わしい', 'ん？', 'おかしい',
-                'what', 'suspicious', 'doubt', 'strange', '困惑', '疑問', '納悶', 'huh', 'confused',
+                'suspicious', 'doubt', 'strange', '困惑', '疑問', '納悶', 'huh', 'confused',
             ],
             'file' => 'what.png',
             'weight' => 7,
         ],
         'whats_up' => [
             'keywords' => [
-                '問號', '幹嘛', '怎麼了', '不確定', 'なになに', 'なんだ', 'どうしたの', 'what happen',
+                '問號', '幹嘛', '怎麼了', 'なになに', 'なんだ', 'どうしたの', 'what happen',
                 '有什麼事', '有什麼問題嗎', "what's up", "what's going on",
             ],
             'file' => 'whats_up.png',
@@ -221,12 +222,12 @@ function mpu_get_default_emoji_mappings()
         ],
         'speechless' => [
             'keywords' => [
-                '聳肩', '傻眼', '尷尬', '想說點什麼但還是算了',
+                '聳肩', '傻眼', '想說點什麼但還是算了',
                 '無言以對', 'ジレンマ', '気まずい', 'shrug',
-                '無語', '不知說什麼', '言葉が出難い', '何も言えない', 'dunno', 'whatever', 'meh',
+                '無語', '不知說什麼', '言葉が出ない', '何も言えない', 'dunno', 'whatever', 'meh', '呆れた', 'あきれた', '言葉もない', 'なんとも言えない', 'ドン引き',
             ],
             'file' => 'speechless.png',
-            'weight' => 6,
+            'weight' => 8,
         ],
         'want' => [
             'keywords' => [
@@ -240,7 +241,7 @@ function mpu_get_default_emoji_mappings()
         'drooling' => [
             'keywords' => [
                 '流口水', '垂涎', '好吃', '美味', '想吃想到流口水', '食べたい',
-                '美味しい', 'おいしい', 'うまい', 'メルクーアプリン',
+                '美味しい', 'おいしい', 'うまい',
                 'drooling', 'drool', 'yummy', 'delicious',
             ],
             'file' => 'drooling.png',
@@ -248,7 +249,7 @@ function mpu_get_default_emoji_mappings()
         ],
         'money' => [
             'keywords' => [
-                '錢', '金錢', '金', '報酬', '巨大な頭蓋骨',
+                '錢', '金錢', '報酬',
                 'お金', 'ゴールド', '買い物', '無駄遣い',
                 'money', 'gold', 'reward', 'pay',
             ],
@@ -257,9 +258,9 @@ function mpu_get_default_emoji_mappings()
         ],
         'vomit' => [
             'keywords' => [
-                '喝掛', '爛醉', '吐了', '喝醉', '宿醉', '廢掉', '廢了', '吃壞肚子',
-                '酔っ払い', '生臭坊主', 'お酒', '二日酔',
-                'drunk', 'intoxicated', 'wasted', 'hangover',
+                '喝掛', '爛醉', '吐了', '喝醉', '宿醉', '廢掉', '吃壞肚子',
+                '酔っ払い', 'お酒', '二日酔',
+                'drunk', 'intoxicated', 'wasted', 'hangover', '吐きそう', '吐き気', '気持ち悪い', '飲みすぎ', '船酔い', 'うっぷ', '想吐',
             ],
             'file' => 'vomit.png',
             'weight' => 8,
@@ -284,7 +285,7 @@ function mpu_get_default_emoji_mappings()
         'good' => [
             'keywords' => [
                 '良い', 'いい', '素晴らしい', '幹得好', '幹得漂亮', 'good job',
-                'great', 'awesome', 'good', 'nice', 'well done', '你真棒', '厲害',
+                'great', 'awesome', 'good', 'nice', 'well done', '你真棒',
             ],
             'file' => 'good.png',
             'weight' => 8,
@@ -293,7 +294,7 @@ function mpu_get_default_emoji_mappings()
             'keywords' => [
                 '悲しい', '悲傷', '難過', '哭泣', '泣きそう', '眼淚', '涙そう',
                 'sad', 'sorrow', 'melancholy', '傷心', '心痛', '寂しい', 'さみしい',
-                'crying', 'tearful', 'upset', 'unhappy', 'blue', 'gloomy',
+                'crying', 'tearful', 'unhappy', 'gloomy',
             ],
             'file' => 'sad.png',
             'weight' => 8,
@@ -301,7 +302,7 @@ function mpu_get_default_emoji_mappings()
         'exhausted' => [
             'keywords' => [
                 '精疲力盡', '疲憊', '疲れた', '残業', '忙しい', 'もう無理', 'へとへと', 'くたくた', 'バテる',
-                'ふらふら', '身心俱疲', '累壞了', '虛脫', 'exhausted', 'worn out', 'drained', 'burned out',
+                'ふらふら', '身心俱疲', '累壞了', '虛脫', 'exhausted', 'worn out', 'drained', 'burned out', '疲れ果て', '疲れちゃった', 'しんどい', 'ぐったり', 'もう動けない', 'ヘトヘト', 'クタクタ', '好累',
             ],
             'file' => 'exhausted.png',
             'weight' => 8,
@@ -309,13 +310,14 @@ function mpu_get_default_emoji_mappings()
         'dizzy' => [
             'keywords' => [
                 '頭昏腦脹', '頭昏眼花', '天旋地轉', '暈眩', '目が回る', 'クラクラ',
-                '頭暈', '眩暈', 'めまい', 'ぐるぐる', 'dizzy', 'spinning', 'lightheaded', 'woozy',
+                '頭暈', '眩暈', 'めまい', 'ぐるぐる', 'dizzy', 'spinning', 'lightheaded', 'woozy', 'くらくら', '目眩', '目が回りそう', '頭がぐらぐら', '混乱してきた',
             ],
             'file' => 'dizzy.png',
             'weight' => 8,
         ],
     ];
 }
+// phpcs:enable WordPress.Arrays.ArrayDeclarationSpacing.ArrayItemNoNewLine
 
 /**
  * 從文本中提取顯式指定的表情標籤

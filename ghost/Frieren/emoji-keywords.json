@@ -11,6 +11,7 @@
   },
   "mappings": {
     "notice": {
+      "description": "「！」が浮かぶ。何かに気づいた瞬間",
       "keywords": [
         "發現到","注意到","気づいた","notice","気づく","察覺到","知らない人間","感知到",
         "BOT","クローラー"
@@ -25,9 +26,10 @@
       }
     },
     "thinking": {
+      "description": "「…」を浮かべて考え込む。言葉を選んでいる",
       "keywords": [
         "思考中", "考え中", "考えている", "檢討中", "考慮", "構思", "thinking",
-        "沉思", "深思", "思索", "琢磨", "想", "思う", "悩む", "ponder", "contemplate"
+        "沉思", "深思", "思索", "琢磨", "思う", "悩む", "ponder", "contemplate"
       ],
       "file": "thinking.png",
       "weight": 9,
@@ -39,6 +41,7 @@
       }
     },
     "upset": {
+      "description": "頭上に灰色の雲。悔しさや落胆で気持ちが沈む",
       "keywords": [
         "懊惱", "後悔", "残念", "くよくよする", "悔しい", "苦澀", "挫敗", "挫折", "煩惱", "屈辱",
         "失望", "沮喪", "灰心", "失落", "がっかり", "しょんぼり", "regret", "disappointed", "frustrated"
@@ -53,6 +56,7 @@
       }
     },
     "laugh": {
+      "description": "口を大きく開けて笑う。素直に楽しい・嬉しい",
       "keywords": [
         "喜ぶ", "笑う", "嬉しい", "楽しい","愉快","愉悅",
         "笑顔", "面白い", "開心", "興高采烈", "有趣", "高興",
@@ -68,10 +72,12 @@
       }
     },
     "shy": {
+      "description": "目を伏せて頬を赤らめる。照れ・恥じらい",
       "keywords": [
-        "害羞", "不好意思", "臉紅", "恥ずかしい", "恥ずかしい顔", "shy",
+        "害羞", "臉紅", "恥ずかしい", "恥ずかしい顔", "shy",
         "心跳", "心動", "ドキドキ", "羞澀", "靦腆", "赤面", "照れる", "照れ",
-        "blush", "bashful", "flustered", "わくわく", "緊張"
+        "blush", "bashful", "flustered", "わくわく", "緊張",
+        "照れくさい", "もじもじ", "顔が赤"
       ],
       "file": "shy.png",
       "weight": 8,
@@ -83,8 +89,9 @@
       }
     },
     "angry": {
+      "description": "怒りマーク。はっきり怒っている・苛立っている",
       "keywords": [
-        "生氣", "憤怒", "氣", "怒", "惱火", "煩","不爽","不悅",
+        "生氣", "憤怒", "惱火", "不爽","不悅",
         "怒る", "怒り", "ムカつく", "イライラ", "うざい", "やめて",
         "angry", "mad", "annoyed", "get_angry"
       ],
@@ -98,6 +105,7 @@
       }
     },
     "talking": {
+      "description": "話に熱が入って盛り上がっている",
       "keywords": [
         "聊得起勁", "聊得興奮", "無話不談", "聊到忘我", "talk", "talking",
         "聊天", "對話", "交談", "暢談", "話す", "おしゃべり", "会話", "chat", "conversation"
@@ -112,9 +120,9 @@
       }
     },
     "amazed": {
+      "description": "「!!」と飛び上がって驚く",
       "keywords": [
-        "驚訝", "驚", "嚇", "意外", "沒想到",
-        "驚き", "驚いた", "びっくり", "まさか", "えっ", "え？", "おお",
+        "驚訝", "驚", "意外", "驚き", "驚いた", "びっくり", "まさか", "えっ！", "えっ？", "え？", "おお",
         "surprised", "startled", "wow", "whoa", "discovery"
       ],
       "file": "amazed.png",
@@ -127,10 +135,12 @@
       }
     },
     "sigh": {
+      "description": "眉をひそめてため息をつく。呆れ・やれやれ",
       "keywords": [
-        "嘆氣", "嘆息", "吐氣", "無奈", "沒想到", "sigh",
+        "嘆氣", "嘆息", "吐氣", "無奈", "sigh",
         "ため息をつく", "溜息", "深く嘆く", "はぁ", "ふぅ", "やれやれ",
-        "算了", "沒辦法", "仕方ない", "helpless", "exasperated"
+        "沒辦法", "仕方ない", "helpless", "exasperated",
+        "ため息", "ためいき", "しょうがない", "唉"
       ],
       "file": "sigh.png",
       "weight": 8,
@@ -142,9 +152,11 @@
       }
     },
     "stun": {
+      "description": "魂が抜けて呆然とする。衝撃で固まる",
       "keywords": [
         "stunned", "昏倒", "暈倒", "驚倒", "動彈不得", "嚇死了", "靈魂出竅",
-        "呆住", "傻住", "石化", "固まる", "呆然", "茫然", "frozen", "petrified", "shocked"
+        "呆住", "傻住", "石化", "固まる", "呆然", "茫然", "frozen", "petrified", "shocked",
+        "絶句", "唖然", "頭が真っ白", "魂が抜け", "放心状態", "失神", "信じられない"
       ],
       "file": "stun.png",
       "weight": 9,      "scale": 1.5,
@@ -155,6 +167,7 @@
       }
     },
     "brainwave": {
+      "description": "電球が光る。ひらめき",
       "keywords": [
         "靈機一動", "靈光乍現", "突然想到", "考え付いた", "ひらめき", "インスピレーション", "靈感",
         "brainwave", "Light-bulb moment", "come up in my mind",
@@ -170,10 +183,12 @@
       }
     },
     "scared": {
+      "description": "目を見開いて歯を鳴らす。怖がる・怯える",
       "keywords": [
         "害怕", "恐懼", "恐怖", "可怕", "嚇人","フェルンの怒り顔",
         "怖い", "こわい", "恐ろしい", "やばい", "ひぃ",
-        "scared", "frightened", "scary", "scared_to_death"
+        "scared", "frightened", "scary", "scared_to_death",
+        "フェルンの怒", "ぞっと", "ゾッと", "震え", "怯え", "鳥肌", "おっかない", "好可怕"
       ],
       "file": "scared.png",
       "weight": 8,
@@ -185,10 +200,11 @@
       }
     },
     "love": {
+      "description": "赤いハート。大好き・愛おしい",
       "keywords": [
-        "愛", "喜歡", "愛心", "心動", "愛情", "戀愛", "感情",
+        "喜歡", "愛心", "愛情", "戀愛", "感情",
         "好き", "大好き", "愛してる", "すき", "可愛い", "かわいい", "恋",
-        "love", "like", "heart", "adore", "cute", "affection", "fond", "cherish"
+        "love", "heart", "adore", "cute", "affection", "fond", "cherish"
       ],
       "file": "love.png",
       "weight": 9,
@@ -200,7 +216,8 @@
       }
     },
     "kiss": {
-      "keywords": ["kiss", "投げキス", "親", "吻", "キス", "チュー", "ちゅ"],
+      "description": "ウインクして投げキス",
+      "keywords": ["kiss", "投げキス", "吻", "キス", "チュー", "ちゅ"],
       "file": "kiss.png",
       "weight": 8,
       "scale": 1.5,
@@ -211,10 +228,10 @@
       }
     },
     "sleepy": {
+      "description": "半目でうとうとする。眠い",
       "keywords": [
-        "困", "睏", "想睡", "累", "疲",
-        "眠い", "ねむい", "眠たい", "うとうと", "zzz", "むにゃ", "すぅ",
-        "sleepy", "tired", "drowsy", "exhausted"
+        "睏", "想睡", "眠い", "ねむい", "眠たい", "うとうと", "zzz", "むにゃ", "すぅ",
+        "sleepy", "tired", "drowsy"
       ],
       "file": "sleepy.png",
       "weight": 9,
@@ -226,8 +243,9 @@
       }
     },
     "embarrass": {
+      "description": "冷や汗をひとしずく。困惑・気まずさ",
       "keywords": [
-        "尷尬", "窘", "為難", "冷たい", "無言以對","冷笑話","冷たい顔",
+        "尷尬", "窘", "為難", "冷たい", "冷笑話","冷たい顔",
         "困る", "こまる", "微妙", "うーん", "えーと", "あの",
         "awkward", "embarrassed", "hmm"
       ],
@@ -241,6 +259,7 @@
       }
     },
     "smirk": {
+      "description": "目を細めてニヤリと笑う。得意・企み",
       "keywords": [
         "驕傲", "自豪", "厲害","得意な顔","服だけ溶かす薬",
         "誇り", "すごい", "やった", "できた","自慢する",
@@ -256,14 +275,16 @@
       }
     },
     "smug_nod": {
+      "description": "頬を染めてにっこり頷く。得意げで褒めてほしい",
       "keywords": [
         "求誇獎", "點頭", "厲害吧", "好喔", "OK", "當然","of course",
         "どや", "どや顔", "ほめて", "褒めて", "ふふん", "えっへん",
         "了解した", "当然でしょ", "もちろん",
-        "smug", "smug_nod", "praise me", "right?", "of course"
+        "smug", "smug_nod", "praise me", "right?", "of course",
+        "当たり前", "任せて", "さすが私", "得意げ"
       ],
       "file": "smug_nod.png",
-      "weight": 6,
+      "weight": 8,
       "scale": 1.5,
       "position": {
         "offsetX": -128,
@@ -272,10 +293,11 @@
       }
     },
     "what": {
+      "description": "目を細めて顎に手を当てる。怪しむ・疑う",
       "keywords": [
         "懷疑", "可疑", "奇怪", "わからない", "不確定", "黑人問號",
         "怪しい", "あやしい", "疑わしい", "ん？", "おかしい",
-        "what", "suspicious", "doubt", "strange", "困惑", "疑問", "納悶", "huh", "confused"
+        "suspicious", "doubt", "strange", "困惑", "疑問", "納悶", "huh", "confused"
       ],
       "file": "what.png",
       "weight": 7,
@@ -287,8 +309,9 @@
       }
     },
     "whats_up": {
+      "description": "大きな「？」。きょとんとする・どうしたの",
       "keywords": [
-        "問號", "幹嘛", "怎麼了", "不確定","なになに","なんだ","どうしたの","what happen",
+        "問號", "幹嘛", "怎麼了", "なになに","なんだ","どうしたの","what happen",
         "有什麼事","有什麼問題嗎","what's up","what's going on"
       ],
       "file": "whats_up.png",
@@ -301,13 +324,15 @@
       }
     },
     "speechless": {
+      "description": "ジト目で縦線を背負う。言葉が出ないほど呆れる・気まずい",
       "keywords": [
-        "聳肩", "傻眼", "尷尬", "想說點什麼但還是算了",
+        "聳肩", "傻眼", "想說點什麼但還是算了",
         "無言以對", "ジレンマ", "気まずい", "shrug",
-        "無語", "不知說什麼", "言葉が出ない", "何も言えない", "dunno", "whatever", "meh"
+        "無語", "不知說什麼", "言葉が出ない", "何も言えない", "dunno", "whatever", "meh",
+        "呆れた", "あきれた", "言葉もない", "なんとも言えない", "ドン引き"
       ],
       "file": "speechless.png",
-      "weight": 6,
+      "weight": 8,
       "scale": 1.5,
       "position": {
         "offsetX": -35,
@@ -316,6 +341,7 @@
       }
     },
     "want": {
+      "description": "目をキラキラ輝かせる。欲しい・興味津々",
       "keywords": [
         "想要", "渴望", "眼睛一亮", "計画通り",
         "欲しい", "ほしい", "したい", "憧れる", "望む",
@@ -331,6 +357,7 @@
       }
     },
     "drooling": {
+      "description": "よだれを垂らす。美味しそう・食べたい",
       "keywords": [
         "流口水", "垂涎", "好吃", "美味","想吃想到流口水","食べたい",
         "美味しい", "おいしい", "うまい", "メルクーアプリン",
@@ -346,8 +373,9 @@
       }
     },
     "money": {
+      "description": "「$」マーク。お金・報酬",
       "keywords": [
-        "錢", "金錢", "金", "報酬","巨大な頭蓋骨",
+        "錢", "金錢", "報酬","巨大な頭蓋骨",
         "報酬", "お金", "ゴールド", "買い物", "無駄遣い",
         "money", "gold", "reward", "pay"
       ],
@@ -361,10 +389,12 @@
       }
     },
     "vomit": {
+      "description": "口から吐きそうになる。気持ち悪い・飲みすぎ",
       "keywords": [
         "喝掛", "爛醉", "吐了", "喝醉", "宿醉", "廢掉","吃壞肚子",
         "酔っ払い","生臭坊主", "お酒", "二日酔",
-        "drunk", "intoxicated", "wasted", "hangover"
+        "drunk", "intoxicated", "wasted", "hangover",
+        "吐きそう", "吐き気", "気持ち悪い", "飲みすぎ", "船酔い", "うっぷ", "想吐"
       ],
       "file": "vomit.png",
       "weight": 8,
@@ -376,6 +406,7 @@
       }
     },
     "thank": {
+      "description": "「Thanks」の文字。感謝",
       "keywords": [
         "ありがとう", "感謝", "謝謝", "世話になった",
         "thank", "thanks", "thank you", "ご苦労様",
@@ -391,6 +422,7 @@
       }
     },
     "sorry": {
+      "description": "「Sorry」の文字。謝罪",
       "keywords": [
         "ごめんなさい", "申し訳ありません", "抱歉", "不好意思","悪かった","謝罪",
         "sorry", "apologize", "對不起", "道歉","すまんなかった","すみません"
@@ -405,9 +437,10 @@
       }
     },
     "good": {
+      "description": "ウインクして親指を立てる。いいね・よくやった",
       "keywords": [
         "良い", "いい","素晴らしい","幹得好","幹得漂亮","good job",
-        "great","awesome","good", "nice", "well done", "你真棒","厲害"
+        "great","awesome","good", "nice", "well done", "你真棒"
       ],
       "file": "good.png",
       "weight": 8,
@@ -419,10 +452,11 @@
       }
     },
     "sad": {
+      "description": "涙を流す。悲しい・寂しい",
       "keywords": [
         "悲しい", "悲傷", "難過", "哭泣", "泣きそう", "眼淚", "涙そう",
         "sad", "sorrow", "melancholy", "傷心", "心痛", "寂しい", "さみしい",
-        "crying", "tearful", "upset", "unhappy", "blue", "gloomy"
+        "crying", "tearful", "unhappy", "gloomy"
       ],
       "file": "sad.png",
       "weight": 8,
@@ -434,9 +468,11 @@
       }
     },
     "exhausted": {
+      "description": "×目で汗を飛ばしてへばる。疲れ果てた",
       "keywords": [
         "精疲力盡", "疲憊", "疲れた", "残業", "忙しい", "もう無理", "へとへと", "くたくた", "バテる",
-        "ふらふら", "身心俱疲", "累壞了", "虛脫", "exhausted", "worn out", "drained", "burned out"
+        "ふらふら", "身心俱疲", "累壞了", "虛脫", "exhausted", "worn out", "drained", "burned out",
+        "疲れ果て", "疲れちゃった", "しんどい", "ぐったり", "もう動けない", "ヘトヘト", "クタクタ", "好累"
       ],
       "file": "exhausted.png",
       "weight": 8,
@@ -448,9 +484,11 @@
       }
     },
     "dizzy": {
+      "description": "目が渦巻きになる。目が回る・頭が混乱する",
       "keywords": [
         "頭昏腦脹", "頭昏眼花", "天旋地轉", "暈眩", "目が回る", "クラクラ",
-        "頭暈", "眩暈", "めまい", "ぐるぐる", "dizzy", "spinning", "lightheaded", "woozy"
+        "頭暈", "眩暈", "めまい", "ぐるぐる", "dizzy", "spinning", "lightheaded", "woozy",
+        "くらくら", "目眩", "目が回りそう", "頭がぐらぐら", "混乱してきた"
       ],
       "file": "dizzy.png",
       "weight": 8,

@@ -517,6 +517,7 @@ Each personality folder should contain:
     {
       "mappings": {
         "happy": {
+          "description": "口を大きく開けて笑う。楽しい・嬉しい",
           "keywords": ["開心", "happy"],
           "file": "happy.png",
           "weight": 10
@@ -524,6 +525,8 @@ Each personality folder should contain:
       }
     }
     ```
+  - `description` (optional): a short note on what the image looks like and when it fits. It is listed next to the tag in the expression-tag block of the AI system prompt. Write it in the prompt's language (Japanese) and as a description, not as a line for the character to say.
+  - Keywords are only the fallback for AI replies without a tag. Each keyword is matched as a substring and scores `weight` for its expression; avoid one-character or shared keywords, which take matches away from other expressions.
 
 - **script** (Optional): Character-specific JavaScript file
   - e.g., `frieren.js`, automatically loaded by the frontend
