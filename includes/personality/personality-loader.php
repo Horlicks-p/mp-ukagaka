@@ -373,12 +373,40 @@ function mpu_load_personality_full_prompt($personality_id = null)
 }
 
 /**
+ * Read the per-tag descriptions from a personality's emoji-keywords.json.
+ *
+ * @param string|null $personality_id Personality ID, or null for current.
+ * @return array Map of tag name to description.
+ */
+function mpu_get_emotion_tag_descriptions( $personality_id = null ) {
+	if ( ! function_exists( 'mpu_load_personality_emoji_keywords' ) ) {
+		return array();
+	}
+
+	$descriptions = array();
+	foreach ( (array) mpu_load_personality_emoji_keywords( $personality_id ) as $tag => $mapping ) {
+		if ( is_array( $mapping ) && isset( $mapping['description'] ) && is_string( $mapping['description'] ) ) {
+			$descriptions[ $tag ] = $mapping['description'];
+		}
+	}
+
+	return $descriptions;
+}
+
+/**
  * Build the expression-tag prompt block injected into personality prompts.
  *
- * @param array $supported Supported expression tag names.
+ * Tags with a description are listed one per line so the model knows what
+ * each image looks like. The example tags rotate once a day, so no tag is
+ * favoured by always appearing in the examples, while the prompt stays the
+ * same within a day for providers that reuse the prompt prefix.
+ *
+ * @param array    $supported    Supported expression tag names.
+ * @param array    $descriptions Optional map of tag name to a short description.
+ * @param int|null $rotation     Example rotation; defaults to the current day number.
  * @return string Prompt block, or an empty string when no tags are available.
  */
-function mpu_build_emotion_tag_instruction( $supported ) {
+function mpu_build_emotion_tag_instruction( $supported, $descriptions = array(), $rotation = null ) {
 	if ( empty( $supported ) || ! is_array( $supported ) ) {
 		return '';
 	}
@@ -388,21 +416,49 @@ function mpu_build_emotion_tag_instruction( $supported ) {
 		return '';
 	}
 
-	$tag_list = '[' . implode( '], [', $tags ) . ']';
-	$example_1 = $tags[0];
-	$example_2 = $tags[1] ?? $example_1;
-	$example_3 = $tags[2] ?? $example_1;
+	if ( ! is_array( $descriptions ) ) {
+		$descriptions = array();
+	}
+
+	$described   = array();
+	$undescribed = array();
+	foreach ( $tags as $tag ) {
+		$description = isset( $descriptions[ $tag ] ) && is_string( $descriptions[ $tag ] ) ? trim( $descriptions[ $tag ] ) : '';
+		if ( '' !== $description ) {
+			$described[] = "- [{$tag}]：{$description}";
+		} else {
+			$undescribed[] = "[{$tag}]";
+		}
+	}
+
+	$tag_list = '';
+	if ( ! empty( $described ) ) {
+		$tag_list .= "\n" . implode( "\n", $described );
+	}
+	if ( ! empty( $undescribed ) ) {
+		$tag_list .= ( empty( $described ) ? '' : "\n- " ) . implode( ', ', $undescribed );
+	}
+
+	$count    = count( $tags );
+	$rotation = null === $rotation ? intdiv( time(), 86400 ) : (int) $rotation;
+	$start    = ( ( $rotation % $count ) + $count ) % $count;
+	$step     = max( 1, intdiv( $count, 3 ) );
+
+	$example_1 = $tags[ $start ];
+	$example_2 = $tags[ ( $start + $step ) % $count ];
+	$example_3 = $tags[ ( $start + 2 * $step ) % $count ];
 
 	$instruction  = "\n\n## 表情タグ（Expression Tags）\n";
 	$instruction .= "返信の中に表情タグを一つだけ埋め込める。角括弧で囲むこと。例：[{$example_1}]。\n";
 	$instruction .= "タグはシステムが解析して表情の画像を切り替えるために使い、表示テキストからは取り除かれる（読み手に角括弧は見えない）。\n\n";
 	$instruction .= "現在使用できるタグ：{$tag_list}\n\n";
-	$instruction .= "### 例\n";
-	$instruction .= "- 「見つけた。[{$example_1}] ずっと探してたんだ。」\n";
-	$instruction .= "- 「[{$example_2}] ……待って、これ前にも見た気がする。」\n";
-	$instruction .= "- 「[{$example_3}] また同じ話か……。」\n\n";
+	$instruction .= "### 置き方の例\n";
+	$instruction .= "- 「（台詞）[{$example_1}]」\n";
+	$instruction .= "- 「[{$example_2}]（台詞）」\n";
+	$instruction .= "- 「（台詞の前半）[{$example_3}]（台詞の後半）」\n\n";
 	$instruction .= "### ルール\n";
 	$instruction .= "- 一回の返信につき表情タグは一つだけ。発言全体の感情を最もよく表す位置に置くこと。\n";
+	$instruction .= "- 説明があるタグは、その表情が返信の感情に合うかで選ぶこと。直前の返信と同じタグを惰性で繰り返さないこと。\n";
 	$instruction .= "- 表情画像はアニメーション（APNG）であり、連続して切り替えると再生周期が途切れる。複数の切り替えより、一つのはっきりした感情のほうが表現力がある。\n";
 	$instruction .= "- 上に挙げたタグだけを使うこと。それ以外のタグは無視される。\n";
 	$instruction .= "- タグは読み上げられず、表情の制御にのみ使われる。\n";
@@ -499,7 +555,7 @@ function mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name, $va
     if (function_exists('mpu_load_personality_emoji_config')) {
         $emoji_config = mpu_load_personality_emoji_config($personality_id);
         if (!empty($emoji_config['supported'])) {
-            $system_prompt .= mpu_build_emotion_tag_instruction($emoji_config['supported']);
+            $system_prompt .= mpu_build_emotion_tag_instruction( $emoji_config['supported'], mpu_get_emotion_tag_descriptions( $personality_id ) );
         }
     }
 
