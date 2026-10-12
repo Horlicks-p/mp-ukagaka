@@ -216,6 +216,22 @@ function mpu_get_builtin_dialog_emotion_tags() {
 }
 
 /**
+ * Close the gap a removed expression tag leaves in a built-in line.
+ *
+ * Runs only on lines that had a tag, before dynamic codes are expanded:
+ * "Hello [laugh] world" becomes "Hello world" and "Nice [laugh]!" becomes
+ * "Nice!". Japanese lines have no spaces around tags and are unchanged.
+ *
+ * @param string $text Line with its tags already removed.
+ * @return string
+ */
+function mpu_tidy_builtin_dialog_tag_gap( $text ) {
+	$text = preg_replace( '/[ \t]{2,}/u', ' ', $text );
+
+	return preg_replace( '/[ \t]+(?=[!?.,;:])/u', '', $text );
+}
+
+/**
  * Expand built-in dialogue while preserving personality-scoped emoji metadata.
  *
  * @param array       $source_messages Unexpanded dialogue strings.
@@ -254,7 +270,7 @@ function mpu_build_builtin_dialog_messages( $source_messages, $personality_id, $
 			preg_match( '/^\s*/u', $source_message, $leading_whitespace );
 			preg_match( '/\s*$/u', $source_message, $trailing_whitespace );
 			$clean = ( $leading_whitespace[0] ?? '' )
-				. trim( $clean )
+				. mpu_tidy_builtin_dialog_tag_gap( trim( $clean ) )
 				. ( $trailing_whitespace[0] ?? '' );
 		}
 		$emoji = null;
@@ -268,13 +284,19 @@ function mpu_build_builtin_dialog_messages( $source_messages, $personality_id, $
 		}
 
 		foreach ( mpu_msg_code( array( $clean ) ) as $expanded_message ) {
-			if ( ! is_string( $expanded_message ) || array_key_exists( $expanded_message, $seen ) ) {
+			if ( ! is_string( $expanded_message ) ) {
 				continue;
 			}
 
-			$seen[ $expanded_message ] = true;
-			$messages[]                = $expanded_message;
-			$emojis[]                  = $emoji;
+			// The same text with a different expression is a different line.
+			$seen_key = $expanded_message . "\0" . ( null === $emoji ? '' : $emoji );
+			if ( isset( $seen[ $seen_key ] ) ) {
+				continue;
+			}
+
+			$seen[ $seen_key ] = true;
+			$messages[]        = $expanded_message;
+			$emojis[]          = $emoji;
 		}
 	}
 

@@ -202,16 +202,26 @@ final class BuiltInDialogEmotionTest extends TestCase {
         $this->assertSame(['laugh.png'], $result['msg_emojis']);
     }
 
-    public function test_duplicate_visible_lines_are_first_wins_and_sequential(): void {
+    public function test_same_text_with_different_expressions_stays_separate(): void {
         $result = mpu_build_builtin_dialog_messages(
-            ['Same[laugh]', 'Same[sad]'],
+            ['Same[laugh]', 'Same[sad]', 'Same[laugh]', 'Same', 'Same'],
             'Frieren',
             ['laugh', 'sad']
         );
 
-        $this->assertSame(['Same'], $result['msg']);
-        $this->assertSame(['laugh.png'], $result['msg_emojis']);
-        $this->assertSame('["Same"]', json_encode($result['msg']));
+        $this->assertSame(['Same', 'Same', 'Same'], $result['msg']);
+        $this->assertSame(['laugh.png', 'sad.png', null], $result['msg_emojis']);
+        $this->assertSame('["Same","Same","Same"]', json_encode($result['msg']));
+    }
+
+    public function test_tag_gap_between_words_is_closed(): void {
+        $result = mpu_build_builtin_dialog_messages(
+            ['Hello [laugh] world', 'Nice [laugh]!', '[laugh] Hi there', 'こんにちは[laugh]世界', 'Two  spaces stay'],
+            'Frieren',
+            ['laugh']
+        );
+
+        $this->assertSame(['Hello world', 'Nice!', 'Hi there', 'こんにちは世界', 'Two  spaces stay'], $result['msg']);
     }
 
     public function test_get_msg_arr_error_keeps_emoji_array_aligned(): void {
