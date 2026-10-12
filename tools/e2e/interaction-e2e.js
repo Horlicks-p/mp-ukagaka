@@ -111,7 +111,8 @@ $o = get_option('mp_ukagaka');
 if (!is_array($o) || empty($o)) { $o = mpu_default_opt(); }
 ${aiSettings}
 ${GHOST_SETUP[ghost]}
-${dialogFixture ? `$o['external_file_format'] = '${dialogFixture}';` : ""}
+${dialogFixture ? `$o['external_file_format'] = '${dialogFixture}';
+$o['default_msg'] = 1;` : ""}
 update_option('mp_ukagaka', $o);
 update_option('timezone_string', '${zoneForLocalHour(AWAKE_HOUR)}');
 update_option('gmt_offset', '');
