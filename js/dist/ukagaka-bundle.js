@@ -1576,6 +1576,10 @@ function mpu_hidemsg(speed = 400) {
   }
 }
 
+// 每次成功切換角色就加一。等待 AI 回應的流程記下送出時的值再比對，
+// 切走又切回同一個角色也算換過，舊回應不會接著顯示。
+window.mpuCharacterGeneration = 0;
+
 function mpuGetCurrentUkagakaNum() {
   const element = document.getElementById("ukagaka_num");
   const elementValue = element ? String(element.textContent || "").trim() : "";
@@ -2723,6 +2727,7 @@ function mpuChange(num) {
 
       if (typeof res !== "object") throw new Error("Expected JSON, got HTML.");
       const payload = res || {};
+      window.mpuCharacterGeneration += 1;
       const $canvas = jQuery("#cur_ukagaka");
       const $wrap = jQuery("#ukagaka");
 
@@ -4090,7 +4095,8 @@ function mpu_chat_context() {
   formData.append("page_content", context.content);
   formData.append("publish_date", context.publishDate || "");
   // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
-  formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
+  formData.append("cur_num", mpuGetCurrentUkagakaNum());
+  const characterGeneration = window.mpuCharacterGeneration;
 
   // [Fix] 傳送 session_id + history，讓後端在頁面感知 AI 成功後也能更新 checksum，
   // 防止下一輪 chat/user 驗證 400（裝飾品/身體點擊場景）。
@@ -4101,6 +4107,36 @@ function mpu_chat_context() {
   if (typeof window.mpuChatHistory !== "undefined" && window.mpuChatHistory.length > 0) {
     formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   }
+
+  // 記憶功能：將頁面感知對話存入對話歷史
+  // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話。
+  // 伺服器已把這句記入 checksum，所以沒有顯示時也要寫入。
+  const recordContextHistory = function (msg) {
+    if (
+      typeof window.mpuChatHistory === "undefined" ||
+      !Array.isArray(window.mpuChatHistory)
+    ) {
+      return;
+    }
+    // synthetic user 錨點：讓 LLM 能在後續對話中看到頁面感知的完整脈絡
+    window.mpuChatHistory.push({
+      role: "user",
+      content: "（ページの内容を感知した）",
+      type: "synthetic",
+      timestamp: Date.now(),
+    });
+    window.mpuChatHistory.push({
+      role: "assistant",
+      content: msg,
+      type: "context",
+      timestamp: Date.now(),
+    });
+
+    if (typeof mpu_saveChatHistory === "function") {
+      mpu_saveChatHistory();
+      mpuLogger.logL("contextChatSavedToHistory", "mpu_chat_context: 会話を履歴に追加して保存しました");
+    }
+  };
 
   mpuFetch(mpuRestUrl + "chat/context", {
     method: "POST",
@@ -4133,6 +4169,19 @@ function mpu_chat_context() {
             return;
           }
 
+          // 等待期間訪客切換了角色：這句屬於原本的角色，只記入歷史、不顯示。
+          if (characterGeneration !== window.mpuCharacterGeneration) {
+            mpuLogger.logL("contextChatResponseSkippedCharacterSwitch", "応答待ちの間にキャラクターが切り替わったため、ページ感知応答は履歴にのみ記録します");
+            recordContextHistory(res.msg);
+            mpuClearSystemPlaceholder("#ukagaka_msg");
+            mpuReleaseMessageBlock("page-context");
+            mpuSetAiContextInProgress(false);
+            if (mpuAutoTalk) {
+              startAutoTalk();
+            }
+            return;
+          }
+
           showMainDialog();
           // 記錄感想顯示時間，啟動 60 秒再觸發冷卻（見 mpu_chat_context 開頭的 cooldown 守衛）。
           try {
@@ -4152,31 +4201,7 @@ function mpu_chat_context() {
             window.mpuCanvasManager.triggerCharacterAnimation(true);
           }
 
-          // 記憶功能：將頁面感知對話存入對話歷史
-          // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話
-          if (
-            typeof window.mpuChatHistory !== "undefined" &&
-            Array.isArray(window.mpuChatHistory)
-          ) {
-            // synthetic user 錨點：讓 LLM 能在後續對話中看到頁面感知的完整脈絡
-            window.mpuChatHistory.push({
-              role: "user",
-              content: "（ページの内容を感知した）",
-              type: "synthetic",
-              timestamp: Date.now(),
-            });
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: res.msg,
-              type: "context",
-              timestamp: Date.now(),
-            });
-
-            if (typeof mpu_saveChatHistory === "function") {
-              mpu_saveChatHistory();
-              mpuLogger.logL("contextChatSavedToHistory", "mpu_chat_context: 会話を履歴に追加して保存しました");
-            }
-          }
+          recordContextHistory(res.msg);
 
           // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
           // 這樣用戶可以自由設定 AI 回應的顯示時間
@@ -4345,6 +4370,41 @@ function mpu_greet_first_visitor(settings) {
       }
     };
 
+    // 送出時的角色切換世代。回應到達前訪客切換過角色，這句就只記入歷史。
+    let characterGeneration = 0;
+
+    // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼。
+    // 伺服器已把這句記入 checksum，所以沒有顯示時也要寫入。
+    const recordGreetingHistory = function (msg) {
+      if (
+        typeof window.mpuChatHistory === "undefined" ||
+        !Array.isArray(window.mpuChatHistory)
+      ) {
+        mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
+        return;
+      }
+      // synthetic user 錨點：讓 LLM 能在後續對話中看到初次問候的完整脈絡
+      window.mpuChatHistory.push({
+        role: "user",
+        content: "（新しい訪客が来た）",
+        type: "synthetic",
+        timestamp: Date.now(),
+      });
+      window.mpuChatHistory.push({
+        role: "assistant",
+        content: msg,
+        type: "greet",
+        timestamp: Date.now(),
+      });
+
+      if (typeof mpu_saveChatHistory === "function") {
+        mpu_saveChatHistory();
+        mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
+      } else {
+        mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
+      }
+    };
+
     const showMainDialog = function () {
       if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
     };
@@ -4406,7 +4466,8 @@ function mpu_greet_first_visitor(settings) {
           visitorInfo.slimstat_city || visitorInfo.city || "",
         );
         // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
-        formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
+        formData.append("cur_num", mpuGetCurrentUkagakaNum());
+        characterGeneration = window.mpuCharacterGeneration;
 
         // [Fix] 傳送 session_id + history，讓後端記錄問候的 checksum
         const greetSessionId = typeof mpu_getOrCreateChatSessionId === "function"
@@ -4446,6 +4507,17 @@ function mpu_greet_first_visitor(settings) {
               return;
             }
 
+            // 等待期間訪客切換了角色：問候屬於原本的角色，只記入歷史、不顯示。
+            // 回傳 false 讓呼叫端不寫入首訪 cookie，下次載入頁面時再打招呼。
+            if (characterGeneration !== window.mpuCharacterGeneration) {
+              mpuLogger.logL("greetingSkippedCharacterSwitch", "応答待ちの間にキャラクターが切り替わったため、初回挨拶は履歴にのみ記録します");
+              recordGreetingHistory(res.msg);
+              mpuClearSystemPlaceholder("#ukagaka_msg");
+              resumeAutoTalk();
+              resolve(false);
+              return;
+            }
+
             showMainDialog();
             mpu_typewriter(
               `<span style="color: ${mpuAiTextColor};">${greetingMessage}</span>`,
@@ -4465,34 +4537,7 @@ function mpu_greet_first_visitor(settings) {
               mpuDisplayDialogueEmoji(res.emoji);
             }
 
-            // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
-            if (
-              typeof window.mpuChatHistory !== "undefined" &&
-              Array.isArray(window.mpuChatHistory)
-            ) {
-              // synthetic user 錨點：讓 LLM 能在後續對話中看到初次問候的完整脈絡
-              window.mpuChatHistory.push({
-                role: "user",
-                content: "（新しい訪客が来た）",
-                type: "synthetic",
-                timestamp: Date.now(),
-              });
-              window.mpuChatHistory.push({
-                role: "assistant",
-                content: res.msg,
-                type: "greet",
-                timestamp: Date.now(),
-              });
-
-              if (typeof mpu_saveChatHistory === "function") {
-                mpu_saveChatHistory();
-                mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
-              } else {
-                mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
-              }
-            } else {
-              mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
-            }
+            recordGreetingHistory(res.msg);
 
             // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
             if (mpuAiDisplayTimer !== null) {
@@ -5515,9 +5560,18 @@ function mpu_sendUserMessage() {
 
   // 回應到達前聊天被關閉或重新開啟時，這是過期回應：伺服器已把它記入 checksum，
   // 所以照常寫入歷史（接在它回答的那一輪之後），但不寫進目前的畫面。
+  // 切換角色也一樣：回應屬於送出時的角色，不能顯示在新角色身上。
   const chatGeneration = window.mpuChatGeneration;
+  const characterGeneration = window.mpuCharacterGeneration;
   const isStaleReply = function () {
-    return chatGeneration !== window.mpuChatGeneration;
+    return chatGeneration !== window.mpuChatGeneration
+      || characterGeneration !== window.mpuCharacterGeneration;
+  };
+  // 切換角色時畫面上沒有新台詞會蓋掉思考中的 placeholder，要自己清。
+  const clearStalePlaceholder = function () {
+    if (characterGeneration !== window.mpuCharacterGeneration) {
+      mpuClearSystemPlaceholder("#ukagaka_msg");
+    }
   };
 
   // 獲取頁面上下文（複用現有函數）
@@ -5528,7 +5582,7 @@ function mpu_sendUserMessage() {
   formData.append("message", message);
   formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
-  formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
+  formData.append("cur_num", mpuGetCurrentUkagakaNum());
   if (chatSessionId) {
     formData.append("session_id", chatSessionId);
   }
@@ -5926,6 +5980,7 @@ function mpu_sendUserMessage() {
             });
             mpuLogger.logL("chatStaleReplyRecorded", "会話モードを閉じた（または開き直した）後に届いた応答を、表示せずに会話履歴へ記録しました");
           }
+          clearStalePlaceholder();
           return;
         }
 
@@ -5962,6 +6017,7 @@ function mpu_sendUserMessage() {
 
         if (isStaleReply()) {
           mpuLogger.logL("chatModeClosedDiscardError", "会話モードが閉じているため、エラーメッセージを破棄します");
+          clearStalePlaceholder();
           return;
         }
 

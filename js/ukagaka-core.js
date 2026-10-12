@@ -55,6 +55,10 @@ function mpu_hidemsg(speed = 400) {
   }
 }
 
+// 每次成功切換角色就加一。等待 AI 回應的流程記下送出時的值再比對，
+// 切走又切回同一個角色也算換過，舊回應不會接著顯示。
+window.mpuCharacterGeneration = 0;
+
 function mpuGetCurrentUkagakaNum() {
   const element = document.getElementById("ukagaka_num");
   const elementValue = element ? String(element.textContent || "").trim() : "";
@@ -1202,6 +1206,7 @@ function mpuChange(num) {
 
       if (typeof res !== "object") throw new Error("Expected JSON, got HTML.");
       const payload = res || {};
+      window.mpuCharacterGeneration += 1;
       const $canvas = jQuery("#cur_ukagaka");
       const $wrap = jQuery("#ukagaka");
 

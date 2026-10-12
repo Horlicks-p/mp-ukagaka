@@ -113,9 +113,18 @@ function mpu_sendUserMessage() {
 
   // 回應到達前聊天被關閉或重新開啟時，這是過期回應：伺服器已把它記入 checksum，
   // 所以照常寫入歷史（接在它回答的那一輪之後），但不寫進目前的畫面。
+  // 切換角色也一樣：回應屬於送出時的角色，不能顯示在新角色身上。
   const chatGeneration = window.mpuChatGeneration;
+  const characterGeneration = window.mpuCharacterGeneration;
   const isStaleReply = function () {
-    return chatGeneration !== window.mpuChatGeneration;
+    return chatGeneration !== window.mpuChatGeneration
+      || characterGeneration !== window.mpuCharacterGeneration;
+  };
+  // 切換角色時畫面上沒有新台詞會蓋掉思考中的 placeholder，要自己清。
+  const clearStalePlaceholder = function () {
+    if (characterGeneration !== window.mpuCharacterGeneration) {
+      mpuClearSystemPlaceholder("#ukagaka_msg");
+    }
   };
 
   // 獲取頁面上下文（複用現有函數）
@@ -126,7 +135,7 @@ function mpu_sendUserMessage() {
   formData.append("message", message);
   formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
-  formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
+  formData.append("cur_num", mpuGetCurrentUkagakaNum());
   if (chatSessionId) {
     formData.append("session_id", chatSessionId);
   }
@@ -524,6 +533,7 @@ function mpu_sendUserMessage() {
             });
             mpuLogger.logL("chatStaleReplyRecorded", "会話モードを閉じた（または開き直した）後に届いた応答を、表示せずに会話履歴へ記録しました");
           }
+          clearStalePlaceholder();
           return;
         }
 
@@ -560,6 +570,7 @@ function mpu_sendUserMessage() {
 
         if (isStaleReply()) {
           mpuLogger.logL("chatModeClosedDiscardError", "会話モードが閉じているため、エラーメッセージを破棄します");
+          clearStalePlaceholder();
           return;
         }
 

@@ -401,7 +401,8 @@ function mpu_chat_context() {
   formData.append("page_content", context.content);
   formData.append("publish_date", context.publishDate || "");
   // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
-  formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
+  formData.append("cur_num", mpuGetCurrentUkagakaNum());
+  const characterGeneration = window.mpuCharacterGeneration;
 
   // [Fix] 傳送 session_id + history，讓後端在頁面感知 AI 成功後也能更新 checksum，
   // 防止下一輪 chat/user 驗證 400（裝飾品/身體點擊場景）。
@@ -412,6 +413,36 @@ function mpu_chat_context() {
   if (typeof window.mpuChatHistory !== "undefined" && window.mpuChatHistory.length > 0) {
     formData.append("history", JSON.stringify(mpu_getChatHistoryForRequest()));
   }
+
+  // 記憶功能：將頁面感知對話存入對話歷史
+  // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話。
+  // 伺服器已把這句記入 checksum，所以沒有顯示時也要寫入。
+  const recordContextHistory = function (msg) {
+    if (
+      typeof window.mpuChatHistory === "undefined" ||
+      !Array.isArray(window.mpuChatHistory)
+    ) {
+      return;
+    }
+    // synthetic user 錨點：讓 LLM 能在後續對話中看到頁面感知的完整脈絡
+    window.mpuChatHistory.push({
+      role: "user",
+      content: "（ページの内容を感知した）",
+      type: "synthetic",
+      timestamp: Date.now(),
+    });
+    window.mpuChatHistory.push({
+      role: "assistant",
+      content: msg,
+      type: "context",
+      timestamp: Date.now(),
+    });
+
+    if (typeof mpu_saveChatHistory === "function") {
+      mpu_saveChatHistory();
+      mpuLogger.logL("contextChatSavedToHistory", "mpu_chat_context: 会話を履歴に追加して保存しました");
+    }
+  };
 
   mpuFetch(mpuRestUrl + "chat/context", {
     method: "POST",
@@ -444,6 +475,19 @@ function mpu_chat_context() {
             return;
           }
 
+          // 等待期間訪客切換了角色：這句屬於原本的角色，只記入歷史、不顯示。
+          if (characterGeneration !== window.mpuCharacterGeneration) {
+            mpuLogger.logL("contextChatResponseSkippedCharacterSwitch", "応答待ちの間にキャラクターが切り替わったため、ページ感知応答は履歴にのみ記録します");
+            recordContextHistory(res.msg);
+            mpuClearSystemPlaceholder("#ukagaka_msg");
+            mpuReleaseMessageBlock("page-context");
+            mpuSetAiContextInProgress(false);
+            if (mpuAutoTalk) {
+              startAutoTalk();
+            }
+            return;
+          }
+
           showMainDialog();
           // 記錄感想顯示時間，啟動 60 秒再觸發冷卻（見 mpu_chat_context 開頭的 cooldown 守衛）。
           try {
@@ -463,31 +507,7 @@ function mpu_chat_context() {
             window.mpuCanvasManager.triggerCharacterAnimation(true);
           }
 
-          // 記憶功能：將頁面感知對話存入對話歷史
-          // 這樣當用戶切換到對話模式時，AI 會記得剛剛說過的話
-          if (
-            typeof window.mpuChatHistory !== "undefined" &&
-            Array.isArray(window.mpuChatHistory)
-          ) {
-            // synthetic user 錨點：讓 LLM 能在後續對話中看到頁面感知的完整脈絡
-            window.mpuChatHistory.push({
-              role: "user",
-              content: "（ページの内容を感知した）",
-              type: "synthetic",
-              timestamp: Date.now(),
-            });
-            window.mpuChatHistory.push({
-              role: "assistant",
-              content: res.msg,
-              type: "context",
-              timestamp: Date.now(),
-            });
-
-            if (typeof mpu_saveChatHistory === "function") {
-              mpu_saveChatHistory();
-              mpuLogger.logL("contextChatSavedToHistory", "mpu_chat_context: 会話を履歴に追加して保存しました");
-            }
-          }
+          recordContextHistory(res.msg);
 
           // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
           // 這樣用戶可以自由設定 AI 回應的顯示時間

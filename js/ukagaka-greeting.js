@@ -27,6 +27,41 @@ function mpu_greet_first_visitor(settings) {
       }
     };
 
+    // 送出時的角色切換世代。回應到達前訪客切換過角色，這句就只記入歷史。
+    let characterGeneration = 0;
+
+    // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼。
+    // 伺服器已把這句記入 checksum，所以沒有顯示時也要寫入。
+    const recordGreetingHistory = function (msg) {
+      if (
+        typeof window.mpuChatHistory === "undefined" ||
+        !Array.isArray(window.mpuChatHistory)
+      ) {
+        mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
+        return;
+      }
+      // synthetic user 錨點：讓 LLM 能在後續對話中看到初次問候的完整脈絡
+      window.mpuChatHistory.push({
+        role: "user",
+        content: "（新しい訪客が来た）",
+        type: "synthetic",
+        timestamp: Date.now(),
+      });
+      window.mpuChatHistory.push({
+        role: "assistant",
+        content: msg,
+        type: "greet",
+        timestamp: Date.now(),
+      });
+
+      if (typeof mpu_saveChatHistory === "function") {
+        mpu_saveChatHistory();
+        mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
+      } else {
+        mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
+      }
+    };
+
     const showMainDialog = function () {
       if (jQuery("#ukagaka_msgbox").is(":hidden")) mpu_showmsg(200);
     };
@@ -88,7 +123,8 @@ function mpu_greet_first_visitor(settings) {
           visitorInfo.slimstat_city || visitorInfo.city || "",
         );
         // 告訴後端畫面上是哪個角色，切換角色後才會用該角色的人格回應
-        formData.append("cur_num", typeof mpuGetCurrentUkagakaNum === "function" ? mpuGetCurrentUkagakaNum() : "");
+        formData.append("cur_num", mpuGetCurrentUkagakaNum());
+        characterGeneration = window.mpuCharacterGeneration;
 
         // [Fix] 傳送 session_id + history，讓後端記錄問候的 checksum
         const greetSessionId = typeof mpu_getOrCreateChatSessionId === "function"
@@ -128,6 +164,17 @@ function mpu_greet_first_visitor(settings) {
               return;
             }
 
+            // 等待期間訪客切換了角色：問候屬於原本的角色，只記入歷史、不顯示。
+            // 回傳 false 讓呼叫端不寫入首訪 cookie，下次載入頁面時再打招呼。
+            if (characterGeneration !== window.mpuCharacterGeneration) {
+              mpuLogger.logL("greetingSkippedCharacterSwitch", "応答待ちの間にキャラクターが切り替わったため、初回挨拶は履歴にのみ記録します");
+              recordGreetingHistory(res.msg);
+              mpuClearSystemPlaceholder("#ukagaka_msg");
+              resumeAutoTalk();
+              resolve(false);
+              return;
+            }
+
             showMainDialog();
             mpu_typewriter(
               `<span style="color: ${mpuAiTextColor};">${greetingMessage}</span>`,
@@ -147,34 +194,7 @@ function mpu_greet_first_visitor(settings) {
               mpuDisplayDialogueEmoji(res.emoji);
             }
 
-            // 將自發對話加入對話歷史，讓用戶開對話模式時 AI 記得剛才說過什麼
-            if (
-              typeof window.mpuChatHistory !== "undefined" &&
-              Array.isArray(window.mpuChatHistory)
-            ) {
-              // synthetic user 錨點：讓 LLM 能在後續對話中看到初次問候的完整脈絡
-              window.mpuChatHistory.push({
-                role: "user",
-                content: "（新しい訪客が来た）",
-                type: "synthetic",
-                timestamp: Date.now(),
-              });
-              window.mpuChatHistory.push({
-                role: "assistant",
-                content: res.msg,
-                type: "greet",
-                timestamp: Date.now(),
-              });
-
-              if (typeof mpu_saveChatHistory === "function") {
-                mpu_saveChatHistory();
-                mpuLogger.logL("greetingSavedToHistory", "mpu_greet_first_visitor: 挨拶を履歴に追加して保存しました");
-              } else {
-                mpuLogger.warnL("greetingSaveHistoryFunctionMissing", "mpu_greet_first_visitor: mpu_saveChatHistory 関数が存在しないため、会話履歴を保存できません");
-              }
-            } else {
-              mpuLogger.warnL("greetingChatHistoryUnavailable", "mpu_greet_first_visitor: window.mpuChatHistory が初期化されていないか配列ではないため、会話履歴に追加できません");
-            }
+            recordGreetingHistory(res.msg);
 
             // 🔧 計時邏輯：打字完成 → displayDuration → autoTalkInterval
             if (mpuAiDisplayTimer !== null) {

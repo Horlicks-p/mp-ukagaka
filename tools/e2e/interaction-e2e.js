@@ -1421,6 +1421,103 @@ scenario("chat-follows-switched-character", "browser + wp", async (h) => {
   return { systemPromptChars: system.length, emojiPersonality: emoji.personalityId };
 }, { ghost: "FrierenAndAsuna" });
 
+// A reply that was asked of one character must not appear on the character the
+// visitor switched to while it was pending. Like a reply to a closed chat, it is
+// still written to history, because the server already counted it.
+for (const transport of ["sse", "json"]) {
+  scenario(`chat-switch-keeps-late-reply-off-screen-${transport}`, `browser + wp (${transport})`, async (h) => {
+    h.fake.reset();
+    const page = await h.awakePage();
+    await h.quietAutoTalk(page);
+    await useTransport(page, transport);
+    await h.enterChat(page);
+    h.fake.setDelay(5000);
+    h.fake.queueReply("SWITCHED_AWAY_REPLY");
+    await h.send(page, "hello before switching");
+    await page.waitForFunction(() => window.mpuChatRequesting === true, null, { timeout: 10000 });
+    const tSwitch = Date.now();
+    await page.evaluate(() => window.mpuChange("asuna_e2e"));
+    await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+    await page.waitForFunction(() => window.mpuChatRequesting === false, null, { timeout: 60000 });
+    await sleep(500);
+
+    const s = await h.state(page);
+    const p = await h.probe(page);
+    assert(h.fake.chatRequests().some((r) => r.reply === "SWITCHED_AWAY_REPLY"), "the provider never answered; nothing was tested");
+    assert(!shownAfter(p, tSwitch, "SWITCHED_AWAY_REPLY"), "the old character's reply was shown on the new character");
+    assert(!s.msg.includes("SWITCHED_AWAY_REPLY"), "the old character's reply is in the message box");
+    assert(!s.inputDisabled, "chat input stayed disabled");
+    // The old thinking placeholder must not stay. Here the new character's first line also clears it,
+    // so this passes without the explicit clear; that clear covers a switch that shows no line.
+    const leftovers = await page.evaluate(() => ({
+      placeholder: document.querySelectorAll('#ukagaka_msg[data-mpu-placeholder="system"]').length,
+      think: !!document.querySelector("#ukagaka_think.is-visible"),
+    }));
+    assert(leftovers.placeholder === 0 && !leftovers.think, "the old character's thinking placeholder stayed on the new character");
+    assertLateReplyRecorded(s, "hello before switching", "SWITCHED_AWAY_REPLY");
+    return { history: s.history.map((m) => `${m.role}:${m.type}`).join(" ") };
+  }, { ghost: "FrierenAndAsuna" });
+}
+
+// Switching away and back mid-stream still drops the rest of the reply: the
+// half streamed while another character was up is gone, so showing the
+// remainder would leave a broken line.
+scenario("chat-switch-round-trip-drops-rest-of-stream", "browser + wp (sse)", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await useTransport(page, "sse");
+  await h.enterChat(page);
+  h.fake.setChunkGap(8000);
+  h.fake.queueReply("RT_FRONT_PART_RT_BACK__PART_");
+  const original = await page.evaluate(() => window.mpuGetCurrentUkagakaNum());
+  await h.send(page, "hello before the round trip");
+  await page.waitForFunction(() => document.getElementById("ukagaka_msg").textContent.includes("RT_FRONT_PART"), null, { timeout: 30000 });
+  const tSwitch = Date.now();
+  await page.evaluate(() => window.mpuChange("asuna_e2e"));
+  await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+  await page.evaluate((num) => window.mpuChange(num), original);
+  await page.waitForFunction((num) => window.mpuGetCurrentUkagakaNum() === num, original, { timeout: 30000 });
+  await page.waitForFunction(() => window.mpuChatRequesting === false, null, { timeout: 60000 });
+  await sleep(500);
+
+  const s = await h.state(page);
+  const p = await h.probe(page);
+  assert(!shownAfter(p, tSwitch, "RT_BACK__PART"), "the rest of the reply was shown after switching back");
+  assert(!s.inputDisabled, "chat input stayed disabled");
+  assertLateReplyRecorded(s, "hello before the round trip", "RT_FRONT_PART_RT_BACK__PART_");
+  return { history: s.history.map((m) => `${m.role}:${m.type}`).join(" ") };
+}, { ghost: "FrierenAndAsuna" });
+
+// The same for a page-aware line: kept in history, not shown, and its locks released.
+scenario("page-aware-switch-keeps-late-line-off-screen", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await openLongPost(h, page);
+  await h.quietAutoTalk(page);
+  h.fake.setDelay(5000);
+  h.fake.setReplyFor((n, body) => (JSON.stringify(body || {}).includes("E2E 長文テスト") ? "SWITCHED_CONTEXT_LINE" : `AUTO_${n}`));
+  await page.evaluate(() => {
+    try { sessionStorage.removeItem("mpu_context_last_shown"); } catch (e) { /* no storage */ }
+    mpu_chat_context();
+  });
+  await page.waitForFunction(() => window.mpuGetState().llm.aiContextInProgress === true, null, { timeout: 10000 });
+  const tSwitch = Date.now();
+  await page.evaluate(() => window.mpuChange("asuna_e2e"));
+  await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+  await page.waitForFunction(() => window.mpuGetState().llm.aiContextInProgress === false, null, { timeout: 60000 });
+  await sleep(500);
+
+  const s = await h.state(page);
+  const p = await h.probe(page);
+  assert(h.fake.chatRequests().some((r) => r.reply === "SWITCHED_CONTEXT_LINE"), "the provider never answered; nothing was tested");
+  assert(!shownAfter(p, tSwitch, "SWITCHED_CONTEXT_LINE"), "the old character's page-aware line was shown on the new character");
+  assert(s.history.some((m) => m.type === "context" && String(m.content).includes("SWITCHED_CONTEXT_LINE")),
+    "the page-aware line was not written to history");
+  assert(!s.messageBlockOwners.includes("page-context"), "the page-context block was not released");
+  return { history: s.history.map((m) => `${m.role}:${m.type}`).join(" ") };
+}, { ghost: "FrierenAndAsuna" });
+
 // Records the message box every frame from before the bundle runs: whether it
 // shows, how opaque it is, the dialogue text and whether the think bubble is up.
 const BOX_PROBE = () => {

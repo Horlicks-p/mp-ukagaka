@@ -220,7 +220,8 @@ function mpu_get_builtin_dialog_emotion_tags() {
  *
  * Runs only on lines that had a tag, before dynamic codes are expanded:
  * "Hello [laugh] world" becomes "Hello world" and "Nice [laugh]!" becomes
- * "Nice!". Japanese lines have no spaces around tags and are unchanged.
+ * "Nice!", also before full-width punctuation such as ！ or 。. Japanese lines
+ * usually have no spaces around tags and are unchanged.
  *
  * @param string $text Line with its tags already removed.
  * @return string
@@ -228,7 +229,7 @@ function mpu_get_builtin_dialog_emotion_tags() {
 function mpu_tidy_builtin_dialog_tag_gap( $text ) {
 	$text = preg_replace( '/[ \t]{2,}/u', ' ', $text );
 
-	return preg_replace( '/[ \t]+(?=[!?.,;:])/u', '', $text );
+	return preg_replace( '/[ \t\x{3000}]+(?=[!?.,;:！？，。、；：…])/u', '', $text );
 }
 
 /**
