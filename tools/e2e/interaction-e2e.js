@@ -13,7 +13,7 @@
  * cURL -> fake NDJSON). Frontend-only SSE edge cases that the fake cannot
  * produce (error events, JSON fallback, watchdog) replay the endpoint instead.
  *
- * Usage: npm --prefix tools/node run test:interaction [-- --only=<name>] [-- --headed]
+ * Usage: npm --prefix tools/node run test:interaction [-- --only=<name>[,<name>...]] [-- --headed]
  */
 const { chromium } = require("../node/node_modules/playwright");
 const fs = require("node:fs");
@@ -1518,6 +1518,98 @@ scenario("page-aware-switch-keeps-late-line-off-screen", "browser + wp", async (
   return { history: s.history.map((m) => `${m.role}:${m.type}`).join(" ") };
 }, { ghost: "FrierenAndAsuna" });
 
+// The test site has no Asuna dialogue file; serve one so a switch behaves as it
+// does on a real site (her first line is shown) instead of showing a load error.
+async function routeAsunaDialog(page) {
+  await page.route(/\/dialog\?.*file=Asuna/, (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ msgall: 1, auto_msg: "", msg: ["ASUNA_FIRST_LINE", "ASUNA_SECOND_LINE"], msg_emojis: [null, null], next_msg: 0, default_msg: 1 }),
+  }));
+}
+
+// A dialogue load that was still pending when the visitor switched characters
+// must not overwrite the new character's dialogue or speak its first line.
+scenario("dialog-switch-drops-late-dialog-load", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await routeAsunaDialog(page);
+  await page.route(/\/dialog\?.*file=Frieren/, async (route) => {
+    await sleep(4000);
+    try {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ msgall: 0, auto_msg: "", msg: ["LATE_FRIEREN_LINE"], msg_emojis: [null], next_msg: 0, default_msg: 1 }),
+      });
+    } catch (e) { /* the newer load cancelled it */ }
+  });
+  await page.evaluate(() => loadExternalDialog(document.getElementById("ukagaka_msglist").getAttribute("data-file")));
+  await sleep(300);
+  const tSwitch = Date.now();
+  await page.evaluate(() => window.mpuChange("asuna_e2e"));
+  await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+  await sleep(6000);
+  await h.typewriterIdle(page);
+
+  const store = await page.evaluate(() => (mpuGetDialogStore() || {}).msg || []);
+  const p = await h.probe(page);
+  assert(store.includes("ASUNA_FIRST_LINE"), `Asuna's dialogue is not loaded: ${JSON.stringify(store)}`);
+  assert(!store.includes("LATE_FRIEREN_LINE"), "the late Frieren load overwrote Asuna's dialogue");
+  assert(!shownAfter(p, tSwitch, "LATE_FRIEREN_LINE"), "the late Frieren line was shown on Asuna");
+  return { store };
+}, { ghost: "FrierenAndAsuna" });
+
+// An autonomous LLM line asked of one character is written to history but not
+// shown on the character the visitor switched to while it was pending.
+scenario("autotalk-switch-keeps-late-line-off-screen", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await routeAsunaDialog(page);
+  h.fake.setDelay(5000);
+  h.fake.setReplyFor(() => "SWITCHED_AUTO_LINE");
+  await page.evaluate(() => window.mpu_nextmsg());
+  await page.waitForFunction(() => window.mpuGetState().llm.ollamaRequesting === true, null, { timeout: 10000 });
+  const tSwitch = Date.now();
+  await page.evaluate(() => window.mpuChange("asuna_e2e"));
+  await page.waitForFunction(() => window.mpuGetCurrentUkagakaNum() === "asuna_e2e", null, { timeout: 30000 });
+  await page.waitForFunction(() => window.mpuGetState().llm.ollamaRequesting === false, null, { timeout: 60000 });
+  await sleep(1500);
+  await h.typewriterIdle(page);
+
+  const s = await h.state(page);
+  const p = await h.probe(page);
+  assert(h.fake.chatRequests().some((r) => r.reply === "SWITCHED_AUTO_LINE"), "the provider never answered; nothing was tested");
+  assert(!shownAfter(p, tSwitch, "SWITCHED_AUTO_LINE"), "the old character's autonomous line was shown on the new character");
+  const stored = s.history.filter((m) => m.role === "assistant" && String(m.content).includes("SWITCHED_AUTO_LINE"));
+  assert(stored.length === 1 && stored[0].type === "auto_talk",
+    `late autonomous line stored as ${JSON.stringify(stored.map((m) => m.type))}, expected one auto_talk`);
+  return { history: s.history.map((m) => `${m.role}:${m.type}`).join(" ") };
+}, { ghost: "FrierenAndAsuna" });
+
+// Clicking two characters in a row keeps the last one, even when the first
+// switch is the slower one to come back.
+scenario("rapid-switch-keeps-last-choice", "browser + wp", async (h) => {
+  h.fake.reset();
+  const page = await h.awakePage();
+  await h.quietAutoTalk(page);
+  await routeAsunaDialog(page);
+  const original = await page.evaluate(() => window.mpuGetCurrentUkagakaNum());
+  await page.route((url) => /v1\/change|v1%2Fchange/.test(url.toString()), async (route) => {
+    if (String(route.request().postData() || "").includes("asuna_e2e")) await sleep(3000);
+    try { await route.continue(); } catch (e) { /* the newer switch cancelled it */ }
+  });
+  await page.evaluate(() => window.mpuChange("asuna_e2e"));
+  await sleep(300);
+  await page.evaluate((num) => window.mpuChange(num), original);
+  await sleep(5000);
+  await h.typewriterIdle(page);
+
+  const shown = await page.evaluate(() => window.mpuGetCurrentUkagakaNum());
+  assert(shown === original, `screen shows ${shown}, expected the last choice ${original}`);
+  return { shown };
+}, { ghost: "FrierenAndAsuna" });
+
 // Records the message box every frame from before the bundle runs: whether it
 // shows, how opaque it is, the dialogue text and whether the think bubble is up.
 const BOX_PROBE = () => {
@@ -1772,7 +1864,9 @@ async function runScenario(harness, s) {
 }
 
 async function main() {
-  const selected = scenarios.filter((s) => !only || s.name === only || s.name.startsWith(only));
+  // --only takes one name prefix or several, comma-separated
+  const prefixes = only ? only.split(",") : [];
+  const selected = scenarios.filter((s) => !only || prefixes.some((p) => s.name.startsWith(p)));
   assert(selected.length > 0, `no scenario matches --only=${only}`);
 
   const results = [];

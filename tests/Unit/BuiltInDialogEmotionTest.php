@@ -45,6 +45,11 @@ final class BuiltInDialogEmotionTest extends TestCase {
                 return rtrim(dirname((string) $file), '/\\') . DIRECTORY_SEPARATOR;
             }
         }
+        if (!function_exists('trailingslashit')) {
+            function trailingslashit($value) {
+                return rtrim((string) $value, '/\\') . '/';
+            }
+        }
         if (!function_exists('is_wp_error')) {
             function is_wp_error($value) {
                 return $value instanceof WP_Error;
@@ -231,6 +236,39 @@ final class BuiltInDialogEmotionTest extends TestCase {
 
         $this->assertCount(1, $result['msg']);
         $this->assertSame([null], $result['msg_emojis']);
+    }
+
+    public function test_msgall_is_the_last_index_of_the_built_messages(): void {
+        $GLOBALS['_mpu_test_posts'] = [
+            1 => (object) ['ID' => 1, 'post_title' => 'One'],
+            2 => (object) ['ID' => 2, 'post_title' => 'Two'],
+            3 => (object) ['ID' => 3, 'post_title' => 'Three'],
+        ];
+        $file = mpu_get_dialogs_dir() . '/mpu_test_msgall.txt';
+        // Four source lines: an exact duplicate is dropped, the same text with
+        // another expression stays, and one shortcode expands into three lines.
+        file_put_contents($file, "Same[laugh]\nSame[laugh]\nSame[sad]\n:recentpost[3]:\n");
+        $GLOBALS['_mpu_test_mpu_opt']['ukagakas']['default_1']['dialog_filename'] = 'mpu_test_msgall';
+        // mpu_secure_file_read() reads through the WordPress Filesystem API.
+        $GLOBALS['wp_filesystem'] = new class() {
+            public function exists($path) {
+                return file_exists($path);
+            }
+
+            public function get_contents($path) {
+                return file_get_contents($path);
+            }
+        };
+
+        try {
+            $result = mpu_get_msg_arr('default_1');
+        } finally {
+            unlink($file);
+        }
+
+        $this->assertCount(5, $result['msg']);
+        $this->assertSame(4, $result['msgall']);
+        $this->assertCount(5, $result['msg_emojis']);
     }
 
     public function test_builtin_rest_shape_never_keyword_guesses(): void {

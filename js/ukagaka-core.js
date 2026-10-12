@@ -58,6 +58,8 @@ function mpu_hidemsg(speed = 400) {
 // 每次成功切換角色就加一。等待 AI 回應的流程記下送出時的值再比對，
 // 切走又切回同一個角色也算換過，舊回應不會接著顯示。
 window.mpuCharacterGeneration = 0;
+// 每次送出切換請求就加一。連續點不同角色時，只有最後一次點的會生效。
+let mpuChangeRequestToken = 0;
 
 function mpuGetCurrentUkagakaNum() {
   const element = document.getElementById("ukagaka_num");
@@ -710,6 +712,26 @@ function mpu_nextmsg(trigger) {
 
   // 手動點擊時不再立即重置計時器，改由打字完成後統一啟動
 
+  // 等待期間訪客切換了角色：這句屬於原本的角色，不能出現在新角色身上。
+  const characterGeneration = window.mpuCharacterGeneration;
+  const isStaleForCharacter = function () {
+    return characterGeneration !== window.mpuCharacterGeneration;
+  };
+  // 不顯示的那一句不會觸發打字完成回呼，自動對話要另外接回來
+  const resumeAutoTalkAfterTypewriter = function () {
+    if (mpuAutoTalk && !mpuAutoTalkTimer) {
+      mpu_waitForTypewriterComplete(function () {
+        if (mpuAutoTalk && !mpuAutoTalkTimer) startAutoTalk();
+      });
+    }
+  };
+  // 伺服器已把這句記入 checksum，所以不顯示也要寫入歷史
+  const recordForSwitchedCharacter = function (res, out) {
+    if (res && res.msg) mpu_recordLlmAutoTalk(res.msg, out);
+    mpuLogger.logL("nextMessageLlmResponseSkippedCharacterSwitch", "mpu_nextmsg: 応答待ちの間にキャラクターが切り替わったため、自発会話は履歴にのみ記録します");
+    resumeAutoTalkAfterTypewriter();
+  };
+
   // 🌙 睡眠模式喚醒時：讓整個對話框（包括 ZZZ 夢話文字）一起淡出
   if (!isStartup) {
     mpu_hidemsg(600);
@@ -769,6 +791,13 @@ function mpu_nextmsg(trigger) {
       .then((res) => {
         mpuLogger.logF("nextMessageLlmResponse", "mpu_nextmsg: LLM 応答 = %s", res);
 
+        if (isStaleForCharacter()) {
+          recordForSwitchedCharacter(res, res && res.msg ? res.msg + (mpuGetDialogStore()?.auto_msg || "") : "");
+          mpuSetOllamaRequesting(false);
+          mpu_processOllamaQueue();
+          return;
+        }
+
         if (mpuMessageBlocking || mpuAiContextInProgress) {
           mpuLogger.logL("nextMessageLlmResponseSkippedPageAwareInProgress", "mpu_nextmsg: ページ感知 AI が進行中のため、LLM 応答の表示をスキップします");
           // 不顯示也要釋放請求旗標，否則之後每次自動 tick 都會被當成「忙碌」而略過，
@@ -802,6 +831,10 @@ function mpu_nextmsg(trigger) {
             if (mpu_recordAutoTalkIfChatTookOver(res, out)) {
               return;
             }
+            if (isStaleForCharacter()) {
+              recordForSwitchedCharacter(res, out);
+              return;
+            }
 
             // 觸發角色動畫（手動觸發時強制播放）
             if (
@@ -821,6 +854,8 @@ function mpu_nextmsg(trigger) {
                 window.mpuCanvasManager.triggerCharacterAnimation(
                   forceAnimation,
                   function () {
+                    // 歷史已在下面寫入；動畫期間換了角色就不再顯示
+                    if (isStaleForCharacter()) return;
                     mpu_cancelTypewriter();
                     jQuery("#ukagaka_msg").html("");
                     mpu_showMsgText();
@@ -895,8 +930,8 @@ function mpu_nextmsg(trigger) {
             setTimeout(function () {
               mpuReleaseMessageBlock("rate-limit-next-message");
 
-              // 顯示一條內建對話作為後備，避免角色一直沉默
-              mpu_nextmsg_fallback();
+              // 顯示一條內建對話作為後備，避免角色一直沉默（冷卻期間換了角色就交給新角色）
+              if (!isStaleForCharacter()) mpu_nextmsg_fallback();
 
               // 若原本有自動對話，則在冷卻後恢復
               if (mpuAutoTalk && !mpuAutoTalkTimer) {
@@ -942,6 +977,8 @@ function mpu_nextmsg(trigger) {
           mpuLogger.logL("nextMessageLlmErrorSkippedPageAwareInProgress", "mpu_nextmsg: ページ感知 AI が進行中のため、LLM エラー処理をスキップします");
           return;
         }
+        // 錯誤屬於原本的角色：不在新角色身上顯示錯誤或後備台詞
+        if (isStaleForCharacter()) return;
         mpuLogger.warn(
           "LLM dialogue generation failed, using fallback:",
           error,
@@ -955,7 +992,7 @@ function mpu_nextmsg(trigger) {
           mpu_showmsg(400);
           setTimeout(() => {
             mpuSetLastLLMResponse("");
-            mpu_nextmsg_fallback();
+            if (!isStaleForCharacter()) mpu_nextmsg_fallback();
           }, 2000);
         } else {
           mpuSetLastLLMResponse("");
@@ -966,6 +1003,11 @@ function mpu_nextmsg(trigger) {
   }
 
   const showBuiltInMessage = function () {
+    // 淡出期間換了角色：新角色載入對話時會自己說第一句
+    if (isStaleForCharacter()) {
+      resumeAutoTalkAfterTypewriter();
+      return;
+    }
     const store = mpuGetDialogStore();
 
     if (!store) {
@@ -1026,6 +1068,10 @@ function mpu_nextmsg(trigger) {
       const isWakingUp = window.mpuCanvasManager.triggerCharacterAnimation(
         isManual,
         function () {
+          if (isStaleForCharacter()) {
+            resumeAutoTalkAfterTypewriter();
+            return;
+          }
           mpu_cancelTypewriter();
           jQuery("#ukagaka_msg").html("");
           mpu_showMsgText();
@@ -1155,6 +1201,11 @@ function mpuChange(num) {
     formData.append("mpu_num", num);
   }
   const url = `${mpuRestUrl}change`;
+  const changeToken = hasNum ? ++mpuChangeRequestToken : 0;
+  // 被後來的切換取代（請求取消或晚到）的結果，不碰畫面
+  const isSupersededChange = function () {
+    return hasNum && changeToken !== mpuChangeRequestToken;
+  };
 
   document.body.style.cursor = "wait";
 
@@ -1172,11 +1223,13 @@ function mpuChange(num) {
     method: "POST",
     body: formData,
     cancelPrevious: true,
-    requestId: `mpu_change_${hasNum ? num : "menu"}`,
+    // 切換角色共用一個 ID：新的切換會取消還沒回來的舊切換
+    requestId: hasNum ? "mpu_change_switch" : "mpu_change_menu",
     timeout: 15000,
     retries: 1,
   })
     .then((res) => {
+      if (isSupersededChange()) return;
       if (!hasNum) {
         if (!res || typeof res !== "object")
           throw new Error("Invalid change-list response.");
@@ -1313,6 +1366,7 @@ function mpuChange(num) {
       document.body.style.cursor = "auto";
     })
     .catch((error) => {
+      if (isSupersededChange()) return;
       mpu_handle_error(error, "mpuChange", {
         showToUser: true,
         userMessage:

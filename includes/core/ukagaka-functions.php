@@ -383,8 +383,6 @@ function mpu_get_msg_arr($num = false)
             $ukagaka["msg"] = [__("ダイアログファイルが見つかりません", "mp-ukagaka")];
         }
 
-        $msgall = max(0, count($ukagaka["msg"]) - 1);
-
         if ($is_file_error) {
             $built = [
                 'msg'        => array_values($ukagaka["msg"]),
@@ -398,7 +396,8 @@ function mpu_get_msg_arr($num = false)
         }
 
         $arr = [
-            "msgall" => $msgall,
+            // 去重、展開動態台詞之後的最後索引，和 msg 對齊
+            "msgall" => max(0, count($built["msg"]) - 1),
             "auto_msg" => $mpu_opt["auto_msg"] ?? "",
             "msg" => $built["msg"],
             "msg_emojis" => $built["msg_emojis"],

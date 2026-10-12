@@ -1,5 +1,12 @@
 
 // ====== 讀取外部對話 ======
+
+// 每次載入對話檔就加一。被較新的載入取代、或送出後訪客切換了角色的舊載入，
+// 晚到時不能改寫共用 store、顯示第一句或啟動自動對話。
+let mpuDialogLoadToken = 0;
+// 第一句延遲顯示的計時器。新的載入開始時取消，舊角色的第一句不會晚一步冒出來。
+let mpuDialogFirstMessageTimer = null;
+
 /**
  * 載入外部對話檔案
  * @param {string} file - 對話檔案名稱（路徑會被自動處理）
@@ -7,6 +14,17 @@
  */
 function loadExternalDialog(file, skipFirstMessage = false) {
   const pure = (file || "").replace(/^.*[\\/]/, "");
+
+  const loadToken = ++mpuDialogLoadToken;
+  const characterGeneration = window.mpuCharacterGeneration;
+  const isCurrentLoad = function () {
+    return loadToken === mpuDialogLoadToken
+      && characterGeneration === window.mpuCharacterGeneration;
+  };
+  if (mpuDialogFirstMessageTimer !== null) {
+    clearTimeout(mpuDialogFirstMessageTimer);
+    mpuDialogFirstMessageTimer = null;
+  }
 
   const params = new URLSearchParams({
     file: pure,
@@ -65,11 +83,16 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
   mpuFetch(url, {
     cancelPrevious: true,
-    requestId: `loadExternalDialog_${pure}`,
+    // 不分檔名：新的載入（例如切換角色）會取消還沒回來的舊載入
+    requestId: "loadExternalDialog",
     timeout: 15000,
     retries: 1,
   })
     .then((resp) => {
+      if (!isCurrentLoad()) {
+        mpuLogger.logL("dialogStaleLoadDiscarded", "loadExternalDialog: 新しい読み込みまたはキャラクター切り替えの後に届いた会話データを破棄しました");
+        return;
+      }
       if (typeof resp !== "object") {
         throw new Error(resp.error || "Expected JSON response from server.");
       }
@@ -114,12 +137,12 @@ function loadExternalDialog(file, skipFirstMessage = false) {
           }
 
           let firstMessageShown = false;
-          let firstMessageTimer = null;
 
           const showFirstMessage = function () {
-            if (firstMessageTimer !== null) {
-              clearTimeout(firstMessageTimer);
-              firstMessageTimer = null;
+            if (!isCurrentLoad()) return;
+            if (mpuDialogFirstMessageTimer !== null) {
+              clearTimeout(mpuDialogFirstMessageTimer);
+              mpuDialogFirstMessageTimer = null;
             }
 
             if (firstMessageShown) {
@@ -158,15 +181,15 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             // 等待第一句對話打字完成後啟動自動對話
             if (mpuAutoTalk) {
               mpu_waitForTypewriterComplete(function () {
-                startAutoTalk();
+                if (isCurrentLoad()) startAutoTalk();
               });
             }
           };
 
           // 使用通用函數等待當前打字效果完成
           mpu_waitForTypewriterComplete(function () {
-            if (!firstMessageShown) {
-              firstMessageTimer = setTimeout(showFirstMessage, 1000);
+            if (!firstMessageShown && isCurrentLoad()) {
+              mpuDialogFirstMessageTimer = setTimeout(showFirstMessage, 1000);
             }
           });
         } catch (e) {
@@ -196,6 +219,8 @@ function loadExternalDialog(file, skipFirstMessage = false) {
       document.body.style.cursor = "auto";
     })
     .catch((error) => {
+      // 被較新的載入取消、或已換了角色：錯誤不屬於目前的畫面
+      if (!isCurrentLoad()) return;
       mpu_handle_error(error, "loadExternalDialog", {
         showToUser: true,
         userMessage:
