@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.37.2-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.37.3-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -107,16 +107,17 @@ For detailed information, please refer to:
 - **[Abilities API](docs-en/ABILITIES_API.md)** - Tools the character can call, and adding new ones
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.37.2
+## 🎉 What's New in v2.37.3
+
+**Switching without leftovers** (v2.37.3): Switching characters while something was still loading could leave the previous character's words behind: a dialogue file that arrived late, an AI line that was still being written, or the backup line shown when the AI failed. These now stay with the character they were meant for, and clicking two characters in a row keeps the one you clicked last.
 
 **The right character, the right face** (v2.37.2): On sites with more than one character, AI chat now answers in the voice of the character the visitor switched to, and a reply that was still on its way when they switched no longer pops up on the new character. The AI also gets a short description of each expression, so faces that hardly ever appeared, such as dizzy, shy or speechless, now show up when they fit. Frieren's bundled dialogue has more expression tags and a few typos fixed.
 
 **Talking again after hello** (v2.37.1): With AI dialogue on, a first-time visitor's greeting used to be the last thing the character said on her own; she stayed quiet until the visitor clicked something. She now goes back to her usual chatter after the greeting.
 
-**Expressions in your own dialogue** (v2.37.0): Dialogue files can now show the character's expressions without any AI. End a line with a tag such as `[laugh]` or `[sad]`, and the character makes that face while saying it; the tag itself never appears in the text. It works in both TXT and JSON dialogue files and uses the expressions the character already has. When you switch characters, each character uses only their own expressions, and a tag they don't have is quietly hidden.
 
 
-**Earlier releases**: a smoother message box without AI (v2.36.2), a tidier IP blocklist (v2.36.1), a grimoire in your colours (v2.36.0), small touches to the grimoire page (v2.35.1), a message box from a traveler's grimoire (v2.35.0), your own characters stay your own (v2.34.1), Frieren redrawn in SVG (v2.34.0), tidier status labels and documentation that matches the plugin (v2.33.3), chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: expressions in your own dialogue (v2.37.0), a smoother message box without AI (v2.36.2), a tidier IP blocklist (v2.36.1), a grimoire in your colours (v2.36.0), small touches to the grimoire page (v2.35.1), a message box from a traveler's grimoire (v2.35.0), your own characters stay your own (v2.34.1), Frieren redrawn in SVG (v2.34.0), tidier status labels and documentation that matches the plugin (v2.33.3), chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

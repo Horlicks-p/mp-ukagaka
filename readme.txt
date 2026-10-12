@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.37.2
+Stable tag: 2.37.3
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,12 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-12 =
+* v2.37.3
+* [FIX] Switching characters while a dialogue file, an AI line or a fallback line was still on its way no longer shows the previous character's line on the new one.
+* [FIX] Clicking two characters in a row keeps the one clicked last.
+* [CHANGE] The dialogue API's msgall now matches the number of lines actually returned.
 
 = 2026-10-12 =
 * v2.37.2

@@ -4,6 +4,25 @@
 
 ---
 
+## [2.37.3] - 2026-10-12
+
+### Multi-character sites
+
+- **A slower dialogue load can no longer overwrite the new character.** `loadExternalDialog()` used one request ID per file, so a pending load for the previous character was never cancelled; arriving late, it replaced the shared dialogue store and could speak its first line on the new character. Each load now carries a load token and the character generation; a superseded load changes neither the store nor the screen, a new load cancels the pending request, and its delayed first-line timer is cleared.
+- **Autonomous AI lines stay with the character that was asked.** An `mpu_nextmsg()` line requested before a switch is written to history only (the server already counted it), whether it arrives before visual readiness, after it, or during the character animation. Rate-limit, error and built-in fallbacks for that request are not shown either; the request flag, queue and auto talk are released as before.
+- **The built-in fallback checks the switch after its delay.** `mpu_nextmsg_fallback()` takes the generation of the request that called it and keeps it across its retries, so a switch inside its 400 ms wait no longer makes the new character speak. Its retry count now belongs to each call chain instead of shared state (`retry.fallbackMessage` was removed).
+- **Rapid switching keeps the last choice.** Switches share one request ID and a token, so clicking two characters in a row no longer lets the slower response win.
+
+### Dialogue API
+
+- `msgall` in `/dialog` and `mpu_get_msg_arr()` is now the last index of the returned `msg`, counted after duplicates are dropped and dynamic lines expanded, instead of the source line count.
+
+### Tests
+
+- The e2e runner's `--only` accepts a comma-separated list of name prefixes.
+
+---
+
 ## [2.37.2] - 2026-10-12
 
 ### Multi-character sites
