@@ -15,7 +15,8 @@ final class ChatIntegrityTest extends TestCase {
     }
 
     protected function tearDown(): void {
-        $GLOBALS['_mpu_test_filters'] = [];
+        $GLOBALS['_mpu_test_filters']    = [];
+        $GLOBALS['_mpu_test_transients'] = [];
         $problems = $this->log_guard->restore();
         $this->log_guard = null;
         $this->assertSame([], $problems, 'checksum-mismatch log was not restored cleanly');
