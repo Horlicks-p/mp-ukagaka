@@ -5,9 +5,13 @@
  *
  * mpu_chat_integrity_dump_mismatch() always writes to <plugin>/logs/checksum-mismatch.log
  * (and creates logs/.htaccess on first use), in every integrity mode. The guard snapshots
- * the exact bytes before a test and puts them back afterwards. If the files changed in a way
- * the test cannot have caused (original bytes no longer a prefix), it refuses to clean up
- * and reports the problem so the evidence stays on disk.
+ * the exact bytes before a test and puts them back afterwards. If the original bytes were
+ * rewritten (no longer a prefix), it refuses to clean up and reports the problem so the
+ * evidence stays on disk.
+ *
+ * Limitation: anything appended to the end of the log during the test is treated as the
+ * test's own output and removed on restore, including lines from another process. Run the
+ * suite in a checkout where no live plugin instance is writing to this logs/ directory.
  */
 final class MPU_Test_Integrity_Log_Guard {
     private $dir;
