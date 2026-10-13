@@ -4,6 +4,19 @@
 
 ---
 
+## [2.37.4] - 2026-10-13
+
+### Multi-character sites
+
+- **A retry of the next line stays with the character that started it.** When the dialogue store was not loaded yet, `mpu_nextmsg()` retried by calling itself a second later, and each retry captured the character that was on screen *then*. A retry scheduled before a switch could therefore type the "dialogue not loaded" notice or a line on the new character, or skip past her first line. `mpu_nextmsg(trigger, retry)` now takes an optional `{ generation, count }` that only the retry passes: the chain keeps the generation it started with and its own retry count. A retry for a previous character returns before `stopAutoTalk()` or `mpu_hidemsg()`, so it cannot close the new character's message box or reset her timer.
+- The shared `mpuGetState().retry` counter is removed; nothing uses it any more.
+
+### Tests
+
+- New e2e `nextmsg-retry-stops-after-switch`: the old retry chain must neither type on the new character nor call `mpu_hidemsg` / `stopAutoTalk` after the switch.
+
+---
+
 ## [2.37.3] - 2026-10-12
 
 ### Multi-character sites
