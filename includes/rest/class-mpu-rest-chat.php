@@ -514,6 +514,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
      * 
      * @param WP_REST_Request $request
      * @return array|WP_Error|WP_REST_Response
+     * @throws Throwable Rethrown after releasing the chat lock taken by this method.
      */
     protected function prepare_user_chat_args(WP_REST_Request $request) {
         $st = $this->check_session_token($request);
@@ -664,289 +665,296 @@ class MPU_REST_Chat extends MPU_REST_Base {
             }
         }
 
-        $integrity_check = MPU_Chat_History_Service::verify($chat_session_id, $integrity_history);
-        if (is_wp_error($integrity_check)) {
-            $this->release_chat_lock($chat_session_id, $chat_lock);
-            $error_data = $integrity_check->get_error_data();
-            $status = is_array($error_data) && isset($error_data['status']) ? (int) $error_data['status'] : 400;
-            return $this->fail('rest_error', $integrity_check->get_error_message(), $status);
-        }
+        // Anything that throws after acquire() would otherwise hold the lock until its TTL:
+        // callers only register their shutdown release once this method has returned.
+        try {
+            $integrity_check = MPU_Chat_History_Service::verify($chat_session_id, $integrity_history);
+            if (is_wp_error($integrity_check)) {
+                $this->release_chat_lock($chat_session_id, $chat_lock);
+                $error_data = $integrity_check->get_error_data();
+                $status = is_array($error_data) && isset($error_data['status']) ? (int) $error_data['status'] : 400;
+                return $this->fail('rest_error', $integrity_check->get_error_message(), $status);
+            }
 
-        $page_title_param   = $request->get_param('page_title');
-        $page_content_param = $request->get_param('page_content');
-        $page_title         = !empty($page_title_param)   ? sanitize_text_field(wp_unslash($page_title_param))       : '';
-        $page_content       = !empty($page_content_param) ? sanitize_textarea_field(wp_unslash($page_content_param)) : '';
+            $page_title_param   = $request->get_param('page_title');
+            $page_content_param = $request->get_param('page_content');
+            $page_title         = !empty($page_title_param)   ? sanitize_text_field(wp_unslash($page_title_param))       : '';
+            $page_content       = !empty($page_content_param) ? sanitize_textarea_field(wp_unslash($page_content_param)) : '';
 
-        if (mb_strlen($page_title, 'UTF-8') > 200) {
-            $page_title = mb_substr($page_title, 0, 200, 'UTF-8');
-        }
-        if (mb_strlen($page_content, 'UTF-8') > 2000) {
-            $page_content = mb_substr($page_content, 0, 2000, 'UTF-8');
-        }
+            if (mb_strlen($page_title, 'UTF-8') > 200) {
+                $page_title = mb_substr($page_title, 0, 200, 'UTF-8');
+            }
+            if (mb_strlen($page_content, 'UTF-8') > 2000) {
+                $page_content = mb_substr($page_content, 0, 2000, 'UTF-8');
+            }
 
-        $provider = mpu_get_current_provider($mpu_opt);
-        $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
-        if ($provider !== 'ollama' && empty($api_key)) {
-            $this->release_chat_lock($chat_session_id, $chat_lock);
-            return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
-        }
+            $provider = mpu_get_current_provider($mpu_opt);
+            $api_key  = mpu_get_provider_api_key($provider, $mpu_opt);
+            if ($provider !== 'ollama' && empty($api_key)) {
+                $this->release_chat_lock($chat_session_id, $chat_lock);
+                return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
+            }
 
-        $ukagaka_name         = mpu_resolve_request_ukagaka_num( $request->get_param( 'cur_num' ), $mpu_opt );
-        $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
-        $language             = $mpu_opt['ai_language'] ?? '';
+            $ukagaka_name         = mpu_resolve_request_ukagaka_num( $request->get_param( 'cur_num' ), $mpu_opt );
+            $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
+            $language             = $mpu_opt['ai_language'] ?? '';
 
-        $personality_id = mpu_resolve_personality_id($ukagaka_name);
-        $language = function_exists('mpu_resolve_language_code')
-            ? mpu_resolve_language_code($personality_id, $language)
-            : ($language !== '' ? $language : 'zh-TW');
-        $time_context   = mpu_get_time_context($personality_id);
+            $personality_id = mpu_resolve_personality_id($ukagaka_name);
+            $language = function_exists('mpu_resolve_language_code')
+                ? mpu_resolve_language_code($personality_id, $language)
+                : ($language !== '' ? $language : 'zh-TW');
+            $time_context   = mpu_get_time_context($personality_id);
 
-        $wp_info   = mpu_get_wordpress_info();
-        $prompt_language = function_exists('mpu_resolve_language')
-            ? mpu_resolve_language($personality_id, $language)
-            : $language;
+            $wp_info   = mpu_get_wordpress_info();
+            $prompt_language = function_exists('mpu_resolve_language')
+                ? mpu_resolve_language($personality_id, $language)
+                : $language;
 
-        $variables = [
-            'ukagaka_display_name'  => $ukagaka_display_name,
-            'language'              => $prompt_language,
-            'time_context'          => $time_context,
-            'wp_version'            => $wp_info['wp_version'] ?? '',
-            'php_version'           => $wp_info['php_version'] ?? '',
-            'theme_name'            => $wp_info['theme_name'] ?? '',
-            'theme_version'         => $wp_info['theme_version'] ?? '',
-            'theme_author'          => $wp_info['theme_author'] ?? '',
-            'is_child_theme'        => $wp_info['is_child_theme'] ?? false,
-            'parent_theme'          => $wp_info['parent_theme'] ?? '',
-            'is_block_theme'        => $wp_info['is_block_theme'] ?? false,
-            'site_name'             => $wp_info['site_name'] ?? '',
-            'site_description'      => $wp_info['site_description'] ?? '',
-            'is_multisite'          => $wp_info['is_multisite'] ?? false,
-            'active_plugins_count'  => $wp_info['active_plugins_count'] ?? 0,
-            'active_plugins_list'   => (!empty($wp_info['active_plugins_list']) && is_array($wp_info['active_plugins_list'])) ? implode('、', array_slice($wp_info['active_plugins_list'], 0, 10)) : '',
-            'post_count'            => $wp_info['post_count'] ?? 0,
-            'comment_count'         => $wp_info['comment_count'] ?? 0,
-            'category_count'        => $wp_info['category_count'] ?? 0,
-            'tag_count'             => $wp_info['tag_count'] ?? 0,
-            'days_operating'        => $wp_info['days_operating'] ?? 0,
-            'slimstat_total_visits' => $wp_info['slimstat_total_visits'] ?? 0,
-        ];
-
-        $user_info         = mpu_get_current_user_info();
-        $base_system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
-
-        $system_parts   = [];
-        $system_parts[] = $base_system_prompt;
-
-        $user_block = '【対話相手】';
-        $user_lines = [];
-        if ($user_info['is_logged_in']) {
-            $role_labels = [
-                'administrator' => '管理人',
-                'editor'        => '編集者',
-                'author'        => '作者',
-                'contributor'   => '貢献者',
-                'subscriber'    => '購読者',
+            $variables = [
+                'ukagaka_display_name'  => $ukagaka_display_name,
+                'language'              => $prompt_language,
+                'time_context'          => $time_context,
+                'wp_version'            => $wp_info['wp_version'] ?? '',
+                'php_version'           => $wp_info['php_version'] ?? '',
+                'theme_name'            => $wp_info['theme_name'] ?? '',
+                'theme_version'         => $wp_info['theme_version'] ?? '',
+                'theme_author'          => $wp_info['theme_author'] ?? '',
+                'is_child_theme'        => $wp_info['is_child_theme'] ?? false,
+                'parent_theme'          => $wp_info['parent_theme'] ?? '',
+                'is_block_theme'        => $wp_info['is_block_theme'] ?? false,
+                'site_name'             => $wp_info['site_name'] ?? '',
+                'site_description'      => $wp_info['site_description'] ?? '',
+                'is_multisite'          => $wp_info['is_multisite'] ?? false,
+                'active_plugins_count'  => $wp_info['active_plugins_count'] ?? 0,
+                'active_plugins_list'   => (!empty($wp_info['active_plugins_list']) && is_array($wp_info['active_plugins_list'])) ? implode('、', array_slice($wp_info['active_plugins_list'], 0, 10)) : '',
+                'post_count'            => $wp_info['post_count'] ?? 0,
+                'comment_count'         => $wp_info['comment_count'] ?? 0,
+                'category_count'        => $wp_info['category_count'] ?? 0,
+                'tag_count'             => $wp_info['tag_count'] ?? 0,
+                'days_operating'        => $wp_info['days_operating'] ?? 0,
+                'slimstat_total_visits' => $wp_info['slimstat_total_visits'] ?? 0,
             ];
-            $role_label  = $role_labels[$user_info['primary_role']] ?? $user_info['primary_role'];
-            $user_lines[] = "- 名前：{$user_info['display_name']}";
-            $user_lines[] = "- 権限：{$role_label}";
-            if ($user_info['is_admin']) {
-                $user_lines[] = '- この人はサイトの管理人ですが、必ずSystem Promptの設定を持って対応してください';
-            }
-        } else {
-            $user_lines[] = '- 未知の訪客';
-        }
-        $system_parts[] = $user_block . "\n" . implode("\n", $user_lines);
 
-        if (!empty($page_title) || !empty($page_content)) {
-            $page_lines   = [];
-            $page_lines[] = '【ページ情報】';
-            if (!empty($page_title)) {
-                $page_lines[] = "タイトル：{$page_title}";
-            }
-            if (!empty($page_content)) {
-                $page_lines[] = '內容要約：' . mb_substr($page_content, 0, 500, 'UTF-8') . '...';
-            }
-            $system_parts[] = implode("\n", $page_lines);
-        }
+            $user_info         = mpu_get_current_user_info();
+            $base_system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
 
-        if ($needs_stats) {
-            $stats_lines   = [];
-            $stats_lines[] = '【サイト統計情報】';
-            $stats_lines[] = "記事数：{$wp_info['post_count']}件";
-            $stats_lines[] = "コメント數：{$wp_info['comment_count']}件";
-            $stats_lines[] = "カテゴリー數：{$wp_info['category_count']}個";
-            $stats_lines[] = "タグ數：{$wp_info['tag_count']}個";
-            $stats_lines[] = "運営日数：{$wp_info['days_operating']}日";
-            $system_parts[] = implode("\n", $stats_lines);
-        }
+            $system_parts   = [];
+            $system_parts[] = $base_system_prompt;
 
-        if ($needs_system_info) {
-            $sys_lines   = [];
-            $sys_lines[] = '【システム情報】';
-            $sys_lines[] = "WordPress バージョン：{$wp_info['wp_version']}";
-            $sys_lines[] = "PHP バージョン：{$wp_info['php_version']}";
-            if ($wp_info['is_multisite'] ?? false) {
-                $sys_lines[] = '多サイト：はい';
-            }
-            $system_parts[] = implode("\n", $sys_lines);
-        }
-
-        if ($needs_plugin_info) {
-            $plugin_lines   = [];
-            $plugin_lines[] = '【プラグイン情報】';
-            $plugin_lines[] = "使用プラグイン數：{$wp_info['active_plugins_count']}個";
-            if (!empty($wp_info['active_plugins_list']) && count($wp_info['active_plugins_list']) > 0) {
-                $plugins_display = implode('、', array_slice($wp_info['active_plugins_list'], 0, 10));
-                if (count($wp_info['active_plugins_list']) > 10) {
-                    $plugins_display .= '...等';
-                }
-                $plugin_lines[] = "主要プラグイン：{$plugins_display}";
-            }
-            $system_parts[] = implode("\n", $plugin_lines);
-        }
-
-        if ($needs_theme_info) {
-            $theme_lines   = [];
-            $theme_lines[] = '【テーマ情報】';
-            $theme_info    = !empty($wp_info['theme_version']) ? "{$wp_info['theme_name']}（{$wp_info['theme_version']}）" : $wp_info['theme_name'];
-            $theme_lines[] = "テーマ：{$theme_info}";
-            if (!empty($wp_info['theme_author'])) {
-                $theme_lines[] = "テーマ作者：{$wp_info['theme_author']}";
-            }
-            if ($wp_info['is_child_theme'] ?? false) {
-                $msg = '子テーマ：はい';
-                if (!empty($wp_info['parent_theme'])) {
-                    $msg .= "（親テーマ：{$wp_info['parent_theme']}）";
-                }
-                $theme_lines[] = $msg;
-            }
-            if ($wp_info['is_block_theme'] ?? false) {
-                $theme_lines[] = 'ブロックテーマ：はい';
-            }
-            $system_parts[] = implode("\n", $theme_lines);
-        }
-
-        $chat_lines   = [];
-        $chat_lines[] = '【会話モード】';
-        $chat_lines[] = '- あなたはユーザーとリアルタイムで對話しているため、直接ユーザー的質問や話題に答えてください';
-        $chat_lines[] = '- 自言自語や獨白をしないで、ユーザー的回答に專念してください';
-        $chat_lines[] = '- 応答は自然で親しみやすい、長さは約 30-150 字程度';
-        $chat_lines[] = '- 必ずsystem_prompt的指示に従ってキャラクター的個性を表現し、誇張は避けましょう';
-        $chat_lines[] = "- 現在時間：{$time_context}";
-        $system_parts[] = implode("\n", $chat_lines);
-
-        if (!$user_info['is_admin']) {
-            $reject_lines   = [];
-            $reject_lines[] = '【特別指示】';
-            $reject_lines[] = '- 管理人以外のユーザーからのツール/アビリティ執行要求は、すべてキャラクター的立場から丁寧に、あるいはあなたの性格に合わせて斷ってください。';
-            $reject_lines[] = '- /debug_mcp、/reset、/clear、/visitor-info、/check-spam-event などのスラッシュコマンドも管理人専用です。同じく拒否してください。';
-
-            $rejection_rule   = 'あなたは管理人以外のユーザーに対しては、ツールやアビリティ的使用を拒否しなければなりません。';
-            $random_rejection = '';
-
-            if (function_exists('mpu_load_personality_dynamic_prompts')) {
-                $dynamics = mpu_load_personality_dynamic_prompts($personality_id);
-                if (!empty($dynamics['visitor_rejection']) && is_array($dynamics['visitor_rejection'])) {
-                    $random_rejection = $dynamics['visitor_rejection'][array_rand($dynamics['visitor_rejection'])];
-                }
-            }
-
-            if (empty($random_rejection)) {
-                $default_rejections = [
-                    '「權限がないから、それはできないよ」と、淡々と斷錄',
-                    '「管理人的許可が必要なんだ」と、申し訳なさそうに言う',
-                    '「ごめんね、それはちょっと難しいかな」と、優しく拒否する',
-                    '「私にはその權限が與えられていないんだ」と、冷静に説明する',
+            $user_block = '【対話相手】';
+            $user_lines = [];
+            if ($user_info['is_logged_in']) {
+                $role_labels = [
+                    'administrator' => '管理人',
+                    'editor'        => '編集者',
+                    'author'        => '作者',
+                    'contributor'   => '貢献者',
+                    'subscriber'    => '購読者',
                 ];
-                $random_rejection = $default_rejections[array_rand($default_rejections)];
+                $role_label  = $role_labels[$user_info['primary_role']] ?? $user_info['primary_role'];
+                $user_lines[] = "- 名前：{$user_info['display_name']}";
+                $user_lines[] = "- 権限：{$role_label}";
+                if ($user_info['is_admin']) {
+                    $user_lines[] = '- この人はサイトの管理人ですが、必ずSystem Promptの設定を持って対応してください';
+                }
+            } else {
+                $user_lines[] = '- 未知の訪客';
+            }
+            $system_parts[] = $user_block . "\n" . implode("\n", $user_lines);
+
+            if (!empty($page_title) || !empty($page_content)) {
+                $page_lines   = [];
+                $page_lines[] = '【ページ情報】';
+                if (!empty($page_title)) {
+                    $page_lines[] = "タイトル：{$page_title}";
+                }
+                if (!empty($page_content)) {
+                    $page_lines[] = '內容要約：' . mb_substr($page_content, 0, 500, 'UTF-8') . '...';
+                }
+                $system_parts[] = implode("\n", $page_lines);
             }
 
-            $rejection_rule .= "\n- 拒否する際は、次のようなあなたのキャラクターらしい言い方を使ってください：「{$random_rejection}」";
-            $reject_lines[]  = $rejection_rule;
-            $system_parts[]  = implode("\n", $reject_lines);
-        }
-
-        if (class_exists('MPU_Observation_Buffer')) {
-            $observations = MPU_Observation_Buffer::drain($runtime_session_token);
-            $observation_block = MPU_Observation_Buffer::format_prompt_block($observations);
-            if (function_exists('mpu_debug_log')) {
-                mpu_debug_log(sprintf(
-                    '[observation] drain count=%d block=%s',
-                    count($observations),
-                    $observation_block !== '' ? "\n" . $observation_block : '(empty)'
-                ));
+            if ($needs_stats) {
+                $stats_lines   = [];
+                $stats_lines[] = '【サイト統計情報】';
+                $stats_lines[] = "記事数：{$wp_info['post_count']}件";
+                $stats_lines[] = "コメント數：{$wp_info['comment_count']}件";
+                $stats_lines[] = "カテゴリー數：{$wp_info['category_count']}個";
+                $stats_lines[] = "タグ數：{$wp_info['tag_count']}個";
+                $stats_lines[] = "運営日数：{$wp_info['days_operating']}日";
+                $system_parts[] = implode("\n", $stats_lines);
             }
-            if ($observation_block !== '') {
-                $system_parts[] = $observation_block;
+
+            if ($needs_system_info) {
+                $sys_lines   = [];
+                $sys_lines[] = '【システム情報】';
+                $sys_lines[] = "WordPress バージョン：{$wp_info['wp_version']}";
+                $sys_lines[] = "PHP バージョン：{$wp_info['php_version']}";
+                if ($wp_info['is_multisite'] ?? false) {
+                    $sys_lines[] = '多サイト：はい';
+                }
+                $system_parts[] = implode("\n", $sys_lines);
             }
-        }
 
-        $system_prompt = implode("\n\n", $system_parts);
-
-        $messages = [];
-        foreach ($chat_history as $msg) {
-            if (isset($msg['role'], $msg['content'])) {
-                $messages[] = [
-                    'role'    => $msg['role'] === 'user' ? 'user' : 'assistant',
-                    'content' => sanitize_textarea_field($msg['content']),
-                ];
+            if ($needs_plugin_info) {
+                $plugin_lines   = [];
+                $plugin_lines[] = '【プラグイン情報】';
+                $plugin_lines[] = "使用プラグイン數：{$wp_info['active_plugins_count']}個";
+                if (!empty($wp_info['active_plugins_list']) && count($wp_info['active_plugins_list']) > 0) {
+                    $plugins_display = implode('、', array_slice($wp_info['active_plugins_list'], 0, 10));
+                    if (count($wp_info['active_plugins_list']) > 10) {
+                        $plugins_display .= '...等';
+                    }
+                    $plugin_lines[] = "主要プラグイン：{$plugins_display}";
+                }
+                $system_parts[] = implode("\n", $plugin_lines);
             }
-        }
-        $messages[] = ['role' => 'user', 'content' => $user_message];
 
-        $global_max_tokens = isset($mpu_opt['ai_max_tokens']) ? intval($mpu_opt['ai_max_tokens']) : 1000;
-        $max_tokens        = $global_max_tokens;
-
-        if (function_exists('mpu_load_personality_manifest')) {
-            $manifest = mpu_load_personality_manifest($personality_id);
-            if (isset($manifest['settings']['max_tokens'])) {
-                $max_tokens = intval($manifest['settings']['max_tokens']);
+            if ($needs_theme_info) {
+                $theme_lines   = [];
+                $theme_lines[] = '【テーマ情報】';
+                $theme_info    = !empty($wp_info['theme_version']) ? "{$wp_info['theme_name']}（{$wp_info['theme_version']}）" : $wp_info['theme_name'];
+                $theme_lines[] = "テーマ：{$theme_info}";
+                if (!empty($wp_info['theme_author'])) {
+                    $theme_lines[] = "テーマ作者：{$wp_info['theme_author']}";
+                }
+                if ($wp_info['is_child_theme'] ?? false) {
+                    $msg = '子テーマ：はい';
+                    if (!empty($wp_info['parent_theme'])) {
+                        $msg .= "（親テーマ：{$wp_info['parent_theme']}）";
+                    }
+                    $theme_lines[] = $msg;
+                }
+                if ($wp_info['is_block_theme'] ?? false) {
+                    $theme_lines[] = 'ブロックテーマ：はい';
+                }
+                $system_parts[] = implode("\n", $theme_lines);
             }
+
+            $chat_lines   = [];
+            $chat_lines[] = '【会話モード】';
+            $chat_lines[] = '- あなたはユーザーとリアルタイムで對話しているため、直接ユーザー的質問や話題に答えてください';
+            $chat_lines[] = '- 自言自語や獨白をしないで、ユーザー的回答に專念してください';
+            $chat_lines[] = '- 応答は自然で親しみやすい、長さは約 30-150 字程度';
+            $chat_lines[] = '- 必ずsystem_prompt的指示に従ってキャラクター的個性を表現し、誇張は避けましょう';
+            $chat_lines[] = "- 現在時間：{$time_context}";
+            $system_parts[] = implode("\n", $chat_lines);
+
+            if (!$user_info['is_admin']) {
+                $reject_lines   = [];
+                $reject_lines[] = '【特別指示】';
+                $reject_lines[] = '- 管理人以外のユーザーからのツール/アビリティ執行要求は、すべてキャラクター的立場から丁寧に、あるいはあなたの性格に合わせて斷ってください。';
+                $reject_lines[] = '- /debug_mcp、/reset、/clear、/visitor-info、/check-spam-event などのスラッシュコマンドも管理人専用です。同じく拒否してください。';
+
+                $rejection_rule   = 'あなたは管理人以外のユーザーに対しては、ツールやアビリティ的使用を拒否しなければなりません。';
+                $random_rejection = '';
+
+                if (function_exists('mpu_load_personality_dynamic_prompts')) {
+                    $dynamics = mpu_load_personality_dynamic_prompts($personality_id);
+                    if (!empty($dynamics['visitor_rejection']) && is_array($dynamics['visitor_rejection'])) {
+                        $random_rejection = $dynamics['visitor_rejection'][array_rand($dynamics['visitor_rejection'])];
+                    }
+                }
+
+                if (empty($random_rejection)) {
+                    $default_rejections = [
+                        '「權限がないから、それはできないよ」と、淡々と斷錄',
+                        '「管理人的許可が必要なんだ」と、申し訳なさそうに言う',
+                        '「ごめんね、それはちょっと難しいかな」と、優しく拒否する',
+                        '「私にはその權限が與えられていないんだ」と、冷静に説明する',
+                    ];
+                    $random_rejection = $default_rejections[array_rand($default_rejections)];
+                }
+
+                $rejection_rule .= "\n- 拒否する際は、次のようなあなたのキャラクターらしい言い方を使ってください：「{$random_rejection}」";
+                $reject_lines[]  = $rejection_rule;
+                $system_parts[]  = implode("\n", $reject_lines);
+            }
+
+            if (class_exists('MPU_Observation_Buffer')) {
+                $observations = MPU_Observation_Buffer::drain($runtime_session_token);
+                $observation_block = MPU_Observation_Buffer::format_prompt_block($observations);
+                if (function_exists('mpu_debug_log')) {
+                    mpu_debug_log(sprintf(
+                        '[observation] drain count=%d block=%s',
+                        count($observations),
+                        $observation_block !== '' ? "\n" . $observation_block : '(empty)'
+                    ));
+                }
+                if ($observation_block !== '') {
+                    $system_parts[] = $observation_block;
+                }
+            }
+
+            $system_prompt = implode("\n\n", $system_parts);
+
+            $messages = [];
+            foreach ($chat_history as $msg) {
+                if (isset($msg['role'], $msg['content'])) {
+                    $messages[] = [
+                        'role'    => $msg['role'] === 'user' ? 'user' : 'assistant',
+                        'content' => sanitize_textarea_field($msg['content']),
+                    ];
+                }
+            }
+            $messages[] = ['role' => 'user', 'content' => $user_message];
+
+            $global_max_tokens = isset($mpu_opt['ai_max_tokens']) ? intval($mpu_opt['ai_max_tokens']) : 1000;
+            $max_tokens        = $global_max_tokens;
+
+            if (function_exists('mpu_load_personality_manifest')) {
+                $manifest = mpu_load_personality_manifest($personality_id);
+                if (isset($manifest['settings']['max_tokens'])) {
+                    $max_tokens = intval($manifest['settings']['max_tokens']);
+                }
+            }
+
+            $mpu_opt['max_tokens'] = $max_tokens;
+
+            $provider_model = '';
+            $provider_endpoint = null;
+            switch ($provider) {
+                case 'ollama':
+                    $provider_model = $mpu_opt['llm_ollama_model'] ?? $mpu_opt['ollama_model'] ?? 'qwen3:8b';
+                    $provider_endpoint = $mpu_opt['llm_ollama_endpoint'] ?? $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
+                    break;
+                case 'openai':
+                    $provider_model = $mpu_opt['llm_openai_model'] ?? $mpu_opt['openai_model'] ?? 'gpt-4o-mini';
+                    break;
+                case 'claude':
+                    $provider_model = $mpu_opt['llm_claude_model'] ?? $mpu_opt['claude_model'] ?? 'claude-sonnet-4-6';
+                    break;
+                case 'gemini':
+                    $provider_model = $mpu_opt['llm_gemini_model'] ?? $mpu_opt['gemini_model'] ?? 'gemini-2.5-flash';
+                    break;
+            }
+
+            return [
+                'provider'             => $provider,
+                'api_key'              => $api_key,
+                'model'                => $provider_model,
+                'endpoint'             => $provider_endpoint,
+                'max_tokens'           => $max_tokens,
+                'system_prompt'        => $system_prompt,
+                'messages'             => $messages,
+                'language'             => $language,
+                'mpu_opt'              => $mpu_opt,
+                'ukagaka_name'         => $ukagaka_name,
+                'personality_id'       => $personality_id,
+                'chat_session_id'      => $chat_session_id,
+                'chat_lock'            => $chat_lock,
+                'input_role'           => $input_role,
+                'input_context'        => $input_context,
+                'chat_history'         => $chat_history,
+                'integrity_history'     => $integrity_history,
+                'user_message'         => $user_message,
+                'ukagaka_display_name' => $ukagaka_display_name,
+                'runtime_session_token' => $runtime_session_token,
+            ];
+        } catch (Throwable $e) {
+            $this->release_chat_lock($chat_session_id, $chat_lock);
+            throw $e;
         }
-
-        $mpu_opt['max_tokens'] = $max_tokens;
-
-        $provider_model = '';
-        $provider_endpoint = null;
-        switch ($provider) {
-            case 'ollama':
-                $provider_model = $mpu_opt['llm_ollama_model'] ?? $mpu_opt['ollama_model'] ?? 'qwen3:8b';
-                $provider_endpoint = $mpu_opt['llm_ollama_endpoint'] ?? $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
-                break;
-            case 'openai':
-                $provider_model = $mpu_opt['llm_openai_model'] ?? $mpu_opt['openai_model'] ?? 'gpt-4o-mini';
-                break;
-            case 'claude':
-                $provider_model = $mpu_opt['llm_claude_model'] ?? $mpu_opt['claude_model'] ?? 'claude-sonnet-4-6';
-                break;
-            case 'gemini':
-                $provider_model = $mpu_opt['llm_gemini_model'] ?? $mpu_opt['gemini_model'] ?? 'gemini-2.5-flash';
-                break;
-        }
-
-        return [
-            'provider'             => $provider,
-            'api_key'              => $api_key,
-            'model'                => $provider_model,
-            'endpoint'             => $provider_endpoint,
-            'max_tokens'           => $max_tokens,
-            'system_prompt'        => $system_prompt,
-            'messages'             => $messages,
-            'language'             => $language,
-            'mpu_opt'              => $mpu_opt,
-            'ukagaka_name'         => $ukagaka_name,
-            'personality_id'       => $personality_id,
-            'chat_session_id'      => $chat_session_id,
-            'chat_lock'            => $chat_lock,
-            'input_role'           => $input_role,
-            'input_context'        => $input_context,
-            'chat_history'         => $chat_history,
-            'integrity_history'     => $integrity_history,
-            'user_message'         => $user_message,
-            'ukagaka_display_name' => $ukagaka_display_name,
-            'runtime_session_token' => $runtime_session_token,
-        ];
     }
 
     protected function set_runtime_state_for_args(array $args, string $state): void {
