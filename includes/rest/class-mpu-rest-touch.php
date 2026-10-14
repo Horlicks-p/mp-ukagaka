@@ -362,7 +362,13 @@ class MPU_REST_Touch extends MPU_REST_Base {
 		$mpu_opt = mpu_get_option();
 		$ukagaka_name = $mpu_opt['ukagakas'][ $mpu_opt['cur_ukagaka'] ]['name'] ?? 'キャラクター';
 		$language = $mpu_opt['ai_language'] ?? 'ja';
-		$system_prompt = mpu_resolve_system_prompt( $personality_id, $mpu_opt, $ukagaka_name );
+		$variables = mpu_build_system_prompt_variables(
+			$ukagaka_name,
+			mpu_resolve_language( $personality_id, $mpu_opt['ai_language'] ?? '' ),
+			mpu_get_time_context( $personality_id ),
+			mpu_get_wordpress_info()
+		);
+		$system_prompt = mpu_resolve_system_prompt( $personality_id, $mpu_opt, $ukagaka_name, $variables );
 		$provider = mpu_get_current_provider( $mpu_opt );
 		$api_key = mpu_get_provider_api_key( $provider, $mpu_opt );
 

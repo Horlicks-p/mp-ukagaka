@@ -1,4 +1,11 @@
 Fixture prompt for {{ukagaka_display_name}}.
+language={{language}}
+time_context={{time_context}}
+wp_version={{wp_version}}
+php_version={{php_version}}
+theme_name={{theme_name}}
+theme_version={{theme_version}}
+theme_author={{theme_author}}
 is_child_theme={{is_child_theme}}
 parent_theme={{parent_theme}}
 is_block_theme={{is_block_theme}}
@@ -9,3 +16,7 @@ active_plugins_count={{active_plugins_count}}
 active_plugins_list={{active_plugins_list}}
 slimstat_total_visits={{slimstat_total_visits}}
 post_count={{post_count}}
+comment_count={{comment_count}}
+category_count={{category_count}}
+tag_count={{tag_count}}
+days_operating={{days_operating}}
