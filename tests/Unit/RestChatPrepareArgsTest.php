@@ -115,6 +115,31 @@ final class RestChatPrepareArgsTest extends TestCase {
     }
 
     /**
+     * Runs prepare() expecting it to throw, then proves the lock had been taken first,
+     * so a throw that happens before acquire() cannot pass vacuously.
+     *
+     * Takes params rather than a request object: a failure trace carrying the request stub
+     * cannot be unserialized by the parent PHPUnit process, which hides the real failure.
+     */
+    private function assert_throw_after_acquire_releases_lock(array $params, string $message): void {
+        // PHPUnit's own assertion failures extend RuntimeException, so record the
+        // caught exception instead of calling fail() inside the try.
+        $thrown = null;
+        try {
+            $this->controller()->prepare($this->request($params));
+        } catch (RuntimeException $e) {
+            $thrown = $e->getMessage();
+        }
+        $this->assertSame($message, $thrown, 'prepare() was expected to rethrow');
+
+        $acquired = array_values(array_filter($GLOBALS['_mpu_test_action_log'], static function ($entry) {
+            return $entry[0] === 'mpu_chat_lock_acquired' && $entry[1][0] === self::SESSION;
+        }));
+        $this->assertCount(1, $acquired, 'the lock must have been acquired before the throw');
+        $this->assert_not_locked();
+    }
+
+    /**
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
@@ -279,6 +304,51 @@ final class RestChatPrepareArgsTest extends TestCase {
         $this->assert_not_locked();
         // drain() runs after the API-key check, so an early return leaves the buffer alone.
         $this->assertCount(1, MPU_Observation_Buffer::peek($token));
+    }
+
+    /**
+     * Throw right after acquire(): the integrity mode filter runs inside verify() on a mismatch.
+     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_throw_during_integrity_check_releases_lock(): void {
+        $this->load();
+        $history = $this->long_history();
+        $this->store_baseline_checksum($history);
+        $history[1]['content'] = 'reply 1 (edited)';
+        add_filter('mpu_chat_integrity_mode', static function () {
+            throw new RuntimeException('integrity boom');
+        });
+
+        $this->assert_throw_after_acquire_releases_lock([
+            'message'       => 'hello',
+            'session_token' => $this->token(),
+            'history'       => wp_json_encode($history),
+        ], 'integrity boom');
+    }
+
+    /**
+     * Throw late in prompt building, after the API-key check: mpu_get_current_user_info()
+     * is the only caller of wp_get_current_user() on this path, and only for a logged-in
+     * user. Defining it before load() replaces the harness stub, which is
+     * function_exists()-guarded.
+     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_throw_during_prompt_building_releases_lock(): void {
+        $this->assertFalse(function_exists('wp_get_current_user'));
+        function wp_get_current_user() {
+            throw new RuntimeException('prompt boom');
+        }
+        $this->load();
+        $GLOBALS['_mpu_test_is_user_logged_in'] = true;
+
+        $this->assert_throw_after_acquire_releases_lock(
+            ['message' => 'hello', 'session_token' => $this->token()],
+            'prompt boom'
+        );
     }
 
     /**
