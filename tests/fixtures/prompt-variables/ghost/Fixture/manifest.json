@@ -1,0 +1,7 @@
+{
+  "id": "Fixture",
+  "name": "Fixture",
+  "version": "1.0.0",
+  "author": "tests",
+  "description": "Template fixture for prompt variable tests. Not a real ghost."
+}
