@@ -1,0 +1,8 @@
+{
+  "id": "FixtureB",
+  "name": "FixtureB",
+  "version": "1.0.0",
+  "author": "tests",
+  "language": "en",
+  "description": "Second template fixture: a non-default character whose language comes from this manifest. Not a real ghost."
+}

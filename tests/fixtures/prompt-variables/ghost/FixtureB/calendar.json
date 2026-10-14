@@ -1,0 +1,6 @@
+{
+  "_description": "A period covering the whole year, so this character's time_context always carries its own marker.",
+  "holiday_periods": [
+    { "start": "1-1", "end": "12-31", "name": "FixtureB Season" }
+  ]
+}
