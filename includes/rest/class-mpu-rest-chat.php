@@ -87,20 +87,15 @@ class MPU_REST_Chat extends MPU_REST_Base {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
-        $wp_info              = mpu_get_wordpress_info();
-        $ukagaka_name         = mpu_resolve_request_ukagaka_num( $request->get_param( 'cur_num' ), $mpu_opt );
-        $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
-        $language             = $mpu_opt['ai_language'] ?? '';
+        $wp_info   = mpu_get_wordpress_info();
+        $character = $this->resolve_chat_character_context( $request->get_param( 'cur_num' ), $mpu_opt );
 
-        $personality_id = mpu_resolve_personality_id($ukagaka_name);
-        $language = function_exists('mpu_resolve_language_code')
-            ? mpu_resolve_language_code($personality_id, $language)
-            : ($language !== '' ? $language : 'zh-TW');
-        $time_context   = mpu_get_time_context($personality_id);
-
-        $prompt_language = function_exists('mpu_resolve_language')
-            ? mpu_resolve_language($personality_id, $language)
-            : $language;
+        $ukagaka_name         = $character['ukagaka_name'];
+        $ukagaka_display_name = $character['ukagaka_display_name'];
+        $personality_id       = $character['personality_id'];
+        $language             = $character['language'];
+        $prompt_language      = $character['prompt_language'];
+        $time_context         = $character['time_context'];
 
         $variables = mpu_build_system_prompt_variables( $ukagaka_display_name, $prompt_language, $time_context, $wp_info );
 
@@ -117,6 +112,38 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'variables'            => $variables,
             'system_prompt'        => mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables),
         ];
+    }
+
+    /**
+     * Resolve the requested character's identity, language and time context.
+     *
+     * Shared by the auto context/greet and user chat paths. It has no side effects and
+     * no admission checks; callers keep their own order for mpu_get_wordpress_info(),
+     * which may query the database on a cache miss.
+     *
+     * @param mixed $requested_ukagaka The request's cur_num parameter.
+     * @param array $mpu_opt           Plugin options.
+     * @return array {ukagaka_name, ukagaka_display_name, personality_id, language, prompt_language, time_context}
+     */
+    private function resolve_chat_character_context( $requested_ukagaka, array $mpu_opt ) {
+        $ukagaka_name   = mpu_resolve_request_ukagaka_num( $requested_ukagaka, $mpu_opt );
+        $personality_id = mpu_resolve_personality_id( $ukagaka_name );
+
+        $language = $mpu_opt['ai_language'] ?? '';
+        $language = function_exists( 'mpu_resolve_language_code' )
+            ? mpu_resolve_language_code( $personality_id, $language )
+            : ( '' !== $language ? $language : 'zh-TW' );
+
+        return array(
+            'ukagaka_name'         => $ukagaka_name,
+            'ukagaka_display_name' => $mpu_opt['ukagakas'][ $ukagaka_name ]['name'] ?? '偽春菜',
+            'personality_id'       => $personality_id,
+            'language'             => $language,
+            'prompt_language'      => function_exists( 'mpu_resolve_language' )
+                ? mpu_resolve_language( $personality_id, $language )
+                : $language,
+            'time_context'         => mpu_get_time_context( $personality_id ),
+        );
     }
 
     public function chat_context(WP_REST_Request $request) {
@@ -681,20 +708,16 @@ class MPU_REST_Chat extends MPU_REST_Base {
                 return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
             }
 
-            $ukagaka_name         = mpu_resolve_request_ukagaka_num( $request->get_param( 'cur_num' ), $mpu_opt );
-            $ukagaka_display_name = $mpu_opt['ukagakas'][$ukagaka_name]['name'] ?? '偽春菜';
-            $language             = $mpu_opt['ai_language'] ?? '';
+            $character = $this->resolve_chat_character_context( $request->get_param( 'cur_num' ), $mpu_opt );
 
-            $personality_id = mpu_resolve_personality_id($ukagaka_name);
-            $language = function_exists('mpu_resolve_language_code')
-                ? mpu_resolve_language_code($personality_id, $language)
-                : ($language !== '' ? $language : 'zh-TW');
-            $time_context   = mpu_get_time_context($personality_id);
+            $ukagaka_name         = $character['ukagaka_name'];
+            $ukagaka_display_name = $character['ukagaka_display_name'];
+            $personality_id       = $character['personality_id'];
+            $language             = $character['language'];
+            $prompt_language      = $character['prompt_language'];
+            $time_context         = $character['time_context'];
 
-            $wp_info   = mpu_get_wordpress_info();
-            $prompt_language = function_exists('mpu_resolve_language')
-                ? mpu_resolve_language($personality_id, $language)
-                : $language;
+            $wp_info = mpu_get_wordpress_info();
 
             $variables = mpu_build_system_prompt_variables( $ukagaka_display_name, $prompt_language, $time_context, $wp_info );
 

@@ -171,6 +171,82 @@ final class PromptVariablesTest extends TestCase {
     }
 
     /**
+     * The backend default is character A, the request asks for B, and the language comes
+     * from B's manifest (ai_language is empty).
+     */
+    private function use_non_default_character(): void {
+        $this->use_fixture_ghost([
+            'ukagakas'    => [
+                'default_1' => ['name' => 'Alpha', 'dialog_filename' => 'Fixture'],
+                'default_2' => ['name' => 'Beta', 'dialog_filename' => 'FixtureB'],
+            ],
+            'cur_ukagaka' => 'default_1',
+            'ai_language' => '',
+        ]);
+    }
+
+    /**
+     * Checks B's personality, language and time context, not just its display name.
+     */
+    private function assert_resolves_character_b(array $args): void {
+        $this->assertSame('default_2', $args['ukagaka_name']);
+        $this->assertSame('Beta', $args['ukagaka_display_name']);
+        $this->assertSame('FixtureB', $args['personality_id']);
+        $this->assertSame('en', $args['language'], 'the code must come from FixtureB\'s manifest');
+        $this->assertStringStartsWith("FixtureB prompt for Beta.\nlanguage=English\ntime_context=", $args['system_prompt']);
+        $this->assertStringContainsString('【FixtureB Season】', $args['system_prompt']);
+    }
+
+    /**
+     * time_context carries the current hour and minute, which may tick between two calls.
+     */
+    private function without_clock(string $prompt): string {
+        return preg_replace('/\d{1,2}時\d{1,2}分/u', 'H時M分', $prompt);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_auto_path_resolves_the_requested_non_default_character(): void {
+        $this->use_non_default_character();
+
+        $auto = (new MPU_Test_REST_Chat())->prepare_auto($this->request(['cur_num' => 'default_2']));
+
+        $this->assertIsArray($auto);
+        $this->assert_resolves_character_b($auto);
+        $this->assertSame('Beta', $auto['variables']['ukagaka_display_name']);
+        $this->assertSame('English', $auto['variables']['language']);
+        $this->assertStringEndsWith('【FixtureB Season】', $auto['variables']['time_context']);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_user_path_resolves_the_requested_non_default_character(): void {
+        $this->use_non_default_character();
+        $controller = new MPU_Test_REST_Chat();
+
+        $user = $controller->prepare($this->request([
+            'cur_num'       => 'default_2',
+            'message'       => 'hello',
+            'session_token' => mpu_generate_session_token(),
+        ]));
+
+        $this->assertIsArray($user);
+        $this->assert_resolves_character_b($user);
+
+        // The user prompt starts with the same base prompt the auto path resolves.
+        $auto = $controller->prepare_auto($this->request(['cur_num' => 'default_2']));
+        $this->assertIsArray($auto);
+        $this->assertStringStartsWith(
+            $this->without_clock($auto['system_prompt']) . "\n\n",
+            $this->without_clock($user['system_prompt'])
+        );
+    }
+
+    /**
      * Touch and decoration reach mpu_call_ai_api(); give passes its conversation and
      * reaches mpu_call_ai_api_with_messages(). Both must send the chat path's prompt.
      *
