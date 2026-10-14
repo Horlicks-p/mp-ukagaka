@@ -129,10 +129,14 @@ require_once MPU_TESTS_ROOT . '/includes/rest/class-mpu-rest-chat.php';
 require_once __DIR__ . '/IntegrityLogGuard.php';
 
 /**
- * Exposes the protected method under test without changing production visibility.
+ * Exposes the protected methods under test without changing production visibility.
  */
 final class MPU_Test_REST_Chat extends MPU_REST_Chat {
     public function prepare(WP_REST_Request $request) {
         return $this->prepare_user_chat_args($request);
+    }
+
+    public function prepare_auto(WP_REST_Request $request, array $options = []) {
+        return $this->prepare_auto_chat_context($request, $options);
     }
 }
