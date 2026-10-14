@@ -117,6 +117,24 @@ if (!function_exists('wp_get_current_user')) {
     }
 }
 
+if (!function_exists('absint')) {
+    function absint($maybeint) {
+        return abs((int) $maybeint);
+    }
+}
+
+if (!function_exists('remove_filter')) {
+    function remove_filter($hook_name, $callback, $priority = 10) {
+        foreach ($GLOBALS['_mpu_test_filters'][$hook_name] ?? [] as $i => $filter) {
+            if ($filter['callback'] === $callback && (int) ($filter['priority'] ?? 10) === (int) $priority) {
+                unset($GLOBALS['_mpu_test_filters'][$hook_name][$i]);
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
 // debug-functions.php is deliberately not loaded: its mpu_log_error() collides with the
 // bootstrap stub. The only effect is that the guarded mpu_debug_log() calls are skipped.
 require_once MPU_TESTS_ROOT . '/includes/core/core-functions.php';
@@ -126,6 +144,7 @@ require_once MPU_TESTS_ROOT . '/includes/personality/personality-prompts.php';
 require_once MPU_TESTS_ROOT . '/includes/llm/llm-context-builder.php';
 require_once MPU_TESTS_ROOT . '/includes/rest/class-mpu-rest-base.php';
 require_once MPU_TESTS_ROOT . '/includes/rest/class-mpu-rest-chat.php';
+require_once MPU_TESTS_ROOT . '/includes/rest/class-mpu-rest-touch.php';
 require_once __DIR__ . '/IntegrityLogGuard.php';
 
 /**

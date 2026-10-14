@@ -468,6 +468,52 @@ function mpu_build_emotion_tag_instruction( $supported, $descriptions = array(),
 }
 
 /**
+ * Build the template variables passed to mpu_resolve_system_prompt().
+ *
+ * Shared by every path that resolves a character system prompt (user chat, auto
+ * context/greet, touch/decoration/gift reactions) so a placeholder renders the same
+ * everywhere. A pure transformation: callers decide the character, language and time.
+ * Values only reach the prompt when a template references them.
+ *
+ * @param string $ukagaka_display_name Character name shown to visitors.
+ * @param string $prompt_language      Output of mpu_resolve_language().
+ * @param string $time_context         Output of mpu_get_time_context().
+ * @param array  $wp_info              Output of mpu_get_wordpress_info().
+ * @return array
+ */
+function mpu_build_system_prompt_variables( $ukagaka_display_name, $prompt_language, $time_context, $wp_info ) {
+	$plugins_list = '';
+	if ( ! empty( $wp_info['active_plugins_list'] ) && is_array( $wp_info['active_plugins_list'] ) ) {
+		$plugins_list = implode( '、', array_slice( $wp_info['active_plugins_list'], 0, 10 ) );
+	}
+
+	return array(
+		'ukagaka_display_name'  => $ukagaka_display_name,
+		'language'              => $prompt_language,
+		'time_context'          => $time_context,
+		'wp_version'            => $wp_info['wp_version'] ?? '',
+		'php_version'           => $wp_info['php_version'] ?? '',
+		'theme_name'            => $wp_info['theme_name'] ?? '',
+		'theme_version'         => $wp_info['theme_version'] ?? '',
+		'theme_author'          => $wp_info['theme_author'] ?? '',
+		'is_child_theme'        => $wp_info['is_child_theme'] ?? false,
+		'parent_theme'          => $wp_info['parent_theme'] ?? '',
+		'is_block_theme'        => $wp_info['is_block_theme'] ?? false,
+		'site_name'             => $wp_info['site_name'] ?? '',
+		'site_description'      => $wp_info['site_description'] ?? '',
+		'is_multisite'          => $wp_info['is_multisite'] ?? false,
+		'active_plugins_count'  => $wp_info['active_plugins_count'] ?? 0,
+		'active_plugins_list'   => $plugins_list,
+		'post_count'            => $wp_info['post_count'] ?? 0,
+		'comment_count'         => $wp_info['comment_count'] ?? 0,
+		'category_count'        => $wp_info['category_count'] ?? 0,
+		'tag_count'             => $wp_info['tag_count'] ?? 0,
+		'days_operating'        => $wp_info['days_operating'] ?? 0,
+		'slimstat_total_visits' => $wp_info['slimstat_total_visits'] ?? 0,
+	);
+}
+
+/**
  * Resolve system prompt with unified fallback chain
  *
  * Priority:

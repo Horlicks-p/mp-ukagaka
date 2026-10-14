@@ -102,7 +102,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             ? mpu_resolve_language($personality_id, $language)
             : $language;
 
-        $variables = $this->build_prompt_variables( $ukagaka_display_name, $prompt_language, $time_context, $wp_info );
+        $variables = mpu_build_system_prompt_variables( $ukagaka_display_name, $prompt_language, $time_context, $wp_info );
 
         return [
             'mpu_opt'              => $mpu_opt,
@@ -116,44 +116,6 @@ class MPU_REST_Chat extends MPU_REST_Base {
             'time_context'         => $time_context,
             'variables'            => $variables,
             'system_prompt'        => mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables),
-        ];
-    }
-
-    /**
-     * Template variables for mpu_resolve_system_prompt(), shared by the user chat and the
-     * auto context/greet paths so a placeholder works the same on every path. Values only
-     * reach the prompt when a template references them.
-     *
-     * @param string $ukagaka_display_name Character name shown to visitors.
-     * @param string $prompt_language      Output of mpu_resolve_language().
-     * @param string $time_context         Output of mpu_get_time_context().
-     * @param array  $wp_info              Output of mpu_get_wordpress_info().
-     * @return array
-     */
-    private function build_prompt_variables( $ukagaka_display_name, $prompt_language, $time_context, $wp_info ) {
-        return [
-            'ukagaka_display_name'  => $ukagaka_display_name,
-            'language'              => $prompt_language,
-            'time_context'          => $time_context,
-            'wp_version'            => $wp_info['wp_version'] ?? '',
-            'php_version'           => $wp_info['php_version'] ?? '',
-            'theme_name'            => $wp_info['theme_name'] ?? '',
-            'theme_version'         => $wp_info['theme_version'] ?? '',
-            'theme_author'          => $wp_info['theme_author'] ?? '',
-            'is_child_theme'        => $wp_info['is_child_theme'] ?? false,
-            'parent_theme'          => $wp_info['parent_theme'] ?? '',
-            'is_block_theme'        => $wp_info['is_block_theme'] ?? false,
-            'site_name'             => $wp_info['site_name'] ?? '',
-            'site_description'      => $wp_info['site_description'] ?? '',
-            'is_multisite'          => $wp_info['is_multisite'] ?? false,
-            'active_plugins_count'  => $wp_info['active_plugins_count'] ?? 0,
-            'active_plugins_list'   => (!empty($wp_info['active_plugins_list']) && is_array($wp_info['active_plugins_list'])) ? implode('、', array_slice($wp_info['active_plugins_list'], 0, 10)) : '',
-            'post_count'            => $wp_info['post_count'] ?? 0,
-            'comment_count'         => $wp_info['comment_count'] ?? 0,
-            'category_count'        => $wp_info['category_count'] ?? 0,
-            'tag_count'             => $wp_info['tag_count'] ?? 0,
-            'days_operating'        => $wp_info['days_operating'] ?? 0,
-            'slimstat_total_visits' => $wp_info['slimstat_total_visits'] ?? 0,
         ];
     }
 
@@ -734,7 +696,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
                 ? mpu_resolve_language($personality_id, $language)
                 : $language;
 
-            $variables = $this->build_prompt_variables( $ukagaka_display_name, $prompt_language, $time_context, $wp_info );
+            $variables = mpu_build_system_prompt_variables( $ukagaka_display_name, $prompt_language, $time_context, $wp_info );
 
             $user_info         = mpu_get_current_user_info();
             $base_system_prompt = mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_display_name, $variables);
