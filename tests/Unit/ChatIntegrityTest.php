@@ -3,6 +3,25 @@
 use PHPUnit\Framework\TestCase;
 
 final class ChatIntegrityTest extends TestCase {
+    /** @var MPU_Test_Integrity_Log_Guard|null */
+    private $log_guard;
+
+    protected function setUp(): void {
+        require_once MPU_TESTS_ROOT . '/tests/support/IntegrityLogGuard.php';
+        $GLOBALS['_mpu_test_filters']    = [];
+        $GLOBALS['_mpu_test_transients'] = [];
+        $GLOBALS['_mpu_test_action_log'] = [];
+        $this->log_guard = new MPU_Test_Integrity_Log_Guard();
+    }
+
+    protected function tearDown(): void {
+        $GLOBALS['_mpu_test_filters']    = [];
+        $GLOBALS['_mpu_test_transients'] = [];
+        $problems = $this->log_guard->restore();
+        $this->log_guard = null;
+        $this->assertSame([], $problems, 'checksum-mismatch log was not restored cleanly');
+    }
+
     public function test_filter_messages_keeps_only_chat_assistant_messages(): void {
         $messages = [
             ['role' => 'user', 'content' => 'ignored'],
@@ -116,5 +135,83 @@ final class ChatIntegrityTest extends TestCase {
             mpu_chat_integrity_compute_checksum($stored),
             mpu_chat_integrity_compute_checksum($verified)
         );
+    }
+
+    /**
+     * @dataProvider non_blocking_modes
+     */
+    public function test_mismatch_in_non_blocking_mode_lets_request_continue(string $mode): void {
+        $this->use_mode($mode);
+
+        $this->assertNull($this->verify_mismatch());
+        $this->assertSame([$mode], $this->mismatch_decisions());
+        $this->assertNotSame('', $this->log_guard->appended_log());
+    }
+
+    public function non_blocking_modes(): array {
+        return [
+            'audit' => ['audit'],
+            'warn'  => ['warn'],
+        ];
+    }
+
+    public function test_mismatch_in_block_mode_returns_409_error(): void {
+        $this->use_mode('block');
+
+        $result = $this->verify_mismatch();
+
+        $this->assertInstanceOf(WP_Error::class, $result);
+        $this->assertSame(409, $result->get_error_data()['status']);
+        $this->assertSame(['block'], $this->mismatch_decisions());
+    }
+
+    public function test_should_block_filter_overrides_mode_decision(): void {
+        $this->use_mode('block');
+        add_filter('mpu_chat_integrity_should_block', static function () {
+            return false;
+        });
+        $this->assertNull($this->verify_mismatch());
+
+        $GLOBALS['_mpu_test_filters'] = [];
+        $this->use_mode('audit');
+        add_filter('mpu_chat_integrity_should_block', static function () {
+            return true;
+        });
+        $result = $this->verify_mismatch();
+        $this->assertInstanceOf(WP_Error::class, $result);
+        $this->assertSame(409, $result->get_error_data()['status']);
+    }
+
+    public function test_invalid_mode_filter_value_falls_back_to_unfiltered_mode(): void {
+        $base = mpu_chat_integrity_mode();
+        $this->assertContains($base, ['audit', 'warn', 'block']);
+
+        $this->use_mode('bogus');
+
+        $this->assertSame($base, mpu_chat_integrity_mode());
+    }
+
+    private function use_mode(string $mode): void {
+        add_filter('mpu_chat_integrity_mode', static function () use ($mode) {
+            return $mode;
+        });
+    }
+
+    private function verify_mismatch() {
+        $stored = [['role' => 'assistant', 'content' => 'original reply']];
+        $sent   = [['role' => 'assistant', 'content' => 'edited reply']];
+        $this->assertTrue(mpu_chat_integrity_store_history('integritymode01', $stored));
+
+        return mpu_chat_integrity_verify_history('integritymode01', $sent);
+    }
+
+    private function mismatch_decisions(): array {
+        $decisions = [];
+        foreach ($GLOBALS['_mpu_test_action_log'] as $entry) {
+            if ($entry[0] === 'mpu_chat_integrity_mismatch') {
+                $decisions[] = $entry[1][0]['decision'];
+            }
+        }
+        return $decisions;
     }
 }
