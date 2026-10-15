@@ -83,13 +83,12 @@ class MPU_AI_Provider_OpenAI extends MPU_AI_Provider_Base {
         $full_response_content = "";
 
         while ($current_turn < $max_turns) {
-            $request_body = [
+            $request_body = array_merge([
                 'model'       => $model,
                 'messages'    => $openai_messages,
-                'max_tokens'  => intval($max_tokens),
-                'temperature' => $temperature,
+            ], mpu_build_openai_generation_params($model, $max_tokens, $temperature), [
                 'stream'      => true
-            ];
+            ]);
 
             if (!empty($tools_config)) {
                 $request_body['tools'] = $tools_config;
@@ -277,12 +276,10 @@ class MPU_AI_Provider_OpenAI extends MPU_AI_Provider_Base {
         $loop_state = [];
 
         while ($current_turn < $max_turns) {
-            $request_body = [
+            $request_body = array_merge([
                 "model" => $model,
                 "messages" => $messages,
-                "temperature" => $temperature,
-                "max_tokens" => $max_tokens !== null ? intval($max_tokens) : 100,
-            ];
+            ], mpu_build_openai_generation_params($model, $max_tokens !== null ? $max_tokens : 100, $temperature));
 
             if (!empty($tools)) {
                 $request_body['tools'] = $tools;
@@ -398,12 +395,10 @@ class MPU_AI_Provider_OpenAI extends MPU_AI_Provider_Base {
         $loop_state = [];
 
         while ($current_turn < $max_turns) {
-            $request_body = [
+            $request_body = array_merge([
                 'model'       => $model,
                 'messages'    => $openai_messages,
-                'max_tokens'  => intval($max_tokens),
-                'temperature' => $temperature
-            ];
+            ], mpu_build_openai_generation_params($model, $max_tokens, $temperature));
 
             if (!empty($tools_config)) {
                 $request_body['tools'] = $tools_config;
@@ -504,11 +499,10 @@ class MPU_AI_Provider_OpenAI extends MPU_AI_Provider_Base {
                 'Content-Type'  => 'application/json',
                 'Authorization' => 'Bearer ' . $api_key,
             ],
-            'body'    => wp_json_encode([
+            'body'    => wp_json_encode(array_merge([
                 'model'      => $model,
                 'messages'   => [['role' => 'user', 'content' => 'Hi']],
-                'max_tokens' => 50,
-            ]),
+            ], mpu_build_openai_generation_params($model, 50))),
             'timeout' => 30,
         ]);
 

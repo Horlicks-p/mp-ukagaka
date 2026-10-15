@@ -166,6 +166,48 @@ function mpu_build_openai_tool_message($tool_call_id, $function_name, $result)
 }
 
 /**
+ * 建構 OpenAI Chat Completions 的 token / 採樣 / 推理參數片段
+ *
+ * 新世代模型（gpt-6-luna 等）改用 max_completion_tokens，並明確送出
+ * reasoning_effort: none —— Chat Completions 只在 none 時支援 function calling，
+ * 而 MCP 工具會掛在請求上。其餘模型維持舊格式（max_tokens），
+ * 舊模型不接受 reasoning_effort，不可外漏。
+ *
+ * @param  string     $model       模型 ID
+ * @param  int        $max_tokens  最大輸出 token 數
+ * @param  float|null $temperature 採樣溫度；null 表示不送
+ * @return array      要合併進 request body 的參數
+ */
+function mpu_build_openai_generation_params($model, $max_tokens, $temperature = null)
+{
+    // 支援 reasoning_effort: none 的新世代模型（前綴比對，含日期快照）
+    $none_effort_models = ['gpt-6-luna'];
+
+    $is_new_generation = false;
+    foreach ($none_effort_models as $prefix) {
+        if (strpos((string) $model, $prefix) === 0) {
+            $is_new_generation = true;
+            break;
+        }
+    }
+
+    if ($is_new_generation) {
+        $params = [
+            'max_completion_tokens' => intval($max_tokens),
+            'reasoning_effort'      => 'none',
+        ];
+    } else {
+        $params = ['max_tokens' => intval($max_tokens)];
+    }
+
+    if ($temperature !== null) {
+        $params['temperature'] = $temperature;
+    }
+
+    return $params;
+}
+
+/**
  * 建構 Ollama tool message（role: tool）
  *
  * @param  string $function_name 函數名稱

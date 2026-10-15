@@ -581,19 +581,32 @@ msgid "Gemini 2.5 Pro (更聰明，適合複雜推理)"
 msgstr "Gemini 2.5 Pro (Smarter, suitable for complex reasoning)"
 
 #: options/options_page_diary.php:248
-#: options/options_page_llm.php:116
 msgid "GPT-4.1 Mini (推薦，速度快成本低)"
 msgstr "GPT-4.1 Mini (Recommended, fast and cost-effective)"
 
 #: options/options_page_diary.php:249
-#: options/options_page_llm.php:117
 msgid "GPT-4o Mini (快速且經濟)"
 msgstr "GPT-4o Mini (Fast and economical)"
 
 #: options/options_page_diary.php:250
-#: options/options_page_llm.php:118
 msgid "GPT-4o (更聰明)"
 msgstr "GPT-4o (Smarter)"
+
+#: options/options_page_llm.php:116
+msgid "GPT-6 Luna (推薦，速度快成本低)"
+msgstr "GPT-6 Luna (Recommended, fast and cost-effective)"
+
+#: options/options_page_llm.php:117
+msgid "GPT-4.1 Mini (2027-01-14 停用)"
+msgstr "GPT-4.1 Mini (Retiring 2027-01-14)"
+
+#: options/options_page_llm.php:118
+msgid "GPT-4o Mini (2027-01-14 停用)"
+msgstr "GPT-4o Mini (Retiring 2027-01-14)"
+
+#: options/options_page_llm.php:119
+msgid "GPT-4o (2027-01-14 停用)"
+msgstr "GPT-4o (Retiring 2027-01-14)"
 
 #: options/options_page_diary.php:276
 #: options/options_page_llm.php:149
