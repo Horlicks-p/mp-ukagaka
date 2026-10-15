@@ -233,6 +233,8 @@ The emoji system displays an emoji image next to the character while a line is s
 
 No AI provider is needed for built-in dialogue emojis.
 
+If an AI reply contains an expression tag the character does not have, such as `[smile]`, the tag is removed from the reply instead of being shown. Only tags that look like an expression are removed; ordinary bracket text such as `[gallery]` or `[x]` stays.
+
 ### File Structure
 
 Create the following structure in the character's folder (`ghost/CharacterID/`):
@@ -327,6 +329,8 @@ The LLM (Large Language Model) feature allows Ukagaka to generate dialogue using
 2. Enter your API Key in the **API Key** field (automatically encrypted at rest)
 3. Select a model from the dropdown. The recommended option shown in the UI is usually the best first choice for cost and response speed.
 4. Click "Test Connection" to confirm the API Key is valid
+
+> 💡 **OpenAI models**: **GPT-6 Luna** is the recommended OpenAI model. Its input tokens cost 75% less than GPT-4.1 mini and its output tokens about 69% less. OpenAI retires GPT-4o, GPT-4o mini, GPT-4.1 and GPT-4.1 mini on 2027-01-14, so the menu labels them with that date. A site that already uses one of them keeps it until you change it here (and on the Diary page, which has its own model setting). To use **GPT-5.6 Luna**, choose "Custom model…" and enter `gpt-5.6-luna`; it is not listed in the menu but is supported.
 
 > 💡 **Security**: API Keys are encrypted with WordPress `AUTH_KEY` and OpenSSL, and are never saved as plaintext in the database. If the site has no `AUTH_KEY` or OpenSSL is unavailable, the API Key will not be saved.
 

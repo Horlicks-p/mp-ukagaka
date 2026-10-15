@@ -4,6 +4,35 @@
 
 ---
 
+## [2.38.0] - 2026-10-15
+
+### OpenAI models
+
+- **GPT-6 Luna support.** OpenAI retires GPT-4o, GPT-4o mini, GPT-4.1 and GPT-4.1 mini on 2027-01-14. A new helper, `mpu_build_openai_generation_params()`, builds the token and sampling fields for every OpenAI request (streaming, text, chat and the connection test). `gpt-6-luna` gets `max_completion_tokens` and `reasoning_effort: "none"`, which Chat Completions requires before it accepts the MCP function tools; every other model keeps `max_tokens` and never receives `reasoning_effort`.
+- **New installs default to `gpt-6-luna`.** A site that never saved an OpenAI model stays on `gpt-4.1-mini-2025-04-14` (`mpu_merge_option_defaults()`), so existing sites only switch when the owner chooses to.
+- **Settings menus.** The LLM and diary pages list GPT-6 Luna first as the recommended model. The retiring models stay in the menu, labelled with their 2027-01-14 shutdown date, so a saved selection still shows as itself. The diary fallbacks use `gpt-6-luna`.
+- **`gpt-5.6-luna` as a custom model.** It follows the same request rules as `gpt-6-luna` (it rejects `max_tokens`, and needs `reasoning_effort: "none"` with tools), so entering it under "Custom model…" now works instead of failing with HTTP 400. It is not listed in the menus.
+
+### Expressions
+
+- **Invented expression tags are hidden.** Some models end a reply with a tag the character does not have, such as `[smile]`, and it appeared in the message box. LLM replies (chat, streaming, greeting, page-aware lines, dialogue, touch reactions and Akismet event reactions) now drop an unknown tag only when it is written as a strict ASCII `[name]` in lowercase, its last `_`/`-` part is an English expression word and any earlier parts are modifiers such as `soft` or `shy`: `[smile]` and `[soft_smile]` go, while `[gallery]`, `[x]`, `[a-z]`, `[WordPress]`, `[TODO]`, `[happy_path]`, full-width `【smile】` and spaced or punctuated forms such as `[ smile ]` are kept. The character's own tags still switch the expression first. Built-in dialogue is unchanged.
+- **The streamed text matches the saved history.** The stream parser now uses the same rules as the response normalizer for nested brackets (`A[[smile]]B`, `[x[laugh]]`) and for a tag followed by a markdown link (`[laugh](https://…)` stays link text and does not change the expression). Before, the screen and the history could differ in these cases, and the next turn sent the model text it never displayed.
+
+### Prompts
+
+- **Every AI path gets the full prompt variables.** The context and first-visit greeting paths built only 13 of the 22 template variables, and touch, decoration and gift reactions built none, so placeholders such as `{{site_name}}`, `{{time_context}}` or `{{active_plugins_list}}` rendered as empty there. All of them now share `mpu_build_system_prompt_variables()` in `personality-loader.php`. Built-in ghosts produce the same prompts as before.
+
+### Reliability
+
+- **The chat lock is released when user chat preparation throws.** `prepare_user_chat_args()` released the lock on its explicit error returns, but an exception after the lock was taken left it held until it expired (60 seconds by default), and the visitor's next message was refused as busy.
+
+### Internal
+
+- The chat endpoints resolve the character, language and time context in one helper (`resolve_chat_character_context()`) instead of two copies.
+- New characterization tests pin the user-chat argument contract (rate limit, integrity modes, lock hand-off, history window), plus tests for the OpenAI request parameters, the option defaults, the prompt variables and the parser/normalizer agreement.
+
+---
+
 ## [2.37.4] - 2026-10-13
 
 ### Multi-character sites

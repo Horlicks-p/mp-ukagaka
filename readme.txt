@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.37.4
+Stable tag: 2.38.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,14 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-15 =
+* v2.38.0
+* [NEW] Supports GPT-6 Luna and recommends it on the LLM and diary settings pages; new installs default to it. GPT-4o and GPT-4.1 (including mini) retire on 2027-01-14 and are labelled with that date. Existing sites keep their current model.
+* [NEW] gpt-5.6-luna works when entered as a custom model.
+* [FIX] Made-up expression tags such as [smile] no longer appear in AI replies; other bracket text and the character's own tags are unaffected.
+* [FIX] Greetings and touch, decoration and gift reactions now fill the same prompt placeholders (site name, time and so on) as chat.
+* [FIX] The chat lock is released if preparing a visitor's message fails, so the next message is not refused as busy.
 
 = 2026-10-13 =
 * v2.37.4
