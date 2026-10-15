@@ -3268,31 +3268,19 @@ msgstr ""
 msgid "OpenAI 模型："
 msgstr ""
 
-#: options/options_page_diary.php:248
-msgid "GPT-4.1 Mini (推薦，速度快成本低)"
-msgstr ""
-
-#: options/options_page_diary.php:249
-msgid "GPT-4o Mini (快速且經濟)"
-msgstr ""
-
-#: options/options_page_diary.php:250
-msgid "GPT-4o (更聰明)"
-msgstr ""
-
-#: options/options_page_llm.php:116
+#: options/options_page_llm.php:117 options/options_page_diary.php:249
 msgid "GPT-6 Luna (推薦，速度快成本低)"
 msgstr ""
 
-#: options/options_page_llm.php:117
+#: options/options_page_llm.php:118 options/options_page_diary.php:250
 msgid "GPT-4.1 Mini (2027-01-14 停用)"
 msgstr ""
 
-#: options/options_page_llm.php:118
+#: options/options_page_llm.php:119 options/options_page_diary.php:251
 msgid "GPT-4o Mini (2027-01-14 停用)"
 msgstr ""
 
-#: options/options_page_llm.php:119
+#: options/options_page_llm.php:120 options/options_page_diary.php:252
 msgid "GPT-4o (2027-01-14 停用)"
 msgstr ""
 

@@ -61,7 +61,7 @@ function mpu_diary_get_provider_settings()
             }
 
             $settings['api_key'] = mpu_decrypt_api_key($api_key);
-            $settings['model'] = isset($mpu_opt['diary_openai_model']) ? $mpu_opt['diary_openai_model'] : 'gpt-4.1-mini-2025-04-14';
+            $settings['model'] = isset($mpu_opt['diary_openai_model']) ? $mpu_opt['diary_openai_model'] : 'gpt-6-luna';
             break;
 
         case 'claude':
