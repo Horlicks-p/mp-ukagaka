@@ -3,13 +3,16 @@
 use PHPUnit\Framework\TestCase;
 
 final class OpenAIGenerationParamsTest extends TestCase {
-    public function test_gpt_6_luna_uses_completion_tokens_and_none_effort(): void {
-        $params = mpu_build_openai_generation_params('gpt-6-luna', 800, 0.8);
+    public function test_luna_models_use_completion_tokens_and_none_effort(): void {
+        // gpt-5.6-luna 只能從自訂模型填入，規則與 gpt-6-luna 相同
+        foreach (['gpt-6-luna', 'gpt-5.6-luna'] as $model) {
+            $params = mpu_build_openai_generation_params($model, 800, 0.8);
 
-        $this->assertSame(800, $params['max_completion_tokens']);
-        $this->assertSame('none', $params['reasoning_effort']);
-        $this->assertSame(0.8, $params['temperature']);
-        $this->assertArrayNotHasKey('max_tokens', $params);
+            $this->assertSame(800, $params['max_completion_tokens'], $model);
+            $this->assertSame('none', $params['reasoning_effort'], $model);
+            $this->assertSame(0.8, $params['temperature'], $model);
+            $this->assertArrayNotHasKey('max_tokens', $params, $model);
+        }
     }
 
     public function test_legacy_models_keep_old_format(): void {

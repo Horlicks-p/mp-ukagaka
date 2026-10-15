@@ -169,7 +169,7 @@ function mpu_build_openai_tool_message($tool_call_id, $function_name, $result)
 /**
  * 建構 OpenAI Chat Completions 的 token / 採樣 / 推理參數片段
  *
- * 新世代模型（gpt-6-luna 等）改用 max_completion_tokens，並明確送出
+ * 新世代模型（gpt-6-luna、gpt-5.6-luna）改用 max_completion_tokens，並明確送出
  * reasoning_effort: none —— Chat Completions 只在 none 時支援 function calling，
  * 而 MCP 工具會掛在請求上。其餘模型維持舊格式（max_tokens），
  * 舊模型不接受 reasoning_effort，不可外漏。
@@ -182,7 +182,8 @@ function mpu_build_openai_tool_message($tool_call_id, $function_name, $result)
 function mpu_build_openai_generation_params($model, $max_tokens, $temperature = null)
 {
     // 支援 reasoning_effort: none 的新世代模型（前綴比對，含日期快照）.
-    $none_effort_models = ['gpt-6-luna'];
+    // gpt-5.6-luna 不列在設定頁選單，供使用者以自訂模型填入.
+    $none_effort_models = ['gpt-6-luna', 'gpt-5.6-luna'];
 
     $is_new_generation = false;
     foreach ($none_effort_models as $prefix) {
