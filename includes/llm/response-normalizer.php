@@ -232,12 +232,12 @@ function mpu_normalize_extract_leading_think( $raw_text ) {
  * 防呆：
  *  - negative lookahead 避免吃掉 markdown link 的文字部分。
  *  - 未知標籤預設保留 — 不影響 emotion 陣列。$strip_unknown 為 true 時
- *    （LLM 輸出路徑）只剝離全小寫的未知標籤（見 mpu_normalize_is_strippable_unknown_tag()），
- *    [WordPress] / [TODO] / [A] 這類含大寫的一般文字仍保留。
+ *    （LLM 輸出路徑）只剝離 ASCII 方括號內、像自創表情的未知標籤
+ *    （見 mpu_normalize_is_strippable_unknown_tag()），其餘一般文字仍保留。
  *
  * @param string   $text          待解析文字.
  * @param string[] $supported     角色 supported 標籤名清單.
- * @param bool     $strip_unknown 全小寫的未知標籤是否一併剝離.
+ * @param bool     $strip_unknown 像自創表情的未知標籤是否一併剝離.
  * @return array{text:string, tags:string[], files:string[]}
  */
 function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown = false ) {
@@ -258,7 +258,9 @@ function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown
 		'/【([ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?)】/iu',
 		'/［([ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?)］/iu',
 	);
-	foreach ( $inline_patterns as $pattern ) {
+	foreach ( $inline_patterns as $pattern_index => $pattern ) {
+		// 未知標籤只剝 ASCII [...]：串流 parser 只認這種括號，全形未知標籤兩邊都保留才一致.
+		$may_strip_unknown = $strip_unknown && 0 === $pattern_index;
 		if ( preg_match_all( $pattern, $text, $mm, PREG_OFFSET_CAPTURE ) ) {
 			foreach ( $mm[0] as $i => $whole ) {
 				$tag_name = mpu_normalize_clean_inline_emotion_tag( $mm[1][ $i ][0] );
@@ -269,7 +271,7 @@ function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown
 						'len'    => strlen( $whole[0] ),
 						'tag'    => $canon,
 					);
-				} elseif ( $strip_unknown && mpu_normalize_is_strippable_unknown_tag( $tag_name ) ) {
+				} elseif ( $may_strip_unknown && mpu_normalize_is_strippable_unknown_tag( $tag_name ) ) {
 					mpu_normalize_warn( sprintf( 'unknown emotion tag "%s" stripped from display text', $tag_name ) );
 					$hits[] = array(
 						'offset' => $whole[1],
@@ -358,16 +360,59 @@ function mpu_normalize_clean_inline_emotion_tag( $name ) {
 }
 
 /**
- * 未知標籤是否像 LLM 自創的 emotion 標籤（全小寫，如 [smile]），可從 LLM 輸出剝離。
+ * 未知標籤是否像 LLM 自創的 emotion 標籤（如 [smile]、[soft_smile]），可從 LLM 輸出剝離。
  *
- * 含大寫的 [WordPress] / [TODO] / [A] 視為一般文字，不剝離。
+ * 只認全小寫、且以 _ / - 切開後任一段落在表情字彙內的標籤名。
+ * [gallery] shortcode、[x] checkbox、[a-z] 正規表示式、[note] 等一般文字，
+ * 以及含大寫的 [WordPress] / [TODO]，都不在字彙內而保留。
  *
  * @param string $name 已清理的標籤名.
  * @return bool
  */
 function mpu_normalize_is_strippable_unknown_tag( $name ) {
-	return 1 === preg_match( '/^[a-z][a-z0-9_-]{0,31}$/', (string) $name );
+	static $vocabulary = null;
+	if ( null === $vocabulary ) {
+		$vocabulary = array_flip( mpu_normalize_get_invented_emotion_vocabulary() );
+	}
+
+	$name = (string) $name;
+	if ( 1 !== preg_match( '/^[a-z][a-z0-9_-]{0,31}$/', $name ) ) {
+		return false;
+	}
+
+	foreach ( preg_split( '/[_-]+/', $name, -1, PREG_SPLIT_NO_EMPTY ) as $token ) {
+		if ( isset( $vocabulary[ $token ] ) ) {
+			return true;
+		}
+	}
+	return false;
 }
+
+// phpcs:disable WordPress.Arrays.ArrayDeclarationSpacing.ArrayItemNoNewLine -- Vocabulary lists are kept compact, several per line.
+/**
+ * LLM 常自創的英文表情 / 動作詞（不在角色 supported 清單時才會用到）。
+ *
+ * 刻意排除 content、note、code、blank、soft 這類也常當一般文字或佔位符的詞。
+ *
+ * @return string[]
+ */
+function mpu_normalize_get_invented_emotion_vocabulary() {
+	return array(
+		'smile', 'smiles', 'smiling', 'smiled', 'smirk', 'smirking', 'grin', 'grinning',
+		'laugh', 'laughs', 'laughing', 'giggle', 'giggles', 'giggling', 'chuckle', 'chuckles', 'chuckling',
+		'happy', 'joy', 'joyful', 'glad', 'cheerful', 'delighted', 'pleased', 'excited',
+		'sad', 'sadness', 'cry', 'cries', 'crying', 'tearful', 'sob', 'sobbing', 'lonely', 'melancholy', 'wistful', 'nostalgic',
+		'sigh', 'sighs', 'sighing', 'blush', 'blushes', 'blushing', 'embarrassed', 'shy', 'flustered',
+		'nervous', 'anxious', 'worried', 'scared', 'afraid', 'fear',
+		'surprised', 'surprise', 'shocked', 'amazed', 'astonished', 'confused', 'puzzled', 'curious',
+		'angry', 'anger', 'annoyed', 'irritated', 'frustrated', 'upset', 'disappointed', 'pout', 'pouting', 'frown', 'frowning',
+		'wink', 'winking', 'nod', 'nodding', 'shrug', 'shrugging', 'yawn', 'yawning', 'sleepy', 'tired', 'bored',
+		'calm', 'neutral', 'serious', 'thoughtful', 'thinking', 'pensive', 'deadpan', 'expressionless', 'emotionless', 'indifferent',
+		'proud', 'smug', 'relieved', 'satisfied', 'gentle', 'tender', 'apologetic', 'teasing', 'playful', 'mischievous', 'determined',
+		'drool', 'drooling', 'hungry', 'eager',
+	);
+}
+// phpcs:enable WordPress.Arrays.ArrayDeclarationSpacing.ArrayItemNoNewLine
 
 /**
  * 將標籤名解析為角色 supported 清單中的正規名（不分大小寫）。

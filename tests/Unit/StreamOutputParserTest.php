@@ -112,9 +112,15 @@ final class StreamOutputParserTest extends TestCase {
     }
 
     public function test_strip_keeps_capitalized_brackets_and_markdown_links(): void {
-        $events = $this->collect(['[WordPress] と [TODO]、[li', 'nk', '](https://example.test)'], true);
+        $events = $this->collect(['[WordPress] と [TODO]、[smi', 'le', '](https://example.test)'], true);
 
-        $this->assertSame('[WordPress] と [TODO]、[link](https://example.test)', $this->deltaText($events));
+        $this->assertSame('[WordPress] と [TODO]、[smile](https://example.test)', $this->deltaText($events));
+    }
+
+    public function test_strip_keeps_ordinary_bracket_text(): void {
+        $events = $this->collect(['Use [gal', 'lery] here; range [a-z]; - [x', '] done'], true);
+
+        $this->assertSame('Use [gallery] here; range [a-z]; - [x] done', $this->deltaText($events));
     }
 
     public function test_unknown_tag_kept_when_strip_disabled(): void {

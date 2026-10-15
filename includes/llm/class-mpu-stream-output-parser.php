@@ -77,7 +77,7 @@ class MPU_Stream_Output_Parser {
 	private $main_output_started = false;
 
 	/**
-	 * Whether all-lowercase unknown tags (LLM-invented, e.g. [smile]) are dropped.
+	 * Whether LLM-invented emotion tags (e.g. [smile]) are dropped.
 	 *
 	 * @var bool
 	 */
@@ -88,13 +88,13 @@ class MPU_Stream_Output_Parser {
 	 *
 	 * @param string|null $personality_id     Personality identifier.
 	 * @param string      $context            Response context.
-	 * @param bool        $strip_unknown_tags Drop all-lowercase unknown tags (LLM output).
+	 * @param bool        $strip_unknown_tags Drop LLM-invented emotion tags (LLM output).
 	 */
 	public function __construct( $personality_id = null, $context = 'chat', $strip_unknown_tags = false ) {
 		$this->personality_id     = $personality_id;
 		$this->context            = is_string( $context ) && '' !== $context ? $context : 'chat';
 		$this->strip_unknown_tags = (bool) $strip_unknown_tags;
-		$this->supported_tags = function_exists( 'mpu_normalize_get_supported_tags' )
+		$this->supported_tags     = function_exists( 'mpu_normalize_get_supported_tags' )
 			? mpu_normalize_get_supported_tags( $personality_id )
 			: array();
 	}
@@ -472,7 +472,7 @@ class MPU_Stream_Output_Parser {
 	}
 
 	/**
-	 * Check whether an unknown tag name looks LLM-invented (all lowercase).
+	 * Check whether an unknown tag name looks like an LLM-invented emotion.
 	 *
 	 * @param string $name Candidate tag name.
 	 * @return bool Whether it may be dropped.
@@ -481,7 +481,7 @@ class MPU_Stream_Output_Parser {
 		if ( function_exists( 'mpu_normalize_is_strippable_unknown_tag' ) ) {
 			return mpu_normalize_is_strippable_unknown_tag( $name );
 		}
-		return 1 === preg_match( '/^[a-z][a-z0-9_-]{0,31}$/', (string) $name );
+		return false;
 	}
 
 	/**

@@ -254,8 +254,8 @@ final class ResponseNormalizerTest extends TestCase {
     }
 
     public function test_strip_unknown_tags_option(): void {
-        $r = mpu_normalize_ai_response('これは [evil] だ', null, ['strip_unknown_tags' => true]);
-        $this->assertStringNotContainsString('[evil]', $r['display_text']);
+        $r = mpu_normalize_ai_response('これは [grin] だ', null, ['strip_unknown_tags' => true]);
+        $this->assertStringNotContainsString('[grin]', $r['display_text']);
         $this->assertSame([], $r['emotion_tags']);
     }
 
@@ -279,6 +279,24 @@ final class ResponseNormalizerTest extends TestCase {
             'TODO'      => ['[TODO]'],
             'single'    => ['[A]'],
         ];
+    }
+
+    public function test_strip_unknown_tags_keeps_ordinary_bracket_text(): void {
+        // shortcode / checkbox / 正規表示式 / 一般註記都不是表情，不可被剝
+        $text = 'Use [gallery] here; range [a-z]; - [x] done; see [note] and [code]';
+        $r = mpu_normalize_ai_response($text, null, ['strip_unknown_tags' => true]);
+        $this->assertSame($text, $r['display_text']);
+    }
+
+    public function test_strip_unknown_tags_matches_compound_emotion_names(): void {
+        $r = mpu_normalize_ai_response('そうだね。[soft_smile]', null, ['strip_unknown_tags' => true]);
+        $this->assertSame('そうだね。', $r['display_text']);
+    }
+
+    public function test_strip_unknown_tags_keeps_fullwidth_brackets(): void {
+        // 串流 parser 不認全形括號；兩條路徑都保留，畫面與 history 才一致
+        $r = mpu_normalize_ai_response('いいね【smile】と［smile］', null, ['strip_unknown_tags' => true]);
+        $this->assertSame('いいね【smile】と［smile］', $r['display_text']);
     }
 
     public function test_rest_helper_uses_primary_emotion_before_keyword_scorer(): void {
