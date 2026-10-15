@@ -129,6 +129,30 @@ final class StreamOutputParserTest extends TestCase {
         $this->assertSame('Use [gallery] here; range [a-z]; - [x] done', $this->deltaText($events));
     }
 
+    /** @dataProvider nestedBracketProvider */
+    public function test_nested_brackets_match_normalizer(array $chunks): void {
+        // 雙層 / 巢狀括號：畫面必須與 normalizer 的 display_text（history）一致
+        $text   = implode('', $chunks);
+        $events = $this->collect($chunks, true);
+        $r      = mpu_normalize_ai_response($text, null, ['strip_unknown_tags' => true]);
+
+        $this->assertSame($r['display_text'], trim($this->deltaText($events)), $text);
+        $this->assertSame($r['emotion_tags'], array_column(array_column(array_filter($events, static function ($event) {
+            return $event['event'] === 'emotion';
+        }), 'data'), 'tag'), $text);
+    }
+
+    public function nestedBracketProvider(): array {
+        return [
+            'double unknown'      => [['A[[smile]]B']],
+            'double split'        => [['A[[smi', 'le]]B']],
+            'double supported'    => [['A[[laugh]]B']],
+            'prefixed inner'      => [['A[x[smile]]B']],
+            'unbalanced open'     => [['A[[smile]B']],
+            'double before link'  => [['[[smile]](https://example.test)']],
+        ];
+    }
+
     public function test_unknown_tag_kept_when_strip_disabled(): void {
         $events = $this->collect(['ok[smile]']);
 

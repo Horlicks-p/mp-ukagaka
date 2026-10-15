@@ -306,6 +306,13 @@ final class ResponseNormalizerTest extends TestCase {
         $this->assertSame('ok[smile.] and [ smile ]', $r['display_text']);
     }
 
+    public function test_strip_unknown_tags_uses_innermost_bracket(): void {
+        // 串流 parser 也以最內層 '[' 為標籤起點；外層括號保留，畫面與 history 才一致
+        $r = mpu_normalize_ai_response('A[[smile]]B と C[x[smile]]D', null, ['strip_unknown_tags' => true]);
+        $this->assertSame('A[]B と C[x]D', $r['display_text']);
+        $this->assertSame([], $r['emotion_tags']);
+    }
+
     public function test_strip_unknown_tags_keeps_fullwidth_brackets(): void {
         // 串流 parser 不認全形括號；兩條路徑都保留，畫面與 history 才一致
         $r = mpu_normalize_ai_response('いいね【smile】と［smile］', null, ['strip_unknown_tags' => true]);

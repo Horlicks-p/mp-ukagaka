@@ -247,6 +247,15 @@ class MPU_Stream_Output_Parser {
 	 */
 	private function drain_tag_candidate( array &$events, $is_final ) {
 		$close = strpos( $this->buffer, ']' );
+
+		// 與 normalizer 一致：[[smile]]、[x[smile]] 以最內層的 '[' 為標籤起點，外層 '[' 當一般文字.
+		$inner_open = strpos( $this->buffer, '[', 1 );
+		if ( false !== $inner_open && ( false === $close || $inner_open < $close ) ) {
+			$this->emit_delta( $events, substr( $this->buffer, 0, $inner_open ) );
+			$this->buffer = substr( $this->buffer, $inner_open );
+			return true;
+		}
+
 		if ( false !== $close ) {
 			$candidate = substr( $this->buffer, 0, $close + 1 );
 			if ( preg_match( '/^\[([a-z][a-z0-9_-]{0,31})\]$/i', $candidate, $m ) ) {
