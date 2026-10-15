@@ -84,12 +84,10 @@ class MPU_AI_Provider_OpenAI extends MPU_AI_Provider_Base {
 
         while ($current_turn < $max_turns) {
             $request_body = [
-                'model'       => $model,
-                'messages'    => $openai_messages,
-                'max_tokens'  => intval($max_tokens),
-                'temperature' => $temperature,
-                'stream'      => true
-            ];
+                'model'    => $model,
+                'messages' => $openai_messages,
+                'stream'   => true
+            ] + mpu_build_openai_generation_params($model, $max_tokens, $temperature);
 
             if (!empty($tools_config)) {
                 $request_body['tools'] = $tools_config;
@@ -278,11 +276,9 @@ class MPU_AI_Provider_OpenAI extends MPU_AI_Provider_Base {
 
         while ($current_turn < $max_turns) {
             $request_body = [
-                "model" => $model,
+                "model"    => $model,
                 "messages" => $messages,
-                "temperature" => $temperature,
-                "max_tokens" => $max_tokens !== null ? intval($max_tokens) : 100,
-            ];
+            ] + mpu_build_openai_generation_params($model, $max_tokens !== null ? $max_tokens : 100, $temperature);
 
             if (!empty($tools)) {
                 $request_body['tools'] = $tools;
@@ -399,11 +395,9 @@ class MPU_AI_Provider_OpenAI extends MPU_AI_Provider_Base {
 
         while ($current_turn < $max_turns) {
             $request_body = [
-                'model'       => $model,
-                'messages'    => $openai_messages,
-                'max_tokens'  => intval($max_tokens),
-                'temperature' => $temperature
-            ];
+                'model'    => $model,
+                'messages' => $openai_messages,
+            ] + mpu_build_openai_generation_params($model, $max_tokens, $temperature);
 
             if (!empty($tools_config)) {
                 $request_body['tools'] = $tools_config;
@@ -505,10 +499,9 @@ class MPU_AI_Provider_OpenAI extends MPU_AI_Provider_Base {
                 'Authorization' => 'Bearer ' . $api_key,
             ],
             'body'    => wp_json_encode([
-                'model'      => $model,
-                'messages'   => [['role' => 'user', 'content' => 'Hi']],
-                'max_tokens' => 50,
-            ]),
+                'model'    => $model,
+                'messages' => [['role' => 'user', 'content' => 'Hi']],
+            ] + mpu_build_openai_generation_params($model, 50)), // phpcs:ignore PEAR.Functions.FunctionCallSignature -- 沿用本檔既有的括號風格.
             'timeout' => 30,
         ]);
 

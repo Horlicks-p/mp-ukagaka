@@ -425,7 +425,10 @@ class MPU_REST_Touch extends MPU_REST_Base {
 		$normalized = mpu_normalize_ai_response_for_rest(
 			$result,
 			$personality_id,
-			array( 'context' => $context )
+			array(
+				'context'            => $context,
+				'strip_unknown_tags' => true,
+			)
 		);
 		$max_length = 500;
 		if ( function_exists( 'mpu_get_personality_max_response_length' ) ) {

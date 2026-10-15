@@ -195,7 +195,14 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             $personality_id = function_exists('mpu_resolve_personality_id')
                 ? mpu_resolve_personality_id($cur_num)
                 : null;
-            $normalized = mpu_normalize_ai_response_for_rest($msg, $personality_id, array( 'context' => 'chat' ));
+            $normalized = mpu_normalize_ai_response_for_rest(
+                $msg,
+                $personality_id,
+                array(
+                    'context'            => 'chat',
+                    'strip_unknown_tags' => true,
+                )
+            );
         }
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
@@ -553,7 +560,14 @@ class MPU_REST_Dialog extends MPU_REST_Base {
         }
 
         if (function_exists('mpu_normalize_ai_response')) {
-            $normalized = mpu_normalize_ai_response($result, $personality_id, array( 'context' => 'chat' ));
+            $normalized = mpu_normalize_ai_response(
+                $result,
+                $personality_id,
+                array(
+                    'context'            => 'chat',
+                    'strip_unknown_tags' => true,
+                )
+            );
             $result     = $normalized['display_text'];
         } elseif (function_exists('mpu_filter_thinking_content')) {
             $result = mpu_filter_thinking_content($result);

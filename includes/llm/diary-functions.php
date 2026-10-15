@@ -61,7 +61,7 @@ function mpu_diary_get_provider_settings()
             }
 
             $settings['api_key'] = mpu_decrypt_api_key($api_key);
-            $settings['model'] = isset($mpu_opt['diary_openai_model']) ? $mpu_opt['diary_openai_model'] : 'gpt-4.1-mini-2025-04-14';
+            $settings['model'] = isset($mpu_opt['diary_openai_model']) ? $mpu_opt['diary_openai_model'] : 'gpt-6-luna';
             break;
 
         case 'claude':
@@ -506,7 +506,7 @@ function mpu_generate_diary_content()
     // mpu_call_ai_api() 讀取 llm_*_model 和 ollama_* key
     $api_opt = [
         'llm_gemini_model' => $provider_settings['model'] ?? 'gemini-2.5-flash',
-        'llm_openai_model' => $provider_settings['model'] ?? 'gpt-4.1-mini-2025-04-14',
+        'llm_openai_model' => $provider_settings['model'] ?? 'gpt-6-luna',
         'llm_claude_model' => $provider_settings['model'] ?? 'claude-sonnet-4-6',
         'ollama_endpoint'  => $provider_settings['endpoint'] ?? 'http://localhost:11434',
         'ollama_model'     => $provider_settings['model'] ?? 'qwen3:8b',

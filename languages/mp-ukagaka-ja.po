@@ -587,20 +587,21 @@ msgstr "Gemini 2.5 Flash (推奨)"
 msgid "Gemini 2.5 Pro (更聰明，適合複雜推理)"
 msgstr "Gemini 2.5 Pro (より賢い、複雑な推論に適している)"
 
-#: options/options_page_diary.php:248
-#: options/options_page_llm.php:116
-msgid "GPT-4.1 Mini (推薦，速度快成本低)"
-msgstr "GPT-4.1 Mini (推奨、高速でコストが低い)"
+#: options/options_page_llm.php:117 options/options_page_diary.php:249
+msgid "GPT-6 Luna (推薦，速度快成本低)"
+msgstr "GPT-6 Luna (推奨、高速でコストが低い)"
 
-#: options/options_page_diary.php:249
-#: options/options_page_llm.php:117
-msgid "GPT-4o Mini (快速且經濟)"
-msgstr "GPT-4o Mini (高速で経済的)"
+#: options/options_page_llm.php:118 options/options_page_diary.php:250
+msgid "GPT-4.1 Mini (2027-01-14 停用)"
+msgstr "GPT-4.1 Mini (2027-01-14 提供終了)"
 
-#: options/options_page_diary.php:250
-#: options/options_page_llm.php:118
-msgid "GPT-4o (更聰明)"
-msgstr "GPT-4o (より賢い)"
+#: options/options_page_llm.php:119 options/options_page_diary.php:251
+msgid "GPT-4o Mini (2027-01-14 停用)"
+msgstr "GPT-4o Mini (2027-01-14 提供終了)"
+
+#: options/options_page_llm.php:120 options/options_page_diary.php:252
+msgid "GPT-4o (2027-01-14 停用)"
+msgstr "GPT-4o (2027-01-14 提供終了)"
 
 #: options/options_page_diary.php:276
 #: options/options_page_llm.php:149

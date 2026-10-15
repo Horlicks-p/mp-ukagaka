@@ -30,12 +30,12 @@ $diary_claude_key_exists = !empty($mpu_opt['diary_claude_api_key']);
 
 // 獲取模型設定
 $diary_gemini_model = isset($mpu_opt['diary_gemini_model']) ? $mpu_opt['diary_gemini_model'] : 'gemini-2.5-flash';
-$diary_openai_model = isset($mpu_opt['diary_openai_model']) ? $mpu_opt['diary_openai_model'] : 'gpt-4.1-mini-2025-04-14';
+$diary_openai_model = isset($mpu_opt['diary_openai_model']) ? $mpu_opt['diary_openai_model'] : 'gpt-6-luna';
 $diary_claude_model = isset($mpu_opt['diary_claude_model']) ? $mpu_opt['diary_claude_model'] : 'claude-sonnet-4-6';
 
 // 各 provider 預設模型清單（用於判斷是否為自訂）
 $diary_gemini_preset_models = ['gemini-2.5-flash', 'gemini-2.5-pro'];
-$diary_openai_preset_models = ['gpt-4.1-mini-2025-04-14', 'gpt-4o-mini', 'gpt-4o'];
+$diary_openai_preset_models = ['gpt-6-luna', 'gpt-4.1-mini-2025-04-14', 'gpt-4o-mini', 'gpt-4o'];
 $diary_claude_preset_models = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-7'];
 
 $diary_gemini_is_custom = !in_array($diary_gemini_model, $diary_gemini_preset_models, true);
@@ -245,9 +245,12 @@ $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signatur
                     <label for="diary_openai_model_picker"><?php _e('OpenAI 模型：', 'mp-ukagaka'); ?></label>
                     <input type="hidden" id="diary_openai_model" name="diary_openai_model" value="<?php echo esc_attr($diary_openai_model); ?>" />
                     <select id="diary_openai_model_picker" style="width: 100%; max-width: 400px;">
-                        <option value="gpt-4.1-mini-2025-04-14" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-4.1-mini-2025-04-14') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4.1 Mini (推薦，速度快成本低)', 'mp-ukagaka')); ?></option>
-                        <option value="gpt-4o-mini" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-4o-mini') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o Mini (快速且經濟)', 'mp-ukagaka')); ?></option>
-                        <option value="gpt-4o" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-4o') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o (更聰明)', 'mp-ukagaka')); ?></option>
+                        <?php // phpcs:disable Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.OperatorSpacing -- 沿用本頁既有的選項標記風格. ?>
+                        <option value="gpt-6-luna" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-6-luna') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-6 Luna (推薦，速度快成本低)', 'mp-ukagaka')); ?></option>
+                        <option value="gpt-4.1-mini-2025-04-14" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-4.1-mini-2025-04-14') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4.1 Mini (2027-01-14 停用)', 'mp-ukagaka')); ?></option>
+                        <option value="gpt-4o-mini" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-4o-mini') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o Mini (2027-01-14 停用)', 'mp-ukagaka')); ?></option>
+                        <option value="gpt-4o" <?php echo (!$diary_openai_is_custom && $diary_openai_model === 'gpt-4o') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o (2027-01-14 停用)', 'mp-ukagaka')); ?></option>
+                        <?php // phpcs:enable Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.OperatorSpacing ?>
                         <option value="__custom" <?php echo $diary_openai_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
                     <div id="diary_openai_model_custom_wrap" style="display:<?php echo $diary_openai_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">

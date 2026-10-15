@@ -58,7 +58,7 @@ function mpu_default_opt()
         "llm_gemini_api_key" => "",
         "llm_gemini_model" => "gemini-2.5-flash",
         "llm_openai_api_key" => "",
-        "llm_openai_model" => "gpt-4.1-mini-2025-04-14",
+        "llm_openai_model" => 'gpt-6-luna',
         "llm_claude_api_key" => "",
         "llm_claude_model" => "claude-sonnet-4-6",
         "llm_replace_dialogue" => false,
@@ -96,6 +96,11 @@ function mpu_default_opt()
  */
 function mpu_merge_option_defaults( array $options, array $default_opt ): array {
 	$merged = array_merge( $default_opt, $options );
+
+	// 既有網站沒存過 OpenAI 模型時，沿用改預設前實際生效的模型，不隨新安裝預設切換.
+	if ( ! array_key_exists( 'llm_openai_model', $options ) ) {
+		$merged['llm_openai_model'] = 'gpt-4.1-mini-2025-04-14';
+	}
 
 	foreach (array( 'extend', 'bot_blocker' ) as $key) {
 		if ( ! isset( $default_opt[ $key ] ) || ! is_array( $default_opt[ $key ] ) ) {

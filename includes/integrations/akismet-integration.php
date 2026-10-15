@@ -103,7 +103,10 @@ function mpu_finalize_spam_event_response( WP_REST_Request $request, $message, a
 		$normalized    = mpu_normalize_ai_response_for_rest(
 			(string) $message,
 			$personality_id,
-			array( 'context' => 'event' )
+			array(
+				'context'            => 'event',
+				'strip_unknown_tags' => true,
+			)
 		);
 		$fields        = mpu_normalize_ai_response_rest_fields($normalized);
 		$checksum_text = $normalized['checksum_text'];
