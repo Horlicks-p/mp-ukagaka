@@ -77,14 +77,23 @@ class MPU_Stream_Output_Parser {
 	private $main_output_started = false;
 
 	/**
+	 * Whether all-lowercase unknown tags (LLM-invented, e.g. [smile]) are dropped.
+	 *
+	 * @var bool
+	 */
+	private $strip_unknown_tags = false;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param string|null $personality_id Personality identifier.
-	 * @param string      $context        Response context.
+	 * @param string|null $personality_id     Personality identifier.
+	 * @param string      $context            Response context.
+	 * @param bool        $strip_unknown_tags Drop all-lowercase unknown tags (LLM output).
 	 */
-	public function __construct( $personality_id = null, $context = 'chat' ) {
-		$this->personality_id = $personality_id;
-		$this->context        = is_string( $context ) && '' !== $context ? $context : 'chat';
+	public function __construct( $personality_id = null, $context = 'chat', $strip_unknown_tags = false ) {
+		$this->personality_id     = $personality_id;
+		$this->context            = is_string( $context ) && '' !== $context ? $context : 'chat';
+		$this->strip_unknown_tags = (bool) $strip_unknown_tags;
 		$this->supported_tags = function_exists( 'mpu_normalize_get_supported_tags' )
 			? mpu_normalize_get_supported_tags( $personality_id )
 			: array();
@@ -253,13 +262,25 @@ class MPU_Stream_Output_Parser {
 					$this->buffer = substr( $this->buffer, $close + 1 );
 					return true;
 				}
+				if ( $this->strip_unknown_tags && $this->is_strippable_unknown_tag( $m[1] ) ) {
+					// 與 normalizer 的 (?!\() 一致：看到 ']' 後一字元才能排除 markdown link.
+					$rest = (string) substr( $this->buffer, $close + 1 );
+					if ( '' === $rest && ! $is_final ) {
+						return false;
+					}
+					if ( 0 !== strpos( $rest, '(' ) ) {
+						$this->warn( sprintf( 'unknown emotion tag "%s" stripped from stream output', $m[1] ) );
+						$this->buffer = $rest;
+						return true;
+					}
+				}
 			}
 			$this->emit_delta( $events, $candidate );
 			$this->buffer = substr( $this->buffer, $close + 1 );
 			return true;
 		}
 
-		if ( $this->is_supported_tag_prefix( $this->buffer ) && ! $is_final ) {
+		if ( ( $this->is_supported_tag_prefix( $this->buffer ) || $this->is_strippable_tag_prefix( $this->buffer ) ) && ! $is_final ) {
 			return false;
 		}
 
@@ -438,6 +459,29 @@ class MPU_Stream_Output_Parser {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Check whether text could still become a strippable unknown tag.
+	 *
+	 * @param string $text Buffered text starting with '['.
+	 * @return bool Whether to keep buffering until ']'.
+	 */
+	private function is_strippable_tag_prefix( $text ) {
+		return $this->strip_unknown_tags && 1 === preg_match( '/^\[[a-z][a-z0-9_-]{0,31}$/', $text );
+	}
+
+	/**
+	 * Check whether an unknown tag name looks LLM-invented (all lowercase).
+	 *
+	 * @param string $name Candidate tag name.
+	 * @return bool Whether it may be dropped.
+	 */
+	private function is_strippable_unknown_tag( $name ) {
+		if ( function_exists( 'mpu_normalize_is_strippable_unknown_tag' ) ) {
+			return mpu_normalize_is_strippable_unknown_tag( $name );
+		}
+		return 1 === preg_match( '/^[a-z][a-z0-9_-]{0,31}$/', (string) $name );
 	}
 
 	/**

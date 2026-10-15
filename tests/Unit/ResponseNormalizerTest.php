@@ -259,6 +259,28 @@ final class ResponseNormalizerTest extends TestCase {
         $this->assertSame([], $r['emotion_tags']);
     }
 
+    public function test_strip_unknown_tags_removes_llm_invented_tag(): void {
+        // gpt-6-luna 實際輸出：清單外的 [smile] 曾直接顯示在對話框
+        $r = mpu_normalize_ai_response('いいね。メルクーアプリンの店なら、私も行きたいな。[smile]', null, ['strip_unknown_tags' => true]);
+        $this->assertSame('いいね。メルクーアプリンの店なら、私も行きたいな。', $r['display_text']);
+        $this->assertSame([], $r['emotion_tags']);
+        $this->assertPrimarySync($r);
+    }
+
+    /** @dataProvider capitalizedBracketProvider */
+    public function test_strip_unknown_tags_keeps_capitalized_text(string $text): void {
+        $r = mpu_normalize_ai_response("これは {$text} だよ", null, ['strip_unknown_tags' => true]);
+        $this->assertStringContainsString($text, $r['display_text']);
+    }
+
+    public function capitalizedBracketProvider(): array {
+        return [
+            'WordPress' => ['[WordPress]'],
+            'TODO'      => ['[TODO]'],
+            'single'    => ['[A]'],
+        ];
+    }
+
     public function test_rest_helper_uses_primary_emotion_before_keyword_scorer(): void {
         $r = mpu_normalize_ai_response_for_rest('[laugh] angry keyword', null, ['context' => 'chat']);
         $this->assertSame('laugh.png', $r['emoji']);

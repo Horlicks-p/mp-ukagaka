@@ -40,8 +40,8 @@ final class StreamOutputParserTest extends TestCase {
         $GLOBALS['_mpu_test_normalizer_warns'] = [];
     }
 
-    private function collect(array $chunks): array {
-        $parser = new MPU_Stream_Output_Parser(null, 'chat');
+    private function collect(array $chunks, bool $strip_unknown_tags = false): array {
+        $parser = new MPU_Stream_Output_Parser(null, 'chat', $strip_unknown_tags);
         $events = [];
 
         foreach ($chunks as $chunk) {
@@ -88,6 +88,39 @@ final class StreamOutputParserTest extends TestCase {
 
         $this->assertSame('[link](https://example.test)', $text);
         $this->assertNotContains('emotion', array_column($events, 'event'));
+    }
+
+    private function deltaText(array $events): string {
+        return implode('', array_map(static function ($event) {
+            return $event['event'] === 'delta' ? $event['data']['text'] : '';
+        }, $events));
+    }
+
+    public function test_unknown_lowercase_tag_split_across_chunks_is_stripped(): void {
+        // gpt-6-luna 實際輸出：清單外的 [smile] 曾直接顯示在對話框
+        $events = $this->collect(['いいね。私も行きたいな。[smi', 'le]'], true);
+
+        $this->assertSame('いいね。私も行きたいな。', $this->deltaText($events));
+        $this->assertNotContains('emotion', array_column($events, 'event'));
+        $this->assertNotEmpty($this->warnings());
+    }
+
+    public function test_unknown_lowercase_tag_mid_text_is_stripped(): void {
+        $events = $this->collect(['A[smi', 'le]B'], true);
+
+        $this->assertSame('AB', $this->deltaText($events));
+    }
+
+    public function test_strip_keeps_capitalized_brackets_and_markdown_links(): void {
+        $events = $this->collect(['[WordPress] と [TODO]、[li', 'nk', '](https://example.test)'], true);
+
+        $this->assertSame('[WordPress] と [TODO]、[link](https://example.test)', $this->deltaText($events));
+    }
+
+    public function test_unknown_tag_kept_when_strip_disabled(): void {
+        $events = $this->collect(['ok[smile]']);
+
+        $this->assertSame('ok[smile]', $this->deltaText($events));
     }
 
     public function test_unclosed_think_flushes_final_think(): void {

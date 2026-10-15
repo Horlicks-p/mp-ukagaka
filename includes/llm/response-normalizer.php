@@ -231,11 +231,13 @@ function mpu_normalize_extract_leading_think( $raw_text ) {
  *
  * 防呆：
  *  - negative lookahead 避免吃掉 markdown link 的文字部分。
- *  - 未知標籤預設保留（除非 $strip_unknown 為 true）— 不影響 emotion 陣列。
+ *  - 未知標籤預設保留 — 不影響 emotion 陣列。$strip_unknown 為 true 時
+ *    （LLM 輸出路徑）只剝離全小寫的未知標籤（見 mpu_normalize_is_strippable_unknown_tag()），
+ *    [WordPress] / [TODO] / [A] 這類含大寫的一般文字仍保留。
  *
  * @param string   $text          待解析文字.
  * @param string[] $supported     角色 supported 標籤名清單.
- * @param bool     $strip_unknown 未知標籤是否一併剝離.
+ * @param bool     $strip_unknown 全小寫的未知標籤是否一併剝離.
  * @return array{text:string, tags:string[], files:string[]}
  */
 function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown = false ) {
@@ -267,7 +269,8 @@ function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown
 						'len'    => strlen( $whole[0] ),
 						'tag'    => $canon,
 					);
-				} elseif ( $strip_unknown ) {
+				} elseif ( $strip_unknown && mpu_normalize_is_strippable_unknown_tag( $tag_name ) ) {
+					mpu_normalize_warn( sprintf( 'unknown emotion tag "%s" stripped from display text', $tag_name ) );
 					$hits[] = array(
 						'offset' => $whole[1],
 						'len'    => strlen( $whole[0] ),
@@ -352,6 +355,18 @@ function mpu_normalize_clean_inline_emotion_tag( $name ) {
 	$name = trim( (string) $name );
 	$name = preg_replace( '/[.!?。．、，,;；:：…]+\s*$/u', '', $name );
 	return is_string( $name ) ? trim( $name ) : '';
+}
+
+/**
+ * 未知標籤是否像 LLM 自創的 emotion 標籤（全小寫，如 [smile]），可從 LLM 輸出剝離。
+ *
+ * 含大寫的 [WordPress] / [TODO] / [A] 視為一般文字，不剝離。
+ *
+ * @param string $name 已清理的標籤名.
+ * @return bool
+ */
+function mpu_normalize_is_strippable_unknown_tag( $name ) {
+	return 1 === preg_match( '/^[a-z][a-z0-9_-]{0,31}$/', (string) $name );
 }
 
 /**

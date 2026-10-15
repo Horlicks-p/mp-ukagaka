@@ -334,7 +334,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
-        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'page_aware' ));
+        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'page_aware', 'strip_unknown_tags' => true ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
             $max_length = mpu_get_personality_max_response_length(null, $ukagaka_name);
@@ -492,7 +492,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
-        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'initial' ));
+        $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'initial', 'strip_unknown_tags' => true ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
             $max_length = mpu_get_personality_max_response_length(null, $ukagaka_name);
@@ -1115,7 +1115,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
                 $max_length = 0;
             }
 
-            $normalized = mpu_normalize_ai_response_for_rest($result, $args['personality_id'], array( 'context' => 'chat' ));
+            $normalized = mpu_normalize_ai_response_for_rest($result, $args['personality_id'], array( 'context' => 'chat', 'strip_unknown_tags' => true ));
             $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
             $result     = $normalized['display_text'];
 
@@ -1194,7 +1194,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $this->exit_if_stream_aborted($args);
 
         $full_response_content = "";
-        $stream_parser         = new MPU_Stream_Output_Parser($args['personality_id'], 'chat');
+        $stream_parser         = new MPU_Stream_Output_Parser($args['personality_id'], 'chat', true);
         $stream_emit           = function ( $event, $data ) use ( &$full_response_content, $args ) {
             if ($event === 'status' && isset($data['type']) && $data['type'] === 'executing_tool') {
                 $this->set_runtime_state_for_args($args, 'tool_running');
@@ -1253,7 +1253,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $max_length = 0;
         }
 
-        $normalized = mpu_normalize_ai_response_for_rest($result, $args['personality_id'], array( 'context' => 'chat' ));
+        $normalized = mpu_normalize_ai_response_for_rest($result, $args['personality_id'], array( 'context' => 'chat', 'strip_unknown_tags' => true ));
         $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
         $result     = $normalized['display_text'];
 
