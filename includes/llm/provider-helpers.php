@@ -165,6 +165,7 @@ function mpu_build_openai_tool_message($tool_call_id, $function_name, $result)
     ];
 }
 
+// phpcs:disable Generic.WhiteSpace.DisallowSpaceIndent, Generic.Functions.OpeningFunctionBraceKernighanRitchie, Squiz.Functions.FunctionDeclarationArgumentSpacing, PEAR.Functions.FunctionCallSignature, WordPress.WhiteSpace.ControlStructureSpacing, WordPress.WhiteSpace.CastStructureSpacing, Universal.Arrays.DisallowShortArraySyntax, NormalizedArrays.Arrays.ArrayBraceSpacing -- 沿用本檔既有的 4 空格舊式風格.
 /**
  * 建構 OpenAI Chat Completions 的 token / 採樣 / 推理參數片段
  *
@@ -173,19 +174,19 @@ function mpu_build_openai_tool_message($tool_call_id, $function_name, $result)
  * 而 MCP 工具會掛在請求上。其餘模型維持舊格式（max_tokens），
  * 舊模型不接受 reasoning_effort，不可外漏。
  *
- * @param  string     $model       模型 ID
- * @param  int        $max_tokens  最大輸出 token 數
- * @param  float|null $temperature 採樣溫度；null 表示不送
+ * @param  string     $model       模型 ID.
+ * @param  int        $max_tokens  最大輸出 token 數.
+ * @param  float|null $temperature 採樣溫度；null 表示不送.
  * @return array      要合併進 request body 的參數
  */
 function mpu_build_openai_generation_params($model, $max_tokens, $temperature = null)
 {
-    // 支援 reasoning_effort: none 的新世代模型（前綴比對，含日期快照）
+    // 支援 reasoning_effort: none 的新世代模型（前綴比對，含日期快照）.
     $none_effort_models = ['gpt-6-luna'];
 
     $is_new_generation = false;
     foreach ($none_effort_models as $prefix) {
-        if (strpos((string) $model, $prefix) === 0) {
+        if (0 === strpos((string) $model, $prefix)) {
             $is_new_generation = true;
             break;
         }
@@ -200,12 +201,13 @@ function mpu_build_openai_generation_params($model, $max_tokens, $temperature = 
         $params = ['max_tokens' => intval($max_tokens)];
     }
 
-    if ($temperature !== null) {
+    if (null !== $temperature) {
         $params['temperature'] = $temperature;
     }
 
     return $params;
 }
+// phpcs:enable Generic.WhiteSpace.DisallowSpaceIndent, Generic.Functions.OpeningFunctionBraceKernighanRitchie, Squiz.Functions.FunctionDeclarationArgumentSpacing, PEAR.Functions.FunctionCallSignature, WordPress.WhiteSpace.ControlStructureSpacing, WordPress.WhiteSpace.CastStructureSpacing, Universal.Arrays.DisallowShortArraySyntax, NormalizedArrays.Arrays.ArrayBraceSpacing
 
 /**
  * 建構 Ollama tool message（role: tool）

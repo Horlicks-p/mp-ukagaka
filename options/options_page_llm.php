@@ -113,10 +113,12 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <label for="llm_openai_model_picker"><?php _e('OpenAI 模型：', 'mp-ukagaka'); ?></label>
                     <input type="hidden" id="llm_openai_model" name="llm_openai_model" value="<?php echo esc_attr($openai_model); ?>" />
                     <select id="llm_openai_model_picker" style="width: 100%; max-width: 400px;">
+                        <?php // phpcs:disable Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.OperatorSpacing -- 沿用本頁既有的選項標記風格. ?>
                         <option value="gpt-6-luna" <?php echo (!$openai_is_custom && $openai_model === 'gpt-6-luna') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-6 Luna (推薦，速度快成本低)', 'mp-ukagaka')); ?></option>
                         <option value="gpt-4.1-mini-2025-04-14" <?php echo (!$openai_is_custom && $openai_model === 'gpt-4.1-mini-2025-04-14') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4.1 Mini (2027-01-14 停用)', 'mp-ukagaka')); ?></option>
                         <option value="gpt-4o-mini" <?php echo (!$openai_is_custom && $openai_model === 'gpt-4o-mini') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o Mini (2027-01-14 停用)', 'mp-ukagaka')); ?></option>
                         <option value="gpt-4o" <?php echo (!$openai_is_custom && $openai_model === 'gpt-4o') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('GPT-4o (2027-01-14 停用)', 'mp-ukagaka')); ?></option>
+                        <?php // phpcs:enable Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.OperatorSpacing ?>
                         <option value="__custom" <?php echo $openai_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
                     <div id="llm_openai_model_custom_wrap" style="display:<?php echo $openai_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">

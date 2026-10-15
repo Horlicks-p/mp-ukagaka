@@ -334,6 +334,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
+        // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- 沿用本檔既有的單行選項陣列與 4 空格縮排.
         $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'page_aware', 'strip_unknown_tags' => true ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
@@ -492,6 +493,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             return $this->fail('rest_error', __('不明なエラーが発生しました。ログを確認してください', 'mp-ukagaka'), 400);
         }
 
+        // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- 沿用本檔既有的單行選項陣列與 4 空格縮排.
         $normalized = mpu_normalize_ai_response_for_rest($result, $personality_id, array( 'context' => 'initial', 'strip_unknown_tags' => true ));
         $max_length = 500;
         if (function_exists('mpu_get_personality_max_response_length')) {
@@ -1115,6 +1117,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
                 $max_length = 0;
             }
 
+            // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- 沿用本檔既有的單行選項陣列與 4 空格縮排.
             $normalized = mpu_normalize_ai_response_for_rest($result, $args['personality_id'], array( 'context' => 'chat', 'strip_unknown_tags' => true ));
             $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
             $result     = $normalized['display_text'];
@@ -1253,6 +1256,7 @@ class MPU_REST_Chat extends MPU_REST_Base {
             $max_length = 0;
         }
 
+        // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- 沿用本檔既有的單行選項陣列與 4 空格縮排.
         $normalized = mpu_normalize_ai_response_for_rest($result, $args['personality_id'], array( 'context' => 'chat', 'strip_unknown_tags' => true ));
         $normalized = mpu_normalize_ai_response_apply_display_limit($normalized, $max_length);
         $result     = $normalized['display_text'];
