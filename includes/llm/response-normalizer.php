@@ -259,7 +259,7 @@ function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown
 		'/［([ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?)］/iu',
 	);
 	foreach ( $inline_patterns as $pattern_index => $pattern ) {
-		// 未知標籤只剝 ASCII [...]：串流 parser 只認這種括號，全形未知標籤兩邊都保留才一致.
+		// 未知標籤只剝串流 parser 也認得的嚴格 [name]：全形、含空白或標點的未知標籤兩邊都保留才一致.
 		$may_strip_unknown = $strip_unknown && 0 === $pattern_index;
 		if ( preg_match_all( $pattern, $text, $mm, PREG_OFFSET_CAPTURE ) ) {
 			foreach ( $mm[0] as $i => $whole ) {
@@ -271,7 +271,7 @@ function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown
 						'len'    => strlen( $whole[0] ),
 						'tag'    => $canon,
 					);
-				} elseif ( $may_strip_unknown && mpu_normalize_is_strippable_unknown_tag( $tag_name ) ) {
+				} elseif ( $may_strip_unknown && '[' . $tag_name . ']' === $whole[0] && mpu_normalize_is_strippable_unknown_tag( $tag_name ) ) {
 					mpu_normalize_warn( sprintf( 'unknown emotion tag "%s" stripped from display text', $tag_name ) );
 					$hits[] = array(
 						'offset' => $whole[1],
@@ -362,17 +362,19 @@ function mpu_normalize_clean_inline_emotion_tag( $name ) {
 /**
  * 未知標籤是否像 LLM 自創的 emotion 標籤（如 [smile]、[soft_smile]），可從 LLM 輸出剝離。
  *
- * 只認全小寫、且以 _ / - 切開後任一段落在表情字彙內的標籤名。
+ * 只認全小寫、以 _ / - 切開後最後一段是表情詞、前面各段都是修飾詞的標籤名。
  * [gallery] shortcode、[x] checkbox、[a-z] 正規表示式、[note] 等一般文字，
- * 以及含大寫的 [WordPress] / [TODO]，都不在字彙內而保留。
+ * [happy_path] / [joy_division] 這類識別字，以及含大寫的 [WordPress] / [TODO] 都保留。
  *
  * @param string $name 已清理的標籤名.
  * @return bool
  */
 function mpu_normalize_is_strippable_unknown_tag( $name ) {
 	static $vocabulary = null;
+	static $modifiers  = null;
 	if ( null === $vocabulary ) {
 		$vocabulary = array_flip( mpu_normalize_get_invented_emotion_vocabulary() );
+		$modifiers  = array_flip( mpu_normalize_get_invented_emotion_modifiers() );
 	}
 
 	$name = (string) $name;
@@ -380,12 +382,25 @@ function mpu_normalize_is_strippable_unknown_tag( $name ) {
 		return false;
 	}
 
-	foreach ( preg_split( '/[_-]+/', $name, -1, PREG_SPLIT_NO_EMPTY ) as $token ) {
-		if ( isset( $vocabulary[ $token ] ) ) {
-			return true;
+	$tokens = preg_split( '/[_-]+/', $name, -1, PREG_SPLIT_NO_EMPTY );
+	if ( empty( $tokens ) || ! isset( $vocabulary[ array_pop( $tokens ) ] ) ) {
+		return false;
+	}
+	foreach ( $tokens as $token ) {
+		if ( ! isset( $modifiers[ $token ] ) ) {
+			return false;
 		}
 	}
-	return false;
+	return true;
+}
+
+/**
+ * 自創表情標籤前可接的修飾詞（[soft_smile]、[slight-grin]、[shy_smile]）。
+ *
+ * @return string[]
+ */
+function mpu_normalize_get_invented_emotion_modifiers() {
+	return array( 'soft', 'slight', 'small', 'faint', 'little', 'tiny', 'big', 'wide', 'gentle', 'warm', 'bitter', 'wry', 'sly', 'shy', 'sad', 'awkward', 'nervous', 'quiet', 'light' );
 }
 
 // phpcs:disable WordPress.Arrays.ArrayDeclarationSpacing.ArrayItemNoNewLine -- Vocabulary lists are kept compact, several per line.

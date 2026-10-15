@@ -293,6 +293,19 @@ final class ResponseNormalizerTest extends TestCase {
         $this->assertSame('そうだね。', $r['display_text']);
     }
 
+    public function test_strip_unknown_tags_keeps_identifiers_with_emotion_words(): void {
+        // 情緒詞只能在最後一段、前面只能是修飾詞；一般識別字不可被剝
+        $text = 'see [happy_path], [joy_division] and [neutral_axis]';
+        $r = mpu_normalize_ai_response($text, null, ['strip_unknown_tags' => true]);
+        $this->assertSame($text, $r['display_text']);
+    }
+
+    public function test_strip_unknown_tags_keeps_loose_spelling(): void {
+        // 串流 parser 只認嚴格的 [name]；寬鬆寫法兩條路徑都保留，畫面與 history 才一致
+        $r = mpu_normalize_ai_response('ok[smile.] and [ smile ]', null, ['strip_unknown_tags' => true]);
+        $this->assertSame('ok[smile.] and [ smile ]', $r['display_text']);
+    }
+
     public function test_strip_unknown_tags_keeps_fullwidth_brackets(): void {
         // 串流 parser 不認全形括號；兩條路徑都保留，畫面與 history 才一致
         $r = mpu_normalize_ai_response('いいね【smile】と［smile］', null, ['strip_unknown_tags' => true]);

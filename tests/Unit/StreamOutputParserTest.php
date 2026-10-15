@@ -117,6 +117,12 @@ final class StreamOutputParserTest extends TestCase {
         $this->assertSame('[WordPress] と [TODO]、[smile](https://example.test)', $this->deltaText($events));
     }
 
+    public function test_strip_keeps_identifiers_and_loose_spelling(): void {
+        $events = $this->collect(['[happy_', 'path] [joy_division] [soft_smi', 'le] [smile.] [ smile ]'], true);
+
+        $this->assertSame('[happy_path] [joy_division]  [smile.] [ smile ]', $this->deltaText($events));
+    }
+
     public function test_strip_keeps_ordinary_bracket_text(): void {
         $events = $this->collect(['Use [gal', 'lery] here; range [a-z]; - [x', '] done'], true);
 
