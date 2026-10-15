@@ -259,6 +259,17 @@ class MPU_Stream_Output_Parser {
 		if ( false !== $close ) {
 			$candidate = substr( $this->buffer, 0, $close + 1 );
 			if ( preg_match( '/^\[([a-z][a-z0-9_-]{0,31})\]$/i', $candidate, $m ) ) {
+				// 與 normalizer 的 (?!\() 一致：看到 ']' 後一字元才能排除 markdown link，supported 與未知標籤都適用.
+				$rest = (string) substr( $this->buffer, $close + 1 );
+				if ( '' === $rest && ! $is_final ) {
+					return false;
+				}
+				if ( 0 === strpos( $rest, '(' ) ) {
+					$this->emit_delta( $events, $candidate );
+					$this->buffer = $rest;
+					return true;
+				}
+
 				$tag = $this->resolve_supported_tag( $m[1] );
 				if ( null !== $tag ) {
 					$events[]     = array(
@@ -272,16 +283,9 @@ class MPU_Stream_Output_Parser {
 					return true;
 				}
 				if ( $this->strip_unknown_tags && $this->is_strippable_unknown_tag( $m[1] ) ) {
-					// 與 normalizer 的 (?!\() 一致：看到 ']' 後一字元才能排除 markdown link.
-					$rest = (string) substr( $this->buffer, $close + 1 );
-					if ( '' === $rest && ! $is_final ) {
-						return false;
-					}
-					if ( 0 !== strpos( $rest, '(' ) ) {
-						$this->warn( sprintf( 'unknown emotion tag "%s" stripped from stream output', $m[1] ) );
-						$this->buffer = $rest;
-						return true;
-					}
+					$this->warn( sprintf( 'unknown emotion tag "%s" stripped from stream output', $m[1] ) );
+					$this->buffer = $rest;
+					return true;
 				}
 			}
 			$this->emit_delta( $events, $candidate );

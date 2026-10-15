@@ -129,9 +129,9 @@ final class StreamOutputParserTest extends TestCase {
         $this->assertSame('Use [gallery] here; range [a-z]; - [x] done', $this->deltaText($events));
     }
 
-    /** @dataProvider nestedBracketProvider */
-    public function test_nested_brackets_match_normalizer(array $chunks): void {
-        // 雙層 / 巢狀括號：畫面必須與 normalizer 的 display_text（history）一致
+    /** @dataProvider bracketEdgeCaseProvider */
+    public function test_bracket_edge_cases_match_normalizer(array $chunks): void {
+        // 雙層 / 巢狀括號與 markdown link：畫面必須與 normalizer 的 display_text（history）一致
         $text   = implode('', $chunks);
         $events = $this->collect($chunks, true);
         $r      = mpu_normalize_ai_response($text, null, ['strip_unknown_tags' => true]);
@@ -142,7 +142,7 @@ final class StreamOutputParserTest extends TestCase {
         }), 'data'), 'tag'), $text);
     }
 
-    public function nestedBracketProvider(): array {
+    public function bracketEdgeCaseProvider(): array {
         return [
             'double unknown'      => [['A[[smile]]B']],
             'double split'        => [['A[[smi', 'le]]B']],
@@ -150,6 +150,11 @@ final class StreamOutputParserTest extends TestCase {
             'prefixed inner'      => [['A[x[smile]]B']],
             'unbalanced open'     => [['A[[smile]B']],
             'double before link'  => [['[[smile]](https://example.test)']],
+            'supported link'      => [['[laugh](https://example.test)']],
+            'supported link split' => [['見て [laugh]', '(https://example.test)']],
+            'nested supported link' => [['[[laugh](https://example.test)]']],
+            'supported at end'    => [['ふふ。[laugh]']],
+            'supported then text' => [['[laugh]', 'ふふ。']],
         ];
     }
 
