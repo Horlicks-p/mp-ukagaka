@@ -37,17 +37,21 @@ This plugin supports multiple AI providers including Gemini, OpenAI, Claude, and
 
 ## 📸 Screenshot
 
-![MP Ukagaka Demo](screenshot.PNG)
+![MP Ukagaka Demo](screenshot01.png)
 
 _Frieren character displaying AI-generated dialogue based on article content_
 
 > 💡 **More Screenshots**:
 >
-> - `screenshot2.PNG` - General Settings page
-> - `screenshot3.PNG` - Interactive Chat Mode
-> - `screenshot4.PNG` - LLM Settings page
-> - `screenshot7.PNG` - Abilities: reporting bot-blocker statistics
-> - `screenshot8.PNG` - Gift / feeding picker
+> - `screenshot02.png` - LLM Settings: dialogue and Page Awareness switches
+> - `screenshot03.png` - Interactive Chat Mode
+> - `screenshot04.png` - LLM Settings: AI provider
+> - `screenshot05.png` - Bot detection reaction
+> - `screenshot06.png` - Abilities: a visitor is refused an admin-only tool
+> - `screenshot07.png` - Abilities: reporting bot-blocker statistics
+> - `screenshot08.png` - Gift / feeding picker
+> - `screenshot09.png` - LLM-generated auto talk
+> - `screenshot10.png` - Page Awareness comment on an article
 >
 > Project page: <https://horlicks-p.github.io/mp-ukagaka/>
 
