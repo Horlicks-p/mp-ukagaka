@@ -4,6 +4,24 @@
 
 ---
 
+## [2.38.1] - 2026-10-16
+
+### Expressions
+
+- **Fullwidth expression tags work while streaming.** The response normalizer has always read `【laugh】` and `［laugh］`, including padded or punctuated forms such as `【 laugh 。】`, but the stream parser only read ASCII `[ ]`. A supported fullwidth tag therefore stayed on screen during a streamed reply and never switched the expression, while the saved history had it removed. The stream parser now reads these tags the same way as the normalizer: a supported tag switches the expression and is removed from the text; an unknown one such as `【smile】` stays as text (only the strict ASCII `[name]` is dropped, as in 2.38.0); a following `(` does not turn a fullwidth tag into link text; and with nested brackets the innermost opener wins across both kinds (`【[laugh]】`, `[【laugh】]`). Ordinary bracketed text such as `【注意】` streams at once instead of waiting for its closing bracket.
+- Supported ASCII tags written loosely (`[ laugh ]`, `[laugh.]`) are still recognized only by the normalizer, not while streaming.
+
+### Documentation
+
+- The screenshots in the README and the guides are replaced with a numbered set (`screenshot01.png`–`screenshot10.png`) showing the Traveler's Grimoire dialogue box and the current admin pages.
+
+### Internal
+
+- The allowed tag body is defined once in `mpu_normalize_inline_tag_body_regex()` and shared by the normalizer and the stream parser.
+- 12 fullwidth cases are added to the parser/normalizer parity tests.
+
+---
+
 ## [2.38.0] - 2026-10-15
 
 ### OpenAI models
