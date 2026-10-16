@@ -155,6 +155,18 @@ final class StreamOutputParserTest extends TestCase {
             'nested supported link' => [['[[laugh](https://example.test)]']],
             'supported at end'    => [['ふふ。[laugh]']],
             'supported then text' => [['[laugh]', 'ふふ。']],
+            'fullwidth supported' => [['ふふ【laugh】ね']],
+            'fullwidth square'    => [['［laugh］ok']],
+            'fullwidth split'     => [['A【lau', 'gh】B']],
+            'fullwidth opener alone' => [['A【', 'laugh】B']],
+            'fullwidth loose'     => [['A【 laugh 。】B', ' と ［thinking…］']],
+            'fullwidth unknown'   => [['A【smile】B と ［smile］']],
+            'fullwidth plain text' => [['【注意】本文と【 note 】']],
+            'fullwidth then paren' => [['【laugh】(https://example.test)']],
+            'fullwidth nested'    => [['A【【laugh】】B']],
+            'ascii in fullwidth'  => [['A【[laugh]】B']],
+            'fullwidth in ascii'  => [['A[【laugh】]B']],
+            'fullwidth unclosed'  => [['A【laugh']],
         ];
     }
 

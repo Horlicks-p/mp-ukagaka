@@ -14,6 +14,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class MPU_Stream_Output_Parser {
 	/**
+	 * Emotion tag brackets the normalizer recognises, opener => closer.
+	 *
+	 * @var array<string, string>
+	 */
+	const TAG_BRACKETS = array(
+		'[' => ']',
+		'【' => '】',
+		'［' => '］',
+	);
+
+	/**
 	 * Personality identifier used to resolve supported emotion tags.
 	 *
 	 * @var string|null
@@ -207,7 +218,7 @@ class MPU_Stream_Output_Parser {
 			return true;
 		}
 
-		if ( '[' === $this->buffer[0] ) {
+		if ( null !== $this->match_tag_opener( $this->buffer ) ) {
 			return $this->drain_tag_candidate( $events, $is_final );
 		}
 
@@ -246,14 +257,21 @@ class MPU_Stream_Output_Parser {
 	 * @return bool Whether progress was made.
 	 */
 	private function drain_tag_candidate( array &$events, $is_final ) {
-		$close = strpos( $this->buffer, ']' );
+		$opener     = $this->match_tag_opener( $this->buffer );
+		$closer     = self::TAG_BRACKETS[ $opener ];
+		$close      = strpos( $this->buffer, $closer );
+		$opener_len = strlen( $opener );
 
-		// 與 normalizer 一致：[[smile]]、[x[smile]] 以最內層的 '[' 為標籤起點，外層 '[' 當一般文字.
-		$inner_open = strpos( $this->buffer, '[', 1 );
+		// 與 normalizer 一致：[[smile]]、【[laugh]】 以最內層的開括號為標籤起點，外層括號當一般文字.
+		$inner_open = $this->next_tag_opener_offset( $this->buffer, $opener_len );
 		if ( false !== $inner_open && ( false === $close || $inner_open < $close ) ) {
 			$this->emit_delta( $events, substr( $this->buffer, 0, $inner_open ) );
 			$this->buffer = substr( $this->buffer, $inner_open );
 			return true;
+		}
+
+		if ( '[' !== $opener ) {
+			return $this->drain_fullwidth_tag_candidate( $events, $is_final, $opener_len, $closer, $close );
 		}
 
 		if ( false !== $close ) {
@@ -294,6 +312,57 @@ class MPU_Stream_Output_Parser {
 		}
 
 		if ( ( $this->is_supported_tag_prefix( $this->buffer ) || $this->is_strippable_tag_prefix( $this->buffer ) ) && ! $is_final ) {
+			return false;
+		}
+
+		$this->emit_delta( $events, $this->buffer );
+		$this->buffer = '';
+		return true;
+	}
+
+	/**
+	 * Drain a 【name】 / ［name］ candidate the way the normalizer reads it.
+	 *
+	 * Fullwidth tags accept padding and trailing punctuation, are never read as
+	 * markdown links, and an unknown name is always kept as text.
+	 *
+	 * @param array<int, array{event:string,data:array}> $events     Event accumulator.
+	 * @param bool                                       $is_final   Whether this is the final drain.
+	 * @param int                                        $opener_len Byte length of the opening bracket.
+	 * @param string                                     $closer     Closing bracket.
+	 * @param int|false                                  $close      Offset of the closing bracket.
+	 * @return bool Whether progress was made.
+	 */
+	private function drain_fullwidth_tag_candidate( array &$events, $is_final, $opener_len, $closer, $close ) {
+		$body_regex = function_exists( 'mpu_normalize_inline_tag_body_regex' ) ? mpu_normalize_inline_tag_body_regex() : null;
+
+		if ( false !== $close ) {
+			$end  = $close + strlen( $closer );
+			$body = substr( $this->buffer, $opener_len, $close - $opener_len );
+			$tag  = null;
+			if ( null !== $body_regex && 1 === preg_match( '/^' . $body_regex . '$/iu', $body ) ) {
+				$name = function_exists( 'mpu_normalize_clean_inline_emotion_tag' ) ? mpu_normalize_clean_inline_emotion_tag( $body ) : trim( $body );
+				$tag  = $this->resolve_supported_tag( $name );
+			}
+
+			if ( null !== $tag ) {
+				$events[] = array(
+					'event' => 'emotion',
+					'data'  => array(
+						'tag'  => $tag,
+						'file' => $tag . '.png',
+					),
+				);
+			} else {
+				$this->emit_delta( $events, substr( $this->buffer, 0, $end ) );
+			}
+			$this->buffer = substr( $this->buffer, $end );
+			return true;
+		}
+
+		// 閉括號未到：括號內仍可能長成標籤（body 的任一前綴）時先等，否則當一般文字送出.
+		$body = substr( $this->buffer, $opener_len );
+		if ( ! $is_final && null !== $body_regex && 1 === preg_match( '/^[ \t]*(?:' . $body_regex . ')?$/iu', $body ) ) {
 			return false;
 		}
 
@@ -459,6 +528,39 @@ class MPU_Stream_Output_Parser {
 	}
 
 	/**
+	 * Match an emotion tag opening bracket at the beginning of text.
+	 *
+	 * @param string $text Buffered text.
+	 * @return string|null Matched opener, or null when absent.
+	 */
+	private function match_tag_opener( $text ) {
+		foreach ( array_keys( self::TAG_BRACKETS ) as $opener ) {
+			if ( 0 === strpos( $text, $opener ) ) {
+				return $opener;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Find the first emotion tag opening bracket at or after an offset.
+	 *
+	 * @param string $text   Buffered text.
+	 * @param int    $offset Byte offset to search from.
+	 * @return int|false Offset, or false when absent.
+	 */
+	private function next_tag_opener_offset( $text, $offset = 0 ) {
+		$positions = array();
+		foreach ( array_keys( self::TAG_BRACKETS ) as $opener ) {
+			$pos = strpos( $text, $opener, $offset );
+			if ( false !== $pos ) {
+				$positions[] = $pos;
+			}
+		}
+		return empty( $positions ) ? false : min( $positions );
+	}
+
+	/**
 	 * Check whether text is a prefix of a supported emotion tag.
 	 *
 	 * @param string $text Text to check.
@@ -523,11 +625,15 @@ class MPU_Stream_Output_Parser {
 	 */
 	private function next_special_offset( $text ) {
 		$positions = array();
-		foreach ( array( '[', '<think>', '<thinking>', '</think>', '</thinking>' ) as $needle ) {
+		foreach ( array( '<think>', '<thinking>', '</think>', '</thinking>' ) as $needle ) {
 			$pos = stripos( $text, $needle );
 			if ( false !== $pos ) {
 				$positions[] = $pos;
 			}
+		}
+		$tag_pos = $this->next_tag_opener_offset( $text );
+		if ( false !== $tag_pos ) {
+			$positions[] = $tag_pos;
 		}
 		return empty( $positions ) ? false : min( $positions );
 	}

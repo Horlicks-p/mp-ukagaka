@@ -253,10 +253,11 @@ function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown
 	$hits = array();
 
 	// 新內嵌標籤.
+	$body            = mpu_normalize_inline_tag_body_regex();
 	$inline_patterns = array(
-		'/\[([ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?)\](?!\()/iu',
-		'/【([ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?)】/iu',
-		'/［([ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?)］/iu',
+		'/\[(' . $body . ')\](?!\()/iu',
+		'/【(' . $body . ')】/iu',
+		'/［(' . $body . ')］/iu',
 	);
 	foreach ( $inline_patterns as $pattern_index => $pattern ) {
 		// 未知標籤只剝串流 parser 也認得的嚴格 [name]：全形、含空白或標點的未知標籤兩邊都保留才一致.
@@ -345,6 +346,15 @@ function mpu_normalize_extract_emotions( $text, array $supported, $strip_unknown
 		'tags'  => $tags,
 		'files' => $files,
 	);
+}
+
+/**
+ * 內嵌表情標籤括號內允許的寫法（前後空白、結尾標點），normalizer 與串流 parser 共用。
+ *
+ * @return string 不含分隔符的 regex 片段，需搭配 iu 旗標.
+ */
+function mpu_normalize_inline_tag_body_regex() {
+	return '[ \t]*[a-z][a-z0-9_-]{0,31}[ \t]*(?:[.!?。．、，,;；:：…]+[ \t]*)?';
 }
 
 /**

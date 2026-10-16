@@ -314,7 +314,7 @@ final class ResponseNormalizerTest extends TestCase {
     }
 
     public function test_strip_unknown_tags_keeps_fullwidth_brackets(): void {
-        // 串流 parser 不認全形括號；兩條路徑都保留，畫面與 history 才一致
+        // 未知標籤只剝嚴格的 ASCII [name]；全形的未知標籤在 normalizer 與串流 parser 都保留
         $r = mpu_normalize_ai_response('いいね【smile】と［smile］', null, ['strip_unknown_tags' => true]);
         $this->assertSame('いいね【smile】と［smile］', $r['display_text']);
     }
