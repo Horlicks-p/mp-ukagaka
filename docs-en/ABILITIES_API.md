@@ -63,7 +63,7 @@ Who may use an ability is decided by `MPU_Input_Role` (`includes/core/class-mpu-
 
 To let non-admin roles use a new ability, add it to the whitelist in `MPU_Input_Role::can_use_ability()`. Abilities registered by other plugins (Method 1 below) are admin-only unless added there.
 
-![Permission Interception Diagram](../screenshot6.PNG)
+![Permission Interception Diagram](../screenshot06.png)
 
 *Permission Control: System reaction when a non-admin role triggers a tool call*
 
