@@ -148,6 +148,10 @@ function get_site_url() {
     return 'https://example.test';
 }
 
+function wp_parse_url($url, $component = -1) {
+    return parse_url($url, $component);
+}
+
 function current_user_can($capability) {
     return (bool) $GLOBALS['_mpu_test_current_user_can'];
 }
