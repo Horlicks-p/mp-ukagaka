@@ -276,7 +276,8 @@ class MPU_Stream_Output_Parser {
 
 		if ( false !== $close ) {
 			$candidate = substr( $this->buffer, 0, $close + 1 );
-			if ( preg_match( '/^\[([a-z][a-z0-9_-]{0,31})\]$/i', $candidate, $m ) ) {
+			$name      = $this->match_ascii_tag_name( substr( $candidate, 1, -1 ) );
+			if ( null !== $name ) {
 				// 與 normalizer 的 (?!\() 一致：看到 ']' 後一字元才能排除 markdown link，supported 與未知標籤都適用.
 				$rest = (string) substr( $this->buffer, $close + 1 );
 				if ( '' === $rest && ! $is_final ) {
@@ -288,7 +289,7 @@ class MPU_Stream_Output_Parser {
 					return true;
 				}
 
-				$tag = $this->resolve_supported_tag( $m[1] );
+				$tag = $this->resolve_supported_tag( $name );
 				if ( null !== $tag ) {
 					$events[]     = array(
 						'event' => 'emotion',
@@ -300,8 +301,9 @@ class MPU_Stream_Output_Parser {
 					$this->buffer = substr( $this->buffer, $close + 1 );
 					return true;
 				}
-				if ( $this->strip_unknown_tags && $this->is_strippable_unknown_tag( $m[1] ) ) {
-					$this->warn( sprintf( 'unknown emotion tag "%s" stripped from stream output', $m[1] ) );
+				// 未知標籤只剝嚴格的 [name]；寬鬆寫法只用來認 supported 表情，未知的一律保留，與 normalizer 一致.
+				if ( $this->strip_unknown_tags && '[' . $name . ']' === $candidate && $this->is_strippable_unknown_tag( $name ) ) {
+					$this->warn( sprintf( 'unknown emotion tag "%s" stripped from stream output', $name ) );
 					$this->buffer = $rest;
 					return true;
 				}
@@ -311,7 +313,7 @@ class MPU_Stream_Output_Parser {
 			return true;
 		}
 
-		if ( ( $this->is_supported_tag_prefix( $this->buffer ) || $this->is_strippable_tag_prefix( $this->buffer ) ) && ! $is_final ) {
+		if ( ( $this->is_supported_tag_prefix( $this->buffer ) || $this->is_strippable_tag_prefix( $this->buffer ) || $this->is_loose_tag_body_prefix( substr( $this->buffer, 1 ) ) ) && ! $is_final ) {
 			return false;
 		}
 
@@ -574,6 +576,37 @@ class MPU_Stream_Output_Parser {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Read the tag name inside [ ... ] with the normalizer's grammar.
+	 *
+	 * Accepts [laugh] as well as the padded / punctuated spellings the normalizer
+	 * reads ([ laugh ], [laugh.], [ laugh 。]).
+	 *
+	 * @param string $body Text between '[' and ']'.
+	 * @return string|null Cleaned tag name, or null when the body is not a tag.
+	 */
+	private function match_ascii_tag_name( $body ) {
+		if ( function_exists( 'mpu_normalize_inline_tag_body_regex' ) && function_exists( 'mpu_normalize_clean_inline_emotion_tag' ) ) {
+			return 1 === preg_match( '/^' . mpu_normalize_inline_tag_body_regex() . '$/iu', $body )
+				? mpu_normalize_clean_inline_emotion_tag( $body )
+				: null;
+		}
+		return 1 === preg_match( '/^[a-z][a-z0-9_-]{0,31}$/i', $body ) ? $body : null;
+	}
+
+	/**
+	 * Check whether text after '[' could still grow into a padded / punctuated tag.
+	 *
+	 * @param string $body Buffered text after '['.
+	 * @return bool Whether to keep buffering until ']'.
+	 */
+	private function is_loose_tag_body_prefix( $body ) {
+		if ( empty( $this->supported_tags ) || ! function_exists( 'mpu_normalize_inline_tag_body_regex' ) ) {
+			return false;
+		}
+		return 1 === preg_match( '/^[ \t]*(?:' . mpu_normalize_inline_tag_body_regex() . ')?$/iu', $body );
 	}
 
 	/**
