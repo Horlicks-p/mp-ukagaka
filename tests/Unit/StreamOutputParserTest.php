@@ -167,7 +167,56 @@ final class StreamOutputParserTest extends TestCase {
             'ascii in fullwidth'  => [['A【[laugh]】B']],
             'fullwidth in ascii'  => [['A[【laugh】]B']],
             'fullwidth unclosed'  => [['A【laugh']],
+            'ascii loose padded'  => [['A[ laugh ]B']],
+            'ascii loose punct'   => [['A[laugh.]B [thinking。] [angry…]']],
+            'ascii loose both'    => [['A[ laugh 。]B']],
+            'ascii loose split'   => [['A[ lau', 'gh ]B']],
+            'ascii loose split punct' => [['A[laugh', '。', ']B']],
+            'ascii loose upper'   => [['A[ LAUGH. ]B']],
+            'ascii loose unknown' => [['A[ smile ]B [smile.] [ note ] [version.]']],
+            'ascii loose link'    => [['[ laugh ](https://example.test) と [laugh.](https://example.test)']],
+            'ascii loose link split' => [['見て [ laugh ]', '(https://example.test)']],
+            'ascii loose nested'  => [['A[[ laugh ]]B']],
+            'ascii loose unclosed' => [['A[ laugh']],
+            'ascii loose dangling' => [['A[ laugh 。']],
+            'ascii loose not tag' => [['A[ laugh it off ]B [laugh.txt]']],
+            'ascii loose spaces only' => [['A[ ', ' ]B']],
         ];
+    }
+
+    /** @dataProvider looseAsciiContractProvider */
+    public function test_loose_ascii_tags_switch_only_supported_emotions(string $text, string $display, array $tags): void {
+        // Parity alone would also pass if both sides wrongly dropped text, so pin the contract itself.
+        foreach ([true, false] as $strip) {
+            foreach ([[$text], mb_str_split($text)] as $chunks) {
+                $events = $this->collect($chunks, $strip);
+                $this->assertSame($display, $this->deltaText($events), $text);
+                $this->assertSame($tags, array_column(array_column(array_filter($events, static function ($event) {
+                    return $event['event'] === 'emotion';
+                }), 'data'), 'tag'), $text);
+            }
+        }
+    }
+
+    public function looseAsciiContractProvider(): array {
+        return [
+            'padded'            => ['A[ laugh ]B', 'AB', ['laugh']],
+            'punctuated'        => ['A[laugh.]B[laugh。]C[laugh…]D', 'ABCD', ['laugh', 'laugh', 'laugh']],
+            'padded punctuated' => ['A[ laugh 。]B', 'AB', ['laugh']],
+            'unknown kept'      => ['A[smile.]B[ smile ]C', 'A[smile.]B[ smile ]C', []],
+            'plain text kept'   => ['[ note ] [version.]', '[ note ] [version.]', []],
+            'markdown link'     => ['[laugh](u) [ laugh ](u)', '[laugh](u) [ laugh ](u)', []],
+            // Not parity: the normalizer still converts the legacy syntax. Streaming it is on HOLD,
+            // so this row pins that the stream keeps it as text rather than half-parsing it.
+            'legacy held'       => ['[表情: laugh](表情: laugh)', '[表情: laugh](表情: laugh)', []],
+        ];
+    }
+
+    /** @dataProvider bracketEdgeCaseProvider */
+    public function test_bracket_edge_cases_match_normalizer_fed_one_character_at_a_time(array $chunks): void {
+        // Providers hand the parser JSON-decoded strings, so deltas always hold whole UTF-8
+        // characters; one character per feed is the worst split that can reach it.
+        $this->test_bracket_edge_cases_match_normalizer(mb_str_split(implode('', $chunks)));
     }
 
     public function test_unknown_tag_kept_when_strip_disabled(): void {
