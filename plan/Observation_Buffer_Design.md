@@ -1,6 +1,6 @@
 # Observation Buffer 設計（揮發性 MVP）
 
-> 💡 **實作計畫已就緒**：請參閱 [Observation_Buffer_Implementation_Plan.md](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/plan/Observation_Buffer_Implementation_Plan.md)。
+> 💡 **實作計畫已就緒**：請參閱 [Observation_Buffer_Implementation_Plan.md](../plan/Observation_Buffer_Implementation_Plan.md)。
 >
 > 2026-05-22 整合版；2026-05-23 修訂為 visitor activity summary framing，`bot_signal` 移到 Phase 2；2026-05-23 第二輪修訂同步 implementation plan：`lifecycle_event:sleep` 延後 Phase 2（MVP 只接 `wake` / `wake_from_sleep` / `context_triggered`），scope key prefix 統一為 `mpu_obs_`。此文件是 `Engineering_Quality_Improvement_Plan.md` v2.22+ #10 的設計凍結文件。
 >

@@ -2,9 +2,9 @@
 
 我已完整審閱以下檔案的 checksum 生命週期：
 
-- [chat-integrity.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/llm/chat-integrity.php)（核心 checksum 邏輯）
-- [class-mpu-rest-chat.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php)（[prepare_user_chat_args](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php#473-849) verify 端 + [user_chat](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php#850-959) / [user_chat_stream](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php#960-1072) store 端）
-- [ukagaka-chat.js](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/js/ukagaka-chat.js)（前端歷史管理 + SSE reader）
+- [chat-integrity.php](../includes/llm/chat-integrity.php)（核心 checksum 邏輯）
+- [class-mpu-rest-chat.php](../includes/rest/class-mpu-rest-chat.php)（[prepare_user_chat_args](../includes/rest/class-mpu-rest-chat.php#L473-L849) verify 端 + [user_chat](../includes/rest/class-mpu-rest-chat.php#L850-L959) / [user_chat_stream](../includes/rest/class-mpu-rest-chat.php#L960-L1072) store 端）
+- [ukagaka-chat.js](../js/ukagaka-chat.js)（前端歷史管理 + SSE reader）
 
 ---
 
@@ -28,7 +28,7 @@
 
 ### 漏洞 1：前端存 `timestamp`，但後端 verify 端只保留 `role` + `content`
 
-**位置**：[ukagaka-chat.js:426-430](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/js/ukagaka-chat.js#L426-L430) / [ukagaka-chat.js:496-500](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/js/ukagaka-chat.js#L496-L500)
+**位置**：[ukagaka-chat.js:426-430](../js/ukagaka-chat.js#L426-L430) / [ukagaka-chat.js:496-500](../js/ukagaka-chat.js#L496-L500)
 
 前端 `mpuChatHistory.push()` 時附帶 `timestamp` 欄位：
 ```js
@@ -43,23 +43,23 @@ formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
 
 這意味著每條歷史訊息都帶有 `timestamp` 欄位。
 
-**後端 verify 端**（[prepare_user_chat_args](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php#473-849) L563-576）：只取 `role` + `content`（sanitize 後），丟棄 `timestamp`。
+**後端 verify 端**（[prepare_user_chat_args](../includes/rest/class-mpu-rest-chat.php#L473-L849) L563-576）：只取 `role` + `content`（sanitize 後），丟棄 `timestamp`。
 
-**後端 store 端**（[user_chat](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php#850-959) L946-948 / [user_chat_stream](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php#960-1072) L1053-1055）：組裝的 `$raw_history` 來自 `$args['chat_history']`（已清除 `timestamp`），新增的 user/assistant 條目也不含 `timestamp`。
+**後端 store 端**（[user_chat](../includes/rest/class-mpu-rest-chat.php#L850-L959) L946-948 / [user_chat_stream](../includes/rest/class-mpu-rest-chat.php#L960-L1072) L1053-1055）：組裝的 `$raw_history` 來自 `$args['chat_history']`（已清除 `timestamp`），新增的 user/assistant 條目也不含 `timestamp`。
 
 **結論**：`timestamp` 欄位在 verify 端被丟棄，而 store 端本來就沒存。**兩端一致，不會造成 checksum 差異。** ✅ 安全。
 
 ---
 
-### 漏洞 2：SSE streaming 的截斷 `$result` 與前端 [onDone](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/js/ukagaka-chat.js#489-517) 存入歷史的 `data.msg` 不對稱
+### 漏洞 2：SSE streaming 的截斷 `$result` 與前端 [onDone](../js/ukagaka-chat.js#L489-L517) 存入歷史的 `data.msg` 不對稱
 
 **風險等級：🔴🔴🔴 高**
 
 **位置**：
-- 後端 [user_chat_stream L1029-1038](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php#L1029-L1038)：長度截斷
-- 後端 [user_chat_stream L1052](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php#L1052)：`sanitize_textarea_field($result)` 寫入 checksum
-- 後端 [user_chat_stream L1065-1068](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-chat.php#L1065-L1068)：`event: done` 發送截斷後的 `$result`
-- 前端 [ukagaka-chat.js:494-498](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/js/ukagaka-chat.js#L494-L498)：[onDone](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/js/ukagaka-chat.js#489-517) 存入 `data.msg`
+- 後端 [user_chat_stream L1029-1038](../includes/rest/class-mpu-rest-chat.php#L1029-L1038)：長度截斷
+- 後端 [user_chat_stream L1052](../includes/rest/class-mpu-rest-chat.php#L1052)：`sanitize_textarea_field($result)` 寫入 checksum
+- 後端 [user_chat_stream L1065-1068](../includes/rest/class-mpu-rest-chat.php#L1065-L1068)：`event: done` 發送截斷後的 `$result`
+- 前端 [ukagaka-chat.js:494-498](../js/ukagaka-chat.js#L494-L498)：[onDone](../js/ukagaka-chat.js#L489-L517) 存入 `data.msg`
 
 **流程分析**（SSE 路徑）：
 
@@ -74,7 +74,7 @@ formData.append("history", JSON.stringify(mpuChatHistory.slice(-10)));
 前端：onDone → push { role:"assistant", content: data.msg }        ← 存截斷版本
 ```
 
-**下一輪前端送出：** [history](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/llm/chat-integrity.php#93-100) 內 assistant 的 content 是截斷後版本 ✅
+**下一輪前端送出：** [history](../includes/llm/chat-integrity.php#L93-L100) 內 assistant 的 content 是截斷後版本 ✅
 
 **下一輪後端 verify：** `sanitize_textarea_field(wp_unslash(msg['content']))` → 對截斷版本做 sanitize ✅
 
@@ -111,7 +111,7 @@ store 端**沒有 `wp_unslash()`**。如果 `$result` 本身不含 WordPress mag
 
 **風險等級：🔴 高**
 
-**位置**：[ukagaka-chat.js:517-523](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/js/ukagaka-chat.js#L517-L523)（`onError`）
+**位置**：[ukagaka-chat.js:517-523](../js/ukagaka-chat.js#L517-L523)（`onError`）
 
 ```js
 onError: (error) => {
@@ -175,7 +175,7 @@ onError: (error) => {
 
 **風險等級：🟡 中（間接風險）**
 
-[chat-integrity.php:38-58](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/llm/chat-integrity.php#L38-L58)
+[chat-integrity.php:38-58](../includes/llm/chat-integrity.php#L38-L58)
 
 ```php
 if ($role === '' || $role === 'user') continue;  // 跳過 user 訊息
@@ -191,7 +191,7 @@ checksum 只基於 assistant 訊息。這意味著**如果 user 訊息數量變�
 
 **風險等級：🟡 中**
 
-[ukagaka-chat.js:420-423](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/js/ukagaka-chat.js#L420-L423)
+[ukagaka-chat.js:420-423](../js/ukagaka-chat.js#L420-L423)
 
 ```js
 if (mpuChatAbortController) {

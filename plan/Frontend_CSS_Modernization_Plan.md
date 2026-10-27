@@ -2,7 +2,7 @@
 
 > 📅 初稿：2026-09-01
 > 📋 目標：把 703 行、81 個 `!important`、零自訂屬性的 `mpu_style.css`，整理成可維護、可被主題安全接管的現代 CSS
-> 🧭 參照對象：`C:\D\php\moelog-20th\style.css`（v2.8.4，2693 行，同作者的 WordPress 主題）
+> 🧭 參照對象：`moelog-20th/style.css`（v2.8.4，2693 行，同作者的 WordPress 主題）
 > 🎯 想定讀者：實作擔當 + 交叉 review（家 CODEX / Gemini）
 > 🔖 對象版本基點：v2.29.0
 > 📂 影響範圍（**§11 已收緊**）：`css/mpu_style.css`（主體）、`tools/node/package.json` + `package-lock.json`、新增 stylelint config、Phase -1 截圖腳本。~~`includes/core/frontend-functions.php`（inline style 清理，Phase 3）~~ 與所有 JS／文件變更一律另案，理由見 §11.6

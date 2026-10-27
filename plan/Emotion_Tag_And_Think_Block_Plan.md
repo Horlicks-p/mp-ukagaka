@@ -995,7 +995,7 @@ Antigravity 認同並完全採納 CODEX 在 §14 中提出的六大收斂動作�
      - **防禦 B（無開頭 - 明文拒絕）**：若在 `normal` 狀態下意外收到孤立的 `</think>`，**禁止**進行反向追溯（即不把前方已輸出的文字重新歸為 think 框）。這會破壞 SSE append-only 原則並導致前端複雜度爆炸。處理方式是一律當作普通文字 delta 輸出並寫入 warning log。R1 等模型的格式問題由 Prompt 規則（§4.5 規則）限制，parser 絕不猜測模型意圖（此條已寫入 §13.3 拒絕清單）。
 
 3. **Loop Guard 運作與 Think 區塊的精準隔離**：
-   - 經檢查，既有的 [tool-loop-guard.php](file:///c:/D/php/mp-ukagaka/includes/llm/tool-loop-guard.php#L76-L80) 是基於「工具名稱與參數雜湊值」比對，並不直接校驗 LLM 的原始文本。
+   - 經檢查，既有的 [tool-loop-guard.php](../includes/llm/tool-loop-guard.php#L76-L80) 是基於「工具名稱與參數雜湊值」比對，並不直接校驗 LLM 的原始文本。
    - 因此，此處隔離的真正意思是：**確保 Response Normalizer 在分離出 `<think>` 內容與 Tool Call JSON 後，只將結構化的 Tool Call 資訊送入 Loop Guard 判定，避免 think 區塊中可能包含的 `{}` 符號干擾 JSON 語法偵測**（此條已更新至 §7 與既有 plan 的關聯）。
 
 ---
@@ -1187,7 +1187,7 @@ CODEX 的替換方案在視覺層仍能透過「DOM 容器共用 + 平滑 fade �
   1. 前端應**立即淡出**左側的主對話框，或**將主對話框的 `opacity` 降至 0.3（半透明狀態）** 以示該對話已失效並歸入歷史。
   2. 當新的觸控回應（如 `touch/decoration` 的 API 回傳）到達並開始以 typewriter 渲染時，主對話框再重新恢復 `opacity: 1` 進行打字。
 - **受影響檔案**：
-  - [frieren.js](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/ghost/Frieren/frieren.js) 的 `handleDecorationClick` 與 `handleTouchZone` 執行 Ajax 前的視覺預處理區段。
+  - [frieren.js](../ghost/Frieren/frieren.js) 的 `handleDecorationClick` 與 `handleTouchZone` 執行 Ajax 前的視覺預處理區段。
 
 ### 16.10 家裡 CODEX 補評（2026-05-29 晚間）
 

@@ -14,8 +14,8 @@ All backend endpoints were successfully untangled from `admin-ajax.php` hooks an
 
 Instead of a monolithic AJAX handler file, we divided the logic into modular REST controllers:
 
-- **[rest-init.php](file:///c:/D/php/mp-ukagaka/includes/rest/rest-init.php)**: Registers `/init`. Handles the initial loading sequence of the Ukagaka character and session data.
-- **[rest-core.php](file:///c:/D/php/mp-ukagaka/includes/rest/rest-core.php)**: Registers core interaction endpoints:
+- **[rest-init.php](../includes/rest/rest-init.php)**: Registers `/init`. Handles the initial loading sequence of the Ukagaka character and session data.
+- **[rest-core.php](../includes/rest/rest-core.php)**: Registers core interaction endpoints:
   - `/nextmsg` (GET/POST): Retrieves the next dialogue line.
   - `/change` (GET): Switches the active character shell.
   - `/settings` (GET): Fetches runtime configuration.
@@ -23,20 +23,20 @@ Instead of a monolithic AJAX handler file, we divided the logic into modular RES
   - `/visitor-info` (GET): Retrieves visitor metadata.
   - `/wake-ghost` (POST): Manual trigger to wake the character.
   - `/decoration-prompts` (GET), `/shell-info` (GET), `/decoration-config` (GET), `/emoji-config` (GET).
-- **[rest-chat.php](file:///c:/D/php/mp-ukagaka/includes/rest/rest-chat.php)**: Handes LLM chat interactions:
+- **[rest-chat.php](../includes/rest/rest-chat.php)**: Handes LLM chat interactions:
   - `/chat/context` (POST): Analyzes page context for AI responses.
   - `/chat/greet` (POST): Generates the first-visitor greeting.
   - `/chat/user` (POST): Processes direct user multi-turn chat messages.
-- **[rest-touch.php](file:///c:/D/php/mp-ukagaka/includes/rest/rest-touch.php)**: Registers `/touch` (POST) for processing character touch events.
-- **[rest-test.php](file:///c:/D/php/mp-ukagaka/includes/rest/rest-test.php)**: Registers admin-only endpoints (`/test-connection`, `/clear-cache`) to validate API Keys (Gemini, Claude, OpenAI).
-- **Integrations**: Updated [includes/integrations/akismet-integration.php](file:///c:/D/php/mp-ukagaka/includes/integrations/akismet-integration.php) to register `/check-spam-event` (POST).
+- **[rest-touch.php](../includes/rest/rest-touch.php)**: Registers `/touch` (POST) for processing character touch events.
+- **[rest-test.php](../includes/rest/rest-test.php)**: Registers admin-only endpoints (`/test-connection`, `/clear-cache`) to validate API Keys (Gemini, Claude, OpenAI).
+- **Integrations**: Updated [includes/integrations/akismet-integration.php](../includes/integrations/akismet-integration.php) to register `/check-spam-event` (POST).
 
 ### Routing & Methods
 
 - **`methods` Parameter**: Endpoints were strictly bound to either `WP_REST_Server::READABLE` (`GET`) or `WP_REST_Server::CREATABLE` (`POST`) based on whether they mutate state.
 - **`permission_callback`**:
   - Public endpoints utilize `__return_true` as the WordPress REST API relies on cookie nonces for authenticated users.
-  - Admin-only routes (e.g., `test-connection`) utilize a custom callback [mpu_rest_admin_permission_check()](file:///c:/D/php/mp-ukagaka/includes/rest/rest-test.php#40-49) built around `current_user_can('manage_options')`.
+  - Admin-only routes (e.g., `test-connection`) utilize a custom callback [mpu_rest_admin_permission_check()](../includes/rest/rest-test.php#L40-L49) built around `current_user_can('manage_options')`.
 
 ### Standardized Error Handling
 
@@ -49,7 +49,7 @@ Instead of a monolithic AJAX handler file, we divided the logic into modular RES
 
 The frontend was completely decoupled from `ajaxurl` (`admin-ajax.php`).
 
-### Variable Injection ([includes/core/frontend-functions.php](file:///c:/D/php/mp-ukagaka/includes/core/frontend-functions.php))
+### Variable Injection ([includes/core/frontend-functions.php](../includes/core/frontend-functions.php))
 
 We injected the base REST URL and Nonce globally into the `<head>`:
 
@@ -58,9 +58,9 @@ var mpuRestUrl = "https://example.com/wp-json/mp-ukagaka/v1/";
 var mpuRestNonce = "b3dddf5602";
 ```
 
-### Global Fetch Wrapper ([js/ukagaka-base.js](file:///c:/D/php/mp-ukagaka/js/ukagaka-base.js))
+### Global Fetch Wrapper ([js/ukagaka-base.js](../js/ukagaka-base.js))
 
-We modified the core [mpuFetch](file:///c:/D/php/mp-ukagaka/js/ukagaka-base.js#731-857) wrapper to automatically append the `X-WP-Nonce` header to any outgoing request that targets `mpuRestUrl`. This ensures that any authenticated WordPress user navigating the frontend can securely interact with the endpoints.
+We modified the core [mpuFetch](../js/ukagaka-base.js#L731-L857) wrapper to automatically append the `X-WP-Nonce` header to any outgoing request that targets `mpuRestUrl`. This ensures that any authenticated WordPress user navigating the frontend can securely interact with the endpoints.
 
 ```javascript
 if (typeof mpuRestUrl !== "undefined" && url.startsWith(mpuRestUrl)) {
@@ -70,12 +70,12 @@ if (typeof mpuRestUrl !== "undefined" && url.startsWith(mpuRestUrl)) {
 
 ### JS Module Updates
 
-We overhauled the following files: [ukagaka-core.js](file:///c:/D/php/mp-ukagaka/js/ukagaka-core.js), [ukagaka-chat.js](file:///c:/D/php/mp-ukagaka/js/ukagaka-chat.js), [ukagaka-context.js](file:///c:/D/php/mp-ukagaka/js/ukagaka-context.js), [ukagaka-greeting.js](file:///c:/D/php/mp-ukagaka/js/ukagaka-greeting.js), [ukagaka-dialog.js](file:///c:/D/php/mp-ukagaka/js/ukagaka-dialog.js), [ukagaka-features.js](file:///c:/D/php/mp-ukagaka/js/ukagaka-features.js), and [ukagaka-emoji.js](file:///c:/D/php/mp-ukagaka/js/ukagaka-emoji.js).
+We overhauled the following files: [ukagaka-core.js](../js/ukagaka-core.js), [ukagaka-chat.js](../js/ukagaka-chat.js), [ukagaka-context.js](../js/ukagaka-context.js), [ukagaka-greeting.js](../js/ukagaka-greeting.js), [ukagaka-dialog.js](../js/ukagaka-dialog.js), [ukagaka-features.js](../js/ukagaka-features.js), and [ukagaka-emoji.js](../js/ukagaka-emoji.js).
 
 **Key Adjustments in JS:**
 
 1. Replaced `mpuurl` with `mpuRestUrl + 'endpoint-name'`.
-2. Removed the legacy [action](file:///c:/D/php/mp-ukagaka/includes/integrations/akismet-integration.php#477-602) parameter (e.g., `action: "mpu_nextmsg"`) from `URLSearchParams` and `FormData`.
+2. Removed the legacy [action](../includes/integrations/akismet-integration.php#L477-L602) parameter (e.g., `action: "mpu_nextmsg"`) from `URLSearchParams` and `FormData`.
 3. Removed manual `mpu_nonce` appending from all individual requests, relying entirely on the `X-WP-Nonce` HTTP header.
 
 ### Build System (`esbuild`)

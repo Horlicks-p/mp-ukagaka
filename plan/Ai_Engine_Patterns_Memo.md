@@ -17,7 +17,7 @@
 
 ### ✅ 1. UTF-8 Safe JSON Encoding（已擴展為 Provider Helper）
 
-[json_encode()](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/ai-engine/classes/engines/core.php#47-99) 加上 `JSON_INVALID_UTF8_SUBSTITUTE` 旗標，防止因為使用者貼上 Word 特殊文字或奇怪字元時，API 請求發生靜默失敗。
+json_encode()（ai-engine `classes/engines/core.php`） 加上 `JSON_INVALID_UTF8_SUBSTITUTE` 旗標，防止因為使用者貼上 Word 特殊文字或奇怪字元時，API 請求發生靜默失敗。
 
 - **目前狀態**：已透過 `includes/llm/provider-helpers.php` 的 `mpu_json_encode_safe()` 統一套用於 `ai-functions.php` 與 `chat-api-handlers.php`，並補上 fallback（避免呼叫端拿到 `false`）。
 
@@ -57,7 +57,7 @@
 
 ### ✅ 5. AI Provider 的工廠模式 (Factory Pattern) — 已完成
 
-建立 `MPU_AI_Provider_Factory::get_provider()`，讓所有 LLM 供應商（OpenAI, Gemini, Claude, Ollama）實作標準介面。這能統一 [class-mpu-rest-test.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/rest/class-mpu-rest-test.php) 與 [ai-functions.php](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/llm/ai-functions.php)，未來新增模型（如 DeepSeek）會非常容易。
+建立 `MPU_AI_Provider_Factory::get_provider()`，讓所有 LLM 供應商（OpenAI, Gemini, Claude, Ollama）實作標準介面。這能統一 [class-mpu-rest-test.php](../includes/rest/class-mpu-rest-test.php) 與 [ai-functions.php](../includes/llm/ai-functions.php)，未來新增模型（如 DeepSeek）會非常容易。
 
 ### ✅ 6. 伺服器發送事件串流 (SSE Streaming)
 
@@ -110,8 +110,8 @@ Chat 送出前計算非使用者訊息（assistant、system role）的 MD5 並�
 
 ### 11. 型別化的 Query 物件體系
 
-將文字、圖像、Embedding 等 API 請求分別封裝成獨立 Class，以解決目前 [mpu_call_ai_api()](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/mp-ukagaka/includes/llm/ai-functions.php#13-97) 參數過於肥大且混雜的問題。
+將文字、圖像、Embedding 等 API 請求分別封裝成獨立 Class，以解決目前 [mpu_call_ai_api()](../includes/llm/ai-functions.php#L13-L97) 參數過於肥大且混雜的問題。
 
 ### 12. 動態 Model 載入
 
-模型列表由 API 端點自動載入或透過各 Engine 的 [retrieve_models()](file:///d:/XAMPP/htdocs/wordpress/wp-content/plugins/ai-engine/classes/engines/core.php#671-674) 抓取，廢棄目前在 `options_page_llm.php` 硬編碼模型選單的作法。
+模型列表由 API 端點自動載入或透過各 Engine 的 retrieve_models()（ai-engine `classes/engines/core.php`） 抓取，廢棄目前在 `options_page_llm.php` 硬編碼模型選單的作法。

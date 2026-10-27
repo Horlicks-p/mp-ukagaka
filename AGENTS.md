@@ -8,7 +8,7 @@ first. This file only adds operational notes that aren't in CLAUDE.md.
 
 ## Toolchain quick reference (Windows)
 
-- **PHP**: `php` on PATH (`C:\D\php\php\php.exe`). Plugin targets PHP 7.4+.
+- **PHP**: `php` on PATH. Plugin targets PHP 7.4+.
 - **Composer**: **not on PATH** - use `php composer.phar` from the repo root
   (gitignored phar). Bare `composer` fails.
 - **Node tooling** lives in `tools/node`: `npm run build`, `test:logger`,

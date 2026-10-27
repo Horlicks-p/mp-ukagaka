@@ -7,9 +7,9 @@ existing findings so a PR fails only when it introduces *new* findings.
 > This is the battle-tested procedure. Two traps below cost real time the first
 > time around — read them before running anything.
 
-## Environment (this Windows machine)
+## Environment (Windows)
 
-- **PHP** is on PATH: `php` → `C:\D\php\php\php.exe` (currently 8.5). The plugin
+- **PHP** must be on PATH as `php` (the tooling runs on PHP 8.x). The plugin
   targets **PHP 7.4+** (`readme.txt: Requires PHP 7.4`).
 - **Composer is NOT on PATH.** A bundled phar lives at the repo root:
   `composer.phar` (gitignored, ~3 MB, Composer 2.x). Run it as `php composer.phar`.
