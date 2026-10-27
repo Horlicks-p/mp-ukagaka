@@ -539,8 +539,10 @@ function mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name, $va
     $variables['language'] = function_exists('mpu_resolve_language')
         ? mpu_resolve_language($personality_id, $variables['language'] ?? ($mpu_opt['ai_language'] ?? ''))
         : ($variables['language'] ?? ($mpu_opt['ai_language'] ?? 'zh-TW'));
+	// 管理人の個人情報は管理人本人と話す時だけ渡す（訪客を管理人と取り違えないように）.
+	$is_admin_audience = mpu_is_admin_audience();
     if (function_exists('mpu_get_admin_profile_prompt_variables')) {
-        $variables = array_merge($variables, mpu_get_admin_profile_prompt_variables($mpu_opt));
+        $variables = array_merge($variables, mpu_get_admin_profile_prompt_variables($mpu_opt, $is_admin_audience));
     }
 
     $system_prompt = null;
@@ -576,7 +578,7 @@ function mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name, $va
         $system_prompt = mpu_render_prompt_template($system_prompt, $variables);
     }
 
-    if (function_exists('mpu_get_admin_profile_prompt_block')) {
+    if ($is_admin_audience && function_exists('mpu_get_admin_profile_prompt_block')) {
         $admin_profile_block = mpu_get_admin_profile_prompt_block($mpu_opt);
         if ($admin_profile_block !== '') {
             $system_prompt .= "\n\n" . $admin_profile_block;
@@ -584,7 +586,7 @@ function mpu_resolve_system_prompt($personality_id, $mpu_opt, $ukagaka_name, $va
     }
 
     // --- 注入管理人記憶 (User Memory) ---
-    if (is_user_logged_in() && current_user_can('manage_options')) {
+    if ($is_admin_audience) {
         $memory_uid  = get_current_user_id();
         $memory_data = get_user_meta($memory_uid, 'mpu_user_memory', true);
         if (is_array($memory_data) && !empty($memory_data['facts'])) {
