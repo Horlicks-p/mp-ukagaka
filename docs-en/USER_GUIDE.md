@@ -132,6 +132,8 @@ The default character personality can use administrator profile values in prompt
 
 These fields let you personalize the character without editing `personality.md`, `instructions.md`, or `calendar.json` manually.
 
+The name and birthday only reach the prompt while a logged-in administrator is talking to the character. For visitors and other accounts, `{{admin_nickname}}` and `{{admin_name}}` render as `管理人`, `{{admin_birthday}}` renders empty and the admin-birthday calendar event is dropped, so the character never greets a visitor by the admin's name. Prompt categories addressed to the admin (`admin_comment`, `anniversary_admin_birthday`) are likewise only drawn for the administrator.
+
 ### Page Exclusion
 
 In the "Don't show Ukagaka on these pages" text box, enter the URLs of pages where you don't want the Ukagaka to appear, one per line.
@@ -468,9 +470,9 @@ You are the mage Frieren.
 | `{{ukagaka_display_name}}` | Character name |
 | `{{language}}` | Response language (zh-TW, ja, en) |
 | `{{time_context}}` | Time context (Morning, Afternoon, Evening, Late Night) |
-| `{{admin_nickname}}` | Admin's full nickname |
-| `{{admin_name}}` | Admin's short name |
-| `{{admin_birthday}}` | Admin birthday in `MM-DD` format |
+| `{{admin_nickname}}` | Admin's full nickname (`管理人` when the listener is not the admin) |
+| `{{admin_name}}` | Admin's short name (`管理人` when the listener is not the admin) |
+| `{{admin_birthday}}` | Admin birthday in `MM-DD` format (empty when the listener is not the admin) |
 | `{{wp_version}}` | WordPress version |
 | `{{php_version}}` | PHP version |
 | `{{post_count}}` | Post count |

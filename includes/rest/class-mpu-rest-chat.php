@@ -748,6 +748,9 @@ class MPU_REST_Chat extends MPU_REST_Base {
             } else {
                 $user_lines[] = '- 未知の訪客';
             }
+            if (empty($user_info['is_admin'])) {
+                $user_lines[] = '- ' . mpu_get_non_admin_audience_instruction();
+            }
             $system_parts[] = $user_block . "\n" . implode("\n", $user_lines);
 
             if (!empty($page_title) || !empty($page_content)) {

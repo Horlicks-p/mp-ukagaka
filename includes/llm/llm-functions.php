@@ -461,6 +461,9 @@ function mpu_generate_llm_dialogue($ukagaka_name = 'default_1', $last_response =
     } else {
         $user_block .= "ユーザーがログインしていません（訪客）。\n";
     }
+	if ( empty( $user_info['is_admin'] ) ) {
+		$user_block .= mpu_get_non_admin_audience_instruction() . "\n";
+	}
     $prompt_parts[] = rtrim($user_block);
 
     // --- 【訪客情報】 ---

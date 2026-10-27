@@ -297,6 +297,79 @@ final class PromptVariablesTest extends TestCase {
     }
 
     /**
+     * The admin's name and birthday only reach the system prompt while the admin is the
+     * listener. A guest must never get them, or the model greets the guest by that name.
+     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_admin_profile_reaches_the_prompt_only_for_the_admin(): void {
+        $this->load([
+            'admin_nickname' => 'テスト管理ニック',
+            'admin_name'     => 'テスト管理ネーム',
+            'admin_birthday' => '10-18',
+        ]);
+        function get_user_meta($user_id, $key = '', $single = false) {
+            return '';
+        }
+        $mpu_opt = mpu_get_option();
+
+        foreach ([[false, false], [true, false]] as [$logged_in, $can_manage]) {
+            $GLOBALS['_mpu_test_is_user_logged_in'] = $logged_in;
+            $GLOBALS['_mpu_test_current_user_can']  = $can_manage;
+            $prompt = mpu_resolve_system_prompt('Frieren', $mpu_opt, 'フリーレン');
+            $this->assertStringNotContainsString('テスト管理ニック', $prompt);
+            $this->assertStringNotContainsString('テスト管理ネーム', $prompt);
+            $this->assertStringNotContainsString('10-18', $prompt);
+
+            $user_block = mpu_build_user_info_prompt(mpu_get_current_user_info());
+            $this->assertStringContainsString(mpu_get_non_admin_audience_instruction(), $user_block);
+        }
+
+        $GLOBALS['_mpu_test_is_user_logged_in'] = true;
+        $GLOBALS['_mpu_test_current_user_can']  = true;
+        $prompt = mpu_resolve_system_prompt('Frieren', $mpu_opt, 'フリーレン');
+        $this->assertStringContainsString('テスト管理ニック', $prompt);
+        $this->assertStringContainsString('テスト管理ネーム', $prompt);
+        $this->assertStringContainsString('10-18', $prompt);
+    }
+
+    /**
+     * The admin birthday reaches time_context through the calendar, so the calendar is
+     * gated on the same audience check.
+     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_admin_birthday_stays_out_of_the_calendar_for_guests(): void {
+        $this->load(['admin_birthday' => '10-18']);
+        $mpu_opt  = mpu_get_option();
+        $calendar = [
+            'anniversaries' => [
+                // calendar.json に残っている旧来の誕生日エントリも対象.
+                'MM-DD' => ['name' => '管理人の誕生日', 'prompts' => ['anniversary_admin_birthday']],
+                '04-01' => ['name' => '別の記念日', 'prompts' => ['holiday_aprilfool']],
+            ],
+        ];
+
+        $guest = mpu_apply_admin_profile_calendar($calendar, $mpu_opt, false);
+        $this->assertSame(['04-01'], array_keys($guest['anniversaries']));
+
+        $admin = mpu_apply_admin_profile_calendar($calendar, $mpu_opt, true);
+        $this->assertSame(['04-01', '10-18'], array_keys($admin['anniversaries']));
+        $this->assertSame(['anniversary_admin_birthday'], $admin['anniversaries']['10-18']['prompts']);
+
+        // 誕生日未設定の管理人には calendar.json のまま渡す（従来どおり）.
+        $unset = mpu_apply_admin_profile_calendar($calendar, ['admin_birthday' => ''], true);
+        $this->assertSame($calendar, $unset);
+
+        // 引数を省略すると現在のユーザーから判定する.
+        $GLOBALS['_mpu_test_is_user_logged_in'] = false;
+        $GLOBALS['_mpu_test_current_user_can']  = false;
+        $this->assertSame(['04-01'], array_keys(mpu_apply_admin_profile_calendar($calendar, $mpu_opt)['anniversaries']));
+    }
+
+    /**
      * The reaction pipeline used to call mpu_resolve_system_prompt() without variables.
      * No built-in ghost references the ones it now passes, so its prompt is unchanged.
      *

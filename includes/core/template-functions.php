@@ -137,6 +137,9 @@ function mpu_build_user_info_prompt(array $user_info): string
     } else {
         $parts[] = "ユーザーがログインしていません（訪問者）。";
     }
+	if ( empty( $user_info['is_admin'] ) ) {
+		$parts[] = mpu_get_non_admin_audience_instruction();
+	}
 
     return implode("\n", $parts);
 }

@@ -111,6 +111,19 @@ function mpu_is_spontaneous_prompt_category( $key ) {
 }
 
 /**
+ * 判斷類別是否為「直接對管理人說話」的類別。
+ *
+ * 這些類別的指令以管理人為說話對象，聽者不是管理人時（訪客、非管理員帳號）
+ * 會讓模型把訪客誤認成管理人，因此只在管理人在場時才列入候選。
+ *
+ * @param string $key Prompt category key.
+ * @return bool True if the category addresses the admin.
+ */
+function mpu_is_admin_only_prompt_category( $key ) {
+	return in_array( (string) $key, array( 'admin_comment', 'anniversary_admin_birthday' ), true );
+}
+
+/**
  * 建構 User Prompt 的類別指令
  *
  * 此函數生成不同類別的對話指令，用於「使用 LLM 取代內建對話」功能。
@@ -179,7 +192,21 @@ function mpu_build_prompt_categories(
      * @param array $visitor_info 訪客資訊
      * @param string $time_context 時間情境
      */
-    return apply_filters('mpu_prompt_categories', $prompt_categories, $wp_info, $visitor_info, $time_context);
+    $prompt_categories = apply_filters('mpu_prompt_categories', $prompt_categories, $wp_info, $visitor_info, $time_context);
+
+	// 聽者不是管理人時，排除對管理人說話的類別.
+	// 放在 filter 之後，動態提示詞或第三方 filter 加回的也一併排除.
+	if ( ! mpu_is_admin_audience() && is_array( $prompt_categories ) ) {
+		$prompt_categories = array_filter(
+			$prompt_categories,
+			static function ( $key ) {
+				return ! mpu_is_admin_only_prompt_category( $key );
+			},
+			ARRAY_FILTER_USE_KEY
+		);
+	}
+
+	return $prompt_categories;
 }
 
 /**
@@ -252,8 +279,8 @@ function mpu_get_dynamic_category_weights($time_context, $visitor_info, $context
         }
 
         // 常客：親しみを込めてからかう
+        // 再訪判定はブラウザ単位なので、管理人向けの admin_comment は上げない
         if (!empty($context_vars['is_frequent_visitor'])) {
-            $weights['admin_comment'] = 15;
             $weights['casual'] = 18;
             $weights['human_observation'] = 12;
             $weights['frieren_humor'] = 10;
@@ -288,7 +315,6 @@ function mpu_get_dynamic_category_weights($time_context, $visitor_info, $context
             $weights['greeting_regular'] = 15;
             $weights['greeting_long_absence'] = 0;
             $weights['casual'] = 18;
-            $weights['admin_comment'] = 10;
         }
     }
 

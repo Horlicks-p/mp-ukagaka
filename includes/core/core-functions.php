@@ -265,11 +265,26 @@ function mpu_get_admin_profile_settings($mpu_opt = null)
 /**
  * Get template variables for admin profile placeholders.
  *
+ * When the listener is not the admin, the admin's name and birthday are
+ * replaced with the generic label so they never reach the prompt.
+ *
  * @param array|null $mpu_opt Plugin options.
+ * @param bool|null  $is_admin_audience Null to detect from the current user.
  * @return array
  */
-function mpu_get_admin_profile_prompt_variables($mpu_opt = null)
+function mpu_get_admin_profile_prompt_variables($mpu_opt = null, $is_admin_audience = null)
 {
+	if ( null === $is_admin_audience ) {
+		$is_admin_audience = mpu_is_admin_audience();
+	}
+	if ( ! $is_admin_audience ) {
+		return array(
+			'admin_nickname' => '管理人',
+			'admin_name'     => '管理人',
+			'admin_birthday' => '',
+		);
+	}
+
     $profile = mpu_get_admin_profile_settings($mpu_opt);
 
     return [
@@ -310,18 +325,26 @@ function mpu_get_admin_profile_prompt_block($mpu_opt = null)
 /**
  * Apply admin birthday settings to a personality calendar.
  *
- * @param array $calendar Personality calendar config.
+ * When the listener is not the admin, the admin birthday is removed from the
+ * calendar so the date never reaches the prompt either.
+ *
+ * @param array      $calendar Personality calendar config.
  * @param array|null $mpu_opt Plugin options.
+ * @param bool|null  $is_admin_audience Null to detect from the current user.
  * @return array
  */
-function mpu_apply_admin_profile_calendar($calendar, $mpu_opt = null)
+function mpu_apply_admin_profile_calendar($calendar, $mpu_opt = null, $is_admin_audience = null)
 {
     if (!is_array($calendar)) {
         return $calendar;
     }
 
+	if ( null === $is_admin_audience ) {
+		$is_admin_audience = mpu_is_admin_audience();
+	}
+
     $profile = mpu_get_admin_profile_settings($mpu_opt);
-    if ($profile['admin_birthday'] === '') {
+	if ( $is_admin_audience && '' === $profile['admin_birthday'] ) {
         return $calendar;
     }
 
@@ -334,6 +357,10 @@ function mpu_apply_admin_profile_calendar($calendar, $mpu_opt = null)
             unset($calendar['anniversaries'][$key]);
         }
     }
+
+	if ( ! $is_admin_audience ) {
+		return $calendar;
+	}
 
     $calendar['anniversaries'][$profile['admin_birthday']] = [
         'name'        => '管理人の誕生日',

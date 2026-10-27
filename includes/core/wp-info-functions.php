@@ -212,6 +212,27 @@ function mpu_get_current_user_info()
     return $user_info;
 }
 
+/**
+ * 角色目前的說話對象是否為站點管理人
+ *
+ * 管理人專屬的提示內容（姓名、生日、記憶、對管理人說話的類別）都以此為準，
+ * 判斷條件與 mpu_get_current_user_info() 的 is_admin 相同。
+ *
+ * @return bool
+ */
+function mpu_is_admin_audience() {
+	return is_user_logged_in() && current_user_can( 'manage_options' );
+}
+
+/**
+ * 說話對象不是管理人時加入提示的演出指示
+ *
+ * @return string
+ */
+function mpu_get_non_admin_audience_instruction() {
+	return 'いま目の前にいるのは管理人ではない訪問者。訪問者を管理人として扱ったり、管理人の名前で呼びかけたりしない（管理人の話題に三人称で触れるのはよい）';
+}
+
 // ========================================
 // 國碼轉換
 // ========================================

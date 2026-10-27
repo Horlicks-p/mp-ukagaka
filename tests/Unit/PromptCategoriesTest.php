@@ -93,4 +93,113 @@ final class PromptCategoriesTest extends TestCase {
             unset($GLOBALS['_mpu_test_personality_prompts']);
         }
     }
+
+    private function build_with_admin_categories(bool $logged_in, bool $can_manage): array {
+        $GLOBALS['_mpu_test_personality_prompts'] = [
+            'casual'                     => ['日常の一言'],
+            'admin_comment'              => ['管理人を軽くからかう'],
+            'anniversary_admin_birthday' => ['管理人の誕生日を祝う'],
+        ];
+        $GLOBALS['_mpu_test_is_user_logged_in'] = $logged_in;
+        $GLOBALS['_mpu_test_current_user_can']  = $can_manage;
+
+        try {
+            return mpu_build_prompt_categories(
+                [], [], 'time', 'Theme', '1.0', 'Author',
+                'test_audience_' . uniqid()
+            );
+        } finally {
+            unset($GLOBALS['_mpu_test_personality_prompts']);
+            $GLOBALS['_mpu_test_is_user_logged_in'] = false;
+            $GLOBALS['_mpu_test_current_user_can']  = false;
+        }
+    }
+
+    public function test_admin_only_categories_are_excluded_when_the_listener_is_not_the_admin(): void {
+        // 未ログインの訪客も、管理権限のないログインユーザーも管理人ではない。
+        foreach ([[false, false], [true, false]] as [$logged_in, $can_manage]) {
+            $result = $this->build_with_admin_categories($logged_in, $can_manage);
+
+            $this->assertArrayHasKey('casual', $result);
+            $this->assertArrayNotHasKey('admin_comment', $result);
+            $this->assertArrayNotHasKey('anniversary_admin_birthday', $result);
+        }
+    }
+
+    public function test_admin_only_categories_added_by_a_filter_are_still_excluded_for_guests(): void {
+        $saved = $GLOBALS['_mpu_test_filters']['mpu_prompt_categories'] ?? null;
+        add_filter('mpu_prompt_categories', static function ($categories) {
+            $categories['admin_comment'] = ['第三者が加えた管理人向け指示'];
+            return $categories;
+        });
+
+        try {
+            $guest = $this->build_with_admin_categories(false, false);
+            $this->assertArrayHasKey('casual', $guest);
+            $this->assertArrayNotHasKey('admin_comment', $guest);
+
+            $admin = $this->build_with_admin_categories(true, true);
+            $this->assertArrayHasKey('admin_comment', $admin);
+        } finally {
+            if (null === $saved) {
+                unset($GLOBALS['_mpu_test_filters']['mpu_prompt_categories']);
+            } else {
+                $GLOBALS['_mpu_test_filters']['mpu_prompt_categories'] = $saved;
+            }
+        }
+    }
+
+    public function test_admin_only_categories_remain_for_the_admin(): void {
+        $result = $this->build_with_admin_categories(true, true);
+
+        $this->assertArrayHasKey('casual', $result);
+        $this->assertArrayHasKey('admin_comment', $result);
+        $this->assertArrayHasKey('anniversary_admin_birthday', $result);
+    }
+
+    /**
+     * 再訪判定はブラウザ単位なので、管理人向けの admin_comment を上げてはいけない。
+     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_revisit_flags_do_not_boost_admin_comment(): void {
+        function mpu_get_personality_base_weights($personality_id = null) {
+            return ['casual' => 5, 'admin_comment' => 6];
+        }
+
+        $weights = mpu_get_dynamic_category_weights(
+            '',
+            [],
+            ['is_recent_visit' => true, 'is_frequent_visitor' => true]
+        );
+
+        // 再訪による調整そのものは効いている。
+        $this->assertSame(18, $weights['casual']);
+        // admin_comment は基礎権重のまま。
+        $this->assertSame(6, $weights['admin_comment']);
+    }
+
+    public function test_frieren_frequent_visitor_weights_do_not_boost_admin_comment(): void {
+        $weights = json_decode(
+            (string) file_get_contents(MPU_TESTS_ROOT . '/ghost/Frieren/weights.json'),
+            true
+        );
+        $this->assertIsArray($weights);
+
+        $found = false;
+        $stack = [$weights];
+        while ($stack) {
+            $node = array_pop($stack);
+            foreach ($node as $key => $value) {
+                if ($key === 'is_frequent_visitor' && is_array($value)) {
+                    $found = true;
+                    $this->assertArrayNotHasKey('admin_comment', $value);
+                } elseif (is_array($value)) {
+                    $stack[] = $value;
+                }
+            }
+        }
+        $this->assertTrue($found, 'is_frequent_visitor adjustment not found in weights.json');
+    }
 }
