@@ -1,0 +1,57 @@
+name: PHP CI
+
+# PHP syntax and PHPUnit on the plugin's minimum PHP (readme.txt: Requires PHP 7.4)
+# and on a current runtime, plus the PHPCS baseline check once. Bundles and the
+# Node smoke tests stay in dist-parity.yml.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '7.4'
+            phpcs: false
+          - php: '8.5'
+            phpcs: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, mbstring, openssl
+          coverage: none
+          tools: composer:v2
+
+      # composer.json pins config.platform.php to 7.4, so one lock installs on both versions.
+      - name: Install PHP tooling
+        run: composer install --working-dir=tools/php --no-interaction --no-progress --prefer-dist
+
+      - name: PHP syntax
+        run: |
+          status=0
+          while IFS= read -r -d '' file; do
+            php -l "$file" > /dev/null || status=1
+          done < <(find includes options -name '*.php' -print0; printf 'mp-ukagaka.php\0')
+          exit $status
+
+      - name: PHPUnit
+        run: php tools/php/vendor/bin/phpunit --configuration tests/phpunit.xml.dist
+
+      - name: PHPCS baseline
+        if: matrix.phpcs
+        run: php tools/php/phpcs-baseline.php check
