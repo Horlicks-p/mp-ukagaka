@@ -60,7 +60,7 @@ async function mpuEnsureSessionToken(forceRefresh = false) {
 - 針對前台 singular 頁面，自動推送 `page_view`（payload 只送 `post:${id}`）。
 - 用非線性節流計時器推送 `stay_duration`（10秒、30秒、60秒、3分鐘、10分鐘），整個 session 最多 5 次。
 - 包裝 `mpuObservationPush()` helper，遇到 `403` / `missing_session_token` 時呼叫 `mpuEnsureSessionToken(true)` force-refresh，並重試一次；仍失敗則 drop（不阻塞 UI、不寫 console error）。
-- JS 修改後需要運行 build：`E:\Node.js\node.exe tools/node/build.js`（`package.json` 位於 `tools/node/`，根目錄沒有；亦可 `cd tools/node && npm run build`）打包出 `js/dist/ukagaka-bundle.min.js`。
+- JS 修改後需要運行 build：`node tools/node/build.js`（`package.json` 位於 `tools/node/`，根目錄沒有；亦可 `cd tools/node && npm run build`）打包出 `js/dist/ukagaka-bundle.min.js`。
 
 ### [NEW] `tests/test-mpu-observation-buffer.php`
 PHPUnit 測試檔案。**現況**：repo 已存在 `tests/phpunit.xml.dist` 與 `tests/bootstrap.php` 的 lightweight PHPUnit infra（CLAUDE.md 「無自動測試套件」的描述偏舊；目前是有 infra 但不一定完整覆蓋 WP integration）。本檔案直接掛進該 infra 即可，不需從零搭建。如果某些測項需要 WP function（`get_post()`、`get_transient()`），可在 `tests/bootstrap.php` 內確認 WP 環境已 load；無 WP 載入時則先 skip。
