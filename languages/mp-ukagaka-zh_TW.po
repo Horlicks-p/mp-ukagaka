@@ -881,8 +881,8 @@ msgstr "輸入完整模型 ID，例如：gemini-2.0-flash"
 
 #: options/options_page_diary.php:256
 #: options/options_page_llm.php:124
-msgid "輸入完整模型 ID，例如：gpt-4.1-2025-04-14"
-msgstr "輸入完整模型 ID，例如：gpt-4.1-2025-04-14"
+msgid "輸入完整模型 ID，例如：gpt-6-luna"
+msgstr "輸入完整模型 ID，例如：gpt-6-luna"
 
 #: options/options_page_diary.php:283
 #: options/options_page_llm.php:156
@@ -3834,3 +3834,11 @@ msgstr "最近封鎖"
 #, php-format
 msgid "顯示全部 %s 筆（由新到舊）"
 msgstr "顯示全部 %s 筆（由新到舊）"
+
+#: includes/admin-functions.php
+msgid "MP Ukagaka：使用中的 OpenAI 模型將於 2027-01-14 停止服務"
+msgstr "MP Ukagaka：使用中的 OpenAI 模型將於 2027-01-14 停止服務"
+
+#: includes/admin-functions.php
+msgid "停止後 AI 對話與生成會失敗。建議改用 gpt-6-luna，並在下列設定頁儲存。外掛不會自動更改模型。"
+msgstr "停止後 AI 對話與生成會失敗。建議改用 gpt-6-luna，並在下列設定頁儲存。外掛不會自動更改模型。"

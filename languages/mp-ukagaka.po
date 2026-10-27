@@ -3289,7 +3289,7 @@ msgstr ""
 
 #: options/options_page_diary.php:256
 #: options/options_page_llm.php:124
-msgid "輸入完整模型 ID，例如：gpt-4.1-2025-04-14"
+msgid "輸入完整模型 ID，例如：gpt-6-luna"
 msgstr ""
 
 #: options/options_page_diary.php:264
@@ -3838,4 +3838,12 @@ msgstr ""
 #: options/options_page_bot_blocker.php
 #, php-format
 msgid "顯示全部 %s 筆（由新到舊）"
+msgstr ""
+
+#: includes/admin-functions.php
+msgid "MP Ukagaka：使用中的 OpenAI 模型將於 2027-01-14 停止服務"
+msgstr ""
+
+#: includes/admin-functions.php
+msgid "停止後 AI 對話與生成會失敗。建議改用 gpt-6-luna，並在下列設定頁儲存。外掛不會自動更改模型。"
 msgstr ""

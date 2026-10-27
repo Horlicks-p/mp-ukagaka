@@ -790,6 +790,115 @@ function mpu_options()
 }
 add_action("admin_menu", "mpu_options");
 
+/**
+ * OpenAI 於 2027-01-14 停止 API 服務的模型 ID（alias 與 dated snapshot 逐一列出）。
+ *
+ * 只做精確比對：不要用 gpt-4.1-* 這類前綴，以免把之後出現、退場日期不同的模型算進來。
+ *
+ * @return string[]
+ */
+function mpu_get_retiring_openai_models() {
+	return array(
+		'gpt-4o',
+		'gpt-4o-2024-08-06',
+		'gpt-4o-2024-11-20',
+		'gpt-4o-mini',
+		'gpt-4o-mini-2024-07-18',
+		'gpt-4.1',
+		'gpt-4.1-2025-04-14',
+		'gpt-4.1-mini',
+		'gpt-4.1-mini-2025-04-14',
+	);
+}
+
+/**
+ * 模型是否在 2027-01-14 退場清單內。
+ *
+ * Fine-tuned 模型（ft:<base>:...）跟隨其 base snapshot 的退場時程，只在 base 精確命中時才算。
+ *
+ * @param string $model OpenAI model ID.
+ * @return bool
+ */
+function mpu_is_retiring_openai_model( $model ) {
+	$model = strtolower( trim( (string) $model ) );
+	if ( 0 === strpos( $model, 'ft:' ) ) {
+		$parts = explode( ':', $model );
+		$model = isset( $parts[1] ) ? $parts[1] : '';
+	}
+	return '' !== $model && in_array( $model, mpu_get_retiring_openai_models(), true );
+}
+
+/**
+ * 列出目前實際生效、且即將退場的 OpenAI 模型設定。
+ *
+ * 主 LLM 用合併預設後的值（沒存過 llm_openai_model 的舊網站會落在 gpt-4.1-mini）；
+ * 日記只在啟用且 Provider 為 OpenAI 時才算。
+ *
+ * @param array $mpu_opt Plugin options (merged with defaults).
+ * @return array<int, array{label:string, model:string, cur_page:int}>
+ */
+function mpu_get_retiring_openai_model_settings( array $mpu_opt ) {
+	$found = array();
+
+	$llm_provider = isset( $mpu_opt['llm_provider'] ) ? $mpu_opt['llm_provider'] : ( isset( $mpu_opt['ai_provider'] ) ? $mpu_opt['ai_provider'] : 'gemini' );
+	if ( 'openai' === $llm_provider ) {
+		$model = isset( $mpu_opt['llm_openai_model'] ) ? $mpu_opt['llm_openai_model'] : ( isset( $mpu_opt['openai_model'] ) ? $mpu_opt['openai_model'] : 'gpt-4.1-mini-2025-04-14' );
+		if ( mpu_is_retiring_openai_model( $model ) ) {
+			$found[] = array(
+				'label'    => __( '🤖 LLM 設定', 'mp-ukagaka' ),
+				'model'    => (string) $model,
+				'cur_page' => 6,
+			);
+		}
+	}
+
+	if ( ! empty( $mpu_opt['diary_enabled'] ) && isset( $mpu_opt['diary_provider'] ) && 'openai' === $mpu_opt['diary_provider'] ) {
+		$model = isset( $mpu_opt['diary_openai_model'] ) ? $mpu_opt['diary_openai_model'] : 'gpt-6-luna';
+		if ( mpu_is_retiring_openai_model( $model ) ) {
+			$found[] = array(
+				'label'    => __( '📓 日記設定', 'mp-ukagaka' ),
+				'model'    => (string) $model,
+				'cur_page' => 7,
+			);
+		}
+	}
+
+	return $found;
+}
+
+/**
+ * 管理員後台提醒：使用中的 OpenAI 模型即將退場。
+ *
+ * 不自動改設定、不提供永久關閉；改成非退場模型並儲存後就不再顯示。
+ */
+function mpu_render_openai_retirement_notice() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	$settings = mpu_get_retiring_openai_model_settings( mpu_get_option() );
+	if ( empty( $settings ) ) {
+		return;
+	}
+
+	echo '<div class="notice notice-warning"><p><strong>';
+	echo esc_html__( 'MP Ukagaka：使用中的 OpenAI 模型將於 2027-01-14 停止服務', 'mp-ukagaka' );
+	echo '</strong></p><p>';
+	echo esc_html__( '停止後 AI 對話與生成會失敗。建議改用 gpt-6-luna，並在下列設定頁儲存。外掛不會自動更改模型。', 'mp-ukagaka' );
+	echo '</p><ul style="list-style:disc;margin-left:2em;">';
+	foreach ( $settings as $setting ) {
+		$url = admin_url( 'options-general.php?page=mp-ukagaka/options.php&cur_page=' . (int) $setting['cur_page'] );
+		printf(
+			'<li><a href="%1$s">%2$s</a>：<code>%3$s</code></li>',
+			esc_url( $url ),
+			esc_html( $setting['label'] ),
+			esc_html( $setting['model'] )
+		);
+	}
+	echo '</ul></div>';
+}
+add_action( 'admin_notices', 'mpu_render_openai_retirement_notice' );
+
 
 /**
  * 回傳不允許透過 ZIP 上傳覆蓋的保留 Personality ID 清單。

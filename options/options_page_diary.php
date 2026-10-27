@@ -256,7 +256,7 @@ $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signatur
                     <div id="diary_openai_model_custom_wrap" style="display:<?php echo $diary_openai_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
                         <input type="text" id="diary_openai_model_custom_input" style="width: 100%; max-width: 400px;"
                             value="<?php echo $diary_openai_is_custom ? esc_attr($diary_openai_model) : ''; ?>"
-                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gpt-4.1-2025-04-14', 'mp-ukagaka'); ?>" />
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gpt-6-luna', 'mp-ukagaka'); ?>" />
                     </div>
                 </div>
             </div>
