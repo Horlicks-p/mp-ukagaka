@@ -128,8 +128,12 @@ final class PromptVariablesTest extends TestCase {
      */
     private function run_reaction(string $personality_id, ?array $messages): array {
         $before = count($GLOBALS['_mpu_test_ai_calls']);
-        $result = (new ReflectionMethod(MPU_REST_Touch::class, 'run_reaction'))
-            ->invoke(new MPU_REST_Touch(), 'user prompt', $personality_id, 'touch', $messages);
+        $method = new ReflectionMethod(MPU_REST_Touch::class, 'run_reaction');
+        if (PHP_VERSION_ID < 80100) {
+            // Needed before PHP 8.1; deprecated from 8.5, so only call it where it matters.
+            $method->setAccessible(true);
+        }
+        $result = $method->invoke(new MPU_REST_Touch(), 'user prompt', $personality_id, 'touch', $messages);
 
         $this->assertInstanceOf(WP_Error::class, $result);
         $this->assertSame('captured', $result->get_error_code());
