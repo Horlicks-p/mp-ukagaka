@@ -4,6 +4,23 @@
 
 ---
 
+## [2.38.2] - 2026-10-27
+
+### Prompts
+
+- **Visitors are no longer greeted by the admin's name.** With GPT-6 Luna, a spontaneous line could address an anonymous visitor by the admin's nickname, as in 「ホーリックス、また来たのか」. The admin profile was always in the system prompt, categories addressed to the admin were drawn for anyone, and the revisit flag (kept per browser, unrelated to WordPress login) raised `admin_comment`. Older models kept the admin's background apart from the current listener; GPT-6 Luna did not.
+- **The admin's details reach the prompt only when the admin is listening.** A new helper, `mpu_is_admin_audience()`, checks for a logged-in user with `manage_options`. For anyone else, `{{admin_nickname}}` and `{{admin_name}}` render as `管理人`, `{{admin_birthday}}` renders empty, and neither the admin profile block nor the admin memories are added. The admin-birthday calendar event is dropped too, so the date stays out of the time context.
+- **Admin-only categories.** `admin_comment` and `anniversary_admin_birthday` are drawn only for the admin. They are removed after the `mpu_prompt_categories` filter, so a filter cannot add them back. Revisit and frequent-visitor flags no longer raise `admin_comment` (in code and in Frieren's `weights.json`).
+- **Stage direction for other listeners.** Spontaneous lines, greetings and chat tell the model that the listener is not the admin: do not treat the visitor as the admin or use the admin's name. Mentioning the admin in the third person is still fine.
+- Three Frieren lines that addressed the admin from general categories are reworded (the blown kiss, asking someone to mediate with Fern, and the anime anniversary).
+- Logged-in admins see no change.
+
+### Internal
+
+- New tests cover guest, non-admin and admin prompts, the category filter (including a filter that adds `admin_comment` back), revisit weights and the birthday calendar event.
+
+---
+
 ## [2.38.1] - 2026-10-16
 
 ### Expressions
