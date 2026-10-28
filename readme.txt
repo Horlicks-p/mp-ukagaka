@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.38.2
+Stable tag: 2.38.3
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,12 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-28 =
+* v2.38.3
+* [NEW] Admins see a warning when the OpenAI model used for chat or the diary retires on 2027-01-14, with a link to the page where it can be changed. The plugin does not change the model itself.
+* [FIX] Expression tags written with spaces or a trailing period, such as [ laugh ] or [laugh.], now switch the expression and disappear from the text while a reply is streaming. Unknown tags and Markdown links are kept as text.
+* [SECURITY] Provider HTTP errors no longer write the prompt, the provider's reply or (for Gemini) the API key to the PHP error log; only a one-line summary is logged.
 
 = 2026-10-27 =
 * v2.38.2

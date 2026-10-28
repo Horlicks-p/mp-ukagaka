@@ -4,6 +4,33 @@
 
 ---
 
+## [2.38.3] - 2026-10-28
+
+### OpenAI models
+
+- **Admins are warned when the OpenAI model in use retires on 2027-01-14.** A site that runs a retiring model now shows a warning at the top of the admin screens. It names the model and links to the settings page where it is set. Main chat counts when the LLM provider is OpenAI, using the model that is actually in effect after defaults are merged, so a site that never saved a model and runs `gpt-4.1-mini-2025-04-14` is warned too. The diary counts only when it is enabled and its provider is OpenAI. When both are affected, they share one notice. The notice is shown only to users with `manage_options` and cannot be dismissed. The plugin never changes the model itself, so the notice goes away once another model is chosen and saved.
+- The retiring models are matched by exact ID (`mpu_get_retiring_openai_models()`): `gpt-4o`, `gpt-4o-2024-08-06`, `gpt-4o-2024-11-20`, `gpt-4o-mini`, `gpt-4o-mini-2024-07-18`, `gpt-4.1`, `gpt-4.1-2025-04-14`, `gpt-4.1-mini` and `gpt-4.1-mini-2025-04-14`. A fine-tuned model (`ft:<base>:…`) counts only when its base is one of these. Prefixes are not matched, so `gpt-4.1-nano` or `gpt-4o-audio-preview` do not raise the notice.
+- The placeholder of the "Custom model…" field on the LLM and diary pages is now `gpt-6-luna`. It was `gpt-4.1-2025-04-14`, itself a retiring model.
+
+### Expressions
+
+- **Padded and punctuated expression tags work while streaming.** The response normalizer has read supported tags written loosely, such as `[ laugh ]`, `[laugh.]`, `[laugh。]`, `[laugh…]` and `[ laugh 。]`, but the stream parser read only the strict `[laugh]`. A streamed reply therefore showed the tag as text and did not switch the expression, while the saved history had it removed. The stream parser now uses the normalizer's grammar for ASCII tags too, including a tag split across chunks (`[ lau` + `gh ]`).
+- Loose forms are recognized only for the character's supported expressions. An unknown tag stays as text unless it is the strict `[name]` form (as in 2.38.0), so `[ smile ]`, `[ note ]` or `[version.]` are kept. A tag followed by `(` stays Markdown link text. Older forms such as `[表情: laugh]` are unchanged while streaming.
+- While the character has supported tags, an unclosed `[gallery` or `[ note` is held until `]`, a character outside the tag grammar, or the end of the stream. The final text is the same.
+
+### Security
+
+- **Provider HTTP errors no longer write prompts or keys to the PHP error log.** On every HTTP 4xx/5xx from a provider, `mpu_stream_api_request()` logged the full request URL, the message contents (system prompt, admin profile, visitor text), tool-call arguments and up to 4 KB of the provider's reply, whether or not `WP_DEBUG` was on. Gemini's streaming URL carries the API key as `?key=…`, so a Gemini streaming error wrote the key to the log in plain text. The log now gets one line from `mpu_stream_http_error_log_line()`: the HTTP status, the endpoint (scheme, host, port and path only), the request and response sizes, and the provider's error type, code or status when they are short identifiers. Free-text error messages are not logged. The returned `WP_Error` and what visitors see are unchanged.
+- If you used Gemini streaming and have PHP error logs from before this release, check them for `key=`; if the key appears, delete those logs and rotate the Gemini API key.
+
+### Internal
+
+- New GitHub Actions workflow (`php-ci.yml`) runs `php -l` and PHPUnit on PHP 7.4 and 8.5, and the PHPCS baseline check on 8.5. `tools/php/composer.json` pins `config.platform.php` to 7.4.33 so one lock installs on both.
+- PHPCS tooling is updated past the high-severity advisories (PHP_CodeSniffer 3.13.6, WPCS 3.4.1, PHPCSUtils 1.2.3, PHPCSExtra 1.5.1). The baseline is regenerated; no sniff gained findings (43,573 → 42,323).
+- New tests cover the error log line (against a local fake provider server), the loose ASCII tag contract fed whole and one character at a time, and the retirement notice.
+
+---
+
 ## [2.38.2] - 2026-10-27
 
 ### Prompts

@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.38.2-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.38.3-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -120,15 +120,15 @@ For detailed information, please refer to:
 - **[Abilities API](docs-en/ABILITIES_API.md)** - Tools the character can call, and adding new ones
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.38.2
+## 🎉 What's New in v2.38.3
+
+**A heads-up before GPT-4o and GPT-4.1 retire** (v2.38.3): If chat or the diary still uses an OpenAI model that retires on 2027-01-14, the admin screens now show a warning with a link to the setting to change. Expression tags written loosely, such as `[ laugh ]` or `[laugh.]`, now switch the expression while a reply is streaming. Provider errors no longer write prompts or the Gemini API key to the PHP error log.
 
 **Visitors stay visitors** (v2.38.2): With GPT-6 Luna, the character sometimes greeted a visitor by the admin's name, as if the admin had come back. The admin's name and birthday, and the lines meant for the admin, are now only used while the admin is logged in.
 
 **Fullwidth tags while streaming** (v2.38.1): When the AI wrote an expression tag with fullwidth brackets, such as `【laugh】`, a streamed reply showed the tag as text and the character's face did not change. The tag now switches the expression and disappears from the text, just like `[laugh]`.
 
-**Ready for GPT-6 Luna** (v2.38.0): OpenAI retires GPT-4o and GPT-4.1 (including their mini versions) on 2027-01-14. The plugin now supports GPT-6 Luna, which costs much less than GPT-4.1 mini, and recommends it on the settings pages; existing sites keep their current model until you change it. A made-up expression tag such as `[smile]` no longer shows up in the character's reply, and custom characters' prompts now get their site and time details in greetings and touch, decoration and gift reactions too, not just in chat.
-
-**Earlier releases**: retries that know who they are for (v2.37.4), switching without leftovers (v2.37.3), the right character, the right face (v2.37.2), talking again after hello (v2.37.1), expressions in your own dialogue (v2.37.0), a smoother message box without AI (v2.36.2), a tidier IP blocklist (v2.36.1), a grimoire in your colours (v2.36.0), small touches to the grimoire page (v2.35.1), a message box from a traveler's grimoire (v2.35.0), your own characters stay your own (v2.34.1), Frieren redrawn in SVG (v2.34.0), tidier status labels and documentation that matches the plugin (v2.33.3), chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
+**Earlier releases**: ready for GPT-6 Luna (v2.38.0), retries that know who they are for (v2.37.4), switching without leftovers (v2.37.3), the right character, the right face (v2.37.2), talking again after hello (v2.37.1), expressions in your own dialogue (v2.37.0), a smoother message box without AI (v2.36.2), a tidier IP blocklist (v2.36.1), a grimoire in your colours (v2.36.0), small touches to the grimoire page (v2.35.1), a message box from a traveler's grimoire (v2.35.0), your own characters stay your own (v2.34.1), Frieren redrawn in SVG (v2.34.0), tidier status labels and documentation that matches the plugin (v2.33.3), chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), frontend CSS modernization (v2.30.0), gift message attachment (v2.29.0), per-item variant substitution for gift reactions (v2.28.0), chat integrity session follow-up (v2.27.7), review follow-up hardening (v2.27.6), housekeeping and uninstall cleanup (v2.27.5), checksum window filtering (v2.27.4), gift reliability & checksum consolidation (v2.27.3), the 🎁 Gift / Feeding system (v2.27.0), daytime nap (v2.26.0), the frontend modular split (v2.25.7), authenticated AES-256-GCM key encryption (v2.25.6), and inline emotion tags (v2.25.0), among others.
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 
