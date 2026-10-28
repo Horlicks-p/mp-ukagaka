@@ -3,7 +3,7 @@
 Plugin Update Checker reads assets/icon-128x128.png and icon-256x256.png from
 the installed copy of the plugin, the same names WordPress.org uses. The icon is
 Frieren's head from the first idle frame, cropped 128x128 at 1:1 so every pixel
-stays square, on the dialogue frame's dark leather colour.
+stays square, on an off-white background.
 
 usage: python icon.py
 """
@@ -15,7 +15,7 @@ import pix
 
 FRAME = os.path.join(pix.SHELL, "idle", "frieren-idle-00.svg")
 CROP = (42, 20, 170, 148)  # x0, y0, x1, y1 on the 208x328 master grid
-BACKGROUND = (0x3d, 0x2d, 0x20, 255)  # images/msgbox-frame.svg frame band
+BACKGROUND = (0xf5, 0xf5, 0xf0, 255)  # chosen by the site owner
 OUT = os.path.join(pix.ROOT, "assets")
 
 
