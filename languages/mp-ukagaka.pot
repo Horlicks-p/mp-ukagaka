@@ -3838,7 +3838,7 @@ msgid "顯示全部 %s 筆（由新到舊）"
 msgstr ""
 
 #: includes/admin-functions.php
-msgid "MP Ukagaka：使用中的 OpenAI 模型將於 2027-01-14 停止服務"
+msgid "MP Ukagaka：使用中的 OpenAI 模型自 2027-01-14 起停止服務"
 msgstr ""
 
 #: includes/admin-functions.php

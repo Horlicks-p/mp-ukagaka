@@ -882,7 +882,7 @@ function mpu_render_openai_retirement_notice() {
 	}
 
 	echo '<div class="notice notice-warning"><p><strong>';
-	echo esc_html__( 'MP Ukagaka：使用中的 OpenAI 模型將於 2027-01-14 停止服務', 'mp-ukagaka' );
+	echo esc_html__( 'MP Ukagaka：使用中的 OpenAI 模型自 2027-01-14 起停止服務', 'mp-ukagaka' );
 	echo '</strong></p><p>';
 	echo esc_html__( '停止後 AI 對話與生成會失敗。建議改用 gpt-6-luna，並在下列設定頁儲存。外掛不會自動更改模型。', 'mp-ukagaka' );
 	echo '</p><ul style="list-style:disc;margin-left:2em;">';

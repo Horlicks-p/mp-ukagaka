@@ -3836,8 +3836,8 @@ msgid "顯示全部 %s 筆（由新到舊）"
 msgstr "全 %s 件を表示（新しい順）"
 
 #: includes/admin-functions.php
-msgid "MP Ukagaka：使用中的 OpenAI 模型將於 2027-01-14 停止服務"
-msgstr "MP Ukagaka：使用中の OpenAI モデルは 2027-01-14 に提供終了します"
+msgid "MP Ukagaka：使用中的 OpenAI 模型自 2027-01-14 起停止服務"
+msgstr "MP Ukagaka：使用中の OpenAI モデルは 2027-01-14 以降は利用できません"
 
 #: includes/admin-functions.php
 msgid "停止後 AI 對話與生成會失敗。建議改用 gpt-6-luna，並在下列設定頁儲存。外掛不會自動更改模型。"
