@@ -208,6 +208,35 @@ function mpu_build_openai_generation_params($model, $max_tokens, $temperature = 
 
     return $params;
 }
+/**
+ * 建構 Gemini generateContent 的 generationConfig
+ *
+ * Gemini 3 之後（3.x、4.x）的模型忽略自訂 temperature / topK / topP 並回 deprecation
+ * warning（官方預告之後改回 400），因此一律不送；thinking 改用 thinkingConfig.thinkingLevel。
+ * 3.8 Flash 預設 medium，會讓短回覆與測試連線逾時，又不接受 minimal，所以固定送 low；
+ * Flash-Lite 預設就是 minimal，不另外指定。
+ * 2.5 與無法辨識版本的模型維持各路徑原本的採樣參數，也不送 thinkingLevel（2.5 不接受）。
+ *
+ * @param  string $model      模型 ID.
+ * @param  int    $max_tokens 最大輸出 token 數（含 thinking token）.
+ * @param  array  $sampling   舊世代模型沿用的採樣參數（temperature、topK、topP）.
+ * @return array  generationConfig
+ */
+function mpu_build_gemini_generation_config($model, $max_tokens, array $sampling = [])
+{
+    $config = ['maxOutputTokens' => intval($max_tokens)];
+    $model  = strtolower(trim((string) $model));
+
+    if (1 !== preg_match('/^gemini-(\d+)(?:[.-]|$)/', $model, $m) || intval($m[1]) < 3) {
+        return array_merge($sampling, $config);
+    }
+
+    if (false === strpos($model, '-lite')) {
+        $config['thinkingConfig'] = ['thinkingLevel' => 'low'];
+    }
+
+    return $config;
+}
 // phpcs:enable Generic.WhiteSpace.DisallowSpaceIndent, Generic.Functions.OpeningFunctionBraceKernighanRitchie, Squiz.Functions.FunctionDeclarationArgumentSpacing, PEAR.Functions.FunctionCallSignature, WordPress.WhiteSpace.ControlStructureSpacing, WordPress.WhiteSpace.CastStructureSpacing, Universal.Arrays.DisallowShortArraySyntax, NormalizedArrays.Arrays.ArrayBraceSpacing
 
 /**
@@ -274,22 +303,32 @@ function mpu_build_claude_tool_result_block($tool_use_id, $result)
     ];
 }
 
+// phpcs:disable Generic.WhiteSpace.DisallowSpaceIndent, Generic.Functions.OpeningFunctionBraceKernighanRitchie, Squiz.Functions.FunctionDeclarationArgumentSpacing, PEAR.Functions.FunctionCallSignature, WordPress.WhiteSpace.ControlStructureSpacing, WordPress.WhiteSpace.CastStructureSpacing, Universal.Arrays.DisallowShortArraySyntax, NormalizedArrays.Arrays.ArrayBraceSpacing -- 沿用本檔既有的 4 空格舊式風格.
 /**
  * 建構 Gemini functionResponse part
  *
- * @param  string $function_name 函數名稱
- * @param  mixed  $result mpu_execute_mcp_tool() 的回傳值
+ * Gemini 3 的每個 functionCall 都帶 id，回應必須原樣帶回同一個 id；
+ * 2.5 不回傳 id，此時不送空的 id 欄位.
+ *
+ * @param  string      $function_name 函數名稱
+ * @param  mixed       $result mpu_execute_mcp_tool() 的回傳值
+ * @param  string|null $call_id functionCall.id；沒有時為 null.
  * @return array  Gemini parts[] 項目
  */
-function mpu_build_gemini_function_response_part($function_name, $result)
+function mpu_build_gemini_function_response_part($function_name, $result, $call_id = null)
 {
-    return [
-        'functionResponse' => [
-            'name'     => $function_name,
-            'response' => mpu_tool_result_to_object($result),
-        ],
+    $response = [
+        'name'     => $function_name,
+        'response' => mpu_tool_result_to_object($result),
     ];
+
+    if (is_string($call_id) && '' !== $call_id) {
+        $response['id'] = $call_id;
+    }
+
+    return ['functionResponse' => $response];
 }
+// phpcs:enable Generic.WhiteSpace.DisallowSpaceIndent, Generic.Functions.OpeningFunctionBraceKernighanRitchie, Squiz.Functions.FunctionDeclarationArgumentSpacing, PEAR.Functions.FunctionCallSignature, WordPress.WhiteSpace.ControlStructureSpacing, WordPress.WhiteSpace.CastStructureSpacing, Universal.Arrays.DisallowShortArraySyntax, NormalizedArrays.Arrays.ArrayBraceSpacing
 
 // ========================================
 // API 錯誤解析

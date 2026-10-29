@@ -95,12 +95,15 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
         while ($current_turn < $max_turns) {
             $request_body = [
                 "contents" => $contents,
-                "generationConfig" => [
-                    "temperature" => $temperature,
-                    "topK" => 40,
-                    "topP" => 0.95,
-                    "maxOutputTokens" => $max_tokens !== null ? intval($max_tokens) : 500,
-                ]
+                "generationConfig" => mpu_build_gemini_generation_config(
+                    $model,
+                    $max_tokens !== null ? intval($max_tokens) : 500,
+                    [
+                        "temperature" => $temperature,
+                        "topK"        => 40,
+                        "topP"        => 0.95,
+                    ]
+                )
             ];
 
             if (!empty($tools_config)) {
@@ -141,7 +144,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
             }
 
             $candidate_content = $data["candidates"][0]["content"];
-            $parts = $candidate_content["parts"];
+            $parts = $candidate_content["parts"] ?? [];
 
             // Add model response to history
             $contents[] = $candidate_content;
@@ -171,7 +174,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
                         ? mpu_execute_mcp_tool($function_name, $call_args)
                         : ['error' => 'Tool execution function missing'];
 
-                    $function_response_parts[] = mpu_build_gemini_function_response_part($function_name, $tool_result);
+                    $function_response_parts[] = mpu_build_gemini_function_response_part($function_name, $tool_result, $call['id'] ?? null);
                 }
 
                 $contents[] = [
@@ -254,10 +257,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
                     'parts' => [['text' => $system_prompt]]
                 ],
                 'contents' => $contents,
-                'generationConfig' => [
-                    'maxOutputTokens' => intval($max_tokens),
-                    'temperature'     => $temperature
-                ]
+                'generationConfig' => mpu_build_gemini_generation_config( $model, $max_tokens, [ 'temperature' => $temperature ] )
             ];
 
             if (!empty($tools_config)) {
@@ -333,7 +333,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
                         ? mpu_execute_mcp_tool($function_name, $call_args)
                         : ['error' => 'Tool execution function missing'];
 
-                    $function_response_parts[] = mpu_build_gemini_function_response_part($function_name, $tool_result);
+                    $function_response_parts[] = mpu_build_gemini_function_response_part($function_name, $tool_result, $call['id'] ?? null);
                 }
 
                 $contents[] = [
@@ -391,13 +391,14 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
         $api_url      = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($api_key);
         $request_body = [
             'contents'         => [['parts' => [['text' => 'Hi']]]],
-            'generationConfig' => ['maxOutputTokens' => 200],
+            // 3.x 的 maxOutputTokens 含 thinking token，留足額度才不會只思考完就截斷.
+            'generationConfig' => mpu_build_gemini_generation_config( $model, 1024 ),
         ];
 
         $response = wp_remote_post($api_url, [
             'headers' => ['Content-Type' => 'application/json'],
             'body'    => wp_json_encode($request_body),
-            'timeout' => 30,
+            'timeout' => 60,
         ]);
 
         if (is_wp_error($response)) {
@@ -486,10 +487,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
         $request_body = [
             'systemInstruction' => ['parts' => [['text' => $system_prompt]]],
             'contents'          => $contents,
-            'generationConfig'  => [
-                'maxOutputTokens' => intval($max_tokens),
-                'temperature'     => $temperature,
-            ],
+            'generationConfig'  => mpu_build_gemini_generation_config( $model, $max_tokens, [ 'temperature' => $temperature ] ),
         ];
 
         $error = mpu_stream_sse_events(

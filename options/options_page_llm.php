@@ -25,7 +25,7 @@ $openai_model = isset($mpu_opt['llm_openai_model']) ? $mpu_opt['llm_openai_model
 $claude_model = isset($mpu_opt['llm_claude_model']) ? $mpu_opt['llm_claude_model'] : (isset($mpu_opt['claude_model']) ? $mpu_opt['claude_model'] : 'claude-sonnet-4-6');
 
 // 各 provider 預設模型清單（用於判斷是否為自訂）
-$gemini_preset_models = ['gemini-2.5-flash'];
+$gemini_preset_models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash'];
 $openai_preset_models = ['gpt-6-luna', 'gpt-4.1-mini-2025-04-14', 'gpt-4o-mini', 'gpt-4o'];
 $claude_preset_models = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-7'];
 
@@ -83,13 +83,17 @@ $llm_replace_dialogue = isset($mpu_opt['llm_replace_dialogue']) ? $mpu_opt['llm_
                     <label for="llm_gemini_model_picker"><?php _e('Gemini 模型：', 'mp-ukagaka'); ?></label>
                     <input type="hidden" id="llm_gemini_model" name="llm_gemini_model" value="<?php echo esc_attr($gemini_model); ?>" />
                     <select id="llm_gemini_model_picker" style="width: 100%; max-width: 400px;">
-                        <option value="gemini-2.5-flash" <?php echo (!$gemini_is_custom && $gemini_model === 'gemini-2.5-flash') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Flash (推薦)', 'mp-ukagaka')); ?></option>
+                        <?php // phpcs:disable Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.OperatorSpacing -- 沿用本頁既有的選項標記風格. ?>
+                        <option value="gemini-3.5-flash-lite" <?php echo (!$gemini_is_custom && $gemini_model === 'gemini-3.5-flash-lite') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 3.5 Flash-Lite (推薦，快速)', 'mp-ukagaka')); ?></option>
+                        <option value="gemini-3.8-flash" <?php echo (!$gemini_is_custom && $gemini_model === 'gemini-3.8-flash') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 3.8 Flash (品質較高)', 'mp-ukagaka')); ?></option>
+                        <option value="gemini-2.5-flash" <?php echo (!$gemini_is_custom && $gemini_model === 'gemini-2.5-flash') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Gemini 2.5 Flash (僅限既有帳號)', 'mp-ukagaka')); ?></option>
+                        <?php // phpcs:enable Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.OperatorSpacing ?>
                         <option value="__custom" <?php echo $gemini_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
                     <div id="llm_gemini_model_custom_wrap" style="display:<?php echo $gemini_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
                         <input type="text" id="llm_gemini_model_custom_input" style="width: 100%; max-width: 400px;"
                             value="<?php echo $gemini_is_custom ? esc_attr($gemini_model) : ''; ?>"
-                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gemini-2.0-flash', 'mp-ukagaka'); ?>"
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：gemini-3.6-flash', 'mp-ukagaka'); ?>"
                             autocomplete="off" />
                     </div>
                 </div>
