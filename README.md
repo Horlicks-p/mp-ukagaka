@@ -144,7 +144,7 @@ For detailed information, please refer to:
 **How to control API costs?**
 
 - Set probability to 10-20%
-- Use cheaper models (gemini-2.5-flash, gpt-4.1-mini, gpt-4o-mini)
+- Use cheaper models (gemini-3.5-flash-lite, gpt-4.1-mini, gpt-4o-mini)
 - Limit trigger pages to `is_single`
 
 **LLM connection failed?**

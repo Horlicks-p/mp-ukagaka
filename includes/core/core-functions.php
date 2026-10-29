@@ -56,7 +56,8 @@ function mpu_default_opt()
         "ai_enabled" => false,
         "llm_provider" => "gemini",
         "llm_gemini_api_key" => "",
-        "llm_gemini_model" => "gemini-2.5-flash",
+        "llm_gemini_model" => 'gemini-3.5-flash-lite',
+        'diary_gemini_model' => 'gemini-3.5-flash-lite', // phpcs:ignore Generic.WhiteSpace.DisallowSpaceIndent -- 沿用本陣列既有的縮排.
         "llm_openai_api_key" => "",
         "llm_openai_model" => 'gpt-6-luna',
         "llm_claude_api_key" => "",
@@ -102,6 +103,8 @@ function mpu_merge_option_defaults( array $options, array $default_opt ): array 
 	// 新安裝會把完整預設寫進資料庫，所以缺 key 只會出現在既有網站.
 	foreach ( array(
 		'llm_openai_model'   => 'gpt-4.1-mini-2025-04-14',
+		'llm_gemini_model'   => 'gemini-2.5-flash',
+		'diary_gemini_model' => 'gemini-2.5-flash',
 		'llm_claude_model'   => 'claude-sonnet-4-6',
 		'diary_claude_model' => 'claude-sonnet-4-6',
 	) as $key => $legacy_model ) {

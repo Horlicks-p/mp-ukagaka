@@ -580,12 +580,22 @@ msgstr "画像URLはhttp://から入力してください。メッセージは1�
 
 #: options/options_page_diary.php:222
 #: options/options_page_llm.php:86
-msgid "Gemini 2.5 Flash (推薦)"
-msgstr "Gemini 2.5 Flash (推奨)"
+msgid "Gemini 3.5 Flash-Lite (推薦，快速)"
+msgstr "Gemini 3.5 Flash-Lite (推奨・高速)"
+
+#: options/options_page_diary.php:222
+#: options/options_page_llm.php:86
+msgid "Gemini 3.8 Flash (品質較高)"
+msgstr "Gemini 3.8 Flash (高品質)"
+
+#: options/options_page_diary.php:222
+#: options/options_page_llm.php:86
+msgid "Gemini 2.5 Flash (僅限既有帳號)"
+msgstr "Gemini 2.5 Flash (既存アカウントのみ)"
 
 #: options/options_page_diary.php:223
-msgid "Gemini 2.5 Pro (更聰明，適合複雜推理)"
-msgstr "Gemini 2.5 Pro (より賢い、複雑な推論に適している)"
+msgid "Gemini 2.5 Pro (僅限既有帳號)"
+msgstr "Gemini 2.5 Pro (既存アカウントのみ)"
 
 #: options/options_page_llm.php:117 options/options_page_diary.php:249
 msgid "GPT-6 Luna (推薦，速度快成本低)"
@@ -1337,8 +1347,8 @@ msgstr "カスタムモデル…"
 
 #: options/options_page_diary.php:229
 #: options/options_page_llm.php:92
-msgid "輸入完整模型 ID，例如：gemini-2.0-flash"
-msgstr "モデル ID を入力してください（例：gemini-2.0-flash）"
+msgid "輸入完整模型 ID，例如：gemini-3.6-flash"
+msgstr "モデル ID を入力してください（例：gemini-3.6-flash）"
 
 #: options/options_page_diary.php:256
 #: options/options_page_llm.php:124

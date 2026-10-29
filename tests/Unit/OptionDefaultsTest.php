@@ -68,6 +68,58 @@ final class OptionDefaultsTest extends TestCase {
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
+    public function test_gemini_model_defaults_only_apply_to_new_installs(): void {
+        if (!function_exists('plugins_url')) {
+            function plugins_url($path = '', $plugin = '') {
+                return 'https://example.test/wp-content/plugins/mp-ukagaka/' . ltrim((string) $path, '/');
+            }
+        }
+
+        require_once MPU_TESTS_ROOT . '/includes/core/core-functions.php';
+
+        // 2.5 只開放給用過的帳號，新安裝改用 3.5 Flash-Lite
+        $defaults = mpu_default_opt();
+        $this->assertSame('gemini-3.5-flash-lite', $defaults['llm_gemini_model']);
+        $this->assertSame('gemini-3.5-flash-lite', $defaults['diary_gemini_model']);
+
+        // 既有網站沒存過模型：主 LLM 與日記都維持改預設前生效的 2.5 Flash
+        $merged = mpu_merge_option_defaults(['cur_ukagaka' => 'default_1'], $defaults);
+        $this->assertSame('gemini-2.5-flash', $merged['llm_gemini_model']);
+        $this->assertSame('gemini-2.5-flash', $merged['diary_gemini_model']);
+
+        // 存過的模型原樣保留
+        $merged = mpu_merge_option_defaults(['llm_gemini_model' => 'gemini-3.8-flash', 'diary_gemini_model' => 'gemini-2.5-pro'], $defaults);
+        $this->assertSame('gemini-3.8-flash', $merged['llm_gemini_model']);
+        $this->assertSame('gemini-2.5-pro', $merged['diary_gemini_model']);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function test_new_install_gets_new_gemini_models(): void {
+        if (!function_exists('plugins_url')) {
+            function plugins_url($path = '', $plugin = '') {
+                return 'https://example.test/wp-content/plugins/mp-ukagaka/' . ltrim((string) $path, '/');
+            }
+        }
+
+        require_once MPU_TESTS_ROOT . '/includes/core/core-functions.php';
+
+        // 新安裝：資料庫沒有選項，寫入完整預設，之後讀回時 key 都在，不會被當成既有網站
+        $GLOBALS['_mpu_test_options'] = [];
+        $opt = mpu_get_option();
+
+        $this->assertSame('gemini-3.5-flash-lite', $opt['llm_gemini_model']);
+        $this->assertSame('gemini-3.5-flash-lite', $GLOBALS['_mpu_test_options']['mp_ukagaka']['diary_gemini_model']);
+        $merged = mpu_merge_option_defaults($GLOBALS['_mpu_test_options']['mp_ukagaka'], mpu_default_opt());
+        $this->assertSame('gemini-3.5-flash-lite', $merged['diary_gemini_model']);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function test_claude_model_defaults_only_apply_to_new_installs(): void {
         if (!function_exists('plugins_url')) {
             function plugins_url($path = '', $plugin = '') {
