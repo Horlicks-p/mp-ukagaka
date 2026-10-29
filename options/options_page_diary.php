@@ -36,7 +36,7 @@ $diary_claude_model = isset($mpu_opt['diary_claude_model']) ? $mpu_opt['diary_cl
 // 各 provider 預設模型清單（用於判斷是否為自訂）
 $diary_gemini_preset_models = ['gemini-2.5-flash', 'gemini-2.5-pro'];
 $diary_openai_preset_models = ['gpt-6-luna', 'gpt-4.1-mini-2025-04-14', 'gpt-4o-mini', 'gpt-4o'];
-$diary_claude_preset_models = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-7'];
+$diary_claude_preset_models = ['claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-opus-5-5', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001', 'claude-opus-4-7'];
 
 $diary_gemini_is_custom = !in_array($diary_gemini_model, $diary_gemini_preset_models, true);
 $diary_openai_is_custom = !in_array($diary_openai_model, $diary_openai_preset_models, true);
@@ -275,15 +275,20 @@ $diary_signature = isset($mpu_opt['diary_signature']) ? $mpu_opt['diary_signatur
                     <label for="diary_claude_model_picker"><?php _e('Claude 模型：', 'mp-ukagaka'); ?></label>
                     <input type="hidden" id="diary_claude_model" name="diary_claude_model" value="<?php echo esc_attr($diary_claude_model); ?>" />
                     <select id="diary_claude_model_picker" style="width: 100%; max-width: 400px;">
-                        <option value="claude-sonnet-4-6" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-sonnet-4-6') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Sonnet 4.6 (推薦)', 'mp-ukagaka')); ?></option>
-                        <option value="claude-haiku-4-5-20251001" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-haiku-4-5-20251001') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Haiku 4.5 (快速)', 'mp-ukagaka')); ?></option>
-                        <option value="claude-opus-4-7" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-opus-4-7') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Opus 4.7 (進階)', 'mp-ukagaka')); ?></option>
+                        <?php // phpcs:disable Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.OperatorSpacing -- 沿用本頁既有的選項標記風格. ?>
+                        <option value="claude-sonnet-5-5" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-sonnet-5-5') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Sonnet 5.5 (推薦)', 'mp-ukagaka')); ?></option>
+                        <option value="claude-haiku-5-5" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-haiku-5-5') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Haiku 5.5 (快速，經濟)', 'mp-ukagaka')); ?></option>
+                        <option value="claude-opus-5-5" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-opus-5-5') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Opus 5.5 (進階)', 'mp-ukagaka')); ?></option>
+                        <?php // phpcs:enable Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, PEAR.Functions.FunctionCallSignature, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.OperatorSpacing ?>
+                        <option value="claude-sonnet-4-6" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-sonnet-4-6') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Sonnet 4.6 (舊版)', 'mp-ukagaka')); ?></option>
+                        <option value="claude-haiku-4-5-20251001" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-haiku-4-5-20251001') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Haiku 4.5 (舊版)', 'mp-ukagaka')); ?></option>
+                        <option value="claude-opus-4-7" <?php echo (!$diary_claude_is_custom && $diary_claude_model === 'claude-opus-4-7') ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('Claude Opus 4.7 (舊版)', 'mp-ukagaka')); ?></option>
                         <option value="__custom" <?php echo $diary_claude_is_custom ? 'selected="selected"' : ''; ?>><?php echo esc_html(__('自訂模型…', 'mp-ukagaka')); ?></option>
                     </select>
                     <div id="diary_claude_model_custom_wrap" style="display:<?php echo $diary_claude_is_custom ? 'block' : 'none'; ?>;margin-top:8px;">
                         <input type="text" id="diary_claude_model_custom_input" style="width: 100%; max-width: 400px;"
                             value="<?php echo $diary_claude_is_custom ? esc_attr($diary_claude_model) : ''; ?>"
-                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：claude-opus-4-7', 'mp-ukagaka'); ?>" />
+                            placeholder="<?php esc_attr_e('輸入完整模型 ID，例如：claude-fable-5-1', 'mp-ukagaka'); ?>" />
                     </div>
                 </div>
             </div>
