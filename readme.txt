@@ -104,7 +104,7 @@ Visit the [Maintainer's Blog](https://www.moelog.com/) for more information.
 = What AI providers are supported? =
 
 * **Google Gemini**: Requires Gemini API Key (get it from Google AI Studio)
-  * Default model: gemini-2.5-flash
+  * Default model: gemini-3.5-flash-lite; gemini-3.8-flash is also listed. Gemini 2.5 only works for accounts that used it before, so a site that never saved a Gemini model stays on gemini-2.5-flash until you choose another
 
 * **OpenAI GPT**: Requires OpenAI API Key
   * Default model: gpt-4.1-mini-2025-04-14; gpt-4o-mini and gpt-4o are also listed

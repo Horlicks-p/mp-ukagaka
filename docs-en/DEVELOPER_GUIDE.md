@@ -586,7 +586,7 @@ All providers are routed through `MPU_AI_Provider_Factory::create($provider_slug
 
 | Provider | Slug | API Endpoint | Model Selection |
 | -------- | ---- | ------------ | --------------- |
-| Gemini | `gemini` | `generativelanguage.googleapis.com` | Supported (default `gemini-2.5-flash`) |
+| Gemini | `gemini` | `generativelanguage.googleapis.com` | Supported (default `gemini-3.5-flash-lite`) |
 | OpenAI | `openai` | `api.openai.com` | Supported (default `gpt-4.1-mini-2025-04-14`) |
 | Claude | `claude` | `api.anthropic.com` | Supported (default `claude-sonnet-4-6`) |
 | Ollama | `ollama` | Local or Remote Ollama Service | Supported (Any Ollama model) |
@@ -1066,7 +1066,7 @@ $mpu_opt = [
     'ai_enabled' => false,
     'llm_provider' => 'gemini',         // gemini | openai | claude | ollama
     'llm_gemini_api_key' => '',         // Encrypted
-    'llm_gemini_model' => 'gemini-2.5-flash',
+    'llm_gemini_model' => 'gemini-3.5-flash-lite', // gemini-2.5-flash when an existing site never saved one
     'llm_openai_api_key' => '',         // Encrypted
     'llm_openai_model' => 'gpt-4.1-mini-2025-04-14',
     'llm_claude_api_key' => '',         // Encrypted
@@ -1089,7 +1089,8 @@ $mpu_opt = [
     'diary_trigger_rate' => 2,          // 1–10
     'diary_signature' => '',
     'diary_provider' => 'gemini',       // gemini | openai | claude | ollama
-    'diary_gemini_api_key' => '', 'diary_gemini_model' => '',
+    'diary_gemini_api_key' => '',
+    'diary_gemini_model' => 'gemini-3.5-flash-lite', // gemini-2.5-flash when an existing site never saved one
     'diary_openai_api_key' => '', 'diary_openai_model' => '',
     'diary_claude_api_key' => '', 'diary_claude_model' => '',
     'diary_ollama_endpoint' => '', 'diary_ollama_model' => '',

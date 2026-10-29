@@ -1336,7 +1336,7 @@ The client (`js/ukagaka-chat-sse.js`, `mpuFetchSSE()`) unwraps the envelope, sti
 
 ```
 event: stream.status
-data: {"kind":"stream.status","payload":{"provider":"gemini","model":"gemini-2.5-flash"}}
+data: {"kind":"stream.status","payload":{"provider":"gemini","model":"gemini-3.5-flash-lite"}}
 
 event: nonce.refresh
 data: {"kind":"nonce.refresh","payload":{"new_token":"a1b2c3","new_nonce":"a1b2c3"}}
