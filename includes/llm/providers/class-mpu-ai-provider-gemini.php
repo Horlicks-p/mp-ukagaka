@@ -144,7 +144,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
             $parts = $candidate_content["parts"];
 
             // Add model response to history
-            $contents[] = $candidate_content;
+            $contents[] = mpu_normalize_gemini_model_content( $candidate_content );
 
             // Check for function calls
             $function_calls = [];
@@ -301,7 +301,7 @@ class MPU_AI_Provider_Gemini extends MPU_AI_Provider_Base {
             $parts = $candidate_content['parts'] ?? [];
 
             // Add model response to history
-            $contents[] = $candidate_content;
+            $contents[] = mpu_normalize_gemini_model_content( $candidate_content );
 
             // Check for function calls
             $function_calls = [];

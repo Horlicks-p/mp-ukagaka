@@ -301,6 +301,51 @@ function mpu_normalize_ollama_assistant_message(array $message): array
     return $message;
 }
 
+// phpcs:disable Generic.WhiteSpace.DisallowSpaceIndent, Generic.Functions.OpeningFunctionBraceKernighanRitchie, Squiz.Functions.FunctionDeclarationArgumentSpacing, WordPress.WhiteSpace.ControlStructureSpacing, Universal.Arrays.DisallowShortArraySyntax, Generic.WhiteSpace.ArbitraryParenthesesSpacing, PEAR.Functions.FunctionCallSignature, WordPress.WhiteSpace.OperatorSpacing -- 沿用 mpu_normalize_ollama_assistant_message() 的舊式風格.
+/**
+ * 修正 Claude assistant content 中 tool_use.input 的 PHP 空陣列問題
+ *
+ * 與 mpu_normalize_ollama_assistant_message() 同一個問題：無參數呼叫的 input `{}`
+ * 經 json_decode($json, true) 變成 `[]`，原樣送回下一輪時 Claude 回 400
+ * （tool_use.input 必須是物件）。只在送回 API 前使用，執行工具仍用陣列參數。
+ *
+ * @param  array $content assistant 回合的 content blocks.
+ * @return array          已正規化的 content blocks
+ */
+function mpu_normalize_claude_assistant_content(array $content): array
+{
+    foreach ($content as &$block) {
+        if (($block['type'] ?? '') === 'tool_use' && (!isset($block['input']) || (is_array($block['input']) && empty($block['input'])))) {
+            $block['input'] = new \stdClass();
+        }
+    }
+    unset($block);
+    return $content;
+}
+
+/**
+ * 修正 Gemini model content 中 functionCall.args 的 PHP 空陣列問題
+ *
+ * 無參數呼叫的 args `{}` 解碼後變成 `[]`，原樣送回時 Gemini 會拒絕（args 必須是物件）.
+ *
+ * @param  array $content candidates[0].content（含 parts）.
+ * @return array          已正規化的 content
+ */
+function mpu_normalize_gemini_model_content(array $content): array
+{
+    if (!isset($content['parts']) || !is_array($content['parts'])) {
+        return $content;
+    }
+    foreach ($content['parts'] as &$part) {
+        if (isset($part['functionCall']['args']) && is_array($part['functionCall']['args']) && empty($part['functionCall']['args'])) {
+            $part['functionCall']['args'] = new \stdClass();
+        }
+    }
+    unset($part);
+    return $content;
+}
+// phpcs:enable Generic.WhiteSpace.DisallowSpaceIndent, Generic.Functions.OpeningFunctionBraceKernighanRitchie, Squiz.Functions.FunctionDeclarationArgumentSpacing, WordPress.WhiteSpace.ControlStructureSpacing, Universal.Arrays.DisallowShortArraySyntax, Generic.WhiteSpace.ArbitraryParenthesesSpacing, PEAR.Functions.FunctionCallSignature, WordPress.WhiteSpace.OperatorSpacing
+
 /**
  * 建構 Claude tool_result content block
  *
