@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.38.3
+Stable tag: 2.39.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,15 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-10-29 =
+* v2.39.0
+* [NEW] Supports Gemini 3 models; new installs default to Gemini 3.5 Flash-Lite, since Gemini 2.5 Flash is no longer available to new API keys. Gemini 3.8 Flash is also listed.
+* [NEW] Supports Claude Sonnet 5.5, Haiku 5.5 and Opus 5.5; new installs default to Claude Sonnet 5.5. Older Claude models are labelled legacy. Existing sites keep their current models.
+* [FIX] Claude requests no longer send a temperature to models that reject it (Opus 4.7 and later, Claude 5), and Claude 5 replies have room to think before answering.
+* [FIX] Asking for something that runs a tool with no arguments, such as /visitor-info, no longer fails on Claude or Gemini.
+* [FIX] The Gemini and Claude connection tests wait up to 60 seconds, and the Claude test reads the reply correctly on newer models.
+* [NEW] The update screens show Frieren as the plugin icon (from the next update after this one).
 
 = 2026-10-28 =
 * v2.38.3

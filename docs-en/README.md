@@ -51,8 +51,8 @@
 
 ## 📋 Version Information
 
-- **Current Version**: 2.38.3
-- **Last Updated**: 2026-10-28
+- **Current Version**: 2.39.0
+- **Last Updated**: 2026-10-29
 - **WordPress Requirement**: 5.0+
 - **PHP Requirement**: 7.4+
 

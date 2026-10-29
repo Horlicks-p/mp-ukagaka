@@ -4,6 +4,39 @@
 
 ---
 
+## [2.39.0] - 2026-10-29
+
+### Gemini models
+
+- **Gemini 3 models work, and new installs default to Gemini 3.5 Flash-Lite.** A new API key cannot use `gemini-2.5-flash` any more ("no longer available to new users"), so the default for chat and the diary is now `gemini-3.5-flash-lite`. A site that never saved a Gemini model keeps `gemini-2.5-flash`, the model that was in effect before; a saved model is never changed.
+- The LLM and diary pages list Gemini 3.5 Flash-Lite (recommended, fast), Gemini 3.8 Flash (higher quality) and Gemini 2.5 Flash / Pro (existing accounts only). The "Custom model…" placeholder is `gemini-3.6-flash`.
+- **Request shape by model generation** (`mpu_build_gemini_generation_config()`): Gemini 3 and later models no longer get `temperature`, `topK` or `topP`, which they ignore with a deprecation warning. Non-Lite models get `thinkingConfig.thinkingLevel: "low"`, because the default `medium` made short replies and the connection test time out; Flash-Lite keeps its default. Gemini 2.5 and unrecognized models are sent the same parameters as before.
+- **Tool calls on Gemini 3 return the call ID.** Each `functionResponse` now carries the `id` of the `functionCall` it answers, when the model sent one (`mpu_build_gemini_function_response_part()`).
+- The connection test allows 1,024 output tokens and 60 seconds (was 30).
+- Known limit: on Gemini 3, thinking tokens count toward `ai_max_tokens`.
+
+### Claude models
+
+- **Claude 5.5 models work, and new installs default to Claude Sonnet 5.5.** The LLM and diary pages list Claude Sonnet 5.5 (recommended), Claude Haiku 5.5 (fast, economical) and Claude Opus 5.5 (advanced). Sonnet 4.6, Haiku 4.5 and Opus 4.7 stay in the list, marked legacy; Claude Fable 5.1 can be entered as a custom model. A site that never saved a Claude model keeps `claude-sonnet-4-6`.
+- **Temperature only where it is accepted** (`mpu_build_claude_generation_params()`). With `anthropic-version: 2023-06-01`, Opus 4.7 and later and every 5.x model reject `temperature` with a 400. It is now sent only to models on an exact-ID allowlist (Sonnet and Opus 4.6, Haiku 4.5 and the 4.5 family). Unknown models, including a custom 4.x ID that is not on the list, are sent no temperature.
+- **Room for thinking on Claude 5.** Claude 5 models think by default, and thinking counts toward `max_tokens`. They now get `output_config.effort: "low"` and at least 1,024 `max_tokens`, so short replies such as auto talk no longer run out before any text. Claude 4.x requests get neither.
+- The connection test allows 1,024 tokens and 60 seconds and reads the first text block, since a Claude 5 reply can begin with a thinking block.
+- Streaming tool calls keep `thinking` (with its signature) and `redacted_thinking` blocks and send them back unchanged on the next turn.
+
+### Tool calls
+
+- **Tools called with no arguments work on Claude and Gemini.** Asking for something that runs a tool with no arguments, such as `/visitor-info` (the visitor pulse tool), failed on Claude with "不明なエラーが発生しました" on every model, Opus 4.7 included. The model's `{}` became an empty PHP array when decoded and went back to the API as `[]`, which Claude rejects for `tool_use.input` and Gemini for `functionCall.args`. `mpu_normalize_claude_assistant_content()` and `mpu_normalize_gemini_model_content()`, next to the existing Ollama fix, now send it back as `{}`. Tools still receive their arguments as an array.
+
+### Plugin icon
+
+- The update screens show Frieren instead of WordPress's default plug icon (`assets/icon-128x128.png`, `assets/icon-256x256.png`). The update checker reads the icon from the installed copy, so it first appears on the update screen after this version is installed.
+
+### Internal
+
+- New tests cover the Gemini and Claude request shapes (including two-round tool calls over simulated HTTP), the new and legacy model defaults, and the raw JSON sent back for no-argument tool calls.
+
+---
+
 ## [2.38.3] - 2026-10-28
 
 ### OpenAI models
