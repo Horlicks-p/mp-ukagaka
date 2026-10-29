@@ -3301,22 +3301,37 @@ msgstr ""
 
 #: options/options_page_diary.php:275
 #: options/options_page_llm.php:148
-msgid "Claude Sonnet 4.6 (推薦)"
+msgid "Claude Sonnet 5.5 (推薦)"
+msgstr ""
+
+#: options/options_page_diary.php:275
+#: options/options_page_llm.php:148
+msgid "Claude Haiku 5.5 (快速，經濟)"
+msgstr ""
+
+#: options/options_page_diary.php:275
+#: options/options_page_llm.php:148
+msgid "Claude Opus 5.5 (進階)"
+msgstr ""
+
+#: options/options_page_diary.php:275
+#: options/options_page_llm.php:148
+msgid "Claude Sonnet 4.6 (舊版)"
 msgstr ""
 
 #: options/options_page_diary.php:276
 #: options/options_page_llm.php:149
-msgid "Claude Haiku 4.5 (快速)"
+msgid "Claude Haiku 4.5 (舊版)"
 msgstr ""
 
 #: options/options_page_diary.php:277
 #: options/options_page_llm.php:150
-msgid "Claude Opus 4.7 (進階)"
+msgid "Claude Opus 4.7 (舊版)"
 msgstr ""
 
 #: options/options_page_diary.php:283
 #: options/options_page_llm.php:156
-msgid "輸入完整模型 ID，例如：claude-opus-4-7"
+msgid "輸入完整模型 ID，例如：claude-fable-5-1"
 msgstr ""
 
 #: options/options_page_diary.php:291

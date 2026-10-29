@@ -598,8 +598,8 @@ msgstr "GPT-4o (Retiring 2027-01-14)"
 
 #: options/options_page_diary.php:276
 #: options/options_page_llm.php:149
-msgid "Claude Haiku 4.5 (快速)"
-msgstr "Claude Haiku 4.5 (Fast)"
+msgid "Claude Haiku 4.5 (舊版)"
+msgstr "Claude Haiku 4.5 (Legacy)"
 
 #: options/options_page_llm.php:197
 msgid "預設啟用思考模式，AI 會先思考再回答，提高回答品質。勾選此選項可關閉思考、加快回應速度。"
@@ -1336,8 +1336,8 @@ msgstr "Enter full model ID, e.g. gpt-6-luna"
 
 #: options/options_page_diary.php:283
 #: options/options_page_llm.php:156
-msgid "輸入完整模型 ID，例如：claude-opus-4-7"
-msgstr "Enter full model ID, e.g. claude-opus-4-7"
+msgid "輸入完整模型 ID，例如：claude-fable-5-1"
+msgstr "Enter full model ID, e.g. claude-fable-5-1"
 
 #: options/options_general.php:58
 msgid "Admin full nickname:"
@@ -3697,13 +3697,28 @@ msgstr ""
 
 #: options/options_page_diary.php:275
 #: options/options_page_llm.php:148
-msgid "Claude Sonnet 4.6 (推薦)"
-msgstr ""
+msgid "Claude Sonnet 5.5 (推薦)"
+msgstr "Claude Sonnet 5.5 (Recommended)"
+
+#: options/options_page_diary.php:275
+#: options/options_page_llm.php:148
+msgid "Claude Haiku 5.5 (快速，經濟)"
+msgstr "Claude Haiku 5.5 (Fast, economical)"
+
+#: options/options_page_diary.php:275
+#: options/options_page_llm.php:148
+msgid "Claude Opus 5.5 (進階)"
+msgstr "Claude Opus 5.5 (Advanced)"
+
+#: options/options_page_diary.php:275
+#: options/options_page_llm.php:148
+msgid "Claude Sonnet 4.6 (舊版)"
+msgstr "Claude Sonnet 4.6 (Legacy)"
 
 #: options/options_page_diary.php:277
 #: options/options_page_llm.php:150
-msgid "Claude Opus 4.7 (進階)"
-msgstr ""
+msgid "Claude Opus 4.7 (舊版)"
+msgstr "Claude Opus 4.7 (Legacy)"
 
 #: options/options_page_diary.php:378
 msgid "生成中..."

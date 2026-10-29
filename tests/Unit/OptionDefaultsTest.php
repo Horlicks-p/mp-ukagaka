@@ -68,6 +68,40 @@ final class OptionDefaultsTest extends TestCase {
      * @runInSeparateProcess
      * @preserveGlobalState disabled
      */
+    public function test_claude_model_defaults_only_apply_to_new_installs(): void {
+        if (!function_exists('plugins_url')) {
+            function plugins_url($path = '', $plugin = '') {
+                return 'https://example.test/wp-content/plugins/mp-ukagaka/' . ltrim((string) $path, '/');
+            }
+        }
+
+        require_once MPU_TESTS_ROOT . '/includes/core/core-functions.php';
+
+        $defaults = mpu_default_opt();
+        $this->assertSame('claude-sonnet-5-5', $defaults['llm_claude_model']);
+        $this->assertSame('claude-sonnet-5-5', $defaults['diary_claude_model']);
+
+        // 既有網站沒存過模型：主 LLM 與日記都維持改預設前生效的 Sonnet 4.6
+        $merged = mpu_merge_option_defaults(['cur_ukagaka' => 'default_1'], $defaults);
+        $this->assertSame('claude-sonnet-4-6', $merged['llm_claude_model']);
+        $this->assertSame('claude-sonnet-4-6', $merged['diary_claude_model']);
+
+        // 存過的模型原樣保留
+        $merged = mpu_merge_option_defaults(['llm_claude_model' => 'claude-opus-4-7', 'diary_claude_model' => 'claude-haiku-5-5'], $defaults);
+        $this->assertSame('claude-opus-4-7', $merged['llm_claude_model']);
+        $this->assertSame('claude-haiku-5-5', $merged['diary_claude_model']);
+
+        // 新安裝：寫入完整預設後讀回，不會被當成既有網站
+        $GLOBALS['_mpu_test_options'] = [];
+        $this->assertSame('claude-sonnet-5-5', mpu_get_option()['llm_claude_model']);
+        $merged = mpu_merge_option_defaults($GLOBALS['_mpu_test_options']['mp_ukagaka'], $defaults);
+        $this->assertSame('claude-sonnet-5-5', $merged['diary_claude_model']);
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function test_default_options_do_not_include_legacy_ai_storage_keys(): void {
         if (!function_exists('plugins_url')) {
             function plugins_url($path = '', $plugin = '') {

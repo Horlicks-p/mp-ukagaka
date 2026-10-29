@@ -208,6 +208,49 @@ function mpu_build_openai_generation_params($model, $max_tokens, $temperature = 
 
     return $params;
 }
+/**
+ * 建構 Claude Messages API 的 token / 採樣 / effort 參數片段
+ *
+ * 採樣溫度只送給明確接受它的舊模型（精確 ID 白名單）：在 anthropic-version 2023-06-01 下，
+ * Opus 4.7 以後與 5.x 收到 temperature 會回 400，Sonnet 5.5 / Haiku 5.5 收到非預設值也會 400。
+ * 未知或更新的模型一律不送，避免猜錯能力。
+ *
+ * Claude 5 以後預設開啟 adaptive thinking，thinking token 也計入 max_tokens：
+ * 角色對話送 effort low（簡單請求多半跳過思考），並把 max_tokens 墊到至少 1024，
+ * 避免額度在思考階段用完、回應只剩 thinking block。
+ *
+ * @param  string     $model       模型 ID.
+ * @param  int        $max_tokens  最大輸出 token 數.
+ * @param  float|null $temperature 採樣溫度；null 表示不送.
+ * @return array      要合併進 request body 的參數
+ */
+function mpu_build_claude_generation_params($model, $max_tokens, $temperature = null)
+{
+    $temperature_models = [
+        'claude-sonnet-4-6',
+        'claude-opus-4-6',
+        'claude-haiku-4-5',
+        'claude-haiku-4-5-20251001',
+        'claude-sonnet-4-5',
+        'claude-sonnet-4-5-20250929',
+        'claude-opus-4-5',
+        'claude-opus-4-5-20251101',
+    ];
+
+    $model  = strtolower(trim((string) $model));
+    $params = ['max_tokens' => intval($max_tokens)];
+
+    if (1 === preg_match('/^claude-[a-z]+-(\d+)(?:-|$)/', $model, $m) && intval($m[1]) >= 5) {
+        $params['max_tokens']    = max(1024, $params['max_tokens']);
+        $params['output_config'] = ['effort' => 'low'];
+    }
+
+    if (null !== $temperature && in_array($model, $temperature_models, true)) {
+        $params['temperature'] = $temperature;
+    }
+
+    return $params;
+}
 // phpcs:enable Generic.WhiteSpace.DisallowSpaceIndent, Generic.Functions.OpeningFunctionBraceKernighanRitchie, Squiz.Functions.FunctionDeclarationArgumentSpacing, PEAR.Functions.FunctionCallSignature, WordPress.WhiteSpace.ControlStructureSpacing, WordPress.WhiteSpace.CastStructureSpacing, Universal.Arrays.DisallowShortArraySyntax, NormalizedArrays.Arrays.ArrayBraceSpacing
 
 /**

@@ -89,12 +89,16 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
         $loop_state = [];
 
         while ($current_turn < $max_turns) {
-            $request_body = [
-                "model"      => $model,
-                "max_tokens" => $max_tokens !== null ? intval($max_tokens) : 100,
-                "system"     => $full_system_prompt,
-                "messages"   => $messages,
-            ];
+            // phpcs:disable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing -- 沿用本檔既有的舊式風格.
+            $request_body = array_merge(
+                [ "model" => $model ],
+                mpu_build_claude_generation_params( $model, $max_tokens !== null ? intval( $max_tokens ) : 100 ),
+                [
+                    "system"   => $full_system_prompt,
+                    "messages" => $messages,
+                ]
+            );
+            // phpcs:enable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing
 
             if (!empty($tools)) {
                 $request_body['tools'] = $tools;
@@ -221,13 +225,16 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
         $loop_state = [];
 
         while ($current_turn < $max_turns) {
-            $request_body = [
-                'model'      => $model,
-                'max_tokens' => intval($max_tokens),
-                'system'     => $system_prompt,
-                'messages'   => $claude_messages,
-                'temperature'=> $temperature
-            ];
+            // phpcs:disable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing -- 沿用本檔既有的舊式風格.
+            $request_body = array_merge(
+                [ 'model' => $model ],
+                mpu_build_claude_generation_params( $model, $max_tokens, $temperature ),
+                [
+                    'system'   => $system_prompt,
+                    'messages' => $claude_messages,
+                ]
+            );
+            // phpcs:enable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing
 
             if (!empty($tools_config)) {
                 $request_body['tools'] = $tools_config;
@@ -347,12 +354,17 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
                 'x-api-key'         => $api_key,
                 'anthropic-version' => '2023-06-01',
             ],
-            'body'    => wp_json_encode([
-                'model'      => $model,
-                'max_tokens' => 50,
-                'messages'   => [['role' => 'user', 'content' => 'Hi']],
-            ]),
-            'timeout' => 30,
+            // phpcs:disable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing -- 沿用本檔既有的舊式風格.
+            // Claude 5 的 thinking 也計入 max_tokens，回應可能以 thinking block 開頭.
+            'body'    => wp_json_encode(
+                array_merge(
+                    [ 'model' => $model ],
+                    mpu_build_claude_generation_params( $model, 1024 ),
+                    [ 'messages' => [ [ 'role' => 'user', 'content' => 'Hi' ] ] ]
+                )
+            ),
+            // phpcs:enable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing
+            'timeout' => 60,
         ]);
 
         if (is_wp_error($response)) {
@@ -364,8 +376,17 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
 
         if ($response_code === 200) {
             $data = json_decode($response_body, true);
-            if (!empty($data['content'][0]['text'])) {
-                $preview = mb_substr(trim($data['content'][0]['text']), 0, 50);
+            // phpcs:disable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing -- 沿用本檔既有的舊式風格.
+            $text = '';
+            foreach ((array) ($data['content'] ?? []) as $block) {
+                if (($block['type'] ?? '') === 'text' && !empty($block['text'])) {
+                    $text = $block['text'];
+                    break;
+                }
+            }
+            if ($text !== '') {
+            // phpcs:enable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing
+                $preview = mb_substr(trim($text), 0, 50);
                 return new WP_REST_Response(['msg' => sprintf(__('接続成功。モデルが正常に応答しています（プレビュー：%s...）', 'mp-ukagaka'), $preview)], 200);
             } else {
                 return $this->error('rest_error', __('接続は成功しましたが、レスポンス形式が異常でモデル出力を解析できません', 'mp-ukagaka'), 400);
@@ -421,14 +442,17 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
         $loop_state  = [];
 
         while ($current_turn < $max_turns) {
-            $request_body = [
-                'model'       => $model,
-                'max_tokens'  => intval($max_tokens),
-                'temperature' => $temperature,
-                'system'      => $system_prompt,
-                'messages'    => $claude_messages,
-                'stream'      => true,
-            ];
+            // phpcs:disable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing -- 沿用本檔既有的舊式風格.
+            $request_body = array_merge(
+                [ 'model' => $model ],
+                mpu_build_claude_generation_params( $model, $max_tokens, $temperature ),
+                [
+                    'system'   => $system_prompt,
+                    'messages' => $claude_messages,
+                    'stream'   => true,
+                ]
+            );
+            // phpcs:enable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing
 
             if (!empty($tools_config)) {
                 $request_body['tools'] = $tools_config;
@@ -458,6 +482,22 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
                             $current_block_type   = 'text';
                             $current_turn_content[] = ['type' => 'text', 'text' => ''];
                             $current_block_idx    = count($current_turn_content) - 1;
+                            // phpcs:disable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing -- 沿用本檔既有的舊式風格.
+                        } elseif (($block['type'] ?? '') === 'thinking') {
+                            // Claude 5 的 thinking（含預設 display: omitted 的空白 thinking）要連同 signature
+                            // 原樣送回工具迴圈的下一輪，否則該輪請求會失敗.
+                            $current_block_type   = 'thinking';
+                            $current_turn_content[] = [
+                                'type'      => 'thinking',
+                                'thinking'  => (string) ($block['thinking'] ?? ''),
+                                'signature' => (string) ($block['signature'] ?? ''),
+                            ];
+                            $current_block_idx    = count($current_turn_content) - 1;
+                        } elseif (($block['type'] ?? '') === 'redacted_thinking') {
+                            $current_block_type   = 'redacted_thinking';
+                            $current_turn_content[] = $block;
+                            $current_block_idx    = count($current_turn_content) - 1;
+                            // phpcs:enable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing
                         } elseif (($block['type'] ?? '') === 'tool_use') {
                             $current_block_type   = 'tool_use';
                             $current_turn_content[] = [
@@ -478,6 +518,12 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
                             }
                         } elseif (($delta['type'] ?? '') === 'input_json_delta' && $current_block_type === 'tool_use' && $current_block_idx !== null) {
                             $current_turn_content[$current_block_idx]['input'] .= $delta['partial_json'] ?? '';
+                            // phpcs:disable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing -- 沿用本檔既有的舊式風格.
+                        } elseif (($delta['type'] ?? '') === 'thinking_delta' && $current_block_type === 'thinking' && $current_block_idx !== null) {
+                            $current_turn_content[$current_block_idx]['thinking'] .= $delta['thinking'] ?? '';
+                        } elseif (($delta['type'] ?? '') === 'signature_delta' && $current_block_type === 'thinking' && $current_block_idx !== null) {
+                            $current_turn_content[$current_block_idx]['signature'] .= $delta['signature'] ?? '';
+                            // phpcs:enable Generic.Formatting.MultipleStatementAlignment, Generic.WhiteSpace.ArbitraryParenthesesSpacing, Generic.WhiteSpace.DisallowSpaceIndent, Universal.Arrays.DisallowShortArraySyntax, WordPress.Arrays.ArrayKeySpacingRestrictions, WordPress.PHP.YodaConditions, WordPress.WhiteSpace.CastStructureSpacing, WordPress.WhiteSpace.ControlStructureSpacing
                         }
                     } elseif ($event_type === 'content_block_stop') {
                         if ($current_block_type === 'tool_use' && $current_block_idx !== null) {
