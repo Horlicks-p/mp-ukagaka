@@ -110,7 +110,7 @@ Visit the [Maintainer's Blog](https://www.moelog.com/) for more information.
   * Default model: gpt-4.1-mini-2025-04-14; gpt-4o-mini and gpt-4o are also listed
 
 * **Anthropic Claude**: Requires Claude API Key
-  * Default model: claude-sonnet-4-6; claude-haiku-4-5 and claude-opus-4-7 are also listed
+  * Default model: claude-sonnet-5-5; claude-haiku-5-5 and claude-opus-5-5 are also listed. A site that never saved a Claude model stays on claude-sonnet-4-6 until you choose another
 
 * **Ollama**: Local or remote, no API key; any installed model
 

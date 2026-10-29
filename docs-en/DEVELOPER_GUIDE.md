@@ -588,7 +588,7 @@ All providers are routed through `MPU_AI_Provider_Factory::create($provider_slug
 | -------- | ---- | ------------ | --------------- |
 | Gemini | `gemini` | `generativelanguage.googleapis.com` | Supported (default `gemini-3.5-flash-lite`) |
 | OpenAI | `openai` | `api.openai.com` | Supported (default `gpt-4.1-mini-2025-04-14`) |
-| Claude | `claude` | `api.anthropic.com` | Supported (default `claude-sonnet-4-6`) |
+| Claude | `claude` | `api.anthropic.com` | Supported (default `claude-sonnet-5-5`) |
 | Ollama | `ollama` | Local or Remote Ollama Service | Supported (Any Ollama model) |
 
 #### AI Stability & Security
@@ -1070,7 +1070,7 @@ $mpu_opt = [
     'llm_openai_api_key' => '',         // Encrypted
     'llm_openai_model' => 'gpt-4.1-mini-2025-04-14',
     'llm_claude_api_key' => '',         // Encrypted
-    'llm_claude_model' => 'claude-sonnet-4-6',
+    'llm_claude_model' => 'claude-sonnet-5-5', // claude-sonnet-4-6 when an existing site never saved one
     'ollama_endpoint' => 'http://localhost:11434', // Read-time fallback when unset
     'ollama_model' => 'qwen3:8b',       // Read-time fallback when unset
     'ollama_disable_thinking' => false, // true = send think:false to thinking models
@@ -1092,7 +1092,8 @@ $mpu_opt = [
     'diary_gemini_api_key' => '',
     'diary_gemini_model' => 'gemini-3.5-flash-lite', // gemini-2.5-flash when an existing site never saved one
     'diary_openai_api_key' => '', 'diary_openai_model' => '',
-    'diary_claude_api_key' => '', 'diary_claude_model' => '',
+    'diary_claude_api_key' => '',
+    'diary_claude_model' => 'claude-sonnet-5-5', // claude-sonnet-4-6 when an existing site never saved one
     'diary_ollama_endpoint' => '', 'diary_ollama_model' => '',
 
     // Bot blocker page

@@ -61,7 +61,8 @@ function mpu_default_opt()
         "llm_openai_api_key" => "",
         "llm_openai_model" => 'gpt-6-luna',
         "llm_claude_api_key" => "",
-        "llm_claude_model" => "claude-sonnet-4-6",
+        "llm_claude_model" => 'claude-sonnet-5-5',
+        'diary_claude_model' => 'claude-sonnet-5-5', // phpcs:ignore Generic.WhiteSpace.DisallowSpaceIndent -- 沿用本陣列既有的縮排.
         "llm_replace_dialogue" => false,
         "ai_language" => "",
         "ai_system_prompt" => "你是「{{ukagaka_display_name}}」這個角色。你必須完全以這個角色的身份說話和行動，絕對不要以 AI 或語言模型的身份回應。請嚴格遵守角色的性格、說話方式和行為模式。",
@@ -104,6 +105,8 @@ function mpu_merge_option_defaults( array $options, array $default_opt ): array 
 		'llm_openai_model'   => 'gpt-4.1-mini-2025-04-14',
 		'llm_gemini_model'   => 'gemini-2.5-flash',
 		'diary_gemini_model' => 'gemini-2.5-flash',
+		'llm_claude_model'   => 'claude-sonnet-4-6',
+		'diary_claude_model' => 'claude-sonnet-4-6',
 	) as $key => $legacy_model ) {
 		if ( ! array_key_exists( $key, $options ) ) {
 			$merged[ $key ] = $legacy_model;
