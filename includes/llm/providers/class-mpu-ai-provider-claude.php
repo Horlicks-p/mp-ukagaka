@@ -127,7 +127,7 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
             // Add assistant response to history
             $messages[] = [
                 "role" => "assistant",
-                "content" => $data["content"]
+                "content" => mpu_normalize_claude_assistant_content( $data["content"] ?? [] )
             ];
 
             // Check if stop_reason is tool_use
@@ -263,7 +263,7 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
             // Add assistant response to history
             $claude_messages[] = [
                 'role'    => 'assistant',
-                'content' => $content
+                'content' => mpu_normalize_claude_assistant_content( $content )
             ];
 
             if ($stop_reason === 'tool_use') {
@@ -590,7 +590,7 @@ class MPU_AI_Provider_Claude extends MPU_AI_Provider_Base {
                 $tool_results_for_next[] = mpu_build_claude_tool_result_block($block['id'], $tool_result);
             }
 
-            $claude_messages[] = ['role' => 'assistant', 'content' => $current_turn_content];
+            $claude_messages[] = ['role' => 'assistant', 'content' => mpu_normalize_claude_assistant_content( $current_turn_content )];
             $claude_messages[] = ['role' => 'user',      'content' => $tool_results_for_next];
 
             $current_turn++;
