@@ -1,15 +1,15 @@
 # mp-ukagaka 3.0 — Mesh Avatar 實驗開發計畫書
 
 > **給 Claude Code 與 Codex CLI 的工作指示／Project Charter**  
-> 版本：Draft v0.3.3／2026-11-11（v0.3.3：`base.png` 公開範圍、`pack-avatar --no-source`、全身構圖的原圖解析度、交接說明；v0.3.2：納入官方 Codex 差分生成與匯入工作流、修正嘴型差分清單、補手動／一鍵雙路徑與授權確認；v0.3.1：文件精簡收尾、WP 6.5 以下站點退場、2.x 安全 ZIP 發放、用詞校正；v0.3：D0 定案為後繼版；2.x EOL 與更新通道；覆蓋式升級；全身／半身決策；差分素材；ES module 與 WP 6.5；載入世代與 readiness；文件精簡）  
+> 版本：Draft v0.3.3／2026-11-11（v0.3.3：`base.png` 公開範圍、`pack-avatar --no-source`、全身構圖的原圖解析度與實驗功能警語、交接說明、GA 升級措辭；v0.3.2：納入官方 Codex 差分生成與匯入工作流、修正嘴型差分清單、補手動／一鍵雙路徑與授權確認；v0.3.1：文件精簡收尾、WP 6.5 以下站點退場、2.x 安全 ZIP 發放、用詞校正；v0.3：D0 定案為後繼版；2.x EOL 與更新通道；覆蓋式升級；全身／半身決策；差分素材；ES module 與 WP 6.5；載入世代與 readiness；文件精簡）  
 > 專案：[`Horlicks-p/mp-ukagaka`](https://github.com/Horlicks-p/mp-ukagaka)  
 > 技術參考：[`shinshin86/mesh-avatar-studio`](https://github.com/shinshin86/mesh-avatar-studio)  
 > 專案代號：**mp-ukagaka-mavatar**（`mavatar` 對應 `.mavatar` 格式；不要拼成 `mavater`）  
 > **狀態：規劃階段。D0 產品身分已由擁有者決議（見 D0）。本文仍不是已批准的實作規格，也不是修改 `main` 的授權。**
 
-### v0.3.2／v0.3 變更摘要
+### v0.3.3／v0.3.2／v0.3 變更摘要
 
-00. **（v0.3.3）** §4.6 寫明 `built/base.png` 為全尺寸圖、取消 source 仍可取得接近完整的立繪；網站用 `.mavatar` 以 `npm run pack-avatar -- <project> --no-source` 可重現地匯出；§5.1 補全身構圖的原圖解析度要求；新增 §0.1 交接說明。
+00. **（v0.3.3）** §4.6 寫明 `built/base.png` 為全尺寸圖、取消 source 仍可取得接近完整的立繪；網站用 `.mavatar` 以 `npm run pack-avatar -- <project> --no-source` 可重現地匯出；§5.1 補全身構圖的原圖解析度要求；Phase 0 與風險登錄補「全身功能屬上游實驗功能」；D0.3 的 GA 升級措辭改為只限 WP 6.5+ 站點；新增 §0.1 交接說明。
 0. **（v0.3.2）Phase 0 加入官方 Codex 差分工作流**：來源圖片由擁有者用 Stable Diffusion 準備，正式比較 Codex Image Generation 與 Stable Diffusion Inpaint；使用上游 `variant-requests.py`／`build-sprites.py`，修正官方嘴型種類，加入遠端生圖同意、對位驗證及可重播交付。
 1. D0 定案：**方案 A（正式後繼）**；方案 B 改為棄案摘要。
 2. 新增更新通道政策：**3.0 GA 接管正式更新通道，2.x 同時 EOL**；之後的 2.x 安全修補以手動 ZIP 提供，不發 GitHub Release。
@@ -73,7 +73,7 @@
 因此同一 Repo 只有一條「最新正式 Release」通道，以下三者**最多只能同時成立兩個**：3.0 原地後繼／2.x 長期發一般維護版／兩者共用同一更新來源。擁有者決議的政策是：
 
 - **3.0 GA 之前**：2.x 是 Stable，正常發 Release；3.0 只能是 prerelease 或本機 ZIP。
-- **3.0 GA 時**：3.0 接管正式更新通道，所有 2.x 站點會在後台看到升級到 3.0。**2.x 同時 EOL**。
+- **3.0 GA 時**：3.0 接管正式更新通道；具備 WordPress 6.5+ 且符合更新條件的 2.x 站點會看到升級至 3.0，較舊 WordPress 站點應顯示版本不相容提示且不得誤裝。**2.x 同時 EOL**。
 - **3.0 GA 之後**：2.x 不再發 GitHub Release（避免搶走 `releases/latest`，讓 3.0 站點看不到 3.0.x 更新）。如有必要的 2.x 安全修補，只在 2.x 維護分支打 tag，**以手動 ZIP 提供**，不設計額外的更新通道。
 - GA 前需公告 2.x EOL 與 3.0 的不相容事項（舊 Shell、其他 Ghost 支援範圍、最低 WordPress 6.5 等），並明確寫出「**先升級 WordPress 至 6.5 以上，再升級外掛**」。
 - **最後一個 2.x Release** 必須內含清楚的 EOL／升級通知（後台提示或 readme），並作為無法升級 WordPress 之站點的最終版本。
@@ -455,7 +455,7 @@ npm run create -- /path/to/your-image.png --no-variants
 
 **任務：**
 
-- **第一個產品決策：構圖**。用同一素材做出「全身」與「半身放大」兩版固定畫面／短動畫，在實際網站尺寸比較，交擁有者決定（目前傾向全身）。此決定連動對話框與 Dock 佈局、翻書、身體觸摸區、手機遮擋範圍。
+- **第一個產品決策：構圖**。用同一素材做出「全身」與「半身放大」兩版固定畫面／短動畫，在實際網站尺寸比較，交擁有者決定（目前傾向全身）。此決定連動對話框與 Dock 佈局、翻書、身體觸摸區、手機遮擋範圍。**全身構圖若依賴衣物分層、雙腿或手臂功能，須逐項確認所選 WebGL Runtime／Element 的實際支援；上游 Agent Guide 將這些標為 "Experimental full-body feature; its fields and behaviour may change"，不得視為穩定契約。**
 - 盤點 Studio 的安裝依賴、Windows 開發環境、Runtime 版本及必要工具。
 - 用擁有者提供的 Stable Diffusion 圖片製作 Rig／分層／基本表情；**依 §5.2 實測上游 Codex 差分生成→`build-sprites`→重渲染流程**，必要時使用 Stable Diffusion Inpaint 作對照或修正；可使用 Codex、Claude Code 互相審查，但不可直接改主外掛。
 - 製作**獨立於 WordPress**的可重播 Demo；驗證眨眼、Idle、頭髮／頭部、表情切換、日文說話嘴型與錯誤行為。
@@ -609,6 +609,7 @@ npm run create -- /path/to/your-image.png --no-variants
 | 風險 | 可能後果 | 驗證／緩解方向 |
 |---|---|---|
 | 單張立繪無法自然分層與網格變形 | 模型品質不及現有 SVG | 先做高品質單角色 PoC、調整 SD 素材與 Rig |
+| 全身構圖依賴上游實驗功能（衣物、雙腿、手臂） | 上游改版後欄位或行為改變，動作失效 | 逐項確認 Runtime／Element 支援、鎖版、Phase 0 記錄依賴了哪些實驗功能 |
 | 134 × 249px 低尺寸失去動態優勢 | 投入成本無實質回報 | 固定尺寸比較、選擇足夠明顯但自然的動作 |
 | 翻書、醒來、睡眠無等價 Mesh Motion | 3.0 失去角色特色 | 列差異、驗證替代方案、由擁有者決定 |
 | 現有 Canvas／Ghost 互動深度耦合 | 改 Renderer 牽動聊天功能 | 呼叫點調查、薄 Adapter、分階段測試 |

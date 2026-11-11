@@ -1,6 +1,6 @@
 # mp-ukagaka 3.0 — Mesh Avatar 實驗開發計畫書
 
-> ⚠️ **已被取代**：本檔僅供追溯。現行基準是 `plan/mavatar-plan/mp-ukagaka-mavatar-3.0-development-plan-v0.3.2.md`（內容版本 v0.3.3）。
+> ⚠️ **已被取代**：本檔僅供追溯。現行基準是 `plan/mavatar-plan/mp-ukagaka-mavatar-3.0-development-plan-v0.3.3.md`。
 
 > **給 Claude Code 與 Codex CLI 的工作指示／Project Charter**  
 > 版本：Draft v0.3.1／2026-11-11（v0.3.1：文件精簡收尾、WP 6.5 以下站點退場、2.x 安全 ZIP 發放、用詞校正；v0.3：D0 定案為後繼版；2.x EOL 與更新通道；覆蓋式升級；全身／半身決策；差分素材；ES module 與 WP 6.5；載入世代與 readiness；文件精簡）  

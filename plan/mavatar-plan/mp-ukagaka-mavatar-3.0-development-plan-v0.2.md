@@ -1,6 +1,6 @@
 # mp-ukagaka 3.0 — Mesh Avatar 實驗開發計畫書
 
-> ⚠️ **已被取代**：本檔僅供追溯。現行基準是 `plan/mavatar-plan/mp-ukagaka-mavatar-3.0-development-plan-v0.3.2.md`（內容版本 v0.3.3）。
+> ⚠️ **已被取代**：本檔僅供追溯。現行基準是 `plan/mavatar-plan/mp-ukagaka-mavatar-3.0-development-plan-v0.3.3.md`。
 
 > **給 Claude Code 與 Codex CLI 的工作指示／Project Charter**  
 > 版本：Draft v0.2／2026-11-11（增補產品身分／雙線維護／發布隔離／獨立門檻／Mesh 風險）  
