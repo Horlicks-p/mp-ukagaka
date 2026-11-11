@@ -49,6 +49,35 @@ mpu_save_option($mpu_opt);        // Write
 ```
 The global `$mpu_opt` is also available for legacy compatibility.
 
+### PHP File Header DocBlock
+
+Every plugin-owned PHP file uses this header:
+
+```php
+<?php
+/**
+ * Claude AI Provider.
+ *
+ * Handles Claude API requests, streaming responses,
+ * and tool calling.
+ *
+ * @package MP_Ukagaka
+ * @subpackage LLM
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+```
+
+- `@package`: always `MP_Ukagaka`.
+- `@subpackage`: reuse an existing category (`Core`, `LLM`, `REST`, `Admin`, `Chat`, `Personality`, `Integrations`, …) — follow sibling files in the same directory rather than inventing a new one.
+- `@since`: only when the version that introduced the file can be confirmed (git history / changelog). Never default it to the current version.
+- ABSPATH: keep the check in plugin-owned, directly requestable PHP files. `uninstall.php` keeps its own `WP_UNINSTALL_PLUGIN` check instead.
+- `vendor/`: third-party code is never modified.
+
+**When to apply**: always for new PHP files. Tidy an existing file's header only when making a substantive functional change to that file. Do not batch-reformat headers across the project unless fixing a real security or parse problem (e.g. a missing ABSPATH check).
+
 ---
 
 ## Key Architectural Patterns
@@ -98,7 +127,7 @@ Always follow these patterns:
 3. **Sanitization**: Use WordPress core functions (`sanitize_text_field`, `wp_kses`, etc.) at input boundaries.
 4. **Escaping**: Use `esc_html`, `esc_attr`, `esc_url` at output boundaries.
 5. **File Operations**: Use WordPress Filesystem API, not direct `file_put_contents`. Always validate paths.
-6. **No ABSPATH Check Skip**: Every PHP file must start with `if (!defined('ABSPATH')) { exit(); }`.
+6. **No ABSPATH Check Skip**: Every plugin-owned PHP file must start with `if (!defined('ABSPATH')) { exit(); }` (see [PHP File Header DocBlock](#php-file-header-docblock); `uninstall.php` uses `WP_UNINSTALL_PLUGIN` instead).
 
 ---
 
