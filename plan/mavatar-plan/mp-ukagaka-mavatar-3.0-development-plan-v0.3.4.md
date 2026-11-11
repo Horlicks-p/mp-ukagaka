@@ -1,25 +1,26 @@
 # mp-ukagaka 3.0 — Mesh Avatar 實驗開發計畫書
 
-> ⚠️ **已被取代**：本檔僅供追溯。現行基準是 `plan/mavatar-plan/mp-ukagaka-mavatar-3.0-development-plan-v0.3.3.md`。
-
 > **給 Claude Code 與 Codex CLI 的工作指示／Project Charter**  
-> 版本：Draft v0.3.1／2026-11-11（v0.3.1：文件精簡收尾、WP 6.5 以下站點退場、2.x 安全 ZIP 發放、用詞校正；v0.3：D0 定案為後繼版；2.x EOL 與更新通道；覆蓋式升級；全身／半身決策；差分素材；ES module 與 WP 6.5；載入世代與 readiness；文件精簡）  
+> 版本：Draft v0.3.4／2026-11-11（v0.3.4：WP 版本相容性更新阻擋列為 GA BLOCKER、主檔標頭 `Requires at least`、回退的資料可逆性、靜態 poster 資產契約、Phase 0 比較條件固定、§5.1 構圖用語、舊版文件移除；v0.3.3：`base.png` 公開範圍、`pack-avatar --no-source`、全身構圖的原圖解析度與實驗功能警語、交接說明、GA 升級措辭；v0.3.2：納入官方 Codex 差分生成與匯入工作流、修正嘴型差分清單、補手動／一鍵雙路徑與授權確認；v0.3.1：文件精簡收尾、WP 6.5 以下站點退場、2.x 安全 ZIP 發放、用詞校正；v0.3：D0 定案為後繼版；2.x EOL 與更新通道；覆蓋式升級；全身／半身決策；差分素材；ES module 與 WP 6.5；載入世代與 readiness；文件精簡）  
 > 專案：[`Horlicks-p/mp-ukagaka`](https://github.com/Horlicks-p/mp-ukagaka)  
 > 技術參考：[`shinshin86/mesh-avatar-studio`](https://github.com/shinshin86/mesh-avatar-studio)  
 > 專案代號：**mp-ukagaka-mavatar**（`mavatar` 對應 `.mavatar` 格式；不要拼成 `mavater`）  
 > **狀態：規劃階段。D0 產品身分已由擁有者決議（見 D0）。本文仍不是已批准的實作規格，也不是修改 `main` 的授權。**
 
-### v0.3 變更摘要
+### 變更摘要（v0.3.4 起倒序）
 
-1. D0 定案：**方案 A（正式後繼）**；方案 B 改為棄案摘要。
-2. 新增更新通道政策：**3.0 GA 接管正式更新通道，2.x 同時 EOL**；之後的 2.x 安全修補以手動 ZIP 提供，不發 GitHub Release。
-3. 明定**只支援覆蓋式升級**，不支援「刪除 2.x 再安裝 3.0」（`uninstall.php` 會刪除 `mp_ukagaka`）。
-4. **全身／半身構圖**列為 Phase 0 第一個產品決策（擁有者目前傾向全身）。
-5. 補齊**差分素材清單**；正式站 `.mavatar` 匯出不得包含原始立繪。
-6. 3.0 **最低 WordPress 提升至 6.5**，以 `wp_register_script_module()` 載入 ES module；Phase 1 加入**以載入世代為單位的 readiness** 與重新載入鍵。
-7. Phase 0 文件精簡為 **ADR-000 + PoC Results** 兩份。
-8. 其他校正：WebGL2（非泛稱 WebGL）、`.mavatar` 公開即可下載、Miko 條款與本專案政策分開陳述、PUC 預設排除 prerelease 的已核實事實。
-9. （v0.3.1）Architecture Assessment 併入 ADR-000；Fix Ledger 延到第一次實際移植；補 WP 6.5 以下站點的退場路徑（§D0.3、Phase 3）；2.x 安全修補 ZIP 的發放規格；「同頁比較」改為分別建置測量。
+- **（v0.3.4）** 已核實內附 PUC 5.6 不會把 `Requires at least` 帶進 WordPress 更新資料，且 WP core 自動更新路徑不檢查 WP 版本 → 新增 **D0.3.1 BLOCKER**：版本閘門必須先隨最後一版 2.x 出貨；主檔標頭補 `Requires at least`（目前只有 `readme.txt` 有）；D0.2 補回退的資料可逆性；§4.6 補靜態 poster 資產契約（`built/base.png` 不可當 fallback）；Phase 0 構圖比較條件固定；§5.1 首條改依構圖決策；ADR-000 正文／附錄分層；v0.2、v0.3、v0.3.3 檔案自分支移除（Git 歷史可追溯）。
+- **（v0.3.3）** §4.6 寫明 `built/base.png` 為全尺寸圖、取消 source 仍可取得接近完整的立繪；網站用 `.mavatar` 以 `npm run pack-avatar -- <project> --no-source` 可重現地匯出；§5.1 補全身構圖的原圖解析度要求；Phase 0 與風險登錄補「全身功能屬上游實驗功能」；D0.3 的 GA 升級措辭改為只限 WP 6.5+ 站點；新增 §0.1 交接說明。
+- **（v0.3.2）Phase 0 加入官方 Codex 差分工作流**：來源圖片由擁有者用 Stable Diffusion 準備，正式比較 Codex Image Generation 與 Stable Diffusion Inpaint；使用上游 `variant-requests.py`／`build-sprites.py`，修正官方嘴型種類，加入遠端生圖同意、對位驗證及可重播交付。
+- （v0.3）D0 定案：**方案 A（正式後繼）**；方案 B 改為棄案摘要。
+- 新增更新通道政策：**3.0 GA 接管正式更新通道，2.x 同時 EOL**；之後的 2.x 安全修補以手動 ZIP 提供，不發 GitHub Release。
+- 明定**只支援覆蓋式升級**，不支援「刪除 2.x 再安裝 3.0」（`uninstall.php` 會刪除 `mp_ukagaka`）。
+- **全身／半身構圖**列為 Phase 0 第一個產品決策（擁有者目前傾向全身）。
+- 補齊**差分素材清單**；正式站 `.mavatar` 匯出不得包含原始立繪。
+- 3.0 **最低 WordPress 提升至 6.5**，以 `wp_register_script_module()` 載入 ES module；Phase 1 加入**以載入世代為單位的 readiness** 與重新載入鍵。
+- Phase 0 文件精簡為 **ADR-000 + PoC Results** 兩份。
+- 其他校正：WebGL2（非泛稱 WebGL）、`.mavatar` 公開即可下載、Miko 條款與本專案政策分開陳述、PUC 預設排除 prerelease 的已核實事實。
+- （v0.3.1）Architecture Assessment 併入 ADR-000；Fix Ledger 延到第一次實際移植；補 WP 6.5 以下站點的退場路徑（§D0.3、Phase 3）；2.x 安全修補 ZIP 的發放規格；「同頁比較」改為分別建置測量。
 
 ---
 
@@ -35,6 +36,13 @@
 **第一道技術 Go/No-Go 門檻：** 必須先在**完全獨立於 WordPress** 的 PoC 中，使用自行準備的芙莉蓮立繪生成 `.mavatar`，確認角色外觀、動作與實際顯示尺寸下的效果達標；在此之前，**不要先大改外掛核心**。
 
 **授權邊界：** Claude Code／Codex CLI 負責調查現有架構、提出方案、實作小型可驗證實驗、建立測試與回報結果。資料遷移細節、發行時機、是否分拆獨立 Repo 由專案擁有者決定。**不得自行合併至 `main`、發布 Release、更新正式網站或覆蓋安定版。**
+
+### 0.1 交接說明（給接手的 Claude Code／Codex CLI）
+
+- **本文件是唯一基準**。所有早於 v0.3.4 的版本都已被本版取代，檔案已自分支移除，只能從 Git 歷史追溯，不得作為工作依據。
+- 本計畫在公司環境完成規劃；**實作環境改在擁有者家中**。接手的 Agent 沒有先前對話或本機 memory，所有決議都以本文件為準，特別是 D0、§2.5、§5.2 與 §13.1 已勾選的項目。
+- 開工前先重新確認：mp-ukagaka `main` 的最新 SHA 與版號、Mesh Avatar Studio 的最新 Commit 與 `mesh-avatar`／`mesh-avatar-element` 版本、本機 Node.js（上游需 22.17+）、uv／Python、Playwright Chromium、Codex CLI 登入狀態。
+- 第一步是 §12 的 Phase 0 前置工作；**沒有擁有者提供的芙莉蓮立繪前，不得宣告視覺 PoC 通過**。
 
 ---
 
@@ -57,6 +65,7 @@
 - **不支援**：先刪除 2.x 再安裝 3.0（會遺失設定與 API Key）；升級文件必須明確警告。
 - 升級前提供設定匯出／備份確認；遷移測試必須包含「升級失敗後恢復 2.x」。
 - **只有真正修改 option schema 時才引入 migration version**；純 Renderer 改造不做不必要的資料轉換。
+- **回退的資料可逆性**：「能把程式檔換回 2.x」與「資料仍能被 2.x 正確使用」是兩件事。**在回退測試完成前，3.0 Preview 不得對既有設定執行不可逆轉換**；若必須轉換，升級時先保存升級前的設定快照，回退程序必須同時還原該快照，並以「3.0 已寫入新 schema 後再回退 2.x」作為必測情境。
 - **加密金鑰現況（已核對）**：`includes/core/encryption-functions.php` 以 `AUTH_KEY` + 固定字串 `mpu_api_key_encryption` 衍生金鑰，支援 `mpu_enc2:`（AES-256-GCM）及舊 `mpu_enc:`、`mpu_obf:`。同站 `AUTH_KEY` 不變且保留解密邏輯時，原則上可沿用舊 API Key；仍須以測試樣本驗證，**不得寫出或記錄明文 API Key**。
 
 ### D0.3 更新通道與 2.x EOL
@@ -66,12 +75,44 @@
 因此同一 Repo 只有一條「最新正式 Release」通道，以下三者**最多只能同時成立兩個**：3.0 原地後繼／2.x 長期發一般維護版／兩者共用同一更新來源。擁有者決議的政策是：
 
 - **3.0 GA 之前**：2.x 是 Stable，正常發 Release；3.0 只能是 prerelease 或本機 ZIP。
-- **3.0 GA 時**：3.0 接管正式更新通道，所有 2.x 站點會在後台看到升級到 3.0。**2.x 同時 EOL**。
+- **3.0 GA 時**：3.0 接管正式更新通道；具備 WordPress 6.5+ 且符合更新條件的 2.x 站點會看到升級至 3.0，較舊 WordPress 站點應顯示版本不相容提示且不得誤裝。**2.x 同時 EOL**。
 - **3.0 GA 之後**：2.x 不再發 GitHub Release（避免搶走 `releases/latest`，讓 3.0 站點看不到 3.0.x 更新）。如有必要的 2.x 安全修補，只在 2.x 維護分支打 tag，**以手動 ZIP 提供**，不設計額外的更新通道。
 - GA 前需公告 2.x EOL 與 3.0 的不相容事項（舊 Shell、其他 Ghost 支援範圍、最低 WordPress 6.5 等），並明確寫出「**先升級 WordPress 至 6.5 以上，再升級外掛**」。
 - **最後一個 2.x Release** 必須內含清楚的 EOL／升級通知（後台提示或 readme），並作為無法升級 WordPress 之站點的最終版本。
-- **WordPress 6.5 以下的站點**：GA 後既無法升級到 3.0，也收不到 2.x 一般更新。須在 WP 6.4 測試站實測更新器正確標示「需要 WordPress 6.5」且不會誤裝；這類站點以最後一版 2.x（及之後的手動安全 ZIP）為終點。
+- **WordPress 6.5 以下的站點**：GA 後既無法升級到 3.0，也收不到 2.x 一般更新；這類站點以最後一版 2.x（及之後的手動安全 ZIP）為終點。**「不會誤裝」目前沒有任何機制保證，見 D0.3.1。**
 - **2.x 安全修補 ZIP 的發放規格**（寫入 ADR-000）：放置位置、通知管道、檔名（須含 `2.x` 版號，例如 `mp-ukagaka-2.40.1-security.zip`）、SHA-256 checksum，以及確認其主檔版本為 2.x、不會被誤認為 3.0 更新包的檢查方式。
+
+#### D0.3.1 BLOCKER：WordPress 版本閘門目前不存在
+
+**已核實（2026-11-11，內附 PUC 5.6、WP core 7.1.4 原始碼）**：上面「WP 6.4 站點不會誤裝」的前提**目前不成立**，只改 `Requires at least` 擋不住。
+
+- PUC 會從 `readme.txt` 解析 `Requires at least` 到 `PluginInfo::$requires`（`Vcs/PluginUpdateChecker.php:190`），但 `Plugin/Update.php` 的欄位清單與 `toWpFormat()` **只輸出 `requires_php`，不輸出 `requires`**，所以 WordPress 的更新 transient 拿不到最低 WP 版本。
+- WordPress core 各升級路徑的檢查：
+  | 路徑 | 實際檢查 | 目前能否擋下 WP 6.4 安裝 3.0 |
+  |---|---|---|
+  | 外掛列表／更新頁的「立即更新」（`Plugin_Upgrader::bulk_upgrade()`） | transient 的 `requires`（PUC 沒給）＋套件主檔標頭 `RequiresWP`（`check_package`） | 主檔標頭有寫 `Requires at least` 才擋得下；**目前主檔標頭沒有此欄位** |
+  | 後台上傳 ZIP 並取代（`Plugin_Upgrader::install()`） | 套件主檔標頭 `RequiresWP` | 同上，只看主檔標頭，**不看 `readme.txt`** |
+  | **背景自動更新**（`WP_Automatic_Updater::should_update()` → `upgrade()`） | 外掛**只檢查 `requires_php`**，`upgrade()` 也不跑 `check_package` | **擋不住**：就算兩處標頭都寫 6.5，開了自動更新的 WP 6.4 站點仍會被裝上 3.0 |
+  | 更新提示本身 | 無版本過濾 | 舊站仍會看到「有新版本」 |
+- WordPress.org 外掛靠 API 端不派發不相容版本，所以 core 沒做這層檢查；自架更新器必須自己做。
+
+**處置（GA 前必須全部完成，否則不得發布正式 3.0 Release）**：
+
+1. **閘門要放在 2.x 端**：真正決定是否派發更新的是**站點上已安裝的 2.x 更新器**，所以版本閘門必須先隨某一版 2.x 發出去（這屬於 §2.3 允許的「發行流程安全修補」）。實作方式由 Agent 提案比較（含「升級 PUC 是否已原生支援」的調查），不得自行施工於 `main`。已核實的 PUC 5.6 hook 語意：
+   - **`puc_request_update_result-mp-ukagaka`**（`UpdateChecker::filterUpdateResult()`）：回傳 `null` 是安全的，後續流程會把它當成「沒有更新」並清掉舊的更新資訊 → **適合當阻擋派發的 veto 點**。
+   - **`puc_pre_inject_update-mp-ukagaka` 不能當 veto**：`UpdateChecker.php` 在 filter 後會直接呼叫 `$update->toWpFormat()`，回傳 `null` 會造成 fatal；它只能修改仍存在的 Update 物件。
+   - `requires` 在 `PluginInfo` → `Update` 的轉換時已經遺失，臨時塞入 `$update->requires` 也不會被 `toWpFormat()` 輸出。若要把 `requires` 交給 WordPress，需升級／擴充 PUC，或在轉成 WP transient 之後另行補入（例如 `site_transient_update_plugins` filter）。
+   - **2.x 閘門不必依賴已遺失的 `requires`**：直接以「目標版本主版號為 3 且目前 WP < 6.5」判斷並回傳 `null` 即可；比較時用 `$GLOBALS['wp_version']`／`is_wp_version_compatible()`。
+2. 這一版 2.x 必須**早於 3.0 GA** 且讓站點有時間更新（soak period，長度由擁有者決定）；ADR-000 須寫明「未更新到含閘門 2.x 的站點仍可能被自動更新到 3.0」這個殘餘風險及公告方式。
+3. 3.0 的 `mp-ukagaka.php` 主檔標頭**新增** `Requires at least: 6.5`（以及 `Requires PHP`）——這是「手動按更新」與「ZIP 覆蓋」兩條路徑唯一會檢查的地方，**即使站點仍是舊 2.x 也有效**。`readme.txt` 同步修改，供更新詳細資訊顯示及日後 PUC 升級後使用。
+4. WP 6.4 測試站四條路徑（**更新提示、背景自動更新、手動按更新、ZIP 覆蓋**）以兩種起點實測，預期結果不同：
+
+   | 起點 | 更新提示 | 背景自動更新 | 手動按更新 | ZIP 覆蓋 |
+   |---|---|---|---|---|
+   | 含閘門的 2.x | 不顯示 3.0 | 不安裝 | 不安裝（看不到更新） | 被 3.0 主檔標頭擋下 |
+   | 未含閘門的舊 2.x | 仍顯示（已知漏洞） | **仍會安裝（已知漏洞）** | 被 3.0 主檔標頭擋下 | 被 3.0 主檔標頭擋下 |
+
+   「舊 2.x」那一列的目的是**確認漏洞可重現、且標頭能擋住的兩條確實擋住**；前兩欄的結果列入 GA 殘餘風險、公告與 soak period，**不視為測試失敗**。「含閘門的 2.x」那一列四欄必須全部通過。
 
 ### D0.4 方案 B（同站可共存的獨立外掛）：棄案摘要
 
@@ -79,7 +120,9 @@
 
 ### D0.5 ADR-000
 
-建立 `MAvatar-ADR-000-Product-Identity.md`，記錄 D0.1–D0.3 的決議、覆蓋式升級的測試步驟、2.x EOL 的公告與安全修補發放方式，以及 §2.5 的發布隔離方案。這是 Phase 0 僅有的兩份必要文件之一。
+建立 `MAvatar-ADR-000-Product-Identity.md`，記錄 D0.1–D0.3.1 的決議、覆蓋式升級與回退（含資料可逆性）的測試步驟、2.x EOL 的公告與安全修補發放方式、WP 版本閘門方案，以及 §2.5 的發布隔離方案。這是 Phase 0 僅有的兩份必要文件之一。
+
+**正文／附錄分層**：正文只放穩定的契約與決議；容易隨程式變動的現有系統盤點（呼叫點、依賴圖、檔案行號）放附錄，並在附錄開頭標明盤點所依據的 `main` 基準 SHA，避免 ADR 正文因程式碼漂移而過時。
 
 ---
 
@@ -96,7 +139,7 @@
 - 現有「翻書」、睡眠、醒來、觸摸區域、裝飾品及角色切換包含相當多專用行為，不能把它們簡化為單一 `setExpression()` 就算完成。
 - **已核實**：`js/ukagaka-base.js` 的 `mpuVisualReadyPromise` 是**整個頁面生命週期只觸發一次的 latch**；第一次 Ready 後，後續角色切換不會重新進入 pending。
 - **已核實**：`js/ukagaka-anime.js` 的 `mpuCanvasManager.init()` 在已處於芙莉蓮模式時直接 early-return，不比較 Shell、asset 或 Renderer；換 `.mavatar` 或服裝會被這段吃掉。
-- 外掛目前標示 WordPress 5.0+；**3.0 將最低版本提升至 6.5**（見 §4.6）。
+- 外掛目前只有 `readme.txt` 標示 `Requires at least: 5.0`，**主檔 `mp-ukagaka.php` 標頭沒有 `Requires at least`／`Requires PHP`**；**3.0 將最低版本提升至 6.5**（見 §4.6、D0.3.1）。
 
 ### 1.2 Mesh Avatar Studio
 
@@ -105,10 +148,11 @@
 - [`mesh-avatar`](https://github.com/shinshin86/mesh-avatar-studio/tree/main/packages/runtime) 為獨立 WebGL 執行環境；[`mesh-avatar-element`](https://github.com/shinshin86/mesh-avatar-studio/tree/main/packages/element) 提供不依賴 React 的 `<mesh-avatar>` Web Component，以 ES module 載入。
 - Element README 明載 **Requires WebGL2**；元素離開畫面、分頁隱藏或 `paused` 時自動暫停動畫；`prefers-reduced-motion: reduce` 時減少髮絲擺動。這些上游行為**不需重做**，但 Adapter 不得破壞。
 - Studio 匯出 `.mavatar` 時 **Include source image 預設勾選**，會把原始立繪一併打包。
+- **上游已有 Codex 差分製作工具鏈**：官方 [`docs/agent-guide.zh.md`](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/agent-guide.zh.md) 第 6 步使用 `variant-requests.py` 產生遮罩與 Prompt、Codex Image Generation 或其他生圖工具繪製差分、`build-sprites.py` 驗證並匯入。另有 `npm run create -- <image.png>` 一鍵方式；兩者不應重複開發。
 - 規劃時所見套件版本：`mesh-avatar` **0.7.2**、`mesh-avatar-element` **0.4.4**。兩者仍可能快速更新；**實作需鎖定並記錄已驗證版本**，不可盲目追最新。
 - 可使用 `setEmotion()`、`setExpression()`、`setSpeaking()`、`setVoiceLevel()`、`setParameters()`、`speak()` 等 API。`speak()` 偏向日文 Kana 嘴型動畫，**不會自行生成語音**，也不能直接假定對任意日文漢字、中文或逐字 SSE 都能準確對嘴。
 - 可以把編輯器與 Agent、Python／Node.js 等工具**留在開發機**；WordPress 正式站只需經驗證的瀏覽器 Runtime、必要素材及前端整合程式。
-- Runtime 原始碼使用 MIT 授權，但**範例角色 Miko 的圖像不是 MIT**。上游 `MIKO_ASSET_TERMS.md` 允許將 Miko 作為軟體／網站的一部分散布，禁止單獨散布與素材集；本專案另有更保守的政策（§5.3）。
+- Runtime 原始碼使用 MIT 授權，但**範例角色 Miko 的圖像不是 MIT**。上游 `MIKO_ASSET_TERMS.md` 允許將 Miko 作為軟體／網站的一部分散布，禁止單獨散布與素材集；本專案另有更保守的政策（§5.4）。
 
 ### 1.3 已知資訊與尚待驗證事項的區別
 
@@ -341,46 +385,90 @@ WordPress / mp-ukagaka 核心
 - 對中文、日文漢字、假名、英文、符號與 SSE Delta 做**對嘴策略比較**：`speak()` 的 Kana 導向能力，不等於能準確處理中／日混寫。可先採受控的「正在說話」嘴型節奏，必要時附加文字分段規則；不要把假音量或依字長的嘴型稱為音素級同步。
 - 觸摸區須研究 Canvas/SVG 座標轉換為 Mesh WebGL 畫面後的真正命中區、縮放／裁切／透明背景／配件事件優先權。**與其直接搬動 2.x Y 比例，不如先制定新的可測觸摸契約**；這不代表一定要實作逐像素 GPU picking。
 - **無 WebGL2 的降級是產品決策，而不是既定答案**：選項至少比較 `static PNG poster`、`靜止角色＋正常對話`、`停用角色渲染並保留聊天`、`完整 Legacy Renderer`，列出體積／複雜度／UX；**預設不重建完整 Legacy Engine**，但 Phase 2 前必須由擁有者決定最低可接受降級行為。
+- **靜態 poster 的資產契約**（若選 `static PNG poster` 或 `靜止角色＋正常對話`）：**不得把 `built/base.png` 當成 fallback 圖**——它是挖除眼嘴等可動部件後的底圖，直接顯示會缺五官。必須另外產生**完整合成**的 `poster.png`（例如由 Runtime 以 Idle 姿勢渲染一張），並明定其 CSS 尺寸／DPR 倍率、構圖、透明背景，以及與對應 `.mavatar` 的版本綁定（同一 `assetVersion`，換 `.mavatar` 必須重產 poster）。poster 同樣公開可下載，適用與 `.mavatar` 相同的授權判斷。
 - **Miko（本專案政策）**：即使上游條款允許將 Miko 作為應用／網站的一部分散布，本專案仍決定**不將 Miko 插畫、模型或其 `.mavatar` 納入任何外掛 ZIP、測試 ZIP 或發行資產**；PoC 可參考官方頁面，對外發行只用自備素材或只含程式碼的測試 Fixture。
-- **`.mavatar` 放上網站即等同公開可下載**：瀏覽器能載入的 URL，訪客就能取得。授權與分發應分別判斷 Git、Release ZIP、正式網站三種範圍；不要把隱藏 URL、nonce 或 CORS 當成 DRM。正式站用的 `.mavatar` **必須取消 Include source image 後匯出**。
+- **`.mavatar` 放上網站即等同公開可下載**：瀏覽器能載入的 URL，訪客就能取得。授權與分發應分別判斷 Git、Release ZIP、正式網站三種範圍；不要把隱藏 URL、nonce 或 CORS 當成 DRM。正式站用的 `.mavatar` **必須取消 Include source image 後匯出**；為了可重現，建議以上游 CLI `npm run pack-avatar -- projects/<name> --no-source -o <output>.mavatar` 打包（上游打包時已自動排除 drafts、variants 與工作檔）。
+- **取消 source 不等於不外洩立繪**：`built/base.png` 是**全尺寸、已挖除可動部件並補畫的整張圖**，加上各圖層，訪客仍可拼回接近完整的立繪。素材授權決策應以「整張立繪會公開」為前提。
 
 ---
 
 ## 5. Stable Diffusion 素材與 Avatar 製作流程
 
-素材由專案擁有者使用 Stable Diffusion（可搭配 Forge Neo、LoRA、ControlNet）製作。**Agent 不必自行尋找或下載版權不明的角色圖片**，也不必把生圖系統整合進外掛。
+**基礎立繪由專案擁有者使用 Stable Diffusion**（可搭配 Forge Neo、LoRA、ControlNet）製作。**差分（閉眼、嘴型、表情）有兩條正式候選路徑**：A. 官方 Codex Image Generation 工作流；B. 依上游遮罩／提示詞使用 Stable Diffusion Inpaint 製作。由擁有者比較成果及決定使用哪條，不應預設全由人工作圖，也不要求把生圖系統整合進 WordPress。**Agent 不得自行尋找或下載版權不明的角色圖片。**
 
 ### 5.1 PoC 素材建議
 
-- 正面或接近正面、上半身／頭肩為主、透明或容易去背的背景。
+- 正面或接近正面、透明或容易去背的背景；**構圖依下方「構圖」條目**準備全身與半身兩版（不要只準備上游建議的頭肩構圖）。
 - 較高解析度的原圖，便於切出眉眼、前髮、側髮、耳朵、肩膀與嘴型。
 - 人物五官、服裝、手臂、書本等輪廓清楚；初期**不要求手持書本**，降低分層與遮擋難度。
 - 嘴巴自然閉合、眼睛完整，避免髮絲跨越臉部太多。
 - 優先保留角色辨識度與靜止畫品質，而不是追求極端動作幅度。
 - 素材可以逐輪調整，**不能因為程式開發已投入時間就硬用效果不好的 Rig**。
-- **構圖**：Phase 0 用同一角色各做「全身（約現行 134×249 顯示）」與「半身放大」兩版比較（擁有者目前傾向全身）。全身版需特別檢查臉部在實際尺寸下表情是否仍可辨識。
+- **構圖**：Phase 0 用同一角色各做「全身（約現行 134×249 顯示）」與「半身放大」兩版比較（擁有者目前傾向全身）。全身版需特別檢查臉部在實際尺寸下表情是否仍可辨識。上游建議頭肩構圖；若採全身，臉部在原圖中佔的像素少，眼嘴遮罩與差分生成的區域也很小，**SD 原圖需以足夠高的解析度輸出**（以臉部區域仍能清楚畫出睫毛與嘴型為準，實際數值於 Phase 0 測定並記錄）。
 
-**差分素材包（以 Stable Diffusion inpaint 製作，與原圖同構圖、同光影、同臉型）：**
+**差分素材包（以官方 Agent Guide Step 6 為準，優先沿用上游支援的差分名稱）：**
 
-| 差分 | 用途 | 缺少時的影響 |
+| 差分群組 | 上游 Step 6 實際提供 | 用途／注意事項 |
 |---|---|---|
-| 閉眼 | 眨眼、睡眠 | 只能靠網格壓扁眼睛，眨眼明顯不自然 |
-| 嘴巴閉合＋主要母音嘴型（あ・い・う・え・お） | 說話 | 只能靠網格開合，說話感弱 |
-| 微笑、悲傷、驚訝的眼睛／嘴 | 情緒表情 | 情緒變化幅度小 |
-| 頭髮與臉部遮擋關係清楚的版本 | 分層 | 髮絲切割破圖 |
+| 眼睛 | 閉眼、半閉眼、笑眼 | 改善眨眼與微笑；避免全閉眼殘留虹膜或不自然的網格變形 |
+| 嘴型 | `あ`、半張 `あ`、`い`、`お` | 供嘴型動畫選用；**上游預設並非完整 `あ・い・う・え・お` 五母音差分**，不要自創檔名或要求 Runtime 支援不存在的 Sprite |
+| 可選的情緒眼睛 | `eyes_sad`、`eyes_surprise` | 悲傷／驚訝眼部；眼部遮罩**不包含眉毛**，避免與 Rig 動畫重複畫眉 |
+| 可選的情緒閉嘴 | `mouth_angry`、`mouth_sad` | 憤怒／悲傷的閉嘴；是否需要由擁有者決定 |
+| Rig／圖層品質 | 頭髮、臉部、耳朵、服飾遮擋關係 | 不屬於上述固定 Sprite 名稱；由 Rig、圖層切割、素材修正處理 |
 
-差分**不是開始 Phase 0 的硬性門檻**：可先用最小 Rig 判斷原圖是否適合；但**正式評估眨眼與嘴型之前，差分必須到位**。上游以 Codex 生圖產生差分，Claude Code 無法生圖，本專案改由擁有者以 SD 製作。
+差分**不是啟動 Phase 0 的硬性門檻**：先用基礎 Rig 驗證原圖是否適合。正式評估眨眼與嘴型前，要有足以比較的差分成果（Codex 或 SD 皆可）；選配情緒差分不應被誤列為「所有 Avatar 必備」。上游一鍵 `create` 流程會嘗試生成完整差分清單，但逐步 Agent Guide 將部分情緒差分標為可選；這兩者並不矛盾，差異在預設自動化範圍。
 
-### 5.2 Agent 製作與品質檢查
+### 5.2 官方 Codex 差分生成工作流（Phase 0 優先實測；可改 SD Inpaint）
 
-1. 依官方 [`docs/agent-guide.md`](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/agent-guide.md) 的流程校準座標、建立 Rig、切圖層與檢查固定姿勢。
+**參考**：[官方中文 Agent Guide §第 6 步](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/agent-guide.zh.md)、[官方 README 中文版](https://github.com/shinshin86/mesh-avatar-studio/blob/main/README.zh.md)、[工具 `tools/create.mjs`](https://github.com/shinshin86/mesh-avatar-studio/blob/main/tools/create.mjs)。**以所鎖上游 Commit 的腳本／命令為準**，如果上游改版，先驗證，不要照抄過期指令。
+
+**建議主要路徑：逐步製作，保留檢查點**（全部在 Mesh Avatar Studio 的獨立工作目錄執行，而不是 mp-ukagaka 的正式外掛目錄）：
+
+1. 擁有者提供 Stable Diffusion 生成的原始 PNG；依官方指南執行視覺座標校準、`rig.draft.json`、分層及固定姿勢審查。**未完成 Rig／動作審查，不直接要求 Agent 任意生成一整套眼嘴差分。**
+2. 依照官方命令輸出遮罩與提示詞（`<name>` 是 Studio 的專案名稱）：
+
+   ```sh
+   uv run tools/variant-requests.py projects/<name>
+   ```
+
+   產物在 `projects/<name>/variant-requests/`；逐一檢查遮罩、Prompt 和 README。**以產出的檔名與遮罩為單一事實來源**，不要自造新的 `variants` 命名協定。
+3. 經擁有者**明確同意原圖與遮罩送至外部生圖服務**後，可交由具有 Image Generation 能力的 Codex 依上游要求繪製，輸出至 `projects/<name>/variants/<variant>.png`。**Claude Code 可進行 Rig、遮罩、Prompt、品質審查，但不應假定其本身有可用的影像生成能力**。若 Codex 環境無法呼叫 Image Generation，應回報並改用 SD Inpaint，不得聲稱已生成。
+4. **Stable Diffusion 替代路徑**：同樣使用上游生成的遮罩、Prompt 與檔名，以 Forge Neo／Inpaint 在本機生成。適合控制 LoRA 畫風、保留芙莉蓮臉型，以及補救 Codex 產生的偏移、膚色差異或髮絲破圖；不必為此修改上游的匯入程式。
+5. 對位驗證：新圖必須維持**原圖尺寸、長寬比、人物位置、透明背景及遮罩外畫素**。官方匯入器可以修正有限的偏移（官方目前描述最多 3 px）、部分一致性色差，但對超出範圍的偏移、遮罩外重畫、溢出遮罩及長寬比不符會拒絕。**不得因自動修正存在，就省略大尺寸眼嘴區域與縮小後的人工目視檢查。**
+6. 用官方匯入流程產生 Sprites：
+
+   ```sh
+   uv run tools/build-sprites.py projects/<name>
+   ```
+
+   成功產生 `built/sprites/` 後，**重跑官方固定姿勢渲染（`npm run render-poses -- projects/<name>`）**，比較眨眼、嘴型、驚訝、悲傷、生氣等表現；有缺陷則重新生成對應差分或修改 Rig，不能直接手改 `built/` 後就交付（Studio 重建會覆寫）。
+7. `.mavatar` 匯出前由擁有者確認：完成的可編輯模型留在本機；供網站使用的匯出取消 **Include source image**。PoC Results 需記錄哪些差分來自 Codex、哪些來自 SD、提示詞／遮罩來源、失敗重試次數、尚缺哪些表情。
+
+**官方一鍵工作流（可選比較，不能取代人工 Gate）**：
+
+```sh
+# 在已 clone、安裝相依的 Mesh Avatar Studio 目錄，並且已準備好圖片時
+npm run create -- /path/to/your-image.png
+
+# 不同意將原圖／遮罩送給外部生圖服務，跳過繪製差分：
+npm run create -- /path/to/your-image.png --no-variants
+```
+
+- 一鍵工具會呼叫 Codex CLI、按指南建立 Rig／Avatar，並在有授權與對應能力時繪製閉眼、嘴型、表情。官方還有 `--yes` 可**預先同意**上傳圖片與遮罩；**本專案禁止 Agent 擅自添加 `--yes`**，必須由擁有者明確批准。對 `--no-variants`，只表示跳過此遠端差分生成流程；仍應依本機環境確認工具安裝及執行行為。
+- 此工具以非互動的 Codex 任務及自動核准機制運作（官方 `tools/create.mjs` 使用 `--approve-for-me`），應先在**獨立可丟棄的工作目錄**檢視腳本、確認存取範圍與權限，不直接對生產站或有秘密的專案目錄執行。
+- 若初次結果品質不好，**不得直接宣稱 Mesh 技術不可行**；先比較手動調 Rig、重新生成差分與 SD Inpaint 的改善空間，再決定 HOLD／No-Go。反過來也不能無限制重試，須記錄成本與停止條件。
+- 這是**角色素材製作階段**的工作流，與 Phase 1／2 的 WordPress Renderer Adapter、中文／日文 SSE 視覺對嘴是不同責任；畫出漂亮的嘴型差分不等於已解決中文音素同步。
+
+### 5.3 Agent 製作與品質檢查
+
+1. 依官方 [`docs/agent-guide.zh.md`](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/agent-guide.zh.md)（中文）或 [`docs/agent-guide.md`](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/agent-guide.md) 的流程校準座標、建立 Rig、切圖層、產生差分並檢查固定姿勢；嚴格依 §5.2 的官方匯入流程。
 2. 使用本機素材；確認有無被任何工具傳送至外部服務，**需要時先取得擁有者授權**。
 3. 優先修正髮絲、眼睛、嘴巴、耳朵、臉部邊緣等可見破圖。
 4. 必須同時檢查**大尺寸預覽**與 **mp-ukagaka 實際縮小顯示尺寸**。
 5. 記錄所用素材版本、Studio／Runtime 版本、重要 Rig 設定與已知缺陷，避免重做時失去基準。
-6. 達標才匯出 `.mavatar`，檔案應可重現、可檢查來源及版號；**要放上網站的版本取消 Include source image**，可編輯的完整版只留在本機。
+6. 達標才匯出 `.mavatar`，檔案應可重現、可檢查來源及版號；**要放上網站的版本以 `pack-avatar --no-source` 打包或取消 Include source image**，可編輯的完整版只留在本機。
 
-### 5.3 授權與可發布性
+### 5.4 授權與可發布性
 
 - `mesh-avatar` 原始碼授權為 MIT；任何第三方圖片、Miko 範例與芙莉蓮角色素材的權利仍需個別確認。
 - **請勿把 Miko 的範例圖直接改名後加入外掛發行包，也不要假定所有 Stable Diffusion 生成的特定既有角色都可自由散布。**
@@ -404,12 +492,17 @@ WordPress / mp-ukagaka 核心
 
 **任務：**
 
-- **第一個產品決策：構圖**。用同一素材做出「全身」與「半身放大」兩版固定畫面／短動畫，在實際網站尺寸比較，交擁有者決定（目前傾向全身）。此決定連動對話框與 Dock 佈局、翻書、身體觸摸區、手機遮擋範圍。
+- **第一個產品決策：構圖**。用同一素材做出「全身」與「半身放大」兩版固定畫面／短動畫，在實際網站尺寸比較，交擁有者決定（目前傾向全身）。此決定連動對話框與 Dock 佈局、翻書、身體觸摸區、手機遮擋範圍。**全身構圖若依賴衣物分層、雙腿或手臂功能，須逐項確認所選 WebGL Runtime／Element 的實際支援；上游 Agent Guide 將這些標為 "Experimental full-body feature; its fields and behaviour may change"，不得視為穩定契約。**
+- **構圖比較的固定條件**（寫入 PoC Results 模板，讓決策可重現）：
+  - 兩版使用同一張 master source；若必須分別生成，明確記錄兩版來源差異。
+  - 兩版的 Rig 投入與品質須相當，不得因一版 Rig 較粗糙而造成不公平比較。
+  - 相同 CSS 尺寸、DPR、背景及對話框位置；Desktop／Mobile 各一組。
+  - Idle、眨眼、Speaking、情緒切換各錄一段固定腳本的短影片，兩版用同一腳本。
 - 盤點 Studio 的安裝依賴、Windows 開發環境、Runtime 版本及必要工具。
-- 用擁有者提供的 Stable Diffusion 圖片製作 Rig／分層／基本表情，可使用 Codex、Claude Code 互相審查，但不可直接改主外掛。
+- 用擁有者提供的 Stable Diffusion 圖片製作 Rig／分層／基本表情；**依 §5.2 實測上游 Codex 差分生成→`build-sprites`→重渲染流程**，必要時使用 Stable Diffusion Inpaint 作對照或修正；可使用 Codex、Claude Code 互相審查，但不可直接改主外掛。
 - 製作**獨立於 WordPress**的可重播 Demo；驗證眨眼、Idle、頭髮／頭部、表情切換、日文說話嘴型與錯誤行為。
 - 在目標網站尺寸觀察品質、透明度、裁切及角色位置。
-- 保留截圖／短錄影或比較表，記錄原圖與動態變形問題。
+- 保留截圖／短錄影或比較表，記錄原圖與動態變形問題。**PoC Results 記錄差分來源（Codex／SD）、遮罩／Prompt、匯入成功與拒絕原因及實際重試情況**。
 
 **交付：**
 
@@ -455,8 +548,8 @@ WordPress / mp-ukagaka 核心
 - 依 ADR 改寫實驗分支必要的前台顯示入口、Shell 載入與角色選取。
 - 讓現有對話、LLM／非 LLM、情緒標籤、Thinking、SSE 結束／取消事件能驅動 Mesh。
 - 驗證角色變更、顯示／隱藏、Dock、睡眠與醒來、觸摸與裝飾物互動；無法保留的 2.x 視覺效果需**明確列為 3.0 已知差異**，不假裝已支援。
-- **落實 D0**：在測試站以覆蓋式升級從 2.x 升到 3.0，驗證舊設定與 API Key 可沿用，並演練恢復 2.x。不得以「不管舊 Shell 相容」為藉口跳過資料契約。
-- `readme.txt`／主檔標頭的 `Requires at least` 改為 6.5。
+- **落實 D0**：在測試站以覆蓋式升級從 2.x 升到 3.0，驗證舊設定與 API Key 可沿用，並演練恢復 2.x（含 D0.2 的資料可逆性情境）。不得以「不管舊 Shell 相容」為藉口跳過資料契約。
+- `readme.txt` 的 `Requires at least` 改為 6.5，主檔 `mp-ukagaka.php` 標頭**新增** `Requires at least: 6.5`（目前不存在，見 D0.3.1）。
 - 原則上不因 Renderer 改造而重寫 LLM Server／MCP Tool；API Key 與 option 結構依 D0 遷移或隔離策略處理，任何轉換都要有安全備份／回復測試。
 - 補一條**可回放的 WordPress 垂直切片測試**：一隻 `.mavatar` → 非 LLM／LLM 對話 → 情緒切換 → SSE Speaking 嘴型 → 結束回 Idle → 取消或角色替換，不允許殘留舊角色或錯話。
 - 建立 WordPress 環境下的測試與前端建置流程；避免依賴測試機的全域 npm 套件或未鎖定 CDN 版本。
@@ -481,7 +574,7 @@ WordPress / mp-ukagaka 核心
 - 評估網格角色、Bundle 和 `.mavatar` 的載入成本、記憶體／WebGL 資源，提出可接受門檻（以實測為基準，不預填虛構效能數字）。
 - 釐清正式版要採「Mesh-only」「Mesh-first」或有條件兼容 Legacy；**不必為維持 2.x 的功能承諾而自動選擇雙 Renderer**。
 - 依 D0 完成錯誤監測、資料與素材授權、發行檔案、覆蓋式升級／回退、文件更新，以及 **2.x EOL 公告**（不相容事項、最低 WP 6.5、2.x 安全修補的取得方式）。
-- WP 6.5 以下站點的退場驗證（D0.3）：WP 6.4 測試站實測更新器標示「需要 WordPress 6.5」且不誤裝；最後一版 2.x 已含 EOL／升級通知。
+- WP 6.5 以下站點的退場驗證（D0.3、**D0.3.1 BLOCKER**）：含版本閘門的 2.x 已發布並經過 soak period；WP 6.4 測試站以 D0.3.1 第 4 點的兩列預期結果驗證（含閘門的 2.x 四條路徑全部不得誤裝；舊 2.x 的已知漏洞已重現並列入殘餘風險與公告）；最後一版 2.x 已含 EOL／升級通知。**此項未通過不得發布正式 3.0 Release。**
 - 完成 `release.yml` 隔離及正式站更新器對 Alpha／Beta 的排除驗證；不得直接拿 2.x 發行 workflow 打包 3.0。
 - 在不同瀏覽器與真實網頁情境進行最終 E2E。
 
@@ -536,7 +629,7 @@ WordPress / mp-ukagaka 核心
 
 ### 8.2 測試層級
 
-1. **Avatar 資產與 Rig**：格式驗證、能載入、固定姿勢截圖與視覺檢查；不可只憑 Schema 成功判定畫質成功。
+1. **Avatar 資產與 Rig**：格式驗證、能載入、固定姿勢截圖與視覺檢查；加入 `variant-requests`→差分繪製→`build-sprites` 的對位／遮罩拒絕案例與重渲染檢查；不可只憑 Schema 成功判定畫質成功。
 2. **Bridge 單元測試**：狀態機、情緒映射、重複 init、錯誤／取消、快速切換、destroy、fallback。
 3. **瀏覽器整合測試**：WebGL2、有／無模型、背景頁籤、容器隱藏、尺寸變化、角色切換、資源清理。
 4. **WordPress E2E**：開站、顯示／收起、非 LLM 對話、LLM 對話、串流取消、睡眠／情緒／觸摸流程。
@@ -558,6 +651,7 @@ WordPress / mp-ukagaka 核心
 | 風險 | 可能後果 | 驗證／緩解方向 |
 |---|---|---|
 | 單張立繪無法自然分層與網格變形 | 模型品質不及現有 SVG | 先做高品質單角色 PoC、調整 SD 素材與 Rig |
+| 全身構圖依賴上游實驗功能（衣物、雙腿、手臂） | 上游改版後欄位或行為改變，動作失效 | 逐項確認 Runtime／Element 支援、鎖版、Phase 0 記錄依賴了哪些實驗功能 |
 | 134 × 249px 低尺寸失去動態優勢 | 投入成本無實質回報 | 固定尺寸比較、選擇足夠明顯但自然的動作 |
 | 翻書、醒來、睡眠無等價 Mesh Motion | 3.0 失去角色特色 | 列差異、驗證替代方案、由擁有者決定 |
 | 現有 Canvas／Ghost 互動深度耦合 | 改 Renderer 牽動聊天功能 | 呼叫點調查、薄 Adapter、分階段測試 |
@@ -568,8 +662,11 @@ WordPress / mp-ukagaka 核心
 | `.mavatar` 檔案體積與不可信來源 | 載入慢、ZIP 格式風險、資產路徑問題 | 本地可信檔、格式驗證、限制大小與路徑 |
 | 範例角色／粉絲創作素材授權 | 無法公開發行素材 | 程式 MIT 與角色資產分離、發行前審核 |
 | 使用者以「刪除 2.x 再裝 3.0」升級 | `uninstall.php` 刪除 `mp_ukagaka`，設定與 API Key 遺失 | 只支援覆蓋式升級、文件警告、升級前備份 |
+| WP 6.4 以下站點被自動更新到 3.0 | 舊站載入 script module 失敗、前台角色壞掉 | **D0.3.1 BLOCKER**：PUC 不輸出 `requires`、core 自動更新不檢查 WP 版本；版本閘門（`request_update_result` 回傳 null）須先隨 2.x 出貨並經 soak period；舊 2.x 的自動更新漏洞列為殘餘風險公告 |
+| 回退 2.x 時 3.0 已寫入新 schema | 2.x 讀到看不懂的設定、功能異常 | D0.2：Preview 期不做不可逆轉換；必要時保存並還原升級前快照 |
+| 無 WebGL2 時直接顯示 `built/base.png` | 角色缺眼嘴 | §4.6：另產完整合成 `poster.png`，與 `.mavatar` 版本綁定 |
 | 3.0 GA 後再發 2.x Release | 搶走 `releases/latest`，3.0 站點收不到 3.0.x | D0.3：GA 後 2.x 只以手動 ZIP 提供 |
-| 正式站 `.mavatar` 含原始立繪 | 高解析原圖被下載 | 匯出時取消 Include source image |
+| 正式站 `.mavatar` 含原始立繪 | 高解析原圖被下載 | `pack-avatar --no-source`；並接受 `base.png` 仍可拼回立繪的事實 |
 | 頁面級 visual ready latch | 換角色時對話在新模型就緒前顯示 | 以載入世代為單位的 readiness |
 | 長期分支與 Stable 漸行漸遠 | Bug fix 雙重維護 | 手動選擇移植、定期評估是否獨立 Repo |
 | 後繼版遷移既有加密 API Key 失敗 | LLM 無法使用、Key 遺失或洩漏 | 保留同站 AUTH_KEY 條件、離線 Fixture 測試、備份與回退演練 |
@@ -599,7 +696,7 @@ WordPress / mp-ukagaka 核心
 
 優先任務：
 
-- 依官方 Agent Guide、官方 Runtime／Element API 實測 Mesh Studio。
+- 依官方 [`docs/agent-guide.zh.md`](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/agent-guide.zh.md) 第 6 步、官方 Runtime／Element API 實測 Mesh Studio，優先沿用上游生成遮罩、繪製差分及匯入工具。
 - 使用擁有者提供的 Stable Diffusion 圖檔建立 `mavatar` PoC；**未取得素材時只準備環境與測試方法，不得以隨機角色冒充已完成的 Frieren 驗證**。
 - 以獨立 HTML 測試動畫、API、載入與銷毀、網頁實際縮小尺寸。
 - 提供可重現指令、版本、效能觀察、截圖／影片與已知失敗點。
@@ -620,7 +717,7 @@ WordPress / mp-ukagaka 核心
 以下為建議名稱，請依現有 Repo 文件習慣調整，**不是要求一次建立全部空文件**。
 
 ```text
-plan/
+plan/mavatar-plan/
   # Phase 0：只需要這兩份
   MAvatar-ADR-000-Product-Identity.md   # D0 決議、覆蓋式升級、2.x EOL、發布隔離
   MAvatar-PoC-Results.md                # 構圖比較、獨立 HTML 驗證與視覺評估
@@ -658,12 +755,13 @@ experiments/mavatar/
 第一階段只進行閱讀、盤點、風險分析與技術提案。請不要直接重寫 mp-ukagaka，也不要改 main、合併 PR、發布 Release 或部署正式站。
 
 請交付：
-1. **ADR-000**：D0 已決議為 A（後繼）。把 D0.1–D0.3 寫成 ADR，含覆蓋式升級與回退 2.x 的測試步驟、2.x EOL 公告內容。
+1. **ADR-000**：D0 已決議為 A（後繼）。把 D0.1–D0.3.1 寫成 ADR，含覆蓋式升級與回退 2.x（含資料可逆性）的測試步驟、2.x EOL 公告內容；穩定契約放正文，系統盤點放附錄並標基準 SHA。
+1a. **D0.3.1 BLOCKER**：比較 2.x 更新器端 WP 版本閘門的做法（`request_update_result` veto vs 升級 PUC；注意 `pre_inject_update` 不能 veto），並列出 WP 6.4 四條升級路徑×兩種起點的測試步驟；只提案，不施工於 `main`。
 2. 既有 API Key 的 AUTH_KEY 衍生／舊格式相容、option／uninstall 的覆蓋升級驗證方式。
 3. `release.yml` 實際觸發是 `release: published`／`workflow_dispatch`，`bump-version.js` 不接受 prerelease 版號；請提出 Alpha 防誤發 dry-run。
 4. 2.x→3.0 安全／LLM Provider／REST 修補移植規則（§2.4 已定；Fix Ledger 等第一次實際移植時再建立）。
 5. 已知事實 vs 尚待驗證假設；現有 Canvas/Frieren/Shell 模組依賴圖與重要呼叫點。
-6. Web Component vs Runtime 方案（以 WP 6.5 script modules 為前提）、載入世代 readiness、中文／日文 SSE 嘴型、觸摸區、WebGL2 靜態降級與 0.x 鎖版方案。
+6. Web Component vs Runtime 方案（以 WP 6.5 script modules 為前提）、載入世代 readiness、中文／日文 SSE 嘴型、觸摸區、WebGL2 靜態降級與 0.x 鎖版方案；**確認 Phase 0 差分屬於獨立素材工作流，不要把 Codex 生圖接入正式外掛**。
 7. Phase 0/1 的可執行驗收測試、停止條件、Repo 分拆的 WordPress 垂直切片門檻與分工。
 8. 第一個真正需要寫程式的最小 PR 建議（先說明，不要自行施工）。
 
@@ -677,16 +775,17 @@ experiments/mavatar/
 
 請先閱讀附上的《mp-ukagaka 3.0 — Mesh Avatar 實驗開發計畫書》尤其 D0 產品身分決策與 2.4/2.5 發布隔離，再確認 Mesh Avatar Studio、mesh-avatar runtime、mesh-avatar-element 的當前版本、依賴與官方 Agent Guide。
 
-Phase 0 目標：在不修改 mp-ukagaka main 與正式 WordPress 網站的前提下，用擁有者提供的 Stable Diffusion 立繪做出可重播的 .mavatar 與獨立 HTML Demo，確認眨眼、Idle、情緒、頭部/頭髮動作、日文文字說話嘴型。先做「全身（約 134x249px）」與「半身放大」兩版比較，交擁有者決定構圖（目前傾向全身）。
+Phase 0 目標：在不修改 mp-ukagaka main 與正式 WordPress 網站的前提下，用擁有者提供的 Stable Diffusion 立繪做出可重播的 .mavatar 與獨立 HTML Demo，確認眨眼、Idle、情緒、頭部/頭髮動作、日文文字說話嘴型。先做「全身（約 134x249px）」與「半身放大」兩版比較，交擁有者決定構圖（目前傾向全身）。**須研究並實際採用上游 docs/agent-guide.zh.md 第 6 步的差分生成／驗證工作流（§5.2）**；原圖由擁有者 SD 製作，差分可由 Codex Image Generation 或 SD Inpaint 製作，經擁有者同意才可傳至外部生圖服務。
 
 若尚未有立繪：只做環境盤點、預先列出素材要求、測試腳本規劃；不得把 Miko 範例或自動隨機圖視為已完成芙莉蓮 PoC，也不得擅自下載版權不明素材。
 
 技術實驗時請：
 - 鎖定 mesh-avatar（規劃時 0.7.2）與 mesh-avatar-element（規劃時 0.4.4），透過薄 Adapter 驗證實際 API；不要假設 0.x 版本相容。
-- 為所有自動生成／重新建置的素材保存來源資訊、命令與測試結果。
+- 為所有自動生成／重新建置的素材保存來源資訊、命令與測試結果；用 `uv run tools/variant-requests.py projects/<name>` 產出官方遮罩與 Prompt，產出 `projects/<name>/variants/` 後，以 `uv run tools/build-sprites.py projects/<name>` 驗證／匯入，再用 `npm run render-poses -- projects/<name>` 重驗動畫。**不要自行寫第二套差分匯入器。**
 - 驗證模型重載、destroy、WebGL2 不可用、prefers-reduced-motion、縮小後視覺效果；比較無 WebGL2 時的靜態 PNG／純聊天降級方案。
 - 比較日文 Kana、漢字混寫與中文的嘴型效果，不要將 `speak()` 稱為通用音素級同步。
 - 不把 Miko 範例及未確認權利的素材放入任何外掛 ZIP 或發行資產（本專案政策）；要放網站的 .mavatar 取消 Include source image。
+- Codex Image Generation 會把原始立繪與遮罩送至外部服務，**不得自行帶入 `--yes` 或跳過擁有者的明確同意**；需要完全由本機產生差分時採 Stable Diffusion Inpaint。可評估一鍵 `npm run create -- /path/to/your-image.png`，但須先檢查其自動核准與執行邊界，不能把一鍵成功當成視覺驗收。
 - 不引入正式站 CDN 或 Node.js 開發伺服器依賴。
 - 不碰現有 LLM Provider、REST/SSE 後端及 Stable main。
 
@@ -728,6 +827,6 @@ Phase 0 目標：在不修改 mp-ukagaka main 與正式 WordPress 網站的前�
 ## 14. 參考資料
 
 - mp-ukagaka：[Repository](https://github.com/Horlicks-p/mp-ukagaka)；[`js/ukagaka-anime.js`](https://github.com/Horlicks-p/mp-ukagaka/blob/main/js/ukagaka-anime.js)；[`js/ukagaka-core.js`](https://github.com/Horlicks-p/mp-ukagaka/blob/main/js/ukagaka-core.js)；[`ghost/Frieren/manifest.json`](https://github.com/Horlicks-p/mp-ukagaka/blob/main/ghost/Frieren/manifest.json)；[`ghost/Frieren/shell/Frieren/assets.json`](https://github.com/Horlicks-p/mp-ukagaka/blob/main/ghost/Frieren/shell/Frieren/assets.json)；[`includes/core/frontend-functions.php`](https://github.com/Horlicks-p/mp-ukagaka/blob/main/includes/core/frontend-functions.php)；[`.github/workflows/release.yml`](https://github.com/Horlicks-p/mp-ukagaka/blob/main/.github/workflows/release.yml)；[`includes/updater/github-updater.php`](https://github.com/Horlicks-p/mp-ukagaka/blob/main/includes/updater/github-updater.php)；[`includes/core/encryption-functions.php`](https://github.com/Horlicks-p/mp-ukagaka/blob/main/includes/core/encryption-functions.php)；[`tools/node/bump-version.js`](https://github.com/Horlicks-p/mp-ukagaka/blob/main/tools/node/bump-version.js)
-- Mesh Avatar Studio：[Repository](https://github.com/shinshin86/mesh-avatar-studio)；[官方 Agent Guide](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/agent-guide.md)；[Avatar Format](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/format.md)；[Element README](https://github.com/shinshin86/mesh-avatar-studio/blob/main/packages/element/README.md)；[Runtime README](https://github.com/shinshin86/mesh-avatar-studio/blob/main/packages/runtime/README.md)
+- Mesh Avatar Studio：[Repository](https://github.com/shinshin86/mesh-avatar-studio)；[官方 Agent Guide（中文）](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/agent-guide.zh.md)；[官方 Agent Guide（英文）](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/agent-guide.md)；[官方 README 中文版](https://github.com/shinshin86/mesh-avatar-studio/blob/main/README.zh.md)；[一鍵工具 `create.mjs`](https://github.com/shinshin86/mesh-avatar-studio/blob/main/tools/create.mjs)；[Avatar Format](https://github.com/shinshin86/mesh-avatar-studio/blob/main/docs/format.md)；[Element README](https://github.com/shinshin86/mesh-avatar-studio/blob/main/packages/element/README.md)；[Runtime README](https://github.com/shinshin86/mesh-avatar-studio/blob/main/packages/runtime/README.md)
 
 *註：以上路徑、版本與 API 是規劃時核對的快照，正式實作前請由 Agent 再次確認；本文的架構示例是設計候選，不是上游已承諾的 API 或 mp-ukagaka 既有實作。*
