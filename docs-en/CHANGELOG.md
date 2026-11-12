@@ -4,6 +4,15 @@
 
 ---
 
+## [2.39.2] - 2026-11-12
+
+### Waking the character
+
+- **More than one face on waking.** `wake_reaction_emoji` in `sleep_mode.json` now accepts a list of filenames as well as a single one, and a random entry is shown each time (`mpu_get_wake_reaction_emoji()`). Invalid entries are skipped; a single filename works as before. Frieren now uses sleepy, upset, angry and what, since being woken is not always just sleepy.
+- As before, this is the fallback: an expression found in the wake line itself (emotion tag or keyword) still comes first.
+
+---
+
 ## [2.39.1] - 2026-11-12
 
 ### Waking the character
