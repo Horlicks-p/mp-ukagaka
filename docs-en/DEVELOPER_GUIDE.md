@@ -715,11 +715,24 @@ function mpu_generate_diary_content()
 
 /**
  * Publishes diary post
+ * Opens the content with an image from mpu_get_random_diary_image() when the
+ * diary's category has one.
  * @param array $diary_data Diary data
  * @return int|WP_Error Post ID or error
  */
 function mpu_publish_diary_post($diary_data)
+
+/**
+ * Picks a random image from ghost/<personality>/diary_images/<category_key>/
+ * (jpg, jpeg, png, gif, webp)
+ * @param string $category_key diary.json category key
+ * @param string|null $personality_id Personality ID (null = current personality)
+ * @return string|false Image URL inside the plugin folder, or false when there is none
+ */
+function mpu_get_random_diary_image($category_key, $personality_id = null)
 ```
+
+The image is inserted inline as `<img class="mpu-diary-image">`; it is not added to the Media Library or set as the featured image. See [USER_GUIDE: Diary Images](USER_GUIDE.md#diary-images) for the folder layout and Frieren's category keys.
 
 ### emoji-mapper.php (v2.4.0)
 
