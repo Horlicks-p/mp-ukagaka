@@ -83,6 +83,8 @@ ghost/
     ├── sleep_mode.json     # Optional: Sleep mode configuration
     ├── calendar.json       # Optional: Holiday / Anniversary configuration
     ├── diary.json          # Optional: AI Diary configuration
+    ├── diary_images/       # Optional: Images for diary posts, one folder per diary.json category
+    │   └── <category>/     #   e.g. food_thoughts/cake.png (see USER_GUIDE: Diary Images)
     ├── emoji-keywords.json # Optional: Emoji keyword configuration
     └── {PersonalityID}.js         # Optional: JavaScript animation script
 ```

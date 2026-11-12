@@ -829,6 +829,39 @@ What the diary "writes about" is controlled by `diary.json` in the character fol
 
 Use `ghost/Frieren/diary.json` as the reference for its format; the [Character Creation Guide](GHOST_CREATE_GUIDE.md) lists it among the optional personality files.
 
+### Diary Images
+
+A diary post can open with a picture. Each diary is written about one topic category from `diary.json`; when the character folder has images for that category, one of them is picked at random and placed at the top of the post. Categories without images get a text-only post, so you can add pictures to as many or as few categories as you like.
+
+**Folder:** `ghost/CharacterID/diary_images/<category>/`, where `<category>` is the category key from `diary.json` exactly as written there.
+
+**Formats:** `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`. Any file name works.
+
+**Frieren's categories** (`ghost/Frieren/diary.json`). The weight is how often a category is picked, out of a total of 113:
+
+| Folder | Topic | Weight |
+| --- | --- | --- |
+| `daily_observation` | Everyday observations | 10 |
+| `magic_research` | Magic research | 22 |
+| `memories` | Memories | 23 |
+| `companions` | Companions | 15 |
+| `time_awareness` | Sense of time | 12 |
+| `emotional_growth` | Emotional growth | 10 |
+| `demon_encounters` | Demon encounters | 5 |
+| `mimic_adventures` | Mimic adventures | 4 |
+| `food_thoughts` | Thoughts on food | 5 |
+| `sleep_laziness` | Sleep and laziness | 3 |
+| `purchases_regrets` | Purchases and regrets | 2 |
+| `philosophical` | Philosophical thoughts | 2 |
+
+For example, `ghost/Frieren/diary_images/food_thoughts/cake.png` can appear at the top of a diary about food.
+
+**How the image appears:** it is inserted at the start of the post content as `<img class="mpu-diary-image">`, centered and at most the post width, with the diary title as its alt text. It is not uploaded to the Media Library and is not set as the post's featured image, so theme thumbnails and social-share previews do not use it.
+
+> ⚠️ **Plugin updates replace the plugin folder.** Images you copy into `ghost/` on the server are deleted by the next plugin update, and the image link is a URL inside the plugin folder, so posts that used them lose the picture too. Keep your own copy of the images and put them back after updating.
+
+> 💡 To try it, put any image in a frequently picked category such as `memories` or `magic_research` and click **Generate Diary Now (Test)** a few times. Each click publishes a real post; the result message shows the category that was picked, and a post from that category starts with the image.
+
 ### Test Feature
 
 Click "**Generate Diary Now (Test)**" at the bottom of the settings page to immediately generate and publish a test diary — useful for confirming AI connectivity, post settings, and content style.
