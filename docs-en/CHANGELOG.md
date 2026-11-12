@@ -4,6 +4,20 @@
 
 ---
 
+## [2.39.1] - 2026-11-12
+
+### Waking the character
+
+- **An expression appears with the first line after waking her.** Waking the character during deep sleep, oversleep or a nap never showed an expression: `generate_wake_reaction()` kept only the text of the AI's reply. It now also returns the expression found in the reply (an emotion tag first, then the keyword scorer, as for other dialogue), and the `wake-ghost` response carries it as `emoji`. The frontend shows it before typing the line.
+- **New optional `sleep_mode.json` key `wake_reaction_emoji`** (for example `"sleepy.png"`). It is shown when the reply has no recognizable expression, and with the built-in fallback lines used when the AI reply is empty or fails. Characters without it behave as before. Frieren uses `sleepy.png`.
+- **Frieren's wake lines vary more.** The details that set each wake prompt apart (dessert after a nap, a grimoire or magic, mistaking you for Fern) were optional, so the AI often left them out and the lines came out much the same. They are now part of each prompt, and prompts that quoted example lines in 『』 are written as directions instead, so the AI no longer repeats those lines.
+
+### Internal
+
+- A new test checks that `wake_reaction_emoji` names an existing emoji file and that the wake prompts contain no 『』 example lines.
+
+---
+
 ## [2.39.0] - 2026-10-29
 
 ### Gemini models
