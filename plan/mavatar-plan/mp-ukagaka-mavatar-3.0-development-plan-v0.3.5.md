@@ -1,13 +1,15 @@
 # mp-ukagaka 3.0 — Mesh Avatar 實驗開發計畫書
 
 > **給 Claude Code 與 Codex CLI 的工作指示／Project Charter**  
-> 版本：Draft v0.3.4／2026-11-11（v0.3.4：WP 版本相容性更新阻擋列為 GA BLOCKER、主檔標頭 `Requires at least`、回退的資料可逆性、靜態 poster 資產契約、Phase 0 比較條件固定、§5.1 構圖用語、舊版文件移除；v0.3.3：`base.png` 公開範圍、`pack-avatar --no-source`、全身構圖的原圖解析度與實驗功能警語、交接說明、GA 升級措辭；v0.3.2：納入官方 Codex 差分生成與匯入工作流、修正嘴型差分清單、補手動／一鍵雙路徑與授權確認；v0.3.1：文件精簡收尾、WP 6.5 以下站點退場、2.x 安全 ZIP 發放、用詞校正；v0.3：D0 定案為後繼版；2.x EOL 與更新通道；覆蓋式升級；全身／半身決策；差分素材；ES module 與 WP 6.5；載入世代與 readiness；文件精簡）  
+> 版本：Draft v0.3.5／2026-11-12（v0.3.5：主構圖定案為坐在寶箱上的全身版、「完整構圖、局部 Rig」、腰部以下固定的 Rig 要求與 ROI 驗收、顯示高度約 350px、素材長寬比與存放位置；v0.3.4：WP 版本相容性更新阻擋列為 GA BLOCKER、主檔標頭 `Requires at least`、回退的資料可逆性、靜態 poster 資產契約、Phase 0 比較條件固定、§5.1 構圖用語、舊版文件移除；v0.3.3：`base.png` 公開範圍、`pack-avatar --no-source`、全身構圖的原圖解析度與實驗功能警語、交接說明、GA 升級措辭；v0.3.2：納入官方 Codex 差分生成與匯入工作流、修正嘴型差分清單、補手動／一鍵雙路徑與授權確認；v0.3.1：文件精簡收尾、WP 6.5 以下站點退場、2.x 安全 ZIP 發放、用詞校正；v0.3：D0 定案為後繼版；2.x EOL 與更新通道；覆蓋式升級；全身／半身決策；差分素材；ES module 與 WP 6.5；載入世代與 readiness；文件精簡）  
 > 專案：[`Horlicks-p/mp-ukagaka`](https://github.com/Horlicks-p/mp-ukagaka)  
 > 技術參考：[`shinshin86/mesh-avatar-studio`](https://github.com/shinshin86/mesh-avatar-studio)  
 > 專案代號：**mp-ukagaka-mavatar**（`mavatar` 對應 `.mavatar` 格式；不要拼成 `mavater`）  
 > **狀態：規劃階段。D0 產品身分已由擁有者決議（見 D0）。本文仍不是已批准的實作規格，也不是修改 `main` 的授權。**
 
-### 變更摘要（v0.3.4 起倒序）
+### 變更摘要（倒序）
+
+- **（v0.3.5）** 擁有者決議主構圖為**坐在寶箱上的全身版**（`ghost/Frieren/full body.png`），採「**完整構圖、局部 Rig**」：只讓腰部以上呼吸、擺動，寶箱、雙手、腿以 `body.breathBand`／`body.rollBand`／`body.hip.band` 固定，**不使用** legs／arms／cloth 實驗功能（§5.1.1）。半身版改為熟悉工具用的對照組。顯示高度改以約 350px 為評估基準（134×249 是 2.x 像素繪的歷史尺寸，不再沿用）。新增手、寶箱、腿的 ROI 影格差分驗收；Codex 差分路線先把原圖透明補邊成 2:3；素材不得放在會打包進發布 ZIP 的 `ghost/`。
 
 - **（v0.3.4）** 已核實內附 PUC 5.6 不會把 `Requires at least` 帶進 WordPress 更新資料，且 WP core 自動更新路徑不檢查 WP 版本 → 新增 **D0.3.1 BLOCKER**：版本閘門必須先隨最後一版 2.x 出貨；主檔標頭補 `Requires at least`（目前只有 `readme.txt` 有）；D0.2 補回退的資料可逆性；§4.6 補靜態 poster 資產契約（`built/base.png` 不可當 fallback）；Phase 0 構圖比較條件固定；§5.1 首條改依構圖決策；ADR-000 正文／附錄分層；v0.2、v0.3、v0.3.3 檔案自分支移除（Git 歷史可追溯）。
 - **（v0.3.3）** §4.6 寫明 `built/base.png` 為全尺寸圖、取消 source 仍可取得接近完整的立繪；網站用 `.mavatar` 以 `npm run pack-avatar -- <project> --no-source` 可重現地匯出；§5.1 補全身構圖的原圖解析度要求；Phase 0 與風險登錄補「全身功能屬上游實驗功能」；D0.3 的 GA 升級措辭改為只限 WP 6.5+ 站點；新增 §0.1 交接說明。
@@ -39,7 +41,7 @@
 
 ### 0.1 交接說明（給接手的 Claude Code／Codex CLI）
 
-- **本文件是唯一基準**。所有早於 v0.3.4 的版本都已被本版取代，檔案已自分支移除，只能從 Git 歷史追溯，不得作為工作依據。
+- **本文件是唯一基準**。所有早於 v0.3.5 的版本都已被本版取代，檔案已自分支移除，只能從 Git 歷史追溯，不得作為工作依據。
 - 本計畫在公司環境完成規劃；**實作環境改在擁有者家中**。接手的 Agent 沒有先前對話或本機 memory，所有決議都以本文件為準，特別是 D0、§2.5、§5.2 與 §13.1 已勾選的項目。
 - 開工前先重新確認：mp-ukagaka `main` 的最新 SHA 與版號、Mesh Avatar Studio 的最新 Commit 與 `mesh-avatar`／`mesh-avatar-element` 版本、本機 Node.js（上游需 22.17+）、uv／Python、Playwright Chromium、Codex CLI 登入狀態。
 - 第一步是 §12 的 Phase 0 前置工作；**沒有擁有者提供的芙莉蓮立繪前，不得宣告視覺 PoC 通過**。
@@ -135,7 +137,7 @@
 - 角色畫面主要由 `js/ukagaka-anime.js` 的 `window.mpuCanvasManager` 管理；該物件同時負責角色識別、初始化、動畫、載入世代與初始視覺就緒，不是單純的畫布畫圖工具。
 - `js/ukagaka-core.js` 的角色切換路徑會呼叫 `mpuCanvasManager.init(...)`；前台輸出由 `includes/core/frontend-functions.php` 產生，含 `#ukagaka_img` 與 `#cur_ukagaka` Canvas。
 - 芙莉蓮自己的程式位於 `ghost/Frieren/`，例如 `frieren-animation.js`、`frieren-interactions.js`；現有 `shell/Frieren/assets.json` 定義 `idle`、`sleep`、`book_flip`、`wake` 動畫序列。
-- 現有顯示盒尺寸約 **134 × 249 CSS px**（依 `assets.json` 的 `layout.box`），但 SVG 畫格的實際範圍與顯示盒不相同；不要以為所有座標都能直接轉換。
+- 2.x 顯示盒尺寸約 **134 × 249 CSS px**（依 `assets.json` 的 `layout.box`），這是 2.x 像素繪造成的歷史尺寸，**3.0 不沿用**；3.0 以顯示高度約 **350px** 為評估基準（見 §5.1.1）。SVG 畫格的實際範圍與顯示盒也不相同，不要以為座標能直接轉換。
 - 現有「翻書」、睡眠、醒來、觸摸區域、裝飾品及角色切換包含相當多專用行為，不能把它們簡化為單一 `setExpression()` 就算完成。
 - **已核實**：`js/ukagaka-base.js` 的 `mpuVisualReadyPromise` 是**整個頁面生命週期只觸發一次的 latch**；第一次 Ready 後，後續角色切換不會重新進入 pending。
 - **已核實**：`js/ukagaka-anime.js` 的 `mpuCanvasManager.init()` 在已處於芙莉蓮模式時直接 early-return，不比較 Shell、asset 或 Renderer；換 `.mavatar` 或服裝會被這段吃掉。
@@ -157,7 +159,7 @@
 ### 1.3 已知資訊與尚待驗證事項的區別
 
 - **已知**：存在 Web Component／Runtime、基本表情與待機 API、`.mavatar` 檔案、目前外掛的 Legacy Canvas 路徑；2.x 發行工作流程受 `release: published` 及人工派送觸發；API Key 與站點 `AUTH_KEY` 存在密鑰衍生關係。
-- **合理推論，尚未證明**：Mesh 可以在 mp-ukagaka 的常駐區域流暢運作；在 134 × 249 顯示大小仍可感受表情變化；可以自然保留翻書與身體觸摸體驗。
+- **合理推論，尚未證明**：Mesh 可以在 mp-ukagaka 的常駐區域流暢運作；在約 350px 顯示高度仍可感受表情變化；上半身變形時寶箱、手、腿能保持不動；可以保留身體觸摸體驗。
 - **尚未定案**：角色構圖（全身或半身；擁有者傾向全身）、是否最終使用 Web Component 或 Runtime 直接操控、具體 Shell Schema、是否有必要做混合 Renderer、3.0 是否仍支援任何 Legacy Ghost、模型素材的儲存與載入方式。
 
 > **Agent 必須先驗證「推論」，再把它寫成實作契約；禁止把本計畫中的概念示例直接視為最終 API。**
@@ -371,7 +373,7 @@ WordPress / mp-ukagaka 核心
 
 ### 4.5 展示尺寸、點擊與佈局
 
-- 現有芙莉蓮約 `134 × 249` 的視覺區塊，而 `<mesh-avatar>` 預設為 `aspect-ratio: 1 / 1`，兩者不能直接等同。
+- 3.0 寶箱全身版的原圖約為 2:3 直式（1034×1521，Codex 路線補邊後 1034×1551），顯示高度約 350px；`<mesh-avatar>` 預設為 `aspect-ratio: 1 / 1`，必須以 CSS 覆寫，不能沿用預設。2.x 的 `134 × 249` 不是 3.0 的目標尺寸。
 - 應用實際輸出尺寸、DPR、裁切、透明背景、陰影與視覺錨點來檢驗，不要靠固定 CSS `transform: scale(...)` 硬湊到「看起來大致一樣」。
 - 既有身體觸摸區域與透明像素命中判定可能依賴 2D Canvas／SVG 的座標。3.0 可重新定義命中區域，但必須避免點不到角色或點到透明背景。
 - 裝飾物點擊、角色點擊、對話框、Dock 按鈕等事件的優先順序需要重新檢驗。
@@ -398,13 +400,13 @@ WordPress / mp-ukagaka 核心
 
 ### 5.1 PoC 素材建議
 
-- 正面或接近正面、透明或容易去背的背景；**構圖依下方「構圖」條目**準備全身與半身兩版（不要只準備上游建議的頭肩構圖）。
+- 正面或接近正面、透明或容易去背的背景；構圖依 §5.1.1（寶箱全身版為主，半身版為對照組）。
 - 較高解析度的原圖，便於切出眉眼、前髮、側髮、耳朵、肩膀與嘴型。
-- 人物五官、服裝、手臂、書本等輪廓清楚；初期**不要求手持書本**，降低分層與遮擋難度。
+- 人物五官、服裝、手臂、寶箱等輪廓清楚；3.0 主構圖不持書（翻書改列 §7 的探索項目）。
 - 嘴巴自然閉合、眼睛完整，避免髮絲跨越臉部太多。
 - 優先保留角色辨識度與靜止畫品質，而不是追求極端動作幅度。
 - 素材可以逐輪調整，**不能因為程式開發已投入時間就硬用效果不好的 Rig**。
-- **構圖**：Phase 0 用同一角色各做「全身（約現行 134×249 顯示）」與「半身放大」兩版比較（擁有者目前傾向全身）。全身版需特別檢查臉部在實際尺寸下表情是否仍可辨識。上游建議頭肩構圖；若採全身，臉部在原圖中佔的像素少，眼嘴遮罩與差分生成的區域也很小，**SD 原圖需以足夠高的解析度輸出**（以臉部區域仍能清楚畫出睫毛與嘴型為準，實際數值於 Phase 0 測定並記錄）。
+- **構圖**：已定案為寶箱全身版，詳見 §5.1.1。全身版需特別檢查臉部在約 350px 顯示高度下表情是否仍可辨識。上游建議頭肩構圖；採全身時，臉部在原圖中佔的像素少，眼嘴遮罩與差分生成的區域也很小，**SD 原圖需以足夠高的解析度輸出**（以臉部區域仍能清楚畫出睫毛與嘴型為準，實際數值於 Phase 0 測定並記錄）。
 
 **差分素材包（以官方 Agent Guide Step 6 為準，優先沿用上游支援的差分名稱）：**
 
@@ -417,6 +419,53 @@ WordPress / mp-ukagaka 核心
 | Rig／圖層品質 | 頭髮、臉部、耳朵、服飾遮擋關係 | 不屬於上述固定 Sprite 名稱；由 Rig、圖層切割、素材修正處理 |
 
 差分**不是啟動 Phase 0 的硬性門檻**：先用基礎 Rig 驗證原圖是否適合。正式評估眨眼與嘴型前，要有足以比較的差分成果（Codex 或 SD 皆可）；選配情緒差分不應被誤列為「所有 Avatar 必備」。上游一鍵 `create` 流程會嘗試生成完整差分清單，但逐步 Agent Guide 將部分情緒差分標為可選；這兩者並不矛盾，差異在預設自動化範圍。
+
+### 5.1.1 主構圖：坐在寶箱上的全身版（擁有者決議，2026-11-12）
+
+**素材**：擁有者提供 `full body.png`（1034×1521，坐在寶箱上，雙手撐在寶箱頂，正面、閉嘴、雙眼完整、兩耳外露）與 `upperbody.png`（1024×1536，右手舉在耳旁、嘴微開）。
+
+**為什麼選寶箱版**：坐姿休息只需要呼吸、髮絲擺動、眨眼與細微頭部動作，就能表現「正在休息」，不需要大幅度動作；構圖也適合 mp-ukagaka 的 Touch Zone（頭髮、耳朵、手、寶箱可各有反應）。寶箱版原圖本身也比半身版更符合上游原圖條件（半身版的舉手與頭髮、耳朵互相遮擋，嘴巴微開需先補成閉合）。
+
+**實作方式：「完整構圖、局部 Rig」，不是完整全身 Rig**
+
+上游列為實驗功能的是衣物分層、雙腿重心轉移、下垂手臂；寶箱版坐姿、雙手撐住、腿不動，**三者都用不到**。Phase 0 **不建立 `legs`、`arms`、`cloth`**，也不使用需要手臂或重心轉移的動作。
+
+已核實上游（Commit `3619620`、`mesh-avatar` 0.7.2）Rig v1 的現有欄位即可把變形限制在腰部以上：
+
+| 欄位 | 作用 | 寶箱版設定方向 |
+|---|---|---|
+| `body.breathBand` | 呼吸由上往下淡出，範圍以下權重為零 | 下界設在雙手／寶箱頂端之上 |
+| `body.rollBand` | 身體左右傾斜由上往下淡出 | 同上 |
+| `body.hip.band`（搭配 `body.hip.shift`） | `bodyAngleX` 的水平位移在指定高度以下歸零；optional，不需要 `legs` | **必須設定**，見下方 |
+| `head.weightBand`／`head.turnBand` | 頭部影響與轉頭位移淡出 | 在手部上方結束，避免頭部動作拉扯手 |
+
+**不能省略 `body.hip`**：未設定時，Runtime（`rig.js`）會讓 `bodyAngleX` 把整張圖固定水平移動 `7 + 9 × chest` px。自動 Idle 即使沒播放 sway，平常也會持續產生 `bodyAngleX`／`bodyAngleZ`，**關掉隨機 Idle motion 不等於身體完全不動**。
+
+**殘留位移風險**：胸口與肩膀使用高斯橢圓權重，尾端理論上不會變成絕對零，靠近胸口的雙手可能仍有極微小位移。若 Phase 0 看得到位移，最小修正是讓 chest／shoulder 權重再乘上腰部遮罩（在 Adapter 或鎖版的 Runtime 上做小修正並記錄），**不因此導入完整全身 Rig**。
+
+**Phase 0 驗收（不能只寫「看起來正常」）**：
+
+- 寶箱輪廓沒有可見位移或邊緣閃爍。
+- 雙手與寶箱的接觸點沒有滑動、分離或穿插。
+- 腿與靴子保持固定。
+- 在約 350px 顯示高度，錄製呼吸最大值、左右傾斜與 Idle 動作。
+- 以**手、寶箱、腿的 ROI 做前後影格差分**，結果寫入 PoC Results。
+
+**這是寶箱版的 Go/No-Go 點**：不是「全身能不能動」，而是「上半身動時，雙手與寶箱的接觸關係能不能穩定」。
+
+**顯示尺寸**：顯示高度以約 **350px** 為主要評估基準（寬約 240px）。依原圖比例估算，臉寬約 53px、眼睛約 12px：眨眼與頭部動作可見，嘴型只能做到「有在說話」的程度；半身版在同高度臉寬約 68px，差距有限。
+
+**長寬比**：Studio 與 Rig 不要求 2:3；`build-sprites.py` 要求的是差分圖與 `source.png` 長寬比相同（容許誤差 0.5%），解析度不同會自動等比縮放。
+
+- **Codex 生圖路線**：Codex 輸出標準 2:3，原圖必須在建立 Rig **之前**先**透明補邊**成 2:3（例如 1034×1521 → 1034×1551）；**不要裁切**，避免切掉耳朵、靴子或寶箱。
+- **SD Inpaint 路線**：維持與 `source.png` 相同長寬比即可；為了提高臉部解析度，可整張等比放大後再做。
+- Phase 0 要比較兩條路線，所以統一使用補邊後的 2:3 master source。
+
+**素材存放位置**：兩張圖目前是 `ghost/Frieren/` 下的未追蹤檔案。`ghost/` 沒有 export-ignore，**commit 後會進入 2.x Release ZIP**。正式工作前移到 Studio 的 `projects/`，原始檔留在不會發布的工作目錄；檔名改為無空白的名稱（例如 `frieren-chest-fullbody.png`、`frieren-upperbody.png`）。
+
+**半身版的角色**：先依官方教學（頭肩構圖最接近上游前提）用 `upperbody.png` 跑一次完整流程，作為熟悉工具與對照組；**不要求與主方案投入相同的精修量**。
+
+**後續構想（不列入 Phase 0）**：寶箱的 Touch Zone 與寶箱專屬事件。
 
 ### 5.2 官方 Codex 差分生成工作流（Phase 0 優先實測；可改 SD Inpaint）
 
@@ -492,11 +541,12 @@ npm run create -- /path/to/your-image.png --no-variants
 
 **任務：**
 
-- **第一個產品決策：構圖**。用同一素材做出「全身」與「半身放大」兩版固定畫面／短動畫，在實際網站尺寸比較，交擁有者決定（目前傾向全身）。此決定連動對話框與 Dock 佈局、翻書、身體觸摸區、手機遮擋範圍。**全身構圖若依賴衣物分層、雙腿或手臂功能，須逐項確認所選 WebGL Runtime／Element 的實際支援；上游 Agent Guide 將這些標為 "Experimental full-body feature; its fields and behaviour may change"，不得視為穩定契約。**
-- **構圖比較的固定條件**（寫入 PoC Results 模板，讓決策可重現）：
-  - 兩版使用同一張 master source；若必須分別生成，明確記錄兩版來源差異。
-  - 兩版的 Rig 投入與品質須相當，不得因一版 Rig 較粗糙而造成不公平比較。
-  - 相同 CSS 尺寸、DPR、背景及對話框位置；Desktop／Mobile 各一組。
+- **構圖已定案為寶箱全身版**（§5.1.1）。先用 `upperbody.png` 依官方教學跑一次完整流程熟悉工具（對照組），再做寶箱版主方案。寶箱版不使用 legs／arms／cloth；上游 Agent Guide 將這些標為 "Experimental full-body feature; its fields and behaviour may change"，若日後需要，須逐項確認 Runtime／Element 的實際支援，不得視為穩定契約。
+- **寶箱版最重要的技術驗證**：設定 `body.breathBand`／`body.rollBand`／`body.hip.band`，讓腰部以下（雙手、寶箱、腿）保持不動，並通過 §5.1.1 的 ROI 影格差分驗收。
+- **寶箱版與半身對照組的比較條件**（寫入 PoC Results 模板）：
+  - 兩版原圖不同（`full body.png`／`upperbody.png`），明確記錄來源差異。
+  - 半身對照組不要求與主方案相同的 Rig 精修量；比較重點是工具流程的落差與臉部在顯示尺寸下的可辨識度。
+  - 相同顯示高度（約 350px）、DPR、背景及對話框位置；Desktop／Mobile 各一組。
   - Idle、眨眼、Speaking、情緒切換各錄一段固定腳本的短影片，兩版用同一腳本。
 - 盤點 Studio 的安裝依賴、Windows 開發環境、Runtime 版本及必要工具。
 - 用擁有者提供的 Stable Diffusion 圖片製作 Rig／分層／基本表情；**依 §5.2 實測上游 Codex 差分生成→`build-sprites`→重渲染流程**，必要時使用 Stable Diffusion Inpaint 作對照或修正；可使用 Codex、Claude Code 互相審查，但不可直接改主外掛。
@@ -511,7 +561,7 @@ npm run create -- /path/to/your-image.png --no-variants
 - 可重播的 Demo、可載入的 `.mavatar`、素材／Rig 來源資訊（可放本機非公開區）。
 - 兩位 Agent 對是否繼續的**獨立判斷**，並列出不確定性。
 
-**Go 條件：** 構圖已決定；擁有者認為角色「看起來仍是那個芙莉蓮」，在實際尺寸有可感受且自然的待機、表情和嘴型，並且瀏覽器運作可接受。
+**Go 條件：** 寶箱版通過 §5.1.1 的腰部以下固定驗收；擁有者認為角色「看起來仍是那個芙莉蓮」，在實際尺寸有可感受且自然的待機、表情和嘴型，並且瀏覽器運作可接受。
 
 **No-Go／HOLD：** 角色變形明顯破壞畫風、臉／耳／頭髮無法合理分層、縮小後看不出改善、成本明顯超過效果。**此時優先換素材／修 Rig，不要靠重寫外掛掩飾素材問題。**
 
@@ -603,7 +653,9 @@ npm run create -- /path/to/your-image.png --no-variants
 | WordPress 基本前台與對話功能 | P0（Phase 2） | 單一獨立測試站能完成 `.mavatar`、情緒、SSE Speaking、結束回 Idle |
 | Sleep／Wake | P1 | 可以重新設計表現，不一定逐幀重現舊動畫 |
 | 觸摸區域／裝飾品 | P1 | 點擊語意正確，透明背景不誤判 |
-| 翻書動作 | P1／探索 | 重要的角色特色，需另做素材／Motion 技術判斷 |
+| 腰部以下固定（寶箱、手、腿） | P0（Phase 0） | §5.1.1 ROI 影格差分；手與寶箱接觸點不滑動 |
+| 寶箱 Touch Zone／寶箱事件 | 後續構想 | 不列入 Phase 0 |
+| 翻書動作 | P1／探索 | 3.0 主構圖不持書；是否以其他形式保留由擁有者決定 |
 | 其他 Ghost 相容 | Deferred | 初期允許 Frieren-only；不自動承諾 |
 | 錄音／攝影機／OBS | Out | 非產品目標 |
 | TTS、音素級唇形 | Out | 不列為第一版必要條件 |
@@ -651,8 +703,10 @@ npm run create -- /path/to/your-image.png --no-variants
 | 風險 | 可能後果 | 驗證／緩解方向 |
 |---|---|---|
 | 單張立繪無法自然分層與網格變形 | 模型品質不及現有 SVG | 先做高品質單角色 PoC、調整 SD 素材與 Rig |
-| 全身構圖依賴上游實驗功能（衣物、雙腿、手臂） | 上游改版後欄位或行為改變，動作失效 | 逐項確認 Runtime／Element 支援、鎖版、Phase 0 記錄依賴了哪些實驗功能 |
-| 134 × 249px 低尺寸失去動態優勢 | 投入成本無實質回報 | 固定尺寸比較、選擇足夠明顯但自然的動作 |
+| 全身構圖依賴上游實驗功能（衣物、雙腿、手臂） | 上游改版後欄位或行為改變，動作失效 | 寶箱版不使用 legs／arms／cloth；若日後需要，逐項確認支援並鎖版 |
+| 上半身變形帶動寶箱、手、腿 | 手在寶箱上滑動、寶箱邊緣閃爍 | 設定 `body.hip.band`／`breathBand`／`rollBand`；ROI 影格差分；必要時 chest／shoulder 權重乘腰部遮罩 |
+| 素材放在 `ghost/` 被 commit | 原圖進入 2.x Release ZIP | 素材移到 Studio `projects/` 或不發布的工作目錄 |
+| 約 350px 顯示高度下臉部太小（臉寬約 53px） | 嘴型幾乎看不出來 | 在實際尺寸驗收；嘴型定位為「有在說話」而非音素同步 |
 | 翻書、醒來、睡眠無等價 Mesh Motion | 3.0 失去角色特色 | 列差異、驗證替代方案、由擁有者決定 |
 | 現有 Canvas／Ghost 互動深度耦合 | 改 Renderer 牽動聊天功能 | 呼叫點調查、薄 Adapter、分階段測試 |
 | SSE／中文與日文混合造成嘴型效果不自然 | 人物說話不可信 | 比較文字導向與狀態驅動的嘴型方案 |
@@ -775,7 +829,7 @@ experiments/mavatar/
 
 請先閱讀附上的《mp-ukagaka 3.0 — Mesh Avatar 實驗開發計畫書》尤其 D0 產品身分決策與 2.4/2.5 發布隔離，再確認 Mesh Avatar Studio、mesh-avatar runtime、mesh-avatar-element 的當前版本、依賴與官方 Agent Guide。
 
-Phase 0 目標：在不修改 mp-ukagaka main 與正式 WordPress 網站的前提下，用擁有者提供的 Stable Diffusion 立繪做出可重播的 .mavatar 與獨立 HTML Demo，確認眨眼、Idle、情緒、頭部/頭髮動作、日文文字說話嘴型。先做「全身（約 134x249px）」與「半身放大」兩版比較，交擁有者決定構圖（目前傾向全身）。**須研究並實際採用上游 docs/agent-guide.zh.md 第 6 步的差分生成／驗證工作流（§5.2）**；原圖由擁有者 SD 製作，差分可由 Codex Image Generation 或 SD Inpaint 製作，經擁有者同意才可傳至外部生圖服務。
+Phase 0 目標：在不修改 mp-ukagaka main 與正式 WordPress 網站的前提下，用擁有者提供的 Stable Diffusion 立繪做出可重播的 .mavatar 與獨立 HTML Demo，確認眨眼、Idle、情緒、頭部/頭髮動作、日文文字說話嘴型。主構圖已定案為坐在寶箱上的全身版（§5.1.1）：先用 upperbody.png 依官方教學跑一次熟悉工具，再做寶箱版；寶箱版用 body.breathBand／rollBand／hip.band 讓腰部以下不動，不使用 legs／arms／cloth，並以手、寶箱、腿的 ROI 影格差分驗收。顯示高度以約 350px 為準。**須研究並實際採用上游 docs/agent-guide.zh.md 第 6 步的差分生成／驗證工作流（§5.2）**；原圖由擁有者 SD 製作，差分可由 Codex Image Generation 或 SD Inpaint 製作，經擁有者同意才可傳至外部生圖服務。
 
 若尚未有立繪：只做環境盤點、預先列出素材要求、測試腳本規劃；不得把 Miko 範例或自動隨機圖視為已完成芙莉蓮 PoC，也不得擅自下載版權不明素材。
 
@@ -816,7 +870,7 @@ Phase 0 目標：在不修改 mp-ukagaka main 與正式 WordPress 網站的前�
 - [x] **D0**：A 後繼；不支援 2.x／3.0 同站啟用。（2026-11-11）
 - [x] **2.x 退場**：3.0 GA 時 EOL；之後安全修補以手動 ZIP 提供，不發 Release。（2026-11-11）
 - [x] **最低 WordPress**：6.5，使用 script modules。（2026-11-11）
-- [ ] **構圖**：全身或半身（傾向全身；Phase 0 比較後定案）。
+- [x] **構圖**：坐在寶箱上的全身版；「完整構圖、局部 Rig」；顯示高度約 350px。半身版為對照組。（2026-11-12）
 - [ ] **資料**：舊站設定、API Key、角色／對話資料要保留哪些？
 - [ ] **Repo**：在 Phase 2 垂直切片後選 `KEEP_BRANCH / SPLIT_REPO / HOLD`，不是先寫死獨立日期。
 - [ ] **發布**：Alpha 是否僅限本機 ZIP？
