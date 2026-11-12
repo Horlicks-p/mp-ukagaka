@@ -104,6 +104,9 @@ avatar-ui/
 .playwright-cli/
 /output/playwright/
 
+# Firecrawl web-fetch cache
+.firecrawl/
+
 # CodeGraph MCP local index (SQLite knowledge graph, machine-generated)
 .codegraph/
 
