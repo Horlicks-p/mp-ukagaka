@@ -162,7 +162,7 @@ function mpu_pick_sleep_dream_line($personality_id, $category, $merge_basic = tr
  *     "oversleep": ["..."],
  *     "nap": ["..."]
  *   },
- *   "wake_reaction_emoji": "sleepy.png"
+ *   "wake_reaction_emoji": ["sleepy.png", "upset.png"]
  * }
  *
  * @param string|null $personality_id Character ID.
@@ -195,6 +195,8 @@ function mpu_pick_wake_reaction_prompt($personality_id, $phase)
  *
  * Shown when the generated reaction has no emotion tag or keyword match, and
  * with the frontend's built-in fallback lines when the LLM reaction is empty.
+ * The key takes one filename or a list of filenames; a list yields a random
+ * entry each time. Invalid entries are skipped.
  *
  * @param string|null $personality_id Character ID.
  * @return string|null Emoji filename (e.g. 'sleepy.png'), or null when unset or invalid.
@@ -205,12 +207,19 @@ function mpu_get_wake_reaction_emoji( $personality_id ) {
 		return null;
 	}
 
-	$emoji = $sleep_config['wake_reaction_emoji'] ?? null;
-	if ( ! is_string( $emoji ) || ! preg_match( '/^[A-Za-z0-9_-]+\.(png|gif|webp)$/', $emoji ) ) {
+	$candidates = (array) ( $sleep_config['wake_reaction_emoji'] ?? array() );
+	$valid      = array();
+	foreach ( $candidates as $emoji ) {
+		if ( is_string( $emoji ) && preg_match( '/^[A-Za-z0-9_-]+\.(png|gif|webp)$/', $emoji ) ) {
+			$valid[] = $emoji;
+		}
+	}
+
+	if ( empty( $valid ) ) {
 		return null;
 	}
 
-	return $emoji;
+	return $valid[ array_rand( $valid ) ];
 }
 
 /**

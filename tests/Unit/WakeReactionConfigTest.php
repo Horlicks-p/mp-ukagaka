@@ -18,15 +18,20 @@ final class WakeReactionConfigTest extends TestCase {
         return $config;
     }
 
-    public function test_wake_reaction_emoji_is_a_valid_existing_file(): void {
+    public function test_wake_reaction_emoji_entries_are_valid_existing_files(): void {
         $config = $this->sleep_config();
 
         $this->assertArrayHasKey('wake_reaction_emoji', $config);
-        $emoji = $config['wake_reaction_emoji'];
+        // 1 つのファイル名でも、ランダムに選ばれるリストでもよい。
+        $emojis = (array) $config['wake_reaction_emoji'];
+        $this->assertNotEmpty($emojis);
 
-        // mpu_get_wake_reaction_emoji() の検証と同じ形式。
-        $this->assertMatchesRegularExpression('/^[A-Za-z0-9_-]+\.(png|gif|webp)$/', $emoji);
-        $this->assertFileExists(MPU_TESTS_ROOT . '/ghost/Frieren/emojis/' . $emoji);
+        foreach ($emojis as $emoji) {
+            // mpu_get_wake_reaction_emoji() の検証と同じ形式。無効な項目は黙って捨てられる。
+            $this->assertIsString($emoji);
+            $this->assertMatchesRegularExpression('/^[A-Za-z0-9_-]+\.(png|gif|webp)$/', $emoji);
+            $this->assertFileExists(MPU_TESTS_ROOT . '/ghost/Frieren/emojis/' . $emoji);
+        }
     }
 
     public function test_wake_reaction_prompts_are_directions_not_quoted_lines(): void {
