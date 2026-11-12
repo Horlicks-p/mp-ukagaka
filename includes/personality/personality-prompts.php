@@ -159,8 +159,10 @@ function mpu_pick_sleep_dream_line($personality_id, $category, $merge_basic = tr
  * {
  *   "wake_reaction_prompts": {
  *     "deep_sleep": ["..."],
- *     "oversleep": ["..."]
- *   }
+ *     "oversleep": ["..."],
+ *     "nap": ["..."]
+ *   },
+ *   "wake_reaction_emoji": "sleepy.png"
  * }
  *
  * @param string|null $personality_id Character ID.
@@ -186,6 +188,29 @@ function mpu_pick_wake_reaction_prompt($personality_id, $phase)
 
     $prompt = $prompts[array_rand($prompts)];
     return is_string($prompt) && trim($prompt) !== '' ? trim($prompt) : false;
+}
+
+/**
+ * Get the fallback emoji for a wake reaction from sleep_mode.json.
+ *
+ * Shown when the generated reaction has no emotion tag or keyword match, and
+ * with the frontend's built-in fallback lines when the LLM reaction is empty.
+ *
+ * @param string|null $personality_id Character ID.
+ * @return string|null Emoji filename (e.g. 'sleepy.png'), or null when unset or invalid.
+ */
+function mpu_get_wake_reaction_emoji( $personality_id ) {
+	$sleep_config = mpu_load_personality_sleep_mode( $personality_id );
+	if ( empty( $sleep_config['enabled'] ) ) {
+		return null;
+	}
+
+	$emoji = $sleep_config['wake_reaction_emoji'] ?? null;
+	if ( ! is_string( $emoji ) || ! preg_match( '/^[A-Za-z0-9_-]+\.(png|gif|webp)$/', $emoji ) ) {
+		return null;
+	}
+
+	return $emoji;
 }
 
 /**
