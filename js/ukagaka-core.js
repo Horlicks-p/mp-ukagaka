@@ -100,10 +100,9 @@ function mpuDisplayBuiltInMessage(store, index, options = {}) {
   return output;
 }
 
+// 與自發對話共用同一個不重複袋子（mpuDrawBuiltInIndex，ukagaka-base.js）。
 function mpuRandomBuiltInIndex(store) {
-  return store && Array.isArray(store.msg) && store.msg.length > 0
-    ? Math.floor(Math.random() * store.msg.length)
-    : -1;
+  return mpuDrawBuiltInIndex(store);
 }
 
 window.mpuGetCurrentUkagakaNum = mpuGetCurrentUkagakaNum;
