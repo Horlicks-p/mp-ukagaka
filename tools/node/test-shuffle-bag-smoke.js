@@ -5,23 +5,31 @@ const vm = require("vm");
 
 const repoRoot = path.resolve(__dirname, "..", "..");
 
-function loadSelection(nextMode) {
-  const source = fs.readFileSync(path.join(repoRoot, "js", "ukagaka-base.js"), "utf8");
-  const start = source.indexOf("function mpuShuffleBuiltInBag(");
-  const endMarker = "function mpu_handle_error(";
+function slice(file, startMarker, endMarker) {
+  const source = fs.readFileSync(path.join(repoRoot, "js", file), "utf8");
+  const start = source.indexOf(startMarker);
   const end = source.indexOf(endMarker, start);
-  if (start < 0 || end < 0) throw new Error("built-in line selection not found in ukagaka-base.js");
+  if (start < 0 || end < 0) throw new Error(`${startMarker} not found in ${file}`);
+  return source.slice(start, end);
+}
 
+// msgnum: what #ukagaka_msgnum holds (null = element missing).
+function loadSelection(nextMode, msgnum = null) {
   const state = { dialog: {} };
   const context = {
     mpuGetState: () => state,
     mpuNextMode: nextMode,
+    document: {
+      getElementById: (id) => (id === "ukagaka_msgnum" && msgnum !== null ? { textContent: msgnum } : null),
+    },
     Math,
     Number,
     Array,
+    parseInt,
   };
   vm.createContext(context);
-  vm.runInContext(source.slice(start, end), context);
+  vm.runInContext(slice("ukagaka-base.js", "function mpuShuffleBuiltInBag(", "function mpu_handle_error("), context);
+  vm.runInContext(slice("ukagaka-core.js", "function mpuRandomBuiltInIndex(", "window.mpuGetCurrentUkagakaNum ="), context);
   return context;
 }
 
@@ -86,6 +94,29 @@ for (const length of [2, 3, 5]) {
   ctx.mpuDrawBuiltInIndex(s);
   s.msg.length = 2;
   for (let i = 0; i < 20; i++) assert.ok(ctx.mpuDrawBuiltInIndex(s) < 2);
+}
+
+// mpuRandomBuiltInIndex (greeting / page-aware / leaving chat) avoids the line on screen
+// when it is the first draw, e.g. default_msg = 1 showed line 0 on load.
+for (const shown of ["0", "1", "2"]) {
+  for (let i = 0; i < 300; i++) {
+    const ctx = loadSelection("random", shown);
+    assert.notStrictEqual(ctx.mpuRandomBuiltInIndex(store(3)), Number(shown), `wrapper repeated on-screen line ${shown}`);
+  }
+}
+{
+  const ctx = loadSelection("random", "0");
+  for (let i = 0; i < 200; i++) assert.strictEqual(loadSelection("random", "0").mpuRandomBuiltInIndex(store(2)), 1);
+  // It draws from the same bag as auto talk.
+  const s = store(4);
+  const seen = new Set([ctx.mpuRandomBuiltInIndex(s), ctx.mpu_selectNextMessage(s, 0), ctx.mpuDrawBuiltInIndex(s), ctx.mpuRandomBuiltInIndex(s)]);
+  assert.strictEqual(seen.size, 4, "wrapper and auto talk must share one round");
+}
+// No usable msgnum: still draws normally.
+for (const shown of [null, "", "abc", "9"]) {
+  const ctx = loadSelection("random", shown);
+  const index = ctx.mpuRandomBuiltInIndex(store(3));
+  assert.ok(index >= 0 && index < 3, `msgnum ${JSON.stringify(shown)} broke the draw`);
 }
 
 // Sequential mode is unchanged.
