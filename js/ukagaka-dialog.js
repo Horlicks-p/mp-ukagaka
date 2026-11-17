@@ -163,9 +163,10 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
             firstMessageShown = true;
 
+            // 第一句也從不重複袋子抽，算進這一輪，之後的自發對話才不會馬上又抽到它。
             let first = 0;
             if (mpuDefaultMsg === 0 && resp.msg.length) {
-              first = Math.floor(Math.random() * resp.msg.length);
+              first = mpuDrawBuiltInIndex(resp);
             }
             // 從初始思考氣泡 placeholder 切換到真正的自發對話：清除氣泡並淡入主對話框。
             if (isInitialSystemMessage) {

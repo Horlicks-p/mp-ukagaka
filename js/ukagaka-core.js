@@ -100,10 +100,13 @@ function mpuDisplayBuiltInMessage(store, index, options = {}) {
   return output;
 }
 
+// 與自發對話共用同一個不重複袋子（mpuDrawBuiltInIndex，ukagaka-base.js）。
+// 袋子還沒建立時（例如 default_msg = 1 固定先說第 0 句，接著就是問候或頁面感知失敗），
+// 用 #ukagaka_msgnum 避開畫面上那一句。
 function mpuRandomBuiltInIndex(store) {
-  return store && Array.isArray(store.msg) && store.msg.length > 0
-    ? Math.floor(Math.random() * store.msg.length)
-    : -1;
+  const element = document.getElementById("ukagaka_msgnum");
+  const shown = parseInt(element ? element.textContent : "", 10);
+  return mpuDrawBuiltInIndex(store, Number.isNaN(shown) ? undefined : shown);
 }
 
 window.mpuGetCurrentUkagakaNum = mpuGetCurrentUkagakaNum;

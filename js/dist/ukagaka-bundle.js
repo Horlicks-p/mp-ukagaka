@@ -555,6 +555,53 @@ function mpu_isDeepSleepTime() {
 }
 
 /**
+ * 洗好一袋內建台詞的索引。袋子從尾端取，所以最後一格是下一句。
+ * @param {number} length - 台詞數
+ * @param {number} avoid - 上一句的索引；新一輪的第一句不能是它（-1 表示不限）
+ * @returns {number[]}
+ */
+function mpuShuffleBuiltInBag(length, avoid) {
+    const bag = [];
+    for (let i = 0; i < length; i++) bag.push(i);
+    for (let i = length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+    const next = length - 1;
+    if (length > 1 && bag[next] === avoid) {
+        const j = Math.floor(Math.random() * next);
+        [bag[next], bag[j]] = [bag[j], bag[next]];
+    }
+    return bag;
+}
+
+/**
+ * 不重複地隨機抽一句內建台詞（華和梨的「エントリの重複回避呼び出し」）。
+ * 每句都說過一次才重新洗牌，所以短時間內不會一直抽到同一句；換輪時也不會
+ * 連說兩次同一句。對話資料換掉（換角色、重新載入）時袋子跟著重來。
+ * 自發對話、後備台詞、退出聊天等所有隨機抽內建台詞的地方共用這一個袋子。
+ * @param {Object} store - 訊息列表物件（含 msg 陣列）
+ * @param {number} [currentNum] - 畫面上這句的索引；袋子剛建立、還不知道上一句時用來避開它
+ * @returns {number} 台詞索引；沒有台詞時是 -1
+ */
+function mpuDrawBuiltInIndex(store, currentNum) {
+    if (!store || !Array.isArray(store.msg) || store.msg.length === 0) return -1;
+
+    const dialog = mpuGetState().dialog;
+    const length = store.msg.length;
+    let state = dialog.builtInBag;
+    if (!state || state.store !== store || state.length !== length) {
+        const hint = Number.isInteger(currentNum) && currentNum >= 0 && currentNum < length ? currentNum : -1;
+        state = { store, length, bag: [], last: hint };
+        dialog.builtInBag = state;
+    }
+
+    if (state.bag.length === 0) state.bag = mpuShuffleBuiltInBag(length, state.last);
+    state.last = state.bag.pop();
+    return state.last;
+}
+
+/**
  * 選取下一條對話訊息（隨機或循序）
  * @param {Object} store - 訊息列表物件（含 msg 陣列）
  * @param {number} currentNum - 目前顯示的訊息索引
@@ -563,11 +610,7 @@ function mpu_isDeepSleepTime() {
 function mpu_selectNextMessage(store, currentNum) {
     const msgCount = store.msg.length;
     if (mpuNextMode === "random") {
-        let newIdx;
-        do {
-            newIdx = Math.floor(Math.random() * msgCount);
-        } while (newIdx === currentNum && msgCount > 1);
-        return newIdx;
+        return mpuDrawBuiltInIndex(store, currentNum);
     } else {
         return currentNum + 1 >= msgCount ? 0 : currentNum + 1;
     }
@@ -1617,10 +1660,13 @@ function mpuDisplayBuiltInMessage(store, index, options = {}) {
   return output;
 }
 
+// 與自發對話共用同一個不重複袋子（mpuDrawBuiltInIndex，ukagaka-base.js）。
+// 袋子還沒建立時（例如 default_msg = 1 固定先說第 0 句，接著就是問候或頁面感知失敗），
+// 用 #ukagaka_msgnum 避開畫面上那一句。
 function mpuRandomBuiltInIndex(store) {
-  return store && Array.isArray(store.msg) && store.msg.length > 0
-    ? Math.floor(Math.random() * store.msg.length)
-    : -1;
+  const element = document.getElementById("ukagaka_msgnum");
+  const shown = parseInt(element ? element.textContent : "", 10);
+  return mpuDrawBuiltInIndex(store, Number.isNaN(shown) ? undefined : shown);
 }
 
 window.mpuGetCurrentUkagakaNum = mpuGetCurrentUkagakaNum;
@@ -4865,9 +4911,10 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
             firstMessageShown = true;
 
+            // 第一句也從不重複袋子抽，算進這一輪，之後的自發對話才不會馬上又抽到它。
             let first = 0;
             if (mpuDefaultMsg === 0 && resp.msg.length) {
-              first = Math.floor(Math.random() * resp.msg.length);
+              first = mpuDrawBuiltInIndex(resp);
             }
             // 從初始思考氣泡 placeholder 切換到真正的自發對話：清除氣泡並淡入主對話框。
             if (isInitialSystemMessage) {
