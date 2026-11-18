@@ -1,12 +1,30 @@
 # MP-Ukagaka：Story Talk（連續劇情自發對話）詳細實作計畫
 
-**版本**：Draft v0.7｜2026-11-19  
+**版本**：Draft v0.7.1｜2026-11-19（v0.7 補充審查整合）  
 **狀態**：提案／尚未授權實作、合併、發版或部署  
 **對象**：Claude Code／Codex CLI 及專案維護者  
 **目標分支**：從目前 `mp-ukagaka` 2.x `main` 建立獨立功能分支（實際名稱由執行者確認）  
 **原始碼審查基準**：`main` @ `f5e4971`（PR #52 合併後；v0.5 於同一基準重新核對）；開工前須重新記錄 HEAD SHA 與現況  
 **靈感來源**：華和梨（KAWARI）[ストーリートーク](https://github.com/ukatech/kawari-docs/blob/main/tips/story-talk.md)  
 **與 3.0 的關係**：**完全獨立**。Mesh Avatar 3.0 暫停中；Story Talk 不需變更 Shell、Renderer、RO 風格或人物尺寸。
+
+---
+
+## v0.7.1 變更摘要：整合 `plan/mp-ukagaka-story-talk-v0.7-review-addendum.md`
+
+v0.7 的產品語意與已決策事項全部保留。本版只把補充審查的 R1～R5 整合進規格；每項都已對照 `main` @ `f5e4971` 核對。
+
+| # | 補充審查發現 | 核對結果 | 處置 | 章節 |
+|---|---|---|---|---|
+| R1 | `/dialog` 拒絕空對話檔，與「LLM 置換＋空內建對話檔也能觸發」矛盾 | **成立**：`load_dialog()` 對空 JSON `messages`／空 TXT 直接回 400（`class-mpu-rest-dialog.php:277,283`），成功回應在檢查之後才組裝。v0.5 的 #4 只修前端，真正的空檔到不了那個分支 | **採納方案 A**：第一版不支援真正空檔；LLM 置換模式仍完整支援（需有效內建 Fallback 對話檔）；前端空分支保留防禦性處理，但不據此宣稱支援；不放寬 REST 契約 | §4.1、§10、§11、§13（11c）、§14.3 |
+| R2 | `#show_msg`、`#ukagaka_img` 可在播放中隱藏氣泡，故事仍在背後推進、寫 history | **成立**：兩者只切換 `#ukagaka_msgbox` 顯示，不檢查 block（`features.js:378,389`）。另核對：觸摸區以 capture 階段 `stopImmediatePropagation()` 擋下 `#ukagaka_img` 的切換，所以觸摸區點擊本來就不會切換氣泡 | **採納**：`#show_msg` 隱藏＝先 `cancel("hide")` 再隱藏；`#ukagaka_img` 非觸摸區點擊在播放中忽略氣泡切換；觸摸判斷必須留在 `handleTouchZone()` 內 | §2、§3.5、§6.3、§6.5、§13 |
+| R3 | `mpu_extend` 的舊 fetch 晚到，以 `.empty().append()` 覆蓋故事 | **成立**：`#mpu_extend` 點擊後 fetch，`.then()` 直接寫入，沒有過期判斷，也不停止 Auto Talk。對照：`mpuChange("")` 選單請求期間會 `stopAutoTalk()`，不會在等待中開始故事，無此問題 | **採納入口取消＋落地檢查**：點擊時 `cancel("menu")`；`.then()` 寫入前若故事正在播放就丟棄結果。**不採納** Extend 專用 pending（理由見 §6.5） | §6.5、§10、§11、§13 |
+| R4 | 播放中關閉 Auto Talk，故事仍繼續 | **成立**：`#toggleAutoTalk` 只呼叫 `mpuSetAutoTalkEnabled()`＋`stopAutoTalk()`（`features.js:369`） | **建議採納，待維護者確認**：OFF 時立即取消故事、不續播；`alive()` 加 `mpuAutoTalk` 作後備 | §3.5、§6.2、§6.5、§13、§14.2 |
+| R5 | 第 1 段最快打字可能早於氣泡淡入完成 | **邊界定義**，非已確認的錯誤。既有內建台詞甚至在開始打字時就寫 history，Story 已較嚴格 | **採納定義**：history 在「run 自然完成＋session 有效＋氣泡不是被隱藏狀態」時寫入，淡入中算可見；不等淡入結束、不改 Typewriter 或動畫器 | §6.2、§7.1、§11、§13 |
+
+**待維護者確認**：R4（建議 OFF 即取消）。R1 若維護者堅持支援真正空檔（方案 B），屬 REST 契約變更，另案核准。
+
+**刻意不採納**：Extend 專用 pending（R3）、以動畫幀判斷「完整可見」（R5）、把所有氣泡顯示函式改成尊重任何 message block（R2）。理由分別寫在 §6.5、§7.1、§6.3。
 
 ---
 
@@ -120,7 +138,7 @@ Story Talk 是「由作者撰寫的短篇、分段、連續演出的自發對話
 
 - LLM 置換模式開啟或關閉，都能由 Auto Talk 低機率觸發；觸發時**不呼叫 LLM**，沒觸發時完整走舊流程。
 - 觸發後各段依序連續播放，段間停頓固定節奏，不受後台間隔影響。
-- 播放期間 OK、❌、觸摸、裝飾、送禮被擋；開啟聊天、開啟角色選單與角色切換仍有效，並會中斷故事（§3.5）。
+- 播放期間 OK、❌、觸摸、裝飾、點擊角色切換氣泡、送禮被擋；開啟聊天、開啟角色選單、角色切換、extend、`#show_msg` 隱藏氣泡、關閉 Auto Talk（待確認）仍有效，並會中斷故事（§3.5）。
 - 任何中斷路徑都會**釋放鎖定**、恢復一般自發對話，且不保存進度。
 - 每段完整顯示後恰好寫入 history 一次；沒播完的段落不寫。
 - 故事袋保證：每個故事都被抽出過一次之後，才會再抽到同一個（被中斷的也算抽過）。
@@ -157,7 +175,10 @@ Story Talk 是「由作者撰寫的短篇、分段、連續演出的自發對話
 | `js/ukagaka-base.js` `mpu_waitForTypewriterComplete()` | 取消、逾時都當成完成 | **不能**當成「播完」證據 |
 | `js/ukagaka-core.js` `mpuDisplayBuiltInMessage()` | 第 91 行（空字串分支）與第 99 行都把 `options.callback` 傳進 `mpu_typewriter()` 第 3 參數（速度）；目前沒有呼叫端用 | 兩處一併修正（§6.4） |
 | `js/ukagaka-chat-send.js` 串流聊天 | 用自己的計時器直接寫入對話框（約 160 行） | 開聊天時 Story 已中斷；舊 run 的延遲寫入失效（§6.4）防止殘字回寫 |
-| `includes/rest/class-mpu-rest-dialog.php` `load_dialog()` | 解析 `personality_id`，產生 `msg` 與 `msg_emojis` | 在同一回應加 `stories` 欄位（§4.1） |
+| `includes/rest/class-mpu-rest-dialog.php` `load_dialog()` | 解析 `personality_id`，產生 `msg` 與 `msg_emojis`。**空 JSON `messages` 或空 TXT 直接回 400**（約 277、283 行），成功回應在這之後才組裝 | 在同一回應加 `stories` 欄位（§4.1）；第一版不放寬空檔語意（R1） |
+| `js/ukagaka-features.js` `#show_msg`（約 378 行）、`#ukagaka_img`（約 389 行） | 點擊切換 `#ukagaka_msgbox` 顯示／隱藏，不檢查 block。Frieren 觸摸區 handler 以 capture 階段 `stopImmediatePropagation()` 攔截，觸摸成立時 `#ukagaka_img` 的切換不會執行 | §6.3、§6.5 |
+| `js/ukagaka-features.js` `#toggleAutoTalk`（約 369 行） | 只 `mpuSetAutoTalkEnabled()` 加 `startAutoTalk()`／`stopAutoTalk()` | OFF 時中斷故事（§6.5，待確認） |
+| `js/ukagaka-features.js` `#mpu_extend`（約 396 行） | 點擊後 fetch，`.then()` 以 `.empty().append(link)` 直接寫入 `#ukagaka_msg`；沒有過期判斷，也不停止 Auto Talk | 入口取消＋落地檢查（§6.5） |
 | `js/ukagaka-dialog.js` `loadExternalDialog()` | 有 load token 與角色世代檢查；LLM 置換模式也會載入。正常時 `mpuSetDialogStore(resp)`；**`msg.length === 0` 時另建物件（約 103 行），不含其他欄位**；載入失敗時 `if (!mpuGetDialogStore())` 才設空 store，**否則保留舊角色的 store** | 空對話分支要保存 `stories`；換角色時要清掉舊 `stories`（§4.1） |
 | `includes/core/frontend-functions.php` | `SCRIPT_DEBUG` 為真時逐一 `wp_enqueue_script()` 各模組（約 467～582 行）；否則載入 bundle | 新 JS 模組要在兩處登記（§9） |
 | `includes/llm/response-normalizer.php` | `mpu_normalize_resolve_emotion_tag()`、`mpu_normalize_get_supported_tags()` | 伺服器端把 `emotion` 解析成檔名 |
@@ -226,6 +247,10 @@ Story Talk 是「由作者撰寫的短篇、分段、連續演出的自發對話
 | 首次問候、Ollama 請求進行中 | 這時不會開始故事（既有 Guard） |
 | 首次載入頁面感知已排定（pending 3 秒） | 這時不會開始故事（`tryStart` 前置條件，§6.2） |
 | 訪客閒置、睡眠時段開始 | 不影響已開始的故事；講完後由既有邏輯接手 |
+| `#show_msg` 隱藏氣泡 | **中斷**後照常隱藏（§6.5） |
+| 點擊角色本體（非觸摸區）切換氣泡 | 忽略這次切換；故事繼續（§6.3） |
+| extend 連結 | 點擊時中斷；故事開始後才晚到的舊 extend 回應被丟棄（§6.5） |
+| Auto Talk ON → OFF | **中斷**，重新開啟不續播（§6.5，**待維護者確認**） |
 
 ## 4. `stories.json` 資料契約
 
@@ -241,7 +266,8 @@ ghost/
 - 新增 `includes/personality/personality-stories.php`（或併入既有人格模組），照 `items.json` 的讀法：`mpu_get_personalities_dir() . '/' . $personality_id . '/stories.json'`，經 `mpu_secure_file_read()` 讀取。若新增檔案，依 `mpu_load_modules()` 載入順序登記。
 - 檔案不存在、`enabled` 不是 `true`、驗證失敗 → `stories` 為 `null`。
 - `emotion` 在伺服器端解析成 `xxx.png`（與 `msg_emojis` 相同格式）；解析不到就是 `null`，台詞照常顯示。
-- 前端在 `loadExternalDialog()` 收到回應時，`stories` 隨 dialog store 一起存放、一起替換。**包含 `msg.length === 0` 的分支**（LLM 專用、沒有內建台詞的站）：該分支另建的 store 也要帶 `stories: resp.stories || null`。
+- 前端在 `loadExternalDialog()` 收到回應時，`stories` 隨 dialog store 一起存放、一起替換。`msg.length === 0` 分支另建的 store 也帶 `stories: resp.stories || null`，但這只是**防禦性處理**：目前 `/dialog` 對空 JSON／TXT 直接回 400（§2），真正的空對話檔不會成功回應，也就不會有 `stories`。
+- **第一版範圍（R1 方案 A）**：LLM 置換模式完整支援 Story，前提是有**有效的內建對話檔**作為 Fallback（目前本來就是 `/dialog` 成功的前提）。不支援「完全沒有內建台詞」的設定，也不為此放寬 `/dialog` 的空檔錯誤語意；若維護者要求支援（方案 B），屬 REST 契約變更，另案核准。
 - **換角色時不得沿用舊 `stories`**：載入失敗時現有程式會保留舊 store，所以 `mpuChange()` 切換成功（`mpuCharacterGeneration += 1`）時就把 store 的 `stories` 設為 `null`；另外 `tryStart` 比對 `stories.personality` 與目前角色（§6.2），兩道防線擇一失效仍安全。實際取得「目前角色 personality」的方式由 Phase 0 確認。
 
 回應中的 `stories` 形狀：
@@ -402,7 +428,7 @@ stepDone(session, i):
   alive 檢查失敗，或 runId 已不是目前的 => return（alive 內已 cancel）
   session.completedSteps 加入 i
   立即清掉 session.stepWatchdog（自然完成）
-  若 i 尚未寫入 history：寫入 synthetic + auto_talk，mpu_saveChatHistory()（§7）
+  若 i 尚未寫入 history：寫入 synthetic + auto_talk，mpu_saveChatHistory()（§7.1 寫入判準）
   等待 pause_ms(text)（§3.3），之後 alive 檢查：
     還有下一段 => playStep(session, i + 1, false)
     最後一段   => finish(session, "completed")
@@ -418,6 +444,7 @@ alive(session):           // 每個延遲 callback 第一件事
   session.generation === mpuCharacterGeneration
   && !mpuChatModeActive
   && !document.hidden
+  && mpuAutoTalk                         // R4 後備：OFF 入口漏接時也會中斷
   && mpuHasMessageBlock("story-talk")
   && （打字中）session.runId === mpuGetTypewriterRunId()
   失敗 => cancel(session, "lost-ownership")；回傳 false
@@ -458,10 +485,11 @@ cancel(session, reason):
 | OK 鈕、❌（非聊天模式）、送禮 | 既有的 `mpuMessageBlocking` 檢查 |
 | 還沒顯示的 LLM／後備回應 | 既有的 `mpuMessageBlocking` 檢查，會自行放棄 |
 | **已排定的內建台詞**（`showBuiltInMessage()` 與其動畫 callback） | **新增**：在既有 `isStaleForCharacter()` 檢查旁邊，加上 `mpuStoryTalkIsPlaying()` 判斷；為真就照既有放棄方式呼叫 `resumeAutoTalkAfterTypewriter()` 並 return。在動畫 callback 中，判斷必須放在 `mpu_cancelTypewriter()`、`.html("")`、顯示、寫入 history 與 `#ukagaka_msgnum` 之前。效果分兩種：**在 `showBuiltInMessage()` 開頭被擋**時還沒抽句，內建台詞袋完全不變；**在動畫 callback 被擋**時，`mpu_selectNextMessage()`（約 1055 行）已經抽出索引，這次的抽取不撤銷，防護只保證不再抽、不取消故事的打字、不顯示、不寫 history、不更新 `#ukagaka_msgnum` |
-| **觸摸、裝飾** | **新增**：`handleDecorationClick`、`handleTouchZone` 開頭檢查 `mpuStoryTalkIsPlaying()`，為真就直接 return（不播放反應、不進入冷卻） |
+| **觸摸、裝飾** | **新增**：`handleDecorationClick`、`handleTouchZone` 開頭檢查 `mpuStoryTalkIsPlaying()`，為真就直接 return（不播放反應、不進入冷卻）。**判斷必須放在這兩個函式內**，不能提早到 `_touchClickHandler`／裝飾 click handler 的 `stopImmediatePropagation()`／`stopPropagation()` 之前：提早 return 會讓點擊冒泡到 `#ukagaka_img`，把對話框藏起來 |
+| **點擊角色本體（非觸摸區）** | **新增**：`#ukagaka_img` click handler 開頭若 `mpuStoryTalkIsPlaying()` 為真就 return，不切換氣泡。忽略而不是中斷：這個點擊通常是無意的，不應讓故事被藏起來或被打斷 |
 | 聊天鈕 | **不擋**（既有行為，正好符合需求） |
 
-內建台詞、觸摸、裝飾都**只檢查 Story**，不改成檢查 `mpuMessageBlocking`，以免改變頁面感知等其他 block 持有者期間的既有行為。若維護者之後希望這些路徑也尊重所有 block，另案處理。
+內建台詞、觸摸、裝飾、角色本體點擊都**只檢查 Story**，不改成檢查 `mpuMessageBlocking`，以免改變頁面感知等其他 block 持有者期間的既有行為。若維護者之後希望這些路徑也尊重所有 block，另案處理。
 
 ### 6.4 Typewriter 最小接點
 
@@ -483,7 +511,9 @@ cancel(session, reason):
 | 頁面隱藏 | Story 自己的 `visibilitychange` listener（`document.hidden` 為真）。不看 window `blur` |
 | SPA 換頁 | Story 自己對 `window.mpuSpaEvents` 每個事件加 listener，立即中斷；頁面感知在 1 秒後照常執行。**換頁到頁面感知決策之間的 1 秒也不得開始新故事**：`mpu_handleSpaNavigation()` 收到事件時取得 pending owner `"spa"`，在 1 秒後的 callback **開頭**（機率判斷與 `mpu_chat_context()` 之前）釋放。只在單一位置釋放，不觸發、被取消或失敗都不會殘留。連續多個 SPA 事件時，以遞增 token 讓只有最後一次的 callback 能釋放。**pending 必須是 owner 集合，不能是單一布林**：目前 `mpuSetContextPending(bool)`（`base.js:386`）只設一個旗標，首次載入的 3 秒 pending（`features.js:310`）若與 SPA 的 1 秒 pending 重疊，先結束的一方會清掉另一方。做法比照 `mpuAcquireMessageBlock()`：`mpuSetContextPending(isPending, owner = "startup")` 改為操作 owner 集合，`mpuIsContextPending()` 在集合非空時為真；首次載入沿用預設 owner，呼叫端不必改。`mpuIsContextPending()` 目前只被 startup Guard 使用，SPA 期間不會有 startup，所以不影響其他流程 |
 | 角色切換、開啟角色選單 | `mpuChange()` 開頭呼叫（有參數 `cancel("character-switch")`、無參數 `cancel("menu")`），涵蓋第 3 鈕（聊天關閉時）、右鍵選單、extend 連結與選單項目。選單以 `.empty().append()` 直接寫入對話框，不經 Typewriter，run id 檢查抓不到，所以必須在這裡主動中斷。另外 `alive()` 的世代檢查作為角色切換的後備 |
-| extend 連結（`mpu_extend`） | 若 Phase 0 確認它在呼叫 `mpuChange()` 之前就以 `.empty().append()` 寫入對話框（`features.js:414` 附近），在該函式開頭也呼叫 `cancel("menu")` |
+| extend 連結（`#mpu_extend`） | 兩個接點：**(1) 入口**：click handler 開頭 `cancel("menu")`，使用者明確操作優先。**(2) 落地檢查**：`.then()` 寫入 `#ukagaka_msg` 前，若 `mpuStoryTalkIsPlaying()` 為真就丟棄這次結果（不為了顯示過期 extend 而取消較新的故事）。這處理「extend 先發出 → 故事開始 → extend 晚到」。**不採納** Extend 專用 pending：它要在 success／error／取消各路徑清理，換來的只是在「fetch 期間剛好抽中 5% 機率」這個罕見情況下讓 extend 優先；丟棄的後果只是訪客再點一次。若 Phase 0 發現 extend 回應常態性很慢，再回報維護者 |
+| `#show_msg` 隱藏氣泡 | click handler 中，只在「要隱藏」的分支先 `cancel("hide")` 再 `mpu_hidemsg(400)`；顯示分支不變。先取消再隱藏：`cancel()` 不碰顯示狀態，所以不會閃爍；已完整的前段保留 history，打字中的段落不寫 |
+| Auto Talk ON → OFF（**待維護者確認**） | `#toggleAutoTalk` click handler 中，切換成 OFF 時先 `cancel("autotalk-off")`，再走既有 `mpuSetAutoTalkEnabled(false)`／`stopAutoTalk()`。重新開啟只恢復一般排程，不續播。Story 仍不自行呼叫 `startAutoTalk()`／`stopAutoTalk()`（§0 第 8 點）。`alive()` 的 `mpuAutoTalk` 檢查是後備。若維護者選擇相反語意（OFF 不影響已開始的故事），刪除這兩處並改寫 E2E 13f |
 | 關閉分頁、整頁換頁 | 不需處理：頁面消失，block 與計時器一起消失；故事袋沒有被改動 |
 
 ### 6.6 安全事件
@@ -532,6 +562,7 @@ cancel(session, reason):
 - 由 `mpu_saveChatHistory()` 存儲，遵守 40 entries 上限；不改 F5 清除政策。
 - **佔比提醒**：一篇 N 段的故事寫入 2N 筆，5 段就佔上限的 1/4，可能把較早的真實聊天擠出上下文。初版 Frieren 故事建議 2～3 段；若維護者在實測中覺得擠壓太多，再考慮把 `steps` 上限從 5 降到 3（改 §4.3 驗證即可）。
 - 每段**只寫一次**（`session.historyWritten`）。
+- **寫入判準（R5）**：該段 run 自然完成（`onComplete`）、session 仍有效（`alive()`）、對話框不是被使用者隱藏的狀態（`#show_msg` 隱藏會先 `cancel()`，所以 session 有效即代表沒被隱藏）。第 1 段若打字比 `mpu_showmsg(400)` 淡入更快完成，淡入中**算可見**，照常寫入；不等淡入結束，不以動畫幀判斷使用者是否真的讀到。段間停頓最短 1500 ms，長於淡入 400 ms，下一段開始時氣泡必定已完全顯示。淡入中被中斷時，依中斷時間點：`onComplete` 之前中斷 → 不寫；之後 → 已寫入，不回收（與一般中斷相同）。
 - **不要**加入 `mpuLLMResponseHistory`。
 - 中斷時**不回收**已寫入的段落：講完前兩段後開聊天，LLM 會看到前兩段；沒播的段落不會被當成她說過的話。
 - 這份記憶沿用聊天歷史的保存與清除政策，不是永久角色記憶。
@@ -603,6 +634,10 @@ storyTalk.getStateForDebug()              [僅 debug]
 - [ ] 確認 auto 觸發時 `triggerFrierenSpeaking(false, …)` 仍不呼叫 callback、仍由 `mpu_typewriter()` 的 `playAnimation()` 觸發翻書（v0.5 已核對，開工前再看一次）。第 2 段起用 `{ skipCharacterAnimation: true }`。
 - [ ] 盤點所有不經 `mpu_typewriter()` 寫入 `#ukagaka_msg` 的地方（已知：串流聊天、`mpuShowSystemPlaceholder()`、`mpu_nextmsg()` 動畫 callback 的 `.html("")`、`mpuChange()` 選單、`mpu_extend`、`loadExternalDialog()` 錯誤時的 `.html(errorMsg)`、安全事件台詞），確認它們在故事播放期間不會執行，或執行前一定會先觸發 §6.5 的中斷。
 - [ ] 確認新模組在 bundle 與 `SCRIPT_DEBUG` 兩種載入模式的位置與依賴。
+- [ ] **R1**：確認 `/dialog` 對空 JSON／TXT 仍回 400，第一版採方案 A（不放寬）。
+- [ ] **R2**：確認 `#show_msg`、`#ukagaka_img`、觸摸區、裝飾的 listener 綁定位置與傳播順序（capture／bubble、`stopImmediatePropagation()`），確保同一次點擊不會同時觸發觸摸與氣泡切換，且 Story 判斷放在正確位置（§6.3）。
+- [ ] **R3**：確認 `#mpu_extend` 是唯一「先 fetch、後直接寫入」且期間不停止 Auto Talk 的流程；`mpuChange("")` 選單仍在請求期間 `stopAutoTalk()`。
+- [ ] **R4**：向維護者確認 Auto Talk OFF 是否中斷故事。
 - [ ] 確認 `auto_talk` 在實際 Provider 組裝中能成為後續聊天上下文。
 - [ ] 任何會迫使重構核心的風險：**STOP，回報維護者**。
 
@@ -622,6 +657,7 @@ storyTalk.getStateForDebug()              [僅 debug]
 PHPUnit：
 
 1. 檔案不存在、`enabled:false`、壞 JSON、不支援的 `format_version` → `stories: null`。
+1a. **R1**：空 JSON `messages`／空 TXT 對話檔 → `/dialog` 仍回現有的 400 錯誤，不因加入 `stories` 而改變。
 2. 含 `<`、`>`、`&` 的故事被略過，其他故事保留。
 3. 段數（2～5）、字數（1～120）、id 格式、重複 id、`config` 與 `step_pause` 界線。
 4. `emotion` 解析成檔名；未知 tag → `null`，台詞保留。
@@ -642,6 +678,9 @@ JS smoke：
 12. `finish()` 重複呼叫只收尾一次；看門狗、整體上限、例外都會釋放 block。整體上限依內容計算：打字速度 200 ms/字、5 段 × 120 字的故事不會被 `timeout` 中斷。
 12a. `tryStart` 前置條件：`stories.personality` 與目前角色不同 → `false` 且不讀寫袋子；`mpuIsContextPending()` 為真 → `false` 且不讀寫袋子、不消耗亂數。
 12b. 第 1 段不呼叫 `triggerCharacterAnimation()`；以假 canvas manager 驗證：第 1 段 `mpu_typewriter()` 沒有 `skipCharacterAnimation`、第 2 段起有。
+12c. **R5**：打字速度 10 ms/字、第 1 段 3 字：`onComplete` 早於淡入完成時 history 照常寫入一次；在 `onComplete` 前中斷（聊天、換角色、`#show_msg` 隱藏）→ 不寫、block 釋放、之後沒有 rAF 殘字寫入。
+12d. **R3**：extend 落地檢查：模擬 fetch 延遲，回應到達時故事正在播放 → 不改寫 `#ukagaka_msg`、故事繼續；回應到達時沒有故事 → 照常顯示連結。
+12e. **R4**：故事播放中把 `mpuAutoTalk` 設為 `false` 而不經入口 → 下一個延遲 callback 的 `alive()` 中斷故事並釋放 block。
 13. `onComplete` 只在自然結束時呼叫；被新的 `mpu_typewriter()` 取代或 `mpu_cancelTypewriter()` 後永不呼叫；不傳 options 的呼叫行為與修改前一致（除了多一個回傳值）。
 14. 舊 run 失效後，它已排程的 rAF／`flushUpdate()` 不寫 `innerHTML`；一般台詞的速度、批次、標籤處理與最終輸出與修改前相同。
 15. **普通台詞已排定 → Story 開始 → 舊 callback 到達**：以「callback 到達前」的內建台詞袋與 `#ukagaka_msgnum` 為基準，分兩種情況驗證：
@@ -657,7 +696,8 @@ JS smoke：
 - [ ] `mpu_toggleChatMode(true)`、`mpuChange()`（角色切換與選單）加入 `cancel()`；切換成功時清掉 `stories`；Story 的 visibility 與 SPA listener；`mpu_handleSpaNavigation()` 的 context pending（§6.5）。
 - [ ] `build.js` 與 `frontend-functions.php`（`SCRIPT_DEBUG`）登記新模組；重建 bundle。
 - [ ] Console log i18n 註冊與 `.pot`／`.po`／`.mo`（§9.2）。
-- [ ] 觸摸、裝飾加入 §6.3 判斷。
+- [ ] 觸摸、裝飾、`#ukagaka_img` 加入 §6.3 判斷。
+- [ ] `#show_msg` 隱藏分支、`#mpu_extend` 入口與落地檢查、`#toggleAutoTalk` OFF（待確認）加入 §6.5 接點。
 - [ ] `showBuiltInMessage()` 開頭及其 Frieren 動畫 callback 加入 §6.3 判斷。
 - [ ] `loadExternalDialog()` 保存 `stories`。
 - [ ] 在隔離測試啟用故事資料；未經維護者核准前 repo 中保持 `enabled:false`。
@@ -689,7 +729,7 @@ JS smoke：
 | 11 | 播放期間切換角色 | 中斷；新角色正常 |
 | 11a | 播放期間開啟角色選單（聊天關閉時按第 3 鈕、右鍵角色） | 中斷；選單不被下一段蓋掉；關閉選單後自發對話照常 |
 | 11b | 切到另一角色且該角色的 dialog 載入失敗（測試注入） | 新角色不播放舊角色的故事 |
-| 11c | LLM 置換模式＋空的內建對話檔 | 仍能觸發故事 |
+| 11c | **（R1 改寫）** LLM 置換模式＋有效的內建 Fallback 對話檔 | 故事可觸發，觸發的 tick `/nextmsg` 請求數 0。另做降級檢查：內建對話檔為空或無效時故事不觸發、沒有未處理例外、既有錯誤流程不退化 |
 | 11d | 首次載入且頁面感知已排定（機率設 100%），間隔設 3 秒 | pending 期間不開始故事；袋子與冷卻未被改動 |
 | 11e | `SCRIPT_DEBUG` 開啟 | 逐檔載入模式下功能與 bundle 模式相同，沒有未定義函式錯誤 |
 | 11f | 打字速度設 200 ms/字，播放最長的故事 | 不被整體上限中斷 |
@@ -697,6 +737,12 @@ JS smoke：
 | 13 | 播放期間有安全事件 | transient 型事件（Turnstile、Akismet、Moelog Bot Blocker）在有效期內發生時，於故事講完後的 tick 顯示，沒有遺失；Bot／AI crawler 事件依 §6.6 決策，記錄實際是否播報，不列為失敗 |
 | 13a | SPA 換頁 → 1 秒內 auto tick → 頁面感知 | 1 秒內不開始故事、袋子與冷卻未改動；頁面感知正常觸發；pending 在 1 秒後解除（含頁面感知未命中機率的情況） |
 | 13c | **首次載入 3 秒 pending 尚未結束就 SPA 換頁**（兩種順序：首次載入先結束、SPA 先結束） | 任一等待仍存在時都不開始故事；先結束的一方不會清掉另一方的 pending；兩者都結束後故事可正常開始 |
+| 13d | **（R2）** 第 2 段打字中按 `#show_msg` 隱藏 | 故事中斷、氣泡隱藏、block 釋放、history 只有第 1 段；之後再按 `#show_msg` 顯示，控制正常、不恢復已放棄的故事 |
+| 13e | **（R2）** 播放中點擊角色本體：非觸摸區與觸摸區各一次 | 氣泡不被隱藏、故事不被覆蓋或卡住；觸摸區不進入冷卻、沒有觸摸反應 |
+| 13f | **（R4，待確認）** 第 2 段打字中關閉 Auto Talk | 不再出現第 3 段、沒有殘留 block、計時器不自動重啟；重新開啟後一般自發對話正常、不續播 |
+| 13g | **（R3）** 延遲 extend fetch，兩種順序：(a) extend 先發出 → 故事開始 → extend 回應；(b) 故事播放中點 extend | (a) 舊回應被丟棄，故事不被覆寫；(b) 故事中斷、extend 正常顯示、沒有故事殘字。兩者都不留 block |
+| 13h | **（R5）** 打字速度 10 ms/字＋很短的第 1 段，分別在淡入中開聊天、切換角色、`#show_msg` 隱藏，以及不中斷 | history、畫面與 block 最終一致：沒有幽靈 history、沒有殘字、block 已釋放 |
+| 13i | **回歸**：上述中斷後開關聊天、正常觸摸、普通內建台詞、LLM／SSE | 行為與原本一致；`chat_integrity_mode=block` 通過 |
 | 13b | 播放中開啟角色選單、SPA 換頁 | 中斷後故事的打字立即停止，選單不被殘字覆蓋；SPA 後不再打出沒記入 history 的文字 |
 | 14 | 兩個以上故事 | 全部抽過前不重複（含被中斷的）；換輪第一篇不等於上一輪最後一篇 |
 | 15 | 講完／中斷後 | 冷卻期間不會開始故事 |
@@ -726,7 +772,8 @@ JS smoke：
 
 - [ ] 兩種對話模式下按規格運作，故事播放期間零 LLM 請求。
 - [ ] 段間節奏固定，不受後台間隔影響。
-- [ ] 播放期間 OK、❌、觸摸、裝飾、送禮被擋；聊天、角色選單、角色切換可中斷故事。
+- [ ] 播放期間 OK、❌、觸摸、裝飾、點擊角色切換氣泡、送禮被擋；聊天、角色選單、角色切換、extend、`#show_msg` 隱藏可中斷故事；Auto Talk OFF 依維護者決定（建議中斷）。
+- [ ] 舊 extend 回應不會覆寫播放中的故事。
 - [ ] 所有中斷與異常路徑都釋放 block，之後自發對話、OK 鈕、觸摸照常。
 - [ ] 每段只寫入 history 一次；中斷不回收；checksum `block` 模式通過。
 - [ ] 故事袋整輪不重複；抽出即消耗（含中斷）；不同站點不互相影響。
@@ -743,6 +790,8 @@ JS smoke：
 5. 無法在 `block` 模式維持 checksum 一致。
 6. Typewriter 修改造成一般台詞或聊天行為改變。
 7. 實測顯示故事頻率太高，破壞芙莉蓮原本悠閒的節奏。
+8. 完成第一版範圍需要放寬 `/dialog` 的空檔錯誤語意或其他 REST 資料契約（R1）。
+9. extend 的過期判斷無法用「故事是否正在播放」這個簡單條件可靠完成，需要通用的請求仲裁機制（R3）。
 
 ## 15. 交付物
 
@@ -757,7 +806,7 @@ JS smoke：
 
 ## 16. 可以直接交給 Claude／Codex 的執行提示詞
 
-> 請閱讀 `plan/mp-ukagaka-story-talk-implementation-plan-v0.7.md`、專案 `AGENTS.md`、`CLAUDE.md` 與最新 `main` 原始碼。此案是華和梨式 Story Talk 的小型獨立功能：一次觸發、整篇連續演出、中斷即放棄、故事之間用 Shuffle Bag 輪替。**第一輪只做 Phase 0（§10），不要改程式或發 PR**。
+> 請閱讀 `plan/mp-ukagaka-story-talk-implementation-plan-v0.7.md`（v0.7.1）與 `plan/mp-ukagaka-story-talk-v0.7-review-addendum.md`、專案 `AGENTS.md`、`CLAUDE.md` 與最新 `main` 原始碼。此案是華和梨式 Story Talk 的小型獨立功能：一次觸發、整篇連續演出、中斷即放棄、故事之間用 Shuffle Bag 輪替。**第一輪只做 Phase 0（§10），不要改程式或發 PR**。
 >
 > 已決定的事項（`"story-talk"` message block 鎖定、只允許開聊天、中斷不保存進度、抽出即消耗名額、講完或中斷都計冷卻、段間停頓不讀後台間隔、每段完成即寫 history、Typewriter 加 run id＋舊 run 寫入失效＋`onComplete`、資料搭 `/dialog`）除非發現與程式不符，否則不要重新設計。
 >
