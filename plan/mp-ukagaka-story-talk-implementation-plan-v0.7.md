@@ -35,6 +35,7 @@ v0.7 的產品語意與已決策事項全部保留。本版只把補充審查的
 | R3+ | extend 只在 `.then()` 做落地檢查不夠 | **成立**：`.catch()`（`features.js:419`）呼叫 `mpu_handle_error(..., { showToUser: true })`，內部以 `mpu_typewriter()` 顯示錯誤並 `mpu_showmsg(400)`；成功回應缺 `label` 時也 throw 進這條路 | 成功與失敗兩邊都檢查：故事播放中不顯示舊結果或錯誤，只記錄錯誤（`showToUser: false`）並恢復游標 | §6.5、§11、§13 |
 | R6 | `#remove`（隱藏整個角色）不經 `#show_msg` | **成立**：直接 `mpu_hiderobot(400)`（`features.js:458`）；`startAutoTalk()` 不檢查角色是否隱藏，故事可在角色隱藏後繼續推進、寫 history，§7.1「session 有效即代表沒被隱藏」不完全成立 | 隱藏角色前 `cancel("hide-robot")`；`tryStart` 在 `#ukagaka` 隱藏時回 `false` | §3.5、§6.2、§6.5、§7.1、§13 |
 | — | §16 提示詞仍寫「只允許開聊天」 | 與 §3.5 不一致 | 改為依 §3.5；註明與補充審查有差異時以本文件為準 | §16 |
+| R6+ | 沒有故事時按 `#remove`，400 ms 淡出期間 auto tick 到達：`cancel()` 無事可做，`#ukagaka` 仍判為可見，可能開始新故事 | **成立**。另核對：除 `mpu_showrobot()` 外，換角色與對話載入有 7 處以 `jQuery("#ukagaka").stop(true, true).fadeIn(200)` 直接顯示角色（`core.js:1270,1369,1392`、`dialog.js:111,117,134,219,243`），單純的「隱藏要求」旗標若只在 `mpu_showrobot()` 解除會殘留 | `mpu_hiderobot()` 同步設 `mpuRobotHideRequested`、`mpu_showrobot()` 解除；`tryStart` 以「`:hidden`，或已要求隱藏且仍在動畫中」判斷，殘留旗標不會永久擋住故事 | §6.2、§6.5、§10、§11、§13 |
 
 ---
 
@@ -411,7 +412,12 @@ tryStart(store, now, rng):
   stories 不存在 / 形狀不對          => false
   stories.personality ≠ 目前角色       => false   // §4.1，防舊角色 store 殘留
   mpuIsContextPending()              => false   // 頁面感知已排定，不浪費名額與冷卻
-  jQuery("#ukagaka").is(":hidden")   => false   // 角色被 #remove 隱藏（含載入時還原的隱藏狀態）
+  robotHiddenOrHiding()               => false   // 角色被 #remove 隱藏或正在淡出（§6.5）
+
+robotHiddenOrHiding():
+  $u = jQuery("#ukagaka")
+  return $u.is(":hidden")                                  // 已隱藏（含載入時還原的隱藏狀態）
+      || (mpuRobotHideRequested && $u.is(":animated"))     // 已要求隱藏、淡出尚未結束
   story = 袋子 drawAndCommit(now, rng)  // §5.3 第 2 點的單一同步流程：
                                        // 冷卻中或機率沒中回 null；否則換輪、選故事、
                                        // 加入 drawn、設冷卻、寫回後回傳（抽出即消耗）
@@ -529,7 +535,7 @@ cancel(session, reason):
 | SPA 換頁 | Story 自己對 `window.mpuSpaEvents` 每個事件加 listener，立即中斷；頁面感知在 1 秒後照常執行。**換頁到頁面感知決策之間的 1 秒也不得開始新故事**：`mpu_handleSpaNavigation()` 收到事件時取得 pending owner `"spa"`，在 1 秒後的 callback **開頭**（機率判斷與 `mpu_chat_context()` 之前）釋放。只在單一位置釋放，不觸發、被取消或失敗都不會殘留。連續多個 SPA 事件時，以遞增 token 讓只有最後一次的 callback 能釋放。**pending 必須是 owner 集合，不能是單一布林**：目前 `mpuSetContextPending(bool)`（`base.js:386`）只設一個旗標，首次載入的 3 秒 pending（`features.js:310`）若與 SPA 的 1 秒 pending 重疊，先結束的一方會清掉另一方。做法比照 `mpuAcquireMessageBlock()`：`mpuSetContextPending(isPending, owner = "startup")` 改為操作 owner 集合，`mpuIsContextPending()` 在集合非空時為真；首次載入沿用預設 owner，呼叫端不必改。`mpuIsContextPending()` 目前只被 startup Guard 使用，SPA 期間不會有 startup，所以不影響其他流程 |
 | 角色切換、開啟角色選單 | `mpuChange()` 開頭呼叫（有參數 `cancel("character-switch")`、無參數 `cancel("menu")`），涵蓋第 3 鈕（聊天關閉時）、右鍵選單、extend 連結與選單項目。選單以 `.empty().append()` 直接寫入對話框，不經 Typewriter，run id 檢查抓不到，所以必須在這裡主動中斷。另外 `alive()` 的世代檢查作為角色切換的後備 |
 | extend 連結（`#mpu_extend`） | 兩個接點：**(1) 入口**：click handler 開頭 `cancel("menu")`，使用者明確操作優先。**(2) 落地檢查（成功與失敗兩邊）**：`.then()` 寫入 `#ukagaka_msg` 前，以及 `.catch()` 呼叫 `mpu_handle_error()` 前，若 `mpuStoryTalkIsPlaying()` 為真：不顯示舊結果或錯誤（`.catch()` 改以 `showToUser: false` 只記錄錯誤）、不呼叫 `mpu_showmsg()`，只恢復 `document.body.style.cursor`。不為了顯示過期 extend 而取消較新的故事。回應缺 `label` 會 throw 進 `.catch()`，由同一個檢查涵蓋。這處理「extend 先發出 → 故事開始 → extend 晚到」。**不採納** Extend 專用 pending：它要在 success／error／取消各路徑清理，換來的只是在「fetch 期間剛好抽中 5% 機率」這個罕見情況下讓 extend 優先；丟棄的後果只是訪客再點一次。若 Phase 0 發現 extend 回應常態性很慢，再回報維護者 |
-| `#remove` 隱藏整個角色 | click handler 中，只在「要隱藏」的分支先 `cancel("hide-robot")` 再 `mpu_hiderobot(400)`；顯示分支不變，再顯示時不續播。fadeOut 期間 `#ukagaka` 仍算可見，所以必須在入口取消，不能只靠 `tryStart` 的可見檢查 |
+| `#remove` 隱藏整個角色 | click handler 中，只在「要隱藏」的分支先 `cancel("hide-robot")` 再 `mpu_hiderobot(400)`；顯示分支不變，再顯示時不續播。fadeOut 期間 `#ukagaka` 仍算可見，所以必須在入口取消，不能只靠 `:hidden` 檢查。**淡出空窗**：原本沒有故事時，入口的 `cancel()` 無事可做，400 ms 淡出期間的 auto tick 仍可能開始新故事。因此 `mpu_hiderobot()` 開頭同步設 `mpuRobotHideRequested = true`，`mpu_showrobot()` 開頭設回 `false`（放在這兩個函式內，涵蓋 `#remove` 以外的呼叫端，例如 `mpu_beforemsg()`、extend）；`tryStart` 用 `robotHiddenOrHiding()`（§6.2）判斷。換角色與對話載入有多處以 `.stop(true, true).fadeIn(200)` 直接顯示角色、不經 `mpu_showrobot()`，旗標可能殘留為 `true`；但判斷式要求「已要求隱藏**且**仍在動畫中」，角色一旦完整顯示、動畫結束就不再擋，所以殘留無害，不需要修改那 7 處 |
 | `#show_msg` 隱藏氣泡 | click handler 中，只在「要隱藏」的分支先 `cancel("hide")` 再 `mpu_hidemsg(400)`；顯示分支不變。先取消再隱藏：`cancel()` 不碰顯示狀態，所以不會閃爍；已完整的前段保留 history，打字中的段落不寫 |
 | Auto Talk ON → OFF（維護者已確認） | `#toggleAutoTalk` click handler 中，切換成 OFF 時先 `cancel("autotalk-off")`，再走既有 `mpuSetAutoTalkEnabled(false)`／`stopAutoTalk()`。重新開啟只恢復一般排程，不續播。Story 仍不自行呼叫 `startAutoTalk()`／`stopAutoTalk()`（§0 第 8 點）。`alive()` 的 `mpuAutoTalk` 檢查是後備 |
 | 關閉分頁、整頁換頁 | 不需處理：頁面消失，block 與計時器一起消失；故事袋沒有被改動 |
@@ -656,6 +662,7 @@ storyTalk.getStateForDebug()              [僅 debug]
 - [ ] **R2**：確認 `#show_msg`、`#ukagaka_img`、觸摸區、裝飾的 listener 綁定位置與傳播順序（capture／bubble、`stopImmediatePropagation()`），確保同一次點擊不會同時觸發觸摸與氣泡切換，且 Story 判斷放在正確位置（§6.3）。
 - [ ] **R3**：確認 `#mpu_extend` 是唯一「先 fetch、後直接寫入」且期間不停止 Auto Talk 的流程，包含 `.catch()` 經 `mpu_handle_error()` 寫入的錯誤路徑；`mpuChange("")` 選單仍在請求期間 `stopAutoTalk()`。
 - [ ] **R6**：盤點所有會隱藏 `#ukagaka` 或 `#ukagaka_msgbox` 的使用者操作（已知：`#remove`、`#show_msg`、`#ukagaka_img`），確認都已列入 §6.3／§6.5。
+- [ ] **R6+**：確認 `#ukagaka` 的顯示／隱藏路徑（`mpu_hiderobot()`、`mpu_showrobot()`，以及直接 `.stop(true, true).fadeIn(200)` 的 7 處），確認 `robotHiddenOrHiding()` 在各路徑下不會永久擋住故事。
 - [x] **R4**：維護者已確認 Auto Talk OFF 即中斷故事。
 - [ ] 確認 `auto_talk` 在實際 Provider 組裝中能成為後續聊天上下文。
 - [ ] 任何會迫使重構核心的風險：**STOP，回報維護者**。
@@ -700,6 +707,7 @@ JS smoke：
 12c. **R5**：打字速度 10 ms/字、第 1 段 3 字：`onComplete` 早於淡入完成時 history 照常寫入一次；在 `onComplete` 前中斷（聊天、換角色、`#show_msg` 隱藏）→ 不寫、block 釋放、之後沒有 rAF 殘字寫入。
 12d. **R3**：extend 落地檢查：模擬 fetch 延遲，回應到達時故事正在播放 → 不改寫 `#ukagaka_msg`、故事繼續；回應到達時沒有故事 → 照常顯示連結。失敗與無效資料（缺 `label`）同樣兩種情況：故事播放中 → 不呼叫顯示錯誤的 `mpu_typewriter()`、不 `mpu_showmsg()`、游標恢復、故事繼續；沒有故事 → 照常顯示錯誤。
 12f. **R6**：`#ukagaka` 隱藏時 `tryStart` 回 `false`，不讀寫袋子、不消耗亂數。
+12g. **R6+**：原本沒有故事 → 呼叫 `mpu_hiderobot(400)` → 淡出期間（`:animated` 為真、`:hidden` 為假）強制 auto tick：`tryStart` 回 `false`，不讀寫袋子、不消耗亂數。另驗證殘留旗標無害：`mpuRobotHideRequested` 為 `true` 但角色已由 `.stop(true, true).fadeIn()` 完整顯示且動畫結束 → `tryStart` 可正常開始；`mpu_showrobot()` 後旗標為 `false`。
 12e. **R4**：故事播放中把 `mpuAutoTalk` 設為 `false` 而不經入口 → 下一個延遲 callback 的 `alive()` 中斷故事並釋放 block。
 13. `onComplete` 只在自然結束時呼叫；被新的 `mpu_typewriter()` 取代或 `mpu_cancelTypewriter()` 後永不呼叫；不傳 options 的呼叫行為與修改前一致（除了多一個回傳值）。
 14. 舊 run 失效後，它已排程的 rAF／`flushUpdate()` 不寫 `innerHTML`；一般台詞的速度、批次、標籤處理與最終輸出與修改前相同。
@@ -762,7 +770,7 @@ JS smoke：
 | 13f | **（R4）** 第 2 段打字中關閉 Auto Talk | 不再出現第 3 段、沒有殘留 block、計時器不自動重啟；重新開啟後一般自發對話正常、不續播 |
 | 13g | **（R3）** 延遲 extend fetch，兩種順序：(a) extend 先發出 → 故事開始 → extend 回應；(b) 故事播放中點 extend | (a) 舊回應被丟棄，故事不被覆寫；(b) 故事中斷、extend 正常顯示、沒有故事殘字。兩者都不留 block |
 | 13g' | **（R3+）** extend 先發出 → 故事開始 → 請求失敗，以及回傳無效資料（缺 `label`） | 不顯示錯誤、不覆寫故事、游標恢復、故事繼續；故事結束後再點 extend 行為正常 |
-| 13j | **（R6）** 第 2 段打字中按 `#remove` 隱藏角色 → 再顯示 | 故事中斷、block 釋放、history 只有第 1 段；再顯示後不續播、沒有額外 history；角色隱藏期間不開始新故事；重新整理後若角色維持隱藏，同樣不開始 |
+| 13j | **（R6）** 第 2 段打字中按 `#remove` 隱藏角色 → 再顯示 | 故事中斷、block 釋放、history 只有第 1 段；再顯示後不續播、沒有額外 history；角色隱藏期間不開始新故事；重新整理後若角色維持隱藏，同樣不開始。另測**原本沒有故事**時按 `#remove`，在 400 ms 淡出期間強制 auto tick（`start_chance: 1`）：不開始故事、袋子與冷卻未改動 |
 | 13h | **（R5）** 打字速度 10 ms/字＋很短的第 1 段，分別在淡入中開聊天、切換角色、`#show_msg` 隱藏，以及不中斷 | history、畫面與 block 最終一致：沒有幽靈 history、沒有殘字、block 已釋放 |
 | 13i | **回歸**：上述中斷後開關聊天、正常觸摸、普通內建台詞、LLM／SSE | 行為與原本一致；`chat_integrity_mode=block` 通過 |
 | 13b | 播放中開啟角色選單、SPA 換頁 | 中斷後故事的打字立即停止，選單不被殘字覆蓋；SPA 後不再打出沒記入 history 的文字 |
