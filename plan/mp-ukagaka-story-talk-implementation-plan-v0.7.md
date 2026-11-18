@@ -28,6 +28,16 @@ v0.7 的產品語意與已決策事項全部保留。本版只把補充審查的
 
 ---
 
+### v0.7.1 追補（Codex 第四輪：Phase 0 前最後清單）
+
+審查者確認**可以進入 Phase 0**，以下直接納入實作清單，不再逐項改版審批；之後以實作與測試結果為準，只有實際失敗或明確違反規格才列為阻擋。
+
+| # | 問題 | 核對結果 | 處置 | 章節 |
+|---|---|---|---|---|
+| R7 | 另有兩個舊顯示 callback 會覆蓋故事 | **成立**：`showFirstMessage()`（`dialog.js:141`）在 store 存入後延遲 1 秒顯示第一句，只檢查 `isCurrentLoad()`，會抽內建台詞袋、寫 `#ukagaka_msgnum`；LLM 回應的喚醒動畫 callback（`core.js:870`）只檢查 `isStaleForCharacter()`，會 `mpu_cancelTypewriter()`、清畫面再打字 | 兩處加 Story 專用判斷，被擋時放棄顯示；擴充舊 callback 測試 | §6.3、§11、§12、§13 |
+| R8 | SPA listener 綁定時機 | `window.mpuSpaEvents` 在 `ukagaka-features.js` 才初始化 | 初始化後再綁定；兩種載入模式都驗證 | §10 |
+| R9 | 偽碼瑕疵 | `robotHiddenOrHiding()` 插在 `tryStart()` 中間；看門狗寫成 `setTimeout(onStepWatchdog(...))` 會立即執行 | helper 移到 `tryStart()` 外；看門狗改箭頭函式 | §6.2 |
+
 ### v0.7.1 追補（Codex 第三輪）
 
 | # | 問題 | 核對結果 | 處置 | 章節 |
@@ -413,16 +423,16 @@ tryStart(store, now, rng):
   stories.personality ≠ 目前角色       => false   // §4.1，防舊角色 store 殘留
   mpuIsContextPending()              => false   // 頁面感知已排定，不浪費名額與冷卻
   robotHiddenOrHiding()               => false   // 角色被 #remove 隱藏或正在淡出（§6.5）
-
-robotHiddenOrHiding():
-  $u = jQuery("#ukagaka")
-  return $u.is(":hidden")                                  // 已隱藏（含載入時還原的隱藏狀態）
-      || (mpuRobotHideRequested && $u.is(":animated"))     // 已要求隱藏、淡出尚未結束
   story = 袋子 drawAndCommit(now, rng)  // §5.3 第 2 點的單一同步流程：
                                        // 冷卻中或機率沒中回 null；否則換輪、選故事、
                                        // 加入 drawn、設冷卻、寫回後回傳（抽出即消耗）
   story === null                     => false
   start(story); return true
+
+robotHiddenOrHiding():                 // tryStart 使用的 helper
+  $u = jQuery("#ukagaka")
+  return $u.is(":hidden")                                  // 已隱藏（含載入時還原的隱藏狀態）
+      || (mpuRobotHideRequested && $u.is(":animated"))     // 已要求隱藏、淡出尚未結束
 
 start(story):
   session = { story, step: 0, token: 新物件, generation: mpuCharacterGeneration,
@@ -442,7 +452,9 @@ playStep(session, i, firstStep):
                 { onComplete: () => stepDone(session, i),
                   skipCharacterAnimation: !firstStep })
               session.stepWatchdog = { step: i, runId: session.runId,
-                                       timer: setTimeout(onStepWatchdog(session, i, runId), step_budget(i)) }
+                                       timer: setTimeout(() => onStepWatchdog(session, i, session.runId),
+                                                         step_budget(i)) }
+              // 注意是箭頭函式：直接寫 setTimeout(onStepWatchdog(...)) 會立即執行
 
 stepDone(session, i):
   session.finished 或 session !== currentSession => return   // 過期 session：完全無作用
@@ -509,6 +521,8 @@ cancel(session, reason):
 | 還沒顯示的 LLM／後備回應 | 既有的 `mpuMessageBlocking` 檢查，會自行放棄 |
 | **已排定的內建台詞**（`showBuiltInMessage()` 與其動畫 callback） | **新增**：在既有 `isStaleForCharacter()` 檢查旁邊，加上 `mpuStoryTalkIsPlaying()` 判斷；為真就照既有放棄方式呼叫 `resumeAutoTalkAfterTypewriter()` 並 return。在動畫 callback 中，判斷必須放在 `mpu_cancelTypewriter()`、`.html("")`、顯示、寫入 history 與 `#ukagaka_msgnum` 之前。效果分兩種：**在 `showBuiltInMessage()` 開頭被擋**時還沒抽句，內建台詞袋完全不變；**在動畫 callback 被擋**時，`mpu_selectNextMessage()`（約 1055 行）已經抽出索引，這次的抽取不撤銷，防護只保證不再抽、不取消故事的打字、不顯示、不寫 history、不更新 `#ukagaka_msgnum` |
 | **觸摸、裝飾** | **新增**：`handleDecorationClick`、`handleTouchZone` 開頭檢查 `mpuStoryTalkIsPlaying()`，為真就直接 return（不播放反應、不進入冷卻）。**判斷必須放在這兩個函式內**，不能提早到 `_touchClickHandler`／裝飾 click handler 的 `stopImmediatePropagation()`／`stopPropagation()` 之前：提早 return 會讓點擊冒泡到 `#ukagaka_img`，把對話框藏起來 |
+| **外部對話的第一句**（`js/ukagaka-dialog.js` `showFirstMessage()`，約 141 行） | **新增**：store 存入後，第一句延遲 1 秒（`mpuDialogFirstMessageTimer`）才顯示，期間故事可能先開始；現有 callback 只檢查載入世代（`isCurrentLoad()`）。在 `firstMessageShown` 判斷之後、`mpuDrawBuiltInIndex()` **之前**檢查 `mpuStoryTalkIsPlaying()`：為真就設 `firstMessageShown = true` 並放棄這次顯示。不抽內建台詞袋、不寫 `#ukagaka_msgnum`、不呼叫 `mpuDisplayBuiltInMessage()`、不清初始氣泡內容；只移除 `#ukagaka_msg` 的 `data-initial-msg-system` 屬性（故事已取代思考氣泡，否則 `startAutoTalk()` 會一直把它當成初始氣泡）。自動對話計時器由觸發故事的 tick 維持，不需另外啟動 |
+| **LLM 回應的喚醒動畫 callback**（`js/ukagaka-core.js` 約 870 行） | **新增**：外層在請求回來時有 blocking 檢查，但喚醒動畫結束後的 callback 只檢查 `isStaleForCharacter()`，接著就 `mpu_cancelTypewriter()`、清畫面、再打字。在 `isStaleForCharacter()` 旁加 `mpuStoryTalkIsPlaying()` 判斷，為真就放棄顯示。這句已由下方同步的 `mpu_recordLlmAutoTalk()` 寫入 history（與既有「動畫期間換角色」相同：伺服器已記錄，不顯示也保留歷史），不回收 |
 | **點擊角色本體（非觸摸區）** | **新增**：`#ukagaka_img` click handler 開頭若 `mpuStoryTalkIsPlaying()` 為真就 return，不切換氣泡。忽略而不是中斷：這個點擊通常是無意的，不應讓故事被藏起來或被打斷 |
 | 聊天鈕 | **不擋**（既有行為，正好符合需求） |
 
@@ -657,7 +671,7 @@ storyTalk.getStateForDebug()              [僅 debug]
 - [ ] 確認前端取得「目前角色 personality」的方式，供 `tryStart` 比對 `stories.personality`（§4.1）。
 - [ ] 確認 auto 觸發時 `triggerFrierenSpeaking(false, …)` 仍不呼叫 callback、仍由 `mpu_typewriter()` 的 `playAnimation()` 觸發翻書（v0.5 已核對，開工前再看一次）。第 2 段起用 `{ skipCharacterAnimation: true }`。
 - [ ] 盤點所有不經 `mpu_typewriter()` 寫入 `#ukagaka_msg` 的地方（已知：串流聊天、`mpuShowSystemPlaceholder()`、`mpu_nextmsg()` 動畫 callback 的 `.html("")`、`mpuChange()` 選單、`mpu_extend`、`loadExternalDialog()` 錯誤時的 `.html(errorMsg)`、安全事件台詞），確認它們在故事播放期間不會執行，或執行前一定會先觸發 §6.5 的中斷。
-- [ ] 確認新模組在 bundle 與 `SCRIPT_DEBUG` 兩種載入模式的位置與依賴。
+- [ ] 確認新模組在 bundle 與 `SCRIPT_DEBUG` 兩種載入模式的位置與依賴。**`window.mpuSpaEvents` 在 `ukagaka-features.js` 才初始化**：Story 模組若排在它之前，不得在頂層立即讀取並綁定 SPA listener（會報錯或漏綁），改為在初始化完成後綁定（例如 DOM ready 或 features 載入後），並在兩種載入模式都驗證 SPA 事件確實中斷故事。
 - [ ] **R1**：確認 `/dialog` 對空 JSON／TXT 仍回 400，第一版採方案 A（不放寬）。
 - [ ] **R2**：確認 `#show_msg`、`#ukagaka_img`、觸摸區、裝飾的 listener 綁定位置與傳播順序（capture／bubble、`stopImmediatePropagation()`），確保同一次點擊不會同時觸發觸摸與氣泡切換，且 Story 判斷放在正確位置（§6.3）。
 - [ ] **R3**：確認 `#mpu_extend` 是唯一「先 fetch、後直接寫入」且期間不停止 Auto Talk 的流程，包含 `.catch()` 經 `mpu_handle_error()` 寫入的錯誤路徑；`mpuChange("")` 選單仍在請求期間 `stopAutoTalk()`。
@@ -711,6 +725,8 @@ JS smoke：
 12e. **R4**：故事播放中把 `mpuAutoTalk` 設為 `false` 而不經入口 → 下一個延遲 callback 的 `alive()` 中斷故事並釋放 block。
 13. `onComplete` 只在自然結束時呼叫；被新的 `mpu_typewriter()` 取代或 `mpu_cancelTypewriter()` 後永不呼叫；不傳 options 的呼叫行為與修改前一致（除了多一個回傳值）。
 14. 舊 run 失效後，它已排程的 rAF／`flushUpdate()` 不寫 `innerHTML`；一般台詞的速度、批次、標籤處理與最終輸出與修改前相同。
+15a. **外部對話第一句晚到**：`loadExternalDialog()` 存入 store 後、1 秒延遲到期前開始故事，之後 `showFirstMessage()` 到達：不呼叫 `mpuDrawBuiltInIndex()`（內建台詞袋與基準相同）、`#ukagaka_msgnum` 不變、不寫對話框、`data-initial-msg-system` 已移除、故事繼續；之後不會再補顯示這句第一句。
+15b. **LLM 喚醒動畫 callback 晚到**：LLM 回應已通過外層 blocking 檢查、喚醒動畫期間開始故事，動畫 callback 到達：不呼叫 `mpu_cancelTypewriter()`、不清畫面、不打字，故事繼續；該句 history 照既有規則只寫一次。
 15. **普通台詞已排定 → Story 開始 → 舊 callback 到達**：以「callback 到達前」的內建台詞袋與 `#ukagaka_msgnum` 為基準，分兩種情況驗證：
     - `showBuiltInMessage()` 開頭被擋：不呼叫 `mpu_selectNextMessage()`，袋子與基準相同。
     - Frieren 動畫 callback 被擋：索引已在動畫前抽出（不要求歸還）；callback 本身不再抽取，袋子與基準相同。
@@ -726,7 +742,7 @@ JS smoke：
 - [ ] Console log i18n 註冊與 `.pot`／`.po`／`.mo`（§9.2）。
 - [ ] 觸摸、裝飾、`#ukagaka_img` 加入 §6.3 判斷。
 - [ ] `#show_msg` 隱藏分支、`#remove` 隱藏分支、`#mpu_extend` 入口與成功／失敗落地檢查、`#toggleAutoTalk` OFF 加入 §6.5 接點。
-- [ ] `showBuiltInMessage()` 開頭及其 Frieren 動畫 callback 加入 §6.3 判斷。
+- [ ] `showBuiltInMessage()` 開頭及其 Frieren 動畫 callback、`showFirstMessage()`、LLM 喚醒動畫 callback 加入 §6.3 判斷。
 - [ ] `loadExternalDialog()` 保存 `stories`。
 - [ ] 在隔離測試啟用故事資料；未經維護者核准前 repo 中保持 `enabled:false`。
 
@@ -749,6 +765,8 @@ JS smoke：
 | 4 | **後台間隔設 3 秒** | 故事不被 tick 打斷；段間停頓與設 30 秒時相同 |
 | 5 | 播放期間點 OK、❌、送禮、觸摸、裝飾 | 全部無效；故事繼續；觸摸區不進入冷卻 |
 | 5a | **普通台詞淡出／動畫中 → 下一個 tick 開始故事 → 舊 callback 到達**（間隔設 3 秒並拉長動畫來重現） | 故事不被蓋掉；`#ukagaka_msgnum` 不變；history 沒有那句普通台詞 |
+| 5b | **外部對話第一句的 1 秒延遲期間開始故事**（測試注入 `start_chance: 1`、縮短間隔） | 第一句不覆蓋故事；內建台詞袋與 `#ukagaka_msgnum` 不變；故事講完後自發對話正常、初始氣泡沒有殘留 |
+| 5c | **LLM 置換模式：手動 OK 喚醒 → 動畫期間開始故事 → 動畫 callback 到達**（拉長喚醒動畫來重現） | 故事的打字不被取消、畫面不被清掉；該句 LLM 回應依既有規則記入 history |
 | 6 | 第 1 段淡出／動畫期間開聊天 | 故事不呼叫 `mpu_typewriter()`；歡迎詞不被覆蓋；block 已釋放 |
 | 7 | 第 2 段打字中開聊天（含串流回應） | 中斷；聊天不被殘字覆蓋；history 只有第 1 段；關閉聊天後自發對話照常 |
 | 8 | 第 2 段後開聊天問「剛剛在說什麼」 | 送出的上下文含前兩段、不含第 3 段 |
