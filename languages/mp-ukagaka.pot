@@ -3869,3 +3869,7 @@ msgstr ""
 #: includes/admin-functions.php
 msgid "停止後 AI 對話與生成會失敗。建議改用 gpt-6-luna，並在下列設定頁儲存。外掛不會自動更改模型。"
 msgstr ""
+
+#: includes/core/frontend-functions.php
+msgid "ストーリー再生中のため、自動会話の確認をスキップします"
+msgstr ""

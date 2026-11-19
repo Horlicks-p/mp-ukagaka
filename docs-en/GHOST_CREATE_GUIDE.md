@@ -656,9 +656,9 @@ Adjusts weights based on the time period. Will be merged with `base_weights`.
 
 Place `stories.json` beside the character's `manifest.json`. Story Talk plays a
 short, handwritten monologue without sending its text to an LLM for rewriting.
-The Phase 1 engine and loader are experimental; automatic playback and the UI
-handoff wiring are not connected yet. Keep `enabled: false` until integration
-and browser testing are complete. There is no WordPress settings toggle.
+The experimental player is connected to Auto Talk in both bundle and
+`SCRIPT_DEBUG` modes. Keep `enabled: false` until browser testing is complete
+and the maintainer approves enabling it. There is no WordPress settings toggle.
 
 ```json
 {
@@ -701,10 +701,18 @@ and browser testing are complete. There is no WordPress settings toggle.
   translation. A missing, disabled or invalid catalog yields `stories: null`.
 - The existing `/dialog` response carries the validated catalog. A valid,
   nonempty fallback dialogue file is required even in LLM replacement mode.
-  Phase 1 does not change the route's existing empty-file errors.
-- Once integrated, drawing immediately consumes a story's place in the
+  The route's existing empty-file errors are unchanged.
+- Drawing immediately consumes a story's place in the
   persistent bag. Completion or cancellation resets its cooldown. Interruptions
   discard playback progress; completed lines stay in normal chat history.
+- A selected story plays all its steps consecutively, including in LLM
+  replacement mode. Only automatic ticks select stories. OK, body clicks,
+  touch zones and decorations cannot replace a playing story. Chat, character
+  menus/switches, extend, hiding the bubble/character, Auto Talk OFF, a hidden
+  tab and SPA navigation cancel it. Reopening does not resume the story.
+- Each fully typed step is saved as ordinary `auto_talk` history before the
+  next step. A subsequent chat sees completed steps through the existing
+  history limits; an interrupted partial step is excluded.
   The bag is scoped to the site and personality; it is not cross-device sync.
   Reloading without cleanup retains the cooldown recorded at story start.
 

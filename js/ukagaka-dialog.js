@@ -98,6 +98,9 @@ function loadExternalDialog(file, skipFirstMessage = false) {
       }
 
       if (resp && !resp.error && Array.isArray(resp.msg)) {
+        // Bind to the generation captured when the request was sent, after
+        // the load-token check. Personality is only a storage-key component.
+        resp.storiesGeneration = characterGeneration;
         if (resp.msg.length === 0) {
           mpuLogger.warnL("dialogExternalFileEmpty", "loadExternalDialog: 会話ファイルが空です");
           mpuSetDialogStore({
@@ -105,6 +108,8 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             auto_msg: resp.auto_msg || "",
             next_msg: resp.next_msg || 0,
             default_msg: resp.default_msg || 0,
+            stories: resp.stories || null,
+            storiesGeneration: characterGeneration,
           });
           if (skipFirstMessage) {
             mpuLogger.logL("dialogExternalFileEmptyLlmFallback", "loadExternalDialog: LLM 置換会話モードのため会話ファイルが空です。LLM 生成に依存します");
@@ -147,6 +152,12 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
             if (firstMessageShown) {
               mpuLogger.logL("dialogFirstLineDuplicateBlocked", "loadExternalDialog: 最初の会話文を重複表示しようとしたため阻止しました");
+              return;
+            }
+
+            if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+              firstMessageShown = true;
+              msgElement.removeAttr("data-initial-msg-system");
               return;
             }
 

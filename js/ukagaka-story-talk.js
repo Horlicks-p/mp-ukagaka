@@ -1,6 +1,6 @@
 /**
- * Handwritten story player. Phase 1 supplies the engine only; UI entrypoints
- * and event listeners are connected in Phase 2. No scheduler or LLM requests.
+ * Handwritten story player. The existing Auto Talk scheduler owns all ticks;
+ * this player never schedules normal dialogue or makes LLM requests.
  */
 function mpuStoryBagKey(restUrl, personality) {
     const url = new URL(restUrl);
@@ -40,6 +40,7 @@ function mpuCreateStoryTalk(overrides = {}) {
         hide: () => mpu_hidemsg(600),
         afterFade: (callback) => jQuery("#ukagaka_msgbox").promise().done(callback),
         appendHistory: (text, timestamp) => {
+            if (!Array.isArray(window.mpuChatHistory)) return;
             window.mpuChatHistory.push(
                 { role: "user", content: "（独り言）", type: "synthetic", timestamp },
                 { role: "assistant", content: text, type: "auto_talk", timestamp }
@@ -250,4 +251,21 @@ function mpuCreateStoryTalk(overrides = {}) {
             bagKey: current.bagKey, completedSteps: [...current.completedSteps],
         } : null,
     };
+}
+
+// Lazy initialization keeps module evaluation independent of later modules.
+// features calls this on DOM ready, after mpuSpaEvents has been initialized.
+function mpuInitStoryTalk() {
+    if (window.mpuStoryTalk) return;
+    window.mpuStoryTalk = mpuCreateStoryTalk();
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) window.mpuStoryTalk.cancel("hidden");
+    });
+    (window.mpuSpaEvents || []).forEach((eventName) => {
+        document.addEventListener(eventName, () => window.mpuStoryTalk.cancel("spa"));
+    });
+}
+
+function mpuStoryTalkIsPlaying() {
+    return !!window.mpuStoryTalk && window.mpuStoryTalk.isPlaying();
 }
