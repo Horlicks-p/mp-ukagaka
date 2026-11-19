@@ -92,16 +92,37 @@ final class StoryTalkLoaderTest extends TestCase {
         unset($GLOBALS['wp_filesystem'], $GLOBALS['_story_test_root']);
     }
 
+    /** Fixed test catalog, independent of the stories authors ship. */
     private function catalog(): array {
-        $raw = json_decode(file_get_contents(MPU_TESTS_ROOT . '/ghost/Frieren/stories.json'), true);
-        $raw['enabled'] = true;
-        return $raw;
+        return [
+            'format_version' => 1,
+            'enabled'        => true,
+            'config'         => [
+                'start_chance'     => 0.05,
+                'cooldown_minutes' => 360,
+                'step_pause'       => ['base_ms' => 1200, 'per_char_ms' => 50, 'min_ms' => 1500, 'max_ms' => 4000],
+            ],
+            'stories'        => [[
+                'id'    => 'treasure_chest',
+                'title' => '宝箱の誘惑',
+                'steps' => [
+                    ['text' => 'この宝箱、何が入っているんだろう……', 'emotion' => 'thinking'],
+                    ['text' => 'ミミックの可能性はあるけど……', 'emotion' => 'what'],
+                    ['text' => 'でも、開けない理由にはならないよね。', 'emotion' => 'smirk'],
+                ],
+            ]],
+        ];
     }
 
-    public function test_fixture_is_disabled_and_public_shape_is_normalized(): void {
-        $fixture = json_decode(file_get_contents(MPU_TESTS_ROOT . '/ghost/Frieren/stories.json'), true);
-        $this->assertFalse($fixture['enabled']);
-        $this->assertNull(mpu_normalize_personality_stories($fixture, 'Frieren'));
+    public function test_shipped_catalog_is_disabled_and_valid_when_enabled(): void {
+        $shipped = json_decode(file_get_contents(MPU_TESTS_ROOT . '/ghost/Frieren/stories.json'), true);
+        $this->assertFalse($shipped['enabled']);
+        $this->assertNull(mpu_normalize_personality_stories($shipped, 'Frieren'));
+        $shipped['enabled'] = true;
+        $this->assertCount(count($shipped['stories']), mpu_normalize_personality_stories($shipped, 'Frieren')['stories']);
+    }
+
+    public function test_public_shape_is_normalized(): void {
         $result = mpu_normalize_personality_stories($this->catalog(), 'Frieren');
         $this->assertSame(360, $result['config']['cooldown_minutes']);
         $this->assertSame('thinking.png', $result['stories'][0]['steps'][0]['emoji']);

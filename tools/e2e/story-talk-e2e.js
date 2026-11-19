@@ -35,6 +35,13 @@ add_action( 'rest_api_init', static function () {
 } );
 `;
 
+// Fixed three-step test content, independent of the stories authors ship.
+const FIXTURE_STEPS = [
+  { text: "この宝箱、何が入っているんだろう……", emotion: "thinking" },
+  { text: "ミミックの可能性はあるけど……", emotion: "what" },
+  { text: "でも、開けない理由にはならないよね。", emotion: "smirk" },
+];
+
 function createStoryFixture() {
   const parent = fs.mkdtempSync(path.join(os.tmpdir(), "mpu-story-e2e-"));
   const target = path.join(parent, "Frieren");
@@ -46,7 +53,7 @@ function createStoryFixture() {
   const baseline = { ...original, enabled: true,
     config: { ...original.config, start_chance: 0 },
     stories: ["a", "b", "c"].map((id) => ({ id: `story_${id}`,
-      steps: original.stories[0].steps.map((step, i) => ({ ...step, text: `STORY_${id.toUpperCase()}_${i + 1} ${step.text}` })) })) };
+      steps: FIXTURE_STEPS.map((step, i) => ({ ...step, text: `STORY_${id.toUpperCase()}_${i + 1} ${step.text}` })) })) };
   function write(data = baseline) {
     fs.writeFileSync(path.join(target, "stories.json"), typeof data === "string" ? data : JSON.stringify(data));
   }
