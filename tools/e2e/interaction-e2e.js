@@ -20,9 +20,12 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { startPlayground, root } = require("./lib/playground");
 const { startFakeOllama } = require("./lib/fake-ollama");
+const { createStoryFixture, registerStoryScenarios, STORY_CONTROL_PHP } = require("./story-talk-e2e");
+const { startVisibilityBrowser } = require("./lib/visibility-browser");
 
 const args = process.argv.slice(2);
 const only = (args.find((a) => a.startsWith("--only=")) || "").slice(7);
+const exclude = (args.find((a) => a.startsWith("--exclude=")) || "").slice(10);
 const headed = args.includes("--headed");
 const verbose = args.includes("--verbose");
 const port = Number((args.find((a) => a.startsWith("--port=")) || "").slice(7)) || 9431;
@@ -86,16 +89,20 @@ function siteProfile(s) {
     integrity: s.integrity || "audit",
     ai: s.ai || "fake",
     dialogFixture: s.dialogFixture || "",
+    storyFixture: s.storyFixture === true,
+    scriptDebug: s.scriptDebug === true,
   };
 }
 
 function profileKey(profile) {
   return `${profile.ghost}, checksum ${profile.integrity}`
     + (profile.ai === "off" ? ", no AI" : "")
-    + (profile.dialogFixture ? `, ${profile.dialogFixture} dialogue fixture` : "");
+    + (profile.dialogFixture ? `, ${profile.dialogFixture} dialogue fixture` : "")
+    + (profile.storyFixture ? ", stories" : "")
+    + (profile.scriptDebug ? ", SCRIPT_DEBUG" : "");
 }
 
-function blueprintFor(fakeUrl, { ghost, integrity, ai, dialogFixture }) {
+function blueprintFor(fakeUrl, { ghost, integrity, ai, dialogFixture, scriptDebug, storyFixture }) {
   const aiSettings = ai === "off" ? "" : `$o = array_merge($o, array(
   'ai_enabled' => true,
   'llm_provider' => 'ollama',
@@ -117,6 +124,7 @@ require '/wordpress/wp-load.php';
 $o = get_option('mp_ukagaka');
 if (!is_array($o) || empty($o)) { $o = mpu_default_opt(); }
 ${aiSettings}
+${storyFixture ? "$o['ai_trigger_pages'] = '';" : ""}
 ${GHOST_SETUP[ghost]}
 ${dialogFixture ? `$o['external_file_format'] = '${dialogFixture}';
 $o['default_msg'] = 1;` : ""}
@@ -128,6 +136,11 @@ update_option('gmt_offset', '');
     landingPage: "/",
     login: true,
     steps: [
+      ...(scriptDebug ? [{ step: "defineWpConfigConsts", consts: { SCRIPT_DEBUG: true }, method: "rewrite-wp-config" }] : []),
+      ...(storyFixture ? [
+        { step: "mkdir", path: "/wordpress/wp-content/mu-plugins" },
+        { step: "writeFile", path: "/wordpress/wp-content/mu-plugins/mpu-story-e2e.php", data: STORY_CONTROL_PHP },
+      ] : []),
       { step: "activatePlugin", pluginPath: "mp-ukagaka/mp-ukagaka.php" },
       { step: "runPHP", code: php },
     ],
@@ -147,6 +160,7 @@ const PAGE_PROBE = () => {
     requests: [],       // { at, url, status }
     msgChanges: [],     // { at, text } every text change of #ukagaka_msg, including direct .html() writes
     blocking: [],       // { at, value } every effective owner-set synchronization
+    emoji: [],
   };
   window.__mpuProbe = probe;
 
@@ -188,9 +202,19 @@ const PAGE_PROBE = () => {
       return result;
     };
     const origType = window.mpu_typewriter;
-    window.mpu_typewriter = function (text) {
-      probe.typewriter.push({ at: Date.now(), text: String(text) });
-      return origType.apply(this, arguments);
+    window.mpu_typewriter = function (text, target, speed, options) {
+      const entry = { at: Date.now(), text: String(text), completeAt: null };
+      probe.typewriter.push(entry);
+      if (options && typeof options.onComplete === "function") {
+        const complete = options.onComplete;
+        options = { ...options, onComplete() { entry.completeAt = Date.now(); return complete.apply(this, arguments); } };
+      }
+      return origType.call(this, text, target, speed, options);
+    };
+    const origEmoji = window.mpuDisplayDialogueEmoji;
+    window.mpuDisplayDialogueEmoji = function (emoji) {
+      probe.emoji.push({ at: Date.now(), emoji });
+      return origEmoji.apply(this, arguments);
     };
     return true;
   }
@@ -228,15 +252,39 @@ class Harness {
   }
 
   async newPage() {
-    const context = await this.browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const context = this.nativeVisibilityContext || await this.browser.newContext({ viewport: { width: 1280, height: 900 } });
     await context.addInitScript(PAGE_PROBE);
+    if (this.storyFixture) await context.addInitScript(() => {
+      // Current themes render three dock controls. Legacy/custom themes may
+      // also provide show_msg and mpu_extend, whose handlers are still supported.
+      document.addEventListener("DOMContentLoaded", () => {
+        const controls = document.createElement("div");
+        controls.style.cssText = "position:fixed;top:100px;left:10px;z-index:9999999;background:white";
+        controls.dataset.storyFixture = "legacy-controls";
+        for (const id of ["show_msg", "mpu_extend"]) if (!document.getElementById(id)) {
+          const button = document.createElement("button"); button.type = "button"; button.id = id;
+          button.textContent = id; button.style.cssText = "min-width:80px;min-height:32px"; controls.append(button);
+        }
+        document.body.append(controls);
+      });
+    });
     const page = await context.newPage();
+    if (this.nativeVisibilityContext) await page.bringToFront();
     page.setDefaultTimeout(60000);
     this.currentPage = page;
     const consoleErrors = [];
-    page.on("pageerror", (err) => consoleErrors.push(String(err)));
+    page.unhandledErrors = [];
+    page.on("pageerror", (err) => { consoleErrors.push(String(err)); page.unhandledErrors.push(String(err)); });
     page.on("console", (msg) => { if (msg.type() === "error") consoleErrors.push(msg.text()); });
     page.consoleErrors = consoleErrors;
+    page.httpErrors = [];
+    page.on("response", async (response) => {
+      if (!/\/wp-json\/mp-ukagaka\/|admin-ajax\.php/.test(response.url())) return;
+      try {
+        const body = await response.text();
+        if (/^\s*(?:<br|<b>|<html|<!DOCTYPE)/i.test(body)) page.httpErrors.push({ url: response.url(), status: response.status(), body: body.slice(0, 5000) });
+      } catch (_) { /* A cancelled response has no body. */ }
+    });
     return page;
   }
 
@@ -275,6 +323,7 @@ class Harness {
         state: await this.state(page),
         probe: await this.probe(page),
         consoleErrors: page.consoleErrors,
+        httpErrors: page.httpErrors,
       };
       fs.writeFileSync(base + ".json", JSON.stringify(snapshot, null, 2));
     } catch (error) {
@@ -1969,6 +2018,18 @@ scenario("dialog-theme-switch", "browser", async (h) => {
 // ---------------------------------------------------------------------------
 async function runScenario(harness, s) {
   const started = Date.now();
+  if (s.requiresHeaded && headed && !harness.nativeVisibilityContext) {
+    const native = await startVisibilityBrowser(chromium);
+    const isolated = new Harness(harness.site, harness.fake, native.browser);
+    isolated.storyFixture = harness.storyFixture;
+    isolated.nativeVisibilityContext = native.context;
+    try { return await runScenario(isolated, s); } finally { await native.stop(); }
+  }
+  if (s.requiresHeaded && !headed) {
+    const detail = { reason: "Headless Edge keeps tabs visible; run with --headed to verify real visibilitychange." };
+    console.log(`SKIP  [${s.layer}] ${s.name}: ${detail.reason}`);
+    return { name: s.name, layer: s.layer, status: "SKIP", ms: 0, detail };
+  }
   let status = "PASS";
   let detail = null;
   try {
@@ -1995,10 +2056,14 @@ async function runScenario(harness, s) {
   return { name: s.name, layer: s.layer, status, ms, detail };
 }
 
+registerStoryScenarios({ scenario, assert, sleep, root, outputDir, openLongPost });
+
 async function main() {
   // --only takes one name prefix or several, comma-separated
   const prefixes = only ? only.split(",") : [];
-  const selected = scenarios.filter((s) => !only || prefixes.some((p) => s.name.startsWith(p)));
+  const excluded = exclude ? exclude.split(",") : [];
+  const selected = scenarios.filter((s) => (!only || prefixes.some((p) => s.name.startsWith(p)))
+    && !excluded.some((p) => s.name.startsWith(p)));
   assert(selected.length > 0, `no scenario matches --only=${only}`);
 
   const results = [];
@@ -2010,14 +2075,19 @@ async function main() {
   // browser fails to launch (Edge missing, launch error).
   let browser = null;
   try {
-    browser = await chromium.launch({ channel: "msedge", headless: !headed });
+    browser = await chromium.launch({ channel: "msedge", headless: !headed || selected.every((s) => s.requiresHeaded) });
     const harness = new Harness(null, fake, browser);
     for (const [index, profile] of profiles.entries()) {
       console.log(`booting Playground for ${profileKey(profile)} (first run downloads WordPress)...`);
+      const storyFixture = profile.storyFixture ? createStoryFixture() : null;
+      harness.storyFixture = storyFixture;
       harness.site = await startPlayground({
         port: port + index,
+        workers: storyFixture ? 1 : undefined,
         blueprint: blueprintFor(fake.url, profile),
         mounts: [
+          ...(storyFixture ? [{ source: storyFixture.path, target: "/wordpress/wp-content/plugins/mp-ukagaka/ghost/Frieren" }] : []),
+          ...(storyFixture ? [{ source: storyFixture.dialogs, target: "/wordpress/wp-content/plugins/mp-ukagaka/dialogs" }] : []),
           ...(profile.dialogFixture ? [{
             source: path.join(root, "tools", "e2e", "fixtures", `dialog-emotion-${profile.dialogFixture}`),
             target: "/wordpress/wp-content/plugins/mp-ukagaka/dialogs",
@@ -2030,12 +2100,14 @@ async function main() {
         log: verbose ? (t) => process.stdout.write(t) : () => {},
       });
       console.log(`playground: ${harness.site.url}`);
+      harness.site.scriptDebug = profile.scriptDebug;
       try {
         for (const s of selected.filter((x) => profileKey(siteProfile(x)) === profileKey(profile))) {
           results.push(await runScenario(harness, s));
         }
       } finally {
         await harness.site.stop();
+        if (storyFixture) storyFixture.cleanup();
       }
     }
   } finally {
@@ -2044,8 +2116,12 @@ async function main() {
   }
 
   const failed = results.filter((r) => r.status === "FAIL" || r.status === "XPASS");
+  fs.mkdirSync(outputDir, { recursive: true });
+  const report = JSON.stringify({ at: new Date().toISOString(), selection: only || "all", exclude, results }, null, 2);
+  fs.writeFileSync(path.join(outputDir, `interaction-results-${port}.json`), report);
+  fs.writeFileSync(path.join(outputDir, "interaction-results.json"), report);
   console.log(`
-${results.length} scenarios: ` + ["PASS", "FAIL", "XFAIL", "XPASS"]
+${results.length} scenarios: ` + ["PASS", "FAIL", "XFAIL", "XPASS", "SKIP"]
     .map((k) => `${results.filter((r) => r.status === k).length} ${k}`).join(", "));
   process.exitCode = failed.length > 0 ? 1 : 0;
 }
