@@ -38,6 +38,17 @@ v0.7 的產品語意與已決策事項全部保留。本版只把補充審查的
 | R8 | SPA listener 綁定時機 | `window.mpuSpaEvents` 在 `ukagaka-features.js` 才初始化 | 初始化後再綁定；兩種載入模式都驗證 | §10 |
 | R9 | 偽碼瑕疵 | `robotHiddenOrHiding()` 插在 `tryStart()` 中間；看門狗寫成 `setTimeout(onStepWatchdog(...))` 會立即執行 | helper 移到 `tryStart()` 外；看門狗改箭頭函式 | §6.2 |
 
+### v0.7.1 追補（Claude 核對，2026-11-19）
+
+只修文字與排版，規格不變：
+
+| # | 修正 | 章節 |
+|---|---|---|
+| C1 | §3.3 第 1 段流程改為與 §6.2 一致：不呼叫 `triggerCharacterAnimation()`，翻書由 `mpu_typewriter()` 預設動畫觸發 | §3.3 |
+| C2 | 寫明略過 tick 的位置：`mpuSetAutoTalkTimer(null)` 之後、閒置檢查之前，比照閒置跳過重排計時器 | §6.6 |
+| C3 | ghost 腳本與可能早於 Story 模組執行的接點，以 `typeof mpuStoryTalkIsPlaying === "function"` 防護 | §6.3、§6.6 |
+| C4 | 測試條目依編號排序（編號本身不變，既有引用仍有效） | §11、§13 |
+
 ### v0.7.1 追補（Codex 第三輪）
 
 | # | 問題 | 核對結果 | 處置 | 章節 |
@@ -246,7 +257,7 @@ Story Talk 是「由作者撰寫的短篇、分段、連續演出的自發對話
 
   例：15 字 → 1950 ms；40 字 → 3200 ms；80 字 → 4000 ms。
 - **最後一段**打完後，同樣停一段 `pause_ms` 才釋放鎖定，避免最後一句一打完就被下一個 tick 蓋掉。
-- 第 2 段起**不淡出對話框、不播放 Frieren 動畫**，只換表情並直接打下一句，維持「一句接一句說」的感覺。第 1 段沿用內建台詞的淡出→動畫→表情→打字→顯示流程。
+- 第 2 段起**不淡出對話框、不播放 Frieren 動畫**，只換表情並直接打下一句，維持「一句接一句說」的感覺。第 1 段走「淡出→表情→打字→顯示」，**不呼叫 `triggerCharacterAnimation()`**；翻書由 `mpu_typewriter()` 預設的 `playAnimation()` 觸發（§6.2）。
 - 這些參數放在 `config.step_pause`，**與後台「自發對話間隔」（3～30 秒）完全無關**。
 
 ### 3.4 故事袋（Shuffle Bag）
@@ -526,6 +537,8 @@ cancel(session, reason):
 | **點擊角色本體（非觸摸區）** | **新增**：`#ukagaka_img` click handler 開頭若 `mpuStoryTalkIsPlaying()` 為真就 return，不切換氣泡。忽略而不是中斷：這個點擊通常是無意的，不應讓故事被藏起來或被打斷 |
 | 聊天鈕 | **不擋**（既有行為，正好符合需求） |
 
+**`typeof` 防護**：`ghost/Frieren/frieren-interactions.js` 引用全域變數時一律先 `typeof` 檢查（例如 `mpuLogger`、`mpuAiEnabled`）。新判斷照同樣慣例寫成 `typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()`，ghost 腳本與 Story 模組的載入順序改變時也不會拋錯。`js/` 內其他接點若可能早於 Story 模組執行，同樣處理。
+
 內建台詞、觸摸、裝飾、角色本體點擊都**只檢查 Story**，不改成檢查 `mpuMessageBlocking`，以免改變頁面感知等其他 block 持有者期間的既有行為。若維護者之後希望這些路徑也尊重所有 block，另案處理。
 
 ### 6.4 Typewriter 最小接點
@@ -557,6 +570,16 @@ cancel(session, reason):
 ### 6.6 安全事件
 
 `startAutoTalk()` 的 tick 在 `mpu_nextmsg()` **之前**呼叫 `mpu_checkSpamEvent()`，block 擋不到它。做法：tick 開頭若 `mpuStoryTalkIsPlaying()` 為真，**整個 tick 略過**（不檢查安全事件、不呼叫 `mpu_nextmsg()`），只重排計時器。
+
+位置與寫法：放在 tick callback 中 `mpuSetAutoTalkTimer(null)` 之後、閒置檢查之前，比照既有的閒置跳過：
+
+```js
+if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+  mpuLogger.logL(/* 新 key，§9.2 */);
+  if (mpuAutoTalk) startAutoTalk();
+  return;
+}
+```
 
 這是 Story 對 `startAutoTalk()` 唯一的改動，只加一個判斷，不改計時器責任。
 
@@ -720,17 +743,17 @@ JS smoke：
 12b. 第 1 段不呼叫 `triggerCharacterAnimation()`；以假 canvas manager 驗證：第 1 段 `mpu_typewriter()` 沒有 `skipCharacterAnimation`、第 2 段起有。
 12c. **R5**：打字速度 10 ms/字、第 1 段 3 字：`onComplete` 早於淡入完成時 history 照常寫入一次；在 `onComplete` 前中斷（聊天、換角色、`#show_msg` 隱藏）→ 不寫、block 釋放、之後沒有 rAF 殘字寫入。
 12d. **R3**：extend 落地檢查：模擬 fetch 延遲，回應到達時故事正在播放 → 不改寫 `#ukagaka_msg`、故事繼續；回應到達時沒有故事 → 照常顯示連結。失敗與無效資料（缺 `label`）同樣兩種情況：故事播放中 → 不呼叫顯示錯誤的 `mpu_typewriter()`、不 `mpu_showmsg()`、游標恢復、故事繼續；沒有故事 → 照常顯示錯誤。
+12e. **R4**：故事播放中把 `mpuAutoTalk` 設為 `false` 而不經入口 → 下一個延遲 callback 的 `alive()` 中斷故事並釋放 block。
 12f. **R6**：`#ukagaka` 隱藏時 `tryStart` 回 `false`，不讀寫袋子、不消耗亂數。
 12g. **R6+**：原本沒有故事 → 呼叫 `mpu_hiderobot(400)` → 淡出期間（`:animated` 為真、`:hidden` 為假）強制 auto tick：`tryStart` 回 `false`，不讀寫袋子、不消耗亂數。另驗證殘留旗標無害：`mpuRobotHideRequested` 為 `true` 但角色已由 `.stop(true, true).fadeIn()` 完整顯示且動畫結束 → `tryStart` 可正常開始；`mpu_showrobot()` 後旗標為 `false`。
-12e. **R4**：故事播放中把 `mpuAutoTalk` 設為 `false` 而不經入口 → 下一個延遲 callback 的 `alive()` 中斷故事並釋放 block。
 13. `onComplete` 只在自然結束時呼叫；被新的 `mpu_typewriter()` 取代或 `mpu_cancelTypewriter()` 後永不呼叫；不傳 options 的呼叫行為與修改前一致（除了多一個回傳值）。
 14. 舊 run 失效後，它已排程的 rAF／`flushUpdate()` 不寫 `innerHTML`；一般台詞的速度、批次、標籤處理與最終輸出與修改前相同。
-15a. **外部對話第一句晚到**：`loadExternalDialog()` 存入 store 後、1 秒延遲到期前開始故事，之後 `showFirstMessage()` 到達：不呼叫 `mpuDrawBuiltInIndex()`（內建台詞袋與基準相同）、`#ukagaka_msgnum` 不變、不寫對話框、`data-initial-msg-system` 已移除、故事繼續；之後不會再補顯示這句第一句。
-15b. **LLM 喚醒動畫 callback 晚到**：LLM 回應已通過外層 blocking 檢查、喚醒動畫期間開始故事，動畫 callback 到達：不呼叫 `mpu_cancelTypewriter()`、不清畫面、不打字，故事繼續；該句 history 照既有規則只寫一次。
 15. **普通台詞已排定 → Story 開始 → 舊 callback 到達**：以「callback 到達前」的內建台詞袋與 `#ukagaka_msgnum` 為基準，分兩種情況驗證：
     - `showBuiltInMessage()` 開頭被擋：不呼叫 `mpu_selectNextMessage()`，袋子與基準相同。
     - Frieren 動畫 callback 被擋：索引已在動畫前抽出（不要求歸還）；callback 本身不再抽取，袋子與基準相同。
     - 兩種情況都要確認：不呼叫 `mpu_cancelTypewriter()`、不寫對話框、不寫 history、`#ukagaka_msgnum` 不變，故事繼續播放。
+15a. **外部對話第一句晚到**：`loadExternalDialog()` 存入 store 後、1 秒延遲到期前開始故事，之後 `showFirstMessage()` 到達：不呼叫 `mpuDrawBuiltInIndex()`（內建台詞袋與基準相同）、`#ukagaka_msgnum` 不變、不寫對話框、`data-initial-msg-system` 已移除、故事繼續；之後不會再補顯示這句第一句。
+15b. **LLM 喚醒動畫 callback 晚到**：LLM 回應已通過外層 blocking 檢查、喚醒動畫期間開始故事，動畫 callback 到達：不呼叫 `mpu_cancelTypewriter()`、不清畫面、不打字，故事繼續；該句 history 照既有規則只寫一次。
 
 ## 12. Phase 2：整合
 
@@ -782,16 +805,16 @@ JS smoke：
 | 12 | 播放期間 F5 | 重新載入後沒有任何鎖定殘留；這篇已消耗、冷卻已生效 |
 | 13 | 播放期間有安全事件 | transient 型事件（Turnstile、Akismet、Moelog Bot Blocker）在有效期內發生時，於故事講完後的 tick 顯示，沒有遺失；Bot／AI crawler 事件依 §6.6 決策，記錄實際是否播報，不列為失敗 |
 | 13a | SPA 換頁 → 1 秒內 auto tick → 頁面感知 | 1 秒內不開始故事、袋子與冷卻未改動；頁面感知正常觸發；pending 在 1 秒後解除（含頁面感知未命中機率的情況） |
+| 13b | 播放中開啟角色選單、SPA 換頁 | 中斷後故事的打字立即停止，選單不被殘字覆蓋；SPA 後不再打出沒記入 history 的文字 |
 | 13c | **首次載入 3 秒 pending 尚未結束就 SPA 換頁**（兩種順序：首次載入先結束、SPA 先結束） | 任一等待仍存在時都不開始故事；先結束的一方不會清掉另一方的 pending；兩者都結束後故事可正常開始 |
 | 13d | **（R2）** 第 2 段打字中按 `#show_msg` 隱藏 | 故事中斷、氣泡隱藏、block 釋放、history 只有第 1 段；之後再按 `#show_msg` 顯示，控制正常、不恢復已放棄的故事 |
 | 13e | **（R2）** 播放中點擊角色本體：非觸摸區與觸摸區各一次 | 氣泡不被隱藏、故事不被覆蓋或卡住；觸摸區不進入冷卻、沒有觸摸反應 |
 | 13f | **（R4）** 第 2 段打字中關閉 Auto Talk | 不再出現第 3 段、沒有殘留 block、計時器不自動重啟；重新開啟後一般自發對話正常、不續播 |
 | 13g | **（R3）** 延遲 extend fetch，兩種順序：(a) extend 先發出 → 故事開始 → extend 回應；(b) 故事播放中點 extend | (a) 舊回應被丟棄，故事不被覆寫；(b) 故事中斷、extend 正常顯示、沒有故事殘字。兩者都不留 block |
 | 13g' | **（R3+）** extend 先發出 → 故事開始 → 請求失敗，以及回傳無效資料（缺 `label`） | 不顯示錯誤、不覆寫故事、游標恢復、故事繼續；故事結束後再點 extend 行為正常 |
-| 13j | **（R6）** 第 2 段打字中按 `#remove` 隱藏角色 → 再顯示 | 故事中斷、block 釋放、history 只有第 1 段；再顯示後不續播、沒有額外 history；角色隱藏期間不開始新故事；重新整理後若角色維持隱藏，同樣不開始。另測**原本沒有故事**時按 `#remove`，在 400 ms 淡出期間強制 auto tick（`start_chance: 1`）：不開始故事、袋子與冷卻未改動 |
 | 13h | **（R5）** 打字速度 10 ms/字＋很短的第 1 段，分別在淡入中開聊天、切換角色、`#show_msg` 隱藏，以及不中斷 | history、畫面與 block 最終一致：沒有幽靈 history、沒有殘字、block 已釋放 |
 | 13i | **回歸**：上述中斷後開關聊天、正常觸摸、普通內建台詞、LLM／SSE | 行為與原本一致；`chat_integrity_mode=block` 通過 |
-| 13b | 播放中開啟角色選單、SPA 換頁 | 中斷後故事的打字立即停止，選單不被殘字覆蓋；SPA 後不再打出沒記入 history 的文字 |
+| 13j | **（R6）** 第 2 段打字中按 `#remove` 隱藏角色 → 再顯示 | 故事中斷、block 釋放、history 只有第 1 段；再顯示後不續播、沒有額外 history；角色隱藏期間不開始新故事；重新整理後若角色維持隱藏，同樣不開始。另測**原本沒有故事**時按 `#remove`，在 400 ms 淡出期間強制 auto tick（`start_chance: 1`）：不開始故事、袋子與冷卻未改動 |
 | 14 | 兩個以上故事 | 全部抽過前不重複（含被中斷的）；換輪第一篇不等於上一輪最後一篇 |
 | 15 | 講完／中斷後 | 冷卻期間不會開始故事 |
 | 16 | 強制讓 `onComplete` 不回來（測試注入） | 看門狗釋放 block，OK 鈕與自發對話恢復 |
