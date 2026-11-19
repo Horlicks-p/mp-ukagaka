@@ -38,6 +38,17 @@ v0.7 的產品語意與已決策事項全部保留。本版只把補充審查的
 | R8 | SPA listener 綁定時機 | `window.mpuSpaEvents` 在 `ukagaka-features.js` 才初始化 | 初始化後再綁定；兩種載入模式都驗證 | §10 |
 | R9 | 偽碼瑕疵 | `robotHiddenOrHiding()` 插在 `tryStart()` 中間；看門狗寫成 `setTimeout(onStepWatchdog(...))` 會立即執行 | helper 移到 `tryStart()` 外；看門狗改箭頭函式 | §6.2 |
 
+### v0.7.1 追補（Phase 0 結果，2026-11-19）
+
+Phase 0 審計摘要：`plan/mp-ukagaka-story-talk-phase0-audit-v0.7.1.md`。結論是沒有 STOP 條件，可以進入實作。本節只把審計確定的兩件事寫回規格：
+
+| # | 修正 | 章節 |
+|---|---|---|
+| P1 | 目前角色改用**角色世代綁定**判斷：`/dialog` 送出時記下 `mpuCharacterGeneration`，通過 load token 檢查後才與 `stories` 一起存放；`tryStart` 比對世代。`window.mpuPersonalityId` 切換角色時不會更新，不能使用 | §4.1、§6.2、§10、§11 |
+| P2 | 送給模型的歷史是最後 20 筆，不是 40 筆；5 段故事佔一半。初版故事只寫 2～3 段 | §7.1 |
+
+審計摘要另外指出、實作時要遵守的兩點：`mpuDisplayBuiltInMessage()` 回傳的是文字，不是 run id，run id 另用 `mpuGetTypewriterRunId()` 取得；session 在開始時就固定持有故事袋的 key 與 config，換角色中斷時用原 session 的 key 寫回冷卻，不會改到新角色的袋子。
+
 ### v0.7.1 追補（Claude 核對，2026-11-19）
 
 只修文字與排版，規格不變：
@@ -306,7 +317,11 @@ ghost/
 - `emotion` 在伺服器端解析成 `xxx.png`（與 `msg_emojis` 相同格式）；解析不到就是 `null`，台詞照常顯示。
 - 前端在 `loadExternalDialog()` 收到回應時，`stories` 隨 dialog store 一起存放、一起替換。`msg.length === 0` 分支另建的 store 也帶 `stories: resp.stories || null`，但這只是**防禦性處理**：目前 `/dialog` 對空 JSON／TXT 直接回 400（§2），真正的空對話檔不會成功回應，也就不會有 `stories`。
 - **第一版範圍（R1 方案 A）**：LLM 置換模式完整支援 Story，前提是有**有效的內建對話檔**作為 Fallback（目前本來就是 `/dialog` 成功的前提）。不支援「完全沒有內建台詞」的設定，也不為此放寬 `/dialog` 的空檔錯誤語意；若維護者要求支援（方案 B），屬 REST 契約變更，另案核准。
-- **換角色時不得沿用舊 `stories`**：載入失敗時現有程式會保留舊 store，所以 `mpuChange()` 切換成功（`mpuCharacterGeneration += 1`）時就把 store 的 `stories` 設為 `null`；另外 `tryStart` 比對 `stories.personality` 與目前角色（§6.2），兩道防線擇一失效仍安全。實際取得「目前角色 personality」的方式由 Phase 0 確認。
+- **換角色時不得沿用舊 `stories`**：載入失敗時現有程式會保留舊 store，所以 `mpuChange()` 切換成功（`mpuCharacterGeneration += 1`）時就把 store 的 `stories` 設為 `null`；另外以**角色世代綁定**作為第二道防線（Phase 0 決定），兩道防線擇一失效仍安全：
+  - `loadExternalDialog()` 送出 `/dialog` 時記下當時的 `mpuCharacterGeneration`；回應通過既有的 load token／世代檢查後，才把 `stories` 與這個世代一起存放（例如 `storiesGeneration`）。
+  - `tryStart` 要求 `storiesGeneration === mpuCharacterGeneration`。`mpuCharacterGeneration` 只在 `mpuChange()` 切換角色時加 1（`core.js:1277`），所以換角色後載入失敗、殘留的舊 store 一定對不上。
+  - **不使用** `window.mpuPersonalityId`（只在初始化時設定，切換角色時不會更新），也不從 `default_1` 等設定值推導人格 ID。不新增 REST 欄位或請求。
+  - `stories.personality` 只用來組故事袋的 storage key（§5.1），不再用來判斷是不是目前角色。
 
 回應中的 `stories` 形狀：
 
@@ -431,7 +446,7 @@ if trigger === 'auto' and storyTalk.tryStart(store, now, rng):
 ```text
 tryStart(store, now, rng):
   stories 不存在 / 形狀不對          => false
-  stories.personality ≠ 目前角色       => false   // §4.1，防舊角色 store 殘留
+  storiesGeneration ≠ mpuCharacterGeneration => false   // §4.1，防舊角色 store 殘留
   mpuIsContextPending()              => false   // 頁面感知已排定，不浪費名額與冷卻
   robotHiddenOrHiding()               => false   // 角色被 #remove 隱藏或正在淡出（§6.5）
   story = 袋子 drawAndCommit(now, rng)  // §5.3 第 2 點的單一同步流程：
@@ -447,6 +462,7 @@ robotHiddenOrHiding():                 // tryStart 使用的 helper
 
 start(story):
   session = { story, step: 0, token: 新物件, generation: mpuCharacterGeneration,
+              bagKey: 開始時的故事袋 key, config: 開始時的 config,   // 換角色後仍寫回原角色的袋子
               runId: null, timers: [], stepWatchdog: null, finished: false,
               completedSteps: Set(), historyWritten: Set() }
   currentSession = session
@@ -502,7 +518,7 @@ finish(session, outcome):    // 唯一的收尾點
   清掉 session 的所有計時器（含 stepWatchdog、整體上限、段間停頓）
   currentSession = null
   mpuReleaseMessageBlock("story-talk")
-  從結束時間重設冷卻（§5.3 第 3 點；講完、中斷相同）
+  用 session.bagKey／session.config 從結束時間重設冷卻（§5.3 第 3 點；講完、中斷相同）
 
 cancel(session, reason):
   session.finished 或 session !== currentSession => return
@@ -621,7 +637,7 @@ if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
 
 - `content` 是純對話文字，沒有表情、HTML 或 Story metadata；不需要 `type:'story'`。
 - 由 `mpu_saveChatHistory()` 存儲，遵守 40 entries 上限；不改 F5 清除政策。
-- **佔比提醒**：一篇 N 段的故事寫入 2N 筆，5 段就佔上限的 1/4，可能把較早的真實聊天擠出上下文。初版 Frieren 故事建議 2～3 段；若維護者在實測中覺得擠壓太多，再考慮把 `steps` 上限從 5 降到 3（改 §4.3 驗證即可）。
+- **佔比提醒**：一篇 N 段的故事寫入 2N 筆。前端保存的 raw history 上限是 40 筆，但**送給模型的只有正規化後的最後 20 筆**（`class-mpu-rest-chat.php:648`，Phase 0 核對），所以 5 段故事會佔掉模型上下文的**一半**，3 段約佔三成，可能把訪客較早的真實聊天擠出去。**初版 Frieren 故事只寫 2～3 段**；若維護者在實測中覺得擠壓太多，再把 `steps` 上限從 5 降到 3（改 §4.3 驗證即可）。
 - 每段**只寫一次**（`session.historyWritten`）。
 - **寫入判準（R5）**：該段 run 自然完成（`onComplete`）、session 仍有效（`alive()`）、對話框不是被使用者隱藏的狀態（`#show_msg` 隱藏氣泡與 `#remove` 隱藏角色都會先 `cancel()`，且 `tryStart` 不在角色隱藏時開始，所以 session 有效即代表沒被隱藏）。第 1 段若打字比 `mpu_showmsg(400)` 淡入更快完成，淡入中**算可見**，照常寫入；不等淡入結束，不以動畫幀判斷使用者是否真的讀到。段間停頓最短 1500 ms，長於淡入 400 ms，下一段開始時氣泡必定已完全顯示。淡入中被中斷時，依中斷時間點：`onComplete` 之前中斷 → 不寫；之後 → 已寫入，不回收（與一般中斷相同）。
 - **不要**加入 `mpuLLMResponseHistory`。
@@ -691,7 +707,7 @@ storyTalk.getStateForDebug()              [僅 debug]
 - [x] §6.6 決策已確認（v0.7）：接受 Bot／AI crawler 播報可能遺失，不改後端。
 - [ ] 開工時再確認其餘事件類型的保存方式未變（v0.6 核對：Turnstile／Akismet／Moelog Bot Blocker 為 transient，Visitor Pulse 為 60 分鐘時窗）。
 - [ ] 確認 `mpuChange()` 是角色切換與角色選單的唯一入口（v0.5 已知呼叫端：第 3 鈕、右鍵選單、extend 連結、選單項目），以及 `mpu_extend` 是否在呼叫 `mpuChange()` 前就改寫對話框。
-- [ ] 確認前端取得「目前角色 personality」的方式，供 `tryStart` 比對 `stories.personality`（§4.1）。
+- [x] 目前角色的判斷方式（Phase 0 已決定）：以角色世代綁定 `stories`，不用 `window.mpuPersonalityId`（§4.1）。
 - [ ] 確認 auto 觸發時 `triggerFrierenSpeaking(false, …)` 仍不呼叫 callback、仍由 `mpu_typewriter()` 的 `playAnimation()` 觸發翻書（v0.5 已核對，開工前再看一次）。第 2 段起用 `{ skipCharacterAnimation: true }`。
 - [ ] 盤點所有不經 `mpu_typewriter()` 寫入 `#ukagaka_msg` 的地方（已知：串流聊天、`mpuShowSystemPlaceholder()`、`mpu_nextmsg()` 動畫 callback 的 `.html("")`、`mpuChange()` 選單、`mpu_extend`、`loadExternalDialog()` 錯誤時的 `.html(errorMsg)`、安全事件台詞），確認它們在故事播放期間不會執行，或執行前一定會先觸發 §6.5 的中斷。
 - [ ] 確認新模組在 bundle 與 `SCRIPT_DEBUG` 兩種載入模式的位置與依賴。**`window.mpuSpaEvents` 在 `ukagaka-features.js` 才初始化**：Story 模組若排在它之前，不得在頂層立即讀取並綁定 SPA listener（會報錯或漏綁），改為在初始化完成後綁定（例如 DOM ready 或 features 載入後），並在兩種載入模式都驗證 SPA 事件確實中斷故事。
@@ -739,7 +755,7 @@ JS smoke：
 11.3 **重複 `onComplete`**：同一段的 `onComplete` 呼叫兩次，history 只多一對，下一段只排一次。
 11.4 **pending owner 集合**：取得 `"startup"` 與 `"spa"` 後，任一方釋放時 `mpuIsContextPending()` 仍為真、`tryStart` 回 `false`；兩方都釋放後才為假。重複取得同一 owner 只算一份；不帶 owner 的 `mpuSetContextPending(true/false)` 行為與修改前相同。
 12. `finish()` 重複呼叫只收尾一次；看門狗、整體上限、例外都會釋放 block。整體上限依內容計算：打字速度 200 ms/字、5 段 × 120 字的故事不會被 `timeout` 中斷。
-12a. `tryStart` 前置條件：`stories.personality` 與目前角色不同 → `false` 且不讀寫袋子；`mpuIsContextPending()` 為真 → `false` 且不讀寫袋子、不消耗亂數。
+12a. `tryStart` 前置條件：`storiesGeneration` 與目前 `mpuCharacterGeneration` 不同（模擬換角色後載入失敗、保留舊 store）→ `false` 且不讀寫袋子；`mpuIsContextPending()` 為真 → `false` 且不讀寫袋子、不消耗亂數。
 12b. 第 1 段不呼叫 `triggerCharacterAnimation()`；以假 canvas manager 驗證：第 1 段 `mpu_typewriter()` 沒有 `skipCharacterAnimation`、第 2 段起有。
 12c. **R5**：打字速度 10 ms/字、第 1 段 3 字：`onComplete` 早於淡入完成時 history 照常寫入一次；在 `onComplete` 前中斷（聊天、換角色、`#show_msg` 隱藏）→ 不寫、block 釋放、之後沒有 rAF 殘字寫入。
 12d. **R3**：extend 落地檢查：模擬 fetch 延遲，回應到達時故事正在播放 → 不改寫 `#ukagaka_msg`、故事繼續；回應到達時沒有故事 → 照常顯示連結。失敗與無效資料（缺 `label`）同樣兩種情況：故事播放中 → 不呼叫顯示錯誤的 `mpu_typewriter()`、不 `mpu_showmsg()`、游標恢復、故事繼續；沒有故事 → 照常顯示錯誤。
