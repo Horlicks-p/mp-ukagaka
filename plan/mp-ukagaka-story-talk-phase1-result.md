@@ -27,3 +27,9 @@
 這是資料與引擎階段：新 Story JS 尚未加入前台 enqueue／coreFiles，也沒有建立正式 player instance。現有 bundle 只同步本階段已生效的 Typewriter／helper／pending 修改。
 下一階段才做 Auto Talk 入口、`storiesGeneration` 的實際載入綁定、雙載入模式、UI 取消／鎖定、舊顯示 callback 防護、SPA pending 與 listener。規格中對應這些接點的 smoke／E2E 尚未驗證；不能把引擎的模擬環境測試當成已完成整合。
 未執行瀏覽器／WordPress E2E、未啟用故事、未合併、未發版或部署。
+
+## Phase 1 審查修正：損壞的故事袋
+
+Claude 指出的 `readBag()` 問題已重現並修正：只有 storage 存取拋出例外才降級為本頁記憶體；JSON 解析失敗僅重設空袋，後續抽取仍會把有效袋子與冷卻寫回 storage。
+新增回歸測試先在舊程式重現失敗，再確認壞 JSON／無效 schema 能被覆寫，開始後未收尾的換頁、中斷後換頁都保留 360 分鐘冷卻；既有 getItem／setItem 例外降級案例仍通過。
+本次執行 Story smoke、兩個 JS 語法檢查與 diff 空白檢查，全部通過；未重跑完整 verify，未變更 PHP 或 bundle（Story 模組尚未加入 bundle）。

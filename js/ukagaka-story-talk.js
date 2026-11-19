@@ -58,8 +58,17 @@ function mpuCreateStoryTalk(overrides = {}) {
 
     function readBag(key) {
         if (memoryOnly.has(key)) return memory.get(key) || emptyBag();
+        let saved;
         try {
-            const raw = JSON.parse(env.storage().getItem(key));
+            saved = env.storage().getItem(key);
+        } catch (_) {
+            // Access failures stay in memory for this page; a later successful
+            // read of stale storage must not undo the in-memory progress.
+            memoryOnly.add(key);
+            return memory.get(key) || emptyBag();
+        }
+        try {
+            const raw = JSON.parse(saved);
             if (!raw || raw.v !== 1 || !Array.isArray(raw.drawn)
                 || raw.drawn.some((id) => typeof id !== "string")
                 || !(raw.lastDrawn === null || typeof raw.lastDrawn === "string")
@@ -67,10 +76,9 @@ function mpuCreateStoryTalk(overrides = {}) {
             memory.set(key, raw);
             return raw;
         } catch (_) {
-            // Malformed JSON resets the bag; an unavailable storage falls back
-            // permanently for this page so an old successful read cannot undo it.
-            memoryOnly.add(key);
-            return memory.get(key) || emptyBag();
+            // Corrupt data is not a storage access failure. The next draw can
+            // overwrite it with a valid bag and a persistent cooldown.
+            return emptyBag();
         }
     }
 

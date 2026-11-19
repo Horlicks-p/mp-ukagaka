@@ -208,6 +208,28 @@ for (const fail of ["read", "write"]) {
   assert.equal(seen.size, 3);
 }
 
+// Corrupt saved data resets the bag, but must not disable otherwise writable storage.
+for (const corrupt of ["{bad", JSON.stringify({ v: 99, drawn: [] })]) {
+  const r = setup(), s = store();
+  s.stories.config.cooldown_minutes = 360;
+  const key = r.context.mpuStoryBagKey(r.env.restUrl(), s.stories.personality);
+  r.shared.set(key, corrupt);
+  const p = r.make();
+  assert.equal(p.tryStart(s), true);
+  const started = JSON.parse(r.shared.get(key));
+  assert.deepEqual(started.drawn, ["chest"]);
+  assert.equal(started.cooldownUntil, 360 * 60000);
+  // Reloading before cleanup still sees the cooldown persisted at story start.
+  const reloaded = setup(r.shared);
+  assert.equal(reloaded.make().tryStart(s), false);
+  assert.equal(reloaded.rngCalls(), 0);
+  r.time.advance(500); p.cancel();
+  assert.equal(JSON.parse(r.shared.get(key)).cooldownUntil, 360 * 60000 + 500);
+  const afterCancel = setup(r.shared);
+  assert.equal(afterCancel.make().tryStart(s), false);
+  assert.equal(afterCancel.rngCalls(), 0);
+}
+
 // Missing completion, exceptions, very slow text: watchdog recovery never leaks blocks.
 {
   const r = setup();
