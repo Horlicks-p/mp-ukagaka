@@ -1,0 +1,20 @@
+{
+  "format_version": 1,
+  "enabled": false,
+  "config": {
+    "start_chance": 0.05,
+    "cooldown_minutes": 360,
+    "step_pause": { "base_ms": 1200, "per_char_ms": 50, "min_ms": 1500, "max_ms": 4000 }
+  },
+  "stories": [
+    {
+      "id": "treasure_chest",
+      "title": "宝箱の誘惑",
+      "steps": [
+        { "text": "この宝箱、何が入っているんだろう……", "emotion": "thinking" },
+        { "text": "ミミックの可能性はあるけど……", "emotion": "what" },
+        { "text": "でも、開けない理由にはならないよね。", "emotion": "smirk" }
+      ]
+    }
+  ]
+}

@@ -390,8 +390,12 @@ function mpuSetGreetInProgress(isInProgress) {
     mpuGetState().flags.greetInProgress = isInProgress;
 }
 
-function mpuSetContextPending(isPending) {
-    mpuGetState().flags.contextPending = isPending;
+const mpuContextPendingOwners = new Set(mpuGetState().flags.contextPending ? ["startup"] : []);
+
+function mpuSetContextPending(isPending, owner = "startup") {
+    if (isPending) mpuContextPendingOwners.add(owner);
+    else mpuContextPendingOwners.delete(owner);
+    mpuGetState().flags.contextPending = mpuContextPendingOwners.size > 0;
 }
 
 function mpuIsContextPending() {
@@ -790,6 +794,12 @@ function mpuClearSystemPlaceholder(targetOrOptions) {
     mpuHideThinkBubble({ source: 'system' });
 }
 
+let mpuTypewriterRunId = 0;
+
+function mpuGetTypewriterRunId() {
+    return mpuTypewriterRunId;
+}
+
 /**
  * 打字效果函數（性能優化版）
  * @param {string} text - 要顯示的文字（可包含 HTML）
@@ -802,8 +812,12 @@ function mpuClearSystemPlaceholder(targetOrOptions) {
  *         「えっと…何を話せばいいかな…」）。一律跳過角色動畫，並在目標容器標記
  *         data-mpu-placeholder="system"。§16.3-A 標記式判定，取代舊的 systemMessages
  *         字串黑名單（字串內容比對會隨翻譯漂移而失效，見 §16.2）。
+ *       - {Function} onComplete: 目前 run 自然完成並 flush 後呼叫一次；取消不呼叫。
+ * @returns {number} 此次 Typewriter run id（空字串清除也會產生新 id）。
  */
 function mpu_typewriter(text, target, speed, options) {
+    const runId = ++mpuTypewriterRunId;
+    let completed = false;
     // 第 4 參數正規化：boolean（舊 skipCharacterAnimation）或 options 物件
     const _opts = (options && typeof options === 'object')
         ? options
@@ -822,7 +836,7 @@ function mpu_typewriter(text, target, speed, options) {
         // 清空時一併移除 placeholder 標記，避免 stale attribute 殘留誤判 source
         mpuClearSystemPlaceholder($target);
         $target.html('');
-        return;
+        return runId;
     }
 
     const $target = typeof target === 'string' ? jQuery(target) : target;
@@ -896,6 +910,7 @@ function mpu_typewriter(text, target, speed, options) {
     }
 
     function flushUpdate() {
+        if (runId !== mpuTypewriterRunId) return;
         if (pendingUpdate && targetElement) {
             targetElement.innerHTML = currentHTML;
             pendingUpdate = false;
@@ -903,6 +918,7 @@ function mpu_typewriter(text, target, speed, options) {
     }
 
     function processNextChar() {
+        if (runId !== mpuTypewriterRunId || completed) return;
         if (partIndex >= parts.length) {
             if (pendingUpdate) {
                 flushUpdate();
@@ -913,6 +929,8 @@ function mpu_typewriter(text, target, speed, options) {
             }
             mpuSetTypewriterTimer(null);
             animationTriggered = false;
+            completed = true;
+            if (typeof _opts.onComplete === 'function') _opts.onComplete();
             return;
         }
 
@@ -972,6 +990,7 @@ function mpu_typewriter(text, target, speed, options) {
     }
 
     processNextChar();
+    return runId;
 }
 
 /**
@@ -980,6 +999,7 @@ function mpu_typewriter(text, target, speed, options) {
  * @returns {boolean} 是否成功取消
  */
 function mpu_cancelTypewriter() {
+    mpuTypewriterRunId++;
     if (mpuTypewriterTimer !== null) {
         clearTimeout(mpuTypewriterTimer);
         mpuSetTypewriterTimer(null);
@@ -1645,10 +1665,15 @@ function mpuDisplayDialogueEmoji(emoji) {
 
 function mpuDisplayBuiltInMessage(store, index, options = {}) {
   const target = options.target || "#ukagaka_msg";
+  const typewriterOptions = typeof options.callback === "function"
+    ? Object.assign({}, typeof options.typewriterOptions === "boolean"
+      ? { skipCharacterAnimation: options.typewriterOptions } : options.typewriterOptions,
+      { onComplete: options.callback })
+    : options.typewriterOptions;
 
   if (!store || !Array.isArray(store.msg) || !Object.prototype.hasOwnProperty.call(store.msg, index)) {
     mpuDisplayDialogueEmoji(null);
-    mpu_typewriter("", target, options.callback || null, options.typewriterOptions);
+    mpu_typewriter("", target, null, typewriterOptions);
     return "";
   }
 
@@ -1656,7 +1681,7 @@ function mpuDisplayBuiltInMessage(store, index, options = {}) {
   const output = mpu_unescapeHTML(String(store.msg[index] || "") + String(store.auto_msg || ""));
 
   mpuDisplayDialogueEmoji(emoji);
-  mpu_typewriter(output, target, options.callback || null, options.typewriterOptions);
+  mpu_typewriter(output, target, null, typewriterOptions);
   return output;
 }
 

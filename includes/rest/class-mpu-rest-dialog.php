@@ -296,6 +296,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             'auto_msg'    => $mpu_opt['auto_msg'] ?? '',
             'msg'         => $built['msg'],
             'msg_emojis'  => $built['msg_emojis'],
+			'stories'     => null !== $personality_id ? mpu_load_personality_stories( $personality_id ) : null,
             'next_msg'    => intval($mpu_opt['next_msg'] ?? 0),
             'default_msg' => intval($mpu_opt['default_msg'] ?? 0),
         ];

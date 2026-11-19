@@ -85,10 +85,15 @@ function mpuDisplayDialogueEmoji(emoji) {
 
 function mpuDisplayBuiltInMessage(store, index, options = {}) {
   const target = options.target || "#ukagaka_msg";
+  const typewriterOptions = typeof options.callback === "function"
+    ? Object.assign({}, typeof options.typewriterOptions === "boolean"
+      ? { skipCharacterAnimation: options.typewriterOptions } : options.typewriterOptions,
+      { onComplete: options.callback })
+    : options.typewriterOptions;
 
   if (!store || !Array.isArray(store.msg) || !Object.prototype.hasOwnProperty.call(store.msg, index)) {
     mpuDisplayDialogueEmoji(null);
-    mpu_typewriter("", target, options.callback || null, options.typewriterOptions);
+    mpu_typewriter("", target, null, typewriterOptions);
     return "";
   }
 
@@ -96,7 +101,7 @@ function mpuDisplayBuiltInMessage(store, index, options = {}) {
   const output = mpu_unescapeHTML(String(store.msg[index] || "") + String(store.auto_msg || ""));
 
   mpuDisplayDialogueEmoji(emoji);
-  mpu_typewriter(output, target, options.callback || null, options.typewriterOptions);
+  mpu_typewriter(output, target, null, typewriterOptions);
   return output;
 }
 
