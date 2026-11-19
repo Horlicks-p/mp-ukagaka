@@ -36,7 +36,7 @@
 
 ## 實測釐清與限制
 
-1. **F5 的冷卻起算有瀏覽器行為差異。** Chromium 在離頁時會先送出 `visibilitychange(hidden)`，既有隱藏分頁取消路徑因此刷新「結束時間＋冷卻」。袋子與六小時冷卻不會遺失，但時間戳可能比「開始時間＋冷卻」晚數秒。這與 §5.3 將 F5 列為純開始時間例外的敘述有落差；本階段沒有新增 pagehide 存檔或生命週期仲裁，保留實測紀錄供維護者判斷。
+1. **F5 的兩種冷卻起算方式，維護者已確認接受。** 未走到收尾時保留「開始時間＋冷卻」；Chromium 等瀏覽器可能先送出 `visibilitychange(hidden)`，走既有的一般中斷收尾，改為「中斷時間＋冷卻」。兩者都保留已消耗的故事與有效的六小時冷卻，符合「沒收尾也不遺失冷卻」的設計目的。主計畫 §5.3 第 4 點及相關 smoke／E2E 預期已同步，不再列為待決規格落差；不新增 pagehide／beforeunload 判斷，也不改程式。
 2. **40 筆是儲存／請求視窗，不是即時陣列上限。** `mpu_saveChatHistory()` 與 `mpu_getChatHistoryForRequest()` 各取最後 40 筆，進聊天時再從儲存讀回；後端模型上下文另截最後 20 筆。測試依真實契約判斷，沒有為測試改變歷史或 checksum。
 3. **目前預設 dock 沒有 `#show_msg`／`#mpu_extend`。** 測試在 DOM ready 前加入 legacy／自訂主題控制 fixture，讓既有 handler 綁定後以真實點擊驗證；這不表示預設 UI 已新增這兩個按鈕。
 4. 畫面截圖與完整執行 JSON 位於 gitignored 的 `tools/e2e/output/`。這是隔離 WordPress 實驗，不是正式站驗證、發布或部署；也未宣稱已在 PHP 7.4 跑過。
