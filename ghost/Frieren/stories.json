@@ -4,7 +4,7 @@
   "config": {
     "start_chance": 0.05,
     "cooldown_minutes": 360,
-    "step_pause": { "base_ms": 1200, "per_char_ms": 50, "min_ms": 1500, "max_ms": 4000 }
+    "step_pause": { "base_ms": 1200, "per_char_ms": 80, "min_ms": 1500, "max_ms": 7000 }
   },
   "stories": [
     {
