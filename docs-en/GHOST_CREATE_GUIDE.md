@@ -652,13 +652,14 @@ Adjusts weights based on the time period. Will be merged with `base_weights`.
 
 ---
 
-## Handwritten Stories (`stories.json`, Experimental)
+## Handwritten Stories (`stories.json`)
 
 Place `stories.json` beside the character's `manifest.json`. Story Talk plays a
 short, handwritten monologue without sending its text to an LLM for rewriting.
-The experimental player is connected to Auto Talk in both bundle and
-`SCRIPT_DEBUG` modes. Keep `enabled: false` until browser testing is complete
-and the maintainer approves enabling it. There is no WordPress settings toggle.
+The player is connected to Auto Talk in both bundle and `SCRIPT_DEBUG` modes.
+`enabled` in the file is the only switch; there is no WordPress settings toggle.
+Keep a new catalog at `enabled: false` until you have watched its pacing and
+expressions in a browser. Frieren ships with five stories enabled.
 
 ```json
 {
