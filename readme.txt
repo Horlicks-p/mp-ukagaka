@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.39.2
+Stable tag: 2.40.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,13 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-11-21 =
+* v2.40.0
+* [NEW] Story Talk: characters can tell short handwritten stories during Auto Dialogue; Frieren tells five.
+* [NEW] Frieren's good_mood expression.
+* [TWEAK] Random built-in lines come from a shuffle bag, so they no longer loop over the same few lines.
+* [FIX] mpuDisplayBuiltInMessage() no longer mixes up its callback and speed arguments.
 
 = 2026-11-12 =
 * v2.39.2

@@ -4,6 +4,34 @@
 
 ---
 
+## [2.40.0] - 2026-11-21
+
+### Story Talk
+
+- **Characters can tell short handwritten stories.** A character's `stories.json` holds stories of two to five lines. Now and then an automatic Auto Dialogue tick starts a story instead of a single line, and its lines play one after another, each with its own expression and a pause sized to its length. Stories are shown as written, also when the LLM replaces built-in dialogue. The `/dialog` response carries the validated catalog as `stories` (`includes/personality/personality-stories.php`), and `js/ukagaka-story-talk.js` plays it.
+- **Frieren tells five stories**: the clothes-melting potion, the Southern Hero, her "date" with Himmel, the magic-sealing ore, and a flying kiss learned from her master. About 1 in 20 automatic ticks starts one, with a 6-hour pause after each, and each story is told once per round on a browser.
+- Opening chat, switching or hiding the character, hiding the balloon, turning Auto Dialogue off, a hidden tab and SPA navigation stop a story, and it does not resume. Clicks, touch zones and decorations do not interrupt it. Lines already told go into chat history as ordinary auto talk.
+- There is no admin setting: `enabled` in `stories.json` is the switch. The format and its limits are in the [Character Creation Guide](GHOST_CREATE_GUIDE.md#handwritten-stories-storiesjson).
+- The typewriter gives each run an id and an `onComplete` callback, and `mpuDisplayBuiltInMessage()` no longer mixes up its callback and speed arguments.
+
+### Built-in lines
+
+- **Random order no longer loops over the same few lines.** It only avoided saying the same line twice in a row, so A-B-A-B loops still happened. Random built-in lines now come from a shuffle bag: every line is said once per round, and a new round never starts with the line that ended the last one. Auto talk, the LLM fallback, the first line on load and the other built-in fallbacks share one bag. Sequential order is unchanged.
+
+### Frieren
+
+- New `good_mood` expression (floating music notes), usable as `[good_mood]` and in stories. Keywords: ご機嫌, 上機嫌, 心情好, 心情不錯.
+
+### Documentation
+
+- The User Guide describes Story Talk and the shuffle bag, and diary images (`diary_images/<category>/`) are documented.
+
+### Internal
+
+- Story Talk has PHPUnit loader tests, engine and integration smoke tests, and a WordPress Playground E2E suite (54 story checks and 50 regression checks). The shuffle bag has its own smoke test.
+
+---
+
 ## [2.39.2] - 2026-11-12
 
 ### Waking the character
