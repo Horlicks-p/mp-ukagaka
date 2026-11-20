@@ -51,6 +51,7 @@ function mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg) {
 }
 
 jQuery(document).ready(function () {
+  if (typeof mpuInitStoryTalk === "function") mpuInitStoryTalk();
   mpuLogger.logL("featuresJqueryReady", "jQuery ready を実行しました");
 
   // 確保 jQuery.cookie 已初始化
@@ -368,6 +369,7 @@ jQuery(document).ready(function () {
 
     jQuery("#toggleAutoTalk").on("click", function (e) {
       e.preventDefault();
+      if (mpuAutoTalk && window.mpuStoryTalk) window.mpuStoryTalk.cancel("autotalk-off");
       mpuSetAutoTalkEnabled(!mpuAutoTalk);
       if (mpuAutoTalk) startAutoTalk();
       else stopAutoTalk();
@@ -381,12 +383,14 @@ jQuery(document).ready(function () {
       mpu_showmsg(400);
       mpu_setLocal("mpuMsg", "show");
     } else {
+      if (window.mpuStoryTalk) window.mpuStoryTalk.cancel("hide");
       mpu_hidemsg(400);
       mpu_setLocal("mpuMsg", "hidden");
     }
   });
 
   jQuery("#ukagaka_img").on("click", function () {
+    if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) return;
     if (jQuery("#ukagaka_msgbox").is(":hidden")) {
       mpu_showmsg(400);
     } else {
@@ -395,6 +399,7 @@ jQuery(document).ready(function () {
   });
 
   jQuery("#mpu_extend").on("click", function () {
+    if (window.mpuStoryTalk) window.mpuStoryTalk.cancel("menu");
     const extendUrl = `${mpuRestUrl}extend`;
 
     document.body.style.cursor = "wait";
@@ -406,6 +411,10 @@ jQuery(document).ready(function () {
       retries: 1,
     })
       .then((res) => {
+        if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+          document.body.style.cursor = "auto";
+          return;
+        }
         if (!res || !res.label)
           throw new Error("Invalid extend response.");
         mpu_showmsg(400);
@@ -416,6 +425,11 @@ jQuery(document).ready(function () {
         document.body.style.cursor = "auto";
       })
       .catch((error) => {
+        if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+          mpu_handle_error(error, "mpu_extend", { showToUser: false });
+          document.body.style.cursor = "auto";
+          return;
+        }
         mpu_handle_error(error, "mpu_extend", {
           showToUser: true,
           userMessage:
@@ -463,6 +477,7 @@ jQuery(document).ready(function () {
       mpu_showrobot(400);
       mpu_setLocal("mpuRobot", "show");
     } else {
+      if (window.mpuStoryTalk) window.mpuStoryTalk.cancel("hide-robot");
       mpu_hiderobot(400);
       mpu_setLocal("mpuRobot", "hidden");
     }
@@ -507,12 +522,17 @@ window.mpuSpaEvents = window.mpuSpaEvents || [
  * SPA 導航後的頁面感知處理函數
  * @param {Event} e - 事件物件
  */
+let mpuSpaNavigationToken = 0;
 function mpu_handleSpaNavigation(e) {
+  const token = ++mpuSpaNavigationToken;
+  mpuSetContextPending(true, "spa");
   const url = e.detail?.url || e.detail?.to?.url || window.location.href;
   mpuLogger.logL("featuresSpaNavigationContentChanged", "🔄 SPA ナビゲーション：ページ内容が変更されました", url);
 
   // 延遲一下讓新內容載入完成，然後檢查是否要觸發頁面感知對話
   setTimeout(function () {
+    if (token !== mpuSpaNavigationToken) return;
+    mpuSetContextPending(false, "spa");
     if (typeof mpuInitObservationTracking === "function") {
       if (window.mpuPageContext) window.mpuPageContext.postId = 0;
       mpuInitObservationTracking();

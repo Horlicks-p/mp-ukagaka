@@ -112,6 +112,8 @@ Go to **Settings** → **MP Ukagaka** → **General Settings**
 | Session Order | Whether the next dialogue on click is "Sequential" or "Random" |
 | Click Ukagaka | Action when clicking the character (Show next dialogue or No action) |
 
+In "Random" order, built-in lines are drawn like cards from a shuffled deck: every line is said once before any line repeats, and a new round never starts with the line that just ended the previous one.
+
 ### Auto Dialogue
 
 | Setting | Description |
@@ -119,6 +121,18 @@ Go to **Settings** → **MP Ukagaka** → **General Settings**
 | Enable Auto Dialogue | Whether to automatically rotate dialogue |
 | Auto Dialogue Interval | Interval for automatic dialogue change (3-30 seconds) |
 | Typing Effect Speed | Dialogue typing animation speed (10-200 ms/char) |
+
+#### Story Talk
+
+Some characters ship short handwritten stories (`stories.json` in the character folder). Now and then an automatic dialogue tick starts one instead of a single line: the character tells the story in two to five lines, one after another, each with its own expression. Frieren has five stories; by default about 1 in 20 automatic ticks starts one, and after a story there is a 6-hour pause before the next.
+
+- Only Auto Dialogue starts a story, so it needs **Enable Auto Dialogue**. The story's own pause between lines is used, not the Auto Dialogue Interval.
+- Stories play as written, even when "Use LLM to Replace Built-in Dialogue" is on.
+- Opening chat, switching or hiding the character, hiding the balloon, turning Auto Dialogue off, or leaving the tab stops the story. It does not resume. Clicking the character or a touch zone does not interrupt it.
+- Lines already told are kept in the chat history, so the character can refer to the story in a later chat.
+- Each story is told once per round on that browser; the round starts over when every story has been told.
+
+There is no admin setting. To turn stories off, set `"enabled": false` in the character's `stories.json` (a plugin update restores the shipped file). See the [Character Creation Guide](GHOST_CREATE_GUIDE.md#handwritten-stories-storiesjson) to write your own.
 
 ### Admin Profile
 

@@ -451,6 +451,20 @@
         "headRatio": 0.0
       }
     },
+    "good_mood": {
+      "description": "音符が浮かぶ。機嫌がいい・楽しい気分",
+      "keywords": [
+        "ご機嫌", "上機嫌", "心情好", "心情不錯"
+      ],
+      "file": "good_mood.png",
+      "weight": 7,
+      "scale": 1.5,
+      "position": {
+        "offsetX": -128,
+        "offsetY": -15,
+        "headRatio": 0.0
+      }
+    },
     "sad": {
       "description": "涙を流す。悲しい・寂しい",
       "keywords": [

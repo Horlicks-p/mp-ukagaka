@@ -652,6 +652,74 @@ Adjusts weights based on the time period. Will be merged with `base_weights`.
 
 ---
 
+## Handwritten Stories (`stories.json`)
+
+Place `stories.json` beside the character's `manifest.json`. Story Talk plays a
+short, handwritten monologue without sending its text to an LLM for rewriting.
+The player is connected to Auto Talk in both bundle and `SCRIPT_DEBUG` modes.
+`enabled` in the file is the only switch; there is no WordPress settings toggle.
+Keep a new catalog at `enabled: false` until you have watched its pacing and
+expressions in a browser. Frieren ships with five stories enabled.
+
+```json
+{
+  "format_version": 1,
+  "enabled": false,
+  "config": {
+    "start_chance": 0.05,
+    "cooldown_minutes": 360,
+    "step_pause": {
+      "base_ms": 1200,
+      "per_char_ms": 50,
+      "min_ms": 1500,
+      "max_ms": 4000
+    }
+  },
+  "stories": [{
+    "id": "treasure_chest",
+    "title": "A tempting chest",
+    "steps": [
+      { "text": "I wonder what is inside this chest…", "emotion": "thinking" },
+      { "text": "It could be a mimic. Still worth opening.", "emotion": "smirk" }
+    ]
+  }]
+}
+```
+
+- Use format version `1` and a boolean `enabled`. Missing configuration fields
+  use the defaults above. Chance must be a number from 0 to 1; cooldown is
+  0–1440 minutes. Pause values are nonnegative integers up to 10000 ms, with
+  `min_ms <= max_ms`. The pause is `base_ms + per_char_ms * character count`,
+  clamped to these limits, independently of the Auto Talk interval.
+- Each unique story ID must match `^[a-z][a-z0-9_-]{0,63}$`. A story contains
+  2–5 steps; prefer 2–3 to leave room in the model's 20-entry chat context.
+  Each step is 1–120 Unicode characters of nonblank plain text. `<`, `>` and
+  `&` are forbidden; an invalid step drops that entire story. Duplicate IDs
+  disable the catalog. Titles and unknown fields are not sent to the player.
+- `emotion` is a supported character tag, never a filename or URL. The server
+  resolves it to the existing emoji asset; unknown tags yield no emoji while
+  preserving the line. Text is presented as authored, without gettext or LLM
+  translation. A missing, disabled or invalid catalog yields `stories: null`.
+- The existing `/dialog` response carries the validated catalog. A valid,
+  nonempty fallback dialogue file is required even in LLM replacement mode.
+  The route's existing empty-file errors are unchanged.
+- Drawing immediately consumes a story's place in the
+  persistent bag. Completion or cancellation resets its cooldown. Interruptions
+  discard playback progress; completed lines stay in normal chat history.
+- A selected story plays all its steps consecutively, including in LLM
+  replacement mode. Only automatic ticks select stories. OK, body clicks,
+  touch zones and decorations cannot replace a playing story. Chat, character
+  menus/switches, extend, hiding the bubble/character, Auto Talk OFF, a hidden
+  tab and SPA navigation cancel it. Reopening does not resume the story.
+- Each fully typed step is saved as ordinary `auto_talk` history before the
+  next step. A subsequent chat sees completed steps through the existing
+  history limits; an interrupted partial step is excluded.
+  The bag is scoped to the site and personality; it is not cross-device sync.
+  Reloading without cleanup retains the cooldown recorded at story start.
+
+Plugin updates can overwrite edits to bundled `ghost/` files. Enabling a shipped
+catalog is a maintainer release decision; preserve your own authoring copy.
+
 ## Shell Image Files
 
 Shell images are the visual representation of the character. For a ZIP-installed personality they live **directly** in `ghost/{PersonalityID}/shell/`.

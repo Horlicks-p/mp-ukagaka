@@ -31,6 +31,7 @@
      * @param {string} decorationType - 裝飾物類型
      */
     handleDecorationClick: function (decorationType) {
+      if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) return;
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
         mpuLogger.logF("frierenDecorationClickHandled", "handleDecorationClick が呼び出されました。装飾品タイプ：%s", decorationType);
         mpuLogger.log(
@@ -401,6 +402,7 @@
      * @param {string} zoneName - 區域名稱
      */
     handleTouchZone: function (zoneName) {
+      if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) return;
       if (typeof mpuLogger !== "undefined" && mpuLogger.log) {
         mpuLogger.logF("frierenTouchZoneHandled", "handleTouchZone が呼び出されました。領域：%s", zoneName);
       }
