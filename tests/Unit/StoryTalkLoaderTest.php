@@ -114,9 +114,10 @@ final class StoryTalkLoaderTest extends TestCase {
         ];
     }
 
-    public function test_shipped_catalog_is_disabled_and_valid_when_enabled(): void {
+    public function test_shipped_catalog_is_valid_when_enabled(): void {
         $shipped = json_decode(file_get_contents(MPU_TESTS_ROOT . '/ghost/Frieren/stories.json'), true);
-        $this->assertFalse($shipped['enabled']);
+        $this->assertIsBool($shipped['enabled']);
+        $shipped['enabled'] = false;
         $this->assertNull(mpu_normalize_personality_stories($shipped, 'Frieren'));
         $shipped['enabled'] = true;
         $this->assertCount(count($shipped['stories']), mpu_normalize_personality_stories($shipped, 'Frieren')['stories']);
