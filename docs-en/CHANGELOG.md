@@ -4,6 +4,19 @@
 
 ---
 
+## [2.40.1] - 2026-11-21
+
+### Frieren
+
+- **A sixth story**: "花畑を出す魔法" (`flower_field_magic`), about the flower-field spell her master taught her, the one Serie called useless, and how it led her to Himmel's party.
+- **Stories move along faster.** Frieren's `step_pause` is now 800 ms + 45 ms per character, kept between 1.2 and 4.5 seconds (was 1200 ms + 80 ms per character, 1.5 to 7 seconds). The next line follows about 40% sooner after the previous one finishes typing.
+
+### Documentation
+
+- The User Guide now says Frieren has six stories.
+
+---
+
 ## [2.40.0] - 2026-11-21
 
 ### Story Talk

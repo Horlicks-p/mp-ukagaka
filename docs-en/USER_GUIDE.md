@@ -124,7 +124,7 @@ In "Random" order, built-in lines are drawn like cards from a shuffled deck: eve
 
 #### Story Talk
 
-Some characters ship short handwritten stories (`stories.json` in the character folder). Now and then an automatic dialogue tick starts one instead of a single line: the character tells the story in two to five lines, one after another, each with its own expression. Frieren has five stories; by default about 1 in 20 automatic ticks starts one, and after a story there is a 6-hour pause before the next.
+Some characters ship short handwritten stories (`stories.json` in the character folder). Now and then an automatic dialogue tick starts one instead of a single line: the character tells the story in two to five lines, one after another, each with its own expression. Frieren has six stories; by default about 1 in 20 automatic ticks starts one, and after a story there is a 6-hour pause before the next.
 
 - Only Auto Dialogue starts a story, so it needs **Enable Auto Dialogue**. The story's own pause between lines is used, not the Auto Dialogue Interval.
 - Stories play as written, even when "Use LLM to Replace Built-in Dialogue" is on.
