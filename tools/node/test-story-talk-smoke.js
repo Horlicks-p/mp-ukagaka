@@ -257,6 +257,20 @@ for (const [length, expected] of [[1, 1500], [15, 1950], [40, 3200], [80, 4000]]
   const second = r.calls.filter((c) => Array.isArray(c) && c[0] === "typewrite")[1];
   assert.equal(second[3] - r.historyAt[0], expected);
 }
+// A step's own pause_ms replaces the computed pause, also outside min/max; null falls back.
+for (const [pauseMs, expected] of [[3500, 3500], [0, 0], [9000, 9000], [null, 1500]]) {
+  const r = setup(), s = store();
+  s.stories.stories[0].steps[0].pause_ms = pauseMs;
+  const p = r.make(); p.tryStart(s); r.time.advance(12000);
+  const second = r.calls.filter((c) => Array.isArray(c) && c[0] === "typewrite")[1];
+  assert.equal(second[3] - r.historyAt[0], expected);
+}
+// An invalid pause_ms rejects the catalog, like any other invalid step field.
+for (const bad of [1.5, -1, 10001, "3000"]) {
+  const r = setup(), s = store();
+  s.stories.stories[0].steps[0].pause_ms = bad;
+  assert.equal(r.make().tryStart(s), false);
+}
 // The default history adapter writes only completed role/content pairs.
 {
   const r = setup(), env = Object.assign({}, r.env);

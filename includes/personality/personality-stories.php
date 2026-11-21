@@ -97,11 +97,21 @@ function mpu_normalize_personality_stories( $catalog, $personality_id ) {
 			if ( ! is_array( $step ) || ! isset( $step['text'] ) || ! is_string( $step['text'] ) || '' === trim( $step['text'] ) || mb_strlen( $step['text'], 'UTF-8' ) > 120 || false !== strpbrk( $step['text'], '<>&' ) ) {
 				continue 2;
 			}
+			// Optional per-step override of the computed pause after this line, e.g. a beat
+			// for the listener to react. Same bounds as step_pause; invalid drops the story.
+			$step_pause = null;
+			if ( array_key_exists( 'pause_ms', $step ) ) {
+				if ( ! is_int( $step['pause_ms'] ) || $step['pause_ms'] < 0 || $step['pause_ms'] > 10000 ) {
+					continue 2;
+				}
+				$step_pause = $step['pause_ms'];
+			}
 			$emotion = isset( $step['emotion'] ) && is_string( $step['emotion'] )
 				? mpu_normalize_resolve_emotion_tag( $step['emotion'], $supported ) : null;
 			$steps[] = array(
-				'text'  => $step['text'],
-				'emoji' => null === $emotion ? null : $emotion . '.png',
+				'text'     => $step['text'],
+				'emoji'    => null === $emotion ? null : $emotion . '.png',
+				'pause_ms' => $step_pause,
 			);
 		}
 		$stories[] = array(

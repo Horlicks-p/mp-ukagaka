@@ -166,6 +166,26 @@ final class StoryTalkLoaderTest extends TestCase {
         ];
     }
 
+    public function test_step_pause_override_is_passed_through_or_null(): void {
+        $raw = $this->catalog();
+        $raw['stories'][0]['steps'][1]['pause_ms'] = 3500;
+        $raw['stories'][0]['steps'][2]['pause_ms'] = 0;
+        $steps = mpu_normalize_personality_stories($raw, 'Frieren')['stories'][0]['steps'];
+        $this->assertSame([null, 3500, 0], array_column($steps, 'pause_ms'));
+    }
+
+    public function test_invalid_step_pause_drops_only_that_story(): void {
+        foreach ([-1, 10001, 1.5, '3000', null] as $bad) {
+            $raw = $this->catalog();
+            $other = $raw['stories'][0];
+            $other['id'] = 'other';
+            $raw['stories'][0]['steps'][0]['pause_ms'] = $bad;
+            $raw['stories'][] = $other;
+            $stories = mpu_normalize_personality_stories($raw, 'Frieren')['stories'];
+            $this->assertSame(['other'], array_column($stories, 'id'), var_export($bad, true));
+        }
+    }
+
     public function test_defaults_and_probability_boundaries(): void {
         $raw = $this->catalog();
         unset($raw['config']);

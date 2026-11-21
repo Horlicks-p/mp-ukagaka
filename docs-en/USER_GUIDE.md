@@ -126,7 +126,7 @@ In "Random" order, built-in lines are drawn like cards from a shuffled deck: eve
 
 Some characters ship short handwritten stories (`stories.json` in the character folder). Now and then an automatic dialogue tick starts one instead of a single line: the character tells the story in two to five lines, one after another, each with its own expression. Frieren has six stories; by default about 1 in 20 automatic ticks starts one, and after a story there is a 6-hour pause before the next.
 
-- Only Auto Dialogue starts a story, so it needs **Enable Auto Dialogue**. The story's own pause between lines is used, not the Auto Dialogue Interval.
+- Only Auto Dialogue starts a story, so it needs **Enable Auto Dialogue**. The story's own pause between lines is used, not the Auto Dialogue Interval. It grows with the length of the line, and a story can give a single line its own pause, for example to leave time for a reaction.
 - Stories play as written, even when "Use LLM to Replace Built-in Dialogue" is on.
 - Opening chat, switching or hiding the character, hiding the balloon, turning Auto Dialogue off, or leaving the tab stops the story. It does not resume. Clicking the character or a touch zone does not interrupt it.
 - Lines already told are kept in the chat history, so the character can refer to the story in a later chat.

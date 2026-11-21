@@ -112,12 +112,16 @@ function mpuCreateStoryTalk(overrides = {}) {
                 && Array.isArray(s.steps) && s.steps.length >= 2 && s.steps.length <= 5
                 && s.steps.every((step) => step && typeof step.text === "string" && step.text.trim()
                     && Array.from(step.text).length <= 120 && !/[<>&]/.test(step.text)
-                    && (step.emoji === null || /^[a-zA-Z0-9_-]+\.png$/.test(step.emoji))));
+                    && (step.emoji === null || /^[a-zA-Z0-9_-]+\.png$/.test(step.emoji))
+                    && (step.pause_ms === undefined || step.pause_ms === null
+                        || (Number.isInteger(step.pause_ms) && step.pause_ms >= 0 && step.pause_ms <= 10000))));
     }
 
-    function pause(text, config) {
+    // A step's own pause_ms wins over the length-based pause (e.g. a beat for a reaction).
+    function pause(step, config) {
+        if (Number.isInteger(step.pause_ms)) return step.pause_ms;
         const p = config.step_pause;
-        return Math.min(p.max_ms, Math.max(p.min_ms, p.base_ms + p.per_char_ms * Array.from(text).length));
+        return Math.min(p.max_ms, Math.max(p.min_ms, p.base_ms + p.per_char_ms * Array.from(step.text).length));
     }
 
     function schedule(session, callback, ms) {
@@ -178,7 +182,7 @@ function mpuCreateStoryTalk(overrides = {}) {
             if (!alive(session)) return;
             if (index + 1 < session.story.steps.length) playStep(session, index + 1);
             else finish(session);
-        }, pause(session.story.steps[index].text, session.config));
+        }, pause(session.story.steps[index], session.config));
     }
 
     function playStep(session, index) {
@@ -231,7 +235,7 @@ function mpuCreateStoryTalk(overrides = {}) {
         try {
             env.acquire();
             const budget = 1000 + session.story.steps.reduce((sum, step) =>
-                sum + step.text.length * session.speed + 10000 + pause(step.text, session.config), 0);
+                sum + step.text.length * session.speed + 10000 + pause(step, session.config), 0);
             schedule(session, () => cancelSession(session), budget);
             env.hide();
             schedule(session, () => env.afterFade(() => {

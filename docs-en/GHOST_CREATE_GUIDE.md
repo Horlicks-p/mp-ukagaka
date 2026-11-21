@@ -659,7 +659,7 @@ short, handwritten monologue without sending its text to an LLM for rewriting.
 The player is connected to Auto Talk in both bundle and `SCRIPT_DEBUG` modes.
 `enabled` in the file is the only switch; there is no WordPress settings toggle.
 Keep a new catalog at `enabled: false` until you have watched its pacing and
-expressions in a browser. Frieren ships with five stories enabled.
+expressions in a browser. Frieren ships with six stories enabled.
 
 ```json
 {
@@ -679,7 +679,7 @@ expressions in a browser. Frieren ships with five stories enabled.
     "id": "treasure_chest",
     "title": "A tempting chest",
     "steps": [
-      { "text": "I wonder what is inside this chest…", "emotion": "thinking" },
+      { "text": "I wonder what is inside this chest…", "emotion": "thinking", "pause_ms": 3000 },
       { "text": "It could be a mimic. Still worth opening.", "emotion": "smirk" }
     ]
   }]
@@ -689,8 +689,12 @@ expressions in a browser. Frieren ships with five stories enabled.
 - Use format version `1` and a boolean `enabled`. Missing configuration fields
   use the defaults above. Chance must be a number from 0 to 1; cooldown is
   0–1440 minutes. Pause values are nonnegative integers up to 10000 ms, with
-  `min_ms <= max_ms`. The pause is `base_ms + per_char_ms * character count`,
+  `min_ms <= max_ms`. The pause after a step is `base_ms + per_char_ms * character count`,
   clamped to these limits, independently of the Auto Talk interval.
+- A step may set its own `pause_ms` (an integer from 0 to 10000) to replace that
+  computed pause, for example to leave a beat for the listener to react after a
+  short line. It is used as is, outside `min_ms`/`max_ms`. On the last step it
+  is the pause before the story ends. Any other value drops the story.
 - Each unique story ID must match `^[a-z][a-z0-9_-]{0,63}$`. A story contains
   2–5 steps; prefer 2–3 to leave room in the model's 20-entry chat context.
   Each step is 1–120 Unicode characters of nonblank plain text. `<`, `>` and
