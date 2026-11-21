@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.40.2
+Stable tag: 2.41.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,11 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-11-21 =
+* v2.41.0
+* [NEW] Story Talk: a story line can set its own pause_ms to replace the length-based pause after it.
+* [TWEAK] Frieren waits 3 seconds after her flying kiss, and her story lines are paced about 20% slower.
 
 = 2026-11-21 =
 * v2.40.2

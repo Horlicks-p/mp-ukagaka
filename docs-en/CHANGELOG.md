@@ -4,6 +4,27 @@
 
 ---
 
+## [2.41.0] - 2026-11-21
+
+### Story Talk
+
+- **A story line can set its own pause.** A step in `stories.json` may set `pause_ms` (an integer from 0 to 10000) to replace the length-based pause after that line, for example to leave a beat for the listener to react after a short line. It is used as is, outside `min_ms`/`max_ms`; on the last step it is the pause before the story ends. Any other value drops that story only. The `/dialog` catalog now carries `pause_ms` on every step (`null` when unset). See the [Character Creation Guide](GHOST_CREATE_GUIDE.md#handwritten-stories-storiesjson).
+
+### Frieren
+
+- After "ちゅっ。……投げキッスだよ。どう？" she now waits 3 seconds for your reaction before going on.
+- Her story lines are paced about 20% slower than in v2.40.1: `step_pause` is 1000 ms + 55 ms per character, kept between 2.0 and 5.5 seconds (was 800 ms + 45 ms, 1.2 to 4.5 seconds).
+
+### Documentation
+
+- The Character Creation Guide documents `pause_ms` and now says Frieren ships with six stories. The User Guide mentions that a story can give a line its own pause.
+
+### Internal
+
+- PHPUnit and Story Talk smoke tests cover `pause_ms` overrides, the `null` fallback and invalid values.
+
+---
+
 ## [2.40.2] - 2026-11-21
 
 ### Fixes
