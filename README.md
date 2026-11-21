@@ -2,7 +2,7 @@
 
 A WordPress plugin for creating interactive ukagaka (伺か) characters with AI-powered features.
 
-[![Plugin Version](https://img.shields.io/badge/version-2.40.1-blue.svg)](https://github.com)
+[![Plugin Version](https://img.shields.io/badge/version-2.40.2-blue.svg)](https://github.com)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://www.php.net/)
 
@@ -120,15 +120,15 @@ For detailed information, please refer to:
 - **[Abilities API](docs-en/ABILITIES_API.md)** - Tools the character can call, and adding new ones
 - **[Changelog](docs-en/CHANGELOG.md)** - Version history
 
-## 🎉 What's New in v2.40.1
+## 🎉 What's New in v2.40.2
+
+**Quotes no longer break gifts** (v2.40.2): Once a line in the conversation contained a double quote or a backslash, every gift failed with "会話履歴の形式が正しくありません", and chat quietly forgot the conversation so far. Both are fixed, and backslashes and line breaks in the history are kept as they are.
 
 **A flower field, and a quicker pace** (v2.40.1): Frieren has a sixth story, about the flower-field spell her master taught her, and her story lines follow each other about 40% sooner.
 
 **Frieren tells stories** (v2.40.0): Now and then, instead of a single line, Auto Dialogue has the character tell a short handwritten story of a few lines, each with its own expression. Frieren has five, from the clothes-melting potion to the Southern Hero. Random built-in lines no longer loop over the same few lines, and Frieren has a new good-mood expression.
 
-**Not always sleepy** (v2.39.2): Being woken up is not always a sleepy face. `wake_reaction_emoji` can now list several expressions, and one is picked at random each time; Frieren may look sleepy, upset, angry or puzzled.
-
-**Earlier releases**: a sleepy face when you wake her (v2.39.1), Gemini 3 and Claude 5.5 support (v2.39.0), a heads-up before GPT-4o and GPT-4.1 retire (v2.38.3), visitors stay visitors (v2.38.2), fullwidth tags while streaming (v2.38.1), ready for GPT-6 Luna (v2.38.0), retries that know who they are for (v2.37.4), switching without leftovers (v2.37.3), the right character, the right face (v2.37.2), talking again after hello (v2.37.1), expressions in your own dialogue (v2.37.0), a smoother message box without AI (v2.36.2), a tidier IP blocklist (v2.36.1), a grimoire in your colours (v2.36.0), small touches to the grimoire page (v2.35.1), a message box from a traveler's grimoire (v2.35.0), your own characters stay your own (v2.34.1), Frieren redrawn in SVG (v2.34.0), tidier status labels and documentation that matches the plugin (v2.33.3), chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), and frontend CSS modernization (v2.30.0).
+**Earlier releases**: not always sleepy (v2.39.2), a sleepy face when you wake her (v2.39.1), Gemini 3 and Claude 5.5 support (v2.39.0), a heads-up before GPT-4o and GPT-4.1 retire (v2.38.3), visitors stay visitors (v2.38.2), fullwidth tags while streaming (v2.38.1), ready for GPT-6 Luna (v2.38.0), retries that know who they are for (v2.37.4), switching without leftovers (v2.37.3), the right character, the right face (v2.37.2), talking again after hello (v2.37.1), expressions in your own dialogue (v2.37.0), a smoother message box without AI (v2.36.2), a tidier IP blocklist (v2.36.1), a grimoire in your colours (v2.36.0), small touches to the grimoire page (v2.35.1), a message box from a traveler's grimoire (v2.35.0), your own characters stay your own (v2.34.1), Frieren redrawn in SVG (v2.34.0), tidier status labels and documentation that matches the plugin (v2.33.3), chat and auto talk stop stepping on each other (v2.33.2), waking her actually wakes her (v2.33.1), vector dock buttons (v2.33.0), mood cues instead of decision trees for gift reactions (v2.32.3), context wins on a tie for gift reactions (v2.32.2), gift fixes (v2.32.1), gift reactions with something to say (v2.32.0), gift reactions that listen to the conversation they happen in (v2.31.0), and frontend CSS modernization (v2.30.0).
 
 [View Full Changelog](docs-en/CHANGELOG.md)
 

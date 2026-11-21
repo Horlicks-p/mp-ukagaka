@@ -4,6 +4,21 @@
 
 ---
 
+## [2.40.2] - 2026-11-21
+
+### Fixes
+
+- **Gifts no longer fail with "会話履歴の形式が正しくありません".** WordPress already removes the slashes from a request before the plugin reads it, but the plugin removed them a second time before reading the chat history. As soon as any line in the history contained a double quote `"` or a backslash `\`, the history could no longer be read, so every later gift failed. This could happen with any model, and with lines visitors type themselves.
+- **Chat, page-aware talk and greetings keep their history in the same case.** Those requests hit the same problem but did not show an error: they dropped the whole history, so the character forgot the conversation from that line on. Auto Dialogue's list of recent lines, used to avoid repeats, was dropped the same way.
+- **Backslashes and line breaks in history are kept as they are.** Before, `C:\path` became `C:path` and a line break could turn into the letter `n`.
+- All history parameters are now read through one helper, `MPU_Chat_History_Service::decode_param()`. On the first request after updating, a history line that contains a backslash may log one checksum mismatch to `logs/checksum-mismatch.log`. Integrity checks run in audit mode, so the request is not blocked.
+
+### Internal
+
+- PHPUnit tests cover double quotes, paths, real and literal `\n`, already decoded arrays, and values that are not JSON arrays.
+
+---
+
 ## [2.40.1] - 2026-11-21
 
 ### Frieren
