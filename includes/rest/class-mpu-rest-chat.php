@@ -613,16 +613,8 @@ class MPU_REST_Chat extends MPU_REST_Base {
         $chat_history  = [];
         $history_param = $request->get_param('history');
         if (!empty($history_param)) {
-            if (is_string($history_param)) {
-                $decoded_history = json_decode(wp_unslash($history_param), true);
-            } else {
-                $decoded_history = (array) $history_param;
-            }
-
-            if (json_last_error() === JSON_ERROR_NONE || is_array($decoded_history)) {
-                // [Fix] 先保留完整解碼後的歷史，以便進行正規化
-                $chat_history = $decoded_history;
-            }
+            // 先保留完整解碼後的歷史，以便進行正規化.
+            $chat_history = MPU_Chat_History_Service::decode_param($history_param) ?? array();
         }
 
         // type 正規化は共用 normalizer（MPU_Chat_History_Service::ALLOWED_MSG_TYPES）に

@@ -244,11 +244,8 @@ class MPU_REST_Touch extends MPU_REST_Base {
 			return $this->fail( 'rest_error', __( '会話履歴が指定されていません', 'mp-ukagaka' ), 400 );
 		}
 
-		$raw_history = $request->get_param( 'history' );
-		$decoded_history = is_string( $raw_history )
-			? json_decode( wp_unslash( $raw_history ), true )
-			: $raw_history;
-		if ( ! is_array( $decoded_history ) ) {
+		$decoded_history = MPU_Chat_History_Service::decode_param( $request->get_param( 'history' ) );
+		if ( null === $decoded_history ) {
 			return $this->fail( 'rest_error', __( '会話履歴の形式が正しくありません', 'mp-ukagaka' ), 400 );
 		}
 		$history = MPU_Chat_History_Service::normalize_history( $decoded_history );

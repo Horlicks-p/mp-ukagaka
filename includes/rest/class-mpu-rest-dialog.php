@@ -101,13 +101,8 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             $response_history = [];
             $history_param    = $request->get_param('response_history');
             if (!empty($history_param)) {
-                if (is_string($history_param)) {
-                    $decoded_history = json_decode(wp_unslash($history_param), true);
-                } else {
-                    $decoded_history = (array) $history_param;
-                }
-
-                if (json_last_error() === JSON_ERROR_NONE || is_array($decoded_history)) {
+                $decoded_history = MPU_Chat_History_Service::decode_param($history_param);
+                if (null !== $decoded_history) {
                     $response_history = array_slice($decoded_history, -10);
                     $response_history = array_map('sanitize_text_field', $response_history);
                 }
