@@ -696,7 +696,7 @@ expressions in a browser. Frieren ships with six stories enabled.
   short line. It is used as is, outside `min_ms`/`max_ms`. On the last step it
   is the pause before the story ends. Any other value drops the story.
 - In the bubble, story lines are wrapped in `<span class="mpu-story-line">` and
-  shown in the dialog theme's link color, so a story reads apart from normal
+  shown in a deeper shade of the dialog theme's link color, so a story reads apart from normal
   lines. Chat history keeps the plain text.
 - Each unique story ID must match `^[a-z][a-z0-9_-]{0,63}$`. A story contains
   2–5 steps; prefer 2–3 to leave room in the model's 20-entry chat context.

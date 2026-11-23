@@ -37,6 +37,7 @@
   --mpu-internal-dialog-text: #403a34;
   --mpu-internal-dialog-muted: #5f574d;
   --mpu-internal-dialog-link: #224961;
+  --mpu-internal-dialog-story-text: #14426e;
   --mpu-internal-dialog-link-hover: #5b401f;
   --mpu-internal-dialog-shadow: rgb(28 23 19 / 22%);
   --mpu-internal-dialog-state-accent: transparent;
@@ -62,6 +63,7 @@
   --mpu-internal-dialog-text: #29363c;
   --mpu-internal-dialog-muted: #52636b;
   --mpu-internal-dialog-link: #254e68;
+  --mpu-internal-dialog-story-text: #15437a;
   --mpu-internal-dialog-link-hover: #4a3a5c;
   --mpu-internal-dialog-shadow: rgb(20 29 35 / 22%);
   --mpu-internal-dialog-glow: #edf5f5;
@@ -84,6 +86,7 @@
   --mpu-internal-dialog-text: #40302d;
   --mpu-internal-dialog-muted: #69504a;
   --mpu-internal-dialog-link: #64393f;
+  --mpu-internal-dialog-story-text: #7a2230;
   --mpu-internal-dialog-link-hover: #782e28;
   --mpu-internal-dialog-shadow: rgb(35 20 19 / 22%);
   --mpu-internal-dialog-glow: #f3ddd3;
@@ -105,6 +108,7 @@
   --mpu-internal-dialog-text: #303930;
   --mpu-internal-dialog-muted: #586257;
   --mpu-internal-dialog-link: #2e4e47;
+  --mpu-internal-dialog-story-text: #144d39;
   --mpu-internal-dialog-link-hover: #5a4322;
   --mpu-internal-dialog-shadow: rgb(22 29 24 / 22%);
   --mpu-internal-dialog-glow: #eeefdc;
@@ -593,9 +597,10 @@
   padding-bottom: 8px; /* clear of the ▼ cursor */
 }
 
-/* Story Talk lines use the theme's link hue so a story reads apart from normal lines. */
+/* Story Talk lines: a deeper, more saturated take on each theme's link hue so a
+   story reads apart from normal lines (at least 4.5:1 on the 82% paper). */
 #ukagaka_msg .mpu-story-line {
-  color: var(--mpu-internal-dialog-link);
+  color: var(--mpu-internal-dialog-story-text);
 }
 
 #ukagaka_msg a {
