@@ -112,6 +112,8 @@ Go to **Settings** → **MP Ukagaka** → **General Settings**
 | Session Order | Whether the next dialogue on click is "Sequential" or "Random" |
 | Click Ukagaka | Action when clicking the character (Show next dialogue or No action) |
 
+In "Random" order, built-in lines are drawn like cards from a shuffled deck: every line is said once before any line repeats, and a new round never starts with the line that just ended the previous one.
+
 ### Auto Dialogue
 
 | Setting | Description |
@@ -119,6 +121,18 @@ Go to **Settings** → **MP Ukagaka** → **General Settings**
 | Enable Auto Dialogue | Whether to automatically rotate dialogue |
 | Auto Dialogue Interval | Interval for automatic dialogue change (3-30 seconds) |
 | Typing Effect Speed | Dialogue typing animation speed (10-200 ms/char) |
+
+#### Story Talk
+
+Some characters ship short handwritten stories (`stories.json` in the character folder). Now and then an automatic dialogue tick starts one instead of a single line: the character tells the story in two to five lines, one after another, each with its own expression. Frieren has six stories; by default about 1 in 20 automatic ticks starts one, and after a story there is a 6-hour pause before the next.
+
+- Only Auto Dialogue starts a story, so it needs **Enable Auto Dialogue**. The story's own pause between lines is used, not the Auto Dialogue Interval. It grows with the length of the line, and a story can give a single line its own pause, for example to leave time for a reaction.
+- Stories play as written, even when "Use LLM to Replace Built-in Dialogue" is on.
+- Opening chat, switching or hiding the character, hiding the balloon, turning Auto Dialogue off, or leaving the tab stops the story. It does not resume. Clicking the character or a touch zone does not interrupt it.
+- Lines already told are kept in the chat history, so the character can refer to the story in a later chat.
+- Each story is told once per round on that browser; the round starts over when every story has been told.
+
+There is no admin setting. To turn stories off, set `"enabled": false` in the character's `stories.json` (a plugin update restores the shipped file). See the [Character Creation Guide](GHOST_CREATE_GUIDE.md#handwritten-stories-storiesjson) to write your own.
 
 ### Admin Profile
 
@@ -828,6 +842,39 @@ What the diary "writes about" is controlled by `diary.json` in the character fol
 **File Location:** `ghost/CharacterID/diary.json`
 
 Use `ghost/Frieren/diary.json` as the reference for its format; the [Character Creation Guide](GHOST_CREATE_GUIDE.md) lists it among the optional personality files.
+
+### Diary Images
+
+A diary post can open with a picture. Each diary is written about one topic category from `diary.json`; when the character folder has images for that category, one of them is picked at random and placed at the top of the post. Categories without images get a text-only post, so you can add pictures to as many or as few categories as you like.
+
+**Folder:** `ghost/CharacterID/diary_images/<category>/`, where `<category>` is the category key from `diary.json` exactly as written there.
+
+**Formats:** `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`. Any file name works.
+
+**Frieren's categories** (`ghost/Frieren/diary.json`). The weight is how often a category is picked, out of a total of 113:
+
+| Folder | Topic | Weight |
+| --- | --- | --- |
+| `daily_observation` | Everyday observations | 10 |
+| `magic_research` | Magic research | 22 |
+| `memories` | Memories | 23 |
+| `companions` | Companions | 15 |
+| `time_awareness` | Sense of time | 12 |
+| `emotional_growth` | Emotional growth | 10 |
+| `demon_encounters` | Demon encounters | 5 |
+| `mimic_adventures` | Mimic adventures | 4 |
+| `food_thoughts` | Thoughts on food | 5 |
+| `sleep_laziness` | Sleep and laziness | 3 |
+| `purchases_regrets` | Purchases and regrets | 2 |
+| `philosophical` | Philosophical thoughts | 2 |
+
+For example, `ghost/Frieren/diary_images/food_thoughts/cake.png` can appear at the top of a diary about food.
+
+**How the image appears:** it is inserted at the start of the post content as `<img class="mpu-diary-image">`, centered and at most the post width, with the diary title as its alt text. It is not uploaded to the Media Library and is not set as the post's featured image, so theme thumbnails and social-share previews do not use it.
+
+> ⚠️ **Plugin updates replace the plugin folder.** Images you copy into `ghost/` on the server are deleted by the next plugin update, and the image link is a URL inside the plugin folder, so posts that used them lose the picture too. Keep your own copy of the images and put them back after updating.
+
+> 💡 To try it, put any image in a frequently picked category such as `memories` or `magic_research` and click **Generate Diary Now (Test)** a few times. Each click publishes a real post; the result message shows the category that was picked, and a post from that category starts with the image.
 
 ### Test Feature
 

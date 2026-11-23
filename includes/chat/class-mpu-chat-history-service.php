@@ -43,16 +43,34 @@ class MPU_Chat_History_Service {
             return $history;
         }
 
-        $decoded = is_string($raw)
-            ? json_decode(wp_unslash($raw), true)
-            : (array) $raw;
-
-        if (!is_array($decoded)) {
+        $decoded = self::decode_param($raw);
+        if (null === $decoded) {
             return $history;
         }
 
         return self::normalize_history($decoded);
     }
+
+	/**
+	 * Decode a JSON-list request parameter (`history`, `response_history`).
+	 *
+	 * WP_REST_Server already unslashes $_POST before the controller sees it, so the
+	 * string is decoded as is. Unslashing it again turns `\"` into `"` and `\\` into `\`,
+	 * which breaks the JSON as soon as any message contains a double quote or a backslash.
+	 *
+	 * @param mixed $raw Parameter value: a JSON string, or an already decoded array.
+	 * @return array|null The decoded array, or null when the value is not a JSON array.
+	 */
+	public static function decode_param( $raw ): ?array {
+		if ( is_array( $raw ) ) {
+			return $raw;
+		}
+		if ( ! is_string( $raw ) ) {
+			return null;
+		}
+		$decoded = json_decode( $raw, true );
+		return is_array( $decoded ) ? $decoded : null;
+	}
 
 	/**
 	 * 正規化已解析的 history 陣列。
@@ -70,7 +88,8 @@ class MPU_Chat_History_Service {
 			if ( null === $role ) {
 				continue;
 			}
-			$content = sanitize_textarea_field( wp_unslash( (string) ( $msg['content'] ?? '' ) ) );
+			// Already unslashed by WP_REST_Server; unslashing again would drop backslashes.
+			$content = sanitize_textarea_field( (string) ( $msg['content'] ?? '' ) );
 			if ( '' === $content ) {
 				continue;
 			}

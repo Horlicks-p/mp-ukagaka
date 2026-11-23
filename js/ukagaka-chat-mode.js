@@ -44,6 +44,8 @@ function mpu_toggleChatMode(enable) {
     enable = !window.mpuChatModeActive;
   }
 
+  if (enable && window.mpuStoryTalk) window.mpuStoryTalk.cancel("chat");
+
   window.mpuChatModeActive = enable;
   window.mpuChatGeneration += 1;
   mpuSyncOkButtonLabel();

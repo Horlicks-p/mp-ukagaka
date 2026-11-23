@@ -19,6 +19,7 @@ function mpu_setDockLabel(selector, text) {
  * @param {number} speed - 淡入動畫速度（毫秒），預設 400
  */
 function mpu_showrobot(speed = 400) {
+  window.mpuRobotHideRequested = false;
   mpu_setDockLabel("#remove", mpuInfo.robot[1]); // "隱藏春菜 ▼"
   jQuery("#ukagaka").fadeIn(speed);
 }
@@ -28,6 +29,7 @@ function mpu_showrobot(speed = 400) {
  * @param {number} speed - 淡出動畫速度（毫秒），預設 400
  */
 function mpu_hiderobot(speed = 400) {
+  window.mpuRobotHideRequested = true;
   mpu_setDockLabel("#remove", mpuInfo.robot[0]); // "顯示春菜 ▲"
   jQuery("#ukagaka").fadeOut(speed);
 }
@@ -85,10 +87,15 @@ function mpuDisplayDialogueEmoji(emoji) {
 
 function mpuDisplayBuiltInMessage(store, index, options = {}) {
   const target = options.target || "#ukagaka_msg";
+  const typewriterOptions = typeof options.callback === "function"
+    ? Object.assign({}, typeof options.typewriterOptions === "boolean"
+      ? { skipCharacterAnimation: options.typewriterOptions } : options.typewriterOptions,
+      { onComplete: options.callback })
+    : options.typewriterOptions;
 
   if (!store || !Array.isArray(store.msg) || !Object.prototype.hasOwnProperty.call(store.msg, index)) {
     mpuDisplayDialogueEmoji(null);
-    mpu_typewriter("", target, options.callback || null, options.typewriterOptions);
+    mpu_typewriter("", target, null, typewriterOptions);
     return "";
   }
 
@@ -96,14 +103,17 @@ function mpuDisplayBuiltInMessage(store, index, options = {}) {
   const output = mpu_unescapeHTML(String(store.msg[index] || "") + String(store.auto_msg || ""));
 
   mpuDisplayDialogueEmoji(emoji);
-  mpu_typewriter(output, target, options.callback || null, options.typewriterOptions);
+  mpu_typewriter(output, target, null, typewriterOptions);
   return output;
 }
 
+// 與自發對話共用同一個不重複袋子（mpuDrawBuiltInIndex，ukagaka-base.js）。
+// 袋子還沒建立時（例如 default_msg = 1 固定先說第 0 句，接著就是問候或頁面感知失敗），
+// 用 #ukagaka_msgnum 避開畫面上那一句。
 function mpuRandomBuiltInIndex(store) {
-  return store && Array.isArray(store.msg) && store.msg.length > 0
-    ? Math.floor(Math.random() * store.msg.length)
-    : -1;
+  const element = document.getElementById("ukagaka_msgnum");
+  const shown = parseInt(element ? element.textContent : "", 10);
+  return mpuDrawBuiltInIndex(store, Number.isNaN(shown) ? undefined : shown);
 }
 
 window.mpuGetCurrentUkagakaNum = mpuGetCurrentUkagakaNum;
@@ -359,6 +369,11 @@ function startAutoTalk() {
   mpuLogger.logF("autoTalkTimerSet", "startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s", currentInterval, mpuAutoTalk);
   mpuSetAutoTalkTimer(setTimeout(function () {
     mpuSetAutoTalkTimer(null); // 清除計時器引用，表示已觸發
+    if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+      mpuLogger.logL("autoTalkSkippedStoryPlaying", "ストーリー再生中のため、自動会話の確認をスキップします");
+      if (mpuAutoTalk) startAutoTalk();
+      return;
+    }
     mpuLogger.logF("autoTalkTimerTriggered", "自動会話タイマーが作動しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s", mpuAutoTalk, mpuOllamaReplaceDialogue);
 
     // 閒置檢查：如果用戶閒置超過閾值，跳過本次自動對話
@@ -722,6 +737,9 @@ function mpu_nextmsg(trigger, retry = null) {
     return;
   }
 
+  // Only automatic ticks can draw a story, before any normal dialogue or LLM work.
+  if (isAuto && window.mpuStoryTalk && window.mpuStoryTalk.tryStart(mpuGetDialogStore())) return;
+
   // 手動點擊時不再立即重置計時器，改由打字完成後統一啟動
 
   const isStaleForCharacter = function () {
@@ -865,7 +883,7 @@ function mpu_nextmsg(trigger, retry = null) {
                   forceAnimation,
                   function () {
                     // 歷史已在下面寫入；動畫期間換了角色就不再顯示
-                    if (isStaleForCharacter()) return;
+                    if (isStaleForCharacter() || (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying())) return;
                     mpu_cancelTypewriter();
                     jQuery("#ukagaka_msg").html("");
                     mpu_showMsgText();
@@ -1014,7 +1032,7 @@ function mpu_nextmsg(trigger, retry = null) {
 
   const showBuiltInMessage = function () {
     // 淡出期間換了角色：新角色載入對話時會自己說第一句
-    if (isStaleForCharacter()) {
+    if (isStaleForCharacter() || (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying())) {
       resumeAutoTalkAfterTypewriter();
       return;
     }
@@ -1074,7 +1092,7 @@ function mpu_nextmsg(trigger, retry = null) {
       const isWakingUp = window.mpuCanvasManager.triggerCharacterAnimation(
         isManual,
         function () {
-          if (isStaleForCharacter()) {
+          if (isStaleForCharacter() || (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying())) {
             resumeAutoTalkAfterTypewriter();
             return;
           }
@@ -1199,6 +1217,7 @@ function mpu_nextmsg_fallback(expectedGeneration = window.mpuCharacterGeneration
 
 function mpuChange(num) {
   const hasNum = typeof num !== "undefined" && num !== null && num !== "";
+  if (window.mpuStoryTalk) window.mpuStoryTalk.cancel(hasNum ? "character-switch" : "menu");
 
   if (hasNum && typeof window.mpuCanvasManager === "undefined") {
     mpu_handle_error("Canvas 管理器未載入", "mpuChange:canvas_manager_check", {
@@ -1272,6 +1291,11 @@ function mpuChange(num) {
       if (typeof res !== "object") throw new Error("Expected JSON, got HTML.");
       const payload = res || {};
       window.mpuCharacterGeneration += 1;
+      const previousStore = mpuGetDialogStore();
+      if (previousStore) {
+        previousStore.stories = null;
+        delete previousStore.storiesGeneration;
+      }
       const $canvas = jQuery("#cur_ukagaka");
       const $wrap = jQuery("#ukagaka");
 

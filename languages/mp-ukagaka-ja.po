@@ -3867,3 +3867,7 @@ msgstr "MP Ukagaka：使用中の OpenAI モデルは 2027-01-14 以降は利用
 #: includes/admin-functions.php
 msgid "停止後 AI 對話與生成會失敗。建議改用 gpt-6-luna，並在下列設定頁儲存。外掛不會自動更改模型。"
 msgstr "終了後は AI の会話と生成が失敗します。gpt-6-luna への変更をおすすめします。下記の設定ページで保存してください。プラグインがモデルを自動で変更することはありません。"
+
+#: includes/core/frontend-functions.php
+msgid "ストーリー再生中のため、自動会話の確認をスキップします"
+msgstr "ストーリー再生中のため、自動会話の確認をスキップします"

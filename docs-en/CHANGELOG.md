@@ -4,6 +4,106 @@
 
 ---
 
+## [2.41.0] - 2026-11-21
+
+### Story Talk
+
+- **A story line can set its own pause.** A step in `stories.json` may set `pause_ms` (an integer from 0 to 10000) to replace the length-based pause after that line, for example to leave a beat for the listener to react after a short line. It is used as is, outside `min_ms`/`max_ms`; on the last step it is the pause before the story ends. Any other value drops that story only. The `/dialog` catalog now carries `pause_ms` on every step (`null` when unset). See the [Character Creation Guide](GHOST_CREATE_GUIDE.md#handwritten-stories-storiesjson).
+
+### Frieren
+
+- After "ちゅっ。……投げキッスだよ。どう？" she now waits 3 seconds for your reaction before going on.
+- Her story lines are paced about 20% slower than in v2.40.1: `step_pause` is 1000 ms + 55 ms per character, kept between 2.0 and 5.5 seconds (was 800 ms + 45 ms, 1.2 to 4.5 seconds).
+
+### Documentation
+
+- The Character Creation Guide documents `pause_ms` and now says Frieren ships with six stories. The User Guide mentions that a story can give a line its own pause.
+
+### Internal
+
+- PHPUnit and Story Talk smoke tests cover `pause_ms` overrides, the `null` fallback and invalid values.
+
+---
+
+## [2.40.2] - 2026-11-21
+
+### Fixes
+
+- **Gifts no longer fail with "会話履歴の形式が正しくありません".** WordPress already removes the slashes from a request before the plugin reads it, but the plugin removed them a second time before reading the chat history. As soon as any line in the history contained a double quote `"` or a backslash `\`, the history could no longer be read, so every later gift failed. This could happen with any model, and with lines visitors type themselves.
+- **Chat, page-aware talk and greetings keep their history in the same case.** Those requests hit the same problem but did not show an error: they dropped the whole history, so the character forgot the conversation from that line on. Auto Dialogue's list of recent lines, used to avoid repeats, was dropped the same way.
+- **Backslashes and line breaks in history are kept as they are.** Before, `C:\path` became `C:path` and a line break could turn into the letter `n`.
+- All history parameters are now read through one helper, `MPU_Chat_History_Service::decode_param()`. On the first request after updating, a history line that contains a backslash may log one checksum mismatch to `logs/checksum-mismatch.log`. Integrity checks run in audit mode, so the request is not blocked.
+
+### Internal
+
+- PHPUnit tests cover double quotes, paths, real and literal `\n`, already decoded arrays, and values that are not JSON arrays.
+
+---
+
+## [2.40.1] - 2026-11-21
+
+### Frieren
+
+- **A sixth story**: "花畑を出す魔法" (`flower_field_magic`), about the flower-field spell her master taught her, the one Serie called useless, and how it led her to Himmel's party.
+- **Stories move along faster.** Frieren's `step_pause` is now 800 ms + 45 ms per character, kept between 1.2 and 4.5 seconds (was 1200 ms + 80 ms per character, 1.5 to 7 seconds). The next line follows about 40% sooner after the previous one finishes typing.
+
+### Documentation
+
+- The User Guide now says Frieren has six stories.
+
+---
+
+## [2.40.0] - 2026-11-21
+
+### Story Talk
+
+- **Characters can tell short handwritten stories.** A character's `stories.json` holds stories of two to five lines. Now and then an automatic Auto Dialogue tick starts a story instead of a single line, and its lines play one after another, each with its own expression and a pause sized to its length. Stories are shown as written, also when the LLM replaces built-in dialogue. The `/dialog` response carries the validated catalog as `stories` (`includes/personality/personality-stories.php`), and `js/ukagaka-story-talk.js` plays it.
+- **Frieren tells five stories**: the clothes-melting potion, the Southern Hero, her "date" with Himmel, the magic-sealing ore, and a flying kiss learned from her master. About 1 in 20 automatic ticks starts one, with a 6-hour pause after each, and each story is told once per round on a browser.
+- Opening chat, switching or hiding the character, hiding the balloon, turning Auto Dialogue off, a hidden tab and SPA navigation stop a story, and it does not resume. Clicks, touch zones and decorations do not interrupt it. Lines already told go into chat history as ordinary auto talk.
+- There is no admin setting: `enabled` in `stories.json` is the switch. The format and its limits are in the [Character Creation Guide](GHOST_CREATE_GUIDE.md#handwritten-stories-storiesjson).
+- The typewriter gives each run an id and an `onComplete` callback, and `mpuDisplayBuiltInMessage()` no longer mixes up its callback and speed arguments.
+
+### Built-in lines
+
+- **Random order no longer loops over the same few lines.** It only avoided saying the same line twice in a row, so A-B-A-B loops still happened. Random built-in lines now come from a shuffle bag: every line is said once per round, and a new round never starts with the line that ended the last one. Auto talk, the LLM fallback, the first line on load and the other built-in fallbacks share one bag. Sequential order is unchanged.
+
+### Frieren
+
+- New `good_mood` expression (floating music notes), usable as `[good_mood]` and in stories. Keywords: ご機嫌, 上機嫌, 心情好, 心情不錯.
+
+### Documentation
+
+- The User Guide describes Story Talk and the shuffle bag, and diary images (`diary_images/<category>/`) are documented.
+
+### Internal
+
+- Story Talk has PHPUnit loader tests, engine and integration smoke tests, and a WordPress Playground E2E suite (54 story checks and 50 regression checks). The shuffle bag has its own smoke test.
+
+---
+
+## [2.39.2] - 2026-11-12
+
+### Waking the character
+
+- **More than one face on waking.** `wake_reaction_emoji` in `sleep_mode.json` now accepts a list of filenames as well as a single one, and a random entry is shown each time (`mpu_get_wake_reaction_emoji()`). Invalid entries are skipped; a single filename works as before. Frieren now uses sleepy, upset, angry and what, since being woken is not always just sleepy.
+- As before, this is the fallback: an expression found in the wake line itself (emotion tag or keyword) still comes first.
+
+---
+
+## [2.39.1] - 2026-11-12
+
+### Waking the character
+
+- **An expression appears with the first line after waking her.** Waking the character during deep sleep, oversleep or a nap never showed an expression: `generate_wake_reaction()` kept only the text of the AI's reply. It now also returns the expression found in the reply (an emotion tag first, then the keyword scorer, as for other dialogue), and the `wake-ghost` response carries it as `emoji`. The frontend shows it before typing the line.
+- **New optional `sleep_mode.json` key `wake_reaction_emoji`** (for example `"sleepy.png"`). It is shown when the reply has no recognizable expression, and with the built-in fallback lines used when the AI reply is empty or fails. Characters without it behave as before. Frieren uses `sleepy.png`.
+- **Frieren's wake lines vary more.** The details that set each wake prompt apart (dessert after a nap, a grimoire or magic, mistaking you for Fern) were optional, so the AI often left them out and the lines came out much the same. They are now part of each prompt, and prompts that quoted example lines in 『』 are written as directions instead, so the AI no longer repeats those lines.
+
+### Internal
+
+- A new test checks that `wake_reaction_emoji` names an existing emoji file and that the wake prompts contain no 『』 example lines.
+
+---
+
 ## [2.39.0] - 2026-10-29
 
 ### Gemini models

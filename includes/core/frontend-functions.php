@@ -481,9 +481,17 @@ function mpu_enqueue_frontend_assets() {
 		);
 
 		wp_enqueue_script(
+			'mpu-story-talk',
+			plugins_url( 'js/ukagaka-story-talk.js', $main_file ),
+			array( 'mpu-core' ),
+			MPU_VERSION,
+			true
+		);
+
+		wp_enqueue_script(
 			'mpu-anime',
 			plugins_url( 'js/ukagaka-anime.js', $main_file ),
-			array( 'jquery', 'mpu-core' ),
+			array( 'jquery', 'mpu-core', 'mpu-story-talk' ),
 			MPU_VERSION,
 			true
 		);
@@ -786,6 +794,8 @@ function mpu_enqueue_frontend_assets() {
 		$log_i18n->debug( 'autoTalkTimerTriggered', __( '自動会話タイマーが作動しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s', 'mp-ukagaka' ) );
 		/* translators: debug console log. %s is the idle duration in seconds. */
 		$log_i18n->debug( 'autoTalkSkippedUserIdle', __( 'ユーザーが無操作状態です（%s 秒）。今回の自動会話をスキップします', 'mp-ukagaka' ) );
+		/* translators: debug console log. A story is playing, so the auto-talk tick skips event checks and dialogue. */
+		$log_i18n->debug( 'autoTalkSkippedStoryPlaying', __( 'ストーリー再生中のため、自動会話の確認をスキップします', 'mp-ukagaka' ) );
 		/* translators: debug console log. %1$s is previous state, %2$s is new state, %3$s is the new interval in ms. */
 		$log_i18n->debug( 'autoTalkSleepModeStateChanged', __( '睡眠モード状態が変化しました（%1$s → %2$s）。自動会話を再起動します（新しい間隔: %3$s ms）', 'mp-ukagaka' ) );
 		/* translators: debug console log. A scheduled auto-talk tick is skipped while asleep and not awakened. */

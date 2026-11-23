@@ -1,0 +1,1132 @@
+{
+    "date":  "2026-11-19",
+    "baseCommit":  "8ea858d36bcfeae4385cad5120a3701bad1d2657",
+    "environment":  {
+                        "node":  "24.22.1",
+                        "playgroundCli":  "3.1.40",
+                        "wordpress":  "7.1.2",
+                        "playgroundPhp":  "8.3",
+                        "browser":  "Microsoft Edge",
+                        "storyPhpWorkers":  1,
+                        "storySourceEnabled":  false
+                    },
+    "verification":  {
+                         "command":  "npm --prefix tools/node run verify",
+                         "status":  "PASS",
+                         "phpunitTests":  350,
+                         "phpunitAssertions":  2146,
+                         "nativePhp":  "8.5.12"
+                     },
+    "runs":  [
+                 {
+                     "suite":  "existing-interaction-regression",
+                     "command":  "npm --prefix tools/node run test:interaction -- --exclude=story- --port=9500",
+                     "recordedAt":  "2026-11-19T04:46:17.904Z",
+                     "passed":  50,
+                     "results":  [
+                                     {
+                                         "name":  "awake-autotalk-single-chain",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  24964
+                                     },
+                                     {
+                                         "name":  "sleep-ok-wake-resumes-autotalk",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  27972
+                                     },
+                                     {
+                                         "name":  "chat-entered-while-autotalk-waiting",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  32063
+                                     },
+                                     {
+                                         "name":  "chat-entered-while-autotalk-llm-in-flight",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  34240
+                                     },
+                                     {
+                                         "name":  "chat-close-twice-within-exit-delay",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  17243
+                                     },
+                                     {
+                                         "name":  "chat-close-then-reopen-and-stay",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  16937
+                                     },
+                                     {
+                                         "name":  "rate-limit-block-survives-chat-close-reopen",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  8199
+                                     },
+                                     {
+                                         "name":  "rate-limit-release-preserves-chat-exit-block",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  14289
+                                     },
+                                     {
+                                         "name":  "gift-in-flight-close-reopen-keeps-block",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  19544
+                                     },
+                                     {
+                                         "name":  "gift-in-flight-close-and-stay-keeps-block",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  18400
+                                     },
+                                     {
+                                         "name":  "ok-ignored-during-interaction-dialog",
+                                         "layer":  "browser (flag set directly)",
+                                         "status":  "PASS",
+                                         "ms":  9515
+                                     },
+                                     {
+                                         "name":  "sse-server-provider-cut",
+                                         "layer":  "browser + wp (sse)",
+                                         "status":  "PASS",
+                                         "ms":  9616
+                                     },
+                                     {
+                                         "name":  "sse-provider-emitted-error",
+                                         "layer":  "browser + wp (sse)",
+                                         "status":  "PASS",
+                                         "ms":  10401
+                                     },
+                                     {
+                                         "name":  "sse-complete",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  8316
+                                     },
+                                     {
+                                         "name":  "sse-json-fallback",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  8350
+                                     },
+                                     {
+                                         "name":  "sse-ends-without-done",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  8516
+                                     },
+                                     {
+                                         "name":  "sse-error-event",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  8383
+                                     },
+                                     {
+                                         "name":  "sse-transport-failure",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  8466
+                                     },
+                                     {
+                                         "name":  "sse-watchdog-timeout",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  53469
+                                     },
+                                     {
+                                         "name":  "dialog-ok-label-and-plate-room",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  9687
+                                     },
+                                     {
+                                         "name":  "sse-badge-chat-toggle",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  8779
+                                     },
+                                     {
+                                         "name":  "sse-badge-new-input",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  8708
+                                     },
+                                     {
+                                         "name":  "sse-badge-closed-watchdog",
+                                         "layer":  "browser (SSE replayed)",
+                                         "status":  "PASS",
+                                         "ms":  53277
+                                     },
+                                     {
+                                         "name":  "page-aware-during-autotalk-llm",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  44862
+                                     },
+                                     {
+                                         "name":  "chat-gift-chat",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  12338
+                                     },
+                                     {
+                                         "name":  "gift-rest-unknown-item",
+                                         "layer":  "wp",
+                                         "status":  "PASS",
+                                         "ms":  9043
+                                     },
+                                     {
+                                         "name":  "rapid-chat-send",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  12124
+                                     },
+                                     {
+                                         "name":  "rapid-gift",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  12575
+                                     },
+                                     {
+                                         "name":  "sleep-ok-wake-no-animation-stub",
+                                         "layer":  "browser (stubbed branch)",
+                                         "status":  "PASS",
+                                         "ms":  7510
+                                     },
+                                     {
+                                         "name":  "dialog-theme-switch",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  61941
+                                     },
+                                     {
+                                         "name":  "checksum-block-rejects-tampered-history",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  12056
+                                     },
+                                     {
+                                         "name":  "chat-close-keeps-late-reply-sse",
+                                         "layer":  "browser + wp (sse)",
+                                         "status":  "PASS",
+                                         "ms":  26166
+                                     },
+                                     {
+                                         "name":  "chat-reopen-keeps-late-reply-off-screen-sse",
+                                         "layer":  "browser + wp (sse)",
+                                         "status":  "PASS",
+                                         "ms":  16749
+                                     },
+                                     {
+                                         "name":  "chat-close-keeps-late-reply-json",
+                                         "layer":  "browser + wp (json)",
+                                         "status":  "PASS",
+                                         "ms":  25268
+                                     },
+                                     {
+                                         "name":  "chat-reopen-keeps-late-reply-off-screen-json",
+                                         "layer":  "browser + wp (json)",
+                                         "status":  "PASS",
+                                         "ms":  16299
+                                     },
+                                     {
+                                         "name":  "sleep-ok-wake-non-frieren",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  40324
+                                     },
+                                     {
+                                         "name":  "chat-follows-switched-character",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  12622
+                                     },
+                                     {
+                                         "name":  "chat-switch-keeps-late-reply-off-screen-sse",
+                                         "layer":  "browser + wp (sse)",
+                                         "status":  "PASS",
+                                         "ms":  15099
+                                     },
+                                     {
+                                         "name":  "chat-switch-keeps-late-reply-off-screen-json",
+                                         "layer":  "browser + wp (json)",
+                                         "status":  "PASS",
+                                         "ms":  15081
+                                     },
+                                     {
+                                         "name":  "chat-switch-round-trip-drops-rest-of-stream",
+                                         "layer":  "browser + wp (sse)",
+                                         "status":  "PASS",
+                                         "ms":  25940
+                                     },
+                                     {
+                                         "name":  "page-aware-switch-keeps-late-line-off-screen",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  18559
+                                     },
+                                     {
+                                         "name":  "dialog-switch-drops-late-dialog-load",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  15145
+                                     },
+                                     {
+                                         "name":  "autotalk-switch-keeps-late-line-off-screen",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  15269
+                                     },
+                                     {
+                                         "name":  "rapid-switch-keeps-last-choice",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  13168
+                                     },
+                                     {
+                                         "name":  "autotalk-fallback-skipped-after-switch",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  15081
+                                     },
+                                     {
+                                         "name":  "fallback-retries-survive-a-stale-chain",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  18873
+                                     },
+                                     {
+                                         "name":  "nextmsg-retry-stops-after-switch",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  17345
+                                     },
+                                     {
+                                         "name":  "builtin-msgbox-fade-timing",
+                                         "layer":  "browser",
+                                         "status":  "PASS",
+                                         "ms":  9035
+                                     },
+                                     {
+                                         "name":  "builtin-dialog-emotion-txt",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  11747
+                                     },
+                                     {
+                                         "name":  "builtin-dialog-emotion-json",
+                                         "layer":  "browser + wp",
+                                         "status":  "PASS",
+                                         "ms":  11496
+                                     }
+                                 ]
+                 },
+                 {
+                     "suite":  "story-headless",
+                     "command":  "npm --prefix tools/node run test:interaction -- --only=story- --exclude=story-interrupt-background --port=9460",
+                     "recordedAt":  "2026-11-19T06:30:07.415Z",
+                     "passed":  53,
+                     "results":  [
+                                     {
+                                         "name":  "story-whole-builtin",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  31735,
+                                         "detail":  {
+                                                        "gaps":  [
+                                                                     2616,
+                                                                     2459
+                                                                 ],
+                                                        "expected":  [
+                                                                         2600,
+                                                                         2450
+                                                                     ],
+                                                        "frames":  [
+                                                                       "story-builtin-bundle-step1.png",
+                                                                       "story-builtin-bundle-step2.png",
+                                                                       "story-builtin-bundle-step3.png"
+                                                                   ],
+                                                        "providerCallsDuringStory":  0,
+                                                        "resumed":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-whole-llm",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  32449,
+                                         "detail":  {
+                                                        "gaps":  [
+                                                                     2608,
+                                                                     2452
+                                                                 ],
+                                                        "expected":  [
+                                                                         2600,
+                                                                         2450
+                                                                     ],
+                                                        "frames":  [
+                                                                       "story-llm-bundle-step1.png",
+                                                                       "story-llm-bundle-step2.png",
+                                                                       "story-llm-bundle-step3.png"
+                                                                   ],
+                                                        "providerCallsDuringStory":  0,
+                                                        "resumed":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-locked-clicks",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  30153,
+                                         "detail":  {
+                                                        "characterClicks":  true,
+                                                        "decorationClick":  true,
+                                                        "touchZone":  "head",
+                                                        "providerCalls":  0
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interrupt-chat",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  30414,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interrupt-bubble",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  29236,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interrupt-robot",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  26486,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interrupt-off",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  29020,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interrupt-menu",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  34171,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interrupt-contextmenu",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  34348,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interrupt-extend",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  28281,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interrupt-switch",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  34091,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interrupt-spa",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  30495,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-history-json-sse",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  42361,
+                                         "detail":  {
+                                                        "integrity":  "block",
+                                                        "received":  {
+                                                                         "json":  [
+                                                                                      {
+                                                                                          "role":  "assistant",
+                                                                                          "content":  "STORY_A_1 この宝箱、何が入っているんだろう……"
+                                                                                      },
+                                                                                      {
+                                                                                          "role":  "assistant",
+                                                                                          "content":  "STORY_A_2 ミミックの可能性はあるけど……"
+                                                                                      },
+                                                                                      {
+                                                                                          "role":  "assistant",
+                                                                                          "content":  "STORY_A_3 でも、開けない理由にはならないよね。"
+                                                                                      }
+                                                                                  ],
+                                                                         "sse":  [
+                                                                                     {
+                                                                                         "role":  "assistant",
+                                                                                         "content":  "STORY_A_1 この宝箱、何が入っているんだろう……"
+                                                                                     },
+                                                                                     {
+                                                                                         "role":  "assistant",
+                                                                                         "content":  "STORY_A_2 ミミックの可能性はあるけど……"
+                                                                                     },
+                                                                                     {
+                                                                                         "role":  "assistant",
+                                                                                         "content":  "STORY_A_3 でも、開けない理由にはならないよね。"
+                                                                                     }
+                                                                                 ]
+                                                                     }
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-partial-history-sse",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  32067,
+                                         "detail":  {
+                                                        "integrity":  "block",
+                                                        "completedOnly":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-after-two-history-json",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  27499,
+                                         "detail":  {
+                                                        "integrity":  "block",
+                                                        "completedSteps":  2
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-reload-consumed-cooldown",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  44287,
+                                         "detail":  {
+                                                        "consumedAcrossReload":  true,
+                                                        "cooldownPreserved":  true,
+                                                        "visibilityEndRefreshMs":  7443
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-bag-three-rounds",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  20369,
+                                         "detail":  {
+                                                        "ids":  [
+                                                                    "story_b",
+                                                                    "story_a",
+                                                                    "story_c",
+                                                                    "story_b",
+                                                                    "story_c",
+                                                                    "story_a",
+                                                                    "story_b",
+                                                                    "story_a",
+                                                                    "story_c"
+                                                                ],
+                                                        "abortedStoriesConsumed":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-degrade-disabled",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  21003,
+                                         "detail":  {
+                                                        "fallbackSafe":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-degrade-bad-json",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  24047,
+                                         "detail":  {
+                                                        "fallbackSafe":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-degrade-blocked-storage",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  33614,
+                                         "detail":  {
+                                                        "fallbackSafe":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-late-builtin-fade",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  32102,
+                                         "detail":  {
+                                                        "staleDisplayDiscarded":  true,
+                                                        "bagAndIndexUnchanged":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-late-builtin-animation",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  31433,
+                                         "detail":  {
+                                                        "staleDisplayDiscarded":  true,
+                                                        "bagAndIndexUnchanged":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-late-first-line",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  32079,
+                                         "detail":  {
+                                                        "staleDisplayDiscarded":  true,
+                                                        "bagAndIndexUnchanged":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-late-llm-animation",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  26117,
+                                         "detail":  {
+                                                        "staleDisplayDiscarded":  true,
+                                                        "bagAndIndexUnchanged":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-late-extend-success",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  33202,
+                                         "detail":  {
+                                                        "staleResultIgnored":  "success",
+                                                        "cursorRestored":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-late-extend-failure",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  31488,
+                                         "detail":  {
+                                                        "staleResultIgnored":  "failure",
+                                                        "cursorRestored":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-late-extend-invalid",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  30246,
+                                         "detail":  {
+                                                        "staleResultIgnored":  "invalid",
+                                                        "cursorRestored":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-spa-pending-real-context",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  40031,
+                                         "detail":  {
+                                                        "pendingProtectedBag":  true,
+                                                        "realContextProvider":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-startup-spa-owners-500",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  35806,
+                                         "detail":  {
+                                                        "events":  [
+                                                                       {
+                                                                           "owner":  "startup",
+                                                                           "value":  true,
+                                                                           "pending":  true,
+                                                                           "blocked":  null,
+                                                                           "at":  1795068905452
+                                                                       },
+                                                                       {
+                                                                           "owner":  "spa",
+                                                                           "value":  true,
+                                                                           "pending":  true,
+                                                                           "blocked":  null,
+                                                                           "at":  1795068905960
+                                                                       },
+                                                                       {
+                                                                           "owner":  "spa",
+                                                                           "value":  false,
+                                                                           "pending":  true,
+                                                                           "blocked":  null,
+                                                                           "at":  1795068906961
+                                                                       },
+                                                                       {
+                                                                           "owner":  "startup",
+                                                                           "value":  false,
+                                                                           "pending":  false,
+                                                                           "blocked":  null,
+                                                                           "at":  1795068908461
+                                                                       }
+                                                                   ]
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-startup-spa-owners-2500",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  35905,
+                                         "detail":  {
+                                                        "events":  [
+                                                                       {
+                                                                           "owner":  "startup",
+                                                                           "value":  true,
+                                                                           "pending":  true,
+                                                                           "blocked":  null,
+                                                                           "at":  1795068941712
+                                                                       },
+                                                                       {
+                                                                           "owner":  "spa",
+                                                                           "value":  true,
+                                                                           "pending":  true,
+                                                                           "blocked":  null,
+                                                                           "at":  1795068944220
+                                                                       },
+                                                                       {
+                                                                           "owner":  "startup",
+                                                                           "value":  false,
+                                                                           "pending":  true,
+                                                                           "blocked":  true,
+                                                                           "at":  1795068944713
+                                                                       },
+                                                                       {
+                                                                           "owner":  "spa",
+                                                                           "value":  false,
+                                                                           "pending":  false,
+                                                                           "blocked":  null,
+                                                                           "at":  1795068945227
+                                                                       }
+                                                                   ]
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-security-retained-turnstile",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  29548,
+                                         "detail":  {
+                                                        "retainedDuringStory":  true,
+                                                        "consumedAfterStory":  true,
+                                                        "event":  "turnstile"
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-security-retained-akismet",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  30366,
+                                         "detail":  {
+                                                        "retainedDuringStory":  true,
+                                                        "consumedAfterStory":  true,
+                                                        "event":  "akismet"
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-security-retained-mbb",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  28715,
+                                         "detail":  {
+                                                        "retainedDuringStory":  true,
+                                                        "consumedAfterStory":  true,
+                                                        "event":  "mbb"
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-history-over-40-block",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  35394,
+                                         "detail":  {
+                                                        "integrity":  "block",
+                                                        "rawHistoryCap":  40,
+                                                        "recentStoryPreserved":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-short-fade-chat",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  24739,
+                                         "detail":  {
+                                                        "initialOpacity":  0.0365717,
+                                                        "completedBeforeInterruption":  true,
+                                                        "partialFadeHistoryRetained":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-short-fade-bubble",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  24873,
+                                         "detail":  {
+                                                        "initialOpacity":  0.0177213,
+                                                        "completedBeforeInterruption":  true,
+                                                        "partialFadeHistoryRetained":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-short-fade-switch",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  24035,
+                                         "detail":  {
+                                                        "initialOpacity":  0.0166999,
+                                                        "completedBeforeInterruption":  true,
+                                                        "partialFadeHistoryRetained":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-cancel-before-first-typing",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  24290,
+                                         "detail":  {
+                                                        "storyTypewriterCalls":  0
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-switch-dialog-failure",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  33328,
+                                         "detail":  {
+                                                        "switchedViaMenu":  true,
+                                                        "failedDialogCannotReviveOldStory":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-fallback-empty-json",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  50651,
+                                         "detail":  {
+                                                        "dialogRejected":  true,
+                                                        "storyNotStarted":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-fallback-invalid-json",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  39697,
+                                         "detail":  {
+                                                        "dialogRejected":  true,
+                                                        "storyNotStarted":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-fallback-empty-txt",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  41376,
+                                         "detail":  {
+                                                        "dialogRejected":  true,
+                                                        "storyNotStarted":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-interval-independent",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  31662,
+                                         "detail":  {
+                                                        "intervalsMs":  [
+                                                                            3000,
+                                                                            30000
+                                                                        ],
+                                                        "gaps":  [
+                                                                     [
+                                                                         2605,
+                                                                         2460
+                                                                     ],
+                                                                     [
+                                                                         2603,
+                                                                         2460
+                                                                     ]
+                                                                 ]
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-slow-max-story",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  121947,
+                                         "detail":  {
+                                                        "steps":  5,
+                                                        "charsPerStep":  120,
+                                                        "speed":  200,
+                                                        "elapsedMs":  105362
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-watchdog-recovery",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  27522,
+                                         "detail":  {
+                                                        "watchdogReleasedBlock":  true,
+                                                        "okRecovered":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-debug-whole-builtin",
+                                         "layer":  "browser + wp (SCRIPT_DEBUG)",
+                                         "status":  "PASS",
+                                         "ms":  29640,
+                                         "detail":  {
+                                                        "gaps":  [
+                                                                     2605,
+                                                                     2451
+                                                                 ],
+                                                        "expected":  [
+                                                                         2600,
+                                                                         2450
+                                                                     ],
+                                                        "frames":  [
+                                                                       "story-builtin-debug-step1.png",
+                                                                       "story-builtin-debug-step2.png",
+                                                                       "story-builtin-debug-step3.png"
+                                                                   ],
+                                                        "providerCallsDuringStory":  0,
+                                                        "resumed":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-debug-whole-llm",
+                                         "layer":  "browser + wp (SCRIPT_DEBUG)",
+                                         "status":  "PASS",
+                                         "ms":  32137,
+                                         "detail":  {
+                                                        "gaps":  [
+                                                                     2604,
+                                                                     2461
+                                                                 ],
+                                                        "expected":  [
+                                                                         2600,
+                                                                         2450
+                                                                     ],
+                                                        "frames":  [
+                                                                       "story-llm-debug-step1.png",
+                                                                       "story-llm-debug-step2.png",
+                                                                       "story-llm-debug-step3.png"
+                                                                   ],
+                                                        "providerCallsDuringStory":  0,
+                                                        "resumed":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-debug-locked-clicks",
+                                         "layer":  "browser + wp (SCRIPT_DEBUG)",
+                                         "status":  "PASS",
+                                         "ms":  29538,
+                                         "detail":  {
+                                                        "characterClicks":  true,
+                                                        "decorationClick":  true,
+                                                        "touchZone":  "head",
+                                                        "providerCalls":  0
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-debug-interrupt-chat",
+                                         "layer":  "browser + wp (SCRIPT_DEBUG)",
+                                         "status":  "PASS",
+                                         "ms":  30092,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-debug-interrupt-spa",
+                                         "layer":  "browser + wp (SCRIPT_DEBUG)",
+                                         "status":  "PASS",
+                                         "ms":  28273,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-debug-history-json-sse",
+                                         "layer":  "browser + wp (SCRIPT_DEBUG)",
+                                         "status":  "PASS",
+                                         "ms":  33020,
+                                         "detail":  {
+                                                        "integrity":  "block",
+                                                        "received":  {
+                                                                         "json":  [
+                                                                                      {
+                                                                                          "role":  "assistant",
+                                                                                          "content":  "STORY_A_1 この宝箱、何が入っているんだろう……"
+                                                                                      },
+                                                                                      {
+                                                                                          "role":  "assistant",
+                                                                                          "content":  "STORY_A_2 ミミックの可能性はあるけど……"
+                                                                                      },
+                                                                                      {
+                                                                                          "role":  "assistant",
+                                                                                          "content":  "STORY_A_3 でも、開けない理由にはならないよね。"
+                                                                                      }
+                                                                                  ],
+                                                                         "sse":  [
+                                                                                     {
+                                                                                         "role":  "assistant",
+                                                                                         "content":  "STORY_A_1 この宝箱、何が入っているんだろう……"
+                                                                                     },
+                                                                                     {
+                                                                                         "role":  "assistant",
+                                                                                         "content":  "STORY_A_2 ミミックの可能性はあるけど……"
+                                                                                     },
+                                                                                     {
+                                                                                         "role":  "assistant",
+                                                                                         "content":  "STORY_A_3 でも、開けない理由にはならないよね。"
+                                                                                     }
+                                                                                 ]
+                                                                     }
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-debug-partial-history-sse",
+                                         "layer":  "browser + wp (SCRIPT_DEBUG)",
+                                         "status":  "PASS",
+                                         "ms":  35149,
+                                         "detail":  {
+                                                        "integrity":  "block",
+                                                        "completedOnly":  true
+                                                    }
+                                     },
+                                     {
+                                         "name":  "story-debug-spa-pending-real-context",
+                                         "layer":  "browser + wp (SCRIPT_DEBUG)",
+                                         "status":  "PASS",
+                                         "ms":  40048,
+                                         "detail":  {
+                                                        "pendingProtectedBag":  true,
+                                                        "realContextProvider":  true
+                                                    }
+                                     }
+                                 ]
+                 },
+                 {
+                     "suite":  "story-native-visibility",
+                     "command":  "npm --prefix tools/node run test:interaction -- --only=story-interrupt-background --headed --port=9480",
+                     "recordedAt":  "2026-11-19T06:28:47.974Z",
+                     "passed":  1,
+                     "results":  [
+                                     {
+                                         "name":  "story-interrupt-background",
+                                         "layer":  "browser + wp (real REST/provider capture)",
+                                         "status":  "PASS",
+                                         "ms":  29045,
+                                         "detail":  {
+                                                        "completedSteps":  1,
+                                                        "cancelledPartialStep":  true,
+                                                        "consumed":  [
+                                                                         "story_a"
+                                                                     ],
+                                                        "cooldown":  true
+                                                    }
+                                     }
+                                 ]
+                 }
+             ]
+}

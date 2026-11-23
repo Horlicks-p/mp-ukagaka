@@ -1,7 +1,7 @@
 /**
  * MP Ukagaka Core Bundle
  * 
- * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
+ * 包含: ukagaka-base.js, ukagaka-core.js, ukagaka-story-talk.js, ukagaka-anime.js, ukagaka-emoji.js, ukagaka-context.js, ukagaka-greeting.js, ukagaka-dialog.js, ukagaka-chat-history.js, ukagaka-chat-mode.js, ukagaka-chat-format.js, ukagaka-chat-sse.js, ukagaka-chat-send.js, ukagaka-chat-events.js, ukagaka-chat-wake.js, ukagaka-features.js
  */
 
 // ========== ukagaka-base.js ==========
@@ -390,8 +390,12 @@ function mpuSetGreetInProgress(isInProgress) {
     mpuGetState().flags.greetInProgress = isInProgress;
 }
 
-function mpuSetContextPending(isPending) {
-    mpuGetState().flags.contextPending = isPending;
+const mpuContextPendingOwners = new Set(mpuGetState().flags.contextPending ? ["startup"] : []);
+
+function mpuSetContextPending(isPending, owner = "startup") {
+    if (isPending) mpuContextPendingOwners.add(owner);
+    else mpuContextPendingOwners.delete(owner);
+    mpuGetState().flags.contextPending = mpuContextPendingOwners.size > 0;
 }
 
 function mpuIsContextPending() {
@@ -555,6 +559,53 @@ function mpu_isDeepSleepTime() {
 }
 
 /**
+ * 洗好一袋內建台詞的索引。袋子從尾端取，所以最後一格是下一句。
+ * @param {number} length - 台詞數
+ * @param {number} avoid - 上一句的索引；新一輪的第一句不能是它（-1 表示不限）
+ * @returns {number[]}
+ */
+function mpuShuffleBuiltInBag(length, avoid) {
+    const bag = [];
+    for (let i = 0; i < length; i++) bag.push(i);
+    for (let i = length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+    const next = length - 1;
+    if (length > 1 && bag[next] === avoid) {
+        const j = Math.floor(Math.random() * next);
+        [bag[next], bag[j]] = [bag[j], bag[next]];
+    }
+    return bag;
+}
+
+/**
+ * 不重複地隨機抽一句內建台詞（華和梨的「エントリの重複回避呼び出し」）。
+ * 每句都說過一次才重新洗牌，所以短時間內不會一直抽到同一句；換輪時也不會
+ * 連說兩次同一句。對話資料換掉（換角色、重新載入）時袋子跟著重來。
+ * 自發對話、後備台詞、退出聊天等所有隨機抽內建台詞的地方共用這一個袋子。
+ * @param {Object} store - 訊息列表物件（含 msg 陣列）
+ * @param {number} [currentNum] - 畫面上這句的索引；袋子剛建立、還不知道上一句時用來避開它
+ * @returns {number} 台詞索引；沒有台詞時是 -1
+ */
+function mpuDrawBuiltInIndex(store, currentNum) {
+    if (!store || !Array.isArray(store.msg) || store.msg.length === 0) return -1;
+
+    const dialog = mpuGetState().dialog;
+    const length = store.msg.length;
+    let state = dialog.builtInBag;
+    if (!state || state.store !== store || state.length !== length) {
+        const hint = Number.isInteger(currentNum) && currentNum >= 0 && currentNum < length ? currentNum : -1;
+        state = { store, length, bag: [], last: hint };
+        dialog.builtInBag = state;
+    }
+
+    if (state.bag.length === 0) state.bag = mpuShuffleBuiltInBag(length, state.last);
+    state.last = state.bag.pop();
+    return state.last;
+}
+
+/**
  * 選取下一條對話訊息（隨機或循序）
  * @param {Object} store - 訊息列表物件（含 msg 陣列）
  * @param {number} currentNum - 目前顯示的訊息索引
@@ -563,11 +614,7 @@ function mpu_isDeepSleepTime() {
 function mpu_selectNextMessage(store, currentNum) {
     const msgCount = store.msg.length;
     if (mpuNextMode === "random") {
-        let newIdx;
-        do {
-            newIdx = Math.floor(Math.random() * msgCount);
-        } while (newIdx === currentNum && msgCount > 1);
-        return newIdx;
+        return mpuDrawBuiltInIndex(store, currentNum);
     } else {
         return currentNum + 1 >= msgCount ? 0 : currentNum + 1;
     }
@@ -747,6 +794,12 @@ function mpuClearSystemPlaceholder(targetOrOptions) {
     mpuHideThinkBubble({ source: 'system' });
 }
 
+let mpuTypewriterRunId = 0;
+
+function mpuGetTypewriterRunId() {
+    return mpuTypewriterRunId;
+}
+
 /**
  * 打字效果函數（性能優化版）
  * @param {string} text - 要顯示的文字（可包含 HTML）
@@ -759,8 +812,12 @@ function mpuClearSystemPlaceholder(targetOrOptions) {
  *         「えっと…何を話せばいいかな…」）。一律跳過角色動畫，並在目標容器標記
  *         data-mpu-placeholder="system"。§16.3-A 標記式判定，取代舊的 systemMessages
  *         字串黑名單（字串內容比對會隨翻譯漂移而失效，見 §16.2）。
+ *       - {Function} onComplete: 目前 run 自然完成並 flush 後呼叫一次；取消不呼叫。
+ * @returns {number} 此次 Typewriter run id（空字串清除也會產生新 id）。
  */
 function mpu_typewriter(text, target, speed, options) {
+    const runId = ++mpuTypewriterRunId;
+    let completed = false;
     // 第 4 參數正規化：boolean（舊 skipCharacterAnimation）或 options 物件
     const _opts = (options && typeof options === 'object')
         ? options
@@ -779,7 +836,7 @@ function mpu_typewriter(text, target, speed, options) {
         // 清空時一併移除 placeholder 標記，避免 stale attribute 殘留誤判 source
         mpuClearSystemPlaceholder($target);
         $target.html('');
-        return;
+        return runId;
     }
 
     const $target = typeof target === 'string' ? jQuery(target) : target;
@@ -853,6 +910,7 @@ function mpu_typewriter(text, target, speed, options) {
     }
 
     function flushUpdate() {
+        if (runId !== mpuTypewriterRunId) return;
         if (pendingUpdate && targetElement) {
             targetElement.innerHTML = currentHTML;
             pendingUpdate = false;
@@ -860,6 +918,7 @@ function mpu_typewriter(text, target, speed, options) {
     }
 
     function processNextChar() {
+        if (runId !== mpuTypewriterRunId || completed) return;
         if (partIndex >= parts.length) {
             if (pendingUpdate) {
                 flushUpdate();
@@ -870,6 +929,8 @@ function mpu_typewriter(text, target, speed, options) {
             }
             mpuSetTypewriterTimer(null);
             animationTriggered = false;
+            completed = true;
+            if (typeof _opts.onComplete === 'function') _opts.onComplete();
             return;
         }
 
@@ -929,6 +990,7 @@ function mpu_typewriter(text, target, speed, options) {
     }
 
     processNextChar();
+    return runId;
 }
 
 /**
@@ -937,6 +999,7 @@ function mpu_typewriter(text, target, speed, options) {
  * @returns {boolean} 是否成功取消
  */
 function mpu_cancelTypewriter() {
+    mpuTypewriterRunId++;
     if (mpuTypewriterTimer !== null) {
         clearTimeout(mpuTypewriterTimer);
         mpuSetTypewriterTimer(null);
@@ -1536,6 +1599,7 @@ function mpu_setDockLabel(selector, text) {
  * @param {number} speed - 淡入動畫速度（毫秒），預設 400
  */
 function mpu_showrobot(speed = 400) {
+  window.mpuRobotHideRequested = false;
   mpu_setDockLabel("#remove", mpuInfo.robot[1]); // "隱藏春菜 ▼"
   jQuery("#ukagaka").fadeIn(speed);
 }
@@ -1545,6 +1609,7 @@ function mpu_showrobot(speed = 400) {
  * @param {number} speed - 淡出動畫速度（毫秒），預設 400
  */
 function mpu_hiderobot(speed = 400) {
+  window.mpuRobotHideRequested = true;
   mpu_setDockLabel("#remove", mpuInfo.robot[0]); // "顯示春菜 ▲"
   jQuery("#ukagaka").fadeOut(speed);
 }
@@ -1602,10 +1667,15 @@ function mpuDisplayDialogueEmoji(emoji) {
 
 function mpuDisplayBuiltInMessage(store, index, options = {}) {
   const target = options.target || "#ukagaka_msg";
+  const typewriterOptions = typeof options.callback === "function"
+    ? Object.assign({}, typeof options.typewriterOptions === "boolean"
+      ? { skipCharacterAnimation: options.typewriterOptions } : options.typewriterOptions,
+      { onComplete: options.callback })
+    : options.typewriterOptions;
 
   if (!store || !Array.isArray(store.msg) || !Object.prototype.hasOwnProperty.call(store.msg, index)) {
     mpuDisplayDialogueEmoji(null);
-    mpu_typewriter("", target, options.callback || null, options.typewriterOptions);
+    mpu_typewriter("", target, null, typewriterOptions);
     return "";
   }
 
@@ -1613,14 +1683,17 @@ function mpuDisplayBuiltInMessage(store, index, options = {}) {
   const output = mpu_unescapeHTML(String(store.msg[index] || "") + String(store.auto_msg || ""));
 
   mpuDisplayDialogueEmoji(emoji);
-  mpu_typewriter(output, target, options.callback || null, options.typewriterOptions);
+  mpu_typewriter(output, target, null, typewriterOptions);
   return output;
 }
 
+// 與自發對話共用同一個不重複袋子（mpuDrawBuiltInIndex，ukagaka-base.js）。
+// 袋子還沒建立時（例如 default_msg = 1 固定先說第 0 句，接著就是問候或頁面感知失敗），
+// 用 #ukagaka_msgnum 避開畫面上那一句。
 function mpuRandomBuiltInIndex(store) {
-  return store && Array.isArray(store.msg) && store.msg.length > 0
-    ? Math.floor(Math.random() * store.msg.length)
-    : -1;
+  const element = document.getElementById("ukagaka_msgnum");
+  const shown = parseInt(element ? element.textContent : "", 10);
+  return mpuDrawBuiltInIndex(store, Number.isNaN(shown) ? undefined : shown);
 }
 
 window.mpuGetCurrentUkagakaNum = mpuGetCurrentUkagakaNum;
@@ -1876,6 +1949,11 @@ function startAutoTalk() {
   mpuLogger.logF("autoTalkTimerSet", "startAutoTalk: タイマーを設定しました。間隔=%1$s ms、mpuAutoTalk=%2$s", currentInterval, mpuAutoTalk);
   mpuSetAutoTalkTimer(setTimeout(function () {
     mpuSetAutoTalkTimer(null); // 清除計時器引用，表示已觸發
+    if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+      mpuLogger.logL("autoTalkSkippedStoryPlaying", "ストーリー再生中のため、自動会話の確認をスキップします");
+      if (mpuAutoTalk) startAutoTalk();
+      return;
+    }
     mpuLogger.logF("autoTalkTimerTriggered", "自動会話タイマーが作動しました。mpuAutoTalk=%1$s、mpuOllamaReplaceDialogue=%2$s", mpuAutoTalk, mpuOllamaReplaceDialogue);
 
     // 閒置檢查：如果用戶閒置超過閾值，跳過本次自動對話
@@ -2239,6 +2317,9 @@ function mpu_nextmsg(trigger, retry = null) {
     return;
   }
 
+  // Only automatic ticks can draw a story, before any normal dialogue or LLM work.
+  if (isAuto && window.mpuStoryTalk && window.mpuStoryTalk.tryStart(mpuGetDialogStore())) return;
+
   // 手動點擊時不再立即重置計時器，改由打字完成後統一啟動
 
   const isStaleForCharacter = function () {
@@ -2382,7 +2463,7 @@ function mpu_nextmsg(trigger, retry = null) {
                   forceAnimation,
                   function () {
                     // 歷史已在下面寫入；動畫期間換了角色就不再顯示
-                    if (isStaleForCharacter()) return;
+                    if (isStaleForCharacter() || (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying())) return;
                     mpu_cancelTypewriter();
                     jQuery("#ukagaka_msg").html("");
                     mpu_showMsgText();
@@ -2531,7 +2612,7 @@ function mpu_nextmsg(trigger, retry = null) {
 
   const showBuiltInMessage = function () {
     // 淡出期間換了角色：新角色載入對話時會自己說第一句
-    if (isStaleForCharacter()) {
+    if (isStaleForCharacter() || (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying())) {
       resumeAutoTalkAfterTypewriter();
       return;
     }
@@ -2591,7 +2672,7 @@ function mpu_nextmsg(trigger, retry = null) {
       const isWakingUp = window.mpuCanvasManager.triggerCharacterAnimation(
         isManual,
         function () {
-          if (isStaleForCharacter()) {
+          if (isStaleForCharacter() || (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying())) {
             resumeAutoTalkAfterTypewriter();
             return;
           }
@@ -2716,6 +2797,7 @@ function mpu_nextmsg_fallback(expectedGeneration = window.mpuCharacterGeneration
 
 function mpuChange(num) {
   const hasNum = typeof num !== "undefined" && num !== null && num !== "";
+  if (window.mpuStoryTalk) window.mpuStoryTalk.cancel(hasNum ? "character-switch" : "menu");
 
   if (hasNum && typeof window.mpuCanvasManager === "undefined") {
     mpu_handle_error("Canvas 管理器未載入", "mpuChange:canvas_manager_check", {
@@ -2789,6 +2871,11 @@ function mpuChange(num) {
       if (typeof res !== "object") throw new Error("Expected JSON, got HTML.");
       const payload = res || {};
       window.mpuCharacterGeneration += 1;
+      const previousStore = mpuGetDialogStore();
+      if (previousStore) {
+        previousStore.stories = null;
+        delete previousStore.storiesGeneration;
+      }
       const $canvas = jQuery("#cur_ukagaka");
       const $wrap = jQuery("#ukagaka");
 
@@ -2912,6 +2999,283 @@ function mpuChange(num) {
 jQuery(function () {
   mpuInitObservationTracking();
 });
+
+// ========== ukagaka-story-talk.js ==========
+/**
+ * Handwritten story player. The existing Auto Talk scheduler owns all ticks;
+ * this player never schedules normal dialogue or makes LLM requests.
+ */
+function mpuStoryBagKey(restUrl, personality) {
+    const url = new URL(restUrl);
+    url.hostname = url.hostname.toLowerCase();
+    const site = url.href.replace(/\/+$/, "");
+    let hash = 2166136261;
+    for (let i = 0; i < site.length; i++) {
+        hash = Math.imul(hash ^ site.charCodeAt(i), 16777619);
+    }
+    return `mpu_story_bag_v1_${(hash >>> 0).toString(16).padStart(8, "0")}_${personality}`;
+}
+
+function mpuCreateStoryTalk(overrides = {}) {
+    const env = Object.assign({
+        now: () => Date.now(),
+        rng: () => Math.random(),
+        storage: () => window.localStorage,
+        restUrl: () => mpuRestUrl,
+        generation: () => window.mpuCharacterGeneration,
+        canStart: () => !document.hidden && mpuAutoTalk && !window.mpuChatModeActive
+            && !mpuMessageBlocking && !mpuAiContextInProgress && !mpuGreetInProgress
+            && !mpuOllamaRequesting && !mpuIsInteractionDialogActive()
+            && !mpu_isUnawokenSleepMode() && !mpuIsContextPending()
+            && !jQuery("#ukagaka").is(":hidden")
+            && !(window.mpuRobotHideRequested && jQuery("#ukagaka").is(":animated")),
+        canContinue: () => !document.hidden && mpuAutoTalk && !window.mpuChatModeActive,
+        acquire: () => mpuAcquireMessageBlock("story-talk"),
+        release: () => mpuReleaseMessageBlock("story-talk"),
+        ownsBlock: () => mpuHasMessageBlock("story-talk"),
+        runId: () => mpuGetTypewriterRunId(),
+        speed: () => mpuTypewriterSpeed,
+        typewrite: (text, options) => mpu_typewriter(text, "#ukagaka_msg", null, options),
+        cancelTypewriter: () => mpu_cancelTypewriter(),
+        emoji: (emoji) => mpuDisplayDialogueEmoji(emoji),
+        show: () => mpu_showmsg(400),
+        showText: () => mpu_showMsgText(),
+        hide: () => mpu_hidemsg(600),
+        afterFade: (callback) => jQuery("#ukagaka_msgbox").promise().done(callback),
+        appendHistory: (text, timestamp) => {
+            if (!Array.isArray(window.mpuChatHistory)) return;
+            window.mpuChatHistory.push(
+                { role: "user", content: "（独り言）", type: "synthetic", timestamp },
+                { role: "assistant", content: text, type: "auto_talk", timestamp }
+            );
+            mpu_saveChatHistory();
+        },
+        setTimeout: (callback, ms) => setTimeout(callback, ms),
+        clearTimeout: (timer) => clearTimeout(timer),
+        reportError: (error) => {
+            if (typeof mpu_handle_error === "function") mpu_handle_error(error, "Story Talk", { showToUser: false });
+        },
+    }, overrides);
+    const memory = new Map();
+    const memoryOnly = new Set();
+    let current = null;
+
+    function readBag(key) {
+        if (memoryOnly.has(key)) return memory.get(key) || emptyBag();
+        let saved;
+        try {
+            saved = env.storage().getItem(key);
+        } catch (_) {
+            // Access failures stay in memory for this page; a later successful
+            // read of stale storage must not undo the in-memory progress.
+            memoryOnly.add(key);
+            return memory.get(key) || emptyBag();
+        }
+        try {
+            const raw = JSON.parse(saved);
+            if (!raw || raw.v !== 1 || !Array.isArray(raw.drawn)
+                || raw.drawn.some((id) => typeof id !== "string")
+                || !(raw.lastDrawn === null || typeof raw.lastDrawn === "string")
+                || !Number.isSafeInteger(raw.cooldownUntil) || raw.cooldownUntil < 0) return emptyBag();
+            memory.set(key, raw);
+            return raw;
+        } catch (_) {
+            // Corrupt data is not a storage access failure. The next draw can
+            // overwrite it with a valid bag and a persistent cooldown.
+            return emptyBag();
+        }
+    }
+
+    function emptyBag() {
+        return { v: 1, drawn: [], lastDrawn: null, cooldownUntil: 0 };
+    }
+
+    function writeBag(key, bag) {
+        memory.set(key, bag);
+        if (memoryOnly.has(key)) return;
+        try {
+            env.storage().setItem(key, JSON.stringify(bag));
+        } catch (_) {
+            memoryOnly.add(key);
+        }
+    }
+
+    function validCatalog(data) {
+        if (!data || typeof data.personality !== "string" || !/^[a-zA-Z0-9_-]+$/.test(data.personality)
+            || !data.config || !data.config.step_pause || !Array.isArray(data.stories) || !data.stories.length) return false;
+        const c = data.config;
+        const p = c.step_pause;
+        return Number.isFinite(c.start_chance) && c.start_chance >= 0 && c.start_chance <= 1
+            && Number.isFinite(c.cooldown_minutes) && c.cooldown_minutes >= 0 && c.cooldown_minutes <= 1440
+            && Object.values(p).every((v) => Number.isInteger(v) && v >= 0 && v <= 10000)
+            && ["base_ms", "per_char_ms", "min_ms", "max_ms"].every((key) => Number.isInteger(p[key]))
+            && p.min_ms <= p.max_ms
+            && new Set(data.stories.map((s) => s && s.id)).size === data.stories.length
+            && data.stories.every((s) => s && /^[a-z][a-z0-9_-]{0,63}$/.test(s.id)
+                && Array.isArray(s.steps) && s.steps.length >= 2 && s.steps.length <= 5
+                && s.steps.every((step) => step && typeof step.text === "string" && step.text.trim()
+                    && Array.from(step.text).length <= 120 && !/[<>&]/.test(step.text)
+                    && (step.emoji === null || /^[a-zA-Z0-9_-]+\.png$/.test(step.emoji))
+                    && (step.pause_ms === undefined || step.pause_ms === null
+                        || (Number.isInteger(step.pause_ms) && step.pause_ms >= 0 && step.pause_ms <= 10000))));
+    }
+
+    // A step's own pause_ms wins over the length-based pause (e.g. a beat for a reaction).
+    function pause(step, config) {
+        if (Number.isInteger(step.pause_ms)) return step.pause_ms;
+        const p = config.step_pause;
+        return Math.min(p.max_ms, Math.max(p.min_ms, p.base_ms + p.per_char_ms * Array.from(step.text).length));
+    }
+
+    function schedule(session, callback, ms) {
+        const timer = env.setTimeout(() => {
+            session.timers.delete(timer);
+            if (session !== current || session.finished) return;
+            try { callback(); } catch (error) { failSession(session, error); }
+        }, ms);
+        session.timers.add(timer);
+        return timer;
+    }
+
+    function finish(session) {
+        if (session !== current || session.finished) return;
+        session.finished = true;
+        for (const timer of session.timers) env.clearTimeout(timer);
+        session.timers.clear();
+        current = null;
+        // Release first; even a storage exception must never leave a message lock.
+        env.release();
+        const bag = readBag(session.bagKey);
+        bag.cooldownUntil = Math.floor(env.now() + session.config.cooldown_minutes * 60000);
+        writeBag(session.bagKey, bag);
+    }
+
+    function cancelSession(session) {
+        if (session !== current || session.finished) return;
+        try {
+            if (session.runId !== null && session.runId === env.runId()
+                && !session.completedSteps.has(session.step)) env.cancelTypewriter();
+        } finally { finish(session); }
+    }
+
+    function failSession(session, error) {
+        try { cancelSession(session); } finally {
+            // Use the existing error path, without a new visible message or log key.
+            try { env.reportError(error); } catch (_) { /* Logging must not break recovery. */ }
+        }
+    }
+
+    function alive(session) {
+        if (session !== current || session.finished) return false;
+        if (session.generation !== env.generation() || !env.canContinue() || !env.ownsBlock()
+            || (session.runId !== null && session.runId !== env.runId())) {
+            cancelSession(session);
+            return false;
+        }
+        return true;
+    }
+
+    function stepDone(session, index) {
+        if (session !== current || session.finished || session.completedSteps.has(index) || !alive(session)) return;
+        session.completedSteps.add(index);
+        env.clearTimeout(session.watchdog);
+        session.timers.delete(session.watchdog);
+        env.appendHistory(session.story.steps[index].text, env.now());
+        schedule(session, () => {
+            if (!alive(session)) return;
+            if (index + 1 < session.story.steps.length) playStep(session, index + 1);
+            else finish(session);
+        }, pause(session.story.steps[index], session.config));
+    }
+
+    function playStep(session, index) {
+        if (!alive(session)) return;
+        session.step = index;
+        const step = session.story.steps[index];
+        env.showText();
+        env.emoji(step.emoji);
+        session.runId = env.typewrite(step.text, {
+            skipCharacterAnimation: index > 0,
+            onComplete: () => {
+                try { stepDone(session, index); } catch (error) { failSession(session, error); }
+            },
+        });
+        const runId = session.runId;
+        session.watchdog = schedule(session, () => {
+            if (session.step === index && session.runId === runId && !session.completedSteps.has(index)) cancelSession(session);
+        }, step.text.length * session.speed + 10000);
+        if (index === 0) env.show();
+    }
+
+    function tryStart(store) {
+        if (current || !store || store.storiesGeneration !== env.generation() || !env.canStart()
+            || !validCatalog(store.stories)) return false;
+        const data = store.stories;
+        let key;
+        try { key = mpuStoryBagKey(env.restUrl(), data.personality); } catch (_) { return false; }
+        const bag = readBag(key);
+        const ids = data.stories.map((story) => story.id);
+        bag.drawn = [...new Set(bag.drawn.filter((id) => ids.includes(id)))];
+        if (env.now() < bag.cooldownUntil || env.rng() >= data.config.start_chance) return false;
+        let available = data.stories.filter((story) => !bag.drawn.includes(story.id));
+        if (!available.length) {
+            bag.drawn = [];
+            available = data.stories.filter((story) => ids.length === 1 || story.id !== bag.lastDrawn);
+        }
+        const selected = available[Math.floor(env.rng() * available.length)];
+        bag.drawn.push(selected.id);
+        bag.lastDrawn = selected.id;
+        bag.cooldownUntil = Math.floor(env.now() + data.config.cooldown_minutes * 60000);
+        writeBag(key, bag);
+        const session = {
+            story: JSON.parse(JSON.stringify(selected)),
+            config: JSON.parse(JSON.stringify(data.config)),
+            bagKey: key, generation: env.generation(), step: 0, runId: null,
+            finished: false, completedSteps: new Set(), timers: new Set(),
+            watchdog: null, speed: env.speed(),
+        };
+        current = session;
+        try {
+            env.acquire();
+            const budget = 1000 + session.story.steps.reduce((sum, step) =>
+                sum + step.text.length * session.speed + 10000 + pause(step, session.config), 0);
+            schedule(session, () => cancelSession(session), budget);
+            env.hide();
+            schedule(session, () => env.afterFade(() => {
+                if (!alive(session)) return;
+                try { playStep(session, 0); } catch (error) { failSession(session, error); }
+            }), 400);
+        } catch (error) { failSession(session, error); }
+        return true;
+    }
+
+    return {
+        tryStart,
+        isPlaying: () => current !== null,
+        cancel: () => { if (current) cancelSession(current); },
+        getStateForDebug: () => current ? {
+            storyId: current.story.id, step: current.step, generation: current.generation,
+            bagKey: current.bagKey, completedSteps: [...current.completedSteps],
+        } : null,
+    };
+}
+
+// Lazy initialization keeps module evaluation independent of later modules.
+// features calls this on DOM ready, after mpuSpaEvents has been initialized.
+function mpuInitStoryTalk() {
+    if (window.mpuStoryTalk) return;
+    window.mpuStoryTalk = mpuCreateStoryTalk();
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) window.mpuStoryTalk.cancel("hidden");
+    });
+    (window.mpuSpaEvents || []).forEach((eventName) => {
+        document.addEventListener(eventName, () => window.mpuStoryTalk.cancel("spa"));
+    });
+}
+
+function mpuStoryTalkIsPlaying() {
+    return !!window.mpuStoryTalk && window.mpuStoryTalk.isPlaying();
+}
 
 // ========== ukagaka-anime.js ==========
 /**
@@ -4800,6 +5164,9 @@ function loadExternalDialog(file, skipFirstMessage = false) {
       }
 
       if (resp && !resp.error && Array.isArray(resp.msg)) {
+        // Bind to the generation captured when the request was sent, after
+        // the load-token check. Personality is only a storage-key component.
+        resp.storiesGeneration = characterGeneration;
         if (resp.msg.length === 0) {
           mpuLogger.warnL("dialogExternalFileEmpty", "loadExternalDialog: 会話ファイルが空です");
           mpuSetDialogStore({
@@ -4807,6 +5174,8 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             auto_msg: resp.auto_msg || "",
             next_msg: resp.next_msg || 0,
             default_msg: resp.default_msg || 0,
+            stories: resp.stories || null,
+            storiesGeneration: characterGeneration,
           });
           if (skipFirstMessage) {
             mpuLogger.logL("dialogExternalFileEmptyLlmFallback", "loadExternalDialog: LLM 置換会話モードのため会話ファイルが空です。LLM 生成に依存します");
@@ -4852,6 +5221,12 @@ function loadExternalDialog(file, skipFirstMessage = false) {
               return;
             }
 
+            if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+              firstMessageShown = true;
+              msgElement.removeAttr("data-initial-msg-system");
+              return;
+            }
+
             // 睡眠模式檢查：如果在未喚醒的睡眠模式下，跳過第一句對話
             if (
               typeof mpu_isUnawokenSleepMode === "function" &&
@@ -4865,9 +5240,10 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
             firstMessageShown = true;
 
+            // 第一句也從不重複袋子抽，算進這一輪，之後的自發對話才不會馬上又抽到它。
             let first = 0;
             if (mpuDefaultMsg === 0 && resp.msg.length) {
-              first = Math.floor(Math.random() * resp.msg.length);
+              first = mpuDrawBuiltInIndex(resp);
             }
             // 從初始思考氣泡 placeholder 切換到真正的自發對話：清除氣泡並淡入主對話框。
             if (isInitialSystemMessage) {
@@ -5133,6 +5509,8 @@ function mpu_toggleChatMode(enable) {
   if (typeof enable === "undefined") {
     enable = !window.mpuChatModeActive;
   }
+
+  if (enable && window.mpuStoryTalk) window.mpuStoryTalk.cancel("chat");
 
   window.mpuChatModeActive = enable;
   window.mpuChatGeneration += 1;
@@ -6337,6 +6715,11 @@ function mpu_display_wake_reaction(res) {
 
   const output =
     typeof mpu_parseMarkdown === "function" ? mpu_parseMarkdown(reaction) : reaction;
+  // 與其他內建台詞相同：先換表情再打字。後端給的是偵測到的表情，
+  // 偵測不到時是角色 sleep_mode.json 的 wake_reaction_emoji（備用台詞也適用）。
+  if (typeof mpuDisplayDialogueEmoji === "function") {
+    mpuDisplayDialogueEmoji((res && res.emoji) || null);
+  }
   mpu_typewriter(output, "#ukagaka_msg", null, true);
   if (jQuery("#ukagaka_msgbox").is(":hidden")) {
     mpu_showmsg(400);
@@ -6500,6 +6883,7 @@ function mpuShowInitialSystemPlaceholderWhenReady(msgElement, initialMsg) {
 }
 
 jQuery(document).ready(function () {
+  if (typeof mpuInitStoryTalk === "function") mpuInitStoryTalk();
   mpuLogger.logL("featuresJqueryReady", "jQuery ready を実行しました");
 
   // 確保 jQuery.cookie 已初始化
@@ -6817,6 +7201,7 @@ jQuery(document).ready(function () {
 
     jQuery("#toggleAutoTalk").on("click", function (e) {
       e.preventDefault();
+      if (mpuAutoTalk && window.mpuStoryTalk) window.mpuStoryTalk.cancel("autotalk-off");
       mpuSetAutoTalkEnabled(!mpuAutoTalk);
       if (mpuAutoTalk) startAutoTalk();
       else stopAutoTalk();
@@ -6830,12 +7215,14 @@ jQuery(document).ready(function () {
       mpu_showmsg(400);
       mpu_setLocal("mpuMsg", "show");
     } else {
+      if (window.mpuStoryTalk) window.mpuStoryTalk.cancel("hide");
       mpu_hidemsg(400);
       mpu_setLocal("mpuMsg", "hidden");
     }
   });
 
   jQuery("#ukagaka_img").on("click", function () {
+    if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) return;
     if (jQuery("#ukagaka_msgbox").is(":hidden")) {
       mpu_showmsg(400);
     } else {
@@ -6844,6 +7231,7 @@ jQuery(document).ready(function () {
   });
 
   jQuery("#mpu_extend").on("click", function () {
+    if (window.mpuStoryTalk) window.mpuStoryTalk.cancel("menu");
     const extendUrl = `${mpuRestUrl}extend`;
 
     document.body.style.cursor = "wait";
@@ -6855,6 +7243,10 @@ jQuery(document).ready(function () {
       retries: 1,
     })
       .then((res) => {
+        if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+          document.body.style.cursor = "auto";
+          return;
+        }
         if (!res || !res.label)
           throw new Error("Invalid extend response.");
         mpu_showmsg(400);
@@ -6865,6 +7257,11 @@ jQuery(document).ready(function () {
         document.body.style.cursor = "auto";
       })
       .catch((error) => {
+        if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+          mpu_handle_error(error, "mpu_extend", { showToUser: false });
+          document.body.style.cursor = "auto";
+          return;
+        }
         mpu_handle_error(error, "mpu_extend", {
           showToUser: true,
           userMessage:
@@ -6912,6 +7309,7 @@ jQuery(document).ready(function () {
       mpu_showrobot(400);
       mpu_setLocal("mpuRobot", "show");
     } else {
+      if (window.mpuStoryTalk) window.mpuStoryTalk.cancel("hide-robot");
       mpu_hiderobot(400);
       mpu_setLocal("mpuRobot", "hidden");
     }
@@ -6956,12 +7354,17 @@ window.mpuSpaEvents = window.mpuSpaEvents || [
  * SPA 導航後的頁面感知處理函數
  * @param {Event} e - 事件物件
  */
+let mpuSpaNavigationToken = 0;
 function mpu_handleSpaNavigation(e) {
+  const token = ++mpuSpaNavigationToken;
+  mpuSetContextPending(true, "spa");
   const url = e.detail?.url || e.detail?.to?.url || window.location.href;
   mpuLogger.logL("featuresSpaNavigationContentChanged", "🔄 SPA ナビゲーション：ページ内容が変更されました", url);
 
   // 延遲一下讓新內容載入完成，然後檢查是否要觸發頁面感知對話
   setTimeout(function () {
+    if (token !== mpuSpaNavigationToken) return;
+    mpuSetContextPending(false, "spa");
     if (typeof mpuInitObservationTracking === "function") {
       if (window.mpuPageContext) window.mpuPageContext.postId = 0;
       mpuInitObservationTracking();

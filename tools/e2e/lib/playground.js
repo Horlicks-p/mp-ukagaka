@@ -12,7 +12,7 @@ const { spawn } = require("node:child_process");
 const root = path.resolve(__dirname, "../../..");
 const cliEntry = path.join(root, "tools/node/node_modules/@wp-playground/cli/wp-playground.js");
 
-function startPlayground({ port, wp = "7.1.2", php = "8.3", blueprint, mounts = [], bootTimeoutMs = 240000, log = () => {} }) {
+function startPlayground({ port, wp = "7.1.2", php = "8.3", blueprint, mounts = [], workers, bootTimeoutMs = 240000, log = () => {} }) {
   if (!fs.existsSync(cliEntry)) {
     throw new Error("Playground CLI is missing. Run: npm --prefix tools/node install");
   }
@@ -34,6 +34,7 @@ function startPlayground({ port, wp = "7.1.2", php = "8.3", blueprint, mounts = 
   for (const mount of mounts) {
     args.push("--mount-dir", mount.source, mount.target);
   }
+  if (workers !== undefined) args.push(`--workers=${workers}`);
   const child = spawn(process.execPath, args, { cwd: workDir, stdio: ["ignore", "pipe", "pipe"] });
 
   let output = "";

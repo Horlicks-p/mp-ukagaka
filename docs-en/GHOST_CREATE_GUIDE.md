@@ -83,6 +83,8 @@ ghost/
     ├── sleep_mode.json     # Optional: Sleep mode configuration
     ├── calendar.json       # Optional: Holiday / Anniversary configuration
     ├── diary.json          # Optional: AI Diary configuration
+    ├── diary_images/       # Optional: Images for diary posts, one folder per diary.json category
+    │   └── <category>/     #   e.g. food_thoughts/cake.png (see USER_GUIDE: Diary Images)
     ├── emoji-keywords.json # Optional: Emoji keyword configuration
     └── {PersonalityID}.js         # Optional: JavaScript animation script
 ```
@@ -649,6 +651,78 @@ Adjusts weights based on the time period. Will be merged with `base_weights`.
 - Describe item facts and clues rather than ordering the model to mention every detail. The reaction builder lets the model omit details that do not fit the conversation and improvise unresolved item details without inventing the visitor's motive, source, or knowledge.
 
 ---
+
+## Handwritten Stories (`stories.json`)
+
+Place `stories.json` beside the character's `manifest.json`. Story Talk plays a
+short, handwritten monologue without sending its text to an LLM for rewriting.
+The player is connected to Auto Talk in both bundle and `SCRIPT_DEBUG` modes.
+`enabled` in the file is the only switch; there is no WordPress settings toggle.
+Keep a new catalog at `enabled: false` until you have watched its pacing and
+expressions in a browser. Frieren ships with six stories enabled.
+
+```json
+{
+  "format_version": 1,
+  "enabled": false,
+  "config": {
+    "start_chance": 0.05,
+    "cooldown_minutes": 360,
+    "step_pause": {
+      "base_ms": 1200,
+      "per_char_ms": 50,
+      "min_ms": 1500,
+      "max_ms": 4000
+    }
+  },
+  "stories": [{
+    "id": "treasure_chest",
+    "title": "A tempting chest",
+    "steps": [
+      { "text": "I wonder what is inside this chest…", "emotion": "thinking", "pause_ms": 3000 },
+      { "text": "It could be a mimic. Still worth opening.", "emotion": "smirk" }
+    ]
+  }]
+}
+```
+
+- Use format version `1` and a boolean `enabled`. Missing configuration fields
+  use the defaults above. Chance must be a number from 0 to 1; cooldown is
+  0–1440 minutes. Pause values are nonnegative integers up to 10000 ms, with
+  `min_ms <= max_ms`. The pause after a step is `base_ms + per_char_ms * character count`,
+  clamped to these limits, independently of the Auto Talk interval.
+- A step may set its own `pause_ms` (an integer from 0 to 10000) to replace that
+  computed pause, for example to leave a beat for the listener to react after a
+  short line. It is used as is, outside `min_ms`/`max_ms`. On the last step it
+  is the pause before the story ends. Any other value drops the story.
+- Each unique story ID must match `^[a-z][a-z0-9_-]{0,63}$`. A story contains
+  2–5 steps; prefer 2–3 to leave room in the model's 20-entry chat context.
+  Each step is 1–120 Unicode characters of nonblank plain text. `<`, `>` and
+  `&` are forbidden; an invalid step drops that entire story. Duplicate IDs
+  disable the catalog. Titles and unknown fields are not sent to the player.
+- `emotion` is a supported character tag, never a filename or URL. The server
+  resolves it to the existing emoji asset; unknown tags yield no emoji while
+  preserving the line. Text is presented as authored, without gettext or LLM
+  translation. A missing, disabled or invalid catalog yields `stories: null`.
+- The existing `/dialog` response carries the validated catalog. A valid,
+  nonempty fallback dialogue file is required even in LLM replacement mode.
+  The route's existing empty-file errors are unchanged.
+- Drawing immediately consumes a story's place in the
+  persistent bag. Completion or cancellation resets its cooldown. Interruptions
+  discard playback progress; completed lines stay in normal chat history.
+- A selected story plays all its steps consecutively, including in LLM
+  replacement mode. Only automatic ticks select stories. OK, body clicks,
+  touch zones and decorations cannot replace a playing story. Chat, character
+  menus/switches, extend, hiding the bubble/character, Auto Talk OFF, a hidden
+  tab and SPA navigation cancel it. Reopening does not resume the story.
+- Each fully typed step is saved as ordinary `auto_talk` history before the
+  next step. A subsequent chat sees completed steps through the existing
+  history limits; an interrupted partial step is excluded.
+  The bag is scoped to the site and personality; it is not cross-device sync.
+  Reloading without cleanup retains the cooldown recorded at story start.
+
+Plugin updates can overwrite edits to bundled `ghost/` files. Enabling a shipped
+catalog is a maintainer release decision; preserve your own authoring copy.
 
 ## Shell Image Files
 

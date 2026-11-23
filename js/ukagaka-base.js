@@ -383,8 +383,12 @@ function mpuSetGreetInProgress(isInProgress) {
     mpuGetState().flags.greetInProgress = isInProgress;
 }
 
-function mpuSetContextPending(isPending) {
-    mpuGetState().flags.contextPending = isPending;
+const mpuContextPendingOwners = new Set(mpuGetState().flags.contextPending ? ["startup"] : []);
+
+function mpuSetContextPending(isPending, owner = "startup") {
+    if (isPending) mpuContextPendingOwners.add(owner);
+    else mpuContextPendingOwners.delete(owner);
+    mpuGetState().flags.contextPending = mpuContextPendingOwners.size > 0;
 }
 
 function mpuIsContextPending() {
@@ -548,6 +552,53 @@ function mpu_isDeepSleepTime() {
 }
 
 /**
+ * 洗好一袋內建台詞的索引。袋子從尾端取，所以最後一格是下一句。
+ * @param {number} length - 台詞數
+ * @param {number} avoid - 上一句的索引；新一輪的第一句不能是它（-1 表示不限）
+ * @returns {number[]}
+ */
+function mpuShuffleBuiltInBag(length, avoid) {
+    const bag = [];
+    for (let i = 0; i < length; i++) bag.push(i);
+    for (let i = length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+    const next = length - 1;
+    if (length > 1 && bag[next] === avoid) {
+        const j = Math.floor(Math.random() * next);
+        [bag[next], bag[j]] = [bag[j], bag[next]];
+    }
+    return bag;
+}
+
+/**
+ * 不重複地隨機抽一句內建台詞（華和梨的「エントリの重複回避呼び出し」）。
+ * 每句都說過一次才重新洗牌，所以短時間內不會一直抽到同一句；換輪時也不會
+ * 連說兩次同一句。對話資料換掉（換角色、重新載入）時袋子跟著重來。
+ * 自發對話、後備台詞、退出聊天等所有隨機抽內建台詞的地方共用這一個袋子。
+ * @param {Object} store - 訊息列表物件（含 msg 陣列）
+ * @param {number} [currentNum] - 畫面上這句的索引；袋子剛建立、還不知道上一句時用來避開它
+ * @returns {number} 台詞索引；沒有台詞時是 -1
+ */
+function mpuDrawBuiltInIndex(store, currentNum) {
+    if (!store || !Array.isArray(store.msg) || store.msg.length === 0) return -1;
+
+    const dialog = mpuGetState().dialog;
+    const length = store.msg.length;
+    let state = dialog.builtInBag;
+    if (!state || state.store !== store || state.length !== length) {
+        const hint = Number.isInteger(currentNum) && currentNum >= 0 && currentNum < length ? currentNum : -1;
+        state = { store, length, bag: [], last: hint };
+        dialog.builtInBag = state;
+    }
+
+    if (state.bag.length === 0) state.bag = mpuShuffleBuiltInBag(length, state.last);
+    state.last = state.bag.pop();
+    return state.last;
+}
+
+/**
  * 選取下一條對話訊息（隨機或循序）
  * @param {Object} store - 訊息列表物件（含 msg 陣列）
  * @param {number} currentNum - 目前顯示的訊息索引
@@ -556,11 +607,7 @@ function mpu_isDeepSleepTime() {
 function mpu_selectNextMessage(store, currentNum) {
     const msgCount = store.msg.length;
     if (mpuNextMode === "random") {
-        let newIdx;
-        do {
-            newIdx = Math.floor(Math.random() * msgCount);
-        } while (newIdx === currentNum && msgCount > 1);
-        return newIdx;
+        return mpuDrawBuiltInIndex(store, currentNum);
     } else {
         return currentNum + 1 >= msgCount ? 0 : currentNum + 1;
     }
@@ -740,6 +787,12 @@ function mpuClearSystemPlaceholder(targetOrOptions) {
     mpuHideThinkBubble({ source: 'system' });
 }
 
+let mpuTypewriterRunId = 0;
+
+function mpuGetTypewriterRunId() {
+    return mpuTypewriterRunId;
+}
+
 /**
  * 打字效果函數（性能優化版）
  * @param {string} text - 要顯示的文字（可包含 HTML）
@@ -752,8 +805,12 @@ function mpuClearSystemPlaceholder(targetOrOptions) {
  *         「えっと…何を話せばいいかな…」）。一律跳過角色動畫，並在目標容器標記
  *         data-mpu-placeholder="system"。§16.3-A 標記式判定，取代舊的 systemMessages
  *         字串黑名單（字串內容比對會隨翻譯漂移而失效，見 §16.2）。
+ *       - {Function} onComplete: 目前 run 自然完成並 flush 後呼叫一次；取消不呼叫。
+ * @returns {number} 此次 Typewriter run id（空字串清除也會產生新 id）。
  */
 function mpu_typewriter(text, target, speed, options) {
+    const runId = ++mpuTypewriterRunId;
+    let completed = false;
     // 第 4 參數正規化：boolean（舊 skipCharacterAnimation）或 options 物件
     const _opts = (options && typeof options === 'object')
         ? options
@@ -772,7 +829,7 @@ function mpu_typewriter(text, target, speed, options) {
         // 清空時一併移除 placeholder 標記，避免 stale attribute 殘留誤判 source
         mpuClearSystemPlaceholder($target);
         $target.html('');
-        return;
+        return runId;
     }
 
     const $target = typeof target === 'string' ? jQuery(target) : target;
@@ -846,6 +903,7 @@ function mpu_typewriter(text, target, speed, options) {
     }
 
     function flushUpdate() {
+        if (runId !== mpuTypewriterRunId) return;
         if (pendingUpdate && targetElement) {
             targetElement.innerHTML = currentHTML;
             pendingUpdate = false;
@@ -853,6 +911,7 @@ function mpu_typewriter(text, target, speed, options) {
     }
 
     function processNextChar() {
+        if (runId !== mpuTypewriterRunId || completed) return;
         if (partIndex >= parts.length) {
             if (pendingUpdate) {
                 flushUpdate();
@@ -863,6 +922,8 @@ function mpu_typewriter(text, target, speed, options) {
             }
             mpuSetTypewriterTimer(null);
             animationTriggered = false;
+            completed = true;
+            if (typeof _opts.onComplete === 'function') _opts.onComplete();
             return;
         }
 
@@ -922,6 +983,7 @@ function mpu_typewriter(text, target, speed, options) {
     }
 
     processNextChar();
+    return runId;
 }
 
 /**
@@ -930,6 +992,7 @@ function mpu_typewriter(text, target, speed, options) {
  * @returns {boolean} 是否成功取消
  */
 function mpu_cancelTypewriter() {
+    mpuTypewriterRunId++;
     if (mpuTypewriterTimer !== null) {
         clearTimeout(mpuTypewriterTimer);
         mpuSetTypewriterTimer(null);

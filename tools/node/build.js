@@ -16,6 +16,7 @@ const { minify } = require('terser');
 const coreFiles = [
     'ukagaka-base.js',
     'ukagaka-core.js',
+    'ukagaka-story-talk.js',
     'ukagaka-anime.js',
     'ukagaka-emoji.js',
     'ukagaka-context.js',

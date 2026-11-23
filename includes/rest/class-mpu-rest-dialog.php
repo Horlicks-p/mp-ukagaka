@@ -101,13 +101,8 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             $response_history = [];
             $history_param    = $request->get_param('response_history');
             if (!empty($history_param)) {
-                if (is_string($history_param)) {
-                    $decoded_history = json_decode(wp_unslash($history_param), true);
-                } else {
-                    $decoded_history = (array) $history_param;
-                }
-
-                if (json_last_error() === JSON_ERROR_NONE || is_array($decoded_history)) {
+                $decoded_history = MPU_Chat_History_Service::decode_param($history_param);
+                if (null !== $decoded_history) {
                     $response_history = array_slice($decoded_history, -10);
                     $response_history = array_map('sanitize_text_field', $response_history);
                 }
@@ -296,6 +291,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             'auto_msg'    => $mpu_opt['auto_msg'] ?? '',
             'msg'         => $built['msg'],
             'msg_emojis'  => $built['msg_emojis'],
+			'stories'     => null !== $personality_id ? mpu_load_personality_stories( $personality_id ) : null,
             'next_msg'    => intval($mpu_opt['next_msg'] ?? 0),
             'default_msg' => intval($mpu_opt['default_msg'] ?? 0),
         ];
@@ -466,21 +462,26 @@ class MPU_REST_Dialog extends MPU_REST_Base {
      * @param string      $personality_id Personality ID.
      * @param string      $ukagaka_num    Current ukagaka key.
      * @param string|null $sleep_phase    nap, deep_sleep, or oversleep.
-     * @return string
+     * @return array{text:string, emoji:?string} Reaction text ('' when unavailable) and its emoji.
      */
-    private function generate_wake_reaction(string $personality_id, string $ukagaka_num, ?string $sleep_phase): string {
+    private function generate_wake_reaction(string $personality_id, string $ukagaka_num, ?string $sleep_phase): array {
+		$empty = array(
+			'text'  => '',
+			'emoji' => null,
+		);
+
         if (
             empty($sleep_phase) ||
             !function_exists('mpu_pick_wake_reaction_prompt') ||
             !function_exists('mpu_call_ai_api') ||
             !function_exists('mpu_build_optimized_system_prompt')
         ) {
-            return '';
+            return $empty;
         }
 
         $reaction_prompt = mpu_pick_wake_reaction_prompt($personality_id, $sleep_phase);
         if ($reaction_prompt === false) {
-            return '';
+            return $empty;
         }
 
         $mpu_opt = mpu_get_option();
@@ -531,7 +532,7 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             $endpoint = $mpu_opt['ollama_endpoint'] ?? 'http://localhost:11434';
             $model = $mpu_opt['ollama_model'] ?? 'qwen3:8b';
             if (function_exists('mpu_is_ollama_busy') && mpu_is_ollama_busy($endpoint, $model)) {
-                return '';
+                return $empty;
             }
             if (function_exists('mpu_set_ollama_busy')) {
                 mpu_set_ollama_busy($endpoint, $model, 30);
@@ -552,29 +553,53 @@ class MPU_REST_Dialog extends MPU_REST_Base {
             if (function_exists('mpu_debug_log')) {
                 mpu_debug_log('wake_reaction LLM call failed: ' . $result->get_error_message());
             }
-            return '';
+            return $empty;
         }
 
         if (!is_string($result) || trim($result) === '') {
-            return '';
+            return $empty;
         }
 
-        if (function_exists('mpu_normalize_ai_response')) {
-            $normalized = mpu_normalize_ai_response(
-                $result,
-                $personality_id,
-                array(
-                    'context'            => 'chat',
-                    'strip_unknown_tags' => true,
-                )
-            );
-            $result     = $normalized['display_text'];
-        } elseif (function_exists('mpu_filter_thinking_content')) {
-            $result = mpu_filter_thinking_content($result);
-        }
+		$emoji = null;
+		if ( function_exists( 'mpu_normalize_ai_response_for_rest' ) ) {
+			// Emotion tag first, then the keyword scorer, as for other REST dialogue.
+			$normalized = mpu_normalize_ai_response_for_rest(
+				$result,
+				$personality_id,
+				array(
+					'context'            => 'chat',
+					'strip_unknown_tags' => true,
+				)
+			);
+			$result     = $normalized['display_text'];
+			$emoji      = $normalized['emoji'];
+		} elseif ( function_exists( 'mpu_filter_thinking_content' ) ) {
+			$result = mpu_filter_thinking_content( $result );
+		}
 
-        return trim(wp_strip_all_tags($result));
-    }
+		return array(
+			'text'  => trim( wp_strip_all_tags( $result ) ),
+			'emoji' => $emoji,
+		);
+	}
+
+	/**
+	 * Emoji to show with a wake reaction: the one detected from the reaction,
+	 * otherwise the character's wake_reaction_emoji from sleep_mode.json.
+	 *
+	 * @param string      $personality_id Personality ID.
+	 * @param string|null $detected       Emoji detected from the generated reaction.
+	 * @return string|null
+	 */
+	private function wake_reaction_emoji( string $personality_id, ?string $detected ): ?string {
+		if ( ! empty( $detected ) ) {
+			return $detected;
+		}
+
+		return function_exists( 'mpu_get_wake_reaction_emoji' )
+			? mpu_get_wake_reaction_emoji( $personality_id )
+			: null;
+	}
 
     public function wake_ghost(WP_REST_Request $request) {
         $rl = $this->rate_limit('wake_ghost', 10, 60);
@@ -603,7 +628,6 @@ class MPU_REST_Dialog extends MPU_REST_Base {
 
             $ukagaka_num = sanitize_text_field($request->get_param('ukagaka_num') ?: '');
             $sleep_phase = $this->get_wake_sleep_phase($personality_id);
-            $wake_reaction = '';
 
             if (function_exists('mpu_mark_ip_as_woken')) {
                 $result = mpu_mark_ip_as_woken($personality_id);
@@ -643,7 +667,8 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                             'personality_id' => $personality_id,
                             'is_temporary'   => true,
                             'sleep_phase'    => $sleep_phase,
-                            'wake_reaction'  => $wake_reaction,
+                            'wake_reaction'  => $wake_reaction['text'],
+							'emoji'          => $this->wake_reaction_emoji( $personality_id, $wake_reaction['emoji'] ),
                         ]);
                     }
 
@@ -672,7 +697,10 @@ class MPU_REST_Dialog extends MPU_REST_Base {
                 'personality_id' => $personality_id,
                 'is_temporary'   => $sleep_phase !== null,
                 'sleep_phase'    => $sleep_phase,
-                'wake_reaction'  => $wake_reaction,
+                'wake_reaction'  => $wake_reaction['text'],
+				'emoji'          => null !== $sleep_phase
+					? $this->wake_reaction_emoji( $personality_id, $wake_reaction['emoji'] )
+					: null,
             ]);
         } finally {
             $this->set_runtime_state($runtime_session_token, 'idle');

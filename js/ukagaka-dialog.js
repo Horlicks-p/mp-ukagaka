@@ -98,6 +98,9 @@ function loadExternalDialog(file, skipFirstMessage = false) {
       }
 
       if (resp && !resp.error && Array.isArray(resp.msg)) {
+        // Bind to the generation captured when the request was sent, after
+        // the load-token check. Personality is only a storage-key component.
+        resp.storiesGeneration = characterGeneration;
         if (resp.msg.length === 0) {
           mpuLogger.warnL("dialogExternalFileEmpty", "loadExternalDialog: 会話ファイルが空です");
           mpuSetDialogStore({
@@ -105,6 +108,8 @@ function loadExternalDialog(file, skipFirstMessage = false) {
             auto_msg: resp.auto_msg || "",
             next_msg: resp.next_msg || 0,
             default_msg: resp.default_msg || 0,
+            stories: resp.stories || null,
+            storiesGeneration: characterGeneration,
           });
           if (skipFirstMessage) {
             mpuLogger.logL("dialogExternalFileEmptyLlmFallback", "loadExternalDialog: LLM 置換会話モードのため会話ファイルが空です。LLM 生成に依存します");
@@ -150,6 +155,12 @@ function loadExternalDialog(file, skipFirstMessage = false) {
               return;
             }
 
+            if (typeof mpuStoryTalkIsPlaying === "function" && mpuStoryTalkIsPlaying()) {
+              firstMessageShown = true;
+              msgElement.removeAttr("data-initial-msg-system");
+              return;
+            }
+
             // 睡眠模式檢查：如果在未喚醒的睡眠模式下，跳過第一句對話
             if (
               typeof mpu_isUnawokenSleepMode === "function" &&
@@ -163,9 +174,10 @@ function loadExternalDialog(file, skipFirstMessage = false) {
 
             firstMessageShown = true;
 
+            // 第一句也從不重複袋子抽，算進這一輪，之後的自發對話才不會馬上又抽到它。
             let first = 0;
             if (mpuDefaultMsg === 0 && resp.msg.length) {
-              first = Math.floor(Math.random() * resp.msg.length);
+              first = mpuDrawBuiltInIndex(resp);
             }
             // 從初始思考氣泡 placeholder 切換到真正的自發對話：清除氣泡並淡入主對話框。
             if (isInitialSystemMessage) {

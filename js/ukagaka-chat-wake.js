@@ -52,6 +52,11 @@ function mpu_display_wake_reaction(res) {
 
   const output =
     typeof mpu_parseMarkdown === "function" ? mpu_parseMarkdown(reaction) : reaction;
+  // 與其他內建台詞相同：先換表情再打字。後端給的是偵測到的表情，
+  // 偵測不到時是角色 sleep_mode.json 的 wake_reaction_emoji（備用台詞也適用）。
+  if (typeof mpuDisplayDialogueEmoji === "function") {
+    mpuDisplayDialogueEmoji((res && res.emoji) || null);
+  }
   mpu_typewriter(output, "#ukagaka_msg", null, true);
   if (jQuery("#ukagaka_msgbox").is(":hidden")) {
     mpu_showmsg(400);

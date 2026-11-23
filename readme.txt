@@ -7,7 +7,7 @@ Tested up to: 6.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-Stable tag: 2.39.0
+Stable tag: 2.41.0
 Author: Ariagle (patched by Horlicks [https://www.moelog.com])
 Author URI: https://www.moelog.com/
 Contributors: horlicks, ariagle
@@ -160,6 +160,39 @@ The plugin is split into modules under `includes/` (core, personality, LLM and A
 See docs-en/DEVELOPER_GUIDE.md for the directory tree, module descriptions and extension points, and docs-en/API_REFERENCE.md for functions, hooks and REST endpoints.
 
 == Changelog ==
+
+= 2026-11-21 =
+* v2.41.0
+* [NEW] Story Talk: a story line can set its own pause_ms to replace the length-based pause after it.
+* [TWEAK] Frieren waits 3 seconds after her flying kiss, and her story lines are paced about 20% slower.
+
+= 2026-11-21 =
+* v2.40.2
+* [FIX] Gifts no longer fail with "会話履歴の形式が正しくありません" once the history contains a double quote or backslash.
+* [FIX] Chat, page-aware talk and greetings no longer silently drop the whole history in the same case.
+* [FIX] Backslashes and line breaks in chat history are kept as they are.
+
+= 2026-11-21 =
+* v2.40.1
+* [NEW] Frieren's sixth story, "flower_field_magic".
+* [TWEAK] Frieren's story lines follow each other about 40% sooner.
+
+= 2026-11-21 =
+* v2.40.0
+* [NEW] Story Talk: characters can tell short handwritten stories during Auto Dialogue; Frieren tells five.
+* [NEW] Frieren's good_mood expression.
+* [TWEAK] Random built-in lines come from a shuffle bag, so they no longer loop over the same few lines.
+* [FIX] mpuDisplayBuiltInMessage() no longer mixes up its callback and speed arguments.
+
+= 2026-11-12 =
+* v2.39.2
+* [TWEAK] sleep_mode.json wake_reaction_emoji accepts a list and picks one at random; Frieren may look sleepy, upset, angry or puzzled when woken.
+
+= 2026-11-12 =
+* v2.39.1
+* [FIX] An expression now appears with the first line after waking the character.
+* [NEW] Optional sleep_mode.json key wake_reaction_emoji: the expression shown on waking when the reply has none, and with the built-in fallback lines.
+* [TWEAK] Frieren's wake-up lines vary more.
 
 = 2026-10-29 =
 * v2.39.0

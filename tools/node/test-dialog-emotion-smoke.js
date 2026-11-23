@@ -147,6 +147,17 @@ async function run() {
   ], "an invalid index must clear stale text and emoji state");
   assertDisplaySiteInventory();
 
+  // Completion belongs in the fourth argument; callbacks must never become speed.
+  for (const index of [0, 9]) {
+    const callback = () => {};
+    display.calls.length = 0;
+    display.context.mpuDisplayBuiltInMessage(store, index, { callback, typewriterOptions: true });
+    const call = display.calls.find((entry) => entry[0] === "typewriter");
+    assert.strictEqual(call[3], null);
+    assert.strictEqual(call[4].onComplete, callback);
+    assert.strictEqual(call[4].skipCharacterAnimation, true);
+  }
+
   let runtime = createEmojiRuntime();
   const sameA = runtime.context.window.loadEmojiConfig("a");
   const sameB = runtime.context.window.loadEmojiConfig("a");
