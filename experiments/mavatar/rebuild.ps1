@@ -8,6 +8,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Variant mask generation failed.' }
     & uv run tools/build-sprites.py projects/frieren-chest
     if ($LASTEXITCODE -ne 0) { throw 'Sprite validation failed; previous runtime archive was kept.' }
+    & uv run --with numpy --with pillow --with opencv-python-headless ../build-awkward-overlay.py
+    if ($LASTEXITCODE -ne 0) { throw 'Awkward overlay build failed; previous runtime archive was kept.' }
     # Upstream Python atomic staging uses owner-only temporary-file ACLs on Windows.
     # Restore normal project inheritance so the editor and the desktop account can read it.
     & icacls projects/frieren-chest/built /reset /T /C | Select-Object -Last 1

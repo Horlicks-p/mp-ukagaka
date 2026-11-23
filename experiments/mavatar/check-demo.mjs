@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createDemoServer } from './server.mjs';
+import { relaxedPose } from './mesh-bridge.mjs';
 import { createRig, PARAMS } from './studio/packages/runtime/src/engine/rig.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -27,6 +28,24 @@ result.avatarSha256 = createHash('sha256').update(archiveBytes).digest('hex');
 const archive = unzipSync(archiveBytes);
 assert(!Object.keys(archive).some(name => /(^|\/)source\.png$/.test(name)));
 result.checks.push('archive omits source.png');
+const spriteManifest = JSON.parse(Buffer.from(archive['built/sprites/sprites.json']).toString('utf8'));
+for (const name of ['eyes_sad_0', 'eyes_sad_1', 'mouth_angry']) {
+  assert(spriteManifest.layers[name] && archive[`built/sprites/${name}.png`], `${name} absent from exported archive`);
+}
+assert(!spriteManifest.layers.mouth_sad && !archive['built/sprites/mouth_sad.png'], 'sad face must retain the original closed mouth');
+result.checks.push('exported archive retains sad eyes and angry mouth, omits the exaggerated sad mouth');
+const overlayManifest = JSON.parse(Buffer.from(archive['built/overlays/overlays.json']).toString('utf8'));
+for (const name of ['awkward-eyes', 'awkward-mouth']) {
+  assert(overlayManifest.overlays.some(item => item.name === name && archive[`built/overlays/${item.file}`]), `${name} overlay missing`);
+}
+result.checks.push('native archive includes independent awkward eye and mouth overlays');
+const samples = Array.from({ length: 860 }, (_, i) => relaxedPose(i / 100).eyeLOpen);
+result.relaxedTiming = { openFraction: samples.filter(value => value >= 0.75).length / samples.length,
+  halfFraction: samples.filter(value => value >= 0.3 && value < 0.75).length / samples.length,
+  closedFraction: samples.filter(value => value < 0.3).length / samples.length };
+assert(result.relaxedTiming.openFraction > 0.8 && result.relaxedTiming.halfFraction < 0.1);
+assert(result.relaxedTiming.closedFraction > 0);
+result.checks.push('relaxed timing spends >80% open and <10% half-open, with a brief closed rest');
 
 // Evaluate the actual upstream deformer at densely sampled points, not a second implementation.
 const model = createRig(rig);
@@ -109,16 +128,20 @@ try {
     const bridge = window.mavatarDemo, el = bridge.element, av = el.avatar;
     el.paused = true;
     av.setAutoIdle(false);
+    // Hold unrelated pose parameters fixed for the comparison, while keeping
+    // the actual overrides supplied by the bridge (including relaxed brows).
+    const setParameters = av.setParameters.bind(av);
+    av.setParameters = (values, ...args) => setParameters({ ...defaults, ...values }, ...args);
     const result = {};
     const canvas = el.shadowRoot.querySelector('canvas');
-    const sheet = document.createElement('canvas'); sheet.width = 1404; sheet.height = 570;
+    const sheet = document.createElement('canvas'); sheet.width = 1638; sheet.height = 570;
     const ctx = sheet.getContext('2d'); ctx.fillStyle = '#192421'; ctx.fillRect(0, 0, sheet.width, sheet.height);
     const scale = Math.min(canvas.width / (1034 * 1.05), canvas.height / (1551 * 1.015));
     const ox = (canvas.width - 1034 * scale) / 2, oy = canvas.height - 1551 * scale;
     let column = 0;
-    for (const emotion of ['neutral', 'happy', 'angry', 'sad', 'surprised', 'relaxed']) {
-      bridge.setEmotion(emotion);
+    for (const emotion of ['neutral', 'happy', 'angry', 'sad', 'surprised', 'relaxed', 'awkward']) {
       av.setParameters(defaults);
+      bridge.setEmotion(emotion);
       av.advance(0.8, 60);
       result[emotion] = { expression: av.getExpression().name, parameters: av.getParameters() };
       const x = column++ * 234;
@@ -131,6 +154,7 @@ try {
       }
     }
     // Restore the normal animation path for the following lifecycle checks.
+    av.setParameters = setParameters;
     bridge.setEmotion('neutral'); av.setParameters({}); av.setAutoIdle(true); el.paused = false;
     result.comparison = sheet.toDataURL('image/png');
     return result;
@@ -141,10 +165,54 @@ try {
   assert(expressions.happy.parameters.eyeSmile > 0.9);
   assert(expressions.surprised.parameters.mouthOpen > 0.5);
   assert(expressions.angry.parameters.browAngle > 0.7);
+  assert(expressions.angry.parameters.eyeLOpen > 0.71 && expressions.angry.parameters.eyeLOpen < 0.73);
   assert(expressions.sad.parameters.browAngle < -0.7);
+  assert(expressions.sad.parameters.mouthOpen < 0.01);
+  assert(expressions.relaxed.parameters.eyeLOpen > 0.8);
+  assert(Math.abs(expressions.relaxed.parameters.browAngle) < 0.01);
+  assert(expressions.relaxed.parameters.browY > 0);
+  assert(expressions.awkward.parameters.eyeLOpen < 0.1);
   assert.equal(expressions.afterSpeech, 'smile');
   result.expressions = expressions;
   result.checks.push('picker holds distinct expressions; happy uses smiling eyes, surprise opens mouth, speech end preserves selection');
+  const relaxedCycle = await page.evaluate(() => {
+    const bridge = window.mavatarDemo, el = bridge.element, av = el.avatar;
+    el.paused = true; av.setAutoIdle(false); bridge.setEmotion('relaxed');
+    av.advance(0.8, 60);
+    const relaxed = av.getParameters();
+    av.advance(4.1, 60);
+    const closedRest = av.getParameters();
+    av.advance(1, 60);
+    const reopened = av.getParameters();
+    bridge.sleep(true);
+    const asleep = av.getParameters();
+    bridge.sleep(false); el.paused = true; av.advance(0.8, 60);
+    const awake = av.getParameters();
+    bridge.setEmotion('neutral'); av.setAutoIdle(true); el.paused = false;
+    return { relaxed, closedRest, reopened, asleep, awake };
+  });
+  assert(relaxedCycle.relaxed.eyeLOpen > 0.8);
+  assert(relaxedCycle.closedRest.eyeLOpen < 0.1);
+  assert(relaxedCycle.reopened.eyeLOpen > 0.8);
+  assert(relaxedCycle.asleep.eyeLOpen < 0.1 && relaxedCycle.asleep.eyeROpen < 0.1);
+  assert(Math.abs(relaxedCycle.awake.browAngle) < 0.01);
+  result.checks.push('relaxed animation opens, slowly closes, reopens; sleep closes both eyes and wake restores relaxed face');
+  const awkward = await page.evaluate(async () => {
+    const b = window.mavatarDemo;
+    b.setEmotion('awkward');
+    const resting = b.element.overlays;
+    b.startSpeaking(); const speaking = b.element.overlays;
+    b.stopSpeaking(); const stopped = b.element.overlays;
+    b.sleep(true); const sleeping = b.element.overlays;
+    b.sleep(false); const awake = b.element.overlays;
+    await b.load('/avatar.mavatar'); const reloaded = b.element.overlays;
+    b.setEmotion('neutral'); const cleared = b.element.overlays;
+    return { resting, speaking, stopped, sleeping, awake, reloaded, cleared };
+  });
+  for (const state of ['resting', 'stopped', 'awake', 'reloaded']) assert.deepEqual(awkward[state], ['awkward-eyes', 'awkward-mouth']);
+  assert.deepEqual(awkward.speaking, ['awkward-eyes']);
+  assert.deepEqual(awkward.sleeping, []); assert.deepEqual(awkward.cleared, []);
+  result.checks.push('awkward overlays survive reload/wake, mouth yields to speech, and clear on emotion change');
   await page.selectOption('#emotion', 'happy');
   await page.click('#say');
   await page.waitForFunction(() => window.mavatarDemo.state.speaking);
