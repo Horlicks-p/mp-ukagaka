@@ -593,6 +593,11 @@
   padding-bottom: 8px; /* clear of the ▼ cursor */
 }
 
+/* Story Talk lines use the theme's link hue so a story reads apart from normal lines. */
+#ukagaka_msg .mpu-story-line {
+  color: var(--mpu-internal-dialog-link);
+}
+
 #ukagaka_msg a {
   color: var(--mpu-internal-dialog-link);
   text-decoration: underline;
