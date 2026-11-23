@@ -2,7 +2,16 @@ import '/runtime.js';
 import { MeshBridge } from '/mesh-bridge.mjs';
 
 const $ = id => document.getElementById(id);
-const bridge = new MeshBridge($('avatar-host'), $('poster'));
+const faceResponse = await fetch('/face-presets.json');
+const facePresets = faceResponse.ok ? await faceResponse.json() : {};
+for (const name of ['angry', 'good_mood', 'smug']) {
+  const preset = facePresets[name];
+  if (!preset) continue;
+  const existing = $('emotion').querySelector(`option[value="${name}"]`);
+  if (existing) existing.textContent = preset.label;
+  else $('emotion').add(new Option(preset.label, name));
+}
+const bridge = new MeshBridge($('avatar-host'), $('poster'), facePresets);
 window.mavatarDemo = bridge;
 let timer = 0;
 let lineGeneration = 0;
@@ -43,7 +52,7 @@ $('fallback').onclick = () => { cancelLine(); void bridge.load('/missing-avatar.
 $('kana').onclick = () => {
   cancelLine();
   if (!bridge.element?.avatar || bridge.state.sleeping) return;
-  bridge.element.avatar.speakKana('こんにちは。すこし、やすもう。');
+  bridge.speakKana('こんにちは。すこし、やすもう。');
   $('dialog').textContent = 'こんにちは。すこし、やすもう。';
 };
 document.addEventListener('visibilitychange', () => { if (document.hidden) cancelLine(); });

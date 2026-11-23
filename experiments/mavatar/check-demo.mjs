@@ -12,16 +12,24 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const requireStudio = createRequire(new URL('./studio/package.json', import.meta.url));
 const { chromium } = requireStudio('@playwright/test');
 const { unzipSync } = requireStudio('fflate');
-const project = path.join(root, 'studio/projects/frieren-chest');
+const projectName = process.argv[2] || 'frieren-chest';
+assert(/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(projectName), 'invalid local project name');
+const project = path.join(root, 'studio/projects', projectName);
+let study = {};
+try { study = JSON.parse(await readFile(path.join(project, 'study.json'), 'utf8')); }
+catch (error) { if (error.code !== 'ENOENT') throw error; }
+let facePresets = {};
+try { facePresets = JSON.parse(await readFile(path.join(project, 'expressions/bridge.json'), 'utf8')); }
+catch (error) { if (error.code !== 'ENOENT') throw error; }
 const output = path.join(project, 'review-demo');
 await mkdir(output, { recursive: true });
 const rig = JSON.parse(await readFile(path.join(project, 'rig.json'), 'utf8'));
 const defaults = Object.fromEntries(PARAMS.map(p => [p.id, p.def]));
-const roi = { leftHand: [170, 785, 325, 850], rightHand: [750, 780, 880, 850],
+const roi = study.roi || { leftHand: [170, 785, 325, 850], rightHand: [750, 780, 880, 850],
   chest: [15, 750, 1018, 1370], legs: [375, 850, 715, 1540] };
 const poses = { breath: { breath: 1 }, left: { bodyAngleX: -10, bodyAngleZ: -8, angleX: -30, angleZ: -15, breath: 1 },
   right: { bodyAngleX: 10, bodyAngleZ: 8, angleX: 30, angleZ: 15, breath: 1 } };
-const result = { upstream: 'fb823c05c9963d241fec42e772959be562c927eb', checks: [], numerical: {}, pixels: {} };
+const result = { project: projectName, upstream: 'fb823c05c9963d241fec42e772959be562c927eb', checks: [], numerical: {}, pixels: {} };
 const archiveBytes = new Uint8Array(await readFile(path.join(project, 'frieren-runtime.mavatar')));
 result.avatarBytes = archiveBytes.length;
 result.avatarSha256 = createHash('sha256').update(archiveBytes).digest('hex');
@@ -36,6 +44,9 @@ assert(!spriteManifest.layers.mouth_sad && !archive['built/sprites/mouth_sad.png
 result.checks.push('exported archive retains sad eyes and angry mouth, omits the exaggerated sad mouth');
 const overlayManifest = JSON.parse(Buffer.from(archive['built/overlays/overlays.json']).toString('utf8'));
 for (const name of ['awkward-eyes', 'awkward-mouth']) {
+  assert(overlayManifest.overlays.some(item => item.name === name && archive[`built/overlays/${item.file}`]), `${name} overlay missing`);
+}
+for (const face of Object.values(facePresets)) for (const name of [face.eyeOverlay, face.mouthOverlay].filter(Boolean)) {
   assert(overlayManifest.overlays.some(item => item.name === name && archive[`built/overlays/${item.file}`]), `${name} overlay missing`);
 }
 result.checks.push('native archive includes independent awkward eye and mouth overlays');
@@ -64,7 +75,7 @@ for (const [name, box] of Object.entries(roi)) {
 }
 result.checks.push('anchored ROI source displacement < 0.001px under extreme poses');
 
-const server = createDemoServer();
+const server = createDemoServer(projectName);
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 let browser;
@@ -123,8 +134,10 @@ try {
   for (const [pose, values] of Object.entries(result.pixels.poses)) for (const [name, stats] of Object.entries(values)) {
     assert.equal(stats.pixelsOver8, 0, `${pose}/${name} visibly changed`);
   }
-  result.checks.push('350px rendered hand/chest/leg ROI: no pixels differ by >8/255');
-  const expressions = await page.evaluate(async ({ defaults }) => {
+  result.checks.push(`350px rendered ${Object.keys(roi).join('/')} ROI: no pixels differ by >8/255`);
+  const comparisonEmotions = ['neutral', 'happy', ...(facePresets.good_mood ? ['good_mood'] : []),
+    'angry', 'sad', 'surprised', 'relaxed', 'awkward', ...(facePresets.smug ? ['smug'] : [])];
+  const expressions = await page.evaluate(async ({ defaults, rig, faceCrop, comparisonEmotions }) => {
     const bridge = window.mavatarDemo, el = bridge.element, av = el.avatar;
     el.paused = true;
     av.setAutoIdle(false);
@@ -134,12 +147,12 @@ try {
     av.setParameters = (values, ...args) => setParameters({ ...defaults, ...values }, ...args);
     const result = {};
     const canvas = el.shadowRoot.querySelector('canvas');
-    const sheet = document.createElement('canvas'); sheet.width = 1638; sheet.height = 570;
+    const sheet = document.createElement('canvas'); sheet.width = comparisonEmotions.length * 234; sheet.height = 570;
     const ctx = sheet.getContext('2d'); ctx.fillStyle = '#192421'; ctx.fillRect(0, 0, sheet.width, sheet.height);
-    const scale = Math.min(canvas.width / (1034 * 1.05), canvas.height / (1551 * 1.015));
-    const ox = (canvas.width - 1034 * scale) / 2, oy = canvas.height - 1551 * scale;
+    const scale = Math.min(canvas.width / (rig.image.width * (1 + 2 * rig.view.padSide)), canvas.height / (rig.image.height * (1 + rig.view.padTop)));
+    const ox = (canvas.width - rig.image.width * scale) / 2, oy = canvas.height - rig.image.height * scale;
     let column = 0;
-    for (const emotion of ['neutral', 'happy', 'angry', 'sad', 'surprised', 'relaxed', 'awkward']) {
+    for (const emotion of comparisonEmotions) {
       av.setParameters(defaults);
       bridge.setEmotion(emotion);
       av.advance(0.8, 60);
@@ -147,7 +160,7 @@ try {
       const x = column++ * 234;
       ctx.drawImage(canvas, x, 0, 234, 350);
       ctx.fillStyle = '#e4e9df'; ctx.font = '16px sans-serif'; ctx.fillText(emotion, x + 12, 375);
-      ctx.drawImage(canvas, ox + 325 * scale, oy + 155 * scale, 435 * scale, 205 * scale, x + 8, 405, 218, 103);
+      ctx.drawImage(canvas, ox + faceCrop[0] * scale, oy + faceCrop[1] * scale, faceCrop[2] * scale, faceCrop[3] * scale, x + 8, 405, 218, 103);
       if (emotion === 'happy') {
         bridge.startSpeaking(); bridge.stopSpeaking(); av.advance(2, 60);
         result.afterSpeech = av.getExpression().name;
@@ -158,14 +171,21 @@ try {
     bridge.setEmotion('neutral'); av.setParameters({}); av.setAutoIdle(true); el.paused = false;
     result.comparison = sheet.toDataURL('image/png');
     return result;
-  }, { defaults });
+  }, { defaults, rig, faceCrop: study.faceCrop || [325, 155, 435, 205], comparisonEmotions });
   await writeFile(path.join(output, 'emotions.png'), Buffer.from(expressions.comparison.split(',')[1], 'base64'));
   delete expressions.comparison;
   assert(expressions.happy.parameters.eyeLOpen < 0.1);
   assert(expressions.happy.parameters.eyeSmile > 0.9);
   assert(expressions.surprised.parameters.mouthOpen > 0.5);
-  assert(expressions.angry.parameters.browAngle > 0.7);
-  assert(expressions.angry.parameters.eyeLOpen > 0.71 && expressions.angry.parameters.eyeLOpen < 0.73);
+  if (facePresets.angry) {
+    assert(expressions.angry.parameters.browAngle > 0 && expressions.angry.parameters.browAngle < 0.2);
+    assert(expressions.angry.parameters.browY > -0.15);
+    assert(expressions.angry.parameters.eyeLOpen > 0.9, 'restrained anger should keep the original open eyes');
+    assert(expressions.good_mood.parameters.eyeLOpen > 0.9, 'good mood should be distinct from closed-eye happiness');
+  } else {
+    assert(expressions.angry.parameters.browAngle > 0.7);
+    assert(expressions.angry.parameters.eyeLOpen > 0.71 && expressions.angry.parameters.eyeLOpen < 0.73);
+  }
   assert(expressions.sad.parameters.browAngle < -0.7);
   assert(expressions.sad.parameters.mouthOpen < 0.01);
   assert(expressions.relaxed.parameters.eyeLOpen > 0.8);
@@ -213,6 +233,60 @@ try {
   assert.deepEqual(awkward.speaking, ['awkward-eyes']);
   assert.deepEqual(awkward.sleeping, []); assert.deepEqual(awkward.cleared, []);
   result.checks.push('awkward overlays survive reload/wake, mouth yields to speech, and clear on emotion change');
+  if (facePresets.smug) {
+    const referenceStates = await page.evaluate(async () => {
+      const b = window.mavatarDemo, results = {};
+      for (const emotion of ['good_mood', 'smug']) {
+        b.setEmotion(emotion);
+        let el = b.element, av = el.avatar;
+        el.paused = true; av.setAutoIdle(false); av.advance(0.2, 60);
+        const record = results[emotion] = { resting: el.overlays };
+        const parameters = av.getParameters();
+        av.setParameters({ ...parameters, eyeLOpen: 0, eyeROpen: 0 }); av.advance(0);
+        record.blinkClosed = el.overlays;
+        av.setParameters({ ...parameters, eyeLOpen: 1, eyeROpen: 1 }); av.advance(0);
+        record.blinkOpen = el.overlays;
+        b.setEmotion(emotion);
+        b.startSpeaking(); record.speaking = el.overlays;
+        b.stopSpeaking(); record.stopped = el.overlays;
+        b.speakKana('こんにちは。'); av.advance(0.1, 60); record.kana = el.overlays;
+        b.stopSpeaking(); record.cancelled = el.overlays;
+        b.speakKana('こんにちは。');
+        for (let step = 0; step < 48 && av.getLipSyncState().active; step++) av.advance(0.25, 60);
+        // Open-eye overlays intentionally yield to a native blink or an already
+        // playing idle. Inspect restoration once that eye cycle has reopened.
+        for (let step = 0; step < 40 && Math.min(av.getParameters().eyeLOpen, av.getParameters().eyeROpen) < 0.75; step++) av.advance(0.2, 60);
+        record.kanaEnded = { overlays: el.overlays, speaking: b.state.speaking, active: av.getLipSyncState().active };
+        b.sleep(true); record.sleeping = el.overlays;
+        b.sleep(false); av.setAutoIdle(false); av.advance(0.5, 60);
+        for (let step = 0; step < 40 && Math.min(av.getParameters().eyeLOpen, av.getParameters().eyeROpen) < 0.75; step++) av.advance(0.2, 60);
+        record.awake = el.overlays;
+        b.setVisible(false); record.hidden = { speaking: b.state.speaking, paused: el.paused };
+        b.setVisible(true);
+        await b.load('/avatar.mavatar'); el = b.element; av = el.avatar;
+        el.paused = true; av.setAutoIdle(false); av.advance(0.2, 60); record.reloaded = el.overlays;
+        b.setEmotion('neutral'); record.cleared = el.overlays;
+        av.setParameters({}); av.setAutoIdle(true); el.paused = false;
+      }
+      return results;
+    });
+    result.referenceStates = referenceStates;
+    for (const [emotion, states] of Object.entries(referenceStates)) {
+      const mouth = emotion === 'smug' ? 'smug-mouth' : 'good-mood-mouth';
+      const resting = emotion === 'smug' ? ['smug-eyes', mouth] : [mouth];
+      for (const state of ['resting', 'blinkOpen', 'stopped', 'cancelled', 'awake', 'reloaded']) assert.deepEqual(states[state], resting, `${emotion}/${state}`);
+      assert.deepEqual(states.blinkClosed, [mouth]);
+      for (const state of ['speaking', 'kana']) assert(!states[state].includes(mouth), `${emotion}/${state} mouth must yield to lip sync`);
+      assert.deepEqual(states.kanaEnded.overlays, resting);
+      assert.equal(states.kanaEnded.speaking, false); assert.equal(states.kanaEnded.active, false);
+      assert.deepEqual(states.sleeping, []); assert.deepEqual(states.cleared, []);
+      assert.deepEqual(states.hidden, { speaking: false, paused: true });
+    }
+    result.checks.push('reference anger is restrained and good mood keeps open eyes');
+    result.checks.push('smug eye drawing yields to closed blinks and restores on opening');
+    result.checks.push('reference mouths yield to mock speech/kana, restore after natural kana end and cancellation');
+    result.checks.push('good mood/smug survive sleep, visibility changes and reload without overlay leakage');
+  }
   await page.selectOption('#emotion', 'happy');
   await page.click('#say');
   await page.waitForFunction(() => window.mavatarDemo.state.speaking);

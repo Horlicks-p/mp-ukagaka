@@ -1,5 +1,5 @@
 // Experimental renderer boundary. No WordPress, SSE or LLM dependencies.
-const emotions = new Set(['neutral', 'happy', 'sad', 'angry', 'surprised', 'relaxed', 'awkward']);
+const emotions = new Set(['neutral', 'happy', 'sad', 'angry', 'surprised', 'relaxed', 'awkward', 'good_mood', 'smug']);
 const expressions = { neutral: 'neutral', happy: 'smile', sad: 'sad', angry: 'angry',
   surprised: 'surprise', relaxed: 'neutral', awkward: 'neutral' };
 
@@ -22,14 +22,18 @@ export class MeshBridge extends EventTarget {
   #cancelLoad = null;
   #restoreAdvance = null;
   #relaxedSeconds = 0;
+  #facePresets;
+  #overlayKey = null;
+  #kanaSpeaking = false;
   #host;
   #poster;
   state = { status: 'empty', speaking: false, sleeping: false, visible: true, emotion: 'neutral' };
 
-  constructor(host, poster) {
+  constructor(host, poster, facePresets = {}) {
     super();
     this.#host = host;
     this.#poster = poster;
+    this.#facePresets = facePresets;
   }
 
   get element() { return this.#element; }
@@ -58,6 +62,7 @@ export class MeshBridge extends EventTarget {
     element.hidden = !this.state.visible;
     element.paused = !this.state.visible;
     this.#element = element;
+    this.#overlayKey = null;
     const loaded = element.ready;
     const cancelled = new Promise(resolve => { this.#cancelLoad = () => resolve(false); });
     this.#host.append(element);
@@ -88,21 +93,52 @@ export class MeshBridge extends EventTarget {
   #installAnimationClock(avatar) {
     const advance = avatar.advance.bind(avatar);
     avatar.advance = (seconds, fps = 60) => {
-      if (this.state.emotion !== 'relaxed' || this.state.sleeping || !this.state.visible) return advance(seconds, fps);
-      if (seconds === 0) { avatar.setParameters(relaxedPose(this.#relaxedSeconds)); return advance(0, fps); }
-      for (let frame = 0; frame < Math.round(seconds * fps); frame++) {
-        this.#relaxedSeconds += 1 / fps;
-        avatar.setParameters(relaxedPose(this.#relaxedSeconds));
-        advance(1 / fps, fps);
+      const relaxed = this.state.emotion === 'relaxed' && !this.state.sleeping && this.state.visible;
+      const observe = relaxed || this.#facePresets[this.state.emotion]?.eyeOverlay || this.#kanaSpeaking;
+      if (!observe) return advance(seconds, fps);
+      const step = duration => {
+        if (relaxed) {
+          this.#relaxedSeconds += duration;
+          avatar.setParameters(relaxedPose(this.#relaxedSeconds));
+        }
+        advance(duration, fps);
+        if (this.#kanaSpeaking && !avatar.getLipSyncState().active) {
+          this.#kanaSpeaking = false;
+          this.#update({ speaking: false });
+        }
+        // Painted open eyes yield to the native blink; redraw the same simulation
+        // instant only when visibility changed, so closed eyes are never covered.
+        if (this.#syncOverlays()) advance(0, fps);
+      };
+      if (seconds === 0) step(0);
+      else for (let frame = 0; frame < Math.round(seconds * fps); frame++) {
+        step(1 / fps);
       }
     };
     this.#restoreAdvance = () => { avatar.advance = advance; };
   }
 
   #syncOverlays() {
-    if (!this.#element?.avatar) return;
-    this.#element.overlays = this.state.emotion === 'awkward' && !this.state.sleeping
-      ? this.state.speaking ? ['awkward-eyes'] : ['awkward-eyes', 'awkward-mouth'] : [];
+    const avatar = this.#element?.avatar;
+    if (!avatar) return false;
+    const names = [];
+    if (!this.state.sleeping) {
+      const speaking = this.state.speaking || avatar.getLipSyncState().active;
+      if (this.state.emotion === 'awkward') {
+        names.push('awkward-eyes');
+        if (!speaking) names.push('awkward-mouth');
+      } else {
+        const face = this.#facePresets[this.state.emotion];
+        const p = avatar.getParameters();
+        if (face?.eyeOverlay && Math.min(p.eyeLOpen ?? 1, p.eyeROpen ?? 1) >= 0.75) names.push(face.eyeOverlay);
+        if (face?.mouthOverlay && !speaking) names.push(face.mouthOverlay);
+      }
+    }
+    const key = names.join('|');
+    if (key === this.#overlayKey) return false;
+    this.#element.overlays = names;
+    this.#overlayKey = key;
+    return true;
   }
 
   #applyExpression() {
@@ -111,15 +147,17 @@ export class MeshBridge extends EventTarget {
     // setEmotion uses subtle talking faces and expires after a line. The preview
     // picker represents a held expression, including the painted smiling-eye sprite.
     avatar.setEmotion(null, { playMotion: false });
+    const face = this.#facePresets[this.state.emotion];
     avatar.setParameters(this.state.emotion === 'relaxed'
       ? relaxedPose(this.#relaxedSeconds) : this.state.emotion === 'awkward'
-        ? { eyeLOpen: 0, eyeROpen: 0, browY: 0.15, browAngle: -0.15 } : {});
-    avatar.setExpression(expressions[this.state.emotion]);
+        ? { eyeLOpen: 0, eyeROpen: 0, browY: 0.15, browAngle: -0.15 } : face?.parameters || {});
+    avatar.setExpression(face?.expression || expressions[this.state.emotion], { parameters: !face });
     this.#syncOverlays();
   }
 
   setEmotion(emotion) {
     if (!emotions.has(emotion)) emotion = 'neutral';
+    if (['good_mood', 'smug'].includes(emotion) && !this.#facePresets[emotion]) emotion = 'neutral';
     if (emotion !== this.state.emotion) this.#relaxedSeconds = 0;
     this.#update({ emotion });
     this.#applyExpression();
@@ -144,11 +182,23 @@ export class MeshBridge extends EventTarget {
   stopSpeaking() {
     cancelAnimationFrame(this.#speechFrame);
     this.#speechFrame = 0;
+    this.#kanaSpeaking = false;
     this.#element?.avatar?.setSpeaking(false);
     this.#element?.avatar?.stopLipSync();
     this.#element?.setVoiceLevel(0);
     this.#update({ speaking: false });
     this.#syncOverlays();
+  }
+
+  speakKana(text) {
+    const avatar = this.#element?.avatar;
+    if (!avatar || this.state.sleeping || !this.state.visible) return false;
+    this.stopSpeaking();
+    avatar.speakKana(text);
+    this.#kanaSpeaking = avatar.getLipSyncState().active;
+    this.#update({ speaking: this.#kanaSpeaking });
+    this.#syncOverlays();
+    return this.#kanaSpeaking;
   }
 
   sleep(sleeping) {
@@ -158,6 +208,7 @@ export class MeshBridge extends EventTarget {
     avatar.setEmotion(null);
     avatar.setExpression('neutral');
     this.#element.overlays = [];
+    this.#overlayKey = '';
     avatar.setAutoIdle(!sleeping);
     avatar.setAutoMotion(false);
     this.#update({ sleeping });

@@ -5,17 +5,18 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
-const project = path.join(root, 'studio/projects/frieren-chest');
-const routes = new Map([
-  ['/', ['demo.html', 'text/html; charset=utf-8']],
-  ['/demo.mjs', ['demo.mjs', 'text/javascript; charset=utf-8']],
-  ['/mesh-bridge.mjs', ['mesh-bridge.mjs', 'text/javascript; charset=utf-8']],
-  ['/runtime.js', ['studio/packages/element/dist/standalone.js', 'text/javascript; charset=utf-8']],
-  ['/avatar.mavatar', [path.join(project, 'frieren-runtime.mavatar'), 'application/octet-stream']],
-  ['/poster.png', [path.join(project, 'poster.png'), 'image/png']],
-]);
-
-export function createDemoServer() {
+export function createDemoServer(projectName = 'frieren-chest') {
+  if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(projectName)) throw new Error('Invalid local project name');
+  const project = path.join(root, 'studio/projects', projectName);
+  const routes = new Map([
+    ['/', ['demo.html', 'text/html; charset=utf-8']],
+    ['/demo.mjs', ['demo.mjs', 'text/javascript; charset=utf-8']],
+    ['/mesh-bridge.mjs', ['mesh-bridge.mjs', 'text/javascript; charset=utf-8']],
+    ['/runtime.js', ['studio/packages/element/dist/standalone.js', 'text/javascript; charset=utf-8']],
+    ['/avatar.mavatar', [path.join(project, 'frieren-runtime.mavatar'), 'application/octet-stream']],
+    ['/poster.png', [path.join(project, 'poster.png'), 'image/png']],
+    ['/face-presets.json', [path.join(project, 'expressions/bridge.json'), 'application/json; charset=utf-8']],
+  ]);
   return http.createServer(async (req, res) => {
     const host = req.headers.host || '';
     if (!/^(127\.0\.0\.1|localhost)(:\d+)?$/.test(host)) {
@@ -33,6 +34,11 @@ export function createDemoServer() {
         'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'" });
       res.end(req.method === 'HEAD' ? undefined : data);
     } catch (error) {
+      if (pathname === '/face-presets.json' && error.code === 'ENOENT') {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end(req.method === 'HEAD' ? undefined : '{}');
+        return;
+      }
       res.writeHead(error.code === 'ENOENT' ? 404 : 500).end('Local asset unavailable');
     }
   });
@@ -40,7 +46,7 @@ export function createDemoServer() {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const port = Number(process.argv[2] || 9488);
-  const server = createDemoServer();
+  const server = createDemoServer(process.argv[3] || 'frieren-chest');
   server.on('error', error => { console.error(error.message); process.exitCode = 1; });
   server.listen(port, '127.0.0.1', () => console.log(`Frieren mesh preview: http://127.0.0.1:${server.address().port}/`));
 }

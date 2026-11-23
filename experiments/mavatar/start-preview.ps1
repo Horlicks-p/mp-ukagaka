@@ -1,3 +1,3 @@
-param([int]$Port = 9488)
-& node (Join-Path $PSScriptRoot 'server.mjs') $Port
+param([int]$Port = 9488, [string]$Project = 'frieren-chest')
+& node (Join-Path $PSScriptRoot 'server.mjs') $Port $Project
 exit $LASTEXITCODE
