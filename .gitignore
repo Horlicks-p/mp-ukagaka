@@ -116,3 +116,6 @@ ghost/Frieren/decorations/suitcase(old).svg
 # Local Mesh Avatar Studio checkout and generated character assets
 /experiments/mavatar/studio/
 /experiments/mavatar/artifacts/
+
+# Private Frieren source artwork used by experiments/mavatar/prepare-frieren.py
+/plan/mavatar-plan/*.png
