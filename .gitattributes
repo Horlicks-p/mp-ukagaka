@@ -24,6 +24,7 @@
 plan/           export-ignore
 tests/          export-ignore
 tools/          export-ignore
+experiments/    export-ignore
 phpcs.xml.dist  export-ignore
 .gitattributes  export-ignore
 .gitignore      export-ignore

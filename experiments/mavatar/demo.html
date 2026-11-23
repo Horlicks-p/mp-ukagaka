@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>芙莉蓮 · Mesh 實驗室</title>
+<style>
+  :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1a;color:#e4e9df}
+  *{box-sizing:border-box} body{margin:0;padding:40px 24px}main{max-width:1000px;margin:auto}
+  .eyebrow{color:#b0be96;letter-spacing:.16em;font-size:12px}h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:12px 0}
+  .intro{color:#aab7ae;line-height:1.8;max-width:700px}.lab{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px}
+  .stage{min-height:440px;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 40%,#34483d,#192622 75%);border:1px solid #35443a;border-radius:20px;position:relative;overflow:hidden}
+  #avatar-host{position:relative;width:234px;height:350px;flex:none}mesh-avatar,#poster{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:2/3;object-fit:contain}
+  [hidden]{display:none!important}.size-label{position:absolute;bottom:16px;font-size:12px;color:#a4b29f}.panel{background:#192421;border:1px solid #35443a;border-radius:20px;padding:24px}
+  label{display:block;font-size:13px;color:#bcc8b7;margin:0 0 8px}select,textarea{width:100%;background:#101b17;color:#e4e9df;border:1px solid #455948;border-radius:8px;padding:10px;font:inherit;margin-bottom:18px}
+  textarea{resize:vertical;line-height:1.6}button,a.download{font:inherit;cursor:pointer;border:1px solid #52664c;background:#293c2d;color:#e7eddf;border-radius:8px;padding:9px 13px;text-decoration:none;display:inline-block}
+  button:hover,a.download:hover{background:#3c533a}button:focus-visible,a:focus-visible{outline:2px solid #d4e5ad;outline-offset:3px}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .primary{background:#b9ce9c;color:#172015;border-color:#b9ce9c}.bubble{min-height:90px;padding:18px;border-left:2px solid #acc491;background:#132019;white-space:pre-wrap;line-height:1.8;margin-top:20px}
+  #status{font-size:13px;color:#c0d6a4;min-height:2em}.note{font-size:12px;line-height:1.7;color:#9eafa1}.footer{margin-top:20px;color:#9eafa1;font-size:12px}a{color:#d1dfbe}
+  @media(max-width:700px){body{padding:24px 16px}.lab{grid-template-columns:1fr}.stage{min-height:400px}}
+</style>
+<main>
+  <div class="eyebrow">MP UKAGAKA / LOCAL STUDY 01</div>
+  <h1>在寶箱上，休息一下。</h1>
+  <p class="intro">用同一張芙莉蓮立繪，試試眨眼、呼吸與說話。這個頁面用模擬文字串流驗證角色橋接，所有播放資源都來自本機。</p>
+  <div class="lab">
+    <section class="stage" aria-label="角色預覽">
+      <div id="avatar-host"><img id="poster" src="/poster.png" alt="坐在寶箱上的芙莉蓮"></div>
+      <span class="size-label">網站尺寸 · 高 350 px</span>
+    </section>
+    <section class="panel" aria-label="動作控制">
+      <p id="status" role="status">正在準備角色…</p>
+      <label for="emotion">情緒</label>
+      <select id="emotion"><option value="neutral">平靜</option><option value="happy">開心</option><option value="relaxed">放鬆</option><option value="sad">難過</option><option value="angry">生氣</option><option value="surprised">驚訝</option></select>
+      <label for="line">想讓她說的話</label>
+      <textarea id="line" rows="3">寶箱裡，也許還有值得收集的魔法。先休息一下吧。</textarea>
+      <div class="buttons"><button id="say" class="primary">模擬串流說話</button><button id="cancel">停止</button><button id="kana">日文假名嘴型</button></div>
+      <div class="buttons"><button id="sleep">睡一下</button><button id="visibility">隱藏角色</button><button id="reload">重新載入</button><button id="fallback">測試靜態降級</button></div>
+      <div class="bubble" id="dialog" aria-live="polite">……這裡很適合休息呢。</div>
+      <p class="note">說話按鈕驅動嘴型，不產生語音。模擬串流採狀態驅動的嘴型節奏；日文按鈕另外測試上游的假名模式。</p>
+      <a class="download" href="/avatar.mavatar" download="frieren-runtime.mavatar">下載本機模型</a>
+    </section>
+  </div>
+  <p class="footer">實驗版本 · 請先檢查眼嘴、髮絲，以及雙手與寶箱的接觸點。</p>
+</main>
+<script type="module" src="/demo.mjs"></script>
+</html>

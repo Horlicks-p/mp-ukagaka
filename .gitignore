@@ -112,3 +112,7 @@ avatar-ui/
 
 # Local backup of the pre-redraw suitcase decoration
 ghost/Frieren/decorations/suitcase(old).svg
+
+# Local Mesh Avatar Studio checkout and generated character assets
+/experiments/mavatar/studio/
+/experiments/mavatar/artifacts/
