@@ -1,4 +1,5 @@
 // Experimental renderer boundary. No WordPress, SSE or LLM dependencies.
+import { prepareJapaneseLine, sampleJapaneseLine } from './japanese-speech.mjs';
 const emotions = new Set(['neutral', 'happy', 'sad', 'angry', 'surprised', 'relaxed', 'awkward', 'good_mood', 'smug']);
 const expressions = { neutral: 'neutral', happy: 'smile', sad: 'sad', angry: 'angry',
   surprised: 'surprise', relaxed: 'neutral', awkward: 'neutral' };
@@ -18,16 +19,16 @@ export function relaxedPose(seconds) {
 export class MeshBridge extends EventTarget {
   #generation = 0;
   #element = null;
-  #speechFrame = 0;
   #cancelLoad = null;
   #restoreAdvance = null;
   #relaxedSeconds = 0;
   #facePresets;
   #overlayKey = null;
-  #kanaSpeaking = false;
+  #japaneseLine = null;
   #host;
   #poster;
-  state = { status: 'empty', speaking: false, sleeping: false, visible: true, emotion: 'neutral' };
+  state = { status: 'empty', speaking: false, sleeping: false, visible: true, emotion: 'neutral',
+    speechText: '', speechUnit: '', speechVowel: null, speechError: null };
 
   constructor(host, poster, facePresets = {}) {
     super();
@@ -53,12 +54,12 @@ export class MeshBridge extends EventTarget {
     this.#element?.remove();
     this.#element = null;
     this.#poster.hidden = false;
-    this.#update({ status: 'loading', sleeping: false, error: null });
+    this.#update({ status: 'loading', sleeping: false, error: null, speechError: null });
     await customElements.whenDefined('mesh-avatar');
     if (generation !== this.#generation) return false;
     const element = document.createElement('mesh-avatar');
     element.src = source;
-    element.setAttribute('label', '坐在寶箱上的芙莉蓮');
+    element.setAttribute('label', '芙莉蓮');
     element.hidden = !this.state.visible;
     element.paused = !this.state.visible;
     this.#element = element;
@@ -94,18 +95,15 @@ export class MeshBridge extends EventTarget {
     const advance = avatar.advance.bind(avatar);
     avatar.advance = (seconds, fps = 60) => {
       const relaxed = this.state.emotion === 'relaxed' && !this.state.sleeping && this.state.visible;
-      const observe = relaxed || this.#facePresets[this.state.emotion]?.eyeOverlay || this.#kanaSpeaking;
+      const observe = relaxed || this.#facePresets[this.state.emotion]?.eyeOverlay || this.#japaneseLine;
       if (!observe) return advance(seconds, fps);
       const step = duration => {
         if (relaxed) {
           this.#relaxedSeconds += duration;
           avatar.setParameters(relaxedPose(this.#relaxedSeconds));
         }
+        this.#advanceSpeech(duration);
         advance(duration, fps);
-        if (this.#kanaSpeaking && !avatar.getLipSyncState().active) {
-          this.#kanaSpeaking = false;
-          this.#update({ speaking: false });
-        }
         // Painted open eyes yield to the native blink; redraw the same simulation
         // instant only when visibility changed, so closed eyes are never covered.
         if (this.#syncOverlays()) advance(0, fps);
@@ -163,42 +161,56 @@ export class MeshBridge extends EventTarget {
     this.#applyExpression();
   }
 
-  startSpeaking() {
-    if (!this.#element?.avatar || this.state.sleeping || !this.state.visible) return false;
-    this.stopSpeaking();
-    this.#element.avatar.setSpeaking(true);
-    this.#update({ speaking: true });
-    this.#syncOverlays();
-    const started = performance.now();
-    const pulse = now => {
-      const level = Math.max(0, Math.sin((now - started) / 105)) * 0.55;
-      this.#element?.setVoiceLevel(level);
-      this.#speechFrame = requestAnimationFrame(pulse);
-    };
-    this.#speechFrame = requestAnimationFrame(pulse);
-    return true;
+  startSpeaking(text = 'あいうえお', options) {
+    return this.speakKana(text, options);
   }
 
   stopSpeaking() {
-    cancelAnimationFrame(this.#speechFrame);
-    this.#speechFrame = 0;
-    this.#kanaSpeaking = false;
+    this.#japaneseLine = null;
     this.#element?.avatar?.setSpeaking(false);
     this.#element?.avatar?.stopLipSync();
+    this.#element?.avatar?.setLipSync({ openness: 0.3 });
     this.#element?.setVoiceLevel(0);
-    this.#update({ speaking: false });
+    this.#update({ speaking: false, speechUnit: '', speechVowel: null });
     this.#syncOverlays();
   }
 
-  speakKana(text) {
+  speakKana(text, options) {
     const avatar = this.#element?.avatar;
     if (!avatar || this.state.sleeping || !this.state.visible) return false;
     this.stopSpeaking();
-    avatar.speakKana(text);
-    this.#kanaSpeaking = avatar.getLipSyncState().active;
-    this.#update({ speaking: this.#kanaSpeaking });
+    let line;
+    try { line = prepareJapaneseLine(text, options); }
+    catch (error) { this.#update({ speechError: error.message }); return false; }
+    this.#japaneseLine = { line, seconds: 0, index: -1, vowel: null };
+    avatar.setSpeaking(true);
+    this.#update({ speaking: true, speechText: '', speechError: null });
+    this.#advanceSpeech(0);
     this.#syncOverlays();
-    return this.#kanaSpeaking;
+    return true;
+  }
+
+  #advanceSpeech(duration) {
+    const playback = this.#japaneseLine;
+    if (!playback) return;
+    playback.seconds += duration;
+    const sample = sampleJapaneseLine(playback.line, playback.seconds);
+    if (sample.done) {
+      this.stopSpeaking();
+      this.#update({ speechText: playback.line.text });
+      return;
+    }
+    if (sample.vowel !== playback.vowel) {
+      // Keep あ in the existing half-open drawing, near お's visible size.
+      // Restore the usual opening for every other vowel and for pauses.
+      this.#element.avatar.setLipSync({ openness: sample.vowel === 'a' ? 0 : 0.3 });
+      this.#element.avatar.holdMouth(sample.vowel);
+    }
+    if (sample.index !== playback.index || sample.vowel !== playback.vowel) {
+      playback.index = sample.index;
+      playback.vowel = sample.vowel;
+      this.#update({ speechText: sample.text, speechUnit: sample.unit, speechVowel: sample.vowel });
+    }
   }
 
   sleep(sleeping) {

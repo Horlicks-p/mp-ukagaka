@@ -12,6 +12,8 @@ export function createDemoServer(projectName = 'frieren-chest') {
     ['/', ['demo.html', 'text/html; charset=utf-8']],
     ['/demo.mjs', ['demo.mjs', 'text/javascript; charset=utf-8']],
     ['/mesh-bridge.mjs', ['mesh-bridge.mjs', 'text/javascript; charset=utf-8']],
+    ['/japanese-speech.mjs', ['japanese-speech.mjs', 'text/javascript; charset=utf-8']],
+    ['/studio/packages/runtime/src/engine/kana.js', ['studio/packages/runtime/src/engine/kana.js', 'text/javascript; charset=utf-8']],
     ['/runtime.js', ['studio/packages/element/dist/standalone.js', 'text/javascript; charset=utf-8']],
     ['/avatar.mavatar', [path.join(project, 'frieren-runtime.mavatar'), 'application/octet-stream']],
     ['/poster.png', [path.join(project, 'poster.png'), 'image/png']],

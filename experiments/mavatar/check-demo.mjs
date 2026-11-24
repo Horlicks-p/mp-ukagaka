@@ -6,6 +6,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { createDemoServer } from './server.mjs';
 import { relaxedPose } from './mesh-bridge.mjs';
+import { VOWELS } from './studio/packages/runtime/src/engine/kana.js';
 import { createRig, PARAMS } from './studio/packages/runtime/src/engine/rig.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -297,7 +298,65 @@ try {
   await page.waitForFunction(() => window.mavatarDemo.element.avatar.getLipSyncState().active);
   await page.click('#cancel');
   assert.equal(await page.evaluate(() => window.mavatarDemo.element.avatar.getLipSyncState().active), false);
-  result.checks.push('Chinese mock stream / kana lip sync start and cancel');
+  result.checks.push('Japanese stream / five-vowel preview start and cancel');
+  const japanese = await page.evaluate(() => {
+    const b = window.mavatarDemo, el = b.element, av = el.avatar;
+    el.paused = true; av.setAutoIdle(false); b.setEmotion('neutral'); av.setParameters({});
+    const events = [];
+    const listener = () => { if (b.state.speaking) events.push({ text: b.state.speechText, vowel: b.state.speechVowel }); };
+    b.addEventListener('statechange', listener);
+    b.speakKana('あいうえお、きゃティまんっコー。', { moraSeconds: 0.3 });
+    const samples = [];
+    av.advance(0.15, 60);
+    for (let index = 0; index < 6; index++) {
+      samples.push({ ...b.state, parameters: av.getParameters(), dialog: document.getElementById('dialog').textContent });
+      av.advance(0.3, 60);
+    }
+    av.advance(8, 60);
+    const ended = { ...b.state, active: av.getLipSyncState().active };
+    b.speakKana('あいうえお'); av.advance(0.2, 60); b.stopSpeaking();
+    const cancelledText = b.state.speechText;
+    av.advance(1, 60);
+    const cancelled = { ...b.state, active: av.getLipSyncState().active };
+    const invalid = b.speakKana('魔法の本');
+    const rejected = { invalid, error: b.state.speechError, active: av.getLipSyncState().active };
+    b.speakKana('いー'); b.setVisible(false); av.advance(1, 60);
+    const hidden = { speaking: b.state.speaking, active: av.getLipSyncState().active };
+    b.setVisible(true);
+    b.speakKana('いー'); b.sleep(true);
+    const asleep = { speaking: b.state.speaking, active: av.getLipSyncState().active };
+    b.sleep(false); b.speakKana('あ'); av.advance(2, 60);
+    b.removeEventListener('statechange', listener);
+    av.setAutoIdle(true); el.paused = false;
+    return { samples, events, ended, cancelledText, cancelled, rejected, hidden, asleep };
+  });
+  for (let i = 0; i < 5; i++) {
+    const sample = japanese.samples[i], vowel = 'aiueo'[i];
+    assert.equal(sample.speechVowel, vowel);
+    assert.equal(sample.speechText, 'あいうえお'.slice(0, i + 1));
+    assert.equal(sample.dialog, sample.speechText);
+    assert(Math.abs(sample.parameters.mouthForm - VOWELS[vowel].form) < 0.01, `${vowel} rendered wrong vowel`);
+  }
+  assert.equal(japanese.samples[5].speechVowel, 'n');
+  assert(japanese.samples[0].parameters.mouthOpen < 0.6, 'a must stay in the restrained half-open drawing');
+  assert(japanese.samples[0].parameters.mouthOpen < japanese.samples[4].parameters.mouthOpen, 'a must open less than o');
+  for (let i = 1; i < 5; i++) {
+    assert(Math.abs(japanese.samples[i].parameters.mouthOpen - VOWELS['aiueo'[i]].open * 0.82) < 0.02,
+      'smaller a setting must not leak into other vowels');
+  }
+  assert(japanese.samples[5].parameters.mouthOpen < 0.05, 'punctuation must close the mouth');
+  assert.equal(japanese.ended.speaking, false); assert.equal(japanese.ended.active, false);
+  assert.equal(japanese.ended.speechText, 'あいうえお、きゃティまんっコー。');
+  assert.equal(japanese.cancelled.speechText, japanese.cancelledText);
+  assert.equal(japanese.cancelled.speaking, false); assert.equal(japanese.cancelled.active, false);
+  assert.equal(japanese.rejected.invalid, false); assert(japanese.rejected.error.includes('假名'));
+  assert.equal(japanese.rejected.active, false);
+  assert.deepEqual(japanese.hidden, { speaking: false, active: false });
+  assert.deepEqual(japanese.asleep, { speaking: false, active: false });
+  result.japanese = japanese;
+  result.checks.push('all five rendered vowels and streamed kana agree on the same simulation clock; punctuation closes the mouth');
+  result.checks.push('Japanese timeline completes, cancels without late text, rejects kanji and stops on hide/sleep');
+  await page.selectOption('#emotion', 'happy');
   await page.click('#sleep');
   await page.waitForFunction(() => window.mavatarDemo.state.sleeping);
   await page.screenshot({ path: path.join(output, 'sleep.png'), fullPage: true });

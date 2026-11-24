@@ -473,3 +473,70 @@ The running preview at <http://127.0.0.1:9489/> serves this exact archive. Full 
 and validation are in `expressions/mouth-readability-20261124.json`; generated crops,
 reproducible assembly helper and previous variants/archive are retained in
 `work/mouth-readability-20261124/`.
+
+### Japanese-only speech preview and restrained i mouth (2026-11-24)
+
+The holding-book model's `mouth_i` resembled an oversized toothy grin. One built-in
+imagegen edit now supplies a small, thin opening for Japanese **い**, checked in the
+actual **234 x 350** WebGL render beside all five vowels. The protected original
+face crop and mouth mask were used as inputs; generated pixels outside the mouth
+were discarded. The unchanged official `read_variant` / `mask_only` importer
+returned the alignment and tint correction used by the assembled variant. Outside-mask
+changed pixels are **0**; nose, source image, rig, repaired hair, body and all approved
+expression overlays are preserved. The archive comparison has exactly two changed
+entries: `built/sprites/mouth_i.png` and the sprite manifest's cache identity.
+
+The previous mock stream revealed characters every 85 ms while an unrelated sine
+volume signal selected random vowels. `japanese-speech.mjs` now prepares a Japanese
+kana timeline using the pinned upstream parser's vowel/onset tables. The bridge's
+animation clock advances both revealed text and native `holdMouth` targets; there
+is no separate text timer or random-volume mouth driver. Default pace is **0.19 s
+per mora**. Small kana are displayed with their preceding kana as one beat, including
+拗音 and combinations such as ティ / ファ; ー extends the vowel, っ / ん and punctuation
+close the mouth, and m/b/p receive a brief initial closure. Native mouth smoothing
+still applies. This is kana-driven visual timing without audio, a reading dictionary,
+pitch/accent analysis or a real LLM/SSE connection. Kanji, Chinese and Latin input are
+rejected with a request for kana readings instead of silently disappearing.
+
+The shared demo now has a Japanese sample, a five-vowel sequence and individual
+あ / い / う / え / お buttons. Hidden, sleeping, cancelled and replaced speech does
+not continue revealing text. Good-mood/smug/awkward mouth overlays still yield during
+speech and restore afterward. The chest model receives the shared timing/UI changes;
+its original mouth drawings and archive are unchanged.
+
+`node experiments/mavatar/check-japanese-speech.mjs` passed vowel/text mapping,
+compound/foreign kana, long vowels, closures, punctuation, half-width normalization
+and invalid-input checks. **25 book checks and 21 chest checks passed**, including
+the five actual rendered vowel forms against revealed text, pause closure, natural
+completion, cancellation, kanji rejection and hide/sleep cancellation. Existing
+expression, fixed book/hand/chest/leg ROI, fallback and mobile checks also passed.
+
+Current holding-book runtime / `frieren-book.mavatar` and named snapshot
+`frieren-book-japanese-speech.mavatar`: **1,518,911 bytes**, SHA-256
+`95a535e9abc930b0da3e6f096ab2982abeac2d4972c1516bbc75b4a0cfeca76c`.
+Official sprite building and archive validation passed. Refresh
+<http://127.0.0.1:9489/> for the book model or <http://127.0.0.1:9488/> for the chest.
+The final variant is `projects/frieren-book/variants/mouth_i.png`. Raw generated
+crop, complete prompt/input roles (`generation.json`), reproducible assembly and
+before/after vowel sheets are retained in the private
+`projects/frieren-book/work/japanese-speech-20261124/` directory. Assets remain in
+the ignored Studio tree; the tracked repository contains only the bridge, UI,
+checks and this documentation.
+
+### Smaller Japanese a opening (2026-11-24)
+
+The owner requested a smaller **あ**, approximately the size of the current **お**.
+The bridge now uses native lip-sync openness **0** for a-vowel speech, selecting
+the existing `mouth_a_half` drawing (steady native opening about **0.495**, below
+the full-a threshold of **0.6**). Other vowels and pauses restore openness **0.3**;
+stop/cancellation also resets it. The full **あ** drawing previously reached about
+**0.738**; **お** remains about **0.615**. These are native opening values, not image
+area ratios. The actual 234 x 350 comparison shows a restrained small mouth close
+in visual size to お, while retaining a different shape.
+
+No new image generation or asset replacement was needed. The book/chest archives,
+approved i mouth and expression drawings are unchanged. The local comparison is
+`projects/frieren-book/work/mouth-a-size-20261124/openness-comparison.png`.
+Browser verification checks that a remains below the full-a threshold, opens less
+than o, and does not reduce i/u/e/o opening after the vowel transition.
+All **25 book checks and 21 chest checks passed** with this smaller-a setting.

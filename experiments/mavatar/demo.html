@@ -20,27 +20,28 @@
 </style>
 <main>
   <div class="eyebrow">MP UKAGAKA / LOCAL STUDY 01</div>
-  <h1>在寶箱上，休息一下。</h1>
-  <p class="intro">用同一張芙莉蓮立繪，試試眨眼、呼吸與說話。這個頁面用模擬文字串流驗證角色橋接，所有播放資源都來自本機。</p>
+  <h1>休息一下，聊聊魔法。</h1>
+  <p class="intro">試試芙莉蓮的眨眼、呼吸與說話。日文假名按拍顯示，同時切換對應嘴型；所有播放資源都來自本機。</p>
   <div class="lab">
     <section class="stage" aria-label="角色預覽">
-      <div id="avatar-host"><img id="poster" src="/poster.png" alt="坐在寶箱上的芙莉蓮"></div>
+      <div id="avatar-host"><img id="poster" src="/poster.png" alt="芙莉蓮完整立繪"></div>
       <span class="size-label">網站尺寸 · 高 350 px</span>
     </section>
     <section class="panel" aria-label="動作控制">
       <p id="status" role="status">正在準備角色…</p>
       <label for="emotion">情緒</label>
       <select id="emotion"><option value="neutral">平靜</option><option value="happy">開心</option><option value="relaxed">放鬆</option><option value="sad">難過</option><option value="angry">生氣</option><option value="surprised">驚訝</option><option value="awkward">尷尬／搪塞</option></select>
-      <label for="line">想讓她說的話</label>
-      <textarea id="line" rows="3">寶箱裡，也許還有值得收集的魔法。先休息一下吧。</textarea>
-      <div class="buttons"><button id="say" class="primary">模擬串流說話</button><button id="cancel">停止</button><button id="kana">日文假名嘴型</button></div>
+      <label for="line">想讓她說的日文（平假名／片假名）</label>
+      <textarea id="line" rows="3" lang="ja" aria-describedby="speech-note">こんにちは。フェルン、すこし、やすもう。まだ、まほうのほんを、よみたいんだ。</textarea>
+      <div class="buttons"><button id="say" class="primary">模擬日文串流</button><button id="cancel">停止</button><button id="kana">五母音依序試播</button></div>
+      <div class="buttons" aria-label="單獨試播母音"><button data-vowel="あ" lang="ja">あ</button><button data-vowel="い" lang="ja">い</button><button data-vowel="う" lang="ja">う</button><button data-vowel="え" lang="ja">え</button><button data-vowel="お" lang="ja">お</button></div>
       <div class="buttons"><button id="sleep">睡一下</button><button id="visibility">隱藏角色</button><button id="reload">重新載入</button><button id="fallback">測試靜態降級</button></div>
-      <div class="bubble" id="dialog" aria-live="polite">……這裡很適合休息呢。</div>
-      <p class="note">說話按鈕驅動嘴型，不產生語音。模擬串流採狀態驅動的嘴型節奏；日文按鈕另外測試上游的假名模式。</p>
+      <div class="bubble" id="dialog" lang="ja" aria-live="polite">……すこし、やすもう。</div>
+      <p class="note" id="speech-note">此處只模擬嘴型，不產生語音。請輸入假名讀音；漢字需先改寫成假名。支援拗音、長音、促音與標點停頓，可用上方五母音按鈕逐一比較。</p>
       <a class="download" href="/avatar.mavatar" download="frieren-runtime.mavatar">下載本機模型</a>
     </section>
   </div>
-  <p class="footer">實驗版本 · 請先檢查眼嘴、髮絲，以及雙手與寶箱的接觸點。</p>
+  <p class="footer">實驗版本 · 請檢查眼嘴、髮絲，以及雙手與物件的接觸點。</p>
 </main>
 <script type="module" src="/demo.mjs"></script>
 </html>
