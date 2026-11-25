@@ -540,3 +540,36 @@ approved i mouth and expression drawings are unchanged. The local comparison is
 Browser verification checks that a remains below the full-a threshold, opens less
 than o, and does not reduce i/u/e/o opening after the vowel transition.
 All **25 book checks and 21 chest checks passed** with this smaller-a setting.
+
+### Mora articulation and text/mouth synchronization (2026-11-25)
+
+On long lines the native smoothing blended consecutive moras into one held opening,
+and revealed text could run ahead of the drawing. `japanese-speech.mjs` now gives each
+timeline unit two closure windows:
+
+- **`lipClose`**: m/b/p onsets close for `min(0.03 s, 16%)` of the unit.
+- **`tailDip`**: before a mora with a consonant onset, or before a repeated vowel
+  (おお), the unit's last `min(0.045 s, 24%)` closes. Vowel glides such as あい / やすもう
+  stay open; ん / っ / punctuation already close and receive no extra dip.
+
+The bridge enforces these at any frame rate. When a long frame would skip a dip, or
+land after a bilabial window, it draws one closed frame (finishing the closure with
+`holdMouth('n')` at the same simulation instant) before the next mora opens. Text is
+published only after rendering: a new vowel's kana appears on the first frame whose
+native `mouthOpen` reaches **0.18** (the open sprite's half-opacity point), so text and
+drawing never disagree. Speaking while **surprised** temporarily drops the preset's
+held-open mouth parameters, keeping the eyes and raised brows; the full surprised face
+returns after speech ends or is cancelled. Speech uses `closeSpeed` **1** and restores
+**0.7** afterwards.
+
+Each forced closure frame rewinds the line clock to the next unit's start. Without
+compensation that overshoot accumulated: a 20-mora おま line at 0.1 s per mora took
+**2.5 s instead of 2.0 s** at 20 fps. The rewound time is now kept as debt and repaid by
+running the line clock up to **25%** faster on later frames, so the closures stay
+visible and the line still ends on schedule (measured **2.00 s** for おか and **2.05 s**
+for おま at 20 fps). This matters for the later audio/TTS alignment.
+
+`check-japanese-speech.mjs` adds articulation-dip assertions. Browser checks add
+closed-then-open boundaries for fast/low-fps, repeated-vowel, narrow-vowel, bilabial,
+glide and surprised cases, plus the 20 fps line-duration check. **27 book checks and
+23 chest checks passed.** No assets or archives changed.

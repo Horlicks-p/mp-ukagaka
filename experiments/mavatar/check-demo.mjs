@@ -344,12 +344,21 @@ try {
       bilabial: framesFor('おま', 0.1, 20),
       glide: framesFor('あい', 0.19, 120),
     };
+    // Forced closure frames rewind the line; long lines must still end on schedule.
+    const elapsedFor = (text, moraSeconds, fps) => {
+      b.speakKana(text, { moraSeconds });
+      let frames = 0;
+      while (b.state.speaking && frames < fps * 10) { av.advance(1 / fps, fps); frames++; }
+      return frames / fps;
+    };
+    const timing = { lowFps: elapsedFor('おかおかおかおかおかおかおかおかおかおか', 0.1, 20),
+      bilabialLowFps: elapsedFor('おまおまおまおまおまおまおまおまおまおま', 0.1, 20) };
     b.setEmotion('surprised'); av.advance(0.6, 60);
     boundaries.surprised = framesFor('おか', 0.1, 60);
     const restoredSurprise = av.getParameters().mouthOpen;
     b.setEmotion('neutral');
     av.setAutoIdle(true); el.paused = false;
-    return { samples, events, ended, cancelledText, cancelled, rejected, hidden, asleep, boundaries, restoredSurprise };
+    return { samples, events, ended, cancelledText, cancelled, rejected, hidden, asleep, boundaries, timing, restoredSurprise };
   });
   for (let i = 0; i < 5; i++) {
     const sample = japanese.samples[i], vowel = 'aiueo'[i];
@@ -386,6 +395,11 @@ try {
   assert(glide.every(frame => frame.open >= 0.18) && glide.some(frame => frame.text === 'あい'), 'vowel glide stays open');
   assert(japanese.restoredSurprise > 0.5, 'surprised mouth returns after speech');
   result.checks.push('mora boundaries render a closed dip and reveal the next vowel on a visibly open frame');
+  // 20 moras x 0.1 s: allow two 20 fps frames for the final closure and the done frame.
+  for (const [name, seconds] of Object.entries(japanese.timing)) {
+    assert(Math.abs(seconds - 2) <= 0.1 + 1e-9, `${name}: line took ${seconds}s instead of 2s`);
+  }
+  result.checks.push('forced closure frames do not lengthen long kana lines at 20 fps');
   result.japanese = japanese;
   result.checks.push('all five rendered vowels and streamed kana agree on the same simulation clock; punctuation closes the mouth');
   result.checks.push('Japanese timeline completes, cancels without late text, rejects kanji and stops on hide/sleep');

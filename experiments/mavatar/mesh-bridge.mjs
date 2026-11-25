@@ -198,7 +198,7 @@ export class MeshBridge extends EventTarget {
     let line;
     try { line = prepareJapaneseLine(text, options); }
     catch (error) { this.#update({ speechError: error.message }); return false; }
-    this.#japaneseLine = { line, seconds: 0, index: -1, vowel: null };
+    this.#japaneseLine = { line, seconds: 0, debt: 0, index: -1, vowel: null };
     avatar.setLipSync({ openness: 0.3, closeSpeed: 1 });
     avatar.setSpeaking(true);
     this.#update({ speaking: true, speechText: '', speechError: null });
@@ -210,7 +210,11 @@ export class MeshBridge extends EventTarget {
   #advanceSpeech(duration, avatar) {
     const playback = this.#japaneseLine;
     if (!playback) return;
-    playback.seconds += duration;
+    // Forced closure frames below rewind the clock; repay that debt by running up to
+    // a quarter faster afterwards, so long lines still finish on their scheduled time.
+    const catchUp = Math.min(playback.debt, duration * 0.25);
+    playback.debt -= catchUp;
+    playback.seconds += duration + catchUp;
     let sample = sampleJapaneseLine(playback.line, playback.seconds);
     if (sample.done) {
       this.stopSpeaking();
@@ -223,11 +227,13 @@ export class MeshBridge extends EventTarget {
     if (sample.index !== playback.index && previous?.tailDip &&
         avatar.getLipSyncState().open >= closedMouthThreshold) {
       // A long frame can skip the dip entirely. Draw one closed frame with the old text.
+      playback.debt += playback.seconds - unit.start;
       playback.seconds = unit.start;
       sample = sampleJapaneseLine(playback.line, previous.end - previous.tailDip / 2);
       finishClosing = true;
     } else if (sample.index !== playback.index && unit.lipClose && sample.vowel !== 'n') {
       // Keep a visible bilabial onset even when this frame lands after its window.
+      playback.debt += Math.max(0, playback.seconds - (unit.start + unit.lipClose));
       playback.seconds = unit.start + unit.lipClose;
       sample = sampleJapaneseLine(playback.line, unit.start);
       finishClosing = true;
