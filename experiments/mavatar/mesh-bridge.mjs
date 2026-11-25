@@ -3,6 +3,9 @@ import { prepareJapaneseLine, sampleJapaneseLine } from './japanese-speech.mjs';
 const emotions = new Set(['neutral', 'happy', 'sad', 'angry', 'surprised', 'relaxed', 'awkward', 'good_mood', 'smug']);
 const expressions = { neutral: 'neutral', happy: 'smile', sad: 'sad', angry: 'angry',
   surprised: 'surprise', relaxed: 'neutral', awkward: 'neutral' };
+// The open-mouth sprite starts fading in at 0.16 and reaches half opacity at 0.18.
+const closedMouthThreshold = 0.16;
+const visibleMouthOpening = 0.18;
 
 // A mostly open resting gaze with one slow close/hold/reopen in each 8.6 s cycle.
 // This clock advances with rendered animation, so hidden or sleeping avatars do not catch up.
@@ -102,8 +105,15 @@ export class MeshBridge extends EventTarget {
           this.#relaxedSeconds += duration;
           avatar.setParameters(relaxedPose(this.#relaxedSeconds));
         }
-        this.#advanceSpeech(duration);
+        const speech = this.#advanceSpeech(duration, avatar);
         advance(duration, fps);
+        if (speech?.finishClosing && avatar.getLipSyncState().open >= closedMouthThreshold) {
+          // Finish a short closure without advancing the rest of the avatar again.
+          avatar.stopLipSync();
+          avatar.holdMouth('n');
+          advance(0, fps);
+        }
+        if (speech) this.#publishSpeech(speech.sample, avatar.getParameters().mouthOpen);
         // Painted open eyes yield to the native blink; redraw the same simulation
         // instant only when visibility changed, so closed eyes are never covered.
         if (this.#syncOverlays()) advance(0, fps);
@@ -146,10 +156,14 @@ export class MeshBridge extends EventTarget {
     // picker represents a held expression, including the painted smiling-eye sprite.
     avatar.setEmotion(null, { playMotion: false });
     const face = this.#facePresets[this.state.emotion];
+    // The native surprise parameters hold the mouth open over lip sync.
+    // Keep its eye sprite and raised brows while letting kana drive the mouth.
+    const talkingSurprised = this.state.emotion === 'surprised' && !!this.#japaneseLine;
     avatar.setParameters(this.state.emotion === 'relaxed'
       ? relaxedPose(this.#relaxedSeconds) : this.state.emotion === 'awkward'
-        ? { eyeLOpen: 0, eyeROpen: 0, browY: 0.15, browAngle: -0.15 } : face?.parameters || {});
-    avatar.setExpression(face?.expression || expressions[this.state.emotion], { parameters: !face });
+        ? { eyeLOpen: 0, eyeROpen: 0, browY: 0.15, browAngle: -0.15 }
+        : talkingSurprised ? { browY: 1 } : face?.parameters || {});
+    avatar.setExpression(face?.expression || expressions[this.state.emotion], { parameters: !face && !talkingSurprised });
     this.#syncOverlays();
   }
 
@@ -166,13 +180,15 @@ export class MeshBridge extends EventTarget {
   }
 
   stopSpeaking() {
+    const restoreSurprise = this.state.emotion === 'surprised' && !!this.#japaneseLine;
     this.#japaneseLine = null;
     this.#element?.avatar?.setSpeaking(false);
     this.#element?.avatar?.stopLipSync();
-    this.#element?.avatar?.setLipSync({ openness: 0.3 });
+    this.#element?.avatar?.setLipSync({ openness: 0.3, closeSpeed: 0.7 });
     this.#element?.setVoiceLevel(0);
     this.#update({ speaking: false, speechUnit: '', speechVowel: null });
-    this.#syncOverlays();
+    if (restoreSurprise) this.#applyExpression();
+    else this.#syncOverlays();
   }
 
   speakKana(text, options) {
@@ -183,32 +199,59 @@ export class MeshBridge extends EventTarget {
     try { line = prepareJapaneseLine(text, options); }
     catch (error) { this.#update({ speechError: error.message }); return false; }
     this.#japaneseLine = { line, seconds: 0, index: -1, vowel: null };
+    avatar.setLipSync({ openness: 0.3, closeSpeed: 1 });
     avatar.setSpeaking(true);
     this.#update({ speaking: true, speechText: '', speechError: null });
-    this.#advanceSpeech(0);
-    this.#syncOverlays();
+    if (this.state.emotion === 'surprised') this.#applyExpression();
+    avatar.advance(0);
     return true;
   }
 
-  #advanceSpeech(duration) {
+  #advanceSpeech(duration, avatar) {
     const playback = this.#japaneseLine;
     if (!playback) return;
     playback.seconds += duration;
-    const sample = sampleJapaneseLine(playback.line, playback.seconds);
+    let sample = sampleJapaneseLine(playback.line, playback.seconds);
     if (sample.done) {
       this.stopSpeaking();
       this.#update({ speechText: playback.line.text });
       return;
     }
+    const previous = playback.line.units[playback.index];
+    const unit = playback.line.units[sample.index];
+    let finishClosing = false;
+    if (sample.index !== playback.index && previous?.tailDip &&
+        avatar.getLipSyncState().open >= closedMouthThreshold) {
+      // A long frame can skip the dip entirely. Draw one closed frame with the old text.
+      playback.seconds = unit.start;
+      sample = sampleJapaneseLine(playback.line, previous.end - previous.tailDip / 2);
+      finishClosing = true;
+    } else if (sample.index !== playback.index && unit.lipClose && sample.vowel !== 'n') {
+      // Keep a visible bilabial onset even when this frame lands after its window.
+      playback.seconds = unit.start + unit.lipClose;
+      sample = sampleJapaneseLine(playback.line, unit.start);
+      finishClosing = true;
+    } else if (sample.vowel === 'n') {
+      const inTail = unit.tailDip > 0 && playback.seconds >= unit.end - unit.tailDip;
+      const closureEnd = inTail ? unit.end : unit.start + unit.lipClose;
+      finishClosing = (inTail || unit.lipClose > 0) && playback.seconds + duration >= closureEnd - 1e-9;
+    }
     if (sample.vowel !== playback.vowel) {
       // Keep あ in the existing half-open drawing, near お's visible size.
       // Restore the usual opening for every other vowel and for pauses.
-      this.#element.avatar.setLipSync({ openness: sample.vowel === 'a' ? 0 : 0.3 });
-      this.#element.avatar.holdMouth(sample.vowel);
+      avatar.setLipSync({ openness: sample.vowel === 'a' ? 0 : 0.3 });
+      avatar.holdMouth(sample.vowel);
     }
-    if (sample.index !== playback.index || sample.vowel !== playback.vowel) {
-      playback.index = sample.index;
-      playback.vowel = sample.vowel;
+    playback.index = sample.index;
+    playback.vowel = sample.vowel;
+    return { sample, finishClosing };
+  }
+
+  #publishSpeech(sample, open) {
+    // A vowel target can change before the open sprite is visible. Reveal its text
+    // on the first rendered open frame; closures and pauses can show their own text.
+    if (sample.vowel !== 'n' && open < visibleMouthOpening && sample.text !== this.state.speechText) return;
+    if (sample.text !== this.state.speechText || sample.vowel !== this.state.speechVowel) {
       this.#update({ speechText: sample.text, speechUnit: sample.unit, speechVowel: sample.vowel });
     }
   }

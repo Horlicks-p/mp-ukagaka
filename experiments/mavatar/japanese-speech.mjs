@@ -23,7 +23,7 @@ export function prepareJapaneseLine(input, { moraSeconds = 0.19 } = {}) {
     } else groups.push(char);
   }
   let duration = 0, revealed = '';
-  const units = groups.map(group => {
+  const raw = groups.map(group => {
     const moras = kanaToMoras(group, moraSeconds);
     const first = moras[0], last = moras.at(-1);
     if (!last) throw new Error(`無法解析「${group}」的讀音。`);
@@ -33,7 +33,15 @@ export function prepareJapaneseLine(input, { moraSeconds = 0.19 } = {}) {
     const start = duration;
     duration += seconds;
     revealed += group;
-    return { text: group, revealed, vowel: last.vowel, onset: first.onset, start, end: duration };
+    return { text: group, revealed, vowel: last.vowel, onset: first.onset, start, end: duration, dur: seconds };
+  });
+  const units = raw.map((unit, index) => {
+    const next = raw[index + 1];
+    const lipClose = unit.onset === 'lips' ? Math.min(0.03, unit.dur * 0.16) : 0;
+    const needsDip = unit.vowel !== 'n' && next && next.vowel !== 'n'
+      && (next.onset !== null || next.vowel === unit.vowel);
+    const tailDip = needsDip ? Math.min(0.045, unit.dur * 0.24) : 0;
+    return { ...unit, lipClose, tailDip };
   });
   if (!units.some(unit => unit.vowel !== 'n')) throw new Error('請輸入包含母音的日文假名。');
   return { text, units, duration };
@@ -43,7 +51,9 @@ export function sampleJapaneseLine(line, seconds) {
   const index = line.units.findIndex(unit => seconds < unit.end - 1e-9);
   if (index === -1) return { done: true, text: line.text, unit: '', vowel: null, index };
   const unit = line.units[index];
-  // A short lip closure for m/b/p, then let the native engine smooth the vowel.
-  const closing = unit.onset === 'lips' && seconds - unit.start < Math.min(0.04, (unit.end - unit.start) * 0.2);
+  // Close briefly before a bilabial onset and dip at the boundary before consonant or
+  // repeated-vowel moras so each spoken syllable articulates clearly on long lines.
+  const closing = (unit.lipClose > 0 && seconds - unit.start < unit.lipClose)
+    || (unit.tailDip > 0 && seconds >= unit.end - unit.tailDip);
   return { done: false, text: unit.revealed, unit: unit.text, vowel: closing ? 'n' : unit.vowel, index };
 }

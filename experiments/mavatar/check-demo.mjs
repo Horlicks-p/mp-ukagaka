@@ -327,8 +327,29 @@ try {
     const asleep = { speaking: b.state.speaking, active: av.getLipSyncState().active };
     b.sleep(false); b.speakKana('あ'); av.advance(2, 60);
     b.removeEventListener('statechange', listener);
+    const framesFor = (text, moraSeconds, fps) => {
+      b.speakKana(text, { moraSeconds });
+      const frames = [];
+      for (let frame = 0; frame < fps * 2 && b.state.speaking; frame++) {
+        av.advance(1 / fps, fps);
+        if (b.state.speaking) frames.push({ text: b.state.speechText, open: av.getParameters().mouthOpen });
+      }
+      return frames;
+    };
+    const boundaries = {
+      fast: framesFor('おか', 0.1, 60),
+      skippedDip: framesFor('おか', 0.1, 20),
+      repeatedVowel: framesFor('おお', 0.1, 60),
+      narrowVowel: framesFor('あふ', 0.19, 120),
+      bilabial: framesFor('おま', 0.1, 20),
+      glide: framesFor('あい', 0.19, 120),
+    };
+    b.setEmotion('surprised'); av.advance(0.6, 60);
+    boundaries.surprised = framesFor('おか', 0.1, 60);
+    const restoredSurprise = av.getParameters().mouthOpen;
+    b.setEmotion('neutral');
     av.setAutoIdle(true); el.paused = false;
-    return { samples, events, ended, cancelledText, cancelled, rejected, hidden, asleep };
+    return { samples, events, ended, cancelledText, cancelled, rejected, hidden, asleep, boundaries, restoredSurprise };
   });
   for (let i = 0; i < 5; i++) {
     const sample = japanese.samples[i], vowel = 'aiueo'[i];
@@ -353,6 +374,18 @@ try {
   assert.equal(japanese.rejected.active, false);
   assert.deepEqual(japanese.hidden, { speaking: false, active: false });
   assert.deepEqual(japanese.asleep, { speaking: false, active: false });
+  for (const [name, first, next] of [['fast', 'お', 'おか'], ['skippedDip', 'お', 'おか'],
+    ['repeatedVowel', 'お', 'おお'], ['narrowVowel', 'あ', 'あふ'], ['surprised', 'お', 'おか']]) {
+    const frames = japanese.boundaries[name];
+    assert(frames.some(frame => frame.text === first && frame.open < 0.16), `${name}: close before revealing the next mora`);
+    assert(frames.find(frame => frame.text === next)?.open >= 0.18, `${name}: visibly open on the first frame of the next mora`);
+  }
+  const bilabial = japanese.boundaries.bilabial.filter(frame => frame.text === 'おま');
+  assert(bilabial[0]?.open < 0.16 && bilabial.some(frame => frame.open >= 0.18), 'bilabial onset closes before opening');
+  const glide = japanese.boundaries.glide.filter(frame => frame.text);
+  assert(glide.every(frame => frame.open >= 0.18) && glide.some(frame => frame.text === 'あい'), 'vowel glide stays open');
+  assert(japanese.restoredSurprise > 0.5, 'surprised mouth returns after speech');
+  result.checks.push('mora boundaries render a closed dip and reveal the next vowel on a visibly open frame');
   result.japanese = japanese;
   result.checks.push('all five rendered vowels and streamed kana agree on the same simulation clock; punctuation closes the mouth');
   result.checks.push('Japanese timeline completes, cancels without late text, rejects kanji and stops on hide/sleep');

@@ -24,4 +24,15 @@ for (const text of ['魔法', '你好', 'hello', '', 'ゃ', 'ー', '。', 'ん�
   assert.throws(() => prepareJapaneseLine(text), undefined, `must explain unsupported input: ${text}`);
 }
 assert.throws(() => prepareJapaneseLine('あ', { moraSeconds: NaN }));
-console.log('Japanese timeline: vowels, synchronized text, compound kana, long vowels, closures, pauses, normalization and unsupported-input checks passed.');
+const repeated = prepareJapaneseLine('にちすこし', { moraSeconds: 0.2 });
+assert.equal(sampleJapaneseLine(repeated, 0.1).vowel, 'i');
+assert.equal(sampleJapaneseLine(repeated, 0.18).vowel, 'n');
+assert.equal(sampleJapaneseLine(repeated, 0.21).vowel, 'i');
+assert.equal(sampleJapaneseLine(repeated, 0.38).vowel, 'n');
+assert.equal(sampleJapaneseLine(repeated, 0.41).vowel, 'u');
+assert.equal(sampleJapaneseLine(repeated, 0.58).vowel, 'n');
+assert.equal(sampleJapaneseLine(repeated, 0.78).vowel, 'n');
+assert.equal(sampleJapaneseLine(repeated, 0.98).vowel, 'i');
+const glide = prepareJapaneseLine('やすもう', { moraSeconds: 0.2 });
+assert.equal(sampleJapaneseLine(glide, 0.58).vowel, 'o');
+console.log('Japanese timeline: vowels, synchronized text, compound kana, long vowels, closures, pauses, articulation dips, normalization and unsupported-input checks passed.');
