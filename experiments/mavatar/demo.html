@@ -1,47 +1,102 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="ja">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>芙莉蓮 · Mesh 實驗室</title>
+<title>フリーレン · Mesh プレビュー</title>
 <style>
-  :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111a1a;color:#e4e9df}
-  *{box-sizing:border-box} body{margin:0;padding:40px 24px}main{max-width:1000px;margin:auto}
-  .eyebrow{color:#b0be96;letter-spacing:.16em;font-size:12px}h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:12px 0}
-  .intro{color:#aab7ae;line-height:1.8;max-width:700px}.lab{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px}
-  .stage{min-height:440px;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 40%,#34483d,#192622 75%);border:1px solid #35443a;border-radius:20px;position:relative;overflow:hidden}
-  #avatar-host{position:relative;width:234px;height:350px;flex:none}mesh-avatar,#poster{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:2/3;object-fit:contain}
-  [hidden]{display:none!important}.size-label{position:absolute;bottom:16px;font-size:12px;color:#a4b29f}.panel{background:#192421;border:1px solid #35443a;border-radius:20px;padding:24px}
-  label{display:block;font-size:13px;color:#bcc8b7;margin:0 0 8px}select,textarea{width:100%;background:#101b17;color:#e4e9df;border:1px solid #455948;border-radius:8px;padding:10px;font:inherit;margin-bottom:18px}
-  textarea{resize:vertical;line-height:1.6}button,a.download{font:inherit;cursor:pointer;border:1px solid #52664c;background:#293c2d;color:#e7eddf;border-radius:8px;padding:9px 13px;text-decoration:none;display:inline-block}
-  button:hover,a.download:hover{background:#3c533a}button:focus-visible,a:focus-visible{outline:2px solid #d4e5ad;outline-offset:3px}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
-  .primary{background:#b9ce9c;color:#172015;border-color:#b9ce9c}.bubble{min-height:90px;padding:18px;border-left:2px solid #acc491;background:#132019;white-space:pre-wrap;line-height:1.8;margin-top:20px}
-  #status{font-size:13px;color:#c0d6a4;min-height:2em}.note{font-size:12px;line-height:1.7;color:#9eafa1}.footer{margin-top:20px;color:#9eafa1;font-size:12px}a{color:#d1dfbe}
-  @media(max-width:700px){body{padding:24px 16px}.lab{grid-template-columns:1fr}.stage{min-height:400px}}
+  :root{--ink:#243348;--muted:#64758a;--canvas:#edf1f5;--surface:#fff;--line:#d7dfe8;--accent:#2563eb;--accent-soft:#edf3ff;--stage:#f7f9fc;--radius:12px;
+    font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic UI",sans-serif;
+    color:var(--ink);background:var(--canvas);font-synthesis:none;-webkit-font-smoothing:antialiased}
+  *{box-sizing:border-box}body{margin:0}button{font:inherit}[hidden]{display:none!important}
+  button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+  .shell{width:min(1120px,calc(100% - 48px));margin-inline:auto}
+  .site-header{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:80px;border-bottom:1px solid var(--line)}
+  .brand{display:inline-flex;align-items:center;gap:10px;font-size:16px;font-weight:650;white-space:nowrap}
+  .brand svg{width:30px;height:30px;color:var(--accent);flex:none}
+  .header-link{font-size:14px;color:var(--ink);text-decoration:none;white-space:nowrap}.header-link:hover{color:var(--accent)}
+  .intro{padding-block:40px 28px}
+  .eyebrow{margin:0 0 14px;font-size:13px;font-weight:650;letter-spacing:.08em;color:var(--accent)}
+  h1{margin:0;font-size:clamp(28px,3.4vw,40px);font-weight:650;line-height:1.35}
+  .lead{max-width:640px;margin:14px 0 0;font-size:16px;line-height:1.8;color:var(--muted)}
+  .lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;padding-bottom:40px}
+  .card{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);overflow:hidden;box-shadow:0 8px 28px #24334808}
+  .card-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;padding:12px 20px;border-bottom:1px solid var(--line);font-size:13px}
+  .card-title{display:inline-flex;align-items:center;gap:8px;font-weight:600;margin:0;font-size:13px}
+  .card-title::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  #status{margin:0;color:var(--muted);text-align:right;font-size:12px;line-height:1.5}
+  .stage{position:relative;display:grid;place-items:center;min-height:430px;background:var(--stage)}
+  #avatar-host{position:relative;width:234px;height:350px;flex:none}
+  mesh-avatar,#poster{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:2/3;object-fit:contain}
+  .size-label{position:absolute;right:14px;bottom:12px;font-size:11px;color:var(--muted)}
+  .bubble{min-height:64px;margin:0;padding:14px 20px;border-top:1px solid var(--line);white-space:pre-wrap;line-height:1.8;font-size:15px}
+  .card-body{padding:16px 20px}.card-body+.card-body{border-top:1px solid var(--line)}
+  .group-label{display:block;margin:0 0 10px;font-size:12px;font-weight:600;color:var(--muted)}
+  .chips,.buttons{display:flex;flex-wrap:wrap;gap:6px}
+  .chips button,.buttons button,a.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:550;text-decoration:none;cursor:pointer}
+  .chips button:hover,.buttons button:hover,a.button:hover{border-color:var(--accent);color:var(--accent)}
+  .chips button[aria-pressed='true']{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .buttons button.primary{border-color:var(--accent);background:var(--accent);color:#fff}.buttons button.primary:hover{background:#1d4ed8;color:#fff}
+  .vowels button{min-width:44px;font-size:15px}
+  .side{display:grid;gap:24px}
+  textarea{display:block;width:100%;margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--stage);color:var(--ink);font:inherit;font-size:15px;line-height:1.7;resize:vertical}
+  textarea:focus{border-color:var(--accent);background:var(--surface)}
+  .note{margin:12px 0 0;font-size:12px;line-height:1.7;color:var(--muted)}
+  .site-footer{border-top:1px solid var(--line);padding-block:20px 32px;color:var(--muted);font-size:12px;line-height:1.7}.site-footer p{margin:0}
+  @media(max-width:480px){.brand-sub{display:none}}
+  @media(max-width:860px){.lab{grid-template-columns:minmax(0,1fr)}.shell{width:calc(100% - 32px)}.intro{padding-block:28px 20px}}
 </style>
-<main>
-  <div class="eyebrow">MP UKAGAKA / LOCAL STUDY 01</div>
-  <h1>休息一下，聊聊魔法。</h1>
-  <p class="intro">試試芙莉蓮的眨眼、呼吸與說話。日文假名按拍顯示，同時切換對應嘴型；所有播放資源都來自本機。</p>
-  <div class="lab">
-    <section class="stage" aria-label="角色預覽">
-      <div id="avatar-host"><img id="poster" src="/poster.png" alt="芙莉蓮完整立繪"></div>
-      <span class="size-label">網站尺寸 · 高 350 px</span>
+<div class="shell">
+  <header class="site-header">
+    <span class="brand"><svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M16 3 27 9.5v13L16 29 5 22.5v-13Z"/><path d="M5 9.5 27 22.5M27 9.5 5 22.5M16 3v26"/></svg>MP Ukagaka<span class="brand-sub"> · Mesh プレビュー</span></span>
+    <a class="header-link" href="/avatar.mavatar" download="frieren-runtime.mavatar">モデルをダウンロード <span aria-hidden="true">↓</span></a>
+  </header>
+  <main>
+    <section class="intro">
+      <p class="eyebrow">MP UKAGAKA ／ ローカル検証</p>
+      <h1>ちょっと休憩して、魔法の話でも。</h1>
+      <p class="lead">フリーレンのまばたき、呼吸、口の動きを試せます。かなは1拍ずつ表示され、同時に口の形が切り替わります。読み込むファイルはすべてこのPCのものです。</p>
     </section>
-    <section class="panel" aria-label="動作控制">
-      <p id="status" role="status">正在準備角色…</p>
-      <label for="emotion">情緒</label>
-      <select id="emotion"><option value="neutral">平靜</option><option value="happy">開心</option><option value="relaxed">放鬆</option><option value="sad">難過</option><option value="angry">生氣</option><option value="surprised">驚訝</option><option value="awkward">尷尬／搪塞</option></select>
-      <label for="line">想讓她說的日文（平假名／片假名）</label>
-      <textarea id="line" rows="3" lang="ja" aria-describedby="speech-note">こんにちは。フェルン、すこし、やすもう。まだ、まほうのほんを、よみたいんだ。</textarea>
-      <div class="buttons"><button id="say" class="primary">模擬日文串流</button><button id="cancel">停止</button><button id="kana">五母音依序試播</button></div>
-      <div class="buttons" aria-label="單獨試播母音"><button data-vowel="あ" lang="ja">あ</button><button data-vowel="い" lang="ja">い</button><button data-vowel="う" lang="ja">う</button><button data-vowel="え" lang="ja">え</button><button data-vowel="お" lang="ja">お</button></div>
-      <div class="buttons"><button id="sleep">睡一下</button><button id="visibility">隱藏角色</button><button id="reload">重新載入</button><button id="fallback">測試靜態降級</button></div>
-      <div class="bubble" id="dialog" lang="ja" aria-live="polite">……すこし、やすもう。</div>
-      <p class="note" id="speech-note">此處只模擬嘴型，不產生語音。請輸入假名讀音；漢字需先改寫成假名。支援拗音、長音、促音與標點停頓，可用上方五母音按鈕逐一比較。</p>
-      <a class="download" href="/avatar.mavatar" download="frieren-runtime.mavatar">下載本機模型</a>
-    </section>
-  </div>
-  <p class="footer">實驗版本 · 請檢查眼嘴、髮絲，以及雙手與物件的接觸點。</p>
-</main>
+    <div class="lab">
+      <section class="card" aria-labelledby="preview-title">
+        <div class="card-heading">
+          <h2 class="card-title" id="preview-title">動作プレビュー</h2>
+          <p id="status" role="status">準備しています…</p>
+        </div>
+        <div class="stage">
+          <div id="avatar-host"><img id="poster" src="/poster.png" alt="フリーレンの全身イラスト"></div>
+          <span class="size-label">サイト表示サイズ · 高さ 350 px</span>
+        </div>
+        <p class="bubble" id="dialog" lang="ja" aria-live="polite">……すこし、やすもう。</p>
+        <div class="card-body">
+          <span class="group-label" id="emotion-label">表情</span>
+          <div class="chips" id="emotion" role="group" aria-labelledby="emotion-label"></div>
+        </div>
+      </section>
+      <div class="side">
+        <section class="card" aria-labelledby="line-title">
+          <div class="card-heading"><h2 class="card-title" id="line-title"><label for="line">セリフ（ひらがな・カタカナ）</label></h2></div>
+          <div class="card-body">
+            <textarea id="line" rows="3" aria-describedby="speech-note">こんにちは。フェルン、すこし、やすもう。まだ、まほうのほんを、よみたいんだ。</textarea>
+            <div class="buttons"><button id="say" class="primary" type="button">話す</button><button id="cancel" type="button">止める</button></div>
+            <p class="note" id="speech-note">口の動きだけを再現します。音声は流れません。漢字は読みのかなに書き換えて入力してください。拗音・長音・促音と、句読点の間に対応しています。</p>
+          </div>
+        </section>
+        <section class="card" aria-labelledby="mouth-title">
+          <div class="card-heading"><h2 class="card-title" id="mouth-title">口の形</h2></div>
+          <div class="card-body">
+            <div class="buttons vowels" role="group" aria-label="母音を一つずつ試す"><button type="button" data-vowel="あ">あ</button><button type="button" data-vowel="い">い</button><button type="button" data-vowel="う">う</button><button type="button" data-vowel="え">え</button><button type="button" data-vowel="お">お</button><button id="kana" type="button">あいうえおを順に</button></div>
+          </div>
+        </section>
+        <section class="card" aria-labelledby="state-title">
+          <div class="card-heading"><h2 class="card-title" id="state-title">状態</h2></div>
+          <div class="card-body">
+            <div class="buttons"><button id="sleep" type="button">眠らせる</button><button id="visibility" type="button">アバターを隠す</button><button id="reload" type="button">再読み込み</button><button id="fallback" type="button">静止画への切り替えを試す</button></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"><p>実験版 · 目と口、髪、手と本や物が触れている部分を確認してください。</p></footer>
+</div>
 <script type="module" src="/demo.mjs"></script>
 </html>

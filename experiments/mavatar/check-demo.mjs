@@ -288,7 +288,7 @@ try {
     result.checks.push('reference mouths yield to mock speech/kana, restore after natural kana end and cancellation');
     result.checks.push('good mood/smug survive sleep, visibility changes and reload without overlay leakage');
   }
-  await page.selectOption('#emotion', 'happy');
+  await page.click('[data-emotion="happy"]');
   await page.click('#say');
   await page.waitForFunction(() => window.mavatarDemo.state.speaking);
   await page.waitForFunction(() => document.getElementById('dialog').textContent.length >= 4);
@@ -379,7 +379,7 @@ try {
   assert.equal(japanese.ended.speechText, 'あいうえお、きゃティまんっコー。');
   assert.equal(japanese.cancelled.speechText, japanese.cancelledText);
   assert.equal(japanese.cancelled.speaking, false); assert.equal(japanese.cancelled.active, false);
-  assert.equal(japanese.rejected.invalid, false); assert(japanese.rejected.error.includes('假名'));
+  assert.equal(japanese.rejected.invalid, false); assert(japanese.rejected.error.includes('かな'));
   assert.equal(japanese.rejected.active, false);
   assert.deepEqual(japanese.hidden, { speaking: false, active: false });
   assert.deepEqual(japanese.asleep, { speaking: false, active: false });
@@ -403,7 +403,7 @@ try {
   result.japanese = japanese;
   result.checks.push('all five rendered vowels and streamed kana agree on the same simulation clock; punctuation closes the mouth');
   result.checks.push('Japanese timeline completes, cancels without late text, rejects kanji and stops on hide/sleep');
-  await page.selectOption('#emotion', 'happy');
+  await page.click('[data-emotion="happy"]');
   await page.click('#sleep');
   await page.waitForFunction(() => window.mavatarDemo.state.sleeping);
   await page.screenshot({ path: path.join(output, 'sleep.png'), fullPage: true });

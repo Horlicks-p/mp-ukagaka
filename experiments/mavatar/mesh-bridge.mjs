@@ -62,7 +62,7 @@ export class MeshBridge extends EventTarget {
     if (generation !== this.#generation) return false;
     const element = document.createElement('mesh-avatar');
     element.src = source;
-    element.setAttribute('label', '芙莉蓮');
+    element.setAttribute('label', 'フリーレン');
     element.hidden = !this.state.visible;
     element.paused = !this.state.visible;
     this.#element = element;
