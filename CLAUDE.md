@@ -122,7 +122,7 @@ SSE event types: `delta`, `status`, `nonce`, `done`, `error`
 
 Always follow these patterns:
 
-1. **API Key Storage**: Encrypted with AES-256-CBC. Never store or log plaintext API keys.
+1. **API Key Storage**: Encrypted with AES-256-GCM (`mpu_enc2:` prefix; legacy `mpu_enc:` / `mpu_obf:` are still decrypted for compatibility). Never store or log plaintext API keys.
 2. **Nonce Verification**: All form submissions and AJAX calls verify WordPress nonces.
 3. **Sanitization**: Use WordPress core functions (`sanitize_text_field`, `wp_kses`, etc.) at input boundaries.
 4. **Escaping**: Use `esc_html`, `esc_attr`, `esc_url` at output boundaries.
