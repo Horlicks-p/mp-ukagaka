@@ -4,6 +4,22 @@
 
 ---
 
+## [2.41.1] - 2026-11-25
+
+### Story Talk
+
+- **Story lines have their own color.** The default player wraps each story line in `<span class="mpu-story-line">`, shown in a new per-theme token `--mpu-internal-dialog-story-text`: a deeper, more saturated take on the theme's link hue (default `#14426e`, sapphire `#15437a`, crimson `#7a2230`, forest `#144d39`), each at least 4.5:1 against the dialog paper. Story text cannot contain `<`, `>` or `&`, so the wrapper is safe. Chat history still stores plain text, and the color goes away once the next normal line replaces the bubble.
+
+### Frieren
+
+- Her story lines are paced about 15% slower than in v2.41.0, so each line can be read before the next one: `step_pause` is 1200 ms + 65 ms per character, kept between 2.5 and 6.5 seconds (was 1000 ms + 55 ms, 2.0 to 5.5 seconds). Per-step `pause_ms` overrides, such as the 3 seconds after her flying kiss, are unchanged.
+
+### Documentation
+
+- The Character Creation Guide documents the story-line span and its color.
+
+---
+
 ## [2.41.0] - 2026-11-21
 
 ### Story Talk
