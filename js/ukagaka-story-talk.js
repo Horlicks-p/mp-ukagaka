@@ -32,7 +32,9 @@ function mpuCreateStoryTalk(overrides = {}) {
         ownsBlock: () => mpuHasMessageBlock("story-talk"),
         runId: () => mpuGetTypewriterRunId(),
         speed: () => mpuTypewriterSpeed,
-        typewrite: (text, options) => mpu_typewriter(text, "#ukagaka_msg", null, options),
+        // Story text is validated to contain no <, > or &, so wrapping it is safe.
+        // The span only colors the bubble; history keeps the plain text.
+        typewrite: (text, options) => mpu_typewriter(`<span class="mpu-story-line">${text}</span>`, "#ukagaka_msg", null, options),
         cancelTypewriter: () => mpu_cancelTypewriter(),
         emoji: (emoji) => mpuDisplayDialogueEmoji(emoji),
         show: () => mpu_showmsg(400),
